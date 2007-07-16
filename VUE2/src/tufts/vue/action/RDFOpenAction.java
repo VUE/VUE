@@ -245,6 +245,43 @@ public class RDFOpenAction extends VueAction {
     
     private static LWNode createNodeFromResource(com.hp.hpl.jena.rdf.model.Resource r) {
         tufts.vue.MapResource resource = new MapResource(r.getURI());
+        
+        com.hp.hpl.jena.rdf.model.StmtIterator stmtIterator = r.listProperties();
+        java.util.Properties properties = new java.util.Properties();
+        
+        while(stmtIterator.hasNext()){
+                      com.hp.hpl.jena.rdf.model.Statement stmt = stmtIterator.nextStatement();
+                      Object obj = stmt.getObject();
+                      /*if(obj instanceof com.hp.hpl.jena.rdf.model.Resource) {
+                          Iterator nodeIterator = map.getNodeIterator();
+                          while(nodeIterator.hasNext()) {
+                              LWNode nodeCon = (LWNode)nodeIterator.next();
+                              if(nodeCon.getResource().getSpec().equals(((com.hp.hpl.jena.rdf.model.Resource)obj).getURI())){
+                                    LWLink link = new LWLink(node,nodeCon);
+                                    link.setLabel(stmt.getPredicate().getLocalName());
+                                    System.out.println("Resource"+r.getURI()+"Predicate: "+stmt.getPredicate().getLocalName()+"Object:"+obj);
+                                    node.setLocation(node.getLocation().getX(),node.getLocation().getY()-20);
+                                    nodeCon.setLocation(nodeCon.getLocation().getX(),nodeCon.getLocation().getY()-20);
+                                    map.addLink(link);
+                              }
+                          }
+                          System.out.println("Resource: "+r.getURI()+" sub resource:"+obj.toString());
+                      }else*/ if(obj instanceof com.hp.hpl.jena.rdf.model.Literal) {
+                          properties.setProperty(stmt.getPredicate().getLocalName(), obj.toString());
+                          System.out.println("Resource: "+r.getURI()+" Literal:"+obj.toString()+" Predicate"+stmt.getPredicate());
+                      }
+                      //System.out.println("Literal="+stmt.getLiteral()+"predicate ="+stmt.getPredicate());
+        }
+        
+        
+        java.util.Enumeration keys = properties.keys();
+        while(keys.hasMoreElements())
+        {
+                    String key = keys.nextElement().toString();
+                    System.out.println("RDFOpen adding property for key: " + key);
+                    resource.setProperty(key,properties.getProperty(key));
+        }
+        
         LWNode node = new LWNode(r.getURI());
         node.setResource(resource);
         node.setLocation(Math.random()*400,Math.random()*400);
