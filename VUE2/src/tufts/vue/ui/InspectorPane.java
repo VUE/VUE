@@ -35,16 +35,22 @@ import javax.swing.border.*;
 
 import edu.tufts.vue.fsm.event.SearchEvent;
 import edu.tufts.vue.fsm.event.SearchListener;
+import edu.tufts.vue.metadata.ui.MetadataEditor;
 
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-06-08 18:24:43 $ / $Author: mike $
+ * @version $Revision: 1.38 $ / $Date: 2007-07-17 13:51:48 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
     implements VueConstants, LWSelection.Listener, ResourceSelection.Listener, SearchListener
 {
+    
+    public static int OLD = 0;
+    public static int NEW = 1;
+    public static final int META_VERSION = OLD; 
+    
     private final Image NoImage = VueResources.getImage("NoImage");
 
     private final boolean isMacAqua = GUI.isMacAqua();
@@ -78,7 +84,14 @@ public class InspectorPane extends JPanel
         stack.addPane("Content Preview",        mPreview,               0.3f);
         stack.addPane("Content Info",           mResourceMetaData,      1f);
         stack.addPane("Notes",                  mNotePanel,             1f);
-        stack.addPane("Keywords",               mUserMetaData,          1f);
+        if(META_VERSION == OLD)
+        {
+          stack.addPane("Keywords",               mUserMetaData,          1f);
+        }
+        else
+        {
+          stack.addPane("Tags",               mUserMetaData,          1f);  
+        }
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
 
         Widget.setExpanded(mUserMetaData, false);
@@ -358,10 +371,14 @@ public class InspectorPane extends JPanel
     public static class UserMetaData extends JPanel
     {
         private NodeFilterEditor userMetaDataEditor = null;
+        private MetadataEditor userMetadataEditor = null;
         
         public UserMetaData()
         {
             super(new BorderLayout());
+            
+            if(META_VERSION == NEW)
+                setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
             //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
 
             // todo in VUE to create map before adding panels or have a model that
@@ -372,17 +389,28 @@ public class InspectorPane extends JPanel
 
         void load(LWComponent c) {
             //setTypeName(this, c, "Keywords");
-            if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + c);
-            if (userMetaDataEditor != null) {
-                //System.out.println("USER META SET: " + c.getNodeFilter());
-                userMetaDataEditor.setNodeFilter(c.getNodeFilter());
-            } else {
-                if (VUE.getActiveMap() != null && c.getNodeFilter() != null) {
-                    // NodeFilter bombs entirely if no active map, so don't let
-                    // it mess us up if there isn't one.
-                    userMetaDataEditor = new NodeFilterEditor(c.getNodeFilter(), true);
-                    add(userMetaDataEditor, BorderLayout.CENTER);
-                    //System.out.println("USER META DATA ADDED: " + userMetaDataEditor);
+            if(META_VERSION == OLD)
+            {
+              if (DEBUG.SELECTION) System.out.println("NodeFilterPanel.updatePanel: " + c);
+              if (userMetaDataEditor != null) {
+                  //System.out.println("USER META SET: " + c.getNodeFilter());
+                  userMetaDataEditor.setNodeFilter(c.getNodeFilter());
+              } else {
+                  if (VUE.getActiveMap() != null && c.getNodeFilter() != null) {
+                      // NodeFilter bombs entirely if no active map, so don't let
+                      // it mess us up if there isn't one.
+                      userMetaDataEditor = new NodeFilterEditor(c.getNodeFilter(), true);
+                      add(userMetaDataEditor, BorderLayout.CENTER);
+                      //System.out.println("USER META DATA ADDED: " + userMetaDataEditor);
+                  }
+              }
+            }
+            else
+            {
+                if(userMetadataEditor == null)
+                {
+                  userMetadataEditor = new MetadataEditor(c);
+                  add(userMetadataEditor,BorderLayout.CENTER);
                 }
             }
         }
