@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.23 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -208,9 +208,8 @@ public class LWTraversal {
 
     public static class PointPick extends LWTraversal.Picker
     {
-        final float mapX, mapY;
-
         final Point2D.Float mapPoint = new Point2D.Float();
+        final Point2D.Float nodePoint = new Point2D.Float();
             
         private LWComponent hit;
         private LWComponent closeHit;
@@ -218,8 +217,6 @@ public class LWTraversal {
 
         public PointPick(PickContext pc) {
             super(pc);
-            mapX = pc.x;
-            mapY = pc.y;
             mapPoint.x = pc.x;
             mapPoint.y = pc.y;
         }
@@ -241,30 +238,22 @@ public class LWTraversal {
             //if (DEBUG.PICK && DEBUG.META) eout("PointPick VISITED: " + c);
             if (DEBUG.PICK) eout("   VISIT: " + c);
 
-            final Point2D p;
+            c.transformMapToLocalPoint(mapPoint, nodePoint);
+            if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + nodePoint);
 
-            try {
-                // todo: can keep a cached transform for each parent encountered...
-
-                // TODO: do this in acceptTraversal, only when descending to children if there
-                // are any, and might want to leave us in the parent space when checking the
-                // children, so we could have one generic contains that always operates in the
-                // parent's space.  Only drawback is that contains/intersects will have do
-                // adjust for local scale, or, god forbid, a rotation, tho in the common cases
-                // where there aren't any, it's probably alot faster... (will never handle
-                // rotation tho if we check in parent coords)
-                // todo: use transformMapToLocalPoint, and override it in LWMap/LWLink for
-                // optimization / avoid creating all those empty AffineTransform's...
-                    
-                p = c.getLocalTransform().inverseTransform(mapPoint, null);
-                if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + p);
-            } catch (java.awt.geom.NoninvertibleTransformException e) {
-                e.printStackTrace();
-                return;
-            }
+//             try {
+//                 // todo: can keep a cached transform for each parent encountered...
+//                 // todo: use transformMapToLocalPoint, and override it in LWMap/LWLink for
+//                 // optimization / avoid creating all those empty AffineTransform's...
+//                 c.getLocalTransform().inverseTransform(mapPoint, localPoint);
+//                 if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + localPoint);
+//             } catch (java.awt.geom.NoninvertibleTransformException e) {
+//                 e.printStackTrace();
+//                 return;
+//             }
                 
-            final float hitResult = c.pickDistance((float) p.getX(),
-                                                   (float) p.getY(),
+            final float hitResult = c.pickDistance(nodePoint.x,
+                                                   nodePoint.y,
                                                    pc.zoom);
 
             //if (DEBUG.PICK && DEBUG.META) {

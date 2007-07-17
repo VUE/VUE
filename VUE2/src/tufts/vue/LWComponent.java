@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.304 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.305 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3332,7 +3332,7 @@ u                    getSlot(c).setFromString((String)value);
             }
             
 
-            relative.transformMapToLocalPoint(point);
+            relative.transformMapToLocalPoint(point, point);
         }
     }
 
@@ -3660,23 +3660,20 @@ u                    getSlot(c).setFromString((String)value);
 
     }
 
-    /** @param mapPoint will be transformed (written over) and returned */
-    protected Point2D.Float transformMapToLocalPoint(Point2D.Float mapPoint) {
-
-        if (this instanceof LWLink && getParent() instanceof LWMap) {
-            // this is an optimization we'll want to remove if we ever
-            // embed maps in maps
-            // TODO: above is also last vestige of special case for LWLink coordinate system (they're always in parent)
-            return mapPoint;
-        }
-
+    /**
+     * @param mapPoint, a point in map coordinates to transform to local coordinates
+     * @param nodePoint the destination Point2D to place the resulting transformed coordinate -- may be
+     * the same object as mapPoint (it will be written over)
+     * @return the transformed point (will be nodePoint if transformed, mapPoint if no transformation was needed,
+     * although mapPoint x/y values should stil be copied to nodePoint)
+     */
+    public Point2D transformMapToLocalPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
         try {
-            getLocalTransform().inverseTransform(mapPoint, mapPoint);
+            getLocalTransform().inverseTransform(mapPoint, nodePoint);
         } catch (java.awt.geom.NoninvertibleTransformException e) {
             Util.printStackTrace(e);
         }
-
-        return mapPoint;
+        return nodePoint;
         
     }
 

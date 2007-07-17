@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.156 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.157 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1720,6 +1720,13 @@ public class LWLink extends LWComponent
     }
     
     
+    /** as all link coordinates are relative to their parent, this just calls
+        parent.transformMapToLocalPoint */
+    @Override
+    public Point2D transformMapToLocalPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
+        return parent.transformMapToLocalPoint(mapPoint, nodePoint);
+    }
+    
     @Override
     public void transformRelative(final Graphics2D g) {
         // do nothing: link coordinate space is in it's parent
@@ -2825,13 +2832,13 @@ public class LWLink extends LWComponent
 
     @Override
     protected float getLocalCenterX() {
-        if (endpointMoved) computeLink();
+        //if (endpointMoved) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
         return mCurveControls > 0 ? mCurveCenterX : centerX;
     }
     
     @Override
     protected float getLocalCenterY() {
-        if (endpointMoved) computeLink();
+        //if (endpointMoved) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
         return mCurveControls > 0 ? mCurveCenterY : centerY;
     }
     

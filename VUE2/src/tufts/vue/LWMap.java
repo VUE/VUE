@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.144 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.145 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1265,6 +1265,16 @@ public class LWMap extends LWContainer
     /** optimized LWMap noop: remove if/when embed maps in maps */
     @Override
     public void transformLocal(final Graphics2D g) {}
+    /** optimized LWMap noop: remove if/when embed maps in maps
+     * Just copies mapPoint to nodePoint.
+     * @return mapPoint
+     */
+    @Override
+    public Point2D transformMapToLocalPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
+        nodePoint.x = mapPoint.x;
+        nodePoint.y = mapPoint.y;
+        return mapPoint;
+    }
     
     
     public String toString() {
