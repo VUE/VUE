@@ -1207,6 +1207,12 @@ public class Util
         
     }
 
+    public static String fmt(java.awt.geom.Point2D p) {
+        if (p == null)
+            return "<null-Point2D>";
+        else
+            return String.format("%.1f,%.1f", p.getX(), p.getY());
+    }
     
 
     public static void out(Object o) {
@@ -1226,11 +1232,7 @@ public class Util
     }
     
     public static String out(java.awt.geom.Point2D p) {
-        if (p == null)
-            return "<null Point2D>";
-        else
-            return String.format("%.1f,%.1f", p.getX(), p.getY());
-
+        return fmt(p);
         //return oneDigitDecimal(p.getX()) + "," + oneDigitDecimal(p.getY());
         //return (float)p.getX() + "," + (float)p.getY();
     }
