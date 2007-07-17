@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.80 $ / $Date: 2007-06-26 15:59:12 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2007-07-17 00:27:41 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -382,6 +382,7 @@ public class VueUtil extends tufts.Util
     /**
      * On a line drawn from the center of c1 to the center of c2, compute the the line segment
      * from the intersection at the edge of shape c1 to the intersection at the edge of shape c2.
+     * The returned line will be in the LWMap coordinate space.
      */
     
     public static Line2D.Float computeConnector(LWComponent c1, LWComponent c2, Line2D.Float result)
