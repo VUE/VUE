@@ -24,6 +24,7 @@ import java.util.*;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.print.Printable;
@@ -56,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.143 $ / $Date: 2007-07-12 02:08:14 $ / $Author: sfraize $
+ * @version $Revision: 1.144 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1201,21 +1202,21 @@ public class LWMap extends LWContainer
     }
     
     
-    /**
-     * return the shape bounds for all LWComponents in the iterator
-     * (does NOT include stroke widths) -- btw -- would make
-     * more sense to put these in the LWContainer class.
-     */
-    public static Rectangle2D getShapeBounds(Iterator<LWComponent> i) {
-        Rectangle2D rect = new Rectangle2D.Float();
+//     /**
+//      * return the shape bounds for all LWComponents in the iterator
+//      * (does NOT include stroke widths) -- btw -- would make
+//      * more sense to put these in the LWContainer class.
+//      */
+//     public static Rectangle2D getShapeBounds(Iterator<LWComponent> i) {
+//         Rectangle2D rect = new Rectangle2D.Float();
         
-        if (i.hasNext()) {
-            rect.setRect(((LWComponent)i.next()).getShapeBounds());
-            while (i.hasNext())
-                rect.add(((LWComponent)i.next()).getShapeBounds());
-        }
-        return rect;
-    }
+//         if (i.hasNext()) {
+//             rect.setRect(((LWComponent)i.next()).getShapeBounds());
+//             while (i.hasNext())
+//                 rect.add(((LWComponent)i.next()).getShapeBounds());
+//         }
+//         return rect;
+//     }
     
     /** returing a bounding rectangle that includes all the upper left
      * hand corners of the given components */
@@ -1248,6 +1249,23 @@ public class LWMap extends LWContainer
         }
         return rect;
     }
+
+
+
+
+    /** optimized for LWMap: remove if/when embed maps in maps */
+    @Override
+    public AffineTransform getLocalTransform() { return new AffineTransform(); }
+    /** optimized LWMap noop: remove if/when embed maps in maps */
+    @Override
+    public AffineTransform transformDown(final AffineTransform a) { return a; }
+    /** optimized LWMap noop: remove if/when embed maps in maps */
+    @Override
+    public void transformRelative(final Graphics2D g) {}
+    /** optimized LWMap noop: remove if/when embed maps in maps */
+    @Override
+    public void transformLocal(final Graphics2D g) {}
+    
     
     public String toString() {
         StringBuffer buf = new StringBuffer("LWMap[");

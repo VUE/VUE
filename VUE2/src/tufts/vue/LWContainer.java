@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.122 $ / $Date: 2007-07-12 02:10:04 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -464,7 +464,7 @@ public abstract class LWContainer extends LWComponent
         // the component has absolute map location.
 
         //if (!c.hasAbsoluteMapLocation() && !hasAbsoluteChildren() && (oldParent == null || !oldParent.hasAbsoluteChildren())) {
-        if (!c.hasAbsoluteMapLocation() && oldParent != null) {
+        if (oldParent != null) {
             if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("localizing coordinates: " + c + " oldParent=" + oldParent);
 
             final LWComponent eventSource;

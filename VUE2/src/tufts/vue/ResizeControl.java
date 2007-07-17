@@ -117,7 +117,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             } else {
                 //mOriginal_each_bounds[idx] = c.getShapeBounds();
                 mOriginal_each_bounds[idx] = c.getBounds();
-                if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
+                if (DEBUG.LAYOUT) System.out.println(this + " " + c + " bounds " + c.getBounds());
+                //if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
             }
             idx++;
             //mOriginal_each_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
@@ -272,7 +273,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
             if (moved) {
                 
-                if (!c.hasAbsoluteMapLocation()) {
+                //if (!c.hasAbsoluteMapLocation()) {
+                if (true) {
                     if (DEBUG.WORK) System.out.format("RC: new absolute loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
                     newX -= c.getParent().getMapX();
                     newY -= c.getParent().getMapY();
@@ -426,7 +428,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 repositioned = true;
             }
 
-            if (repositioned && !c.hasAbsoluteMapLocation()) {
+            //if (repositioned && !c.hasAbsoluteMapLocation()) {
+            if (repositioned) {
                 c_new_x -= c.getParent().getMapX();
                 c_new_y -= c.getParent().getMapY();
                 if (DEBUG.WORK) System.out.println("new relative loc: " + c_new_x + "," + c_new_y + " for " + c);

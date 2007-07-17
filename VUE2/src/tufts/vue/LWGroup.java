@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * together.
  *
  * @author Scott Fraize
- * @version $Revision: 1.71 $ / $Date: 2007-07-12 02:09:13 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -144,7 +144,8 @@ public class LWGroup extends LWContainer
             new HashSet<LWComponent>() {
                 @Override
                 public boolean add(LWComponent c) {
-                    if (LWLink.LOCAL_LINKS && c instanceof LWLink && ((LWLink)c).isBound()) {
+                    //if (LWLink.LOCAL_LINKS && c instanceof LWLink && ((LWLink)c).isBound()) {
+                    if (c instanceof LWLink && ((LWLink)c).isBound()) {
                         // don't add any links that are connected to anything: they'll reparent themselves
                         return false;
                     } else
@@ -160,36 +161,35 @@ public class LWGroup extends LWContainer
             c.getAllDescendents(ChildKind.PROPER, allUniqueDescendents);
         }
 
-        if (LWLink.LOCAL_LINKS == false) { // links auto-handle this with local-links
+//         if (LWLink.LOCAL_LINKS == false) { // links auto-handle this with local-links
 
-            //----------------------------------------------------------------------------------------
-            // If both ends of any link are in the selection of what's being added to the
-            // group, or are descendents of what's be added to the group, and that link's
-            // parent is not already something other than the default link parent, scoop it
-            // up as a proper child of the new group.
-            //----------------------------------------------------------------------------------------
+//             //----------------------------------------------------------------------------------------
+//             // If both ends of any link are in the selection of what's being added to the
+//             // group, or are descendents of what's be added to the group, and that link's
+//             // parent is not already something other than the default link parent, scoop it
+//             // up as a proper child of the new group.
+//             //----------------------------------------------------------------------------------------
 
-            final HashSet uniqueLinks = new HashSet();
+//             final HashSet uniqueLinks = new HashSet();
 
-            // TODO: need to update link membership when single items removed from groups...
-            // TODO: change this entirely to be handled by a clean-up task in LWLink --
-            //       will juse need an setEndpointHasReparented ala setEnpointMoved,
-            //       and a bunch of testing...
+//             // TODO: need to update link membership when single items removed from groups...
+//             // TODO: change this entirely to be handled by a clean-up task in LWLink --
+//             //       will juse need an setEndpointHasReparented ala setEnpointMoved,
+//             //       and a bunch of testing...
         
-            for (LWComponent c : allUniqueDescendents) {
-                if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
-                for (LWLink l : c.getLinks()) {
-                    boolean bothEndsInPlay = !uniqueLinks.add(l);
-                    if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
-                    //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
-                    if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
-                        if (DEBUG.PARENTING) out("GRABBING " + c + " (both ends in group)");
-                        reparenting.add(l);
-                    }
-                }
-            }
-
-        }
+//             for (LWComponent c : allUniqueDescendents) {
+//                 if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
+//                 for (LWLink l : c.getLinks()) {
+//                     boolean bothEndsInPlay = !uniqueLinks.add(l);
+//                     if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
+//                     //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
+//                     if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
+//                         if (DEBUG.PARENTING) out("GRABBING " + c + " (both ends in group)");
+//                         reparenting.add(l);
+//                     }
+//                 }
+//             }
+//         }
 
         // TODO: we grab links, even if they were down in another sub-group...
         // and those reparentings are not tracked (they're added here),
@@ -288,36 +288,25 @@ public class LWGroup extends LWContainer
             
             if (DEBUG.WORK) out("normalizing relative children: dx=" + dx + " dy=" + dy);
             for (LWComponent c : getChildList()) {
-
-                if (c.hasAbsoluteMapLocation()) {
-
-                    // If an object has absolute map location (e.g., a LWLink), we don't
-                    // need to do anthing to the location of any of their sub-parts when
-                    // the group location changes (during normalization) because all
-                    // their coordinates are at the map-level, -- they're not relative
-                    // to the location of the group.
                     
-                } else {
-                    
-                    // we don't really need an event here (any descendents have already
-                    // been called with mapLocationChhanged if they need it due to
-                    // the above call to setLocation), and this translation is indended
-                    // to leave the component at it's exact current map location -- it's
-                    // position is only changing relative to it's parent group, which
-                    // was reshaped to the northwest -- this call moves all our non
-                    // absolute (non-link) members the same amount to the southeast.
+                // we don't really need an event here (any descendents have already
+                // been called with mapLocationChhanged if they need it due to
+                // the above call to setLocation), and this translation is indended
+                // to leave the component at it's exact current map location -- it's
+                // position is only changing relative to it's parent group, which
+                // was reshaped to the northwest -- this call moves all our non
+                // absolute (non-link) members the same amount to the southeast.
 
-                    // HOWEVER, we still need to generate an event for undo...
-                    // So we're calling translate (instead of takeTranslation)
+                // HOWEVER, we still need to generate an event for undo...
+                // So we're calling translate (instead of takeTranslation)
                     
-                    c.translate(-dx, -dy);
+                c.translate(-dx, -dy);
 
-                    if (c instanceof LWLink) {
-                        // links to links can get out of sync with updates
-                        // depending on the order they exist in the child list.
-                        // this should help for at least most first tier cases:
-                        ((LWLink)c).layout();
-                    }
+                if (c instanceof LWLink) {
+                    // links to links can get out of sync with updates
+                    // depending on the order they exist in the child list.
+                    // this should help for at least most first tier cases:
+                    ((LWLink)c).layout();
                 }
             }
             
@@ -373,64 +362,79 @@ public class LWGroup extends LWContainer
     /** @return the paint bounds for the given object in our local coordinate space */
     private Rectangle2D.Float getLocalizedPaintBounds(LWComponent c)
     {
-        if (c.hasAbsoluteMapLocation()) {
-            // Currently, these are only be LWLink's.
+        return getParentLocalPaintBounds(c);
+        
+//         if (c.hasAbsoluteMapLocation()) {
+//             // Currently, these are only be LWLink's.
             
-            final Rectangle2D.Float r = c.getPaintBounds();
+//             final Rectangle2D.Float r = c.getPaintBounds();
             
-            // hack debugging scaled curved link bounds...  I'm thinking the problem is in textbox,
-            // and maybe hasLabel always returning true... okay, that's not it.
-            // Now we're not taking into account any label or stroke, and still it's messed when scaled...
-            //final Rectangle2D.Float r = new Rectangle2D.Float(c.getX(), c.getY(), c.getWidth(), c.getHeight());
+//             // hack debugging scaled curved link bounds...  I'm thinking the problem is in textbox,
+//             // and maybe hasLabel always returning true... okay, that's not it.
+//             // Now we're not taking into account any label or stroke, and still it's messed when scaled...
+//             //final Rectangle2D.Float r = new Rectangle2D.Float(c.getX(), c.getY(), c.getWidth(), c.getHeight());
             
-            final float scale = (float) this.getMapScale();
-            if (DEBUG.CONTAINMENT && DEBUG.WORK) out("abs paint bounds: " + Util.out(r) + " " + c + " scale=" + scale);
-            r.x -= getMapX(); // are these values good or in transition???  check moving a link northwest to see if we get behind...
-            r.y -= getMapY();
-            r.x /= scale;
-            r.y /= scale;
-            r.width /= scale;
-            r.height /= scale;
+//             final float scale = (float) this.getMapScale();
+//             if (DEBUG.CONTAINMENT && DEBUG.WORK) out("abs paint bounds: " + Util.out(r) + " " + c + " scale=" + scale);
+//             r.x -= getMapX(); // are these values good or in transition???  check moving a link northwest to see if we get behind...
+//             r.y -= getMapY();
+//             r.x /= scale;
+//             r.y /= scale;
+//             r.width /= scale;
+//             r.height /= scale;
 
-            if (Float.isNaN(r.x) || Float.isNaN(r.y) || Float.isNaN(r.width) || Float.isNaN(r.height))
+//             if (Float.isNaN(r.x) || Float.isNaN(r.y) || Float.isNaN(r.width) || Float.isNaN(r.height))
             
-            // TODO: when scaled (at 0.75 first tier anyway), we appear to me missing a couple of pixels
-            // of width at 100% map zoom...  doesn't seem to make any difference even if 10% zoom??
+//             // TODO: when scaled (at 0.75 first tier anyway), we appear to me missing a couple of pixels
+//             // of width at 100% map zoom...  doesn't seem to make any difference even if 10% zoom??
 
             
-            if (DEBUG.CONTAINMENT && DEBUG.WORK) out("rel paint bounds: " + Util.out(r) + " " + c);
-            return r;
-        } else {
-            return getParentLocalPaintBounds(c);
-        }
+//             if (DEBUG.CONTAINMENT && DEBUG.WORK) out("rel paint bounds: " + Util.out(r) + " " + c);
+//             return r;
+//         } else {
+//             return getParentLocalPaintBounds(c);
+//         }
         
     }
 
     /** @return the parent based, non-scaled bounds.  If the this component has absolute map location, we return getBounds() */
     private Rectangle2D.Float getParentLocalBounds(LWComponent c) {
-        if (c.hasAbsoluteMapLocation())
-            throw new Error("re-impl; getLocalizedPaintBounds should have handled");
-            //return c.getBounds();
-        else
-            return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
-        //return new Rectangle2D.Float(c.getX(), c.getY(), c.getMapWidth(), c.getMapHeight());
+
+        return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
+        
+//         if (c.hasAbsoluteMapLocation())
+//             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
+//             //return c.getBounds();
+//         else
+//             return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
+//         //return new Rectangle2D.Float(c.getX(), c.getY(), c.getMapWidth(), c.getMapHeight());
     }
 
     private Rectangle2D.Float getParentLocalPaintBounds(LWComponent c) {
-        if (LWLink.LOCAL_LINKS && c instanceof LWLink) {
+        if (c instanceof LWLink) {
             // since this is in the group, we know the paint bounds will be local to parent bounds,
             // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
-            // TODO: we should really get get
             return c.getPaintBounds();
-//             if (mXMLRestoreUnderway)
-//                 return c.getPaintBounds();
-//             else
-//                 return ((LWLink)c).getImmediateBounds();
-        } if (c.hasAbsoluteMapLocation())
-            throw new Error("re-impl; getLocalizedPaintBounds should have handled");
-            //return c.getBounds();
-        else
+        } else {
             return c.addStrokeToBounds(getParentLocalBounds(c), 0);
+        }
+
+
+//         if (LWLink.LOCAL_LINKS && c instanceof LWLink) {
+//             // since this is in the group, we know the paint bounds will be local to parent bounds,
+//             // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
+//             // TODO: we should really get get
+//             return c.getPaintBounds();
+// //             if (mXMLRestoreUnderway)
+// //                 return c.getPaintBounds();
+// //             else
+// //                 return ((LWLink)c).getImmediateBounds();
+//         } if (c.hasAbsoluteMapLocation())
+//             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
+//             //return c.getBounds();
+//         else
+//             return c.addStrokeToBounds(getParentLocalBounds(c), 0);
+        
     }
 
     @Override

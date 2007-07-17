@@ -44,13 +44,11 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.155 $ / $Date: 2007-07-12 02:14:08 $ / $Author: sfraize $
+ * @version $Revision: 1.156 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
 {
-    public static final boolean LOCAL_LINKS = true;
-    
     // Ideally, we want this to be false: it's a more accurate representation of
     // what's displayed: the control points only show up when selected.
     private static final boolean IncludeControlPointsInBounds = false;
@@ -97,10 +95,10 @@ public class LWLink extends LWComponent
         
         // for control points
         float getX(LWContainer focal) {
-            return node == null ? x : (float) node.getX(focal);
+            return node == null ? x : (float) node.getAncestorX(focal);
         }
         float getY(LWContainer focal) {
-            return node == null ? y : (float) node.getY(focal);
+            return node == null ? y : (float) node.getAncestorY(focal);
         }
 
         boolean hasPrunedNode() {
@@ -122,10 +120,10 @@ public class LWLink extends LWComponent
         }
 
         Point2D.Float getMapPoint() {
-            if (LOCAL_LINKS == false) {
-                mapPoint.x = x;
-                mapPoint.y = y;
-            }
+//             if (LOCAL_LINKS == false) {
+//                 mapPoint.x = x;
+//                 mapPoint.y = y;
+//             }
             
             return mapPoint;
         }
@@ -181,23 +179,8 @@ public class LWLink extends LWComponent
     private final End head = new End();
     private final End tail = new End();
 
-//     private boolean headNodeIsPruned() {
-//         return head != null && head.isHidden(HideCause.PRUNE);
-//     }
-//     private boolean tailNodeIsPruned() {
-//         return tail != null && tail.isHidden(HideCause.PRUNE);
-//     }
-//     private LWComponent head;
-//     private LWComponent tail;
-//     private transient double mRotationHead;
-//     private transient double mRotationTail;
-//     private transient AffineTransform mHeadCtrlTx = new AffineTransform();
-//     private transient AffineTransform mTailCtrlTx = new AffineTransform();
-//     private float headX;       // todo: either consistently use these or the values in mLine
-//     private float headY;
-//     private float tailX;
-//     private float tailY;
-//     private boolean headIsPruned, tailIsPruned;
+    private float centerX;
+    private float centerY;
     
     /** used when link is straight */
     private Line2D.Float mLine = new Line2D.Float();
@@ -221,9 +204,6 @@ public class LWLink extends LWComponent
     /** number of curve control points in use: 0=straight, 1=quad curved, 2=cubic curved */
     private int mCurveControls = 0; 
     
-    private float centerX;
-    private float centerY;
-    
     private boolean ordered = false; // not doing anything with this yet
     
     /** has an endpoint moved since we last computed shape? */
@@ -233,8 +213,7 @@ public class LWLink extends LWComponent
         new LWIcon.Block(this,
                          11, 9,
                          Color.darkGray,
-                         LWIcon.Block.HORIZONTAL,
-                         LWIcon.Block.COORDINATES_MAP);
+                         LWIcon.Block.HORIZONTAL);
 
 
     /**
@@ -260,6 +239,13 @@ public class LWLink extends LWComponent
     private void initLink() {
         disableProperty(KEY_FillColor);
     }
+
+    @Override
+    void setParent(LWContainer newParent) {
+        super.setParent(newParent);
+        endpointMoved = true;
+    }
+
     
     static LWLink SetDefaults(LWLink l)
     {
@@ -481,7 +467,7 @@ public class LWLink extends LWComponent
     /** @return the current bounds, even if we are currently marked as needing to be recomputed due to endpoint movement
      * This is for usage by LWGroup code [which is currently not in use]
      */
-    Rectangle2D.Float getImmediateBounds() {
+    private Rectangle2D.Float getImmediateBounds() {
         // as we currently always have absolute map location, we can just use getX/getY
         // tho we use getMapWidth/getMapHeight just in case we're in a scaled context
         // (tho we're trying to avoid this for now...)
@@ -496,7 +482,7 @@ public class LWLink extends LWComponent
         // todo: would be better to just include this in the width via computeLink,
         // tho then we'd need to invalidate the link if the label changes.
         if (hasLabel())
-            bounds.add(getLabelBox().getMapBounds());
+            bounds.add(getLabelBox().getBoxBounds());
         
         return bounds;
     }
@@ -606,7 +592,8 @@ public class LWLink extends LWComponent
     
     private void setControllerLocation(int index, float mapX, float mapY, MapMouseEvent e)
     {
-        final Point2D.Float local = transformMapToLocalPoint(new Point2D.Float(mapX, mapY));
+        //final Point2D.Float local = transformMapToLocalPoint(new Point2D.Float(mapX, mapY));
+        final Point2D.Float local = e.getLocalPoint(this);
         
         //System.out.println("LWLink: control point " + index + " moved");
 
@@ -747,7 +734,8 @@ public class LWLink extends LWComponent
         // empty affine transforms, and we're calling transform here
         // which is going to be a noop.
 
-        final AffineTransform mapTx = LOCAL_LINKS ? getLocalTransform() : new AffineTransform(); // noop if old impl
+        //final AffineTransform mapTx = LOCAL_LINKS ? getLocalTransform() : new AffineTransform(); // noop if old impl
+        final AffineTransform mapTx = getLocalTransform();
         final Point2D.Float mapHead = head.getMapPoint();
         final Point2D.Float mapTail = tail.getMapPoint();
         
@@ -1186,45 +1174,45 @@ public class LWLink extends LWComponent
     }
     
     @Override
-    protected boolean intersectsImpl(Rectangle2D r)
+    protected boolean intersectsImpl(Rectangle2D mapRect)
     {
         if (endpointMoved)
             computeLink();
 
-        final Rectangle2D rect;
-        
-//         if (LOCAL_LINKS && !(parent instanceof LWMap)) {
-//             // For the moment, use default impl of paint bounds:
-//             // TODO: need to take into account scaling / local coords on segments
-//             return super.intersectsImpl(rect);
-//         }
+        final Rectangle2D localRect;
 
-        if (LOCAL_LINKS && !(getParent() instanceof LWMap)) {
-            final Rectangle2D old = (Rectangle2D) r.clone();
-            rect = transformMapToLocalRect(old);
+        if (getParent() instanceof LWMap) {
+            // checking parent is an optimization: transforming map to local rect is a noop
+            // if we're a direct child of the map
+            localRect = mapRect;
+        } else {
+            // As interectsImpl is called with a rectangle in map coordinates, we transform
+            // it to local (parent) coordinates first, before checking the segments, which
+            // all have local coordinates.
+            final Rectangle2D tmpRect = (Rectangle2D) mapRect.clone();
+            localRect = transformMapToLocalRect(tmpRect);
             if (DEBUG.LINK && mXMLRestoreUnderway) {
                 System.out.println("TRANSFORMED " + this);
-                if (!rect.equals(old))
-                    System.out.println("\t" + Util.fmt(old) + " to:"
-                                       + "\n\t" + Util.fmt(rect));
+                if (!localRect.equals(mapRect))
+                    System.out.println("\t" + Util.fmt(mapRect) + " to:"
+                                       + "\n\t" + Util.fmt(localRect));
             }
-        } else
-            rect = r;
-
+        }
+        
         if (mCurve != null) {
             for (Line2D seg : new SegIterator())
-                if (seg.intersects(rect))
+                if (seg.intersects(localRect))
                     return true;
         } else {
-            if (rect.intersectsLine(mLine))
+            if (localRect.intersectsLine(mLine))
                 return true;
         }
         
-        if (mIconBlock.intersects(rect))
+        if (mIconBlock.intersects(localRect))
             return true;
-        else if (hasLabel())
-            return labelBox.intersectsMapRect(rect);
-        else
+        else if (hasLabel()) {
+            return labelBox.boxIntersects(localRect);
+        } else
             return false;
     }
 
@@ -1257,42 +1245,16 @@ public class LWLink extends LWComponent
 
     /** @return 0 means a hit, -1 a completely miss, > 0 means distance, to be sorted out by caller  */
     @Override
+    // todo: now that we handle slop/zoom centrally in Picker, we can get rid of zoom arg to pickDistance
     protected float pickDistance(float x, float y, float zoom)
     {
         if (endpointMoved)
             computeLink();
 
-        //if (!super.containsImpl(x, y)) // fast-reject on bounding box
-        //    return false;
-        // Can't: bounding box doesn't currently include the label,
-        // which on a small link could be well outside the stroked path.
-
-        //final float slop = 4; // near miss this number of on-screen pixels still hits it
-        //final float maxDist = (getStrokeWidth() / 2f + slop) / zoom;
-
-        // Change contains / containsImpl to return a distance: 0 means full-hit, -1 full miss, any positive value is a near-miss distance
-        // perhaps create a new "hit" with contains defaults for everyone else, as only link really needs this
-        
-        //final float slop = 7; // too much -- intrudes into small nodes -
-        //final float slop = 4; // near miss this number of on-screen pixels still hits it
-
-        //final float hitDist = (getStrokeWidth() / 2f) / zoom;
-
-        // ZOOM ONLY NEEDED FOR COMPUTING SLOP (if we handle that centrally in Picker, we can get rid of zoom arg)
-        
         final float hitDist = getStrokeWidth() / 2f; 
         final float hitDistSq = hitDist * hitDist;
 
         float minDistSq = Float.MAX_VALUE;
-        //float slopDistSq = -1;
-
-        // TODO: can make slop bigger if implement a two-pass hit detection process that
-        // does absolute on first pass, and slop hits on second pass (otherwise, if this
-        // too big, clicking in a node near a link to it that's on top of it will select
-        // the link, and not the node).
-
-        // TODO: would be better if slop increased when zoomed way out,
-        // as effective slop becomes zero in that case.
         
         if (mCurve != null) {
             // todo: fast reject: false if outside bounding box of end points and control points
@@ -1318,27 +1280,12 @@ public class LWLink extends LWComponent
         if (!isNestedLink()) {
             if (mIconBlock.contains(x, y))
                 return 0;
-            else if (hasLabel() && labelBox.containsMapLocation(x, y)) // bit of a hack to do this way
+            else if (hasLabel() && labelBox.boxContains(x, y))
                 return 0;
         }
         
         return minDistSq - hitDistSq;
     }
-    
-//     private static final int LooseSlopSq = 15*15;
-//     public boolean looseContains(float x, float y) {
-//         if (endpointMoved)
-//             computeLink();
-//         if (mCurve != null) {
-//             // Java curve shapes check the entire concave region for containment.
-//             // This is a quick way to check for loose-picks on curves.
-//             // (Could also use distanceToEdgeSq, but this hits more area).
-//             return mCurve.contains(x, y);
-//         }  else {
-//             // for straight links:
-//             return mLine.ptSegDistSq(x, y) < LooseSlopSq;
-//         }
-//     }
     
     void disconnectFrom(LWComponent c)
     {
@@ -1630,8 +1577,8 @@ public class LWLink extends LWComponent
     public void notifyHierarchyChanged() {
         super.notifyHierarchyChanged();
 
-        if (LOCAL_LINKS)
-            return;
+//         if (LOCAL_LINKS)
+//             return;
         
         final double newScale = getMapScale();
         final double deltaScale = newScale / oldMapScale;
@@ -1659,22 +1606,22 @@ public class LWLink extends LWComponent
 //     }
     
 
-    /** We've been notified that our absolute location should change by the given map dx/dy */
-    @Override
-    protected void notifyMapLocationChanged(double mdx, double mdy) {
-        super.notifyMapLocationChanged(mdx, mdy);
+//     /** We've been notified that our absolute location should change by the given map dx/dy */
+//     @Override
+//     protected void notifyMapLocationChanged(double mdx, double mdy) {
+//         super.notifyMapLocationChanged(mdx, mdy);
 
-        if (DEBUG.CONTAINMENT) System.out.println
-                                   (String.format("notifyMapLocationChanged %+.1f,%+.1f%s",
-                                                  mdx,
-                                                  mdy,
-                                                  LOCAL_LINKS ? " (ignored:local-link-impl) " : " ")
-                                    + this);
+//         if (DEBUG.CONTAINMENT) System.out.println
+//                                    (String.format("notifyMapLocationChanged %+.1f,%+.1f%s",
+//                                                   mdx,
+//                                                   mdy,
+//                                                   LOCAL_LINKS ? " (ignored:local-link-impl) " : " ")
+//                                     + this);
         
-        if (LOCAL_LINKS) return;
+//         if (LOCAL_LINKS) return;
         
-        translate((float)mdx, (float)mdy);
-    }
+//         translate((float)mdx, (float)mdy);
+//     }
     
 
     private void initCurveControlPoints()
@@ -1774,87 +1721,30 @@ public class LWLink extends LWComponent
     
     
     @Override
-    public boolean hasAbsoluteMapLocation() { return !LOCAL_LINKS; }
-
-
-    @Override
     public void transformRelative(final Graphics2D g) {
-        if (LOCAL_LINKS)
-            ;
-//         if (LOCAL_LINKS && parent != null)
-//             parent.transformRelative(g);
-        else
-            super.transformRelative(g);
+        // do nothing: link coordinate space is in it's parent
     }
-    @Override
-    public void transformLocal(Graphics2D g) {
-        if (LOCAL_LINKS) {
-            if (parent != null)
-                parent.transformLocal(g);
-        } else
-            super.transformLocal(g);
-    }
-    @Override
-    public AffineTransform transformLocal(AffineTransform a) {
-        return LOCAL_LINKS ? a : super.transformLocal(a);
-        //return LOCAL_LINKS ? parent.transformLocal(a) : super.transformLocal(a);
-    }
-    @Override
-    public AffineTransform getLocalTransform() {
-        return LOCAL_LINKS ? parent.getLocalTransform() : super.getLocalTransform();
-    }
-
-    // TODO: for performance, get rid of the hasAbsoluteLocation checks in LWComponent,
-    // and just provide the empty absolute impls here.
-    
-
-    // if we DON'T do the below, when a slide-icon draws on the map,
-    // the link pops up to the map at full-size...
-
-    /*
     
     @Override
-    public boolean hasParentLocation() { return true; }
-
-    // do nothing for these: leave us in the parent context: we may want a new bool: hasParentDrawingContext or hasNoDrawContext or something
-    @Override
-    public void transformRelative(final Graphics2D g) {}
-    @Override
     public void transformLocal(Graphics2D g) {
-        //getParent().transformLocal(g);
+        if (parent != null)
+            parent.transformLocal(g);
     }
+    
     @Override
-    public AffineTransform transformLocal(AffineTransform a) {
-        //return getParent().transformLocal(a);
+    protected AffineTransform transformDown(AffineTransform a) {
+
+        // As transformDown moves from the parent to the child, and
+        // links exist in the parent context, there's nothing for us
+        // to do.
+        
         return a;
     }
+    
     @Override
     public AffineTransform getLocalTransform() {
-        //return getParent().getLocalTransform();
-        return (AffineTransform) IDENTITY_TRANSFORM.clone();
+        return parent.getLocalTransform();
     }
-
-    @Override
-    public float getMapX() {
-        return getX(); // always initialized from computeLink
-        //return parent == null ? getX() : parent.getMapX() + getX();
-    }
-    
-    @Override
-    public float getMapY() {
-        return getY(); // always initialized from computeLink
-        //return parent == null ? getY() : parent.getMapY() + getY();
-    }
-
-    @Override
-    public void drawInParent(DrawContext dc)
-    {
-        dc.setMapDrawing();
-        drawImpl(dc);
-    }
-    */
-    
-    
 
 //     /** @return getX() -- links coords are always map/absolute */
 //     public float getMapX() {
@@ -1890,6 +1780,11 @@ public class LWLink extends LWComponent
     
     private void computeLink()
     {
+//         if (getParent() == null) {
+//             // can't compute w/out a parent
+//             return;
+//         }
+        
         endpointMoved = false;
 
         if (DEBUG.LINK) {
@@ -1909,48 +1804,51 @@ public class LWLink extends LWComponent
         // endpoint to computeIntersection, which uses that to produce a traversable
         // flattened path transformed down to the local scale of that endpoint.
         
-        if (LOCAL_LINKS) {
+        final LWContainer parent = getParent();
 
-            if (head.hasNode()) {
+        if (head.hasNode()) {
 
-                // If an endpoint is a link, make sure it's currently computed so we know exactly
-                // where it's center is.  Since we've already cleared our endpointMoved bit, we're
-                // safe against link-loops, tho we want to be careful not to create link networks
-                // that create unresolvable dependencies.  (E.g., a straight link is linked to a
-                // curved link: don't let the either of the curved link's endpoints connect back to
-                // the straight link).  We prevent these kinds of links in LinkTool.  If one is
-                // ever created, things don't actually completely fail since we've built in loop
-                // protection, but the links never reach a final state: they're constantly
-                // recomputing themseleves every single time something needs to know where the link
-                // is (e.g, a pick or a paint).
-                
-                if (!mXMLRestoreUnderway && head.node instanceof LWLink && ((LWLink)head.node).endpointMoved)
-                    ((LWLink)head.node).computeLink();
-                
-                head.x = head.node.getCenterX(parent);
-                head.y = head.node.getCenterY(parent);
-            }
-            if (tail.hasNode()) {
-
-                // see above comment
-                if (!mXMLRestoreUnderway && tail.node instanceof LWLink && ((LWLink)tail.node).endpointMoved)
-                    ((LWLink)tail.node).computeLink();
-                
-                tail.x = tail.node.getCenterX(parent);
-                tail.y = tail.node.getCenterY(parent);
-            }
+            // If an endpoint is a link, make sure it's currently computed so we know exactly
+            // where it's center is.  Since we've already cleared our endpointMoved bit, we're
+            // safe against link-loops, tho we want to be careful not to create link networks
+            // that create unresolvable dependencies.  (E.g., a straight link is linked to a
+            // curved link: don't let the either of the curved link's endpoints connect back to
+            // the straight link).  We prevent these kinds of links in LinkTool.  If one is
+            // ever created, things don't actually completely fail since we've built in loop
+            // protection, but the links never reach a final state: they're constantly
+            // recomputing themseleves every single time something needs to know where the link
+            // is (e.g, a pick or a paint).
             
-        } else {
-
-            if (head.hasNode()) {
-                head.x = head.node.getCenterX();
-                head.y = head.node.getCenterY();
-            }
-            if (tail.hasNode()) {
-                tail.x = tail.node.getCenterX();
-                tail.y = tail.node.getCenterY();
-            }
+            if (!mXMLRestoreUnderway && head.node instanceof LWLink && ((LWLink)head.node).endpointMoved)
+                ((LWLink)head.node).computeLink();
+            
+            head.node.getLinkConnectionCenterRelativeTo(head.point, parent);
+            head.x = head.point.x;
+            head.y = head.point.y;
         }
+        if (tail.hasNode()) {
+            
+            // see above comment
+            if (!mXMLRestoreUnderway && tail.node instanceof LWLink && ((LWLink)tail.node).endpointMoved)
+                ((LWLink)tail.node).computeLink();
+            
+            tail.node.getLinkConnectionCenterRelativeTo(tail.point, parent);
+            tail.x = tail.point.x;
+            tail.y = tail.point.y;
+        }
+
+            
+//         if (LOCAL_LINKS) {
+//         } else {
+//             if (head.hasNode()) {
+//                 head.x = head.node.getCenterX();
+//                 head.y = head.node.getCenterY();
+//             }
+//             if (tail.hasNode()) {
+//                 tail.x = tail.node.getCenterX();
+//                 tail.y = tail.node.getCenterY();
+//             }
+//         }
 
         // Note, if what's at the endpoint we're connecting to is a LWLink, we do NOT
         // bother to establish a connection at the nearest point -- we leave the
@@ -1967,15 +1865,17 @@ public class LWLink extends LWComponent
         if (head.node == null || head.node instanceof LWLink) {
             headShape = null;
             headTransform = null;
-        } else if (LOCAL_LINKS) {
+        } else {
+       // else if (LOCAL_LINKS) {
             // use raw shape because we use the relative transform in computeIntersection
             headShape = head.node.getLocalShape(); 
             headTransform = head.node.getRelativeTransform(parent);
-        } else {
-            // use raw shape because we use the local transform in computeIntersection
-            headShape = head.node.getLocalShape();
-            headTransform = head.node.getLocalTransform();
         }
+//         } else {
+//             // use raw shape because we use the local transform in computeIntersection
+//             headShape = head.node.getLocalShape();
+//             headTransform = head.node.getLocalTransform();
+//         }
         
         //if (headShape != null && !(headShape instanceof Line2D)) {
         if (headShape != null) {
@@ -2008,14 +1908,16 @@ public class LWLink extends LWComponent
         if (tail.node == null || tail.node instanceof LWLink) {
             tailShape = null;
             tailTransform = null;
-        } else if (LOCAL_LINKS) {
+        } else {
+      //} else if (LOCAL_LINKS) {
             // use raw shape because we use the relative transform in computeIntersection
             tailShape = tail.node.getLocalShape(); 
             tailTransform = tail.node.getRelativeTransform(parent);
-        } else {
-            tailShape = tail.node.getLocalShape(); // use raw shape because we use the local transform below
-            tailTransform = tail.node.getLocalTransform();
         }
+//         else {
+//             tailShape = tail.node.getLocalShape(); // use raw shape because we use the local transform below
+//             tailTransform = tail.node.getLocalTransform();
+//         }
         
         //if (tailShape != null && !(tailShape instanceof Line2D)) {
         if (tailShape != null) {
@@ -2535,15 +2437,16 @@ public class LWLink extends LWComponent
                     strokeWidth /= curScale;
                 g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth));
             } else {
-                if (LOCAL_LINKS) {
-                    g.setStroke(stroke);
-                } else {
-                    float scale = getMapScaleF();
-                    if (scale == 1f)
-                        g.setStroke(stroke);
-                    else
-                        g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth * scale));
-                }
+                g.setStroke(stroke);
+//                 if (LOCAL_LINKS) {
+//                     g.setStroke(stroke);
+//                 } else {
+//                     float scale = getMapScaleF();
+//                     if (scale == 1f)
+//                         g.setStroke(stroke);
+//                     else
+//                         g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth * scale));
+//                 }
             }
         }
         
@@ -2690,152 +2593,24 @@ public class LWLink extends LWComponent
         // Paint label if there is one
         //-------------------------------------------------------
         
-        //float textBoxWidth = 0;
-        //float textBoxHeight = 0;
-        //boolean textBoxBeingEdited = false;
-
-        /*
-        Color fillColor;
-        if (dc.isDraftQuality() || DEBUG.BOXES) {
-            fillColor = null;
-        } else {
-            if (dc.isInteractive()) {
-                // set a background fill paint
-                if (isSelected())
-                    fillColor = COLOR_HIGHLIGHT;
-                else if (getParent() != null)
-                    fillColor = getParent().getRenderFillColor();
-                else
-                    fillColor = null;
-            } else {
-                fillColor = null;
-            }
-            
-
-//             if (!dc.isInteractive() || !isSelected())
-//                 fillColor = null;
-//               //fillColor = getFillColor();
-//             else
-//                 fillColor = COLOR_HIGHLIGHT;
-//             if (fillColor == null && getParent() != null)
-//                 fillColor = getParent().getFillColor();
-//             //fillColor = ContrastFillColor;
-
-        }
-        */
         
-        if (hasLabel()) {
-            TextBox textBox = getLabelBox();
-            // only draw if we're not an active edit on the map
-            if (textBox.getParent() != null) {
-                //textBoxBeingEdited = true;
-            } else {
-                float lx = getLabelX();
-                float ly = getLabelY();
-
-                // since links don't have a sensible "location" in terms of an
-                // upper left hand corner, the textbox needs to have an absolute
-                // map location we can check later for hits -- we set it here
-                // everytime we paint -- its a hack.
-                //textBox.setMapLocation(lx, ly);
-
-                // We force a fill color on link labels to make sure we create
-                // a contrast between the text and the background, which otherwise
-                // would include the usually black link stroke in the middle, obscuring
-                // some of the text.
-                // todo perf: only set opaque-bit/background once/when it changes.
-                // (probably put a textbox factory on LWComponent and override in LWLink)
-
-//                 if (fillColor == null || !dc.isInteractive()) {
-//                     textBox.setOpaque(false);
-//                 } else {
-//                     textBox.setBackground(fillColor);
-//                     textBox.setOpaque(true);
-//                 }
-
-                final Color textFill = getRenderFillColor(dc);
-                if (textFill != null || dc.isInteractive()) {
-                    textBox.setBackground(textFill == null ? Color.white : textFill);
-                    textBox.setOpaque(true);
-                    //if (DEBUG.IMAGE) out("textFill: " + textFill);
-                } else {
-                    textBox.setBackground(null);
-                    textBox.setOpaque(false);
-                    Util.printStackTrace(this + "; FYI: null (transparent) text fill");
-                }
-                
-                dc.g.translate(lx, ly);
-
-                double scale = 1.0; // LOCAL_LINKS only
-                if (!LOCAL_LINKS) {
-                    scale = getMapScale();
-                    if (scale != 1)
-                        dc.g.scale(scale, scale);
-                }
-                //if (isZoomedFocus()) g.scale(getScale(), getScale());
-                // todo: need to re-center label when this component relative to scale,
-                // and patch contains to understand a scaled label box...
-                textBox.draw(dc);
-
-                if (LOCAL_LINKS && DEBUG.LINK) {
-                    dc.g.setColor(Color.red);
-                    //dc.g.setFont(getFont().deriveFont(Font.BOLD, 8f));
-                    dc.g.setFont(VueConstants.FixedSmallFont.deriveFont(Font.BOLD, 8f));
-                    final float inc = 8;
-                    float y = textBox.getMapHeight();
-                    dc.g.drawString(parent.getUniqueComponentTypeLabel(), 0, y += inc);
-                    dc.g.drawString(String.format("centerLoc: %+4.0f,%+4.0f", centerX, centerY),           0, y += inc);
-                    dc.g.drawString(String.format("centerMap: %+4.0f,%+4.0f", getCenterX(), getCenterY()), 0, y += inc);
-                    dc.g.drawString(String.format("     head: %+4.0f,%+4.0f", head.x, head.y),             0, y += inc);
-                    //dc.g.drawString(parent.getDiagnosticLabel(), 0, 30);
-                }
-
-
-                if (!LOCAL_LINKS) {
-                    if (scale != 1)
-                        dc.g.scale(1/scale, 1/scale);
-                }
-                
-                /* draw border
-                if (isSelected()) {
-                    Dimension s = textBox.getSize();
-                    g.setColor(COLOR_SELECTION);
-                    //g.setStroke(STROKE_HALF); // todo: needs to be unscaled / handled by selection
-                    g.setStroke(new BasicStroke(1f / (float) dc.zoom));
-                    // -- i guess we could compute based on zoom level -- maybe MapViewer could
-                    // keep such a stroke handy for us... (DrawContext would be handy again...)
-                    g.drawRect(0,0, s.width, s.height);
-                }
-                */
-                
-                //if (isZoomedFocus()) g.scale(1/getScale(), 1/getScale());
-                dc.g.translate(-lx, -ly);
-                
-                if (false) { // debug
-                    // draw label in center of bounding box just for
-                    // comparing to our on-curve center computation
-                    lx = getCenterX() - textBox.getMapWidth() / 2;
-                    ly = getCenterY() - textBox.getMapHeight() / 2;
-                    dc.g.translate(lx,ly);
-                    //textBox.setBackground(Color.lightGray);
-                    textBox.setOpaque(false);
-                    dc.g.setColor(Color.blue);
-                    textBox.draw(dc);
-                    dc.g.translate(-lx,-ly);
-                }
-            }
+        if (hasLabel() && getLabelBox().getParent() == null) {
+            // todo perf minor: only get/check label box once (also done in drawLabel)
+            // only draw if we have a label, and it's not an active edit on the map (parent == null)
+            drawLabel(dc);
         }
 
         if (mIconBlock.isShowing()) {
             //dc.g.setStroke(STROKE_HALF);
             //dc.g.setColor(Color.gray);
             //dc.g.draw(mIconBlock);
-//             if (fillColor != null) {
-//                 dc.g.setColor(fillColor);
-//                 dc.g.fill(mIconBlock);
-//             }
+            //if (fillColor != null) {
+            //    dc.g.setColor(fillColor);
+            //    dc.g.fill(mIconBlock);
+            //}
             mIconBlock.draw(dc);
         }
+        
         // todo perf: don't have to compute icon block location every time
         /*
         if (!textBoxBeingEdited && mIconBlock.isShowing()) {
@@ -2850,6 +2625,74 @@ public class LWLink extends LWComponent
             mIconBlock.draw(dc);
         }
         */
+    }
+
+    private void drawLabel(DrawContext dc)
+    {
+        final TextBox textBox = getLabelBox();
+        
+        // We force a fill color on link labels to make sure we create
+        // a contrast between the text and the background, which otherwise
+        // would include the usually black link stroke in the middle, obscuring
+        // some of the text.
+        // todo perf: only set opaque-bit/background once/when it changes.
+        // (probably put a textbox factory on LWComponent and override in LWLink)
+
+        //                 if (fillColor == null || !dc.isInteractive()) {
+        //                     textBox.setOpaque(false);
+        //                 } else {
+        //                     textBox.setBackground(fillColor);
+        //                     textBox.setOpaque(true);
+        //                 }
+
+        final Color textFill = getRenderFillColor(dc);
+        if (textFill != null || dc.isInteractive()) {
+            textBox.setBackground(textFill == null ? Color.white : textFill);
+            textBox.setOpaque(true);
+            //if (DEBUG.IMAGE) out("textFill: " + textFill);
+        } else {
+            textBox.setBackground(null);
+            textBox.setOpaque(false);
+            Util.printStackTrace(this + "; FYI: null (transparent) text fill");
+        }
+                
+        final float lx = textBox.getBoxX();
+        final float ly = textBox.getBoxY();
+        
+        dc.g.translate(lx, ly);
+        textBox.draw(dc);
+
+        if (DEBUG.LINK) {
+            dc.g.setColor(Color.red);
+            //dc.g.setFont(getFont().deriveFont(Font.BOLD, 8f));
+            dc.g.setFont(VueConstants.FixedSmallFont.deriveFont(Font.BOLD, 7f));
+            final float inc = 8;
+            final Rectangle2D tbounds = textBox.getBoxBounds();
+            float y = (float) tbounds.getHeight();
+            //float y = textBox.getMapHeight();
+            dc.g.drawString(parent.getUniqueComponentTypeLabel(), 0, y += inc);
+            dc.g.drawString(String.format("txtBounds: %s", Util.out(tbounds)),           0, y += inc);
+            dc.g.drawString(String.format("centerLoc: %+4.0f,%+4.0f", getLocalCenterX(), getLocalCenterY()), 0, y += inc);
+            dc.g.drawString(String.format("centerMap: %+4.0f,%+4.0f", getCenterX(), getCenterY()), 0, y += inc);
+            dc.g.drawString(String.format("     head: %+4.0f,%+4.0f", head.x, head.y),             0, y += inc);
+            dc.g.drawString(String.format("     tail: %+4.0f,%+4.0f", tail.x, tail.y),             0, y += inc);
+            //dc.g.drawString(parent.getDiagnosticLabel(), 0, 30);
+        }
+
+                
+        /* draw border
+           if (isSelected()) {
+           Dimension s = textBox.getSize();
+           g.setColor(COLOR_SELECTION);
+           //g.setStroke(STROKE_HALF); // todo: needs to be unscaled / handled by selection
+           g.setStroke(new BasicStroke(1f / (float) dc.zoom));
+           // -- i guess we could compute based on zoom level -- maybe MapViewer could
+           // keep such a stroke handy for us... (DrawContext would be handy again...)
+           g.drawRect(0,0, s.width, s.height);
+           }
+        */
+                
+        dc.g.translate(-lx, -ly);
     }
 
     private float lineLength(float x1, float y1, float x2, float y2) {
@@ -2899,7 +2742,7 @@ public class LWLink extends LWComponent
             // Check to see if we want to make it vertical
             mIconBlock.setOrientation(LWIcon.Block.VERTICAL);
             mIconBlock.layout();
-            vertical = (getLabelBox().getMapHeight() >= mIconBlock.getHeight());
+            vertical = (getLabelBox().getBoxHeight() >= mIconBlock.getHeight());
             if (!vertical) {
                 mIconBlock.setOrientation(LWIcon.Block.HORIZONTAL);
                 mIconBlock.layout();
@@ -2921,14 +2764,16 @@ public class LWLink extends LWComponent
         float ly = 0;
         if (hasLabel()) {
             getLabelBox(); // make sure labelBox is set
-            // since links don't have a sensible "location" in terms of an
-            // upper left hand corner, the textbox needs to have an absolute
-            // map location we can check later for hits
-            totalWidth += labelBox.getMapWidth();
-            totalHeight += labelBox.getMapHeight();
+            
+            // Record the location of the TextBox (used later for picking).  The
+            // coordinates are in the default coordinate space of the LWLink, which for
+            // links is always the coordinate space of it's parent.
+            
+            totalWidth += labelBox.getBoxWidth();
+            totalHeight += labelBox.getBoxHeight();
             if (putBelow) {
                 // for putting icons below
-                lx = cx - labelBox.getMapWidth() / 2;
+                lx = cx - labelBox.getBoxWidth() / 2;
                 ly = cy - totalHeight / 2;
                 //if (iconBlockShowing)
                 // put label just over center so link splits block & label if horizontal                
@@ -2936,9 +2781,9 @@ public class LWLink extends LWComponent
             } else {
                 // for putting icons at right
                 lx = cx - totalWidth / 2;
-                ly = cy - labelBox.getMapHeight() / 2;
+                ly = cy - labelBox.getBoxHeight() / 2;
             }
-            labelBox.setMapLocation(lx, ly);
+            labelBox.setBoxLocation(lx, ly);
         }
         if (iconBlockShowing) {
             float ibx, iby;
@@ -2946,7 +2791,7 @@ public class LWLink extends LWComponent
                 // for below
                 ibx = (float) (cx - mIconBlock.getWidth() / 2);
                 if (hasLabel())
-                    iby = labelBox.getMapY() + labelBox.getMapHeight();
+                    iby = labelBox.getBoxY() + labelBox.getBoxHeight();
                 else
                     iby = (float) (cy - mIconBlock.getHeight() / 2f);
                 // we're seeing a sub-pixel gap -- this should fix
@@ -2954,7 +2799,7 @@ public class LWLink extends LWComponent
             } else {
                 // for at right
                 if (hasLabel())
-                    ibx = (float) lx + labelBox.getMapWidth();
+                    ibx = (float) lx + labelBox.getBoxWidth();
                 else
                     ibx = (float) (cx - mIconBlock.getWidth() / 2);
                 iby = (float) (cy - mIconBlock.getHeight() / 2);
@@ -2966,34 +2811,83 @@ public class LWLink extends LWComponent
     }
 
     @Override
-    public float getCenterX() {
-        if (LOCAL_LINKS)
-            return getCenterX(getMap()); // todo: slow
-        else
-            return mCurveControls > 0 ? mCurveCenterX : (head.x + tail.x) / 2;
+    public void initTextBoxLocation(TextBox textBox) {
+        
+        textBox.setBoxCenter(getLocalCenterX(), getLocalCenterY());
+        
+//         if (mCurveControls > 0)
+//             textBox.setBoxCenter(mCurveCenterX, mCurveCenterY);
+//         else
+//             textBox.setBoxCenter((head.x + tail.x) / 2,
+//                                  (head.y + tail.y) / 2);
     }
+
+
     @Override
-    public float getCenterY() {
-        if (LOCAL_LINKS)
-            return getCenterY(getMap()); // todo: slow
-        else
-            return mCurveControls > 0 ? mCurveCenterY : (head.y + tail.y) / 2;
+    protected float getLocalCenterX() {
+        if (endpointMoved) computeLink();
+        return mCurveControls > 0 ? mCurveCenterX : centerX;
     }
+    
+    @Override
+    protected float getLocalCenterY() {
+        if (endpointMoved) computeLink();
+        return mCurveControls > 0 ? mCurveCenterY : centerY;
+    }
+    
+
+    
+
+//     @Override
+//     public float getLinkConnectionX(LWContainer ancestor) {
+//         if (mCurveControls > 0) {
+//             if (ancestor == this.parent)
+//                 return mCurveCenterX;
+//             else
+//                 return (float) (parent.getMapX() + parent.getMapScale() * mCurveCenterX);
+//         } else
+//             return getCenterX(ancestor);
+//     }
+//     @Override
+//     public float getLinkConnectionY(LWContainer ancestor) {
+//         if (mCurveControls > 0) {
+//             if (ancestor == this.parent)
+//                 return mCurveCenterY;
+//             else
+//                 return (float) (parent.getMapY() + parent.getMapScale() * mCurveCenterY);
+//         } else 
+//            return getCenterY(ancestor);
+//     }
+//     @Override
+//     public float getCenterX() {
+//         return getCenterX(getMap()); // todo: slow
+// //         if (LOCAL_LINKS)
+// //             return getCenterX(getMap()); // todo: slow
+// //         else
+// //             return mCurveControls > 0 ? mCurveCenterX : (head.x + tail.x) / 2;
+//     }
+//     @Override
+//     public float getCenterY() {
+//         return getCenterY(getMap()); // todo: slow
+// //         if (LOCAL_LINKS)
+// //             return getCenterY(getMap()); // todo: slow
+// //         else
+// //             return mCurveControls > 0 ? mCurveCenterY : (head.y + tail.y) / 2;
+//     }
 
     // We override these, which is what the links themseleves use to find the centerpoint
     // of what they connect to, so that if one our our endpoints is another link,
     // and it's curved, we'll connect to the curve center (where the label goes).
-    
-    @Override
-    public float getCenterX(LWContainer ancestor) {
-        //if (ancestor != parent) Util.printStackTrace("ancestor != parent: " + ancestor + "; " + parent);
-        return mCurveControls > 0 ? mCurveCenterX : (head.x + tail.x) / 2;
-    }
-    @Override
-    public float getCenterY(LWContainer ancestor) {
-        //if (ancestor != parent) Util.printStackTrace("ancestor != parent: " + ancestor + "; " + parent);
-        return mCurveControls > 0 ? mCurveCenterY : (head.y + tail.y) / 2;
-    }
+//     @Override
+//     public float getCenterX(LWContainer ancestor) {
+//         //if (ancestor != parent) Util.printStackTrace("ancestor != parent: " + ancestor + "; " + parent);
+//         return mCurveControls > 0 ? mCurveCenterX : (head.x + tail.x) / 2;
+//     }
+//     @Override
+//     public float getCenterY(LWContainer ancestor) {
+//         //if (ancestor != parent) Util.printStackTrace("ancestor != parent: " + ancestor + "; " + parent);
+//         return mCurveControls > 0 ? mCurveCenterY : (head.y + tail.y) / 2;
+//     }
     
 
 

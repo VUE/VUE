@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.TextRow;
 
@@ -30,6 +31,7 @@ import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Point2D;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -87,7 +89,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.54 $ / $Date: 2007-07-02 19:06:28 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  *
  */
 
@@ -106,10 +108,9 @@ public class TextBox extends JTextPane
     private static boolean TestHarness = false;
     
     private LWComponent lwc;
-    private float mapX;
-    private float mapY;
-    private float mapWidth;
-    private float mapHeight;
+    /** bounds: generally used by the component as local coordinates (relative to the coordinate 0,0)
+     * The width/height are set here in TextBox */
+    private final Rectangle2D.Float mBounds = new Rectangle2D.Float();
     private boolean wasOpaque; /** were we opaque before we started an edit? */
     private MutableAttributeSet mAttributeSet;
     private float mMaxCharWidth;
@@ -152,6 +153,9 @@ public class TextBox extends JTextPane
         setSize(getPreferredSize());
         if (VueUtil.isWindowsPlatform() && SelectionColor != null)
             setSelectionColor(SelectionColor);
+
+        mBounds.x = Float.NaN; // mark as uninitialized
+        mBounds.y = Float.NaN; // mark as uninitialized
         
         if (TestDebug||DEBUG.TEXT) out("constructed " + getSize());
     }
@@ -750,11 +754,16 @@ public class TextBox extends JTextPane
     public void setSize(Dimension s) {
         if (TestDebug||DEBUG.TEXT) out("setSize", s);
         super.setSize(s);
-        if (preZoomFont == null) {
-            // preZoomFont only set if we had to zoom the font
-            this.mapWidth = s.width;
-            this.mapHeight = s.height;
-        }
+        mBounds.width = s.width;
+        mBounds.height = s.height;
+//         if (preZoomFont == null) {
+//             // preZoomFont only set if we had to zoom the font
+//             //this.mapWidth = s.width;
+//             //this.mapHeight = s.height;
+//             mBounds.width = s.width;
+//             mBounds.height = s.height;
+            
+//         }
     }
     /*
     public void setHeight(int h) {
@@ -842,42 +851,50 @@ public class TextBox extends JTextPane
         }
     }
 
-    public float getMapX() { return this.mapX; }
-    public float getMapY() { return this.mapY; }
-    public float getMapWidth() { return mapWidth * lwc.getMapScaleF(); }
-    public float getMapHeight() { return mapHeight * lwc.getMapScaleF(); }
-
-    public Rectangle2D.Float getMapBounds() {
-        return new Rectangle2D.Float(mapX, mapY, getMapWidth(), getMapHeight());
+    public Rectangle2D getBoxBounds() {
+        return mBounds;
     }
 
-    public void setMapLocation(float x, float y)
+    public boolean boxContains(float x, float y)
     {
-        this.mapX = x;
-        this.mapY = y;
+        return x >= mBounds.x
+            && y >= mBounds.y
+            && x <= mBounds.x + mBounds.width
+            && y <= mBounds.y + mBounds.height;
     }
-        
-
-    public boolean intersectsMapRect(Rectangle2D rect)
+    
+    public boolean boxIntersects(Rectangle2D rect)
     {
-        return rect.intersects(mapX, mapY, mapWidth, mapHeight);
+        return rect.intersects(mBounds);
     }
 
-    // todo: this currently only makes sense for use by LWLink,
-    // as it scales the size based on current map scale
-    // (if a regular component were to use this, it would
-    // be testing an x/y that had already been transformed
-    // into it's local coordinate space)
-    public boolean containsMapLocation(float x, float y)
+    public void setBoxLocation(float x, float y)
     {
-        final float scale = lwc.getMapScaleF();
-        return
-            x >= mapX &&
-            y >= mapY &&
-            x <= mapX + (mapWidth * scale) &&
-            y <= mapY + (mapHeight * scale);
+        mBounds.x = x;
+        mBounds.y = y;
+    }
+    
+    public void setBoxLocation(Point2D p)
+    {
+        setBoxLocation((float) p.getX(), (float) p.getY());
     }
 
+    public void setBoxCenter(float x, float y) {
+        setBoxLocation(x - getBoxWidth() / 2,
+                       y - getBoxHeight() / 2);
+    }
+    
+    
+    public Point2D.Float getBoxPoint()
+    {
+        return new Point2D.Float(mBounds.x, mBounds.y);
+    }
+
+    public float getBoxWidth() { return mBounds.width; };
+    public float getBoxHeight() { return mBounds.height; }
+    public float getBoxX() { return mBounds.x; };
+    public float getBoxY() { return mBounds.y; }
+    
     /*
     void resizeToWidth(float w)
     {

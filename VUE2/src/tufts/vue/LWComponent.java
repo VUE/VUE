@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.303 $ / $Date: 2007-07-16 01:53:49 $ / $Author: peter $
+ * @version $Revision: 1.304 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1524,15 +1524,15 @@ u                    getSlot(c).setFromString((String)value);
         notify(LWKey.Label, old);
     }
 
-    synchronized TextBox getLabelBox()
+    protected TextBox getLabelBox()
     {
         if (this.labelBox == null) {
-            this.labelBox = new TextBox(this, this.label);
-            // hack for LWLink label box hit detection:
-            this.labelBox.setMapLocation(getCenterX() - labelBox.getMapWidth() / 2,
-                                         getCenterY() - labelBox.getMapHeight() / 2);
-            //layout();
+            synchronized (this) {
+                if (this.labelBox == null)
+                    this.labelBox = new TextBox(this, this.label);
+            }
         }
+
         return this.labelBox;
     }
 
@@ -2104,34 +2104,47 @@ u                    getSlot(c).setFromString((String)value);
     public void         setXMLfont(String xml)  { mFont.setFromString(xml); }
 
 
-    /** default label X position impl: center the label in the bounding box */
-    public float getLabelX()
-    {
-        //float x = getCenterX();
-        if (hasLabel())
-            return getLabelBox().getMapX();
-        else if (labelBox != null)
-            return getCenterX() - labelBox.getMapWidth() / 2;
-        else
-            return getCenterX();
-        //  x -= (labelBox.getMapWidth() / 2) + 1;
-        //return x;
+    
+    /** 
+     * The first time a TextBox is created for edit, it may not have been laid out
+     * by it's parent, which is where it normally gets it's location.  This 
+     * initializes the location of the TextBox for first usage.  The default
+     * impl here centers the TextBox in the LWComponent.
+     */
+    public void initTextBoxLocation(TextBox textBox) {
+        textBox.setBoxCenter(getWidth() / 2,
+                             getHeight() / 2);
     }
-    /** default label Y position impl: center the label in the bounding box */
-    public float getLabelY()
-    {
-        if (hasLabel())
-            return getLabelBox().getMapY();
-        else if (labelBox != null)
-            return getCenterY() - labelBox.getMapHeight() / 2;
-        else
-            return getCenterY();
+
+
+//     /** default label X position impl: center the label in the bounding box */
+//     public float getLabelX()
+//     {
+//         //float x = getCenterX();
+//         if (hasLabel())
+//             return getLabelBox().getMapX();
+//         else if (labelBox != null)
+//             return getCenterX() - labelBox.getMapWidth() / 2;
+//         else
+//             return getCenterX();
+//         //  x -= (labelBox.getMapWidth() / 2) + 1;
+//         //return x;
+//     }
+//     /** default label Y position impl: center the label in the bounding box */
+//     public float getLabelY()
+//     {
+//         if (hasLabel())
+//             return getLabelBox().getMapY();
+//         else if (labelBox != null)
+//             return getCenterY() - labelBox.getMapHeight() / 2;
+//         else
+//             return getCenterY();
         
-        //float y = getCenterY();
-        //if (hasLabel())
-        //  y -= labelBox.getMapHeight() / 2;
-        //return y;
-    }
+//         //float y = getCenterY();
+//         //if (hasLabel())
+//         //  y -= labelBox.getMapHeight() / 2;
+//         //return y;
+//     }
     
     void setParent(LWContainer newParent) {
 
@@ -2763,7 +2776,8 @@ u                    getSlot(c).setFromString((String)value);
         
         // can only do this via debug inspector right now, and is causing lots of
         // suprious events during init:
-        if (LWLink.LOCAL_LINKS && !mXMLRestoreUnderway)
+        //if (LWLink.LOCAL_LINKS && !mXMLRestoreUnderway)
+        if (!mXMLRestoreUnderway)
             notify(LWKey.Scale, oldScale); // todo: make scale a real property
         
         updateConnectedLinks();
@@ -2899,11 +2913,6 @@ u                    getSlot(c).setFromString((String)value);
     /** translate across the map in absolute map coordinates */
     public void translateOnMap(double dx, double dy)
     {
-        if (hasAbsoluteMapLocation()) {
-            translate((float) dx, (float) dy);
-            return;
-        }
-        
         // If this node exists in a scaled context, which means it's parent is scaled or
         // the parent itself is in a scaled context, we need to adjust the dx/dy for
         // that scale. The scale of this object being "dragged" by the call to
@@ -3055,10 +3064,10 @@ u                    getSlot(c).setFromString((String)value);
     {
         return new Point2D.Float(this.x, this.y);
     }
-    public Point2D getCenterPoint()
-    {
-        return new Point2D.Float(getCenterX(), getCenterY());
-    }
+//     public Point2D getCenterPoint()
+//     {
+//         return new Point2D.Float(getCenterX(), getCenterY());
+//     }
     
     /** set component to this many pixels in size, quietly, with no event notification */
     protected void takeSize(float w, float h)
@@ -3186,8 +3195,10 @@ u                    getSlot(c).setFromString((String)value);
     //public float getHeight() { return this.height * getScale(); }
     public float getScaledWidth()       { return (float) (this.width * getScale()); }
     public float getScaledHeight()      { return (float) (this.height * getScale()); }
-    public float getWidth()             { return VUE.RELATIVE_COORDS ? this.width : getScaledWidth(); }
-    public float getHeight()             { return VUE.RELATIVE_COORDS ? this.height : getScaledHeight(); }
+    public float getWidth()             { return this.width;  }
+    public float getHeight()            { return this.height; }
+    //public float getWidth()           { return VUE.RELATIVE_COORDS ? this.width : getScaledWidth(); }
+    //public float getHeight()          { return VUE.RELATIVE_COORDS ? this.height : getScaledHeight(); }
     public float getMapWidth()          { return (float) (this.width * getMapScale()); }
     public float getMapHeight()         { return (float) (this.height * getMapScale()); }
     public float getAbsoluteWidth()     { return this.width; }
@@ -3220,6 +3231,28 @@ u                    getSlot(c).setFromString((String)value);
     */
 
 
+    protected double getMapXPrecise()
+    {
+        if (parent == null)
+            return getX();
+        else
+            return parent.getMapXPrecise() + getX() * parent.getMapScale();
+    }
+    protected double getMapYPrecise() {
+        if (parent == null)
+            return getY();
+        else
+            return parent.getMapYPrecise() + getY() * parent.getMapScale();
+    }
+
+    public float getMapX() {
+        return (float) getMapXPrecise();
+    }
+    
+    public float getMapY() {
+        return (float) getMapYPrecise();
+    }
+
     /** @return center x of the component in absolute map coordinates */
     public float getCenterX() {
         return getMapX() + getMapWidth() / 2;
@@ -3229,67 +3262,130 @@ u                    getSlot(c).setFromString((String)value);
         return getMapY() + getMapHeight() / 2;
     }
 
-    // these two don't handle scale properly yet
-    public float getCenterX(LWContainer ancestor) {
-        return (float) getX(ancestor) + getScaledWidth() / 2;
-    }
-    public float getCenterY(LWContainer ancestor) {
-        return (float) getY(ancestor) + getScaledHeight() / 2;
-    }
+//     // these two don't handle scale properly yet: need to adjust for parent scales...
+//     protected float getCenterX(LWContainer ancestor) {
+//         return (float) getAncestorX(ancestor) + getScaledWidth() / 2;
+//     }
+//     protected float getCenterY(LWContainer ancestor) {
+//         return (float) getAncestorY(ancestor) + getScaledHeight() / 2;
+//     }
 
-    protected double getMapXPrecise()
+//     // these two don't handle scale properly yet
+//     public float getLinkConnectionX(LWContainer ancestor) {
+//         //return getCenterX(ancestor);
+//         return (float) getAncestorX(ancestor) + getScaledWidth() / 2;
+//     }
+//     public float getLinkConnectionY(LWContainer ancestor) {
+//         //return getCenterY(ancestor);
+//         return (float) getAncestorY(ancestor) + getScaledHeight() / 2;
+//     }
+
+    protected void getLinkConnectionCenterRelativeTo(Point2D.Float point, LWContainer relative)
     {
-        //if (parent == null || parent.hasAbsoluteChildren())
-        if (parent == null)
-            return getX();
-        else
-            return parent.getMapXPrecise() + getX() * parent.getMapScale();
-    }
-    protected double getMapYPrecise() {
-        //if (parent == null || parent.hasAbsoluteChildren())
-        if (parent == null)
-            return getY();
-        else
-            return parent.getMapYPrecise() + getY() * parent.getMapScale();
+        //if (relative == null) Util.printStackTrace("null relative for " + this + ": " + relative);
+
+        final float scale = getMapScaleF();
+
+        if (relative == this) {
+            
+            point.x = getLocalCenterX() * scale;
+            point.y = getLocalCenterY() * scale;
+            
+        } else if (relative == null || relative == getParent()) {
+
+            // if relative is null, just return available local data w/out accessing the parent.
+            // This can happen normally during init.
+
+            if (this instanceof LWLink) {
+                point.x = getLocalCenterX();
+                point.y = getLocalCenterY();
+            } else {
+                point.x = getX() + getLocalCenterX() * scale;
+                point.y = getY() + getLocalCenterY() * scale;
+            }
+
+        } else {
+
+            if (this instanceof LWLink) {
+                // todo: consider getMapX/Y on LWLink override to return getParent().getMapX/Y (need to check all calls tho...)
+                point.x = getParent().getMapX() + getLocalCenterX() * scale;
+                point.y = getParent().getMapY() + getLocalCenterY() * scale;
+            } else {
+                point.x = getMapX() + getLocalCenterX() * scale;
+                point.y = getMapY() + getLocalCenterY() * scale;
+            }
+
+            // point now has map coords -- now make relative to desired component
+            // (the x/y needed if drawn in the component, that produces the same
+            // ultimate map location).  Normally, relative should always
+            // be one of our ancestors, as this is for special link code that
+            // should only ever be interested in an ancestor value, tho we compute
+            // it generically just in case.
+
+
+            if (DEBUG.Enabled) {
+                if (relative != null && !hasAncestor(relative)) {
+                    // only if not the special invisible link endpoint, which has no parent (thus no ancestors)
+                    if (getClass().getEnclosingClass() != LinkTool.LinkModeTool.class)
+                        Util.printStackTrace("debug warning: " + this + " is computing link connetion center relative to a non-ancestor: " + relative);
+                }
+            }
+            
+
+            relative.transformMapToLocalPoint(point);
+        }
     }
 
-    public float getMapX() {
-        if (VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
-            return (float) getMapXPrecise();
-        } else
-            return getX();
+    protected float getLocalCenterX() {
+        return getWidth() / 2;
+    }
+    protected float getLocalCenterY() {
+        return getHeight() / 2;
     }
     
-    public float getMapY() {
-        if (VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
-            return (float) getMapYPrecise();
-        } else
-            return getY();
-    }
+
 
     //-----------------------------------------------------------------------------
     // experimental relatve-to-a-given-ancestor coord fetchers
+    // TODO: NOT WORTH THE TROUBLE RIGHT NOW OF USING THE ANCESTOR OPTIMIZATION:
+    // Just get the freakin mapx of the desired relative-to component --
+    // someday those values may be cached in the object/transform anyway.
+    // Oh tho -- I think in LWLink we need the mapX of US, plus the mapX of the target
+    // (if KEEP the ancestor code, implement generically so can pass in any value: e.g, LWLink.mCurveCenterX)
     //-----------------------------------------------------------------------------
     
-    public double getX(LWContainer ancestor) {
+
+    protected double getAncestorX(LWContainer ancestor) {
         if (ancestor == parent) // quick check for the common case
             return getX();
         else if (parent == null) {
              Util.printStackTrace("didn't find ancestor " + ancestor + " for " + this);
              return getX();
         } else
-            return parent.getX(ancestor) + getX() * parent.getMapScale();
+            return parent.getAncestorX(ancestor) + getX() * parent.getMapScale();
     }
     
-    public double getY(LWContainer ancestor) {
+    protected double getAncestorY(LWContainer ancestor) {
         if (ancestor == parent) // quick check for the common case
             return getY();
         else if (parent == null) {
              Util.printStackTrace("didn't find ancestor " + ancestor + " for " + this);
              return getY();
         } else
-            return parent.getY(ancestor) + getY() * parent.getMapScale();
+            return parent.getAncestorY(ancestor) + getY() * parent.getMapScale();
     }
+    
+
+//     protected double ancestorY(double y, LWContainer ancestor) {
+//         if (ancestor == parent) // quick check for the common case
+//             return y;
+//         else if (parent == null) {
+//              Util.printStackTrace("didn't find ancestor " + ancestor + " for " + this);
+//              return y;
+//         } else
+//             return parent.ancestorY(y, ancestor) + getY() * parent.getMapScale();
+//     }
+    
 
     
     //-----------------------------------------------------------------------------
@@ -3304,11 +3400,11 @@ u                    getSlot(c).setFromString((String)value);
     /** for persistance ONLY */
     public void setAbsoluteHeight(float h) { this.height = h; }
     
-    /** @return true if when this this component draws, it draws and picks on the map as a whole, not relative to it's coordinate space (default is false) */
-    public boolean hasAbsoluteMapLocation() { return false; }
+    /* @return true if when this this component draws, it draws and picks on the map as a whole, not relative to it's coordinate space (default is false) */
+    //public boolean hasAbsoluteMapLocation() { return false; }
     
-    /** @return true if when this this component draws, it draws and picks relative to it's parent's coordinate space (default is false) */
-    public boolean hasParentLocation() { return false; }
+    /* @return true if when this this component draws, it draws and picks relative to it's parent's coordinate space (default is false) */
+    //public boolean hasParentLocation() { return false; }
     
     /** @return uri
      * returns an unique uri for a component. If component already has one it is returned else an new uri is created and returned.
@@ -3343,9 +3439,6 @@ u                    getSlot(c).setFromString((String)value);
      * (e.g., a link shape) */
     public Shape getMapShape()
     {
-        if (VUE.RELATIVE_COORDS == false)
-            return getShapeBounds();
-        
         // Will not work for shapes like RoundRect when scaled -- e..g, corner scaling will be off
             
         final Shape s = getLocalShape();
@@ -3387,8 +3480,8 @@ u                    getSlot(c).setFromString((String)value);
     // -- needs borders, but NO room for selection strokes (wait, but pathway strokes???)
     // screw it: we can get by with getPaintedBounds for this...
     
-    /** @DEPRECATED -- TODO: remove*/
-    public Rectangle2D.Float getShapeBounds() { return getBounds(); }
+    ///** @DEPRECATED -- TODO: remove*/
+    //public Rectangle2D.Float getShapeBounds() { return getBounds(); }
 
     /** return border shape of this object.  If VUE.RELATIVE_COORDS, it's raw and zero based,
         otherwise, with it's location in map coordinates  */
@@ -3405,10 +3498,7 @@ u                    getSlot(c).setFromString((String)value);
     
     /** @return the raw, zero based, non-scaled bounds */
     private Rectangle2D.Float getLocalBounds() {
-        if (hasAbsoluteMapLocation())
-            return getBounds();
-        else
-            return new Rectangle2D.Float(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
+        return new Rectangle2D.Float(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
     }
     
 //     /** @return the parent based, non-scaled bounds.  If the this component has absolute map location, we return getBounds() */
@@ -3433,7 +3523,6 @@ u                    getSlot(c).setFromString((String)value);
     public Rectangle2D.Float getBounds()
     {
         return new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
-        //return getPaintBounds();
     }
 
     protected Rectangle2D.Float addStrokeToBounds(Rectangle2D.Float r, float extra)
@@ -3504,21 +3593,20 @@ u                    getSlot(c).setFromString((String)value);
 
     protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
     
-    // create and recursively set a transform to get to this object's coordinate space
-    // note: structure is same in the differen transform methods
+
+    /** @return an AffineTransform that when applied to a graphics context, will have us drawing properly
+     * relative to this component, including any applicable scaling */
+    //create and recursively set a transform to get from the Map to this object's coordinate space
+    // note: structure is same in the different transform methods
     // TODO OPT: can cache this transform if track all ancestor hierarcy, location AND scale changes
     public AffineTransform getLocalTransform() {
-        
-        if (hasAbsoluteMapLocation())
-            return (AffineTransform) IDENTITY_TRANSFORM.clone();
-
         final AffineTransform a;
         if (parent == null) {
             a = new AffineTransform();
         } else {
             a = parent.getLocalTransform();
         }
-        return transformLocal(a);
+        return transformDown(a);
     }
 
     /**
@@ -3526,24 +3614,18 @@ u                    getSlot(c).setFromString((String)value);
      * @param ancestor -- the ancestor to get a transform relative to.  If null, this will return the
      * same result as getLocalTransform (relative to the map)
      */
-    public AffineTransform getRelativeTransform(LWContainer ancestor) {
+    protected AffineTransform getRelativeTransform(LWContainer ancestor) {
 
         if (parent == ancestor || parent == null)
-            return transformLocal(new AffineTransform());
+            return transformDown(new AffineTransform());
         else
-            return transformLocal(parent.getRelativeTransform(ancestor));
+            return transformDown(parent.getRelativeTransform(ancestor));
     }
     
 
-    public AffineTransform transformLocal(final AffineTransform a) {
-
-        if (hasAbsoluteMapLocation())
-            return a;
-        
-        //if ("tiny".equals(label)) out(a + " Transforming to " + getX() + "," + getY());
+    /** transform the given AffineTransform down from our parent to us, the child */
+    protected AffineTransform transformDown(final AffineTransform a) {
         a.translate(getX(), getY());
-        //if ("tiny".equals(label)) out(a.toString());
-        //final double scale = VUE.RELATIVE_COORDS ? getScale() : getMapScale();
         final double scale = getScale();
         if (scale != 1)
             a.scale(scale, scale);
@@ -3555,9 +3637,6 @@ u                    getSlot(c).setFromString((String)value);
     public void transformRelative(final Graphics2D g) {
         if (!VUE.RELATIVE_COORDS) throw new Error("non-relative coordinate impl!");
 
-        if (hasAbsoluteMapLocation())
-            return;
-        
         g.translate(getX(), getY());
         final double scale = getScale();
         if (scale != 1)
@@ -3567,9 +3646,6 @@ u                    getSlot(c).setFromString((String)value);
 
     /** Will transform all the way from the the map down to the component, wherever nested/scaled */
     public void transformLocal(final Graphics2D g) {
-        
-        if (hasAbsoluteMapLocation())
-            return;
         
         // todo: need a relative to parent transform only for cascading application during drawing
         // (and ultimate picking when impl is optimized)
@@ -3587,9 +3663,10 @@ u                    getSlot(c).setFromString((String)value);
     /** @param mapPoint will be transformed (written over) and returned */
     protected Point2D.Float transformMapToLocalPoint(Point2D.Float mapPoint) {
 
-        if (getParent() instanceof LWMap) {
+        if (this instanceof LWLink && getParent() instanceof LWMap) {
             // this is an optimization we'll want to remove if we ever
             // embed maps in maps
+            // TODO: above is also last vestige of special case for LWLink coordinate system (they're always in parent)
             return mapPoint;
         }
 
@@ -3613,7 +3690,7 @@ u                    getSlot(c).setFromString((String)value);
         }
 
         final AffineTransform tx = getLocalTransform();
-        double[] points = new double[8]; // todo: can do as len 4 & overwrite
+        double[] points = new double[8]; // todo opt: can do as len 4 & overwrite
         points[0] = mapRect.getX();
         points[1] = mapRect.getY();
         points[2] = points[0] + mapRect.getWidth();
@@ -3637,6 +3714,36 @@ u                    getSlot(c).setFromString((String)value);
         return mapRect;
         
     }
+
+
+    /**
+     * This will take the given rectangle in local coordinates, and transform it
+     * into map coordinates.  The passed in Rectangle2D.Float will be modified
+     * and returned.
+     */
+    public Rectangle2D.Float transformLocalToMapRect(Rectangle2D.Float rect) {
+        final double scale = getMapScale();
+        if (scale != 1) {
+            rect.x *= scale;
+            rect.y *= scale;
+            rect.width *= scale;
+            rect.height *= scale;
+        }
+        if (this instanceof LWLink) {
+            // todo: eventually rewrite this routine entirely to use the transformations
+            // (will need that if ever want to handle rotation, as well as to skip this
+            // special case for links).
+            rect.x += getParent().getMapX();
+            rect.y += getParent().getMapY();
+        } else {
+            rect.x += getMapX();
+            rect.y += getMapY();
+        }
+        
+        return rect;
+    }
+                
+    
     
     
     
@@ -3697,11 +3804,11 @@ u                    getSlot(c).setFromString((String)value);
     
 
     /** default impl intersects the render/paint bounds, including any borders (we use this for draw clipping as well as selection) */
-    protected boolean intersectsImpl(Rectangle2D rect) {
+    protected boolean intersectsImpl(Rectangle2D mapRect) {
         //if (DEBUG.CONTAINMENT) System.out.println("INTERSECTS " + Util.fmt(rect));
         final Rectangle2D bounds = getPaintBounds();
-        final boolean hit = rect.intersects(bounds);
-        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + Util.fmt(rect) + " " + (hit?"YES":"NO ") + " for " + Util.fmt(bounds) + " of " + this);
+        final boolean hit = mapRect.intersects(bounds);
+        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + fmt(mapRect) + " " + (hit?"YES":"NO ") + " for " + fmt(bounds) + " of " + this);
         //Util.printClassTrace("tufts.vue.LW", "INTERSECTS " + this);
         return hit;
     }
@@ -3865,20 +3972,17 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /**
-     * Default implementation: checks bounding box
+     * Default implementation: checks bounding box, including any stroke width.
      * Subclasses should override for more accurate hit detection.
      */
     protected boolean containsImpl(float x, float y, float zoom)
     {
         final float stroke = getStrokeWidth() / 2;
         
-        if (VUE.RELATIVE_COORDS)
-            return x >= -stroke
-                && y >= -stroke
-                && x <= getWidth() + stroke
-                && y <= getHeight() + stroke;
-        else
-            return containsParentCoord(x, y);
+        return x >= -stroke
+            && y >= -stroke
+            && x <= getWidth() + stroke
+            && y <= getHeight() + stroke;
     }
 
     /** For using a node in a non-map context (e.g., as an on-screen button) */
@@ -4005,20 +4109,8 @@ u                    getSlot(c).setFromString((String)value);
      */
     public void drawInParent(DrawContext dc)
     {
-        if (hasAbsoluteMapLocation())
-            dc.setMapDrawing();
-        else// this will cascade to all children when they draw, combining with their calls to transformRelative
-            transformRelative(dc.g);
-        
-//         if (VUE.RELATIVE_COORDS) {
-//             if (hasAbsoluteMapLocation())
-//                 dc.setMapDrawing();
-//             else// this will cascade to all children when they draw, combining with their calls to transformRelative
-//                 transformRelative(dc.g);
-//         } else {
-//             // this will be reset here for each child
-//             transformLocal(dc.g);
-//         }
+        // this will cascade to all children when they draw, combining with their calls to transformRelative
+        transformRelative(dc.g);
         
         final AffineTransform saveTransform = dc.g.getTransform();
 
@@ -4045,7 +4137,7 @@ u                    getSlot(c).setFromString((String)value);
                 dc.g.setStroke(STROKE_ONE);
                 dc.g.draw(new Line2D.Float(new Point2D.Float(getWidth()/2, getHeight()/2), getCorner()));
 
-                if (isSelected() && getLinks().size() > 0) {
+                if (DEBUG.LINK && isSelected() && getLinks().size() > 0) {
                     final Rectangle2D.Float pureFan = getFanBounds();
                     final Rectangle2D.Float fan = getCenteredFanBounds();
                     final float cx = getCenterX();

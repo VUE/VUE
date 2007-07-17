@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.410 $ / $Date: 2007-07-12 02:05:00 $ / $Author: sfraize $ 
+ * @version $Revision: 1.411 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2571,21 +2571,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (activeTextEdit.getText().length() < 1)
             activeTextEdit.setText("label");
         
-        // todo: this is a tad off at high scales...
-        float cx = lwc.getLabelX();
-        float cy = lwc.getLabelY();
-        //cx--; // to compensate for line border inset?
-        //cy--; // to compensate for line border inset?
-        // todo: if is child (scaled) node, this location
-        // is wrong -- it's shifted down/right
-        // If a border is added to the TextBox (a JComponent), the text moves down
-        // and thus we need to move it back up by a pixel.
-        //activeTextEdit.setLocation(mapToScreenX(cx), mapToScreenY(cy)-1);
+        Point2D.Float point = activeTextEdit.getBoxPoint();
+        if (DEBUG.TEXT || DEBUG.WORK) out("BOX POINT LOCAL: " + fmt(point));
+        
+        if (Float.isNaN(point.x)) {
+            // Float.NaN is marker for an uninitialized TextBox location
+            lwc.initTextBoxLocation(activeTextEdit);
+            point = activeTextEdit.getBoxPoint();
+            if (DEBUG.TEXT || DEBUG.WORK) out(" BOX POINT INIT: " + fmt(point));
+            
+        }
 
-        //if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format(" label X/Y: %.1f,%,1f", cx, cy));
+        lwc.getLocalTransform().transform(point, point);
+        
+        if (DEBUG.TEXT || DEBUG.WORK) out("  BOX POINT MAP: " + fmt(point));
 
-        final int screenX = mapToScreenX(cx);
-        final int screenY = mapToScreenY(cy);
+        final int screenX = mapToScreenX(point.x);
+        final int screenY = mapToScreenY(point.y);
         
         //if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format("screen X/Y: %d,%d", screenX, screenY));
         
@@ -3194,7 +3196,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // or even how they hit the selection handles in he first place.
     void drawComponentSelectionBox(Graphics2D g, LWComponent c) {
         g.setColor(COLOR_SELECTION);
-        Rectangle2D.Float r = mapToScreenRect2D(c.getShapeBounds());
+        Rectangle2D.Float r = mapToScreenRect2D(c.getBounds());
         g.draw(r);
         r.x -= (CHS-1)/2;
         r.y -= (CHS-1)/2;
@@ -4618,9 +4620,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             lastMouseY = e.getY();
             
             
-            float mapX = screenToMapX(e.getX());
-            float mapY = screenToMapY(e.getY());
-            LWComponent hit = pickNode(mapX, mapY);
+            final float mapX = screenToMapX(e.getX());
+            final float mapY = screenToMapY(e.getY());
+            
+            final PickContext pc = getPickContext(mapX, mapY);
+            
+            // for mouseEntered/mouseOver on map components, always use the deepest pick available
+            // Note: will NOT want to do this if items such as groups will ever have a meaningful
+            // mouseOver of their own.  If that's ever the case, just use:
+            // final LWComponent hit = pickNode(mapX, mapY);
+            // which will rely on the active tool for it's depth as is the default.
+            
+            pc.pickDepth = Short.MAX_VALUE;
+            final LWComponent hit = LWTraversal.PointPick.pick(pc);
+        
+            
             if (DEBUG.ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
 
             final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);

@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.22 $ / $Date: 2007-06-20 00:46:04 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -243,32 +243,26 @@ public class LWTraversal {
 
             final Point2D p;
 
-            if (c.hasAbsoluteMapLocation()) {
+            try {
+                // todo: can keep a cached transform for each parent encountered...
 
-                p = mapPoint;
-
-            } else {
-
-                try {
-                    // todo: can keep a cached transform for each parent encountered...
-
-                    // TODO: do this in acceptTraversal, only when descending to children if there
-                    // are any, and might want to leave us in the parent space when checking the
-                    // children, so we could have one generic contains that always operates in the
-                    // parent's space.  Only drawback is that contains/intersects will have do
-                    // adjust for local scale, or, god forbid, a rotation, tho in the common cases
-                    // where there aren't any, it's probably alot faster... (will never handle
-                    // rotation tho if we check in parent coords)
+                // TODO: do this in acceptTraversal, only when descending to children if there
+                // are any, and might want to leave us in the parent space when checking the
+                // children, so we could have one generic contains that always operates in the
+                // parent's space.  Only drawback is that contains/intersects will have do
+                // adjust for local scale, or, god forbid, a rotation, tho in the common cases
+                // where there aren't any, it's probably alot faster... (will never handle
+                // rotation tho if we check in parent coords)
+                // todo: use transformMapToLocalPoint, and override it in LWMap/LWLink for
+                // optimization / avoid creating all those empty AffineTransform's...
                     
-                    p = c.getLocalTransform().inverseTransform(mapPoint, null);
-                    if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + p);
-                } catch (java.awt.geom.NoninvertibleTransformException e) {
-                    e.printStackTrace();
-                    return;
-                }
-                
+                p = c.getLocalTransform().inverseTransform(mapPoint, null);
+                if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + p);
+            } catch (java.awt.geom.NoninvertibleTransformException e) {
+                e.printStackTrace();
+                return;
             }
-
+                
             final float hitResult = c.pickDistance((float) p.getX(),
                                                    (float) p.getY(),
                                                    pc.zoom);
@@ -347,7 +341,7 @@ public class LWTraversal {
                 // as a link that is connected to the node.  In that case we want to
                 // stay with the direct hit on the node and ignore the link, no matter
                 // how close we may be to it.
-                
+
                 final float closeEnoughSq;
                 if (pc.zoom < 1) {
                     // allow more slop if zoomed way out (links are very small and hard to hit)
@@ -395,8 +389,12 @@ public class LWTraversal {
                             picked = topGroupAncestor;
                     }
                     
-                    if (picked == null)
+                    if (picked == null) {
+                        // TODO FIX: if a CURVED LINK is a child of a slide (or a node or anything else for that matter),
+                        // the curved link can actually be well outside it's parent, but still end up picking the parent
+                        // here, because we were CLOSE ENOUGH on the child. (see test-linkhack.vue)
                         picked = parent.pickChild(pc, hit);
+                    }
                     
                 } else {
                     // would normally only get here for an LWMap                    

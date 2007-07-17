@@ -634,7 +634,8 @@ public class Actions implements VueConstants
                 
                 for (LWComponent c : iterable) {
                     if (c.getParent() instanceof LWGroup) {
-                        if (LWLink.LOCAL_LINKS && c instanceof LWLink && ((LWLink)c).isConnected()) {
+                        //if (LWLink.LOCAL_LINKS && c instanceof LWLink && ((LWLink)c).isConnected()) {
+                        if (c instanceof LWLink && ((LWLink)c).isConnected()) {
                             // links control their own parentage when connected
                             continue;
                         } else

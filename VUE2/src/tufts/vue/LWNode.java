@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.172 $ / $Date: 2007-07-12 02:06:37 $ / $Author: sfraize $
+ * @version $Revision: 1.173 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -122,8 +122,7 @@ public class LWNode extends LWContainer
         new LWIcon.Block(this,
                          IconWidth, IconHeight,
                          null,
-                         LWIcon.Block.VERTICAL,
-                         LWIcon.Block.COORDINATES_COMPONENT);
+                         LWIcon.Block.VERTICAL);
 
     
 
@@ -393,11 +392,11 @@ public class LWNode extends LWContainer
     private boolean textBoxHit(float cx, float cy)
     {
         // todo cleanup: this is a fudgey computation: IconPad / PadTop not always used!
-        float lx = relativeLabelX() - IconPadRight;
-        float ly = relativeLabelY() - PadTop;
-        Size size = getTextSize();
-        float h = size.height + PadTop;
-        float w = size.width + IconPadRight;
+        final float lx = relativeLabelX() - IconPadRight;
+        final float ly = relativeLabelY() - PadTop;
+        final Size size = getTextSize();
+        final float h = size.height + PadTop;
+        final float w = size.width + IconPadRight;
         //float height = getLabelBox().getHeight() + PadTop;
         //float width = (IconPadRight + getLabelBox().getWidth()) * TextWidthFudgeFactor;
 
@@ -422,8 +421,12 @@ public class LWNode extends LWContainer
     {
         //System.out.println("*** handleDoubleClick " + e + " " + this);
 
-        float cx = e.getComponentX();
-        float cy = e.getComponentY();
+        //float cx = e.getComponentX();
+        //float cy = e.getComponentY();
+        
+        final Point2D.Float localPoint = e.getLocalPoint(this);
+        final float cx = localPoint.x;
+        final float cy = localPoint.y;
 
         if (textBoxHit(cx, cy)) {
             e.getViewer().activateLabelEdit(this);
@@ -877,6 +880,7 @@ public class LWNode extends LWContainer
                 out(msg);
         }
 
+
         mIconBlock.layout(); // in order to compute the size & determine if anything showing
 
         if (DEBUG.LAYOUT && getLabelBox().getHeight() != getLabelBox().getPreferredSize().height) {
@@ -955,7 +959,9 @@ public class LWNode extends LWContainer
             // mIconDivider set by layoutCentered in the other case
         }
 
-    
+        if (labelBox != null)
+            labelBox.setBoxLocation(relativeLabelX(), relativeLabelY());
+        
         if (this.parent != null && this.parent instanceof LWMap == false) {
             // todo: should only need to do if size changed
             this.parent.layout();
@@ -1802,13 +1808,7 @@ public class LWNode extends LWContainer
                 first = false;
             else
                 y += ChildVerticalGap * getScale();
-            if (c.hasAbsoluteMapLocation()) {
-                // this is a hack only for old maps that might have groups inside of nodes --
-                // try and do something reasonable...  this isn't all there tho.
-                c.setLocation(baseX + getX(),
-                              y + getY());
-            } else
-                c.setLocation(baseX, y);
+            c.setLocation(baseX, y);
             y += c.getScaledHeight();
 
             if (result != null) {
@@ -1903,23 +1903,23 @@ public class LWNode extends LWContainer
         }
     }
 
-    @Override
-    public float getLabelX()
-    {
-        return getMapX() + relativeLabelX() * getMapScaleF();
-    }
+//     @Override
+//     public float getLabelX()
+//     {
+//         return getMapX() + relativeLabelX() * getMapScaleF();
+//     }
     
-    @Override
-    public float getLabelY()
-    {
-        return getMapY() + relativeLabelY() * getMapScaleF();
-        /*
-        if (this.labelBox == null)
-            return getY() + relativeLabelY();
-        else
-            return (getY() + relativeLabelY()) - this.labelBox.getHeight();
-        */
-    }
+//     @Override
+//     public float getLabelY()
+//     {
+//         return getMapY() + relativeLabelY() * getMapScaleF();
+//         /*
+//         if (this.labelBox == null)
+//             return getY() + relativeLabelY();
+//         else
+//             return (getY() + relativeLabelY()) - this.labelBox.getHeight();
+//         */
+//     }
 
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
@@ -2180,6 +2180,11 @@ public class LWNode extends LWContainer
         }
     }
 
+    @Override
+    public void initTextBoxLocation(TextBox textBox) {
+        textBox.setBoxLocation(relativeLabelX(), relativeLabelY());
+    }
+    
     //-----------------------------------------------------------------------------
     // I think these are done dynamically instead of always using
     // mLabelPos.x and mLabelPos.y because we haven't always done a

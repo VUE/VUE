@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.geom.Rectangle2D;
@@ -30,7 +32,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.14 $ / $Date: 2007-04-06 22:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -151,18 +153,31 @@ public class MapMouseEvent extends MouseEvent
         return new Point2D.Float(mapX, mapY);
     }
 
-    // TODO: these handling new coord system??
-    public float getComponentX() {
-        getPicked();
-        return picked == null ? Float.NaN : (mapX - picked.getX()) / picked.getScaleF();
+//     // TODO: these handling new coord system??
+//     public float getComponentX() {
+//         getPicked();
+//         return picked == null ? Float.NaN : (mapX - picked.getX()) / picked.getScaleF();
+//     }
+//     public float getComponentY() {
+//         getPicked();
+//         return picked == null ? Float.NaN : (mapY - picked.getY()) / picked.getScaleF();
+//     }
+//     public Point2D.Float getComponentPoint() {
+//         return new Point2D.Float(getComponentX(), getComponentY());
+//     }
+
+
+    public Point2D.Float getLocalPoint(LWComponent local) {
+        if (local != picked && picked != null) {
+            if (DEBUG.Enabled)
+                Util.printStackTrace("warning: local != picked"
+                                     + "\n\tpicked: " + picked
+                                     + "\n\t local: " + local);
+        }
+        // todo perf minor: could cache this
+        return local.transformMapToLocalPoint(getMapPoint());
     }
-    public float getComponentY() {
-        getPicked();
-        return picked == null ? Float.NaN : (mapY - picked.getY()) / picked.getScaleF();
-    }
-    public Point2D.Float getComponentPoint() {
-        return new Point2D.Float(getComponentX(), getComponentY());
-    }
+    
 
     public LWComponent getPicked() {
         if (!pickedSet) {
@@ -191,8 +206,8 @@ public class MapMouseEvent extends MouseEvent
 
     public String paramString() {
         return super.paramString()
-            + ",cx=" + getComponentX()
-            + ",cy=" + getComponentY()
+//            + ",cx=" + getComponentX()
+//            + ",cy=" + getComponentY()
             + ",hit=" + (pickedSet ? "<unset>" : picked);
     }
 

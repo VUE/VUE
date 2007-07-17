@@ -90,8 +90,7 @@ public class LWImage extends
         new LWIcon.Block(this,
                          20, 12,
                          null,
-                         LWIcon.Block.VERTICAL,
-                         LWIcon.Block.COORDINATES_COMPONENT_NO_SHRINK);
+                         LWIcon.Block.VERTICAL);
 
 
     public LWImage() {

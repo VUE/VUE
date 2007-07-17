@@ -167,62 +167,6 @@ public class LinkTool extends VueTool
     }
     
 
-    
-//     private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
-//     {
-//         float mapX = e.getMapX();
-//         float mapY = e.getMapY();
-
-//         PickContext pc = e.getViewer().getPickContext(mapX, mapY);
-//         pc.excluded = link;
-//         LWComponent directHit = LWTraversal.PointPick.pick(pc);
-
-//         if (directHit != null && isValidLinkTarget(link, linkSource, directHit))
-//             return directHit;
-
-//         // TODO: need a new PickTraversal type that handles target contains
-
-//         return null;
-
-//         /*
-
-//           // This was the old code that let you link to something even when you just
-//           // got near it.
-        
-//         java.util.List targets = new java.util.ArrayList();
-//         java.util.Iterator i = e.getMap().getChildIterator();
-//         while (i.hasNext()) {
-//             LWComponent c = (LWComponent) i.next();
-//             if (c.targetContains(mapX, mapY) && isValidLinkTarget(linkSource, c))
-//                 targets.add(c);
-//         }
-//         return e.getViewer().findClosestEdge(targets, mapX, mapY);
-//         */
-//     }
-
-    /*
-    private static LWComponent findLWLinkTargetAt(LWComponent linkSource, LWLink link, MapMouseEvent e)
-    {
-        float mapX = e.getMapX();
-        float mapY = e.getMapY();
-        LWComponent directHit = e.getMap().findDeepestChildAt(mapX, mapY, link);
-        //if (DEBUG.CONTAINMENT) System.out.println("findLWLinkTargetAt: directHit=" + directHit);
-        if (directHit != null && isValidLinkTarget(linkSource, directHit))
-            return directHit;
-        
-        // TODO: good to hack this up: it never handled filtered / invisible objects anyway...
-
-        java.util.List targets = new java.util.ArrayList();
-        java.util.Iterator i = e.getMap().getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.targetContains(mapX, mapY) && isValidLinkTarget(linkSource, c))
-                targets.add(c);
-        }
-        return e.getViewer().findClosestEdge(targets, mapX, mapY);
-    }
-    */
-
     private static void reject(LWComponent target, String reason) {
         System.out.println("LinkTool; rejected: " + reason + "; " + target);
     }
@@ -613,6 +557,10 @@ public class LinkTool extends VueTool
                 linkSource = hit;
                 // todo: pick up current default stroke color & stroke width
                 // and apply to creationLink
+
+                creationLink.setParent(linkSource.getParent()); // needed for new relative-to-parent link code
+                //invisibleLinkEndpoint.setParent(linkSource.getParent()); // needed for new relative-to-parent link code
+                
                 creationLink.setTemporaryEndPoint1(linkSource);
                 EditorManager.applyCurrentProperties(creationLink); // don't target until / unless link actually created
                 // never let drawn creator link get less than 1 pixel wide on-screen
@@ -620,6 +568,7 @@ public class LinkTool extends VueTool
                 if (creationLink.getStrokeWidth() < minStrokeWidth)
                     creationLink.setStrokeWidth(minStrokeWidth);
                 invisibleLinkEndpoint.setLocation(e.getMapPoint());
+                creationLink.notifyEndpointMoved(invisibleLinkEndpoint);
                 e.setDragRequest(invisibleLinkEndpoint);
                 // using a LINK as the dragComponent is a mess because geting the
                 // "location" of a link isn't well defined if any end is tied
@@ -709,7 +658,7 @@ public class LinkTool extends VueTool
                 createdNode = true;
             }
 
-            LWLink link;
+            final LWLink link;
             if (pMakeConnection && (comboMode || pLinkDest!=null)) {
                 link = new LWLink(pLinkSource, pLinkDest);
                 if (existingStraightLinks > 0)

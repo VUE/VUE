@@ -121,32 +121,35 @@ public abstract class LWIcon extends Rectangle2D.Float
     {
         public static final boolean VERTICAL = true;
         public static final boolean HORIZONTAL = false;
-        public static final int COORDINATES_MAP = 0;
-        public static final int COORDINATES_COMPONENT  = 1;
-        public static final int COORDINATES_COMPONENT_NO_SHRINK = 2; // only currently works for blocks laid out at 0,0 of node
+        //public static final int COORDINATES_MAP = 0;
+        //public static final int COORDINATES_COMPONENT  = 1;
+        //public static final int COORDINATES_COMPONENT_NO_SHRINK = 2; // only currently works for blocks laid out at 0,0 of node
         
         private LWComponent mLWC;
         
         private LWIcon[] mIcons = new LWIcon[6];
 
-        final private boolean mCoordsNodeLocal;
-        final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
+        //final private boolean mCoordsNodeLocal;
+        //final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
+        final private boolean mNoShrink; // don't let icon's get less than 100% zoom
         private boolean mVertical;
-        private float mIconWidth;
-        private float mIconHeight;
+        private final float mIconWidth;
+        private final float mIconHeight;
                
         public Block(LWComponent lwc,
                      int iconWidth,
                      int iconHeight,
                      Color c,
-                     boolean vertical,
-                     int coordStyle)
+                     boolean vertical)
+                     //boolean noShrink)
+                        //int coordStyle)
         {
             if (c == null)
                 c = DefaultColor;
 
-            mCoordsNodeLocal = (coordStyle >= COORDINATES_COMPONENT);
-            mCoordsNoShrink = (coordStyle == COORDINATES_COMPONENT_NO_SHRINK);
+            //mCoordsNodeLocal = (coordStyle >= COORDINATES_COMPONENT);
+            //mCoordsNoShrink = (coordStyle == COORDINATES_COMPONENT_NO_SHRINK);
+            mNoShrink = (lwc instanceof LWImage);
             mIconWidth = iconWidth;
             mIconHeight = iconHeight;
             setOrientation(vertical);
@@ -261,23 +264,19 @@ public abstract class LWIcon extends Rectangle2D.Float
         void draw(DrawContext dc)
         {
 
-            // If mCoordsNoShrink is true, never let icon size get
-            // less than 100% for images (tho also it shouldn't be
-            // allowed BIGGER than the object...)  This is
-            // experimental in that it only currently works if the
-            // block is laid out at 0,0, because we scale the
-            // DrawContext once at the top here, which will offset any
-            // non-zero locations (and we don't want the location
-            // changed, only the size).  You you place the block
-            // at > 0,0, the icons will be moved outside the node
-            // when the scale gets small enough.
+            // If mCoordsNoShrink is true, never let icon size get less than 100% for
+            // images (tho also it shouldn't be allowed BIGGER than the object...)  This
+            // is experimental in that it only currently works if the block is laid out
+            // at 0,0, because we scale the DrawContext once at the top here, which will
+            // offset any non-zero locations (and we don't want the location changed,
+            // only the size).  You you place the block at > 0,0, the icons will be
+            // moved outside the node when the scale gets small enough.
 
-            // Also, if the scale becomes VERY small, the icon
-            // block will be drawn bigger than the image
-            // itself.  TODO: fix all the above or handle
-            // this some other way.
+            // Also, if the scale becomes VERY small, the icon block will be drawn
+            // bigger than the image itself.  TODO: fix all the above or handle this
+            // some other way.
             
-            if (mCoordsNoShrink && dc.zoom < 1)
+            if (mNoShrink && dc.zoom < 1)
                 dc.setAbsoluteDrawing(true);
             
             for (int i = 0; i < mIcons.length; i++) {
@@ -285,80 +284,62 @@ public abstract class LWIcon extends Rectangle2D.Float
                     mIcons[i].draw(dc);
             }
 
-            if (mCoordsNoShrink && dc.zoom < 1)
+            if (mNoShrink && dc.zoom < 1)
                 dc.setAbsoluteDrawing(false);
         }
 
 
         void checkAndHandleMouseOver(MapMouseEvent e)
         {
-            float cx = 0, cy = 0;
-
-            if (mCoordsNodeLocal) {
-                // COORDINATES_COMPONENT
-                cx = e.getComponentX();
-                cy = e.getComponentY();
-            } else {
-                // COORDINATES_MAP
-                cx = e.getMapX();
-                cy = e.getMapY();
-            }
+            final Point2D.Float localPoint = e.getLocalPoint(mLWC);
+            float cx = localPoint.x;
+            float cy = localPoint.y;
+            
             JComponent tipComponent = null;
             LWIcon tipIcon = null;
 
 
-            for (int i = 0; i < mIcons.length; i++) {
-                LWIcon icon = mIcons[i];
-                if (icon.isShowing()) {
-                    if (mCoordsNoShrink) {
-                        double zoom = e.getViewer().getZoomFactor();
-                        if (zoom < 1) {
-                            cx *= zoom;
-                            cy *= zoom;
-                        }
+            for (LWIcon icon : mIcons) {
+                if (!icon.isShowing())
+                    continue;
+
+                if (mNoShrink) {
+                    // TODO: this probably no longer quite right given local coords...
+                    double zoom = e.getViewer().getZoomFactor();
+                    if (zoom < 1) {
+                        cx *= zoom;
+                        cy *= zoom;
                     }
-                    if (icon.contains(cx, cy)) {
-                        tipIcon = icon;
-                        break;
-                    }
+                }
+                if (icon.contains(cx, cy)) {
+                    tipIcon = icon;
+                    break;
                 }
             }
             
             // TODO: don't need to do this if there's already a tip showing!
             if (tipIcon != null) {
                 tipComponent = tipIcon.getToolTipComponent();
-                Rectangle2D.Float tipRegion = (Rectangle2D.Float) tipIcon.getBounds2D();
-                if (mCoordsNodeLocal) {
-                    // translate tipRegion from component to map coords
-                    double s = mLWC.getScale();
-                    if (s != 1) {
-                        tipRegion.x *= s;
-                        tipRegion.y *= s;
-                        tipRegion.width *= s;
-                        tipRegion.height *= s;
-                    }
-                    tipRegion.x += mLWC.getX();
-                    tipRegion.y += mLWC.getY();
-                }
+                final Rectangle2D tipRegion = mLWC.transformLocalToMapRect((Rectangle2D.Float) tipIcon.getBounds2D());
 
                 // if node, compute avoid region node+tipRegion,
                 // if link avoid = label+entire tip block
-                Rectangle2D avoidRegion = null;
+                final Rectangle2D.Float avoidRegion;
+
                 if (mLWC instanceof LWLink) {
-                    float w = 1, h = 1;
-                    
                     if (mLWC.hasLabel()) {
-                        w = mLWC.labelBox.getMapWidth();
-                        h = mLWC.labelBox.getMapHeight();
+                        avoidRegion = new Rectangle2D.Float();
                         // Stay away from the link label:
-                        avoidRegion = new Rectangle2D.Float(mLWC.getLabelX(), mLWC.getLabelY(), w,h);
-                        // Stay way from the whole icon block:
-                        Rectangle2D.union(avoidRegion, this, avoidRegion);
-                    } else
-                        // Stay way from the whole icon block:
+                        avoidRegion.setRect(mLWC.labelBox.getBoxBounds());
+                        // Also stay way from the whole icon block:
+                        avoidRegion.add(this);
+                    } else {
+                        // Just stay way from the whole icon block:
                         avoidRegion = this;
+                    }
+                    mLWC.transformLocalToMapRect(avoidRegion);
                 } else {
-                    avoidRegion = mLWC.getShapeBounds();
+                    avoidRegion = mLWC.getBounds();
                 }
                 
                 e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
@@ -367,20 +348,12 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         boolean handleDoubleClick(MapMouseEvent e)
         {
-            float cx = 0, cy = 0;
             boolean handled = false;
-
-            if (mCoordsNodeLocal) {
-                cx = e.getComponentX();
-                cy = e.getComponentY();
-            } else {
-                cx = e.getMapX();
-                cy = e.getMapY();
-            }
+            final Point2D.Float localPoint = e.getLocalPoint(mLWC);
 
             for (int i = 0; i < mIcons.length; i++) {
                 LWIcon icon = mIcons[i];
-                if (icon.isShowing() && icon.contains(cx, cy)) {
+                if (icon.isShowing() && icon.contains(localPoint.x, localPoint.y)) {
                     icon.doDoubleClickAction();
                     handled = true;
                     break;
