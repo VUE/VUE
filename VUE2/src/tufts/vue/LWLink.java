@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.158 $ / $Date: 2007-07-18 02:08:00 $ / $Author: sfraize $
+ * @version $Revision: 1.159 $ / $Date: 2007-07-18 02:10:32 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1483,6 +1483,8 @@ public class LWLink extends LWComponent
     /** called by LWComponent.updateConnectedLinks to let
      * us know something we're connected to has moved,
      * and thus we need to recompute our drawn shape.
+     * @param movingSrc - the moving component that originated this update -- will be null if not the result of a location change
+     * @param end - the endpoint that's changing / moving
      */
 
     void notifyEndpointMoved(LWComponent movingSrc, LWComponent end)
