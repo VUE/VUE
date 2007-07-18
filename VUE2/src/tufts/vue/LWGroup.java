@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * together.
  *
  * @author Scott Fraize
- * @version $Revision: 1.72 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2007-07-18 02:08:00 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -661,13 +661,13 @@ public class LWGroup extends LWContainer
     
     private boolean linksAreTranslatingWithUs = false;
     @Override
-    protected void notifyMapLocationChanged(double mdx, double mdy) {
+    protected void notifyMapLocationChanged(LWComponent src, double mdx, double mdy) {
         if (!isForSelection) {
             try {
                 // this is just an optimization -- it's okay to over-normalize, but it
                 // makes sorting through the resulting diagnistic event stream easier.
                 linksAreTranslatingWithUs = true;
-                super.notifyMapLocationChanged(mdx, mdy);
+                super.notifyMapLocationChanged(src, mdx, mdy);
             } finally {
                 linksAreTranslatingWithUs = false;
             }
@@ -685,7 +685,7 @@ public class LWGroup extends LWContainer
         // Until we can know if it's a bounds event (or have a layout event),
         // just make the bounds dirty no matter what, and just in case update
         // any connected links
-        updateConnectedLinks();
+        updateConnectedLinks(null);
 
         //if (DEBUG.EVENTS && DEBUG.CONTAINMENT) System.out.println(e + "; broadcastChildEvent inside " + this);
         

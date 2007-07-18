@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.123 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2007-07-18 02:08:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -152,22 +152,20 @@ public abstract class LWContainer extends LWComponent
     void layoutChildren() { }
 
     @Override
-    protected void notifyMapLocationChanged(double mdx, double mdy) {
-        super.notifyMapLocationChanged(mdx, mdy);
+    protected void notifyMapLocationChanged(LWComponent src, double mdx, double mdy) {
+        super.notifyMapLocationChanged(src, mdx, mdy);
         if (hasChildren()) {
             for (LWComponent c : getChildList())
-                c.notifyMapLocationChanged(mdx, mdy); // is overcalling updateConnectedLinks (+1 for each depth!), but it's cheap
+                c.notifyMapLocationChanged(src, mdx, mdy); // is overcalling updateConnectedLinks (+1 for each depth!), but it's cheap
         }
     }
     
-    protected void updateConnectedLinks()
+    protected void updateConnectedLinks(LWComponent movingSrc)
     {
-        super.updateConnectedLinks();
-        if (VUE.RELATIVE_COORDS) {
-            // these components are now moving on the map, even tho their local location isn't changing
-            for (LWComponent c : getChildList()) 
-                c.updateConnectedLinks();
-        }
+        super.updateConnectedLinks(movingSrc);
+        // these components are moving in absolute map coordinates, even tho their local location isn't changing
+        for (LWComponent c : getChildList()) 
+            c.updateConnectedLinks(movingSrc);
     }
 
     /** called by LWChangeSupport, available here for override by parent classes that want to

@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.157 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
+ * @version $Revision: 1.158 $ / $Date: 2007-07-18 02:08:00 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1480,64 +1480,37 @@ public class LWLink extends LWComponent
         
     }
 
-//     public class Recompute implements Runnable {
-//         public void run() {
-//             if (endpointMoved)
-//                 computeLink();
-//         }
-
-//         public String toString() {
-//             return "RECOMPUTE[" + LWLink.this + "]";
-//         }
-//     };
-
-//     private final Runnable LinkEndpointMovedTask = new Recompute();
-
-    
     /** called by LWComponent.updateConnectedLinks to let
      * us know something we're connected to has moved,
      * and thus we need to recompute our drawn shape.
      */
-    void notifyEndpointMoved(LWComponent end)
+
+    void notifyEndpointMoved(LWComponent movingSrc, LWComponent end)
     {
+        final boolean wasDirty = this.endpointMoved; // this is for debug only: remove eventually
+
+        if (endpointMoved || (movingSrc != null && hasAncestor(movingSrc) && end.hasAncestor(movingSrc))) {
+            // we can skip the update: the link and the endpoint are both moving
+            // inside a collective parent context (or we already marked)
+        } else {
+            this.endpointMoved = true;
+        }
+
         if (DEBUG.CONTAINMENT) {
-            if (DEBUG.LINK&&DEBUG.WORK)
-                System.out.format("notifyEndpointMoved %-70s src=%s\n", this, end);
-            else
-                System.err.print(";");
+            if (DEBUG.LINK&&DEBUG.WORK) {
+                System.out.format("notifyEndpointMoved %-70s movingSrc=%s end=%s wasDirty=%s nowMarked=%s\n",
+                                  this, movingSrc, end, wasDirty, endpointMoved);
+            } else {
+                if (!wasDirty && !endpointMoved)
+                    System.err.print("|");
+                else if (!wasDirty && endpointMoved)
+                    System.err.print(";");
+                else 
+                    System.err.print(":");
+            }
             //if (end instanceof LWLink) Util.printStackTrace("notifyEndpointMoved " + this);
             //Util.printClassTrace("tufts.vue", "notifyEndpointMoved " + this);
         }
-        
-//         if (end instanceof LWLink) {
-            
-//             // if an endpoint is a LWLink, we need to add a task to make
-//             // sure we get recomputed, as it's possible that the
-//             // normal link recomputation code will cause this
-//             // LWLink to recompute before it's endpoint link does,
-//             // which leaves us with an incorrectly positioned endpoint.
-
-//             // This I'm fairly certain is only required during Undo
-//             // operations.
-
-//             // TODO: okay, this is rediculous.  This is handling the link-to-link that's
-//             // getting out of sync, but the link it's CONNECTED to isn't updating when
-//             // you undo an grouping of one of it's endpoints....  I think we need to
-//             // just switch over to using all setHeadPoint/setTailPoint as real events
-//             // and just bite the damn bullet and live with it for now.
-            
-//             final UndoManager um = getUndoManager();
-//             if (um != null && um.isUndoing() && !um.hasCleanupTask(LinkEndpointMovedTask))
-//                 um.addCleanupTask(LinkEndpointMovedTask);
-//         }
-        
-        // TODO: can optimize and skip link recompute if our parent is
-        // the same as the moving parent, the the OTHER end of our
-        // link also has the same parent (cache a bit for this) (or
-        // other head/tail is null -- we can only get this call if at
-        // least one endpoint is connected)
-
-        this.endpointMoved = true;
     }
 
 //     void notifyEndpointReparented(LWComponent end)
@@ -2064,7 +2037,7 @@ public class LWLink extends LWComponent
         layout();
         // if there are any links connected to this link, make sure they
         // know that this endpoint has moved.
-        updateConnectedLinks();
+        updateConnectedLinks(null);
         
     }
 

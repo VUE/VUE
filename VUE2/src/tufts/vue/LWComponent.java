@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.305 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
+ * @version $Revision: 1.306 $ / $Date: 2007-07-18 02:08:00 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2780,7 +2780,7 @@ u                    getSlot(c).setFromString((String)value);
         if (!mXMLRestoreUnderway)
             notify(LWKey.Scale, oldScale); // todo: make scale a real property
         
-        updateConnectedLinks();
+        updateConnectedLinks(null);
         //System.out.println("Scale set to " + scale + " in " + this);
     }
     
@@ -2822,18 +2822,6 @@ u                    getSlot(c).setFromString((String)value);
 
     public Size getMinimumSize() {
         return MinSize;
-    }
-    
-    /**
-     * Tell all links that have us as an endpoint that we've
-     * moved or resized so the link knows to recompute it's
-     * connection points.
-     */
-    protected void updateConnectedLinks()
-    {
-        if (mLinks.size() > 0)
-            for (LWLink link : mLinks)
-                link.notifyEndpointMoved(this);
     }
     
     public void setFrame(Rectangle2D r)
@@ -3003,21 +2991,34 @@ u                    getSlot(c).setFromString((String)value);
             else
                 scale = 1.0;
             if (DEBUG.WORK) out("notifyMapLocationChanged: using scale " + scale);
-            notifyMapLocationChanged((x - oldValue.x) * scale,
+            notifyMapLocationChanged(this,
+                                     (x - oldValue.x) * scale,
                                      (y - oldValue.y) * scale);
         } else {
             // this always needs to happen no matter what, even during undo
             // (e.g., the shape of curves isn't stored anywhere -- always needs to be recomputed)
             if (!linkNotificationDisabled)
-                updateConnectedLinks();
+                updateConnectedLinks(this);
         }
     }
 
+    /**
+     * Tell all links that have us as an endpoint that we've
+     * moved or resized so the link knows to recompute it's
+     * connection points.
+     */
+    protected void updateConnectedLinks(LWComponent movingSrc)
+    {
+        if (mLinks.size() > 0)
+            for (LWLink link : mLinks)
+                link.notifyEndpointMoved(movingSrc, this);
+    }
+    
     /** a notification to the component that it's absolute map location has changed by the given absolute map dx / dy */
     // todo: may be better named ancestorMoved or ancestorTranslated or some such
-    protected void notifyMapLocationChanged(double mdx, double mdy) {
+    protected void notifyMapLocationChanged(LWComponent movingSrc, double mdx, double mdy) {
         if (!linkNotificationDisabled) // todo: if still end up using this feature, need to pass this bit on down to children
-            updateConnectedLinks();
+            updateConnectedLinks(movingSrc);
     }
 
     protected void notifyMapScaleChanged(double oldParentMapScale, double newParentMapScale) {}
@@ -3104,7 +3105,7 @@ u                    getSlot(c).setFromString((String)value);
         takeSize(w, h);
         if (getParent() != null && !(getParent() instanceof LWMap))
             getParent().layout();
-        updateConnectedLinks();
+        updateConnectedLinks(null);
         if (!isAutoSized())
             notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
