@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.145 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
+ * @version $Revision: 1.146 $ / $Date: 2007-07-18 02:46:52 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -143,14 +143,6 @@ public class LWMap extends LWContainer
         disableProperty(LWKey.Label);
     }
 
-//     /** @return true -- absolute means absolute map location, so all children of a map by definition
-//      * have absolute position.  We'll want to change this if we ever implement embedding of maps
-//      * within maps.
-//      */
-//     public boolean hasAbsoluteChildren() {
-//         return true;
-//     }
-
     // if/when we support maps embedded in maps, we'll want to have these return something real
     @Override
     public float getX() { return 0; }
@@ -161,13 +153,6 @@ public class LWMap extends LWContainer
     @Override
     public float getMapY() { return 0; }
 
-    // TODO: fix LWComponent.getMapX/YPrecise to factor in map / supposed hasAbsoluteChildren    
-//     // Performance
-//     @Override
-//     protected double getMapXPrecise() { return 0; }
-//     @Override
-//     protected double getMapYPrecise() { return 0; }
-    
 
     /** Override LWContainer draw to always call drawInParent (even tho we have absolute children, we
      * don't want to just call draw, as LWContainer would).
@@ -962,10 +947,9 @@ public class LWMap extends LWContainer
 //         return true;
 //     }
     
-    /** @return Float.MAX_VALUE - 1: map contains all points, but any contents take priority */
+    /** @return Float.MAX_VALUE: map contains all points, but any contents take priority */
     @Override
     protected float pickDistance(float x, float y, float zoom) {
-        //return 100;
         return Float.MAX_VALUE;
     }
 
@@ -1322,10 +1306,8 @@ public class LWMap extends LWContainer
      * Model version 3: relative children, groups back to relative with crude node-embedding support
      * Model version 4: relative children, groups relative, link points relative to parent (no longer have absolute map location)
      */
-    //private static final int CurrentModelVersion = LWLink.LOCAL_LINKS ? 4 : 3;
     public static int getCurrentModelVersion() {
         return 4;
-        //return LWLink.LOCAL_LINKS ? 4 : 3;
     }
     
     
