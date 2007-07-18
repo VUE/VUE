@@ -502,7 +502,7 @@ public class LinkTool extends VueTool
                 @Override
                 public void setMapLocation(double x, double y) {
                     super.takeLocation((float)x, (float)y);
-                    creationLink.notifyEndpointMoved(this);
+                    creationLink.notifyEndpointMoved(null, this);
                 }
             };
         protected LWLink creationLink = new LWLink(invisibleLinkEndpoint);
@@ -568,7 +568,7 @@ public class LinkTool extends VueTool
                 if (creationLink.getStrokeWidth() < minStrokeWidth)
                     creationLink.setStrokeWidth(minStrokeWidth);
                 invisibleLinkEndpoint.setLocation(e.getMapPoint());
-                creationLink.notifyEndpointMoved(invisibleLinkEndpoint);
+                creationLink.notifyEndpointMoved(null, invisibleLinkEndpoint);
                 e.setDragRequest(invisibleLinkEndpoint);
                 // using a LINK as the dragComponent is a mess because geting the
                 // "location" of a link isn't well defined if any end is tied
