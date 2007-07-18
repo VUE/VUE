@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.159 $ / $Date: 2007-07-18 02:10:32 $ / $Author: sfraize $
+ * @version $Revision: 1.160 $ / $Date: 2007-07-18 02:23:20 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1430,55 +1430,55 @@ public class LWLink extends LWComponent
 //         return getParent();
 //     }
 
-    private void scaleCoordinatesRelativeToParent(final float scale)
-    {
-        if (scale == 1.0)
-            return;
+//     private void scaleCoordinatesRelativeToParent(final float scale)
+//     {
+//         if (scale == 1.0)
+//             return;
 
-        if (Float.isNaN(scale) || Float.isInfinite(scale)) {
-            Util.printStackTrace("bad scale: " + scale + " in " + this);
-        }
+//         if (Float.isNaN(scale) || Float.isInfinite(scale)) {
+//             Util.printStackTrace("bad scale: " + scale + " in " + this);
+//         }
 
-        if (oldParent == this) {
-            // this means we were just created: we can ignore this
-            oldParent = null;
-            return;
-        }
+//         if (oldParent == this) {
+//             // this means we were just created: we can ignore this
+//             oldParent = null;
+//             return;
+//         }
         
-        if (oldParent == null) {
-            if (DEBUG.WORK) Util.printStackTrace("scaleCoords: no old parent (ok on creates): " + this);
-            return;
-        }
+//         if (oldParent == null) {
+//             if (DEBUG.WORK) Util.printStackTrace("scaleCoords: no old parent (ok on creates): " + this);
+//             return;
+//         }
 
-        //final LWComponent scaledParent = firstScaledParent();
-        final LWComponent scaledParent = oldParent;
-        final float px = scaledParent.getMapX();
-        final float py = scaledParent.getMapY();
+//         //final LWComponent scaledParent = firstScaledParent();
+//         final LWComponent scaledParent = oldParent;
+//         final float px = scaledParent.getMapX();
+//         final float py = scaledParent.getMapY();
 
-        if (DEBUG.WORK) out("scaleCoords: deltaScale=" + scale + "; scaledParent=" + scaledParent);
+//         if (DEBUG.WORK) out("scaleCoords: deltaScale=" + scale + "; scaledParent=" + scaledParent);
         
-        //out("px=" + px + ". py=" + py);
+//         //out("px=" + px + ". py=" + py);
         
-        if (head.node == null)
-            setHeadPoint(px + (head.x - px) * scale,
-                         py + (head.y - py) * scale);
+//         if (head.node == null)
+//             setHeadPoint(px + (head.x - px) * scale,
+//                          py + (head.y - py) * scale);
 
-        if (tail.node == null)
-            setTailPoint(px + (tail.x - px) * scale,
-                         py + (tail.y - py) * scale);
+//         if (tail.node == null)
+//             setTailPoint(px + (tail.x - px) * scale,
+//                          py + (tail.y - py) * scale);
 
-        if (mCurveControls == 1) {
-            setCtrlPoint0(px + (mQuad.ctrlx - px) * scale,
-                          py + (mQuad.ctrly - py) * scale);
+//         if (mCurveControls == 1) {
+//             setCtrlPoint0(px + (mQuad.ctrlx - px) * scale,
+//                           py + (mQuad.ctrly - py) * scale);
             
-        } else if (mCurveControls == 2) {
-            setCtrlPoint0(px + (mCubic.ctrlx1 - px) * scale,
-                          py + (mCubic.ctrly1 - py) * scale);
-            setCtrlPoint1(px + (mCubic.ctrlx2 - px) * scale,
-                          py + (mCubic.ctrly2 - py) * scale);
-        }
+//         } else if (mCurveControls == 2) {
+//             setCtrlPoint0(px + (mCubic.ctrlx1 - px) * scale,
+//                           py + (mCubic.ctrly1 - py) * scale);
+//             setCtrlPoint1(px + (mCubic.ctrlx2 - px) * scale,
+//                           py + (mCubic.ctrly2 - py) * scale);
+//         }
         
-    }
+//     }
 
     /** called by LWComponent.updateConnectedLinks to let
      * us know something we're connected to has moved,
@@ -1537,38 +1537,36 @@ public class LWLink extends LWComponent
 //             tail.node.addCleanupTask((LWLink)tail.node);
     }
 
-    private double oldMapScale = 1.0;
-    private LWComponent oldParent = this;
-    @Override
-    public void notifyHierarchyChanging()
-    {
-        super.notifyHierarchyChanging();
-        oldParent = getParent();
-        oldMapScale = getMapScale();
-        if (DEBUG.WORK )out("NH CHANGING:  curScale=" + oldMapScale);
-    }
+//     private double oldMapScale = 1.0;
+//     private LWComponent oldParent = this;
+//     @Override
+//     public void notifyHierarchyChanging()
+//     {
+//         super.notifyHierarchyChanging();
+//         oldParent = getParent();
+//         oldMapScale = getMapScale();
+//         if (DEBUG.WORK )out("NH CHANGING:  curScale=" + oldMapScale);
+//     }
     
-    @Override
-    public void notifyHierarchyChanged() {
-        super.notifyHierarchyChanged();
-
-//         if (LOCAL_LINKS)
-//             return;
+//     @Override
+//     public void notifyHierarchyChanged() {
+//         super.notifyHierarchyChanged();
         
-        final double newScale = getMapScale();
-        final double deltaScale = newScale / oldMapScale;
-        if (DEBUG.WORK) {
-            out("NH  CHANGED:   oldScale=" + oldMapScale);
-            out("NH  CHANGED:   newScale=" + newScale);
-            out("NH  CHANGED: deltaScale=" + deltaScale);
-            out("NH  CHANGED: ANCESTORS:");
-            for (LWComponent c : getAncestors())
-                System.out.format("\tscale %.2f %.2f in %s\n", c.getScale(), c.getMapScale(), c);
-        }
-        scaleCoordinatesRelativeToParent( (float) deltaScale );
-            
+//          if (LOCAL_LINKS)
+//              return;
         
-    }
+//         final double newScale = getMapScale();
+//         final double deltaScale = newScale / oldMapScale;
+//         if (DEBUG.WORK) {
+//             out("NH  CHANGED:   oldScale=" + oldMapScale);
+//             out("NH  CHANGED:   newScale=" + newScale);
+//             out("NH  CHANGED: deltaScale=" + deltaScale);
+//             out("NH  CHANGED: ANCESTORS:");
+//             for (LWComponent c : getAncestors())
+//                 System.out.format("\tscale %.2f %.2f in %s\n", c.getScale(), c.getMapScale(), c);
+//         }
+//         scaleCoordinatesRelativeToParent( (float) deltaScale );
+//     }
     
 //     @Override
 //     protected void notifyMapScaleChanged(double oldParentMapScale, double newParentMapScale) {
