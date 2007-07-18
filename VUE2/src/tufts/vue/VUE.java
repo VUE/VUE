@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.459 $ / $Date: 2007-07-12 02:04:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.460 $ / $Date: 2007-07-18 19:28:33 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -102,7 +102,7 @@ public class VUE
     private static FloatingZoomPanel floatingZoomPanel; 
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
-    public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.createDefaultIndex();
+ //   public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.createDefaultIndex();
    
     private static final ActiveInstance<LWPathway>
         ActivePathwayHandler = new ActiveInstance<LWPathway>(LWPathway.class) {
@@ -1614,7 +1614,7 @@ public class VUE
         LWMap ensureChecked = getActiveMap(); // in case of full-screen
         for (int i = 0; i < tabs; i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
-          VUE.index.index(map);
+          //VUE.index.index(map);
             
             if (map == ensureChecked)
                 ensureChecked = null;
@@ -1622,7 +1622,7 @@ public class VUE
                 return false;
         }
          try {
-             VUE.index.write(new FileWriter(VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file")));
+ //            VUE.index.write(new FileWriter(VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file")));
             System.out.println("Writing index to"+VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file"));
          } catch (Throwable t) {
            System.out.println("Exception attempting to save index " +t);
