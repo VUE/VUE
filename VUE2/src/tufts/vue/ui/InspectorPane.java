@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.ui.MetadataEditor;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-07-17 13:51:48 $ / $Author: dan $
+ * @version $Revision: 1.39 $ / $Date: 2007-07-19 18:15:45 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -461,7 +461,8 @@ public class InspectorPane extends JPanel
                                                         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                         JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                                                         );
-            labelScroller.setMinimumSize(new Dimension(70, 32)); // todo: get 2x row height from font
+            int lineHeight = labelValue.getFontMetrics(labelValue.getFont()).getHeight(); 
+            labelScroller.setMinimumSize(new Dimension(70, (lineHeight*2)+5));
             labelScrollBar = labelScroller.getVerticalScrollBar();
             
             addLabelTextPairs(new Object[] {
