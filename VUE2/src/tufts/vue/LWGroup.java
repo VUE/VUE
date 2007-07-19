@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * together.
  *
  * @author Scott Fraize
- * @version $Revision: 1.73 $ / $Date: 2007-07-18 02:08:00 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -48,26 +48,6 @@ public class LWGroup extends LWContainer
         if (!FancyGroups)
             disablePropertyTypes(KeyType.STYLE);
     }
-
-//     @Override
-//     public boolean supportsReparenting() {
-//         //return !AbsoluteChildren;
-//         // for now, allow reparenting to the map, but not to anything else
-//         // TODO: boolean canParentTo(parentTarget ...
-//         return getParent() instanceof LWMap == false;
-//     }
-    
-//     /** @return true */
-//     @Override
-//     public boolean hasAbsoluteChildren() {
-//         return AbsoluteChildren;
-//     }
-
-//     /** @return true (if groups absolute) -- this means parenting the group will not work as things stand */
-//     @Override
-//     public boolean hasAbsoluteMapLocation() {
-//         return AbsoluteChildren;
-//     }
 
     @Override
     public boolean supportsChildren() {
@@ -125,9 +105,10 @@ public class LWGroup extends LWContainer
         // means they won't change at all initially -- they we
         // normalize the group.
         
-        group.setShapeFromContents(selection);
+        //group.setShapeFromContents(selection);
         group.importNodes(selection);
         System.out.println("CREATED: " + group);
+        group.requestCleanup("CREATION");
         //group.normalize();
         //System.out.println("NORMALD: " + group);
 
@@ -220,21 +201,10 @@ public class LWGroup extends LWContainer
         return group;
     }
 
-    
-    protected Rectangle2D.Float getMapBounds(Iterable<LWComponent> iterable) {
-        //return LWMap.getBounds(iterable.iterator());
-        return LWMap.getPaintBounds(iterable.iterator());
-    }
-    
-//     protected Rectangle2D.Float getChildBounds()
-//     {
-//         return LWMap.getBounds(getChildIterator());
-//         //return LWMap.getPaintBounds(getChildIterator());
-//     }
-
     protected void setShapeFromContents(Iterable<LWComponent> contents)
     {
-        final Rectangle2D.Float bounds = getMapBounds(contents);
+        //final Rectangle2D.Float bounds = getMapBounds(contents);
+        final Rectangle2D.Float bounds = LWMap.getPaintBounds(contents.iterator());
         super.setSize(bounds.width,
                       bounds.height);
         super.setLocation(bounds.x,
@@ -335,107 +305,92 @@ public class LWGroup extends LWContainer
             return LWMap.EmptyBounds;
         
         Iterator<LWComponent> i = getChildList().iterator();
-        final Rectangle2D.Float rect = getLocalizedPaintBounds(i.next());
+        final Rectangle2D.Float rect = i.next().getLocalPaintBounds();
         
         while (i.hasNext()) 
-            rect.add(getLocalizedPaintBounds(i.next()));
+            rect.add(i.next().getLocalPaintBounds());
 
         return rect;
     }
 
-// NOT WHAT WE NEED: we need this on scaleNotify... or perhaps have a general hierachy
-// event!  Which can tell us of our old parent, which we may end up needing if our
-// LWContainer.establishLocalCoordinates doesn't set up us enough...
-//     @Override
-//     void setParent(LWContainer parent) {
-//         Object oldParent = super.parent;
-//         super.setParent(parent);
-//         if (oldParent != null && !mXMLRestoreUnderway)
-//             requestCleanup("reparented");
+// //     private Rectangle2D.Float getPreNormalBounds()
+// //     {
+// //         if (getChildList().size() < 2) // if only zero or one child, we should be about to disperse...
+// //             return LWMap.EmptyBounds;
+        
+// //         Iterator<LWComponent> i = getChildList().iterator();
+// //         final Rectangle2D.Float rect = getLocalizedPaintBounds(i.next());
+        
+// //         while (i.hasNext()) 
+// //             rect.add(getLocalizedPaintBounds(i.next()));
+
+// //         return rect;
+// //     }
+    
+
+// // NOT WHAT WE NEED: we need this on scaleNotify... or perhaps have a general hierachy
+// // event!  Which can tell us of our old parent, which we may end up needing if our
+// // LWContainer.establishLocalCoordinates doesn't set up us enough...
+// //     @Override
+// //     void setParent(LWContainer parent) {
+// //         Object oldParent = super.parent;
+// //         super.setParent(parent);
+// //         if (oldParent != null && !mXMLRestoreUnderway)
+// //             requestCleanup("reparented");
+// //     }
+
+
+//     // TODO: CRAP: align actions broken when in-group...
+//     // Anyway, if you enforce 1.0 scale inverstion for now and just
+//     // check stuff in, you should be good enough to get going...
+
+// //     /** @return the paint bounds for the given object in our local coordinate space */
+// //     private Rectangle2D.Float getLocalizedPaintBounds(LWComponent c)
+// //     {
+// //         return getParentLocalPaintBounds(c);
+// //     }
+
+//     /** @return the parent based, non-scaled bounds.  If the this component has absolute map location, we return getBounds() */
+//     private Rectangle2D.Float getParentLocalBounds(LWComponent c) {
+
+//         return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
+        
+// //         if (c.hasAbsoluteMapLocation())
+// //             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
+// //             //return c.getBounds();
+// //         else
+// //             return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
+// //         //return new Rectangle2D.Float(c.getX(), c.getY(), c.getMapWidth(), c.getMapHeight());
 //     }
 
-
-    // TODO: CRAP: align actions broken when in-group...
-    // Anyway, if you enforce 1.0 scale inverstion for now and just
-    // check stuff in, you should be good enough to get going...
-
-    /** @return the paint bounds for the given object in our local coordinate space */
-    private Rectangle2D.Float getLocalizedPaintBounds(LWComponent c)
-    {
-        return getParentLocalPaintBounds(c);
-        
-//         if (c.hasAbsoluteMapLocation()) {
-//             // Currently, these are only be LWLink's.
-            
-//             final Rectangle2D.Float r = c.getPaintBounds();
-            
-//             // hack debugging scaled curved link bounds...  I'm thinking the problem is in textbox,
-//             // and maybe hasLabel always returning true... okay, that's not it.
-//             // Now we're not taking into account any label or stroke, and still it's messed when scaled...
-//             //final Rectangle2D.Float r = new Rectangle2D.Float(c.getX(), c.getY(), c.getWidth(), c.getHeight());
-            
-//             final float scale = (float) this.getMapScale();
-//             if (DEBUG.CONTAINMENT && DEBUG.WORK) out("abs paint bounds: " + Util.out(r) + " " + c + " scale=" + scale);
-//             r.x -= getMapX(); // are these values good or in transition???  check moving a link northwest to see if we get behind...
-//             r.y -= getMapY();
-//             r.x /= scale;
-//             r.y /= scale;
-//             r.width /= scale;
-//             r.height /= scale;
-
-//             if (Float.isNaN(r.x) || Float.isNaN(r.y) || Float.isNaN(r.width) || Float.isNaN(r.height))
-            
-//             // TODO: when scaled (at 0.75 first tier anyway), we appear to me missing a couple of pixels
-//             // of width at 100% map zoom...  doesn't seem to make any difference even if 10% zoom??
-
-            
-//             if (DEBUG.CONTAINMENT && DEBUG.WORK) out("rel paint bounds: " + Util.out(r) + " " + c);
-//             return r;
-//         } else {
-//             return getParentLocalPaintBounds(c);
-//         }
-        
-    }
-
-    /** @return the parent based, non-scaled bounds.  If the this component has absolute map location, we return getBounds() */
-    private Rectangle2D.Float getParentLocalBounds(LWComponent c) {
-
-        return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
-        
-//         if (c.hasAbsoluteMapLocation())
-//             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
-//             //return c.getBounds();
-//         else
-//             return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
-//         //return new Rectangle2D.Float(c.getX(), c.getY(), c.getMapWidth(), c.getMapHeight());
-    }
-
-    private Rectangle2D.Float getParentLocalPaintBounds(LWComponent c) {
-        if (c instanceof LWLink) {
-            // since this is in the group, we know the paint bounds will be local to parent bounds,
-            // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
-            return c.getPaintBounds();
-        } else {
-            return c.addStrokeToBounds(getParentLocalBounds(c), 0);
-        }
-
-
-//         if (LWLink.LOCAL_LINKS && c instanceof LWLink) {
+//     private Rectangle2D.Float getParentLocalPaintBounds(LWComponent c) {
+//         if (c instanceof LWLink) {
 //             // since this is in the group, we know the paint bounds will be local to parent bounds,
 //             // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
-//             // TODO: we should really get get
-//             return c.getPaintBounds();
-// //             if (mXMLRestoreUnderway)
-// //                 return c.getPaintBounds();
-// //             else
-// //                 return ((LWLink)c).getImmediateBounds();
-//         } if (c.hasAbsoluteMapLocation())
-//             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
-//             //return c.getBounds();
-//         else
+//             //return c.getPaintBounds();
+//             //return ((LWLink)c).getImmediateBounds();
+//             return ((LWLink)c).getLocalBounds();
+//         } else {
 //             return c.addStrokeToBounds(getParentLocalBounds(c), 0);
+//         }
+
+
+// //         if (LWLink.LOCAL_LINKS && c instanceof LWLink) {
+// //             // since this is in the group, we know the paint bounds will be local to parent bounds,
+// //             // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
+// //             // TODO: we should really get get
+// //             return c.getPaintBounds();
+// // //             if (mXMLRestoreUnderway)
+// // //                 return c.getPaintBounds();
+// // //             else
+// // //                 return ((LWLink)c).getImmediateBounds();
+// //         } if (c.hasAbsoluteMapLocation())
+// //             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
+// //             //return c.getBounds();
+// //         else
+// //             return c.addStrokeToBounds(getParentLocalBounds(c), 0);
         
-    }
+//     }
 
     @Override
     protected void removeChildrenFromModel()
@@ -755,7 +710,7 @@ public class LWGroup extends LWContainer
     protected void drawImpl(DrawContext dc)
     {
         if (DEBUG.CONTAINMENT && !isForSelection) {
-            java.awt.Shape shape = getLocalShape();
+            java.awt.Shape shape = getZeroShape();
             dc.g.setColor(new java.awt.Color(64,64,64,64));
             dc.g.fill(shape);
             dc.g.setColor(java.awt.Color.blue);
@@ -771,7 +726,7 @@ public class LWGroup extends LWContainer
             drawChildren(dc);
 
         if (isSelected() && dc.isInteractive() && dc.focal != this) {
-            java.awt.Shape shape = getLocalShape();
+            java.awt.Shape shape = getZeroShape();
             if (DEBUG.CONTAINMENT) out("drawing selection bounds shape " + shape);
             dc.g.setColor(COLOR_HIGHLIGHT);
             dc.g.fill(shape);

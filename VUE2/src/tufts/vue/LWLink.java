@@ -44,7 +44,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.160 $ / $Date: 2007-07-18 02:23:20 $ / $Author: sfraize $
+ * @version $Revision: 1.161 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -143,7 +143,7 @@ public class LWLink extends LWComponent
             final Object old = new Point2D.Float(this.x, this.y);
             this.x = newX;
             this.y = newY;
-            link.endpointMoved = true;
+            link.mRecompute = true;
             link.notify(key, old);
         }
         
@@ -179,8 +179,10 @@ public class LWLink extends LWComponent
     private final End head = new End();
     private final End tail = new End();
 
-    private float centerX;
-    private float centerY;
+    /** center of our bounding box */
+    private float mCenterX;
+    /** center of our bounding box */
+    private float mCenterY;
     
     /** used when link is straight */
     private Line2D.Float mLine = new Line2D.Float();
@@ -190,8 +192,10 @@ public class LWLink extends LWComponent
     private CubicCurve2D.Float mCubic = null;
     /** convenience alias for current curve */
     private Shape mCurve = null;
-    private transient float mCurveCenterX;
-    private transient float mCurveCenterY;
+    /** curve center X -- the curve mid-point */
+    private float mCurveCenterX;
+    /** curve center Y -- the curve mid-point */
+    private float mCurveCenterY;
     
 
     /** x/y point pairs on a flattened-into-segments version of the curve for hit detection */
@@ -207,7 +211,7 @@ public class LWLink extends LWComponent
     private boolean ordered = false; // not doing anything with this yet
     
     /** has an endpoint moved since we last computed shape? */
-    private transient boolean endpointMoved = true;
+    private transient boolean mRecompute = true;
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -243,7 +247,7 @@ public class LWLink extends LWComponent
     @Override
     void setParent(LWContainer newParent) {
         super.setParent(newParent);
-        endpointMoved = true;
+        mRecompute = true;
     }
 
     
@@ -265,7 +269,7 @@ public class LWLink extends LWComponent
         }
     };
     private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows, ARROW_TAIL) {
-            void onChange() { endpointMoved = true; layout(); }
+            void onChange() { mRecompute = true; layout(); }
         };
 
 
@@ -388,7 +392,7 @@ public class LWLink extends LWComponent
 //         Object old = new Point2D.Float(head.x, head.y);
 //         head.x = x;
 //         head.y = y;
-//         endpointMoved = true;
+//         mRecompute = true;
 //         notify(KEY_LinkHeadPoint, old);
     }
 
@@ -405,7 +409,7 @@ public class LWLink extends LWComponent
 //         Object old = new Point2D.Float(tail.x, tail.y);
 //         tail.x = x;
 //         tail.y = y;
-//         endpointMoved = true;
+//         mRecompute = true;
 //         notify(KEY_LinkTailPoint, old);
     }
     
@@ -451,49 +455,6 @@ public class LWLink extends LWComponent
         ; // do nothing: links don't take on a scale of their own
     }
 
-    // links are absolute in their parent: nothing to add to the transforms or local(raw) v.s. map shapes
-    //@Override public Shape getMapShape() { return getShape(); }
-    
-    
-    @Override
-    public Rectangle2D.Float getBounds() {
-        
-        if (endpointMoved)
-            computeLink();
-
-        return getImmediateBounds();
-    }
-
-    /** @return the current bounds, even if we are currently marked as needing to be recomputed due to endpoint movement
-     * This is for usage by LWGroup code [which is currently not in use]
-     */
-    private Rectangle2D.Float getImmediateBounds() {
-        // as we currently always have absolute map location, we can just use getX/getY
-        // tho we use getMapWidth/getMapHeight just in case we're in a scaled context
-        // (tho we're trying to avoid this for now...)
-        final Rectangle2D.Float bounds =
-            addStrokeToBounds(new Rectangle2D.Float(getX(), getY(), getWidth(), getHeight()),
-                              0);
-        // do NOT want map-width / map-height: even if in a scaled parent, links are always pure on-map objects,
-        // and the width/height is computed by our endpoints and controlpoints, set in computeLink --
-        // there's never any scale to appeal to with links.
-        //addStrokeToBounds(new Rectangle2D.Float(getX(), getY(), getMapWidth(), getMapHeight()),0);
-                                                    
-        // todo: would be better to just include this in the width via computeLink,
-        // tho then we'd need to invalidate the link if the label changes.
-        if (hasLabel())
-            bounds.add(getLabelBox().getBoxBounds());
-        
-        return bounds;
-    }
-    
-
-    @Override
-    public Rectangle2D.Float getPaintBounds()
-    {
-        return getBounds();
-    }
-    
     
     /** @return same as super class impl, but by default add our own two endpoints */
     @Override
@@ -592,8 +553,12 @@ public class LWLink extends LWComponent
     
     private void setControllerLocation(int index, float mapX, float mapY, MapMouseEvent e)
     {
-        //final Point2D.Float local = transformMapToLocalPoint(new Point2D.Float(mapX, mapY));
-        final Point2D.Float local = e.getLocalPoint(this);
+        final Point2D.Float local;
+        if (e == null) {
+            local = new Point2D.Float(mapX, mapY);
+            transformMapToLocalPoint(local, local);
+        } else
+            local = e.getLocalPoint(this);
         
         //System.out.println("LWLink: control point " + index + " moved");
 
@@ -722,7 +687,7 @@ public class LWLink extends LWComponent
         
     private LWSelection.Controller[] getControls(double onScreenScale, boolean moveableOnly)
     {
-        if (endpointMoved)
+        if (mRecompute)
             computeLink();
 
         // head, tail & curve controls are all in local coordinates
@@ -982,7 +947,7 @@ public class LWLink extends LWComponent
         Object old = new Integer(mCurveControls);
         mCurveControls = newControlCount;
         //this.mControlPoints = new LWSelection.Controller[MAX_CONTROL];
-        endpointMoved = true;
+        mRecompute = true;
         notify(LWKey.LinkShape, old);
     }
 
@@ -1030,7 +995,7 @@ public class LWLink extends LWComponent
             mQuad.ctrlx = x;
             mQuad.ctrly = y;
         }
-        endpointMoved = true;
+        mRecompute = true;
         notify(Key_Control_0, old);
     }
 
@@ -1047,7 +1012,7 @@ public class LWLink extends LWComponent
         Object old = new Point2D.Float(mCubic.ctrlx2, mCubic.ctrly2); 
         mCubic.ctrlx2 = x;
         mCubic.ctrly2 = y;
-        endpointMoved = true;
+        mRecompute = true;
         notify(Key_Control_1, old);
     }
 
@@ -1068,7 +1033,7 @@ public class LWLink extends LWComponent
         super.restoreToModel();
         if (head.hasNode()) head.node.addLinkRef(this);
         if (tail.hasNode()) tail.node.addLinkRef(this);
-        endpointMoved = true; // for some reason cached label position is off on restore
+        mRecompute = true; // for some reason cached label position is off on restore
     }
 
     /** Is this link between a parent and a child? */
@@ -1176,7 +1141,7 @@ public class LWLink extends LWComponent
     @Override
     protected boolean intersectsImpl(Rectangle2D mapRect)
     {
-        if (endpointMoved)
+        if (mRecompute)
             computeLink();
 
         final Rectangle2D localRect;
@@ -1248,7 +1213,7 @@ public class LWLink extends LWComponent
     // todo: now that we handle slop/zoom centrally in Picker, we can get rid of zoom arg to pickDistance
     protected float pickDistance(float x, float y, float zoom)
     {
-        if (endpointMoved)
+        if (mRecompute)
             computeLink();
 
         final float hitDist = getStrokeWidth() / 2f; 
@@ -1308,7 +1273,7 @@ public class LWLink extends LWComponent
         if (c != null)
             c.addLinkRef(this);
         //head_ID = null;
-        endpointMoved = true;
+        mRecompute = true;
         addCleanupTask(this);        
         notify("link.head.connect", new Undoable(oldHead) { void undo() { setHead(oldHead); }} );
     }
@@ -1324,7 +1289,7 @@ public class LWLink extends LWComponent
         if (c != null)
             c.addLinkRef(this);
         //tail_ID = null;
-        endpointMoved = true;
+        mRecompute = true;
         addCleanupTask(this);        
         notify("link.tail.connect", new Undoable(oldTail) { void undo() { setTail(oldTail); }} );
     }
@@ -1489,23 +1454,23 @@ public class LWLink extends LWComponent
 
     void notifyEndpointMoved(LWComponent movingSrc, LWComponent end)
     {
-        final boolean wasDirty = this.endpointMoved; // this is for debug only: remove eventually
+        final boolean wasDirty = this.mRecompute; // this is for debug only: remove eventually
 
-        if (endpointMoved || (movingSrc != null && hasAncestor(movingSrc) && end.hasAncestor(movingSrc))) {
+        if (mRecompute || (movingSrc != null && hasAncestor(movingSrc) && end.hasAncestor(movingSrc))) {
             // we can skip the update: the link and the endpoint are both moving
             // inside a collective parent context (or we already marked)
         } else {
-            this.endpointMoved = true;
+            mRecompute = true;
         }
 
         if (DEBUG.CONTAINMENT) {
             if (DEBUG.LINK&&DEBUG.WORK) {
                 System.out.format("notifyEndpointMoved %-70s movingSrc=%s end=%s wasDirty=%s nowMarked=%s\n",
-                                  this, movingSrc, end, wasDirty, endpointMoved);
+                                  this, movingSrc, end, wasDirty, mRecompute);
             } else {
-                if (!wasDirty && !endpointMoved)
+                if (!wasDirty && !mRecompute)
                     System.err.print("|");
-                else if (!wasDirty && endpointMoved)
+                else if (!wasDirty && mRecompute)
                     System.err.print(";");
                 else 
                     System.err.print(":");
@@ -1614,7 +1579,7 @@ public class LWLink extends LWComponent
         final float axisLen = lineLength(mLine);
         final float axisOffset;
 
-        if (DEBUG.LINK) out("AXIS LEN " + axisLen + " for line " + Util.out(mLine) + " center currently " + centerX + "," + centerY);
+        if (DEBUG.LINK) out("AXIS LEN " + axisLen + " for line " + Util.out(mLine) + " center currently " + mCenterX + "," + mCenterY);
         if (DEBUG.LINK) out("rotHeadINIT " + head.rotation + " rotTailINIT " + tail.rotation);
 
         if (mCurveControls == 2)
@@ -1624,7 +1589,7 @@ public class LWLink extends LWComponent
             
         //out("axisLen " + axisLen + " offset " + axisOffset);
 
-        final AffineTransform centerLeft = AffineTransform.getTranslateInstance(centerX, centerY);
+        final AffineTransform centerLeft = AffineTransform.getTranslateInstance(mCenterX, mCenterY);
         //double deltaX = Math.abs(head.x - tail.x);
         //double deltaY = Math.abs(head.y - tail.y);
 
@@ -1678,21 +1643,69 @@ public class LWLink extends LWComponent
         }
     }
     
-    /** @return the shape in it's local context (which for links, is it's parent) */
+    /** @return the shape in it's local context (which for links, is it's parent)
+     * note that mCurve/mLine are zero based within their parent: the upper-left x/y of this shape
+     * is not actually guaranteed to be 0,0 for links.
+     */
     @Override
-    public Shape getLocalShape() { return getShape(); }
-
-    private Shape getShape()
-    {
-        if (endpointMoved)
-            computeLink();
+    public Shape getZeroShape() {
+        if (mRecompute) computeLink();
         if (mCurveControls > 0)
             return mCurve;
         else
             return mLine;
     }
+
+    /** @return "zero-based" bounds for the link, which for links are the same as it's local bounds: the bounds in it's parent */
+    @Override
+    protected Rectangle2D.Float getZeroBounds() {
+        return getLocalPaintBounds();
+    }
+
+    /**
+     * Returns getBounds() -- no difference between regular and paint bounds for links.
+     */
+    @Override
+    public Rectangle2D.Float getPaintBounds() {
+        return getBounds();
+    }
     
+    @Override
+    public Rectangle2D.Float getBounds() {
+        if (mRecompute) computeLink();
+        return super.getBounds();
+    }
+
+    /** @return the parent based bounds  -- for links this is the local component x,y  width,height (no scale: links can't be scaled).
+     * Note that for links this is the same as getZeroBounds()
+     */
+    @Override
+    public Rectangle2D.Float getLocalBounds() {
+        if (mRecompute) computeLink();
+        return new Rectangle2D.Float(getX(), getY(), getWidth(), getHeight());
+    }
     
+
+    /** @return the current local paint bounds -- the bounds of the line/curve, plus any label box
+     * This just makes sure we're computed, and returns getLocalBounds(), as there's no difference
+     * between paint v.s. regular bounds for links. */
+    @Override
+    public Rectangle2D.Float getLocalPaintBounds() {
+        return getLocalBounds();
+//         final Rectangle2D.Float bounds = getLocalBounds();
+//         if (labelBox != null && hasLabel())
+//             bounds.add(labelBox.getBoxBounds());
+//         return bounds;
+    }
+
+    /** Makes sure the link is recomputed after label changes */
+    @Override
+    void setLabel0(String newLabel, boolean setDocument) {
+        super.setLabel0(newLabel, setDocument);
+        computeLink();
+    }
+    
+
     /** as all link coordinates are relative to their parent, this just calls
         parent.transformMapToLocalPoint */
     @Override
@@ -1765,7 +1778,7 @@ public class LWLink extends LWComponent
 //             return;
 //         }
         
-        endpointMoved = false;
+        mRecompute = false;
 
         if (DEBUG.LINK) {
             System.out.println("computeLink " + this);
@@ -1789,7 +1802,7 @@ public class LWLink extends LWComponent
         if (head.hasNode()) {
 
             // If an endpoint is a link, make sure it's currently computed so we know exactly
-            // where it's center is.  Since we've already cleared our endpointMoved bit, we're
+            // where it's center is.  Since we've already cleared our mRecompute bit, we're
             // safe against link-loops, tho we want to be careful not to create link networks
             // that create unresolvable dependencies.  (E.g., a straight link is linked to a
             // curved link: don't let the either of the curved link's endpoints connect back to
@@ -1799,7 +1812,7 @@ public class LWLink extends LWComponent
             // recomputing themseleves every single time something needs to know where the link
             // is (e.g, a pick or a paint).
             
-            if (!mXMLRestoreUnderway && head.node instanceof LWLink && ((LWLink)head.node).endpointMoved)
+            if (!mXMLRestoreUnderway && head.node instanceof LWLink && ((LWLink)head.node).mRecompute)
                 ((LWLink)head.node).computeLink();
             
             head.node.getLinkConnectionCenterRelativeTo(head.point, parent);
@@ -1809,26 +1822,13 @@ public class LWLink extends LWComponent
         if (tail.hasNode()) {
             
             // see above comment
-            if (!mXMLRestoreUnderway && tail.node instanceof LWLink && ((LWLink)tail.node).endpointMoved)
+            if (!mXMLRestoreUnderway && tail.node instanceof LWLink && ((LWLink)tail.node).mRecompute)
                 ((LWLink)tail.node).computeLink();
             
             tail.node.getLinkConnectionCenterRelativeTo(tail.point, parent);
             tail.x = tail.point.x;
             tail.y = tail.point.y;
         }
-
-            
-//         if (LOCAL_LINKS) {
-//         } else {
-//             if (head.hasNode()) {
-//                 head.x = head.node.getCenterX();
-//                 head.y = head.node.getCenterY();
-//             }
-//             if (tail.hasNode()) {
-//                 tail.x = tail.node.getCenterX();
-//                 tail.y = tail.node.getCenterY();
-//             }
-//         }
 
         // Note, if what's at the endpoint we're connecting to is a LWLink, we do NOT
         // bother to establish a connection at the nearest point -- we leave the
@@ -1846,18 +1846,11 @@ public class LWLink extends LWComponent
             headShape = null;
             headTransform = null;
         } else {
-       // else if (LOCAL_LINKS) {
-            // use raw shape because we use the relative transform in computeIntersection
-            headShape = head.node.getLocalShape(); 
+            // use raw/zero shape because we use the local transform in computeIntersection
+            headShape = head.node.getZeroShape(); 
             headTransform = head.node.getRelativeTransform(parent);
         }
-//         } else {
-//             // use raw shape because we use the local transform in computeIntersection
-//             headShape = head.node.getLocalShape();
-//             headTransform = head.node.getLocalTransform();
-//         }
-        
-        //if (headShape != null && !(headShape instanceof Line2D)) {
+
         if (headShape != null) {
             final float srcX, srcY;
             if (mCurveControls == 1) {
@@ -1889,17 +1882,11 @@ public class LWLink extends LWComponent
             tailShape = null;
             tailTransform = null;
         } else {
-      //} else if (LOCAL_LINKS) {
-            // use raw shape because we use the relative transform in computeIntersection
-            tailShape = tail.node.getLocalShape(); 
+            // use zero/raw shape because we use the relative transform in computeIntersection
+            tailShape = tail.node.getZeroShape(); 
             tailTransform = tail.node.getRelativeTransform(parent);
         }
-//         else {
-//             tailShape = tail.node.getLocalShape(); // use raw shape because we use the local transform below
-//             tailTransform = tail.node.getLocalTransform();
-//         }
         
-        //if (tailShape != null && !(tailShape instanceof Line2D)) {
         if (tailShape != null) {
             final float srcX, srcY;
             if (mCurveControls == 1) {
@@ -1921,8 +1908,8 @@ public class LWLink extends LWComponent
             }
         }
         
-        this.centerX = head.x - (head.x - tail.x) / 2;
-        this.centerY = head.y - (head.y - tail.y) / 2;
+        mCenterX = head.x - (head.x - tail.x) / 2;
+        mCenterY = head.y - (head.y - tail.y) / 2;
         
         mLine.setLine(head.x, head.y, tail.x, tail.y);
 
@@ -1972,69 +1959,41 @@ public class LWLink extends LWComponent
         tail.pruneCtrlOffset = controlOffset;
 
         //----------------------------------------------------------------------------------------
+        
+        layout(); // place the label / icons if we have any
+
+        //----------------------------------------------------------------------------------------
         // We set the size & location here so LWComponent.getBounds can do something
-        // reasonable with us for computing/drawing a selection box, and for
-        // LWMap.getBounds in computing entire area need to display everything on the
-        // map (so we need to include control point so a curve swinging out at the edge
-        // is sure to be included in visible area).
+        // reasonable with us for computing/drawing a selection box, determining if we
+        // intersect the drawing region, etc.
         //----------------------------------------------------------------------------------------
         
+        final Rectangle2D.Float bounds;
+        
         if (mCurveControls > 0) {
-
-//            final Rectangle2D.Float curBounds = getBounds(); // todo: optimize this
-            
-            // Set a size & location w/out triggering update events:
-            setX(curveBounds.x);
-            setY(curveBounds.y);
-            takeSize(curveBounds.width,
-                     curveBounds.height);
-            
-//             if (!curBounds.equals(getBounds())) {
-//                 // adding this so if member of a group, group knows to update bounds,
-//                 // otherwise LWGroup would have to check for link.control and head/tail move events.
-//                 // Yet another reason to have an isBoundsEvent bit in the keys.
-//                 // We could get rid of this completely if LWGroups always dynamically
-//                 // computed their bounds.
-//                 // This is a bit of overkill at the moment, as group's only show
-//                 // their bounds with debug (FancyGroups not enabled), and ignore
-//                 // their bounds for picking, so it's actually okay if they
-//                 // get out of date at the moment.
-//                 notify(LWKey.Location); // better LWKey.Frame, tho really need that bounds bit in the Key class
-//             }
-                
-
-//             else {
-//                 // We recurse if we do this:
-//                 setLocation(curveBounds.x, curveBounds.y);
-//                 setSize(curveBounds.width,
-//                         curveBounds.height);
-//             }
-
-            
-
+            bounds = curveBounds;
         } else {
-            Rectangle2D.Float bounds = new Rectangle2D.Float();
+            bounds = new Rectangle2D.Float();
             bounds.width = Math.abs(head.x - tail.x);
             bounds.height = Math.abs(head.y - tail.y);
-            bounds.x = centerX - bounds.width/2;
-            bounds.y = centerY - bounds.height/2;
-            
-            if (true) {
-                // Set a size & location w/out triggering update events:
-                takeSize(Math.abs(head.x - tail.x),
-                         Math.abs(head.y - tail.y));
-                setX(this.centerX - getWidth()/2);
-                setY(this.centerY - getHeight()/2);
-            } else {
-                setSize(Math.abs(head.x - tail.x),
-                        Math.abs(head.y - tail.y));
-                setLocation(this.centerX - getWidth()/2,
-                            this.centerY - getHeight()/2);
-            }
+            bounds.x = mCenterX - bounds.width/2;
+            bounds.y = mCenterY - bounds.height/2;
         }
+
+        if (getStrokeWidth() > 0)
+            grow(bounds, getStrokeWidth() / 2f);
+        
+        if (labelBox != null && hasLabel())
+            bounds.add(labelBox.getBoxBounds());
+
+
+        // Record the size & location w/out triggering update events:
+        setX(bounds.x);
+        setY(bounds.y);
+        takeSize(bounds.width, bounds.height);
+        
         //if (DEBUG.LINK) System.out.println("computeLink " + this + " COMPLETED.");
 
-        layout();
         // if there are any links connected to this link, make sure they
         // know that this endpoint has moved.
         updateConnectedLinks(null);
@@ -2043,6 +2002,10 @@ public class LWLink extends LWComponent
 
     private Rectangle2D.Float computeCurvedLink()
     {
+        // We compute the bounds ourselves, as the default bounds fetchers for
+        // QuadCurve2D/CubicCurve2D include the control points, and we want to
+        // leave out the control points in computing our bounds.
+        
         final Rectangle2D.Float bounds = new Rectangle2D.Float(head.x, head.y, 0, 0);
         
         if (mCurveControls == 1) {
@@ -2319,7 +2282,7 @@ public class LWLink extends LWComponent
     
     protected void drawImpl(DrawContext dc)
     {
-        if (endpointMoved)
+        if (mRecompute)
             computeLink();
 
         //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(true);
@@ -2354,7 +2317,7 @@ public class LWLink extends LWComponent
         if (isSelected() && dc.isInteractive()) {
             g.setColor(COLOR_HIGHLIGHT);
             g.setStroke(new BasicStroke(stroke.getLineWidth() + 5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_BEVEL));//todo:config
-            g.draw(getShape());
+            g.draw(getZeroShape());
         }
 
         if (DEBUG.BOXES) {
@@ -2418,15 +2381,6 @@ public class LWLink extends LWComponent
                 g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth));
             } else {
                 g.setStroke(stroke);
-//                 if (LOCAL_LINKS) {
-//                     g.setStroke(stroke);
-//                 } else {
-//                     float scale = getMapScaleF();
-//                     if (scale == 1f)
-//                         g.setStroke(stroke);
-//                     else
-//                         g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth * scale));
-//                 }
             }
         }
         
@@ -2535,7 +2489,7 @@ public class LWLink extends LWComponent
         if (DEBUG.CONTAINMENT) {
             dc.setAbsoluteStroke(0.75);
             dc.g.setColor(COLOR_SELECTION);
-            g.draw(getPaintBounds());
+            g.draw(getLocalPaintBounds());
         }
 
         //if (dc.drawAbsoluteLinks) dc.setAbsoluteDrawing(false);
@@ -2691,7 +2645,7 @@ public class LWLink extends LWComponent
         final float cx;
         final float cy;
 
-        if (endpointMoved) {
+        if (mRecompute) {
             // added 2007-07-02 to make sure links are computed
             // during the map-restore layout call.
             // watch this for causing problems, esp w/link label editing workflow
@@ -2703,8 +2657,8 @@ public class LWLink extends LWComponent
             cx = mCurveCenterX;
             cy = mCurveCenterY;
         } else {
-            cx = (head.x + tail.x) / 2;
-            cy = (head.y + tail.y) / 2;
+            cx = mCenterX;
+            cy = mCenterY;
         }
         
         float totalHeight = 0;
@@ -2805,14 +2759,14 @@ public class LWLink extends LWComponent
 
     @Override
     protected float getLocalCenterX() {
-        //if (endpointMoved) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
-        return mCurveControls > 0 ? mCurveCenterX : centerX;
+        //if (mRecompute) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
+        return mCurveControls > 0 ? mCurveCenterX : mCenterX;
     }
     
     @Override
     protected float getLocalCenterY() {
-        //if (endpointMoved) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
-        return mCurveControls > 0 ? mCurveCenterY : centerY;
+        //if (mRecompute) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
+        return mCurveControls > 0 ? mCurveCenterY : mCenterY;
     }
     
 
@@ -2882,8 +2836,8 @@ public class LWLink extends LWComponent
         link.head.y = head.y;
         link.tail.x = tail.x;
         link.tail.y = tail.y;
-        link.centerX = centerX;
-        link.centerY = centerY;
+        link.mCenterX = mCenterX;
+        link.mCenterY = mCenterY;
         link.ordered = ordered;
         //link.mArrowState = mArrowState;
         if (mCurveControls > 0) {

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.306 $ / $Date: 2007-07-18 02:08:00 $ / $Author: sfraize $
+ * @version $Revision: 1.307 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3442,7 +3442,7 @@ u                    getSlot(c).setFromString((String)value);
     {
         // Will not work for shapes like RoundRect when scaled -- e..g, corner scaling will be off
             
-        final Shape s = getLocalShape();
+        final Shape s = getZeroShape();
         //        if (getMapScale() != 1f && s instanceof RectangularShape) { // todo: do if any transform, not just scale
         if (s instanceof RectangularShape) {
             // todo: cache this: only need to updaate if location, size or scale changes
@@ -3462,63 +3462,33 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
 
-    /*
-     * Return internal bounds of the border shape, not including
-     * the width of any stroked border.
-    // TODO: do we need getShapeBounds??
-    public Rectangle2D.Float getShapeBounds()
-    {
-        // todo opt: cache this object?
-        if (VUE.RELATIVE_COORDS)
-            return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
-        else
-            return new Rectangle2D.Float(this.x, this.y, getWidth(), getHeight());
-        //return new Rectangle2D.Float(this.x, this.y, getAbsoluteWidth(), getAbsoluteHeight());
-    }
-     */
-
-    // TODO: may also need getRenderBounds: what bounds for printing would use
-    // -- needs borders, but NO room for selection strokes (wait, but pathway strokes???)
-    // screw it: we can get by with getPaintedBounds for this...
-    
-    ///** @DEPRECATED -- TODO: remove*/
-    //public Rectangle2D.Float getShapeBounds() { return getBounds(); }
-
-    /** return border shape of this object.  If VUE.RELATIVE_COORDS, it's raw and zero based,
-        otherwise, with it's location in map coordinates  */
+    /** @return the raw shape of this object, not including any shape (the stroke is laid on top of the raw shape).
+        This is the zero based non-scaled shape (always at 0,0) */
     private Shape getShape()
     {
-        //return VUE.RELATIVE_COORDS ? getRawShape() : getShapeBounds();
-        return getLocalShape();
+        return getZeroShape();
     }
 
-    /** @return the raw, zero based, non-scaled shape; default impl returns getLocalBounds */
-    public Shape getLocalShape() {
-        return getLocalBounds();
+    /** @return the raw, zero based, non-scaled shape; default impl returns getZeroBounds */
+    public Shape getZeroShape() {
+        return getZeroBounds();
     }
     
     /** @return the raw, zero based, non-scaled bounds */
-    private Rectangle2D.Float getLocalBounds() {
+    protected Rectangle2D.Float getZeroBounds() {
         return new Rectangle2D.Float(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
     }
     
-//     /** @return the parent based, non-scaled bounds.  If the this component has absolute map location, we return getBounds() */
-//     public Rectangle2D.Float getParentLocalBounds() {
-//         if (hasAbsoluteMapLocation())
-//             return getBounds();
-//         else
-//             return new Rectangle2D.Float(getX(), getY(), getMapWidth(), getMapHeight());
-//     }
+    /** @return the PARENT based bounds  -- this is the local component x,y  width*scale,height*scale, where scale
+     * is any local scale this component has (not the total map scale: the scale that includes the scaling of all ancestors) */
+    public Rectangle2D.Float getLocalBounds() {
+        return new Rectangle2D.Float(getX(), getY(), getScaledWidth(), getScaledHeight());
+    }
 
-//     public Rectangle2D.Float getParentLocalPaintBounds() {
-//         if (hasAbsoluteMapLocation())
-//             return getBounds();
-//         else
-//             return addStrokeToBounds(getParentLocalBounds(), 0);
-//     }
-
-    
-    
+    /** @return the PARENT based, non-scaled bounds including all extra-shape artifacts, such as a stroke */
+    public Rectangle2D.Float getLocalPaintBounds() {
+        return addStrokeToBounds(getLocalBounds(), 0f);
+    }
     
     /** @return map-coord (absolute) bounds of the stroke shape (not including any stroke width) */
     public Rectangle2D.Float getBounds()
@@ -3526,21 +3496,6 @@ u                    getSlot(c).setFromString((String)value);
         return new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
     }
 
-    protected Rectangle2D.Float addStrokeToBounds(Rectangle2D.Float r, float extra)
-    {
-        float strokeWidth = getStrokeWidth();
-        
-        if (strokeWidth > 0) {
-            strokeWidth *= getMapScale();
-            final float exteriorStroke = strokeWidth / 2;
-            r.x -= exteriorStroke;
-            r.y -= exteriorStroke;
-            r.width += strokeWidth;
-            r.height += strokeWidth;
-        }
-        return r;
-    }
-    
     /**
      * Return absolute map bounds for hit detection & clipping.  This will vary
      * depenending on current stroke width, if in a visible pathway,
@@ -3554,44 +3509,31 @@ u                    getSlot(c).setFromString((String)value);
             return addStrokeToBounds(getBounds(), 0);
     }
 
-//     public Rectangle2D.Float getPaintBounds()
-//     {
-//         //if (VUE.RELATIVE_COORDS) return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
-        
-//         // todo opt: cache this object?
-//         final Rectangle2D.Float b = getBounds();
-//         float strokeWidth = getStrokeWidth();
-        
-//         if (inDrawnPathway())
-//             strokeWidth += LWPathway.PathwayStrokeWidth;
-
-// //         if (VUE.RELATIVE_COORDS) {
-// //             //b = new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
-// //             b = getBounds();
-// //         } else {
-// //             b = new Rectangle2D.Float(this.x, this.y, getMapWidth(), getMapHeight());
-// //         }
-
-
-//         // we need this adjustment for repaint optimzation to
-//         // work properly -- would be a bit cleaner to compensate
-//         // for this in the viewer
-//         //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
-//         //    strokeWidth = STROKE_INDICATION.getLineWidth();
-
-//         if (strokeWidth > 0) {
-//             if (VUE.RELATIVE_COORDS)
-//                 strokeWidth *= getMapScale();
-//             final float adj = strokeWidth / 2;
-//             b.x -= adj;
-//             b.y -= adj;
-//             b.width += strokeWidth;
-//             b.height += strokeWidth;
-//         }
-//         return b;
-//     }
     
+    /** take the given map bounds, and add the scaled stroke width plus any extra if given */
+    protected Rectangle2D.Float addStrokeToBounds(Rectangle2D.Float r, float extra)
+    {
+        float strokeWidth = getStrokeWidth() + extra;
+        
+        if (strokeWidth > 0) {
+            strokeWidth *= getMapScale();
+            final float exteriorStroke = strokeWidth / 2;
+            r.x -= exteriorStroke;
+            r.y -= exteriorStroke;
+            r.width += strokeWidth;
+            r.height += strokeWidth;
+        }
+        
+        // we need this adjustment for repaint optimzation to
+        // work properly -- would be a bit cleaner to compensate
+        // for this in the viewer
+        //if (isIndicated() && STROKE_INDICATION.getLineWidth() > strokeWidth)
+        //    strokeWidth += STROKE_INDICATION.getLineWidth();
 
+        
+        return r;
+    }
+    
     protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
     
 
@@ -3940,7 +3882,7 @@ u                    getSlot(c).setFromString((String)value);
                 dc.g.setColor(COLOR_HIGHLIGHT);
                 dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
                 transformLocal(dc.g);
-                dc.g.draw(getLocalShape());
+                dc.g.draw(getZeroShape());
             }
         }
     }
@@ -4247,10 +4189,10 @@ u                    getSlot(c).setFromString((String)value);
                 dc.g.setColor(entry.pathway.getMasterSlide().getFillColor());
                 if (entry.node instanceof LWGroup) {
                     if (!dc.isPresenting())
-                        dc.g.fill(entry.node.getLocalBounds());
+                        dc.g.fill(entry.node.getZeroBounds());
                 } else if (dc.focal != this && entry.node.isTranslucent()) {
-                    Area toFill = new Area(entry.node.getLocalBounds());
-                    toFill.subtract(new Area(entry.node.getLocalShape()));
+                    Area toFill = new Area(entry.node.getZeroBounds());
+                    toFill.subtract(new Area(entry.node.getZeroShape()));
                     dc.g.fill(toFill);
                 }
             }
@@ -4775,7 +4717,15 @@ u                    getSlot(c).setFromString((String)value);
         return createImage(alpha, maxSize, null, 1.0);
     }
 
-    private static Rectangle2D.Float grow(Rectangle2D.Float r, int size) {
+    protected final static Rectangle2D.Float grow(Rectangle2D.Float r, int size) {
+        r.x -= size;
+        r.y -= size;
+        r.width += size * 2;
+        r.height += size * 2;
+        return r;
+    }
+    
+    protected final static Rectangle2D.Float grow(Rectangle2D.Float r, float size) {
         r.x -= size;
         r.y -= size;
         r.width += size * 2;

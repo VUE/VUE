@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.51 $ / $Date: 2007-06-19 19:52:47 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -215,7 +215,7 @@ public class LWSlide extends LWContainer
 
         if (dc.focal != this || fillColor != dc.getFill() || !fillColor.equals(dc.getFill())) {
             dc.g.setColor(fillColor);
-            dc.g.fill(getLocalShape());
+            dc.g.fill(getZeroShape());
         }
 
         // When just filling the background with the master, only draw
@@ -250,7 +250,7 @@ public class LWSlide extends LWContainer
         if (DEBUG.BOXES || DEBUG.PRESENT || DEBUG.CONTAINMENT) {
             dc.g.setColor(Color.green);
             dc.g.setStroke(VueConstants.STROKE_TWO);
-            dc.g.draw(getLocalShape());
+            dc.g.draw(getZeroShape());
         }
         drawRaw(dc);
     }

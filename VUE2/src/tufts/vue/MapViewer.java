@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.411 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.412 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2715,7 +2715,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // dragging) but figure out a way not to uglify the border if
         // it's visible with the blue streak -- may XOR draw to the border
         // color? (or it's inverse)
-        Shape shape = c.getLocalShape();
+        Shape shape = c.getZeroShape();
         c.transformLocal(dc.g);
         dc.setAbsoluteStroke(1.0);
         dc.g.draw(shape);
@@ -2902,10 +2902,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final LWComponent only = selection.only();
         final LWComponent first = selection.first();
 
+        final boolean TEST = DEBUG.LINK; // if TEST is true, we always show the selection bounds & handles no matter what
+
         //if (!selection.first().isMoveable() || !selection.first().supportsUserResize()) { // todo: check all, not any
-        if (selection.size() == 1 && (!only.isMoveable() || !only.supportsUserResize())) {
+        if (!TEST && selection.size() == 1 && (!only.isMoveable() || !only.supportsUserResize())) {
             resizeControl.active = false;
-        } else if (selection.allOfType(LWLink.class)) {
+        } else if (!TEST && selection.allOfType(LWLink.class)) {
             // todo: this check is a hack: need to check if any in selection return true for supportsUserResize (change to merge w/isMoveable -- a dynamic property)
             // todo: also alow groups to resize (make selected group resize
             // re-usable for a group -- perhaps move to LWGroup itself &
@@ -2915,7 +2917,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // no resize handles if only links or groups
             resizeControl.active = false;
         } else {
-            if (selection.size() > 1) {
+            if (TEST || selection.size() > 1) {
                 dc.g.draw(mapSelectionBounds);
             } else {
                 // Only one in selection:
@@ -3085,10 +3087,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)) {
             dc.g.setColor(Color.green);
             dc.setAlpha(0.5);
-            dc.g.fill(indication.getLocalShape());
+            dc.g.fill(indication.getZeroShape());
         } else {
             dc.g.setColor(COLOR_INDICATION);
-            dc.g.draw(indication.getLocalShape());
+            dc.g.draw(indication.getZeroShape());
         }
 
         //dc.g.setColor(new Color(Color.white.getRGB() + (128<<24), true));

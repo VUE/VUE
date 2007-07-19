@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.173 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.174 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -304,7 +304,7 @@ public class LWNode extends LWContainer
         float[] corner =
             VueUtil.computeIntersection(getWidth() / 2, getHeight() / 2,
                                         getWidth(), getHeight(),
-                                        getLocalShape(),
+                                        getZeroShape(),
                                         null);
 
         return new Point2D.Float(corner[0], corner[1]);
@@ -314,7 +314,7 @@ public class LWNode extends LWContainer
     //public Shape getMapShape() { return this.boundsShape; }
     
     @Override
-    public Shape getLocalShape() {
+    public Shape getZeroShape() {
         return this.drawnShape;
     }
 

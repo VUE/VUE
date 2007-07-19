@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.170 $ / $Date: 2007-07-02 16:10:47 $ / $Author: sfraize $
+ * @version $Revision: 1.171 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1163,7 +1163,7 @@ public class LWPathway extends LWContainer
 
             if (!getFillColor().equals(dc.getFill())) {
                 dc.g.setColor(getFillColor());
-                dc.g.fill(getLocalShape());
+                dc.g.fill(getZeroShape());
             }
             drawImpl(dc);
         }
@@ -1427,7 +1427,7 @@ public class LWPathway extends LWContainer
             dc.g.setStroke(new BasicStroke(strokeWidth));
         }
         // we're already transformed into the local GC -- just draw the raw shape
-        dc.g.draw(c.getLocalShape());
+        dc.g.draw(c.getZeroShape());
         dc.g.setComposite(AlphaComposite.Src);//TODO: restore old composite
     }
     

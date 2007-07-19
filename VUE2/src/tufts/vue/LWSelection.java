@@ -31,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.74 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -490,14 +490,14 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return mBounds;
     }
 
-    /** return shape bounds of map selection in map (not screen) coordinates
-     * Does NOT inclde any stroke widths. */
-    public Rectangle2D getShapeBounds()
-    {
-        if (size() == 0)
-            return null;
-        return LWMap.getBounds(iterator());
-    }
+//     /** return shape bounds of map selection in map (not screen) coordinates
+//      * Does NOT inclde any stroke widths. */
+//     public Rectangle2D getShapeBounds()
+//     {
+//         if (size() == 0)
+//             return null;
+//         return LWMap.getBounds(iterator());
+//     }
 
     void flushBounds()
     {
