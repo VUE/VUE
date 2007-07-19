@@ -52,6 +52,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         this.current = current;
         
         metadataTable = new JTable(new MetadataTableModel());
+        metadataTable.setGridColor(new java.awt.Color(255,255,255,0));
         metadataTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter()
         {
                    public void mousePressed(java.awt.event.MouseEvent evt)
@@ -81,6 +82,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                          if(metadataTable.getSelectedColumn()==1)
                             MetadataEditor.this.current.getMetadataList().getMetadata().remove(metadataTable.getSelectedRow());
                             metadataTable.repaint();
+                            requestFocusInWindow();
                        }
                    }
         }); 
@@ -219,7 +221,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            field.addMouseListener(new MouseAdapter() {
                public void mouseExited(MouseEvent me)
                {
-                   System.out.println("MetadataEditor table cell - exited: " + me);
+                   //System.out.println("MetadataEditor table cell - exited: " + me);
                    stopCellEditing();
                }
            });
