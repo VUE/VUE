@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.307 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.308 $ / $Date: 2007-07-19 01:56:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3301,8 +3301,10 @@ u                    getSlot(c).setFromString((String)value);
                 point.x = getLocalCenterX();
                 point.y = getLocalCenterY();
             } else {
-                point.x = getX() + getLocalCenterX() * scale;
-                point.y = getY() + getLocalCenterY() * scale;
+                //point.x = getX() + getLocalCenterX() * scale;
+                //point.y = getY() + getLocalCenterY() * scale;
+                point.x = getX() + getLocalCenterX();
+                point.y = getY() + getLocalCenterY();
             }
 
         } else {
