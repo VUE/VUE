@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.412 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $ 
+ * @version $Revision: 1.413 $ / $Date: 2007-07-19 02:16:21 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5380,6 +5380,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             Collection<LWComponent> moveList = new java.util.ArrayList();
             for (LWComponent droppedChild : VueSelection) {
                 if (!droppedChild.supportsReparenting())
+                    continue;
+
+                if (droppedChild instanceof LWSlide) // todo: something more abstract
                     continue;
 
                 final LWContainer currentParent = droppedChild.getParent();
