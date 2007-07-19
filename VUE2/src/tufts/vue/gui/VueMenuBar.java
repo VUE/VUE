@@ -25,7 +25,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.42 $ / $Date: 2007-06-26 15:59:37 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2007-07-19 15:31:04 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -81,6 +81,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         JMenu windowMenu = new VueMenu("Windows");
         JMenu alignMenu = new VueMenu("Align");        
         JMenu toolsMenu = new VueMenu("Tools");
+        JMenu linkMenu = new VueMenu("Link");
         //JMenu optionsMenu = menuBar.add(new VueMenu("Options"))l
         JMenu helpMenu = add(new VueMenu("Help"));
         
@@ -176,8 +177,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Delete);
         editMenu.addSeparator();
         GUI.addToMenu(editMenu, Actions.NEW_OBJECT_ACTIONS);
-        //this isn't in the new comp..
-        // editMenu.add(Actions.Rename);                
+        //this isn't in the new comp..but I'm adding it back 7/18
+        editMenu.add(Actions.Rename);                
         editMenu.addSeparator();
        // editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
@@ -234,15 +235,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.addSeparator();
         formatMenu.add(Actions.Group);
         formatMenu.add(Actions.Ungroup);
-        
+        formatMenu.addSeparator();
+        buildMenu(linkMenu, Actions.LINK_MENU_ACTIONS);
+        formatMenu.add(linkMenu);
         //formatMenu.add(new JMenuItem("Size"));
         //formatMenu.add(new JMenuItem("Style"));
         //formatMenu.add("Text Justify").setEnabled(false);
         // TODO: ultimately better to break these out in to Node & Link submenus
-        //formatMenu.addSeparator();
-  //      buildMenu(formatMenu, Actions.NODE_MENU_ACTIONS);
-   //     formatMenu.addSeparator();
-    //    buildMenu(formatMenu, Actions.LINK_MENU_ACTIONS);
+        
         
         
 //      optionsMenu.add(new UserDataAction());
