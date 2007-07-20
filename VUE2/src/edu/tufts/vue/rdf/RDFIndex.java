@@ -33,6 +33,9 @@ import com.hp.hpl.jena.rdf.model.impl.*;
 import com.hp.hpl.jena.graph.*;
 
 public class RDFIndex extends ModelCom {
+    
+    public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
+    public static final String VUE_BASE = "vue-index://";
     com.hp.hpl.jena.rdf.model.Property idOf = createProperty("vue://","id");
     com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://","label");
     com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://","child");
@@ -53,12 +56,14 @@ public class RDFIndex extends ModelCom {
         for(LWComponent comp: map.getAllDescendents()) {
             rdfize(comp,mapR);
             
-
+            
         }
         System.out.println("Size of index:"+this.size());
     }
     
     public List search(String keyword) {
+       System.out.println("Searching for: "+keyword);
+       
         return null;
     }
     
@@ -67,6 +72,7 @@ public class RDFIndex extends ModelCom {
     }
     
     public void read() {
+        
         
     }
     
@@ -80,19 +86,34 @@ public class RDFIndex extends ModelCom {
         this.add(statement);
         List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
         Iterator<VueMetadataElement> i = metadata.iterator();
-        while(i.hasNext())
-        {
-          VueMetadataElement element = i.next();
-          statement = this.createStatement(r,hasTag,element.getObject().toString());
-          this.add(statement);
+        while(i.hasNext()) {
+            VueMetadataElement element = i.next();
+            statement = this.createStatement(r,hasTag,element.getObject().toString());
+            this.add(statement);
         }
     }
     
     public static String getUniqueId() {
+        
         return edu.tufts.vue.util.GUID.generate();
     }
     
+    public static RDFIndex getDefaultIndex() {
+        RDFIndex index = new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
+        try {
+            File indexFile = new File(INDEX_FILE);
+            if(indexFile.exists()) {
+               index.read(new FileReader(indexFile),VUE_BASE); 
+            }
+        } catch(Throwable t) {
+            
+        }
+        return index;
+    }
+    
+    @Deprecated
     public static RDFIndex createDefaultIndex() {
+        
         return new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
     }
     
