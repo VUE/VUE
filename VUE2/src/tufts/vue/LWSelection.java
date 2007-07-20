@@ -31,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.75 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-07-20 18:20:26 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -355,7 +355,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (notifyUnderway())
             return false;
 
-        if (size() > 0) {
+        if (!isClone && size() > 0) { // clones can break the rules if they want
             
             // special case for items such as LWMap or LWPathway. We do NOT allow 
             // instances of these items to be added to the selection if there's anything else in
