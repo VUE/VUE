@@ -907,57 +907,58 @@ public class Actions implements VueConstants
             c.setFrame(c.getX(), minY, c.getWidth(), maxY - minY);
         }
     };
-    
-    // If JScrollPane has focus, it will grap unmodified arrow keys.  If, say, a random DockWindow
-    // has focus (e.g., not a field that would also grab arrow keys), they get through.
-    // So just need to turn them off in ScrollPane try editing action map via gui defaults)
-    //public static final Action NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
-    public static final LWCAction NudgeUp = new LWCAction("Nudge Up", keyStroke(KeyEvent.VK_UP, 0)) {
-        void act(LWComponent c) { nudgeOrReorder(c,  0, -1); }
-    };
-    public static final LWCAction NudgeDown = new LWCAction("Nudge Down", keyStroke(KeyEvent.VK_DOWN, 0)) {
-        void act(LWComponent c) { nudgeOrReorder(c,  0,  1); }
-    };
-    public static final LWCAction NudgeLeft = new LWCAction("Nudge Left", keyStroke(KeyEvent.VK_LEFT, 0)) {
-        void act(LWComponent c) { nudgeOrReorder(c, -1,  0); }
-    };
-    public static final LWCAction NudgeRight = new LWCAction("Nudge Right", keyStroke(KeyEvent.VK_RIGHT, 0)) {
-        void act(LWComponent c) { nudgeOrReorder(c,  1,  0); }
-    };
 
-    //new addition of big nudges replacing the old small nudge
-    //keystroke, the small nudge keystroke are replacing the panning
-    //the jscrollpane.
-    public static final LWCAction BigNudgeUp = new LWCAction("Big Nudge Up", keyStroke(KeyEvent.VK_UP, SHIFT)) {
-        void act(LWComponent c) { nudgeOrReorder(c,  0, -10); }
-    };
-    public static final LWCAction BigNudgeDown = new LWCAction("Big Nudge Down", keyStroke(KeyEvent.VK_DOWN, SHIFT)) {
-        void act(LWComponent c) { nudgeOrReorder(c,  0,  10); }
-    };
-    public static final LWCAction BigNudgeLeft = new LWCAction("Big Nudge Left", keyStroke(KeyEvent.VK_LEFT, SHIFT)) {
-        void act(LWComponent c) { nudgeOrReorder(c, -10,  0); }
-    };
-    public static final LWCAction BigNudgeRight = new LWCAction("Big Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT)) {
-        void act(LWComponent c) { nudgeOrReorder(c,  10,  0); }
-    };
+    public static class NudgeAction extends LWCAction {
+        final int osdx, osdy; // on-screen delta-x, deltay-y
+        NudgeAction(int dx, int dy, String name, KeyStroke stroke) {
+            super(name, stroke);
+            osdx = dx;
+            osdy = dy;
+        }
 
-    
-    private static void nudgeOrReorder(LWComponent c, int x, int y) {
-        if (c.getParent() instanceof LWNode) { // TODO: a more abstract test... inVisuallyOrderedContainer?
-            if (x < 0 || y < 0)
-                c.getParent().sendBackward(c);
-            else
-                c.getParent().bringForward(c);
-        } else {
-            // With relative coords, if we want to enforce a certian on-screen pixel change,
-            // we need to adjust for the current zoom, as well as the net map scaling present
-            // in the parent of the moving object.
-            final double unit = VUE.getActiveViewer().getZoomFactor() * c.getParent().getMapScale();
-            final float dx = (float) (x / unit);
-            final float dy = (float) (y / unit);
-            c.translate(dx, dy);
+        public static boolean enabledOn(LWSelection s) {
+            return s.size() > 0 && s.first().isMoveable();
+        }
+        
+        boolean enabledFor(LWSelection s) {
+            return enabledOn(s);
+        }
+
+        @Override
+        void act(LWComponent c) { nudgeOrReorder(c,  osdx, osdy); }
+        
+        private void nudgeOrReorder(LWComponent c, int x, int y) {
+            if (c.getParent() instanceof LWNode) { // TODO: a more abstract test... inVisuallyOrderedContainer?
+                if (x < 0 || y < 0)
+                    c.getParent().sendBackward(c);
+                else
+                    c.getParent().bringForward(c);
+            } else {
+                // With relative coords, if we want to enforce a certian on-screen pixel change,
+                // we need to adjust for the current zoom, as well as the net map scaling present
+                // in the parent of the moving object.
+                final double unit = VUE.getActiveViewer().getZoomFactor() * c.getParent().getMapScale();
+                final float dx = (float) (x / unit);
+                final float dy = (float) (y / unit);
+                c.translate(dx, dy);
+            }
         }
     }
+    
+    // Note: if JScrollPane has focus, it will grap unmodified arrow keys.  If, say, a random DockWindow
+    // has focus (e.g., not a field that would also grab arrow keys), they get through.
+    // So the MapViewer has to specially check for these arrows keys to invoke these actions to
+    // override it's parent JScrollPane.
+    public static final LWCAction NudgeUp       = new NudgeAction(  0,  -1, "Nudge Up",    keyStroke(KeyEvent.VK_UP));
+    public static final LWCAction NudgeDown     = new NudgeAction(  0,   1, "Nudge Down",  keyStroke(KeyEvent.VK_DOWN));
+    public static final LWCAction NudgeLeft     = new NudgeAction( -1,   0, "Nudge Left",  keyStroke(KeyEvent.VK_LEFT));
+    public static final LWCAction NudgeRight    = new NudgeAction(  1,   0, "Nudge Right", keyStroke(KeyEvent.VK_RIGHT));
+
+    public static final LWCAction BigNudgeUp    = new NudgeAction(  0, -10, "Big Nudge Up",    keyStroke(KeyEvent.VK_UP, SHIFT));
+    public static final LWCAction BigNudgeDown  = new NudgeAction(  0,  10, "Big Nudge Down",  keyStroke(KeyEvent.VK_DOWN, SHIFT));
+    public static final LWCAction BigNudgeLeft  = new NudgeAction(-10,   0, "Big Nudge Left",  keyStroke(KeyEvent.VK_LEFT, SHIFT));
+    public static final LWCAction BigNudgeRight = new NudgeAction( 10,   0, "Big Nudge Right", keyStroke(KeyEvent.VK_RIGHT, SHIFT));
+        
     
     public static final ArrangeAction AlignLeftEdges = new ArrangeAction("Align Left Edges", KeyEvent.VK_LEFT) {
         void arrange(LWComponent c) { c.setLocation(minX, c.getY()); }
