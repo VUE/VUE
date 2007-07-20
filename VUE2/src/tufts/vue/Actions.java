@@ -337,7 +337,7 @@ public class Actions implements VueConstants
     public static final LWCAction Duplicate =
     new LWCAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) { return s.size() > 0; }
+        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
         // hierarchicalAction set to true: if parent being duplicated, don't duplicate
         // any selected children, creating extra siblings.
         boolean hierarchicalAction() { return true; }
@@ -368,7 +368,7 @@ public class Actions implements VueConstants
     public static final Action Cut =
     new LWCAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) { return s.size() > 0; }
+        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
         void act(LWSelection selection) {
             Copy.act(selection);
             Delete.act(selection);
@@ -378,7 +378,7 @@ public class Actions implements VueConstants
     
     public static final LWCAction Copy =
     new LWCAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
-        boolean enabledFor(LWSelection s) { return s.size() > 0; }
+        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
         void act(LWSelection selection) {
             ScratchBuffer.clear();
             ScratchBuffer.addAll(duplicatePreservingLinks(selection));
@@ -400,6 +400,52 @@ public class Actions implements VueConstants
             
         }
     };
+
+    public static final LWCAction Delete =
+        // "/tufts/vue/images/delete.png" looks greate (from jide), but too unlike others
+        new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
+            // We could use BACK_SPACE instead of DELETE because that key is bigger, and
+            // on the mac it's actually LABELED "delete", even tho it sends BACK_SPACE.
+            // BUT, if we use backspace, trying to use it in a text field in, say
+            // the object inspector panel causes it to delete the selection instead of
+            // backing up a char...
+            // The MapViewer special-case handles both anyway as a backup.
+                      
+        // hierarchicalAction is true: if parent being deleted,
+        // let it handle deleting the children (ignore any
+        // children in selection who's parent is also in selection)
+        boolean hierarchicalAction() { return true; }
+        boolean mayModifySelection() { return true; }
+        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
+        
+        void act(Iterator i) {
+            super.act(i);
+            
+            // LWSelection does NOT listen for events among what's selected (an
+            // optimization & we don't want the selection updating iself and issuing
+            // selection change events AS a delete takes place for each component as
+            // it's deleted) -- it only needs to know about deletions, so they're
+            // handled special case.  Here, all we need to do is clear the selection as
+            // we know everything in it has just been deleted.
+            
+            VUE.getSelection().clear();
+        }
+        void act(LWComponent c) {
+            LWContainer parent = c.getParent();
+            if (parent == null) {
+                System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
+            } else if (c.isDeleted()) {
+                System.out.println("DELETE: " + c + " skipping (already deleted)");
+            } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
+                System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
+            } else if (parent.isSelected()) { // if parent selected, it will delete it's children
+                System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
+            } else {
+                parent.deleteChildPermanently(c);
+            }
+        }
+    };
+    
 
     public static final LWCAction CopyStyle =
     new LWCAction("Copy Style", keyStroke(KeyEvent.VK_C, CTRL+LEFT_OF_SPACE)) {
@@ -461,49 +507,6 @@ public class Actions implements VueConstants
         
     };
     
-    public static final LWCAction Delete =
-        // "/tufts/vue/images/delete.png" looks greate (from jide), but too unlike others
-        new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
-            // We could use BACK_SPACE instead of DELETE because that key is bigger, and
-            // on the mac it's actually LABELED "delete", even tho it sends BACK_SPACE.
-            // BUT, if we use backspace, trying to use it in a text field in, say
-            // the object inspector panel causes it to delete the selection instead of
-            // backing up a char...
-            // The MapViewer special-case handles both anyway as a backup.
-                      
-        // hierarchicalAction is true: if parent being deleted,
-        // let it handle deleting the children (ignore any
-        // children in selection who's parent is also in selection)
-        boolean hierarchicalAction() { return true; }
-        boolean mayModifySelection() { return true; }
-        
-        void act(Iterator i) {
-            super.act(i);
-            
-            // LWSelection does NOT listen for events among what's selected (an
-            // optimization & we don't want the selection updating iself and issuing
-            // selection change events AS a delete takes place for each component as
-            // it's deleted) -- it only needs to know about deletions, so they're
-            // handled special case.  Here, all we need to do is clear the selection as
-            // we know everything in it has just been deleted.
-            
-            VUE.getSelection().clear();
-        }
-        void act(LWComponent c) {
-            LWContainer parent = c.getParent();
-            if (parent == null) {
-                System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
-            } else if (c.isDeleted()) {
-                System.out.println("DELETE: " + c + " skipping (already deleted)");
-            } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
-                System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
-            } else if (parent.isSelected()) { // if parent selected, it will delete it's children
-                System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
-            } else {
-                parent.deleteChildPermanently(c);
-            }
-        }
-    };
     //-----------------------
     // Context Menu Actions
     //-----------------------
