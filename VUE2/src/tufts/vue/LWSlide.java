@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.52 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-07-20 17:40:35 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -64,6 +64,12 @@ public class LWSlide extends LWContainer
     public boolean supportsUserResize() {
         return isMoveable() && DEBUG.Enabled;
     }
+
+    /** @return false: slides can't be selected with anything else */
+    public boolean supportsMultiSelection() {
+        return false;
+    }
+    
     
     @Override
     public boolean isMoveable() {
