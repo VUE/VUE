@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.413 $ / $Date: 2007-07-19 02:16:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.414 $ / $Date: 2007-07-20 18:09:04 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3862,7 +3862,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             case KeyEvent.VK_LEFT:
             case KeyEvent.VK_RIGHT:
 
-                if (VueSelection.isEmpty()) {
+                if (VueSelection.isEmpty() || !Actions.NudgeAction.enabledOn(VueSelection)) {
                     if (e.isShiftDown()) {
                         // micro 1-pixel scroll adjustments (default in scroll-pane is bigger)
             	
