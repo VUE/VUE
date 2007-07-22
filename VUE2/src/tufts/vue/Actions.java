@@ -334,10 +334,22 @@ public class Actions implements VueConstants
         return DupeList;
     }
 
+    private static boolean canEdit(LWSelection s) {
+        if (s.size() == 1) {
+            if (s.first().getParent() instanceof LWPathway) // slides not on map
+                return false;
+            else
+                return true;
+        } else
+            return s.size() > 1;
+                               
+        //return s.size() > 0 && !(s.only() instanceof LWSlide);
+    }
+
     public static final LWCAction Duplicate =
     new LWCAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
+        boolean enabledFor(LWSelection s) { return canEdit(s); }
         // hierarchicalAction set to true: if parent being duplicated, don't duplicate
         // any selected children, creating extra siblings.
         boolean hierarchicalAction() { return true; }
@@ -368,7 +380,7 @@ public class Actions implements VueConstants
     public static final Action Cut =
     new LWCAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
+        boolean enabledFor(LWSelection s) { return canEdit(s); }
         void act(LWSelection selection) {
             Copy.act(selection);
             Delete.act(selection);
@@ -378,7 +390,7 @@ public class Actions implements VueConstants
     
     public static final LWCAction Copy =
     new LWCAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
-        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
+        boolean enabledFor(LWSelection s) { return canEdit(s); }
         void act(LWSelection selection) {
             ScratchBuffer.clear();
             ScratchBuffer.addAll(duplicatePreservingLinks(selection));
@@ -416,7 +428,7 @@ public class Actions implements VueConstants
         // children in selection who's parent is also in selection)
         boolean hierarchicalAction() { return true; }
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) { return s.size() > 0 && !(s.only() instanceof LWSlide); }
+        boolean enabledFor(LWSelection s) { return canEdit(s); }
         
         void act(Iterator i) {
             super.act(i);
