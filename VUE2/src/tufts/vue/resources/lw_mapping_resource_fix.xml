@@ -58,7 +58,7 @@
     </field>
   </class>
   -->
-  <class name="tufts.vue.LWComponent">
+  <class name="tufts.vue.LWComponent" identity="ID">
     <!-- castor can figure out types, we leave string as defaulted.
       -->
         <field name="ID"><bind-xml node="attribute"/></field>
@@ -74,10 +74,10 @@
                 
                 <!-- impl data -->
 
-		<field name="absoluteWidth">
+		<field name="width">
 			<bind-xml name="width" node="attribute"/>
 		</field>
-		<field name="absoluteHeight">
+		<field name="height">
 			<bind-xml name="height" node="attribute"/>
 		</field>
 		<field name="XMLfillColor">
@@ -141,25 +141,31 @@
 		<!-- field name="nodeShape">
 			<bind-xml name="nodeShape" node="element"/>
 		</field -->
-		<field name="shape">
+		<field name="XMLshape">
 			<bind-xml name="shape" node="element"/>
 		</field>
 	</class>
 	
 	<class name="tufts.vue.LWLink" extends="tufts.vue.LWComponent">
 		<map-to xml="link"/>
-	        <field name="point1">
+	        <field name="headPoint">
 			<bind-xml name="point1" node="element"/>
 		</field>
-	        <field name="point2">
+	        <field name="tailPoint">
 			<bind-xml name="point2" node="element"/>
 		</field>
-		<field name="endPoint1_ID" type="string">
+		<field name="head">
+			<bind-xml name="ID1" node="element" reference="true"/>
+		</field>
+		<field name="tail">
+			<bind-xml name="ID2" node="element" reference="true"/>
+		</field>
+		<!-- field name="head_ID" type="string">
 			<bind-xml name="ID1" node="element"/>
-		</field>
-	        <field name="endPoint2_ID" type="string">
+		</field -->
+	        <!-- field name="tail_ID" type="string">
 			<bind-xml name="ID2" node="element"/>
-		</field>
+		</field -->
 	        <field name="controlCount">
 			<bind-xml name="controlCount" node="attribute"/>
 		</field>

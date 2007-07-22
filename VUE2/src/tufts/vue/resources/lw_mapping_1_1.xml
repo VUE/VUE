@@ -118,8 +118,8 @@
 
 		<field name="x" type="float">   <bind-xml node="attribute"/></field>
 		<field name="y" type="float">   <bind-xml node="attribute"/></field>
-		<field name="absoluteWidth">    <bind-xml name="width" node="attribute"/></field>
-		<field name="absoluteHeight">   <bind-xml name="height" node="attribute"/></field>
+		<field name="width">    <bind-xml name="width" node="attribute"/></field>
+		<field name="height">   <bind-xml name="height" node="attribute"/></field>
 		<field name="XMLfillColor">     <bind-xml name="fillColor" node="element"/></field>
 		<field name="XMLstrokeColor">   <bind-xml name="strokeColor" node="element"/></field>
 		<field name="XMLtextColor">     <bind-xml name="textColor" node="element"/></field>

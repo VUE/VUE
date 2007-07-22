@@ -64,7 +64,7 @@
     </field>
   </class>
   -->
-  <class name="tufts.vue.LWComponent">
+  <class name="tufts.vue.LWComponent" identity="ID">
     <!-- castor can figure out types, we leave string as defaulted.
       -->
         <field name="ID"><bind-xml node="attribute"/></field>
@@ -78,8 +78,8 @@
                 
 		<field name="x" type="float"><bind-xml node="attribute"/></field>
 		<field name="y" type="float"><bind-xml node="attribute"/></field>
-		<field name="absoluteWidth"><bind-xml name="width" node="attribute"/></field>
-		<field name="absoluteHeight"><bind-xml name="height" node="attribute"/></field>
+		<field name="width"><bind-xml name="width" node="attribute"/></field>
+		<field name="height"><bind-xml name="height" node="attribute"/></field>
 		<field name="XMLfillColor"><bind-xml name="fillColor" node="element"/></field>
 		<field name="XMLstrokeColor"><bind-xml name="strokeColor" node="element"/></field>
 		<field name="XMLtextColor"><bind-xml name="textColor" node="element"/></field>
@@ -125,8 +125,8 @@
 		<!-- field name="nodeShape">
 			<bind-xml name="nodeShape" node="element"/>
 		</field -->
-		<field name="shape">
-			<bind-xml name="shape" node="element"/>
+		<field name="XMLshape">
+                  <bind-xml name="shape" node="element"/>
 		</field>
 	</class>
 	<class name="tufts.vue.LWImage" extends="tufts.vue.LWComponent">
