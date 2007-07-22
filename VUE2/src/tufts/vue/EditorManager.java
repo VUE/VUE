@@ -553,6 +553,8 @@ public class EditorManager
         // way to instance another component with the same typeToken)
         final LWComponent style = styleSource.duplicate(DUPE_WITHOUT_CHILDREN);
 
+        style.setPersistIsStyle(Boolean.TRUE); // mark as a style: e.g., so if link, can know not to recompute
+
         //-----------------------------------------------------------------------------
         // for clear debugging info only:
         style.enableProperty(LWKey.Label); // in case it's override getLabel like LWSlide
