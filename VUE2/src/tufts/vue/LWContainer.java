@@ -20,13 +20,7 @@ package tufts.vue;
 
 import tufts.Util;
 
-import java.util.List;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -38,13 +32,13 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, hit-detection, duplication, adding/removing children.
  *
- * @version $Revision: 1.125 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
 {
-    protected java.util.List<LWComponent> children = new java.util.ArrayList<LWComponent>();
-    //protected LWComponent focusComponent;
+    //protected java.util.List<LWComponent> children = new java.util.ArrayList(4);
+    protected java.util.List<LWComponent> mChildren;
     
     public void XML_fieldAdded(String name, Object child) {
         super.XML_fieldAdded(name, child);
@@ -57,10 +51,10 @@ public abstract class LWContainer extends LWComponent
      * Child handling code
      */
     public boolean hasChildren() {
-        return children != null && children.size() > 0;
+        return mChildren != null && mChildren.size() > 0;
     }
     public int numChildren() {
-        return children == null ? 0 : children.size();
+        return mChildren == null ? 0 : mChildren.size();
     }
 
 //     /** @return false -- default impl is child coordinates are relatve to the parent -- overide if subclass impl changes this */
@@ -76,73 +70,69 @@ public abstract class LWContainer extends LWComponent
     
 
     public boolean hasChild(LWComponent c) {
-        return children.contains(c);
+        return mChildren != null && mChildren.contains(c);
     }
 
     /** @return true if we have any children */
     public boolean hasContent() {
-        return children != null && children.size() > 0;
+        return mChildren != null && mChildren.size() > 0;
     }
     
+    /** @return the list of children.  Note that during a restore, this will always return a list so
+     * that castor can add children to it.  This should be the only time the returned list should
+     * be modified -- callers of this for iteration should NOT modify the list contents. */
+    @Override
     public java.util.List<LWComponent> getChildList()
     {
-        return this.children;
+        if (mXMLRestoreUnderway) {
+            if (mChildren == null)
+                mChildren = new ArrayList();
+            return mChildren;
+        } else
+            return mChildren == null ? Collections.EMPTY_LIST : mChildren;
     }
+
+    /** @return the list of children, or Collections.EMPTY_LIST if we've never had any children */
+    @Override
+    public Collection<LWComponent> getChildren()
+    {
+        return mChildren == null ? Collections.EMPTY_LIST : mChildren;
+    }
+    
 
     /** return child at given index, or null if none at that index */
     public LWComponent getChild(int index) {
-        if (children != null && children.size() > index)
-            return children.get(index);
+        if (mChildren != null && mChildren.size() > index)
+            return mChildren.get(index);
         else
             return null;
     }
 
-    public java.util.Iterator<LWComponent> getChildIterator()
+    public Iterator<LWComponent> getChildIterator()
     {
-        return this.children.iterator();
+        return mChildren == null ? Util.EmptyIterator : mChildren.iterator();
     }
 
 
-//     /**
-//      * return first ancestor of type clazz, or if no matching ancestor
-//      * is found, return the upper most ancestor (one that has no
-//      * parent, which is normally the LWMap)
-//      */
-//     public LWContainer getFirstAncestor(Class clazz)
-//     {
-//         if (getParent() == null)
-//             return this;
-//         else if (clazz.isInstance(getParent()))
-//             return getParent();
-//         else
-//             return getParent().getFirstAncestor(clazz);
-//     }
+    // These should probably be deprecated or generalized into parameterized type fetchers
 
-    
     public Iterator getNodeIterator()    { return getNodeList().iterator(); }
-    // todo: temporary for html?
-    private List getNodeList()
+    private List<LWNode> getNodeList()
     {
-        ArrayList list = new ArrayList();
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        final ArrayList list = new ArrayList();
+        for (LWComponent c : getChildren())
             if (c instanceof LWNode)
                 list.add(c);
-        }
         return list;
     }
+    
     public Iterator getLinkIterator()    { return getLinkList().iterator(); }
-    // todo: temporary for html?
-    private List getLinkList()
+    private List<LWLink> getLinkList()
     {
-        ArrayList list = new ArrayList();
-        java.util.Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        final ArrayList list = new ArrayList();
+        for (LWComponent c : getChildren())
             if (c instanceof LWLink)
                 list.add(c);
-        }
         return list;
     }
 
@@ -237,7 +227,7 @@ public abstract class LWContainer extends LWComponent
                 // value in LWComponent to support this in all cases.
 
                 if (parent1 == parent2)
-                    return parent1.children.indexOf(c1) - parent2.children.indexOf(c2);
+                    return parent1.getChildList().indexOf(c1) - parent2.getChildList().indexOf(c2);
                 else
                     return 0;
                 // it's possible to figure out which parent is deepest,
@@ -254,6 +244,9 @@ public abstract class LWContainer extends LWComponent
     {
         // note: as ArrayIterator is not a collection, it won't
         // be re-sorted below.
+        if (mChildren == null)
+            mChildren = new ArrayList(toAdd.length);
+        
         addChildren(new tufts.Util.ArrayIterator(toAdd));
     }
     
@@ -273,6 +266,11 @@ public abstract class LWContainer extends LWComponent
         notify(LWKey.HierarchyChanging);
 
         if (iterable instanceof Collection && ((Collection)iterable).size() > 1) {
+
+            // performance: pre-allocate enough space for all the children
+            // if this is the first time we're adding.
+            if (mChildren == null)
+                mChildren = new ArrayList( ((Collection)iterable).size() );
 
             // Do what we can to preserve any meaninful order already
             // present in the new incoming children.
@@ -373,10 +371,8 @@ public abstract class LWContainer extends LWComponent
         if (c.getParent() != null && c.getParent().getChildList().contains(c)) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
             if (DEBUG.PARENTING)
-                if (DEBUG.META)
-                    tufts.Util.printStackTrace("FYI["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
-                else
-                    out("auto-deparenting " + c + " from " + c.getParent());
+                //if (DEBUG.META) tufts.Util.printStackTrace("FYI["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent()); else
+                out("auto-deparenting " + c + " from " + c.getParent());
             if (c.getParent() == this) {
                 //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADD-BACK " + c + " (already our child)");
                 if (DEBUG.PARENTING) out("ADD-BACK " + c + " (already our child)");
@@ -388,26 +384,38 @@ public abstract class LWContainer extends LWComponent
         }
         if (c.getFont() == null)//todo: really want to do this? only if not manually set?
             c.setFont(getFont());
+
+        if (mChildren == null)
+            mChildren = new ArrayList();
         
-        this.children.add(c);
+        mChildren.add(c);
 
         //----------------------------------------------------------------------------------------
         // Delicately reparent, taking care that the model does not generate events while
         // in an indeterminate state.
         //----------------------------------------------------------------------------------------
-        
-        // Save current mapX / mapY before setting the parent (which would change the reported mapX / mapY)
-        final float oldMapX = c.getMapX();
-        final float oldMapY = c.getMapY();
+
         final LWContainer oldParent = c.getParent();
-        final double oldParentMapScale = c.getMapScale();
 
-        // Now set the parent, so that when the new location is set, it's already in it's
-        // new parent, and it's mapX / mapY will report correctly when asked (e.g., the
-        // bounds are immediatley correct for anyone listening to the location event).
-        c.setParent(this);
-
-        establishLocalCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
+        if (oldParent != null && !isManagingChildLocations()) {
+        
+            // Save current mapX / mapY before setting the parent (which would change the reported mapX / mapY)
+            final float oldMapX = c.getMapX();
+            final float oldMapY = c.getMapY();
+            final double oldParentMapScale = c.getMapScale();
+        
+            // Now set the parent, so that when the new location is set, it's already in it's
+            // new parent, and it's mapX / mapY will report correctly when asked (e.g., the
+            // bounds are immediatley correct for anyone listening to the location event).
+            c.setParent(this);
+            
+            localizeCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
+            
+        } else {
+            
+            c.setParent(this);
+            
+        }
 
 //         final double newParentMapScale = getMapScale();
 //         if (oldParentMapScale != newParentMapScale) {
@@ -429,12 +437,11 @@ public abstract class LWContainer extends LWComponent
 
 //     }
     
-
-    protected void establishLocalCoordinates(LWComponent c,
-                                             LWContainer oldParent,
-                                             double oldParentMapScale,
-                                             float oldMapX,
-                                             float oldMapY)
+    protected void localizeCoordinates(LWComponent c,
+                                       LWContainer oldParent,
+                                       double oldParentMapScale,
+                                       float oldMapX,
+                                       float oldMapY)
     {
 
         // Even if the new parent is managing the location, and is about to re-layout and set a new
@@ -445,74 +452,65 @@ public abstract class LWContainer extends LWComponent
         // old location at that point relative to another, unknown parent, we'd have no way of
         // actually knowing it's old absolute map location.
         
-        //if (isManagingChildLocations())
-        //    return;
-        
-        // todo: if we have abs children, but OLD parent had relative children, we need to
-        // translate back to absolute map coords todo: technicallly, it would make sense for the
-        // LWMap to declare hasAbsoluteChildren, but above logic would need to change...  if it
-        // didn't have a parent, assume coords we're local (e.g., from a duplication)
-
         // This can be a problem during new object creation (e.g., LWGroups) -- if the new object
         // is grabbing children from the map, but the new object is under construction and is not
         // ON the map yet, these setLocation's will never make it do the undo manager to be undone
         // later: This is why we've added the special setLocation API with an event source.
-        
-        // TODO: this conditional should pretty much wind up reduced to only checking if
-        // the component has absolute map location.
 
-        //if (!c.hasAbsoluteMapLocation() && !hasAbsoluteChildren() && (oldParent == null || !oldParent.hasAbsoluteChildren())) {
-        if (oldParent != null) {
-            if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("localizing coordinates: " + c + " oldParent=" + oldParent);
+        if (getParent() == null) {
+            //if (DEBUG.Enabled) Util.printStackTrace("skipping coordinate localization in unparented (new?) LWContainer: " + this + "; for " + c);
+            if (DEBUG.Enabled) VUE.Log.warn("coordinate localization in unparented (new?) LWContainer: " + this + "; for " + c);
+        } //else
 
-            final LWComponent eventSource;
+        if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("localizing coordinates: " + c + " oldParent=" + oldParent);
 
-            // c.getMap() should == getMap() at this point; setParent to this LWContainer has been done above
-            if (c.getMap() != getMap())
-                Util.printStackTrace("different maps?");
+        final LWComponent eventSource;
+
+        // c.getMap() should == getMap() at this point; setParent to this LWContainer has been done above
+        if (c.getMap() != getMap())
+            Util.printStackTrace("different maps?");
             
-            if (c.getID() != null && c.getMap() == null) {
-                // if ID is null, the object is still being created (and we don't need to worry about undoing it's initializations)
-                if (oldParent == null || oldParent.getMap() == null) {
-                    if (DEBUG.Enabled) Util.printStackTrace("FYI: no event source for: " + c
-                                                            + ";\n\t           localizing new parent: " + this
-                                                            + ";\n\toldParent is not in model either: " + oldParent
-                                                            + ";\n\tlocation events will not be available for UNDO");
-                    eventSource = c;
-                } else
-                    eventSource = oldParent; // if the component has no map, it's not in the model yet, and nobody can hear it.
-            } else
+        if (c.getID() != null && c.getMap() == null) {
+            // if ID is null, the object is still being created (and we don't need to worry about undoing it's initializations)
+            if (oldParent == null || oldParent.getMap() == null) {
+                if (DEBUG.Enabled) Util.printStackTrace("FYI: no event source for: " + c
+                                                        + ";\n\t           localizing new parent: " + this
+                                                        + ";\n\toldParent is not in model either: " + oldParent
+                                                        + ";\n\tlocation events will not be available for UNDO");
                 eventSource = c;
+            } else
+                eventSource = oldParent; // if the component has no map, it's not in the model yet, and nobody can hear it.
+        } else
+            eventSource = c;
 
-            // This version of LWComponent.setLocation with an eventSource argument was created
-            // specifically for this call right here:
-            c.setLocation((float) ((oldMapX - getMapX()) / getMapScale()),
-                          (float) ((oldMapY - getMapY()) / getMapScale()),
-                          eventSource,
-                          false);
-            //oldParent == null);
+        // This version of LWComponent.setLocation with an eventSource argument was created
+        // specifically for this call right here:
+        final double scale = getMapScale();
+        c.setLocation((float) ((oldMapX - getMapX()) / scale),
+                      (float) ((oldMapY - getMapY()) / scale),
+                      eventSource,
+                      false);
+        //oldParent == null);
 
-            // The last param above if true means make calls to mapLocationChanged.
+        // The last param above if true means make calls to mapLocationChanged.
 
-            // We'll need something to handle this for LWlinks when dropped into a
-            // scaled on-map LWSlide (future feature), tho maybe that'll be handled by a
-            // scaleNotify.  This works right now because normally you can only drop
-            // into a node, in which case it's layout code will make another setLocation
-            // call that the link can pick up, or something at 100% scale, in which case
-            // when the drop happens, the curved link's control points are already
-            // exactly where they need to be, right where they are, as set by the
-            // dragging code.
+        // We'll need something to handle this for LWlinks when dropped into a
+        // scaled on-map LWSlide (future feature), tho maybe that'll be handled by a
+        // scaleNotify.  This works right now because normally you can only drop
+        // into a node, in which case it's layout code will make another setLocation
+        // call that the link can pick up, or something at 100% scale, in which case
+        // when the drop happens, the curved link's control points are already
+        // exactly where they need to be, right where they are, as set by the
+        // dragging code.
 
-            if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("         now localized: " + c);
-            
-        }
+        if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("         now localized: " + c);
     }
     
     protected void removeChildImpl(LWComponent c)
     {
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (DEBUG.PARENTING) out("REMOVING " + c);
-        if (this.children == null) {
+        if (mChildren == null) {
             // this should never be possible now
             new Throwable(this + " CHILD LIST IS NULL TRYING TO REMOVE " + c).printStackTrace();
             return;
@@ -522,7 +520,7 @@ public abstract class LWContainer extends LWComponent
             new Throwable(this + " FYI: ZOMBIE PARENT DELETING CHILD " + c).printStackTrace();
             return;
         }
-        if (!this.children.remove(c)) {
+        if (!mChildren.remove(c)) {
             tufts.Util.printStackTrace(this + " didn't contain child for removal: " + c);
             /*
             if (DEBUG.PARENTING) {
@@ -581,7 +579,7 @@ public abstract class LWContainer extends LWComponent
     protected void prepareToRemoveFromModel()
     {
         removeChildrenFromModel();
-        if (this.children == VUE.ModelSelection) // todo: tmp debug
+        if (mChildren == VUE.ModelSelection) // todo: tmp debug
             throw new IllegalStateException("attempted to delete selection");
     }
     
@@ -694,15 +692,12 @@ public abstract class LWContainer extends LWComponent
     }
     */
 
-    public java.util.List getAllLinks()
+    public List<LWLink> getAllLinks()
     {
         java.util.List list = new java.util.ArrayList();
         list.addAll(super.getAllLinks());
-        java.util.Iterator i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getChildren())
             list.addAll(c.getAllLinks());
-        }
         return list;
     }
     
@@ -732,7 +727,7 @@ public abstract class LWContainer extends LWComponent
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order)
     {
-        for (LWComponent c : this.children) {
+        for (LWComponent c : getChildren()) {
             if (kind == ChildKind.VISIBLE && c.isHidden())
                 continue;
             if (order == Order.TREE) {
@@ -759,33 +754,31 @@ public abstract class LWContainer extends LWComponent
     public Iterator getAllDescendentsIterator()
     {
         VueUtil.GroupIterator gi = new VueUtil.GroupIterator();
-        gi.add(children.iterator());
-        Iterator i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        gi.add(getChildIterator());
+        for (LWComponent c : getChildren()) {
             if (c.hasChildren())
                 gi.add(((LWContainer)c).getAllDescendentsIterator());
         }
         return gi;
     }
 
-    /**
-     * Get all descendents, but do not seperately include
-     * the children of groups.
-     * @deprecated - needs replacement: see Actions.java
-     */
-    public java.util.List getAllDescendentsGroupOpaque()
-    {
-        java.util.List list = new java.util.ArrayList();
-        list.addAll(children);
-        java.util.Iterator i = children.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (c.hasChildren() && !(c instanceof LWGroup))
-                list.addAll(((LWContainer)c).getAllDescendents());
-        }
-        return list;
-    }
+//     /**
+//      * Get all descendents, but do not seperately include
+//      * the children of groups.
+//      * @deprecated - needs replacement: see Actions.java
+//      */
+//     public java.util.List getAllDescendentsGroupOpaque()
+//     {
+//         java.util.List list = new java.util.ArrayList();
+//         list.addAll(children);
+//         java.util.Iterator i = children.iterator();
+//         while (i.hasNext()) {
+//             LWComponent c = (LWComponent) i.next();
+//             if (c.hasChildren() && !(c instanceof LWGroup))
+//                 list.addAll(((LWContainer)c).getAllDescendents());
+//         }
+//         return list;
+//     }
 
     protected LWComponent defaultPickImpl(PickContext pc)
     {
@@ -805,14 +798,10 @@ public abstract class LWContainer extends LWComponent
 
     public boolean isOnTop(LWComponent c)
     {
-        // todo opt: has to on avg scan half of list every time
-        // (will slow down selection in checks to enable front/back actions)
-        return indexOf(c) == children.size()-1;
+        return mChildren == null ? false : indexOf(c) == mChildren.size()-1;
     }
     public boolean isOnBottom(LWComponent c)
     {
-        // todo opt: has to on avg scan half of list every time
-        // (will slow down selection in checks to enable front/back actions)
         return indexOf(c) == 0;
     }
 
@@ -827,7 +816,7 @@ public abstract class LWContainer extends LWComponent
             throw new IllegalStateException("*** Attempting to get index of a child of a deleted component!"
                                             + "\n\tdeleted parent=" + this
                                             + "\n\tseeking index of child=" + c);
-        return children.indexOf(c);
+        return mChildren == null ? -1 : mChildren.indexOf(c);
     }
         
     /* To preseve the relative display order of a group of elements
@@ -905,15 +894,20 @@ public abstract class LWContainer extends LWComponent
 
     public boolean bringToFront(LWComponent c)
     {
+        if (mChildren == null) {
+            Util.printStackTrace("no children " + this + "; " + c);
+            return false;
+        }
+        
         // Move to END of list, so it will paint last (visually on top)
-        int idx = children.indexOf(c);
-        int idxLast = children.size() - 1;
+        int idx = mChildren.indexOf(c);
+        int idxLast = mChildren.size() - 1;
         if (idx == idxLast)
             return false;
         //System.out.println("bringToFront " + c);
         notify(LWKey.HierarchyChanging);
-        children.remove(idx);
-        children.add(c);
+        mChildren.remove(idx);
+        mChildren.add(c);
         // we layout the parent because a parent node may lay out
         // it's children in the order they appear in this list
         notify("hier.move.front", c);
@@ -922,23 +916,33 @@ public abstract class LWContainer extends LWComponent
     }
     public boolean sendToBack(LWComponent c)
     {
+        if (mChildren == null) {
+            Util.printStackTrace("no children " + this + "; " + c);
+            return false;
+        }
+        
         // Move to FRONT of list, so it will paint first (visually on bottom)
-        int idx = children.indexOf(c);
+        int idx = mChildren.indexOf(c);
         if (idx <= 0)
             return false;
         //System.out.println("sendToBack " + c);
         notify(LWKey.HierarchyChanging);
-        children.remove(idx);
-        children.add(0, c);
+        mChildren.remove(idx);
+        mChildren.add(0, c);
         notify("hier.move.back", c);
         c.getParent().layoutChildren();
         return true;
     }
     public boolean bringForward(LWComponent c)
     {
+        if (mChildren == null) {
+            Util.printStackTrace("no children " + this + "; " + c);
+            return false;
+        }
+        
         // Move toward the END of list, so it will paint later (visually on top)
-        int idx = children.indexOf(c);
-        int idxLast = children.size() - 1;
+        int idx = mChildren.indexOf(c);
+        int idxLast = mChildren.size() - 1;
         if (idx == idxLast)
             return false;
         //System.out.println("bringForward " + c);
@@ -950,8 +954,13 @@ public abstract class LWContainer extends LWComponent
     }
     public boolean sendBackward(LWComponent c)
     {
+        if (mChildren == null) {
+            Util.printStackTrace("no children " + this + "; " + c);
+            return false;
+        }
+        
         // Move toward the FRONT of list, so it will paint sooner (visually on bottom)
-        int idx = children.indexOf(c);
+        int idx = mChildren.indexOf(c);
         if (idx <= 0) 
             return false;
         //System.out.println("sendBackward " + c);
@@ -965,12 +974,17 @@ public abstract class LWContainer extends LWComponent
     private void swap(int i, int j)
     {
         //System.out.println("swapping positions " + i + " and " + j);
-        children.set(i, children.set(j, children.get(i)));
+        mChildren.set(i, mChildren.set(j, mChildren.get(i)));
     }
 
     // essentially this implements an "insert-after" of top relative to bottom
     void ensurePaintSequence(LWComponent onBottom, LWComponent onTop)
     {
+        if (mChildren == null) {
+            Util.printStackTrace("no children " + this + "; bot=" + onBottom + "; top=" + onTop);
+            return;
+        }
+
         if (onBottom.getParent() != this || onTop.getParent() != this) {
             System.out.println(this + "ensurePaintSequence: both aren't children " + onBottom + " " + onTop);
             return;
@@ -992,12 +1006,12 @@ public abstract class LWContainer extends LWComponent
         } else if (topIndex < bottomIndex) {
             if (DEBUG.PARENTING) out("ensurePaintSequence: re-inserting after botIndex " + onTop);
             notify(LWKey.HierarchyChanging);
-            children.remove(topIndex);
+            mChildren.remove(topIndex);
             // don't forget that after above remove the indexes have all been shifted down one
-            if (bottomIndex >= children.size())
-                children.add(onTop);
+            if (bottomIndex >= mChildren.size())
+                mChildren.add(onTop);
             else
-                children.add(bottomIndex, onTop);
+                mChildren.add(bottomIndex, onTop);
             notify("hier.sequence");
         } else {
             if (DEBUG.PARENTING) out("ensurePaintSequence: already sequenced: " + onTop);
@@ -1069,7 +1083,7 @@ public abstract class LWContainer extends LWComponent
 
     protected void drawChildren(DrawContext dc)
     {
-        if (this.children.size() <= 0)
+        if (!hasChildren())
             return;
 
 //         if (!VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
@@ -1257,12 +1271,15 @@ public abstract class LWContainer extends LWComponent
             isPatcherOwner = true;
         }
         
-        LWContainer containerCopy = (LWContainer) super.duplicate(cc);
+        final LWContainer containerCopy = (LWContainer) super.duplicate(cc);
 
-        if (cc.dupeChildren) {
-            for (LWComponent c : getChildList()) {
+        if (cc.dupeChildren && mChildren != null) {
+
+            containerCopy.mChildren = new ArrayList(mChildren.size());
+            
+            for (LWComponent c : getChildren()) {
                 LWComponent childCopy = c.duplicate(cc);
-                containerCopy.children.add(childCopy);
+                containerCopy.mChildren.add(childCopy);
                 childCopy.setParent(containerCopy);
             }
         }
@@ -1275,8 +1292,8 @@ public abstract class LWContainer extends LWComponent
 
     public String paramString()
     {
-        if (children != null && children.size() > 0)
-            return super.paramString() + " chld=" + children.size();
+        if (hasChildren())
+            return super.paramString() + " chld=" + numChildren();
         else
             return super.paramString();
             

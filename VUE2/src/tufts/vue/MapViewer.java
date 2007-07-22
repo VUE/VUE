@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.414 $ / $Date: 2007-07-20 18:09:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.415 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2582,7 +2582,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
         }
 
-        lwc.getLocalTransform().transform(point, point);
+        lwc.getZeroTransform().transform(point, point);
         
         if (DEBUG.TEXT || DEBUG.WORK) out("  BOX POINT MAP: " + fmt(point));
 
@@ -2716,7 +2716,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // it's visible with the blue streak -- may XOR draw to the border
         // color? (or it's inverse)
         Shape shape = c.getZeroShape();
-        c.transformLocal(dc.g);
+        c.transformZero(dc.g);
         dc.setAbsoluteStroke(1.0);
         dc.g.draw(shape);
         if (false && shape instanceof RectangularPoly2D) {
@@ -3081,7 +3081,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //dc.g.setColor(new Color(Color.green.getRGB() + (128<<24), true)); // 128<<24 = 50% transparent
         //dc.g.setColor(COLOR_SELECTION);
 
-        indication.transformLocal(dc.g);
+        indication.transformZero(dc.g);
 
         if (DEBUG.PICK &&
             (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)) {
@@ -3649,6 +3649,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (DataFlavor.stringFlavor.equals(flavor)) {
                     
                     String s = null;
+                    if (LWC instanceof LWMap && ((LWMap)LWC).getFile() != null)
+                        s = ((LWMap)LWC).getFile().toString();
                     if (LWC.hasResource())
                         s = LWC.getResource().toString();
                     if (s == null && LWC.hasLabel())

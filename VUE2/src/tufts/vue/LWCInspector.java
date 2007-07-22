@@ -69,7 +69,7 @@ class LWCInspector extends javax.swing.JPanel
         "-ID",      idField,
         "-Location",locationField,
         "-Size",    sizeField,
-        "-TransLoc",    transLocField,
+        "-ZeroTX",    transLocField,
         "-HideBits",    bitsField,
         "Label",    labelField,
         "Width",    widthField,
@@ -408,7 +408,7 @@ class LWCInspector extends javax.swing.JPanel
         if (!c.isAutoSized())
             sizeText += " userSize";
         sizeField.setText(sizeText);
-        transLocField.setText(c.getLocalTransform().toString());
+        transLocField.setText(c.getZeroTransform().toString());
         bitsField.setText(c.getDescriptionOfSetBits() + (c.isFiltered() ? " +FILTERED" : ""));
         widthField.setText(String.format("%5.1f map(%5.1f)", c.getWidth(), c.getMapWidth()));
         heightField.setText(String.format("%5.1f map(%5.1f)", c.getHeight(), c.getMapHeight()));

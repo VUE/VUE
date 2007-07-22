@@ -446,30 +446,47 @@ public class UndoManager
             parent.notify(LWKey.HierarchyChanging); // this event important for REDO
 
             // Create data for synthesized ChildrenAdded & ChildrenRemoved events
+            // For our purposes here, new/added are the the old values we're restoring,
+            // and old/removed are the current values we're replacing.
             final List newChildList = (List) oldValue;
-            final List oldChildList = parent.children;
-            final List childrenAdded = new ArrayList(newChildList);
-            childrenAdded.removeAll(oldChildList);
-            final List childrenRemoved = new ArrayList(oldChildList);
-            childrenRemoved.removeAll(newChildList);
+            final List oldChildList = parent.mChildren;
+            final List childrenAdded;
+            final List childrenRemoved;
+                
+            if (newChildList == null) {
+                childrenAdded = Collections.EMPTY_LIST;
+            } else {
+                childrenAdded = new ArrayList(newChildList);
+                if (oldChildList != null)
+                    childrenAdded.removeAll(oldChildList);
+            }
+
+            if (oldChildList == null) {
+                childrenRemoved = Collections.EMPTY_LIST;
+            } else {
+                childrenRemoved = new ArrayList(oldChildList);
+                if (newChildList != null)
+                    childrenRemoved.removeAll(newChildList);
+            }
 
             // Do the swap in of the old list of children:
-            parent.children = (List) oldValue;
+            parent.mChildren = (List) oldValue;
             // now make sure all the children are properly parented,
             // and none of them are marked as deleted.
-            for (LWComponent child : parent.children) {
-                if (parent instanceof LWPathway) {
-                    // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
-                    //((LWPathway)parent).addChildRefs(child);
-                    Util.printStackTrace("LWPathway's don't have real children: " + parent + "; for child " + child);
-                } else {
-                    if (child.isDeleted())
-                        child.restoreToModel();
-                    child.setParent(parent);
-                    //child.reparentNotify(parent);
+            if (parent.mChildren != null) {
+                for (LWComponent child : parent.mChildren) {
+                    if (parent instanceof LWPathway) {
+                        // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
+                        //((LWPathway)parent).addChildRefs(child);
+                        Util.printStackTrace("LWPathway's don't have real children: " + parent + "; for child " + child);
+                    } else {
+                        if (child.isDeleted())
+                            child.restoreToModel();
+                        child.setParent(parent);
+                        //child.reparentNotify(parent);
+                    }
                 }
             }
-            // parent.setScale(parent.getScale()); // should no longer be needed now with non-cascading scale values
             parent.layout();
             // issue synthesized ChildrenAddded and/or ChildrenRemoved events
             if (childrenAdded.size() > 0) {
@@ -1371,8 +1388,13 @@ public class UndoManager
                 undoItem.order = undoAction.eventCount++;
             }
         } else {
-            if (oldValue == HIERARCHY_CHANGE_TAG)
-                oldValue = ((ArrayList)((LWContainer)component).children).clone();
+            if (oldValue == HIERARCHY_CHANGE_TAG) {
+                final LWContainer container = (LWContainer) component;
+                if (container.mChildren == null)
+                    oldValue = null;
+                else
+                    oldValue = ((ArrayList)container.mChildren).clone();
+            }
             if (allChangesToComponent != null)
                 allChangesToComponent.put(propertyKey, new TaggedPropertyValue(undoAction.size(), oldValue));
             undoAction.undoSequence.add(new UndoItem(component, propertyKey, oldValue, undoAction.eventCount));

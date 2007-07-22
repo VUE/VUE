@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import static tufts.Util.fmt;
 
 import java.util.*;
 
@@ -44,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.161 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.162 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -72,16 +73,19 @@ public class LWLink extends LWComponent
     
     /**
      * Holds data and defines basic functionality for each endpoint.  Currently, we
-     * always have exactly two endpoints, each of which may or not be connected to
+     * always have exactly two endpoints, each of which may or may not be connected to
      * another node.
      *
      * If we ever support more than one endpoint on a link (e.g., fan-out links), this
      * will give us a good start.
+     *
+     * The x/y in the super-class Point2D.Float is the x/y of the actual connection point
+     * at the endpoint node (or link), or the disconnected location if not connected.
+     * Subclassing Point2D.Float make it convenient to do a transformation on the point
+     * if need be.
      */
 
-    // consider subclassing Point2D.Float
-    private static class End { 
-        float x, y; // point at node where the connection is made, or disconnected map location
+    private static class End extends Point2D.Float { 
         LWComponent node; // if null, not connected
         boolean isPruned;
         double rotation; // normalizing rotation
@@ -90,7 +94,7 @@ public class LWLink extends LWComponent
         //float lineX, lineY; // end of curve / line -- can be different than x / y if there is a connector shape
         //RectangularShape shape; // e.g. an arrow -- null means none
         
-        final Point2D.Float point = new Point2D.Float();
+        //final Point2D.Float point = new Point2D.Float();
         final Point2D.Float mapPoint = new Point2D.Float();
         
         // for control points
@@ -114,18 +118,18 @@ public class LWLink extends LWComponent
         }
 
         Point2D.Float getPoint() {
-            point.x = x;
-            point.y = y;
-            return point;
+            return this;
         }
 
         Point2D.Float getMapPoint() {
-//             if (LOCAL_LINKS == false) {
-//                 mapPoint.x = x;
-//                 mapPoint.y = y;
-//             }
-            
             return mapPoint;
+        }
+
+        void duplicate(End end) {
+            this.x = end.x;
+            this.y = end.y;
+            mapPoint.x = end.mapPoint.x;
+            mapPoint.y = end.mapPoint.y;
         }
 
         void setPoint(final LWLink link, final float newX, final float newY, final Key key) {
@@ -174,6 +178,15 @@ public class LWLink extends LWComponent
         // todo opt: could lazy create these...
         final PruneCtrl pruneControl = new PruneCtrl();
 
+        public String toString() 
+        {
+            String s = "End[" + fmt(this);
+            if (node != null)
+                s += " " + node;
+            return s + "]";
+        }
+        
+
     };
     
     private final End head = new End();
@@ -211,7 +224,7 @@ public class LWLink extends LWComponent
     private boolean ordered = false; // not doing anything with this yet
     
     /** has an endpoint moved since we last computed shape? */
-    private transient boolean mRecompute = true;
+    private transient boolean mRecompute;
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -338,6 +351,14 @@ public class LWLink extends LWComponent
     {
         //if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());else
         
+        if (key == LWKey.Location) {
+            // This is a bit of a hack, in that we're relying on the fact that the only
+            // thing to call setProperty with a Location key right now is the
+            // UndoManager.  In any case, on undo, we do NOT want to guess at
+            // a translation for the link... tho we have no other choice!
+            final Point2D.Float loc = (Point2D.Float) val;
+            undoLocation(loc.x, loc.y);
+        } else
              if (key == Key_Control_0)          setCtrlPoint0((Point2D)val);
         else if (key == Key_Control_1)          setCtrlPoint1((Point2D)val);
         else
@@ -695,14 +716,13 @@ public class LWLink extends LWComponent
         // map coordinates, we apply the local transform to the
         // points to get the map location.
 
-        // TODO OPT: if parent is a map, getLocalTransform is just creating
+        // TODO OPT: if parent is a map, getZeroTransform is just creating
         // empty affine transforms, and we're calling transform here
         // which is going to be a noop.
 
-        //final AffineTransform mapTx = LOCAL_LINKS ? getLocalTransform() : new AffineTransform(); // noop if old impl
-        final AffineTransform mapTx = getLocalTransform();
         final Point2D.Float mapHead = head.getMapPoint();
         final Point2D.Float mapTail = tail.getMapPoint();
+        final AffineTransform mapTx = getZeroTransform();
         
         mapTx.transform(head.getPoint(), mapHead);
         mapTx.transform(tail.getPoint(), mapTail);
@@ -981,6 +1001,9 @@ public class LWLink extends LWComponent
 
     public void setCtrlPoint0(float x, float y)
     {
+
+        //IS THIS WORKING FOR UNDO???
+            
         if (mCurveControls == 0) {
             setControlCount(1);
             if (DEBUG.UNDO) System.out.println("implied curved link by setting control point 0 " + this);
@@ -1335,7 +1358,6 @@ public class LWLink extends LWComponent
         final float dy = y - getY();
 
         if (DEBUG.CONTAINMENT || DEBUG.LINK) out(String.format("             setLocation %+.1f,%+.1f", x, y));
-        // TODO: adjust for scale???
 
         translate(dx, dy);
     }
@@ -1344,6 +1366,14 @@ public class LWLink extends LWComponent
     protected void takeLocation(float x, float y) {
         VUE.Log.debug("takeLocation on Link: " + this);
         setLocation(x, y);
+    }
+
+    private void undoLocation(float x, float y) {
+        final float dx = x - getX();
+        final float dy = y - getY();
+        
+        translateAllPoints(dx, dy, true);
+        
     }
     
 
@@ -1359,30 +1389,41 @@ public class LWLink extends LWComponent
     @Override
     public void translate(float dx, float dy)
     {
-        if (DEBUG.CONTAINMENT) out(String.format("           map translate %+.1f,%+.1f", dx, dy));
+        translateAllPoints(dx, dy, false);
+    }
 
-// Handle this in the caller (e.g., nudge or reorder)
-//         final double scale = getMapScale();
-//         dx /= scale;
-//         dy /= scale;
-//         if (DEBUG.CONTAINMENT) out(String.format("         local translate %+.1f,%+.1f", dx, dy));
-        
-        //if (DEBUG.CONTAINMENT) Util.printStackTrace(String.format("translate %+.1f,%+.1f", dx, dy));
-        
+    private void translateAllPoints(float dx, float dy, boolean onUndo)
+    {
+        if (DEBUG.CONTAINMENT) out(String.format("           map translate %+.1f,%+.1f onUndo=%s", dx, dy, onUndo));
+
         if (head.node == null)
             setHeadPoint(head.x + dx, head.y + dy);
 
         if (tail.node == null)
             setTailPoint(tail.x + dx, tail.y + dy);
 
-        if (mCurveControls == 1) {
-            setCtrlPoint0(mQuad.ctrlx + dx,
-                          mQuad.ctrly + dy);
-        } else if (mCurveControls == 2) {
-            setCtrlPoint0(mCubic.ctrlx1 + dx,
-                          mCubic.ctrly1 + dy);
-            setCtrlPoint1(mCubic.ctrlx2 + dx,
-                          mCubic.ctrly2 + dy);
+        if (onUndo) {
+            if (DEBUG.LINK) out("skipping ctrl point translate on undo; relying on ctrl point undo events");
+            
+            // Note that if the link was parented to something in the model when the original change
+            // to the control points took place (e.g., if a newly created group were to grab the link
+            // at created before the new group itself was in the model), this won't work, because
+            // there will have been no recorded undo events to handle this!  This is why links are
+            // only added to newly created groups via our standard cleanup task, even tho this isn't
+            // especially efficient if creating a large group, tho this is not a frequent enougn
+            // operation to make this of real concern.
+            
+        } else {
+            // these will have been undone by their own undo events:
+            if (mCurveControls == 1) {
+                setCtrlPoint0(mQuad.ctrlx + dx,
+                              mQuad.ctrly + dy);
+            } else if (mCurveControls == 2) {
+                setCtrlPoint0(mCubic.ctrlx1 + dx,
+                              mCubic.ctrly1 + dy);
+                setCtrlPoint1(mCubic.ctrlx2 + dx,
+                              mCubic.ctrly2 + dy);
+            }
         }
     }
 
@@ -1656,26 +1697,6 @@ public class LWLink extends LWComponent
             return mLine;
     }
 
-    /** @return "zero-based" bounds for the link, which for links are the same as it's local bounds: the bounds in it's parent */
-    @Override
-    protected Rectangle2D.Float getZeroBounds() {
-        return getLocalPaintBounds();
-    }
-
-    /**
-     * Returns getBounds() -- no difference between regular and paint bounds for links.
-     */
-    @Override
-    public Rectangle2D.Float getPaintBounds() {
-        return getBounds();
-    }
-    
-    @Override
-    public Rectangle2D.Float getBounds() {
-        if (mRecompute) computeLink();
-        return super.getBounds();
-    }
-
     /** @return the parent based bounds  -- for links this is the local component x,y  width,height (no scale: links can't be scaled).
      * Note that for links this is the same as getZeroBounds()
      */
@@ -1684,6 +1705,40 @@ public class LWLink extends LWComponent
         if (mRecompute) computeLink();
         return new Rectangle2D.Float(getX(), getY(), getWidth(), getHeight());
     }
+
+    /** overriden just to make sure the link is computed before returning a result from super.getBounds() */
+    @Override
+    public Rectangle2D.Float getBounds() {
+        if (mRecompute) computeLink();
+        return super.getBounds();
+    }
+    
+    /** @return "zero-based" bounds for the link, which for links are the same as it's local bounds: the bounds in it's parent
+     * So this just returns getLocalBounds(), as these are the same for links.
+     */
+    @Override
+    protected Rectangle2D.Float getZeroBounds() {
+        return getLocalBounds();
+    }
+
+
+    /** @return getBounds() -- border (stroke) already included for links */
+    public Rectangle2D.Float getBorderBounds() {
+        return getBounds();
+    }
+    
+    /** @return getBounds() -- border (stroke) + any text label already included for links */
+    @Override
+    public Rectangle2D.Float getPaintBounds() {
+        return getBounds();
+    }
+    
+    /** @return getLocalBounds() -- border (stroke) already included for links */
+    @Override
+    public Rectangle2D.Float getLocalBorderBounds() {
+        return getLocalBounds();
+    }
+    
     
 
     /** @return the current local paint bounds -- the bounds of the line/curve, plus any label box
@@ -1702,7 +1757,12 @@ public class LWLink extends LWComponent
     @Override
     void setLabel0(String newLabel, boolean setDocument) {
         super.setLabel0(newLabel, setDocument);
-        computeLink();
+        if (mXMLRestoreUnderway)
+            ; // do nothing
+        else if (getParent() == null)
+            mRecompute = true; // mark for later
+        else
+            computeLink(); // recompute now
     }
     
 
@@ -1713,17 +1773,20 @@ public class LWLink extends LWComponent
         return parent.transformMapToLocalPoint(mapPoint, nodePoint);
     }
     
+    /** noop */
     @Override
     public void transformRelative(final Graphics2D g) {
         // do nothing: link coordinate space is in it's parent
     }
     
+    /** perform parent.transformZero */
     @Override
-    public void transformLocal(Graphics2D g) {
+    public void transformZero(Graphics2D g) {
         if (parent != null)
-            parent.transformLocal(g);
+            parent.transformZero(g);
     }
     
+    /** @return a unmodified -- a noop */
     @Override
     protected AffineTransform transformDown(AffineTransform a) {
 
@@ -1734,9 +1797,10 @@ public class LWLink extends LWComponent
         return a;
     }
     
+    /** @return parent.getZeroTransform() */
     @Override
-    public AffineTransform getLocalTransform() {
-        return parent.getLocalTransform();
+    public AffineTransform getZeroTransform() {
+        return parent.getZeroTransform();
     }
 
 //     /** @return getX() -- links coords are always map/absolute */
@@ -1758,6 +1822,11 @@ public class LWLink extends LWComponent
 
     private final float[] intersection = new float[2]; // result cache for intersection coords
 
+//     void markAsComputed() {
+//         mRecompute = false;
+//     }
+                           
+
     /**
      * Compute the endpoints of this link based on the edges of the shapes we're
      * connecting.  To do this we draw a line from the center of one shape to the center
@@ -1773,19 +1842,25 @@ public class LWLink extends LWComponent
     
     private void computeLink()
     {
-//         if (getParent() == null) {
-//             // can't compute w/out a parent
-//             return;
-//         }
+        if (mXMLRestoreUnderway) {
+            if (DEBUG.LINK) Util.printStackTrace("computeLink attempted during restore " + this);
+            return;
+        }
+
+        if (super.isStyle && getParent() == null) {
+            // Don't recompute w/out a parent -- e.g., link style holders never need to recompute.
+            // Will this break cut/copy/paste/duplicate?
+            // No, it doesn't, but it DOES break creating at runtime a network of links & nodes
+            // ad-hoc and then adding it to a map.
+            // So now: only if we're specially marked as a style object, and we also don't have a parent.
+            return;
+        }
         
         mRecompute = false;
 
         if (DEBUG.LINK) {
+            //Util.printStackTrace("computeLink " + this);
             System.out.println("computeLink " + this);
-//             if (mXMLRestoreUnderway)
-//                 System.out.println("computeLink " + this);
-//             else
-//                 out("computeLink");
         }
         
         if (mCurveControls > 0 && mCurve == null)
@@ -1815,9 +1890,8 @@ public class LWLink extends LWComponent
             if (!mXMLRestoreUnderway && head.node instanceof LWLink && ((LWLink)head.node).mRecompute)
                 ((LWLink)head.node).computeLink();
             
-            head.node.getLinkConnectionCenterRelativeTo(head.point, parent);
-            head.x = head.point.x;
-            head.y = head.point.y;
+            // This will store the parent-local center x/y in head:
+            head.node.getLinkConnectionCenterRelativeTo(head.getPoint(), parent);
         }
         if (tail.hasNode()) {
             
@@ -1825,9 +1899,8 @@ public class LWLink extends LWComponent
             if (!mXMLRestoreUnderway && tail.node instanceof LWLink && ((LWLink)tail.node).mRecompute)
                 ((LWLink)tail.node).computeLink();
             
-            tail.node.getLinkConnectionCenterRelativeTo(tail.point, parent);
-            tail.x = tail.point.x;
-            tail.y = tail.point.y;
+            // This will store the parent-local center x/y in tail:
+            tail.node.getLinkConnectionCenterRelativeTo(tail.getPoint(), parent);
         }
 
         // Note, if what's at the endpoint we're connecting to is a LWLink, we do NOT
@@ -2645,11 +2718,15 @@ public class LWLink extends LWComponent
         final float cx;
         final float cy;
 
+        // Note: as the label box position isn't persisted, it's useful
+        // to be able to position it in layout based on already saved
+        // endpoint positions during a map restore.
+        
         if (mRecompute) {
             // added 2007-07-02 to make sure links are computed
             // during the map-restore layout call.
             // watch this for causing problems, esp w/link label editing workflow
-            // -- SMF
+            // 2007-07-21 Now we mark links as computed specially during restore, so this not a problem.
             computeLink();
         }
 
@@ -2831,11 +2908,9 @@ public class LWLink extends LWComponent
     public LWComponent duplicate(CopyContext cc)
     {
         //todo: make sure we've got everything (styles, etc)
-        LWLink link = (LWLink) super.duplicate(cc);
-        link.head.x = head.x;
-        link.head.y = head.y;
-        link.tail.x = tail.x;
-        link.tail.y = tail.y;
+        final LWLink link = (LWLink) super.duplicate(cc);
+        link.head.duplicate(head);
+        link.tail.duplicate(tail);
         link.mCenterX = mCenterX;
         link.mCenterY = mCenterY;
         link.ordered = ordered;
@@ -2845,8 +2920,8 @@ public class LWLink extends LWComponent
             if (mCurveControls > 1)
                 link.setCtrlPoint1(getCtrlPoint1());
         }
-        computeLink();
-        layout();
+        //computeLink();
+        //layout(); // should already have been done in computeLink...
         return link;
     }
     

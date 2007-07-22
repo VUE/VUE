@@ -30,19 +30,23 @@ import java.awt.geom.AffineTransform;
 
 /**
  *
- * Manage a group of LWComponents -- does not have a fixed shape or paint any backround
- * or border -- simply used for moving, resizing & layering a collection of objects
- * together.
+ * Manage a group of LWComponents.  A group defines it's bounds by it's members.
+ * Default top-level behavour for "groups" as generally defined is that selecting
+ * anything in a group with a default selection tool will actually select the group
+ * itself, and allow one to reposition the group with all it's memebers at once,
+ * such that all members maintain their relative position to one another.
+ *
+ * By default, groups in VUE have no border or fill, but these can be set
+ * if desired.  Also significantly, the entire group can be dropped into
+ * a scaled context (or scaled itself), and all members will still keep
+ * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.74 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
     private static final boolean FancyGroups = true;
-    private static final boolean AbsoluteChildren = false;
-
-    private static final boolean ZERO_SCALE = false;
 
     public LWGroup() {
         if (!FancyGroups)
@@ -85,126 +89,191 @@ public class LWGroup extends LWContainer
         }  else {
             System.err.println("null bounds in LWGroup.useSelection");
         }
-        super.children = selection;
+        super.mChildren = selection;
     }
 
     /**
      * Create a new LWGroup, reparenting all the LWComponents
      * in the selection to the new group.
      */
-    // not using this because we want the group on the map so it can deliver child
-    // location events as they translated locally...
     static LWGroup create(LWSelection selection)
     {
-        LWGroup group = new LWGroup();
+        final LWGroup group = new LWGroup();
 
-        //group.setFrame(selection.getBounds());
-
-        // Group location starts at 0,0 -- all non-link imported nodes
-        // will have their location made relative to the group, which
-        // means they won't change at all initially -- they we
-        // normalize the group.
+        // performance: pre-allocate the child list for the maximum child content size
+        group.mChildren = new ArrayList(selection.size());
         
-        //group.setShapeFromContents(selection);
-        group.importNodes(selection);
-        System.out.println("CREATED: " + group);
-        group.requestCleanup("CREATION");
-        //group.normalize();
-        //System.out.println("NORMALD: " + group);
+        group.createFromNonLinks(selection);
+        if (DEBUG.CONTAINMENT) System.out.println("CREATED: " + group);
 
         return group;
     }
 
-    /** Make the given nodes members of this group, importing also any links that are been two members of the set.
-     * This also makes sure to maintain the relative z-order of the imported nodes */
-    public void importNodes(Collection<LWComponent> nodes)
+    /**
+     * Establish a newly created group from the memebrs of the given selection.
+     * Will initially ignore any links (for a variety of reasons) and leave
+     * it up each link cleanup task to decide if it should add itself to the group.
+     * This also makes sure to maintain the relative z-order of the imported nodes.
+     */
+    private void createFromNonLinks(Collection<LWComponent> selection)
     {
-        // we enforce non-repeated memberships w/HashSet
-        final Collection<LWComponent> allUniqueDescendents = new HashSet();
+        // The creation of new groups, especially ones containing links, and especially
+        // curved links, creates a number of thorny problems that need to be dealt with
+        // to do it right, and to make sure undo of the group creation is going to work.
+
+        // When the new children of the group are pulled from their existing parent, we
+        // want to localize the coordinates within the new group (this happens
+        // automatically).  However, if the new group doesn't know it's bounds yet, we
+        // can't meaninfully localize the coordinates.  So when creating groups, we use
+        // setShapeFromContents to provide the initial location and size of the group
+        // (as opposed to relying on generic normalization).  We can't normalize until
+        // the group has at least bootstrapped to know it's initial location (the upper
+        // left hand corner of the upper left most member).
+
+        // There are also problems with adding curved links initially at group creation
+        // time (UNDO breaks: see below), so we never allow the explicit grabbing of a
+        // link into a group when it is initially created.  The links will add
+        // themselves as needed later via the link cleanup task.  So newly created
+        // groups go through two phases: in the first phased, completed in this method,
+        // is be a group containing all non-links, fully normalized when we're done.
+        // The normalization process is different during creation in that we set the
+        // location & size first (based on just the non-link content), then we normalize
+        // only the added children (by calling normalize(false)) -- so they're locations
+        // are properly relative to the newly created group.  In the second phase, all
+        // connected links to anything that was added to the group will automatically
+        // run their cleanup tasks (having detected changes in the endpoints), and will
+        // then be able to join an already stabilized group and map-parented group, so
+        // that if it's a curved link, when localizeCoordinates is called to translate
+        // it's control points into the new group coordinate space, the undo manager
+        // will be able to record the old positions of those control points, so they can
+        // be faithfully restored on undo.  Theoretically, localizeCoordinates /
+        // setLocation on the entire link could handle this during undo, tho we've had
+        // so many problems faithfully handling the redirection of setLocation on links
+        // to a translate for all link sub-points (as links don't have a 0,0 of their
+        // own: just sub-points recorded within their parent), that ensuring we have
+        // real coordinates to restore for undo is the only safe way to handle this.
+        
+        // Another potential problem is that if we're creating this new group inside
+        // another group, there's an issue with the cleanup tasks: there's nothing that
+        // ensures that the child group's cleanup task runs before the parents, which is
+        // would be critical if a newly created group were to rely on it's standard
+        // later normalization pass to sort itself out.  This is why on creation, we
+        // ensure the group is a fully normalized and stable state before it's done
+        // being created, even if later it will be re-normalized to do link cleanup
+        // tasks adding themselves to the group.  We could be hit again someday with
+        // this issue of cleanup tasks not enforcing a depth-first task order, tho our
+        // current FIFO ordering appears to cover us (as long as the group is normalized
+        // by the end of it's creation).
+        
         final Collection<LWComponent> reparenting = 
             new HashSet<LWComponent>() {
                 @Override
                 public boolean add(LWComponent c) {
-                    //if (LWLink.LOCAL_LINKS && c instanceof LWLink && ((LWLink)c).isBound()) {
-                    if (c instanceof LWLink && ((LWLink)c).isBound()) {
-                        // don't add any links that are connected to anything: they'll reparent themselves
+                    //if (c instanceof LWLink && ((LWLink)c).isBound()) 
+                    //// don't add any links that are connected to anything: they'll reparent themselves
+                    if (c instanceof LWLink) {
+                        // don't add any links AT ALL for now -- safer -- see below problem comment
                         return false;
                     } else
                         return super.add(c);
                 }
-            }; 
+            };
+
+        reparenting.addAll(selection);
+
+        setShapeFromContents(reparenting);
+
         
-        for (LWComponent c : nodes) {
-            //if (c instanceof LWLink) // the only links allowed are ones we grab
-            //  continue; // enabled in order to support reveal's with links in them
-            reparenting.add(c);
-            allUniqueDescendents.add(c);
-            c.getAllDescendents(ChildKind.PROPER, allUniqueDescendents);
-        }
-
-//         if (LWLink.LOCAL_LINKS == false) { // links auto-handle this with local-links
-
-//             //----------------------------------------------------------------------------------------
-//             // If both ends of any link are in the selection of what's being added to the
-//             // group, or are descendents of what's be added to the group, and that link's
-//             // parent is not already something other than the default link parent, scoop it
-//             // up as a proper child of the new group.
-//             //----------------------------------------------------------------------------------------
-
-//             final HashSet uniqueLinks = new HashSet();
-
-//             // TODO: need to update link membership when single items removed from groups...
-//             // TODO: change this entirely to be handled by a clean-up task in LWLink --
-//             //       will juse need an setEndpointHasReparented ala setEnpointMoved,
-//             //       and a bunch of testing...
-        
-//             for (LWComponent c : allUniqueDescendents) {
-//                 if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
-//                 for (LWLink l : c.getLinks()) {
-//                     boolean bothEndsInPlay = !uniqueLinks.add(l);
-//                     if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
-//                     //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
-//                     if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
-//                         if (DEBUG.PARENTING) out("GRABBING " + c + " (both ends in group)");
-//                         reparenting.add(l);
-//                     }
+//         //----------------------------------------------------------------------------------------
+//         // If both ends of any link are in the selection of what's being added to the
+//         // group, or are descendents of what's be added to the group, and that link's
+//         // parent is not already something other than the default link parent, scoop it
+//         // up as a proper child of the new group.
+//         //
+//         // Although the link cleanup task also enforces this condition, adding this code
+//         // here is much more perfomant when creating large groups, and it simplifies the
+//         // initial group creation code.
+//         //
+//         // OOPS -- PROBLEM: if we grab ANY links here, if they have any control points, when
+//         // their coordinates are localized, there's no undo manager to catch those events,
+//         // because this is a group under creation, and as such isn't in the model till
+//         // it's done being created!  (Mind you, this is also true for nodes, but curved
+//         // links have this special case problem of trying to undo a translate, as links
+//         // don't have a real location...)
+//         //
+//         // So the upshot is that our slow method of only adding links at the end
+//         // with cleanup tasks handles this better, because then the undo manager
+//         // gets all the events needed to sort things out...
+//         //----------------------------------------------------------------------------------------
+//         final Collection<LWComponent> allUniqueDescendents = new HashSet();
+//         final Collection<LWComponent> reparenting = new HashSet();
+//         for (LWComponent c : nodes) {
+//             //if (c instanceof LWLink) // the only links allowed are ones we grab
+//             //  continue; // enabled in order to support reveal's with links in them
+//             reparenting.add(c);
+//             allUniqueDescendents.add(c);
+//             c.getAllDescendents(ChildKind.PROPER, allUniqueDescendents);
+//         }
+//         final HashSet uniqueLinks = new HashSet();
+//         for (LWComponent c : allUniqueDescendents) {
+//             if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
+//             for (LWLink l : c.getLinks()) {
+//                 boolean bothEndsInPlay = !uniqueLinks.add(l);
+//                 if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
+//                 //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
+//                 if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
+//                     if (DEBUG.PARENTING) out("GRABBING " + l + " (both ends in group)");
+//                     reparenting.add(l);
 //                 }
 //             }
 //         }
 
-        // TODO: we grab links, even if they were down in another sub-group...
-        // and those reparentings are not tracked (they're added here),
-        // so they're not undoable...
         
         // Be sure to preserve the current relative ordering of all
         // these components the new group.
         addChildren(sort(reparenting, LWContainer.ReverseOrder));
+
+        // At first we set our size and location for all the imported nodes (no links)
+        // above via setShapeFromContents.  Now that we've imported the non-link
+        // children, they need to be normalized (coordinates made relative to the group).
+        // In this special init bootstrapping case, we tell normalize NOT to change
+        // the location or size of the group itself -- we already know that, and
+        // to do that again before the new children's coordinates are made relative
+        // would produce bogus results for the new location.
+        
+        normalize(false);
     }
     
-    /*
-     * "Borrow" the children in the list for the sole
-     * purpose of computing total bounds and moving
-     * them around en-mass -- used for dragging a selection.
-     * Does NOT reparent the components in any way.
-     * TODO: get rid of this and just have useSelection,
-     * or move this code to LWSelection itself.
-     */
     private boolean isForSelection = false;
+
+    /**
+     * "Borrow" the children in the list for the sole purpose of computing total bounds
+     * and moving them around en-mass -- used for dragging a selection.  Does NOT
+     * reparent the components in any way. 
+     */
+
+    // TODO: get rid of this and just have useSelection, or move this code to
+    // LWSelection itself.  (Maybe have LWSelection subclass LWContainer so it can draw,
+    // etc) -- this selection special stuff is a mess to have in LWGroup, which is
+    // already some rediculously complicated code.
+
     static LWGroup createTemporary(java.util.ArrayList selection)
     {
         LWGroup group = new LWGroup();
         group.isForSelection = true;
         if (DEBUG.Enabled) group.setLabel("<=SELECTION=>");
-        group.children = (java.util.ArrayList) selection.clone();
+        group.mChildren = (java.util.ArrayList) selection.clone();
         group.setShapeFromChildren();
         if (DEBUG.CONTAINMENT) System.out.println("LWGroup.createTemporary " + group);
         return group;
     }
 
-    protected void setShapeFromContents(Iterable<LWComponent> contents)
+    private void setShapeFromContents(Iterable<LWComponent> contents)
     {
-        //final Rectangle2D.Float bounds = getMapBounds(contents);
-        final Rectangle2D.Float bounds = LWMap.getPaintBounds(contents.iterator());
+        // As we only allow creating groups from elements that all have the same parent,
+        // we can use getLocalBorderBounds, which we also need to do to make sure
+        // the location of the newly created group is correct within it's new parent.
+        final Rectangle2D.Float bounds = LWMap.getLocalBorderBounds(contents);
         super.setSize(bounds.width,
                       bounds.height);
         super.setLocation(bounds.x,
@@ -212,16 +281,43 @@ public class LWGroup extends LWContainer
                           
     }
     
-    protected void setShapeFromChildren()
+    private void setShapeFromChildren()
     {
-        setShapeFromContents(getChildList());
+        setShapeFromContents(getChildren());
     }
 
-    void normalize()
+    protected void normalize() {
+        normalize(true);
+    }
+    
+    /**
+     * Normalize the group.
+     *
+     * The process of normalization is to expand/contract the group to fit the new
+     * bounds of our contents if they've moved/resized, and then update the local
+     * coordinates of our members to reflect their offset with the new group bounds, if
+     * the upper left hand corner of the group has changed (it's 0,0 position in it's
+     * parent has changed).  The point is to update the local child locations relative
+     * to any new group position such that there is no net change to their absolute
+     * position on the map.  So: if a group member has simply moved within the group
+     * without moving beyond any current edge of the group, there is nothing to do.  If
+     * a group member has moved below or to the right if our current bounds, the group
+     * simply needs to increase it's size.  Howver, if a member has moved above or to
+     * the left of our current bounds, the group needs to change it's location (as well
+     * as size), then "normalize" all the children: translate them down and to the right
+     * by the exact amount the group has moved up and to the left.
+     *
+     * @param reshape - if true, allow reshaping of the group.  This is the standard
+     * case, except during group creation, where in order to bootstrap ourseleves,
+     * the group separately estalishes an initial bounds, and then updates the child
+     * locations.
+     *
+     */
+    private void normalize(boolean reshape)
     {
-        if (DEBUG.WORK) {System.out.println(); out("NORMALIZING");}
+        if (DEBUG.WORK) {System.out.println(); out("NORMALIZING" + (reshape?"":" W/OUT RESHAPE FOR INIT"));}
         
-        final Rectangle2D.Float curBounds = super.getBounds();
+        final Rectangle2D.Float curBounds = getLocalBounds();
         final Rectangle2D.Float preBounds = getPreNormalBounds();
 
         final float dx = preBounds.x;
@@ -243,21 +339,18 @@ public class LWGroup extends LWContainer
             // location of any of it's members, so we make the special call to
             // setLocation here that allows this.
 
-            // TODO: prevent all the link endpoint moved events?  The absolute position
-            // of no component in the map, except the group itself, should actually be
-            // changing as a result of the normalization...
-            
-            super.setLocation(getX() + dx,
-                              getY() + dy,
-                              this,
-                              false);
+            if (reshape)
+                super.setLocation(getX() + dx,
+                                  getY() + dy,
+                                  this,
+                                  false);
 
             // Could theoretically handle this via mapLocationChanged calls, if above
             // was a real call to setLocation, but then there'd have to be a check
             // to see if the parent specifically was an LWGroup.
             
             if (DEBUG.WORK) out("normalizing relative children: dx=" + dx + " dy=" + dy);
-            for (LWComponent c : getChildList()) {
+            for (LWComponent c : getChildren()) {
                     
                 // we don't really need an event here (any descendents have already
                 // been called with mapLocationChhanged if they need it due to
@@ -272,7 +365,7 @@ public class LWGroup extends LWContainer
                     
                 c.translate(-dx, -dy);
 
-                if (c instanceof LWLink) {
+                if (c instanceof LWLink) { // do we still need this?
                     // links to links can get out of sync with updates
                     // depending on the order they exist in the child list.
                     // this should help for at least most first tier cases:
@@ -281,116 +374,34 @@ public class LWGroup extends LWContainer
             }
             
         }
-
-        // todo minor: preNormalBounds was sometimes varying the size by miniscule
-        // amounts, possibly due to rounding errors (espcially I think if there's a
-        // link/curved link in the group?)  tho I'm not seeing this anymore -- may have
-        // been something else.  Anyway, not a big deal -- is creating some extra size
-        // events, but it could be cleaner.  We may have to convert everything to
-        // doubles to really fix this, tho just changing LWGroups local bounds method
-        // computation code to doubles might do it.
         
         if (DEBUG.WORK) {
             out(String.format("curShape %f,%f %fx%f", getX(), getY(), super.width, super.height));
             out(String.format("newShape %f,%f %fx%f", dx, dy, preBounds.width, preBounds.height));
         }
+
+        if (reshape)
+            super.setSize(preBounds.width, preBounds.height);
         
-        super.setSize(preBounds.width, preBounds.height);
         if (DEBUG.WORK) out("NORMALIZED");
     }
     
+    /** @return the bounds of of contents prior to normalization: these bounds 
+     * are likely to be different than our current bounds: the process of normalization
+     * ensures that the group bounds eventually match these bounds.  The bounds
+     * are in the parent-local coordinate space (the groups).  So, for instance, if
+     * the upper left most member of a group moves up 10 pixels, the pre-normalized
+     * upper left hand corner bounds of the contents will be at 0,-10, relative to
+     * the current group (the parent), and the pre-normal height will be 10 pixels
+     * greater than the current height of the group.
+     */
     private Rectangle2D.Float getPreNormalBounds()
     {
         if (getChildList().size() < 2) // if only zero or one child, we should be about to disperse...
             return LWMap.EmptyBounds;
-        
-        Iterator<LWComponent> i = getChildList().iterator();
-        final Rectangle2D.Float rect = i.next().getLocalPaintBounds();
-        
-        while (i.hasNext()) 
-            rect.add(i.next().getLocalPaintBounds());
-
-        return rect;
+        else
+            return LWMap.getLocalBorderBounds(getChildren());
     }
-
-// //     private Rectangle2D.Float getPreNormalBounds()
-// //     {
-// //         if (getChildList().size() < 2) // if only zero or one child, we should be about to disperse...
-// //             return LWMap.EmptyBounds;
-        
-// //         Iterator<LWComponent> i = getChildList().iterator();
-// //         final Rectangle2D.Float rect = getLocalizedPaintBounds(i.next());
-        
-// //         while (i.hasNext()) 
-// //             rect.add(getLocalizedPaintBounds(i.next()));
-
-// //         return rect;
-// //     }
-    
-
-// // NOT WHAT WE NEED: we need this on scaleNotify... or perhaps have a general hierachy
-// // event!  Which can tell us of our old parent, which we may end up needing if our
-// // LWContainer.establishLocalCoordinates doesn't set up us enough...
-// //     @Override
-// //     void setParent(LWContainer parent) {
-// //         Object oldParent = super.parent;
-// //         super.setParent(parent);
-// //         if (oldParent != null && !mXMLRestoreUnderway)
-// //             requestCleanup("reparented");
-// //     }
-
-
-//     // TODO: CRAP: align actions broken when in-group...
-//     // Anyway, if you enforce 1.0 scale inverstion for now and just
-//     // check stuff in, you should be good enough to get going...
-
-// //     /** @return the paint bounds for the given object in our local coordinate space */
-// //     private Rectangle2D.Float getLocalizedPaintBounds(LWComponent c)
-// //     {
-// //         return getParentLocalPaintBounds(c);
-// //     }
-
-//     /** @return the parent based, non-scaled bounds.  If the this component has absolute map location, we return getBounds() */
-//     private Rectangle2D.Float getParentLocalBounds(LWComponent c) {
-
-//         return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
-        
-// //         if (c.hasAbsoluteMapLocation())
-// //             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
-// //             //return c.getBounds();
-// //         else
-// //             return new Rectangle2D.Float(c.getX(), c.getY(), c.getScaledWidth(), c.getScaledHeight());
-// //         //return new Rectangle2D.Float(c.getX(), c.getY(), c.getMapWidth(), c.getMapHeight());
-//     }
-
-//     private Rectangle2D.Float getParentLocalPaintBounds(LWComponent c) {
-//         if (c instanceof LWLink) {
-//             // since this is in the group, we know the paint bounds will be local to parent bounds,
-//             // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
-//             //return c.getPaintBounds();
-//             //return ((LWLink)c).getImmediateBounds();
-//             return ((LWLink)c).getLocalBounds();
-//         } else {
-//             return c.addStrokeToBounds(getParentLocalBounds(c), 0);
-//         }
-
-
-// //         if (LWLink.LOCAL_LINKS && c instanceof LWLink) {
-// //             // since this is in the group, we know the paint bounds will be local to parent bounds,
-// //             // tho that API will probably be changing, and we'll need a getParentLocalPaintBounds on LWComponent
-// //             // TODO: we should really get get
-// //             return c.getPaintBounds();
-// // //             if (mXMLRestoreUnderway)
-// // //                 return c.getPaintBounds();
-// // //             else
-// // //                 return ((LWLink)c).getImmediateBounds();
-// //         } if (c.hasAbsoluteMapLocation())
-// //             throw new Error("re-impl; getLocalizedPaintBounds should have handled");
-// //             //return c.getBounds();
-// //         else
-// //             return c.addStrokeToBounds(getParentLocalBounds(c), 0);
-        
-//     }
 
     @Override
     protected void removeChildrenFromModel()
@@ -464,7 +475,7 @@ public class LWGroup extends LWContainer
 
         if (hasChildren()) {
             final LWContainer newParent = (LWContainer) getParentOfType(LWContainer.class);
-            final List tmpChildren = new ArrayList(children);
+            final List tmpChildren = new ArrayList(mChildren);
             //if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("DISPERSING " + tmpChildren.size() + " children");
                 
             // we can brute-force remove our children, to skip de-parenting events,
@@ -499,45 +510,6 @@ public class LWGroup extends LWContainer
             return null;
     }
 
-//     // Crap: not very helpful: only called on top-level special selection group, which doesn't
-//     // cascade down to calling userSetLocation / userTranslate, tho we could enforce that here...
-//     @Override
-//     public void userSetLocation(float x, float y)
-//     {
-//         final float dx = x - getX();
-//         final float dy = y - getY();
-//         if (isForSelection) {
-//             translateChildren(dx, dy);
-//             super.setLocation(x, y);
-//             return;
-//         }
-//         super.setLocation(x, y);
-//         for (LWComponent c : getChildList())
-//             if (c.hasAbsoluteMapLocation())
-//                 c.translate(dx, dy);
-//     }
-
-
-//     @Override
-//     public void setProperty(final Object key, Object val)
-//     {
-
-//         // This is a bit of a hack, in that we're relying on the fact that the only
-//         // thing to call setProperty with a Location key right now is the UndoManager
-//         // The point being, on undo, we do NOT want to additionally translate any
-//         // absolute children -- their location changes were already recorded and are
-//         // will be undone on their own.
-
-//         if (key == LWKey.Location) {
-//             Point2D p = (Point2D) val;
-//             super.setLocation((float) p.getX(), (float) p.getY());
-//         } else
-//             super.setProperty(key, val);
-//     }
-
-    // TODO: when an owning parent node contains this group, it will call setLocation,
-    // translating abs children... what we want??
-    
     @Override
     public void setMapLocation(double x, double y) {
         if (isForSelection) {
@@ -574,53 +546,13 @@ public class LWGroup extends LWContainer
             super.setLocation(x, y);
     }
 
-//     @Override
-//     //public void setLocation(float x, float y)
-//     public void setLocation(float x, float y, LWComponent hearableEventSource, boolean isUndo)
-//     {
-//         if (isForSelection) {
-//             Util.printStackTrace("setLocation on selection group " + x + "," + y + " " + this);
-//             return;
-// //             final float dx = x - getX();
-// //             final float dy = y - getY();
-// //             translateSelection(dx, dy);
-// //             super.setLocation(x, y);
-//         } else {
-//             // Even if our location has not changed relatively speaking, it may have changed in the map
-//             // (if we're a child of something else)
-//             // TODO: THIS DOESN'T WORK -- it's too late -- the parent as already moved, so mapX/mapY has
-//             // already changed...  this is what we need the new API for...
-// //             final float mx = getMapX();
-// //             final float my = getMapY();
-// //             out(String.format("     setLocation: %.1f,%.1f; mapX=%.1f mapX=%.1f", x, y, mx, my));
-//             //out(String.format("     setLocation: %.1f,%.1f", x, y));
-//             super.setLocation(x, y);
-// //             final float nmx = getMapX();
-// //             final float nmy = getMapY();
-// //             final float dx = nmx - mx;
-// //             final float dy = nmy - my;
-// //             out(String.format("new map location: %.1f,%.1f  dmx=%.2f dmy=%.2f", nmx, nmy, dx, dy));
-// //             if (dx != 0.0 || dy != 0.0) {
-// //                 for (LWComponent c : getChildList()) {
-// //                     if (c.hasAbsoluteMapLocation()) {
-// //                         out(String.format("translate absolute child: dmx=%.1f dmy=%.1f: %s", dx, dy, c));
-// //                         // TODO: make this a takeLocation (so no broadcast event), or do something to skip our normalization cleanup
-// //                         c.translate(dx, dy); 
-// //                     }
-// //                 }
-// //             } else {
-// //                 out("NO ABSOLUTE MOVEMENT");
-// //             }
-//         }
-//     }
-    
     private boolean linksAreTranslatingWithUs = false;
     @Override
     protected void notifyMapLocationChanged(LWComponent src, double mdx, double mdy) {
         if (!isForSelection) {
             try {
                 // this is just an optimization -- it's okay to over-normalize, but it
-                // makes sorting through the resulting diagnistic event stream easier.
+                // makes sorting through the resulting diagnostic event stream easier.
                 linksAreTranslatingWithUs = true;
                 super.notifyMapLocationChanged(src, mdx, mdy);
             } finally {
@@ -668,30 +600,6 @@ public class LWGroup extends LWContainer
         super.notifyHierarchyChanged();
     }
     
-
-    
-    /** children of groups have absolute map locations -- this is overriden to a noop */
-    @Override
-    protected void establishLocalCoordinates(LWComponent c, LWContainer oldParent, double oldParentMapScale, float oldMapX, float oldMapY) {
-        if (AbsoluteChildren)
-            //; // do nothing: leave them absolute
-            tufts.Util.printStackTrace("should not be called if children are absolute");
-        else {
-            //; // Do nothing for relative children:
-            if (DEBUG.CONTAINMENT) out("establish local coords for: " + c);
-            super.establishLocalCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
-        }
-    }
-
-//     protected void translateRelativeChildren(float dx, float dy, LWComponent exclude) {
-//         for (LWComponent c : getChildList()) {
-//             if (c != exclude) {
-//                 c.takeLocation(c.getX() + dx,
-//                                c.getY() + dy);
-//                 c.notify("location-group"); // mover map location changed, relative unchanged, all otherse the reverse
-//             }
-//         }
-//     }
 
     /** Overridden in to handle special selection LWGroup: if is asked to draw itself into another context (e.g., on an image),
      * it won't bother to transform locally -- just draw the children as they are.
@@ -773,7 +681,7 @@ public class LWGroup extends LWContainer
             return super.intersectsImpl(rect);
         } else {
             for (LWComponent c : getChildList())
-                if (c.intersects(rect))                 // TODO: not in parent coords!
+                if (c.intersects(rect))                 // todo: not in parent coords (?)
                     return true;
             return false;
         }
@@ -787,135 +695,9 @@ public class LWGroup extends LWContainer
             return getEntryToDisplay() != null;
     }
     
-//     @Override
-//     void setScaleOnChild(double scale, LWComponent c)
-//     {
-//         // group handles the entire scale: children not scaled down further
-//         // need to make sure this happens so on reparentings, if this
-//         // node was previously scaled down (was a vanilla child node),
-//         // it's scale gets's set back.
-//         c.setScale(1.0);
-//     }
-    
-    /** Currently ignored: always forces scale of 1.0 */
-    @Override
-    public void setScale(double scale) {
-//         double curScale = getScale();
-//         if (curScale != scale) {
-//             super.setScale(scale);
-//             notify(LWKey.Repaint);
-//         }
-        //super.setScale(0.5); // testing hack
-        super.setScale(1.0);
-        // With a proper scaleNotify similar to mapLocationChanged, we could
-        // enforce an effective 1.0 scale if we want to!
-        //super.setScale(1.0 / parent.getMapScale());
-    }
-
-    @Override
-    public double getMapScale() {
-        return ZERO_SCALE ? 1.0 : super.getMapScale();
-    }
-    
-    @Override
-    /** For now, return the inverse of the parent map scale, forcing a net scale of 1.0 */
-    public double getScale() {
-        return ZERO_SCALE ?
-            (parent == null ? 1.0 : (1.0 / parent.getMapScale()))
-            : super.getScale();
-    } 
-
-
-    
-    public void setZoomedFocus(boolean tv)
-    {
-        // the group object never takes zoomed focus
-    }
-
-
-    /*
-    public void setSize(float w, float h) {
-
-        final Rectangle2D.Float bounds = getChildBounds();
-        
-        if (FancyGroups) {
-
-            bounds.add(getX(), getY());
-
-            if (bounds.getWidth() > w)
-                w = (float) bounds.getWidth();
-            if (bounds.getHeight() > h)
-                h = (float) bounds.getHeight();
-            super.setSize(w, h);
-            
-        } else {
-            super.setSize(bounds.width, bounds.height);
-        }
-    }
-    */
-
-
-    /*
-    private static final Rectangle2D.Float EmptyBounds = new Rectangle2D.Float(0,0,10,10);
-    @Override
-    public Rectangle2D.Float getBounds()
-    {
-        if (FancyGroups && (VUE.RELATIVE_COORDS || supportsUserResize()))
-            return super.getBounds();
-
-        // Without user-resize, always report size as bounds of what we contain
-        
-        Rectangle2D.Float bounds = null;
-        Iterator<LWComponent> i = getChildIterator();
-        if (i.hasNext()) {
-            bounds = new Rectangle2D.Float();
-            bounds.setRect(i.next().getBounds());
-        } else {
-            // this happens normally on group dispersal
-            return EmptyBounds;
-        }
-
-        while (i.hasNext())
-            bounds.add(i.next().getBounds());
-        //System.out.println(this + " getBounds: " + bounds);
-
-        // how safe is this?
-        // [ todo: not entirely: setLocation needs special updateConnectedLinks call because of this ]
-        setX(bounds.x);
-        setY(bounds.y);
-        setAbsoluteWidth(bounds.width);
-        setAbsoluteHeight(bounds.height);
-        return bounds;
-    }
-    */
-    
-
     
 }
 
-
-
-// OKAY: scaling the group itself appears to be much more complicated than just allowing
-// it to exist in an already scaled context (Besides ResizeControl going haywire,
-// normalization becomes a nightmare).  Existing in a scaled context only currently
-// happen if it's at least a grand-child of the node -- as the first child of a node,
-// it's still at 100% -- this is more than good enough to support.  Actually, I even
-// think that's working with ResizeControl now.
-
-// So it may be that the only thing not working is the translation of the control points
-// of CURVED LINKS when the group is the child of the node -- the control point stays
-// put on the map (as it has abs map coords), tho the next time you do something in the
-// group, it does get properly re-normalized, including the proper bounds of the the
-// curved link, tho this is some unexpected jumping around of your group contents at
-// that point, tho at least it appears to be properly normalizing / resizing.  The
-// problem here is that the group's location isn't actually changing when it's the child
-// of something else (due to relative coordinates), so setLocation, which even if called
-// (which it is sometimes), has the same location, so there's no translation amount for
-// contents with absolute coords.  We'd either need to know setLocation is being called
-// and check for mapX/mapY change, or need another API for objects to let them know
-// their absolute position has changed, just in case they want to do something about it
-// (this could replace or be the place where updateConnctedLinks is called -- our
-// existing calls to this could be our markers for where to install this new API).
 
 // TODO: ResizeControl still goes haywire if the group is in a scaled context, (is a
 // grand-child or deeper) tho at least it seems to stay local to the group and not start
@@ -924,7 +706,7 @@ public class LWGroup extends LWContainer
 // minor bug: if you group two nodes in list as child nodes, you get a tiny messy looking group.
 // should probably just not allow this.
 
-// minor bug: when in a scaled contect (grand-child or deeper), the bounds effect
+// minor bug (still?): when in a scaled context (grand-child or deeper), the bounds effect
 // of the stroke width of group members is being understated, so the group
 // bounds are a bit too small -- only show's up on selection tho (only
 // time we currently show group bounds), and it's a only off by a very small

@@ -753,7 +753,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         public JComponent getToolTipComponent()
         {
             String html = "<html>";
-            Iterator i = mLWC.pathwayRefs.iterator();
+            Iterator i = mLWC.getPathways().iterator();
             int n = 0;
             while (i.hasNext()) {
                 //tufts.vue.Pathway p = (tufts.vue.Pathway) i.next();

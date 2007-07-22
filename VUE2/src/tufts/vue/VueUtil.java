@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.82 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2007-07-22 03:31:24 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -398,9 +398,9 @@ public class VueUtil extends tufts.Util
         //float[] intersection_at_1 = computeIntersection(segX2, segY2, segX1, segY1, c1.getShape());
 
         // compute intersection at shape 1 of ray from center of shape 1 to center of shape 2
-        float[] intersection_at_1 = computeIntersection(segX1, segY1, segX2, segY2, c1.getZeroShape(), c1.getLocalTransform());
+        float[] intersection_at_1 = computeIntersection(segX1, segY1, segX2, segY2, c1.getZeroShape(), c1.getZeroTransform());
         // compute intersection at shape 2 of ray from center of shape 2 to center of shape 1
-        float[] intersection_at_2 = computeIntersection(segX2, segY2, segX1, segY1, c2.getZeroShape(), c2.getLocalTransform());
+        float[] intersection_at_2 = computeIntersection(segX2, segY2, segX1, segY1, c2.getZeroShape(), c2.getZeroTransform());
 
         if (intersection_at_1 == NoIntersection) {
             // default to center of component 1

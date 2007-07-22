@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.171 $ / $Date: 2007-07-19 01:48:20 $ / $Author: sfraize $
+ * @version $Revision: 1.172 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1009,7 +1009,7 @@ public class LWPathway extends LWContainer
         }
 
         void completeXMLRestore() {
-            for (LWComponent c : children) {
+            for (LWComponent c : getChildren()) {
                 // check the label is a temporary hack for now to get the styles back:
                 // we may want to make these special objects actually managed by the
                 // master slide
@@ -1223,6 +1223,14 @@ public class LWPathway extends LWContainer
         if (DEBUG.XML || DEBUG.PATHWAY) out("getChildList returning EMPTY, as always");
         return java.util.Collections.EMPTY_LIST;
     }
+
+    /** @return Collections.EMPTY_LIST -- the children of pathways are non-proper, and can't be accessed this way */
+    @Override
+    public Collection<LWComponent> getChildren() {
+        if (DEBUG.XML || DEBUG.PATHWAY) out("getChildren returning EMPTY, as always");
+        return Collections.EMPTY_LIST;
+    }
+    
 
     /** hide children from hierarchy as per getChildList */
     @Override

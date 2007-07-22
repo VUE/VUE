@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.308 $ / $Date: 2007-07-19 01:56:49 $ / $Author: sfraize $
+ * @version $Revision: 1.309 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -191,14 +191,14 @@ public class LWComponent
     protected transient boolean isStyle;
 
     // list of LWLinks that contain us as an endpoint
-    private transient final List<LWLink> mLinks = new ArrayList<LWLink>(4);
-    protected transient List<LWPathway> pathwayRefs;
+    private transient List<LWLink> mLinks;
+    private transient List<LWPathway> mPathways;
     private transient long mSupportedPropertyKeys;
     private transient boolean isMoveable = true;
 
     private transient double scale = 1.0;
 
-    protected transient LWChangeSupport mChangeSupport = new LWChangeSupport(this);
+    protected transient final LWChangeSupport mChangeSupport = new LWChangeSupport(this);
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore? (todo: eliminate this as a member variable)
     protected transient BufferedImage mCachedImage;
 
@@ -1313,6 +1313,7 @@ u                    getSlot(c).setFromString((String)value);
             return null;
         }
 
+        c.isMoveable = this.isMoveable;
         c.mSupportedPropertyKeys = this.mSupportedPropertyKeys;
         //c.mParentStyle = this.mParentStyle;
         
@@ -1322,6 +1323,9 @@ u                    getSlot(c).setFromString((String)value);
         c.height = this.height;
         c.scale = this.scale;
         c.stroke = this.stroke; // cached info only
+
+        
+        // TODO: need to duplicate meta-data list
 
         c.copyStyle(this);
 
@@ -1795,7 +1799,7 @@ u                    getSlot(c).setFromString((String)value);
         return this.resource != null;
     }
     public boolean hasLinks() {
-        return mLinks.size() > 0;
+        return mLinks != null && mLinks.size() > 0;
     }
     /*
     public String getMetaData()
@@ -1809,17 +1813,17 @@ u                    getSlot(c).setFromString((String)value);
     */
     public boolean inPathway()
     {
-        return pathwayRefs != null && pathwayRefs.size() > 0;
+        return mPathways != null && mPathways.size() > 0;
     }
 
     /** Is component in the given pathway? */
     // TODO: rename onPathway
     public boolean inPathway(LWPathway path)
     {
-        if (pathwayRefs == null || path == null)
+        if (mPathways == null || path == null)
             return false;
 
-        for (LWPathway p : pathwayRefs)
+        for (LWPathway p : mPathways)
             if (p == path)
                 return true;
         
@@ -1827,7 +1831,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public List<LWPathway> getPathways() {
-        return pathwayRefs == null ? java.util.Collections.EMPTY_LIST : pathwayRefs;
+        return mPathways == null ? java.util.Collections.EMPTY_LIST : mPathways;
     }
     
     /**
@@ -1836,10 +1840,10 @@ u                    getSlot(c).setFromString((String)value);
      */
     public boolean inDrawnPathway()
     {
-        if (pathwayRefs == null)
+        if (mPathways == null)
             return false;
 
-        for (LWPathway p : pathwayRefs)
+        for (LWPathway p : mPathways)
             if (p.isVisible() && !p.isRevealer())
                 return true;
 
@@ -1848,21 +1852,21 @@ u                    getSlot(c).setFromString((String)value);
     
     void addPathwayRef(LWPathway p)
     {
-        if (pathwayRefs == null)
-            pathwayRefs = new ArrayList();
-        if (!pathwayRefs.contains(p)) {
-            pathwayRefs.add(p);
+        if (mPathways == null)
+            mPathways = new ArrayList();
+        if (!mPathways.contains(p)) {
+            mPathways.add(p);
             layout();
         }
         //notify("pathway.add");
     }
     void removePathwayRef(LWPathway p)
     {
-        if (pathwayRefs == null) {
+        if (mPathways == null) {
             if (DEBUG.META) tufts.Util.printStackTrace("attempt to remove non-existent pathwayRef to " + p + " in " + this);
             return;
         }
-        pathwayRefs.remove(p);
+        mPathways.remove(p);
         // clear any hidden bits that may be set as a result
         // of the membership in the pathway.
         for (HideCause cause : HideCause.values())
@@ -2301,7 +2305,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean isManagedLocation() {
-        return getParent().isManagingChildLocations() || (isSelected() && isAncestorSelected());
+        return (parent != null && parent.isManagingChildLocations()) || (isSelected() && isAncestorSelected());
     }
 
     public boolean isManagingChildLocations() {
@@ -2351,6 +2355,12 @@ u                    getSlot(c).setFromString((String)value);
     {
         return java.util.Collections.EMPTY_LIST;
     }
+
+    public Collection<LWComponent> getChildren()
+    {
+        return java.util.Collections.EMPTY_LIST;
+    }
+    
     
     public java.util.Iterator<LWComponent> getChildIterator() {
         return tufts.Util.EmptyIterator;
@@ -2387,6 +2397,8 @@ u                    getSlot(c).setFromString((String)value);
     void addLinkRef(LWLink link)
     {
         if (DEBUG.UNDO) out(this + " adding link ref to " + link);
+        if (mLinks == null)
+            mLinks = new ArrayList(4);
         if (mLinks.contains(link)) {
             //tufts.Util.printStackTrace("addLinkRef: " + this + " already contains " + link);
             if (DEBUG.Enabled) VUE.Log.warn("addLinkRef: " + this + " already contains " + link);
@@ -2399,15 +2411,15 @@ u                    getSlot(c).setFromString((String)value);
     void removeLinkRef(LWLink link)
     {
         if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " removing link ref to " + link);
-        if (!mLinks.remove(link))
+        if (mLinks == null || !mLinks.remove(link))
             throw new IllegalStateException("removeLinkRef: " + this + " didn't contain " + link);
         clearHidden(HideCause.PRUNE);
         notify(LWKey.LinkRemoved, link); // informational only event
     }
     
-    /* tell us all the links who have us as one of their endpoints */
+    /** @return us all the links who have us as one of their endpoints */
     public List<LWLink> getLinks(){
-        return mLinks;
+        return mLinks == null ? Collections.EMPTY_LIST : mLinks;
     }
     
     /** @return all LWComponents directly connected to this one: for most components, this
@@ -2418,14 +2430,14 @@ u                    getSlot(c).setFromString((String)value);
         // returning mLinks is an optimization, but requireds
         // subclasses to override this method also if want to change
         // the impl.
-        return mLinks;
+        return getLinks();
         
         //return getLinked(new ArrayList(mLinks.size()));
         //return Collections.unmodifiableList(mLinks);
     }
     
     public Collection<LWComponent> getLinked(Collection bag) {
-        bag.addAll(mLinks);
+        bag.addAll(getLinks());
         return bag;
     }
 
@@ -2638,7 +2650,7 @@ u                    getSlot(c).setFromString((String)value);
 
     public int countLinksTo(LWComponent c)
     {
-        if (c == null)
+        if (c == null || mLinks == null)
             return 0;
         
         int count = 0;
@@ -2651,7 +2663,7 @@ u                    getSlot(c).setFromString((String)value);
     /** @return true if there are any links between us and the given component */
     public boolean hasLinkTo(LWComponent c)
     {
-        if (c == null)
+        if (c == null || mLinks == null)
             return false;
         
         for (LWLink link : mLinks)
@@ -2671,7 +2683,7 @@ u                    getSlot(c).setFromString((String)value);
     public int countCurvedLinksTo(LWComponent c)
     {
         int count = 0;
-        for (LWLink link : mLinks)
+        for (LWLink link : getLinks())
             if (link.hasEndpoint(c) && link.isCurved())
                 count++;
         return count;
@@ -3009,7 +3021,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     protected void updateConnectedLinks(LWComponent movingSrc)
     {
-        if (mLinks.size() > 0)
+        if (mLinks != null && mLinks.size() > 0)
             for (LWLink link : mLinks)
                 link.notifyEndpointMoved(movingSrc, this);
     }
@@ -3028,7 +3040,7 @@ u                    getSlot(c).setFromString((String)value);
     
     /** A notification to the component that it or some ancestor changed parentage */
     public void notifyHierarchyChanged() {
-        if (mLinks.size() > 0)
+        if (mLinks != null && mLinks.size() > 0)
             for (LWLink link : mLinks)
                 link.notifyEndpointHierarchyChanged(this);
         
@@ -3234,15 +3246,17 @@ u                    getSlot(c).setFromString((String)value);
 
     protected double getMapXPrecise()
     {
-        if (parent == null)
+        if (parent == null) {
+            //if (DEBUG.Enabled && this instanceof LWMap == false)
+            //    Util.printStackTrace("fetching mapX for unparented non-map: " + this);
             return getX();
-        else
+        } else
             return parent.getMapXPrecise() + getX() * parent.getMapScale();
     }
     protected double getMapYPrecise() {
-        if (parent == null)
+        if (parent == null) {
             return getY();
-        else
+        } else
             return parent.getMapYPrecise() + getY() * parent.getMapScale();
     }
 
@@ -3451,7 +3465,7 @@ u                    getSlot(c).setFromString((String)value);
             // (Also, on the scale or location change of any parent!)
             RectangularShape rshape = (RectangularShape) s;
             rshape = (RectangularShape) rshape.clone();
-            AffineTransform a = getLocalTransform();
+            AffineTransform a = getZeroTransform();
             Point2D.Float loc = new Point2D.Float();
             a.transform(loc, loc);
             rshape.setFrame(loc.x, loc.y,
@@ -3487,6 +3501,12 @@ u                    getSlot(c).setFromString((String)value);
         return new Rectangle2D.Float(getX(), getY(), getScaledWidth(), getScaledHeight());
     }
 
+    /** @return the local (parent-based) border bounds */
+    public Rectangle2D.Float getLocalBorderBounds() {
+        return addLocalStrokeToBounds(getLocalBounds());
+    }
+    
+
     /** @return the PARENT based, non-scaled bounds including all extra-shape artifacts, such as a stroke */
     public Rectangle2D.Float getLocalPaintBounds() {
         return addStrokeToBounds(getLocalBounds(), 0f);
@@ -3510,6 +3530,15 @@ u                    getSlot(c).setFromString((String)value);
         else
             return addStrokeToBounds(getBounds(), 0);
     }
+
+    /**
+     * Return absolute map bounds including any border stroke -- used by Groups.
+     */
+    public Rectangle2D.Float getBorderBounds()
+    {
+        return addStrokeToBounds(getBounds(), 0);
+    }
+    
 
     
     /** take the given map bounds, and add the scaled stroke width plus any extra if given */
@@ -3535,21 +3564,38 @@ u                    getSlot(c).setFromString((String)value);
         
         return r;
     }
+
+    protected Rectangle2D.Float addLocalStrokeToBounds(Rectangle2D.Float r)
+    {
+        float strokeWidth = getStrokeWidth();
+        
+        if (strokeWidth > 0) {
+            strokeWidth *= getScale();
+            final float exteriorStroke = strokeWidth / 2;
+            r.x -= exteriorStroke;
+            r.y -= exteriorStroke;
+            r.width += strokeWidth;
+            r.height += strokeWidth;
+        }
+        return r;
+    }
+    
     
     protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
     
 
     /** @return an AffineTransform that when applied to a graphics context, will have us drawing properly
-     * relative to this component, including any applicable scaling */
+     * relative to this component, including any applicable scaling.  So after this is applied,
+     * 0,0 will draw in the upper left hand corner of the component */
     //create and recursively set a transform to get from the Map to this object's coordinate space
     // note: structure is same in the different transform methods
     // TODO OPT: can cache this transform if track all ancestor hierarcy, location AND scale changes
-    public AffineTransform getLocalTransform() {
+    public AffineTransform getZeroTransform() {
         final AffineTransform a;
         if (parent == null) {
             a = new AffineTransform();
         } else {
-            a = parent.getLocalTransform();
+            a = parent.getZeroTransform();
         }
         return transformDown(a);
     }
@@ -3589,8 +3635,9 @@ u                    getSlot(c).setFromString((String)value);
         //if (parent instanceof LWMap) g.rotate(Math.PI / 16); // test
     }
 
-    /** Will transform all the way from the the map down to the component, wherever nested/scaled */
-    public void transformLocal(final Graphics2D g) {
+    /** Will transform all the way from the the map down to the component, wherever nested/scaled.
+     * So drawing at 0,0 will draw in the upper left of the component. */
+    public void transformZero(final Graphics2D g) {
         
         // todo: need a relative to parent transform only for cascading application during drawing
         // (and ultimate picking when impl is optimized)
@@ -3598,12 +3645,17 @@ u                    getSlot(c).setFromString((String)value);
         if (getParent() == null) {
             ;
         } else {
-            getParent().transformLocal(g);
+            getParent().transformZero(g);
         }
         
         transformRelative(g);
 
     }
+
+    // TODO: for consistencey, transformMapToLocal* / transformLocalToMap* should
+    // really be called transformMapToZero and transformZeroToMap -- as these
+    // use the zero transforms.  This is confusing because of our use of
+    // getLocalBounds, which are PARENT-local bounds.
 
     /**
      * @param mapPoint, a point in map coordinates to transform to local coordinates
@@ -3614,7 +3666,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     public Point2D transformMapToLocalPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
         try {
-            getLocalTransform().inverseTransform(mapPoint, nodePoint);
+            getZeroTransform().inverseTransform(mapPoint, nodePoint);
         } catch (java.awt.geom.NoninvertibleTransformException e) {
             Util.printStackTrace(e);
         }
@@ -3631,7 +3683,7 @@ u                    getSlot(c).setFromString((String)value);
             return mapRect;
         }
 
-        final AffineTransform tx = getLocalTransform();
+        final AffineTransform tx = getZeroTransform();
         double[] points = new double[8]; // todo opt: can do as len 4 & overwrite
         points[0] = mapRect.getX();
         points[1] = mapRect.getY();
@@ -3856,10 +3908,10 @@ u                    getSlot(c).setFromString((String)value);
     
     public void drawPathwayDecorations(DrawContext dc)
     {
-        if (pathwayRefs == null)
+        if (mPathways == null)
             return;
         
-        for (LWPathway path : pathwayRefs) {
+        for (LWPathway path : mPathways) {
             //if (!dc.isFocused && path.isDrawn()) {
             if (path.isDrawn()) {
                 path.drawComponentDecorations(dc.create(), this);
@@ -3883,7 +3935,7 @@ u                    getSlot(c).setFromString((String)value);
             } else {
                 dc.g.setColor(COLOR_HIGHLIGHT);
                 dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-                transformLocal(dc.g);
+                transformZero(dc.g);
                 dc.g.draw(getZeroShape());
             }
         }
@@ -4019,8 +4071,8 @@ u                    getSlot(c).setFromString((String)value);
         LWPathway path = VUE.getActivePathway();
 
         if (!inPathway(path)) {
-            if (pathwayRefs != null && pathwayRefs.size() > 0)
-                path = pathwayRefs.get(0); // show the first pathway it's in if it's not in the active pathway
+            if (mPathways != null && mPathways.size() > 0)
+                path = mPathways.get(0); // show the first pathway it's in if it's not in the active pathway
             else
                 path = null;
         }
@@ -4111,7 +4163,7 @@ u                    getSlot(c).setFromString((String)value);
      **/
     public void draw(DrawContext dc) {
         dc.setClipOptimized(false); // ensure all children draw even if not inside clip
-        transformLocal(dc.g);
+        transformZero(dc.g);
         if (dc.focal == this) {
             drawRaw(dc);
         } else {
@@ -4399,7 +4451,7 @@ u                    getSlot(c).setFromString((String)value);
         notify(LWKey.Deleting);
         prepareToRemoveFromModel();
         removeAllLWCListeners();
-        disconnectFromLinks();
+        disconnectFromLinks(); // if any of the links themseleves are being deleted, we don't actually need to disconnect
         setDeleted(true);
     }
 
@@ -4441,8 +4493,10 @@ u                    getSlot(c).setFromString((String)value);
     private void disconnectFromLinks()
     {
         // iterate through copy of the list, as it may be modified concurrently during removals
-        for (LWLink link : mLinks.toArray(new LWLink[mLinks.size()]))
-            link.disconnectFrom(this);
+        if (mLinks != null) {
+            for (LWLink link : mLinks.toArray(new LWLink[mLinks.size()]))
+                link.disconnectFrom(this);
+        }
         clearHidden(HideCause.PRUNE);
      }
     
@@ -4543,18 +4597,18 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
 
-    public void setZoomedFocus(boolean tv) {
-        return;
-        //throw new UnsupportedOperationException();
-        /*
-        if (this.isZoomedFocus != tv) {
-            this.isZoomedFocus = tv;
-        }
-        if (getParent() != null) {
-            getParent().setFocusComponent(tv ? this : null);
-        }
-        */
-    }
+//     public void setZoomedFocus(boolean tv) {
+//         return;
+//         //throw new UnsupportedOperationException();
+//         /*
+//         if (this.isZoomedFocus != tv) {
+//             this.isZoomedFocus = tv;
+//         }
+//         if (getParent() != null) {
+//             getParent().setFocusComponent(tv ? this : null);
+//         }
+//         */
+//     }
 
     public boolean isZoomedFocus() {
         return isZoomedFocus;
@@ -5000,7 +5054,7 @@ u                    getSlot(c).setFromString((String)value);
 
         if (getID() == null) {
             s = String.format("%-17s[",
-                              typeName + "." + Integer.toHexString(hashCode())
+                              typeName + "." + Integer.toHexString(System.identityHashCode(this))
                               );
             //s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
         } else {

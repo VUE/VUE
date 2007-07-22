@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.461 $ / $Date: 2007-07-19 18:46:57 $ / $Author: anoop $ 
+ * @version $Revision: 1.462 $ / $Date: 2007-07-22 03:31:24 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -345,6 +345,8 @@ public class VUE
             } else if (args[i].equals("-nodr")) {
                 DEBUG.Enabled = true;
                 SKIP_DR = true;
+            } else if (args[i].equals("-noem")) {
+                SKIP_EDITOR_MANAGER = true;
             } else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
             else
@@ -367,6 +369,7 @@ public class VUE
     private static boolean exitAfterInit = false;
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
     private static boolean SKIP_SPLASH = false;
+    private static boolean SKIP_EDITOR_MANAGER = false;
     private static String NAME;
 	
     private static DRBrowser DR_BROWSER;
@@ -565,7 +568,8 @@ public class VUE
         
         // Must call this after all LWEditors have been created and
         // put in the AWT hierarchy:
-        EditorManager.install();
+        if (!SKIP_EDITOR_MANAGER)
+            EditorManager.install();
         
         // Start the loading of the data source viewer
         if (SKIP_DR == false && DR_BROWSER != null)
