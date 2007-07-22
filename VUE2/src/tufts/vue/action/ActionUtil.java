@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.68 $ / $Date: 2007-07-12 02:12:47 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-07-22 23:30:38 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -751,7 +751,8 @@ public class ActionUtil {
             try {
                 map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
             } catch (org.exolab.castor.xml.MarshalException me) {
-                if (allowOldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
+                //if (allowOldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
+                if (allowOldFormat && me.getMessage().indexOf("Unable to instantiate tufts.vue.Resource") >= 0) {
                     System.err.println("ActionUtil.unmarshallMap: " + me);
                     System.err.println("Attempting specialized MapResource mapping for old format.");
                     // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.
