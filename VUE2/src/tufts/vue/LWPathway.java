@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.172 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
+ * @version $Revision: 1.173 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1211,7 +1211,7 @@ public class LWPathway extends LWContainer
     }
     
     @Override
-    void setScale(double scale) {}
+    protected void setScale(double scale) {}
 
     /**
      * for persistance: override of LWContainer: pathways never save their children

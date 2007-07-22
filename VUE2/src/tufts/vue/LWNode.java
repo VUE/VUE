@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.175 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
+ * @version $Revision: 1.176 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -98,9 +98,9 @@ public class LWNode extends LWContainer
     // Instance info
     //------------------------------------------------------------------
     
-    protected RectangularShape drawnShape; // 0 based, not scaled
-    protected RectangularShape boundsShape; // map based, scaled, used for computing hits
-    protected boolean autoSized = true; // compute size from label & children
+    /** 0 based with current local width/height */
+    protected RectangularShape mShape;
+    protected boolean isAutoSized = true; // compute size from label & children
 
     //-----------------------------------------------------------------------------
     // consider moving all the below stuff into a layout object
@@ -109,14 +109,18 @@ public class LWNode extends LWContainer
     //private transient Line2D dividerStub = new Line2D.Float();
     private transient float mBoxedLayoutChildY;
 
-    private transient boolean mIsRectShape = true;
-    //private transient boolean mIsTextNode = false; // todo: are we saving this in XML???
+    private transient boolean isRectShape = true;
 
     private transient Line2D.Float mIconDivider = new Line2D.Float(); // vertical line between icon block & node label / children
     private transient Point2D.Float mLabelPos = new Point2D.Float(); // for use with irregular node shapes
     private transient Point2D.Float mChildPos = new Point2D.Float(); // for use with irregular node shapes
 
     private transient Size mMinSize;
+
+    private transient boolean inLayout = false;
+    private transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
+
+    
 
     private transient LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -204,7 +208,7 @@ public class LWNode extends LWContainer
         @Override
         public Class<? extends RectangularShape> getValue(LWNode c) {
             try {
-                return c.getShape().getClass();
+                return c.mShape.getClass();
             } catch (NullPointerException e) {
                 return null;
             }
@@ -231,16 +235,16 @@ public class LWNode extends LWContainer
 
         
     
-    private static RectangularShape cloneShape(Object shape) {
-        return (RectangularShape) ((RectangularShape)shape).clone();
-    }
+//     private static RectangularShape cloneShape(Object shape) {
+//         return (RectangularShape) ((RectangularShape)shape).clone();
+//     }
 
     /**
      * @param shapeClass -- a class object this is a subclass of RectangularShape
      */
     public void setShape(Class<? extends RectangularShape> shapeClass) {
 
-        if (boundsShape != null && IsSameShape(boundsShape.getClass(), shapeClass))
+        if (mShape != null && IsSameShape(mShape.getClass(), shapeClass))
             return;
 
         // todo: could skip instancing unless we actually go to draw ourselves (lazy
@@ -267,14 +271,13 @@ public class LWNode extends LWContainer
         //    System.out.println("RR arcs " + rr.getArcWidth() +"," + rr.getArcHeight());
         //}
 
-        if (IsSameShape(this.boundsShape, shape))
+        if (IsSameShape(mShape, shape))
             return;
 
-        Object old = this.boundsShape;
-        this.mIsRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
-        this.boundsShape = shape;
-        this.drawnShape = cloneShape(shape);
-        adjustDrawnShape();
+        final Object old = mShape;
+        isRectShape = (shape instanceof Rectangle2D || shape instanceof RoundRectangle2D);
+        mShape = shape;
+        mShape.setFrame(0, 0, getWidth(), getHeight());
         layout();
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
     }
@@ -284,17 +287,16 @@ public class LWNode extends LWContainer
     }
                                                      
     public RectangularShape getXMLshape() {
-        return getShape();
-    }
-                                                     
-    
-    /** @return shape object with map coordinates -- can be used for hit testing, drawing, etc */
-    public RectangularShape getShape() {
-        return this.boundsShape;
+        return mShape;
     }
     
+    @Override
+    public Shape getZeroShape() {
+        return mShape;
+    }
+
     protected Point2D.Float getCorner() {
-        if (mIsRectShape)
+        if (isRectShape)
             return super.getCorner();
 
         // find out where a line drawn from our local center to our
@@ -304,20 +306,13 @@ public class LWNode extends LWContainer
         float[] corner =
             VueUtil.computeIntersection(getWidth() / 2, getHeight() / 2,
                                         getWidth(), getHeight(),
-                                        getZeroShape(),
+                                        mShape,
                                         null);
 
         return new Point2D.Float(corner[0], corner[1]);
     }
 
     
-    //public Shape getMapShape() { return this.boundsShape; }
-    
-    @Override
-    public Shape getZeroShape() {
-        return this.drawnShape;
-    }
-
     /** Duplicate this node.
      * @return the new node -- will have the same style (visible properties) of the old node */
     @Override
@@ -512,12 +507,12 @@ public class LWNode extends LWContainer
         // todo: "text" node should display no note icon, but display the note if any when any part of it is rolled over.
         // Just what a text node is is a bit confusing right now, but it's useful
         // guess for now.
-    	//return (mIsTextNode || (getFillColor() == null && mIsRectShape)) && !hasChildren();
+    	//return (mIsTextNode || (getFillColor() == null && isRectShape)) && !hasChildren();
 
         return getClass() == LWNode.class // sub-classes don't count
             && isTranslucent()
             && !hasChildren()
-            && getShape() instanceof Rectangle2D
+            && mShape instanceof Rectangle2D
             && !inPathway(); // heuristic to exclude LWNode portals (not likely to just put a piece of text alone on a pathway)
     }
     
@@ -527,7 +522,7 @@ public class LWNode extends LWContainer
         if (WrapText)
             return false; // LAYOUT-NEW
         else
-            return this.autoSized;
+            return isAutoSized;
     }
 
     /**
@@ -548,7 +543,7 @@ public class LWNode extends LWContainer
     {
         if (WrapText) return; // LAYOUT-NEW
         
-        if (autoSized == makeAutoSized)
+        if (isAutoSized == makeAutoSized)
             return;
         if (DEBUG.LAYOUT) out("*** setAutoSized " + makeAutoSized);
 
@@ -562,8 +557,8 @@ public class LWNode extends LWContainer
         Object old = null;
         if (makeAutoSized)
             old = new Point2D.Float(this.width, this.height);
-        this.autoSized = makeAutoSized;
-        if (autoSized && !inLayout)
+        isAutoSized = makeAutoSized;
+        if (isAutoSized && !inLayout)
             layout();
         if (makeAutoSized)
             notify("node.autosized", new Undoable(old) {
@@ -581,10 +576,10 @@ public class LWNode extends LWContainer
     {
         if (isOrphan()) // if this is during a restore, don't do any automatic auto-size computations
             return;
-        if (autoSized == tv)
+        if (isAutoSized == tv)
             return;
         if (DEBUG.LAYOUT) out("*** setAutomaticAutoSized " + tv);
-        this.autoSized = tv;
+        isAutoSized = tv;
     }
     
 
@@ -617,20 +612,6 @@ public class LWNode extends LWContainer
         } else
             return false;
     }
-
-    /*
-    public Rectangle2D getBounds()
-    {
-        Rectangle2D b = this.boundsShape.getBounds2D();
-        double sw = getStrokeWidth();
-        if (sw > 0) {
-            double adj = sw / 2;
-            b.setRect(b.getX()-adj, b.getY()-adj, b.getWidth()+sw, b.getHeight()+sw);
-        }
-        return b;
-        //return this.boundsShape.getBounds2D();
-    }
-    */
 
     /*
       // using the default means we're only intersecting with the rectangular bounds, not the actual shape...
@@ -674,7 +655,7 @@ public class LWNode extends LWContainer
 
     @Override
     protected boolean containsImpl(float x, float y, float zoom) {
-        if (mIsRectShape) {
+        if (isRectShape) {
             // won't be perfect for round-rect at big scales, but good
             // enough, and takes into account stroke width
             return super.containsImpl(x, y, zoom);
@@ -689,41 +670,11 @@ public class LWNode extends LWContainer
             // override pickDistance if we want near picking of nodes, tho I don't think
             // we need that.
             
-            return boundsShape.contains(x, y);
+            return mShape.contains(x, y);
         } else
             return false;
     }
     
-    /*
-    protected boolean containsImpl(float x, float y)
-    {
-        if (imageIcon != null) {
-            return super.containsImpl(x,y);
-        } else {
-            if (true) {
-                return boundsShape.contains(x, y);
-            } else {
-                // DEBUG: util irregular shapes can still give access to children
-                // outside their bounds, we're checking everything in the bounding box
-                // for the moment if there are any children.
-                if (hasChildren())
-                    return super.containsImpl(x,y);
-                else if (mIsRectShape) {
-                    return boundsShape.contains(x, y);
-                } else {
-                    float cx = x - getX();
-                    float cy = y - getY();
-                    // if we end up using these zillion checks, be sure to
-                    // first surround with a fast-reject bounding-box check
-                    return boundsShape.contains(x, y)
-                        || textBoxHit(cx, cy)
-                        ;
-                    //|| mIconBlock.contains(cx, cy)
-                }
-            }
-        }
-    }
-    */
 
     @Override
     protected void addChildImpl(LWComponent c)
@@ -741,7 +692,7 @@ public class LWNode extends LWContainer
         super.XML_completed();
         if (hasChildren()) {
             if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) System.out.println("Scaling down LWNode children in: " + this);
-            for (LWComponent c : getChildList()) {
+            for (LWComponent c : getChildren()) {
                 if (isScaledChildType(c))
                     c.setScale(LWNode.ChildScale);
             }
@@ -761,19 +712,6 @@ public class LWNode extends LWContainer
         super.removeChildImpl(c);
     }
     
-
-
-
-//     @Override
-//     public void addChildren(Iterable i)
-//     {
-//         // todo: should be able to do this generically
-//         // in LWContainer and not have to override this here.
-//         super.addChildren(i);
-//         setScale(getScale()); // make sure children get shrunk
-//         layout();
-//     }
-
     @Override
     public void setSize(float w, float h)
     {
@@ -789,56 +727,19 @@ public class LWNode extends LWContainer
     {
         if (DEBUG.LAYOUT) out("*** setSizeNoLayout " + w + "x" + h);
         super.setSize(w, h);
-        if (VUE.RELATIVE_COORDS)
-            this.boundsShape.setFrame(0, 0, getWidth(), getHeight());
-        else
-            this.boundsShape.setFrame(getX(), getY(), getScaledWidth(), getScaledHeight());
-        adjustDrawnShape();
+        mShape.setFrame(0, 0, getWidth(), getHeight());
     }
 
-//     @Override
-//     void setScale(double scale)
-//     {
-//         super.setScale(scale);
-//         if (!VUE.RELATIVE_COORDS)
-//             this.boundsShape.setFrame(getX(), getY(), getScaledWidth(), getScaledHeight());
-//     }
-//     @Override
-//     void setScaleOnChild(double parentScale, LWComponent c) {
-//         if (DEBUG.LAYOUT) out("setScaleOnChild " + parentScale + "*" + ChildScale + " " + c);
-//         if (c instanceof LWImage) {
-//             ; // we don't scale down images
-//         } else {
-//             if (VUE.RELATIVE_COORDS)
-//                 c.setScale(LWNode.ChildScale);
-//             else
-//                 c.setScale(parentScale * LWNode.ChildScale);
-//         }
-//     }
-    
     public Size getMinimumSize() {
         return mMinSize;
     }
     
-    private void adjustDrawnShape()
-    {
-        // This was to shrink the drawn shape size by border width
-        // so it fits entirely inside the bounds shape, tho
-        // we're not making use of that right now.
-        if (DEBUG.LAYOUT) out("*** adjstDrawnShape " + getAbsoluteWidth() + "x" + getAbsoluteHeight());
-        //System.out.println("boundsShape.bounds: " + boundsShape.getBounds());
-        //System.out.println("drawnShape.setFrame " + x + "," + y + " " + w + "x" + h);
-        this.drawnShape.setFrame(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
-    }
 
     @Override
     public void setLocation(float x, float y)
     {
         //System.out.println("setLocation " + this);
         super.setLocation(x, y);
-        if (!VUE.RELATIVE_COORDS)
-            this.boundsShape.setFrame(x, y, getScaledWidth(), getScaledHeight());
-        //adjustDrawnShape(); // if width or height isn't changing, shouldn't need this...
 
         // Must lay-out children seperately from layout() -- if we
         // just call layout here we'll recurse when setting the
@@ -848,9 +749,6 @@ public class LWNode extends LWContainer
         layoutChildren();
     }
     
-    private boolean inLayout = false;
-    private boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
-
     @Override
     protected void layoutImpl(Object triggerKey) {
         layout(triggerKey, new Size(getWidth(), getHeight()), null);
@@ -904,7 +802,7 @@ public class LWNode extends LWContainer
 
         final Size min;
 
-        if (mIsRectShape) {
+        if (isRectShape) {
             isCenterLayout = false;
             min = layoutBoxed(request, curSize, triggerKey);
             if (request == null)
@@ -1030,7 +928,7 @@ public class LWNode extends LWContainer
         //content.width = minSize.width;
         //content.height = minSize.height;
 
-        RectangularShape nodeShape = (RectangularShape) drawnShape.clone();
+        RectangularShape nodeShape = (RectangularShape) mShape.clone();
         nodeShape.setFrame(0,0, content.width, content.height);
         //nodeShape.setFrame(0,0, minSize.width, minSize.height);
         
@@ -1503,7 +1401,7 @@ public class LWNode extends LWContainer
 
         if (min.height < iconPillarHeight) {
             min.height += iconPillarHeight - min.height;
-        } else if (mIsRectShape) {
+        } else if (isRectShape) {
             // special case prettification -- if vertically centering
             // the icon stack would only drop it down by up to a few
             // pixels, go ahead and do so because it's so much nicer
@@ -1514,7 +1412,7 @@ public class LWNode extends LWContainer
             iconPillarY = centerY;
         }
             
-        if (!mIsRectShape) {
+        if (!isRectShape) {
             float height;
             if (isAutoSized())
                 height = min.height;
@@ -1756,13 +1654,6 @@ public class LWNode extends LWContainer
         if (!sizeOnly) {
             baseX = childOffsetX();
             baseY = childOffsetY();
-//             if (VUE.RELATIVE_COORDS) {
-//                 baseX = childOffsetX();
-//                 baseY = childOffsetY();
-//             } else {
-//                 baseX = getX() + childOffsetX() * getScaleF();
-//                 baseY = getY() + childOffsetY() * getScaleF();
-//             }
         }
 
         return layoutChildren(baseX, baseY, minWidth, result);
@@ -1782,14 +1673,14 @@ public class LWNode extends LWContainer
 //         else
             layoutChildrenSingleColumn(baseX, baseY, result);
 
-        if (result != null) {
-            if (!VUE.RELATIVE_COORDS) {
-                result.width /= getScale();
-                result.height /= getScale();
-            }
-            //if (DEBUG.BOXES)
-            //child_box.setRect(baseX, baseY, result.width, result.height);
-        }
+//         if (result != null) {
+//             if (!VUE.RELATIVE_COORDS) {
+//                 result.width /= getScale();
+//                 result.height /= getScale();
+//             }
+//             //if (DEBUG.BOXES)
+//             //child_box.setRect(baseX, baseY, result.width, result.height);
+//         }
         return result;
     }
 
@@ -1800,7 +1691,7 @@ public class LWNode extends LWContainer
         float maxWidth = 0;
         boolean first = true;
 
-        for (LWComponent c : getChildList()) {
+        for (LWComponent c : getChildren()) {
             if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
                 continue;
             if (first)
@@ -1987,7 +1878,7 @@ public class LWNode extends LWContainer
                 dc.g.setColor(COLOR_HIGHLIGHT);
                 dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
                 //g.setStroke(new BasicStroke(stroke.getLineWidth() + SelectionStrokeWidth));
-                dc.g.draw(drawnShape);
+                dc.g.draw(mShape);
             }
         }
         
@@ -2004,7 +1895,7 @@ public class LWNode extends LWContainer
                 dc.g.setColor(fillColor);
                 if (isZoomedFocus())
                     dc.g.setComposite(ZoomTransparency);
-                dc.g.fill(drawnShape);
+                dc.g.fill(mShape);
                 if (isZoomedFocus())
                     dc.g.setComposite(AlphaComposite.Src);
             }
@@ -2014,13 +1905,13 @@ public class LWNode extends LWContainer
         if (!isAutoSized()) { // debug
             g.setColor(Color.green);
             g.setStroke(STROKE_ONE);
-            g.draw(drawnShape);
+            g.draw(zeroShape);
         }
         else if (false&&isRollover()) { // debug
             // temporary debug
             //g.setColor(new Color(0,0,128));
             g.setColor(Color.blue);
-            g.draw(drawnShape);
+            g.draw(zeroShape);
         }
         else*/
         
@@ -2031,19 +1922,19 @@ public class LWNode extends LWContainer
             //else
                 dc.g.setColor(getStrokeColor());
             dc.g.setStroke(this.stroke);
-            dc.g.draw(drawnShape);
+            dc.g.draw(mShape);
         }
 
 
         if (DEBUG.BOXES) {
             dc.setAbsoluteStroke(0.5);
             //if (hasChildren()) dc.g.draw(child_box);
-            if (false && _lastNodeContent != null && !mIsRectShape) {
+            if (false && _lastNodeContent != null && !isRectShape) {
                 dc.g.setColor(Color.darkGray);
                 dc.g.draw(_lastNodeContent);
             } else {
                 dc.g.setColor(Color.blue);
-                dc.g.draw(this.drawnShape);
+                dc.g.draw(mShape);
             }
         }
             
@@ -2090,59 +1981,12 @@ public class LWNode extends LWContainer
         //this.labelBox.setMapLocation(getX() + lx, getY() + ly);
     }
 
-    /*
-    public void XX_drawChild(LWComponent child, DrawContext dc)
-    {
-        // can use this if children could ever do anything to the scale
-        // (thus we'd need to protect each child from changes made
-        // by others)
-        //child.draw(dc.createScaled(ChildScale));
-    }
-    
-    public void X_drawChild(LWComponent child, DrawContext dc)
-    {
-        //Graphics2D g = dc.g;
-        //g.translate(childBaseX * ChildScale, childBaseY * ChildScale);
-        // we double the translation because the translation done by
-        // the child will happen in a shrunk context -- but that only works if ChildScale == 0.5!
-        //g.translate((double)child.getX() * ChildScale, (double)child.getY() * ChildScale);
-        dc.g.translate(child.getX(), child.getY());
-        dc.g.scale(ChildScale, ChildScale);
-        child.draw(dc);
-        //g.translate(-childBaseX, -childBaseY);
-    }
-
-    public LWComponent relative_findLWComponentAt(float mapX, float mapY)
-    {
-        if (DEBUG_CONTAINMENT) System.out.println("LWCNode.findLWComponentAt[" + getLabel() + "]");
-        // hit detection must traverse list in reverse as top-most
-        // components are at end
-        java.util.ListIterator i = children.listIterator(children.size());
-
-        mapX -= getX() + childBaseX;
-        mapY -= getY() + childBaseY;
-        mapX /= ChildScale;
-        mapY /= ChildScale;
-        while (i.hasPrevious()) {
-            LWComponent c = (LWComponent) i.previous();
-            if (c.contains(mapX, mapY)) {
-                if (c.hasChildren())
-                    return ((LWContainer)c).findLWComponentAt(mapX, mapY);
-                else
-                    return c;
-            }
-        }
-        return this;
-    }
-    */
-    
-
     private void drawNodeDecorations(DrawContext dc)
     {
         final Graphics2D g = dc.g;
 
         /*
-        if (DEBUG.BOXES && mIsRectShape) {
+        if (DEBUG.BOXES && isRectShape) {
             //-------------------------------------------------------
             // paint a divider line
             //-------------------------------------------------------
@@ -2360,13 +2204,10 @@ public class LWNode extends LWContainer
     /** for castor restore, internal default's and duplicate use only */
     public LWNode()
     {
-        this.mIsRectShape = true;
+        isRectShape = true;
+        isAutoSized = false;
         // I think we may only need this default shape setting for backward compat with old save files.
-        this.boundsShape = new java.awt.geom.Rectangle2D.Float();
-        this.drawnShape = cloneShape(boundsShape);
-        this.autoSized = false;
-        adjustDrawnShape();
-
+        mShape = new java.awt.geom.Rectangle2D.Float();
 
         // Force the creation of the TextBox (this.labelBox).
         // We need this for now to make sure wrapped text nodes don't unwrap

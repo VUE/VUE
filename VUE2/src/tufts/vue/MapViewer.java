@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.415 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.416 $ / $Date: 2007-07-22 23:34:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3964,7 +3964,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // DEBUGGING
             //-------------------------------------------------------
             
-            if (/*e.isShiftDown() &&*/ !e.isControlDown()) {
+            if (/*e.isShiftDown() &&*/ !e.isControlDown() && !e.isMetaDown() && !e.isAltDown()) {
                 char c = e.getKeyChar();
                 if ("DEBUG".charAt(kk++) == c) {
                     if (kk == 5) {
@@ -4006,7 +4006,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == 'P') { DEBUG.PAINT = !DEBUG.PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
                 else if (c == 'R') { DEBUG.RESOURCE = !DEBUG.RESOURCE; }
-                else if (c == 'r') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
+                //else if (c == 'r') { DEBUG_TIMER_ROLLOVER = !DEBUG_TIMER_ROLLOVER; }
                 else if (c == 'S') { DEBUG.SELECTION = !DEBUG.SELECTION; }
                 else if (c == 'T') { DEBUG.TOOL = !DEBUG.TOOL; }
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }

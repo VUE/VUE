@@ -30,14 +30,13 @@ import java.awt.geom.Rectangle2D;
 /**
  * Manage a group of children within a parent.
  *
- * Handle rendering, hit-detection, duplication, adding/removing children.
+ * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.126 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
 {
-    //protected java.util.List<LWComponent> children = new java.util.ArrayList(4);
     protected java.util.List<LWComponent> mChildren;
     
     public void XML_fieldAdded(String name, Object child) {
@@ -57,17 +56,11 @@ public abstract class LWContainer extends LWComponent
         return mChildren == null ? 0 : mChildren.size();
     }
 
-//     /** @return false -- default impl is child coordinates are relatve to the parent -- overide if subclass impl changes this */
-//     public boolean hasAbsoluteChildren() {
-//         return false;
-//     }
-
     /** @return true: default allows children dragged in and out */
     @Override
     public boolean supportsChildren() {
         return true;
     }
-    
 
     public boolean hasChild(LWComponent c) {
         return mChildren != null && mChildren.contains(c);
@@ -92,7 +85,8 @@ public abstract class LWContainer extends LWComponent
             return mChildren == null ? Collections.EMPTY_LIST : mChildren;
     }
 
-    /** @return the list of children, or Collections.EMPTY_LIST if we've never had any children */
+    /** @return the list of children, or Collections.EMPTY_LIST if we've never had any children
+     * The collection returned is guaranteed to iterate in the z-order of the children (top most is last). */
     @Override
     public Collection<LWComponent> getChildren()
     {
@@ -145,7 +139,7 @@ public abstract class LWContainer extends LWComponent
     protected void notifyMapLocationChanged(LWComponent src, double mdx, double mdy) {
         super.notifyMapLocationChanged(src, mdx, mdy);
         if (hasChildren()) {
-            for (LWComponent c : getChildList())
+            for (LWComponent c : getChildren())
                 c.notifyMapLocationChanged(src, mdx, mdy); // is overcalling updateConnectedLinks (+1 for each depth!), but it's cheap
         }
     }
@@ -154,7 +148,7 @@ public abstract class LWContainer extends LWComponent
     {
         super.updateConnectedLinks(movingSrc);
         // these components are moving in absolute map coordinates, even tho their local location isn't changing
-        for (LWComponent c : getChildList()) 
+        for (LWComponent c : getChildren()) 
             c.updateConnectedLinks(movingSrc);
     }
 
@@ -313,11 +307,6 @@ public abstract class LWContainer extends LWComponent
             //ensureLinksPaintOnTopOfAllParents(c);
             
             notify(LWKey.ChildrenAdded, addedChildren);
-
-            // todo: should be able to do this generically here
-            // instead of having to override addChildren in LWNode
-            //setScale(getScale()); // make sure children get shrunk
-            // [This no longer relevant with VUE.RELATIVE_COORDS]
             
             layout();
         }
@@ -326,7 +315,7 @@ public abstract class LWContainer extends LWComponent
     @Override
     public void notifyHierarchyChanging() {
         super.notifyHierarchyChanging();
-        for (LWComponent c : getChildList())
+        for (LWComponent c : getChildren())
             c.notifyHierarchyChanging();
     }
     
@@ -334,7 +323,7 @@ public abstract class LWContainer extends LWComponent
     @Override
     public void notifyHierarchyChanged() {
         super.notifyHierarchyChanged();
-        for (LWComponent c : getChildList())
+        for (LWComponent c : getChildren())
             c.notifyHierarchyChanged();
     }
 
@@ -368,7 +357,7 @@ public abstract class LWContainer extends LWComponent
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
         if (DEBUG.PARENTING) out("ADDING " + c);
 
-        if (c.getParent() != null && c.getParent().getChildList().contains(c)) {
+        if (c.getParent() != null && c.getParent().hasChild(c)) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
             if (DEBUG.PARENTING)
                 //if (DEBUG.META) tufts.Util.printStackTrace("FYI["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent()); else
@@ -382,13 +371,16 @@ public abstract class LWContainer extends LWComponent
             c.notifyHierarchyChanging();
             c.getParent().removeChild(c); // is LWGroup requesting cleanup???
         }
-        if (c.getFont() == null)//todo: really want to do this? only if not manually set?
-            c.setFont(getFont());
+        
+        //if (c.getFont() == null)//todo: really want to do this? only if not manually set?
+        //    c.setFont(getFont());
 
         if (mChildren == null)
             mChildren = new ArrayList();
         
         mChildren.add(c);
+
+        // consider a real notifyAdd, or notifyAdding/notifyAdded
 
         //----------------------------------------------------------------------------------------
         // Delicately reparent, taking care that the model does not generate events while
@@ -403,13 +395,18 @@ public abstract class LWContainer extends LWComponent
             final float oldMapX = c.getMapX();
             final float oldMapY = c.getMapY();
             final double oldParentMapScale = c.getMapScale();
+
+            if (false) {
+                localizeCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
+                c.setParent(this);
+            } else {
         
-            // Now set the parent, so that when the new location is set, it's already in it's
-            // new parent, and it's mapX / mapY will report correctly when asked (e.g., the
-            // bounds are immediatley correct for anyone listening to the location event).
-            c.setParent(this);
-            
-            localizeCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
+                // Now set the parent, so that when the new location is set, it's already in it's
+                // new parent, and it's mapX / mapY will report correctly when asked (e.g., the
+                // bounds are immediatley correct for anyone listening to the location event).
+                c.setParent(this);
+                localizeCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
+            }
             
         } else {
             
@@ -468,7 +465,8 @@ public abstract class LWContainer extends LWComponent
 
         // c.getMap() should == getMap() at this point; setParent to this LWContainer has been done above
         if (c.getMap() != getMap())
-            Util.printStackTrace("different maps?");
+            //out("different maps?");
+        Util.printStackTrace("different maps?");
             
         if (c.getID() != null && c.getMap() == null) {
             // if ID is null, the object is still being created (and we don't need to worry about undoing it's initializations)
@@ -530,15 +528,6 @@ public abstract class LWContainer extends LWComponent
             */
         }
         //c.setParent(null);
-
-        // If this child was scaled inside us (as all children are except groups)
-        // be sure to restore it's scale back to 1 when de-parenting it.
-        // TODO: better to handle this in LWNode removeChildImpl as that's only
-        // place nodes actually get auto scaled right now -- either that or
-        // when it's added back into it's new parent, which can set it based
-        // on whatever scale policy it implements. [ "scale policy" no longer makes sense w/relative contained drawing ]
-        //if (c.getScale() != 1f)
-        //    c.setScale(1f);
     }
     
 
@@ -600,7 +589,7 @@ public abstract class LWContainer extends LWComponent
     private void ensureLinksPaintOnTopOfAllParents()
     {
         ensureLinksPaintOnTopOfAllParents((LWComponent) this);
-        for (LWComponent c : getChildList()) {
+        for (LWComponent c : getChildren()) {
             ensureLinksPaintOnTopOfAllParents(c);
             if (c instanceof LWContainer)
                 ensureLinksPaintOnTopOfAllParents((LWContainer)c);
@@ -761,24 +750,6 @@ public abstract class LWContainer extends LWComponent
         }
         return gi;
     }
-
-//     /**
-//      * Get all descendents, but do not seperately include
-//      * the children of groups.
-//      * @deprecated - needs replacement: see Actions.java
-//      */
-//     public java.util.List getAllDescendentsGroupOpaque()
-//     {
-//         java.util.List list = new java.util.ArrayList();
-//         list.addAll(children);
-//         java.util.Iterator i = children.iterator();
-//         while (i.hasNext()) {
-//             LWComponent c = (LWComponent) i.next();
-//             if (c.hasChildren() && !(c instanceof LWGroup))
-//                 list.addAll(((LWContainer)c).getAllDescendents());
-//         }
-//         return list;
-//     }
 
     protected LWComponent defaultPickImpl(PickContext pc)
     {
@@ -1020,47 +991,17 @@ public abstract class LWContainer extends LWComponent
         
     }
     
-   
-    /* for use during restore
-       // now handled in LWMap.completeXMLRestore
-    protected void setChildScaleValues()
-    {
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            c.setScale(c.getScale());
-        }
-    }
-    */
     
     @Override
-    void setScale(double scale)
+    protected void setScale(double scale)
     {
         //System.out.println("Scale set to " + scale + " in " + this);
         
         super.setScale(scale);
 
-//         for (LWComponent c : getChildList()) 
-//             setScaleOnChild(scale, c);
-
         layoutChildren(); // we do this for our rollover zoom hack so children are repositioned
     }
 
-//     void setScaleOnChild(double scale, LWComponent c)
-//     {
-//         // need this for undo of dropping a node into another node: when re-parented
-//         // back to the map, it needs to get it's default scale back.
-//         //c.setScale(scale);
-//         // actually, if setScale can now reasonable deliver an event, that will handle this
-//         // crazy undo case we've got special code for (and elsewhere here in LWContainer...)
-//         if (DEBUG.WORK) out("WARNING: setScaleOnChild ignored for " + c);
-        
-// //         // vanilla containers don't scale down their children -- only nodes do
-// //         if (VUE.RELATIVE_COORDS)
-// //             ; //throw new Error("relative coordinate impl doesn't apply parent scale to child scale");
-// //         else
-// //             c.setScale(scale);
-//     }
 
     /**
      * Default impl just fills the background and draws any children.
@@ -1085,30 +1026,6 @@ public abstract class LWContainer extends LWComponent
     {
         if (!hasChildren())
             return;
-
-//         if (!VUE.RELATIVE_COORDS && !hasAbsoluteMapLocation()) {
-//             // restore us to absolute map coords for drawing the children
-//             // if we were made relative
-            
-//             // TODO: change to a straight inversion of the local transform,
-//             // or create a transformLocalInverse
-//             // Actually: BETTER: keep a saveTransform we can simply
-//             // restore -- either in the LWContainer, or the DrawContext
-//             /*
-//             try {
-//                 dc.g.transform(getLocalTransform().createInverse());
-//             } catch (Throwable t) {
-//                 t.printStackTrace();
-//             }
-//             */
-            
-//             if (getScale() != 1f) {
-//                 double scaleInverse = 1.0 / getScale();
-//                 dc.g.scale(scaleInverse, scaleInverse);
-//             }
-//             dc.g.translate(-getX(), -getY());
-//         }
-        
 
         int nodes = 0;
         int links = 0;
@@ -1140,7 +1057,7 @@ public abstract class LWContainer extends LWComponent
 
                 
         //LWComponent focused = null;
-        for (LWComponent c : getChildList()) {
+        for (LWComponent c : getChildren()) {
 
             // make sure the rollover is painted on top
             // a bit of a hack to do this here -- better MapViewer
@@ -1217,37 +1134,6 @@ public abstract class LWContainer extends LWComponent
     protected void drawChild(LWComponent child, DrawContext dc)
     {
         child.drawInParent(dc);
-        
-        /*
-        if (child.hasAbsoluteMapLocation()) {
-            child.draw(dc);
-            return;
-        }
-        dc.g.translate(child.getX(), child.getY());
-        if (child.getScale() != 1f) {
-            final float scale = child.getScale();
-            dc.g.scale(scale, scale);
-        }
-        */
-
-        /*
-          moved to LWComponent.draw, so random use of LWComponent.draw will use it's location if it has one
-        if (VUE.RELATIVE_COORDS) {
-            if (child.hasAbsoluteMapLocation())
-                dc.resetMapDrawing();
-            else// this will cascade to all children when they draw, combining with their calls to transformRelative
-                child.transformRelative(dc.g);
-        } else {
-            // this will be reset here for each child
-            child.transformLocal(dc.g);
-        }
-        */
-
-//         if (hasAbsoluteChildren()) {
-//             child.draw(dc);
-//         } else {
-//             child.drawInParent(dc);
-//         }
     }
 
     /**

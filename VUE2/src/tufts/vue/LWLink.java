@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.162 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
+ * @version $Revision: 1.163 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -472,7 +472,7 @@ public class LWLink extends LWComponent
     }
 
     @Override
-    void setScale(double scale) {
+    protected void setScale(double scale) {
         ; // do nothing: links don't take on a scale of their own
     }
 
@@ -1775,7 +1775,7 @@ public class LWLink extends LWComponent
     
     /** noop */
     @Override
-    public void transformRelative(final Graphics2D g) {
+    protected void transformRelative(final Graphics2D g) {
         // do nothing: link coordinate space is in it's parent
     }
     

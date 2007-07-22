@@ -58,14 +58,12 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.462 $ / $Date: 2007-07-22 03:31:24 $ / $Author: sfraize $ 
+ * @version $Revision: 1.463 $ / $Date: 2007-07-22 23:34:28 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
-    public static final boolean RELATIVE_COORDS = true;
-        
     public static final Logger Log = Logger.getLogger(VUE.class);
     
     private static AppletContext sAppletContext = null;

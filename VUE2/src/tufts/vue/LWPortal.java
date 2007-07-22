@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.9 $ / $Date: 2007-05-23 22:01:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.10 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -91,19 +91,19 @@ public class LWPortal extends LWNode
     {
         if (DEBUG.BOXES || DEBUG.CONTAINMENT) {
             dc.g.setColor(DebugFill);
-            dc.g.fill(getShape());
+            dc.g.fill(getZeroShape());
         } else if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
             // no fill: don't show the portal fill if we, or any
             // other portal, is currently the focal
             if (false) {
                 dc.g.setColor(Color.blue);
                 dc.g.setStroke(VueConstants.STROKE_TWO);
-                dc.g.draw(getShape());
+                dc.g.draw(getZeroShape());
             }
         } else {
             // Show the portal region:
             dc.g.setColor(getRenderFillColor(dc));
-            dc.g.fill(getShape());
+            dc.g.fill(getZeroShape());
         }
     }
 

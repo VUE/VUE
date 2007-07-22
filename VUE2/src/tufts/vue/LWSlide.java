@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.53 $ / $Date: 2007-07-20 17:40:35 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-07-22 23:34:28 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -67,20 +67,19 @@ public class LWSlide extends LWContainer
 
     /** @return false: slides can't be selected with anything else */
     public boolean supportsMultiSelection() {
-        return false;
+        return isMoveable();
     }
     
     
     @Override
     public boolean isMoveable() {
-        // at moment, if no master, this is an on-map slide (functionality being tested...)
-        return getMasterSlide() == null;
+        return getParent() instanceof LWPathway == false;
     }
 
     /** @return false */
     @Override
     public boolean canLinkToImpl(LWComponent target) {
-        return false;
+        return isMoveable();
     }
     
 

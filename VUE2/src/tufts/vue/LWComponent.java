@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.309 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
+ * @version $Revision: 1.310 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2777,7 +2777,7 @@ u                    getSlot(c).setFromString((String)value);
         return 30;
     }
     
-    void setScale(double scale)
+    protected void setScale(double scale)
     {
         if (this.scale == scale)
             return;
@@ -2797,34 +2797,22 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     /**
-     * This normnally returns 1.0 (no scaling).  If VUE.RELATIVE_COORDS == false (original implementation)
-     * this scale value should be the absolute desired scale: that is, a scale value concatenated
-     * (multiplied by) all parent scales.  So if the parent scale is 0.5, and we also want this
-     * node to be at 0.5 with it's parent, the scale value should be 0.25.  If VUE.RELATIVE_COORDS == true,
-     * this returns the scale value relative to it's parent.  So for a 50% scale in it's parent,
-     * it just returns 0.5, no matter what it's parent scale is set to.
+     * @return the scale value relative to it's parent.  So for a 50% scale in it's parent,
+     * it just returns 0.5.  E.g., this would mean if the parent was also scaled at 50%,
+     * the net on-map visible scaled size of the component would be 25%.
      */
     public double getScale()
     {
         return this.scale;
     }
     
-    /** @return the on-map scale at 100% map scale -- only different from getScale() for VUE.RELATIVE_COORDS == true */
+    /** @return the on-map scale at 100% map scale (the concatentation of our scale plus all parent scales) */
     public double getMapScale()
     {
         if (getParent() == null)
             return getScale();
         else
             return getParent().getMapScale() * getScale();
-        
-//         if (VUE.RELATIVE_COORDS) {
-//             if (getParent() == null)
-//                 return getScale();
-//             else
-//                 return getParent().getMapScale() * getScale();
-//         } else {
-//             return getScale();
-//         }
     }
 
     /** Convenience for returning float */ public final float getScaleF() { return (float) getScale(); }
@@ -3184,15 +3172,15 @@ u                    getSlot(c).setFromString((String)value);
      * (do we still need this? I think this should be deprecated -- SMF)
      */
 
-    public void setAbsoluteSize(float w, float h)
-    {
-        if (true||DEBUG.LAYOUT) out("*** setAbsoluteSize " + w + "x" + h);
-        setSize(w / getScaleF(), h / getScaleF());
-        //setSize(w / getMapScaleF(), h / getMapScaleF());
-    }
+//     public void setAbsoluteSize(float w, float h)
+//     {
+//         if (true||DEBUG.LAYOUT) out("*** setAbsoluteSize " + w + "x" + h);
+//         setSize(w / getScaleF(), h / getScaleF());
+//         //setSize(w / getMapScaleF(), h / getMapScaleF());
+//     }
     
-    /** for XML restore only --todo: remove*/ public void setX(float x) { this.x = x; }
-    /** for XML restore only! --todo remove*/ public void setY(float y) { this.y = y; }
+    /** for XML restore only -- issues no event updates */ public void setX(float x) { this.x = x; }
+    /** for XML restore only -- issues no event updates */ public void setY(float y) { this.y = y; }
 
     /*
      * getMapXXX methods are for values in absolute map positions and scales (needed for VUE.RELATIVE_COORDS == true)
@@ -3204,44 +3192,26 @@ u                    getSlot(c).setFromString((String)value);
     
     public float getX() { return this.x; }
     public float getY() { return this.y; }
-    //public float getWidth() { return this.width * getScale(); }
-    //public float getHeight() { return this.height * getScale(); }
+
     public float getScaledWidth()       { return (float) (this.width * getScale()); }
     public float getScaledHeight()      { return (float) (this.height * getScale()); }
-    public float getWidth()             { return this.width;  }
+    public float getWidth()             { return this.width; }
     public float getHeight()            { return this.height; }
-    //public float getWidth()           { return VUE.RELATIVE_COORDS ? this.width : getScaledWidth(); }
-    //public float getHeight()          { return VUE.RELATIVE_COORDS ? this.height : getScaledHeight(); }
+
+    @Deprecated
+    protected float getAbsoluteWidth()     { return this.width; }
+    @Deprecated
+    protected float getAbsoluteHeight()    { return this.height; }
+    
     public float getMapWidth()          { return (float) (this.width * getMapScale()); }
     public float getMapHeight()         { return (float) (this.height * getMapScale()); }
-    public float getAbsoluteWidth()     { return this.width; }
-    public float getAbsoluteHeight()    { return this.height; }
-    public float getBoundsWidth()       { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
+
+    // do we still need these?  if so rename getBorder* for consistency
     public float getBoundsHeight()      { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
+    public float getBoundsWidth()       { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
     public float getScaledBoundsWidth() { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
     public float getScaledBoundsHeight() { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
-    //public float getBoundsWidth() { return (this.width + this.strokeWidth);  }
-    //public float getBoundsHeight() { return (this.height + this.strokeWidth); }
-    //public float getBoundsWidth() { return (this.width + this.strokeWidth) * getScale(); }
-    //public float getBoundsHeight() { return (this.height + this.strokeWidth) * getScale(); }
-
-    /*
-    private class ParentIterator implements Iterator<LWContainer>, Iterable<LWContainer> {
-        final LinkedList<LWContainer> list = new LinkedList();
-        ParentIterator() {
-            LWContainer parent = getParent();
-            do {
-                list.addFirst(parent);
-                parent = parent.getParent();
-            } while (parent != null);
-            list.removeFirst();
-        }
-        public LWContainer next() { return null; }
-        public boolean hasNext() { return false; }
-        public void remove() { throw new UnsupportedOperationException(toString()); }
-        public Iterator<LWContainer> iterator() { return list.iterator(); }
-    }
-    */
+    
 
 
     protected double getMapXPrecise()
@@ -3612,27 +3582,32 @@ u                    getSlot(c).setFromString((String)value);
         else
             return transformDown(parent.getRelativeTransform(ancestor));
     }
-    
+
 
     /** transform the given AffineTransform down from our parent to us, the child */
+    // transformDown + transformRelative are the two core routines that everything
+    // ultimate uses -- e.g., placing a test rotation in these methods makes
+    // it work everywhere that's using the transformation code.
     protected AffineTransform transformDown(final AffineTransform a) {
         a.translate(getX(), getY());
         final double scale = getScale();
         if (scale != 1)
             a.scale(scale, scale);
-        //if (parent instanceof LWMap) a.rotate(Math.PI / 16); // test
+        //if (parent instanceof LWMap) a.rotate(Math.PI / 8); // test
         return a;
     }
 
     /** transform relative to the child after already being transformed relative to the parent */
-    public void transformRelative(final Graphics2D g) {
-        if (!VUE.RELATIVE_COORDS) throw new Error("non-relative coordinate impl!");
-
+    // transformDown + transformRelative are the two core routines that everything
+    // ultimate uses -- e.g., placing a test rotation in these methods makes
+    // it work everywhere that's using the transformation code.
+    // todo: also rename to transformDown for consistency
+    protected void transformRelative(final Graphics2D g) {
         g.translate(getX(), getY());
         final double scale = getScale();
         if (scale != 1)
             g.scale(scale, scale);
-        //if (parent instanceof LWMap) g.rotate(Math.PI / 16); // test
+        //if (parent instanceof LWMap) g.rotate(Math.PI / 8); // test
     }
 
     /** Will transform all the way from the the map down to the component, wherever nested/scaled.
@@ -4004,9 +3979,6 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public Rectangle2D.Float getMapSlideIconBounds() {
-        if (!VUE.RELATIVE_COORDS)
-            return getSlideIconBounds();
-        
         Rectangle2D.Float slideIcon = (Rectangle2D.Float) getSlideIconBounds().clone();
         final float scale = getMapScaleF();
         // Compress the local slide icon coords into the node's scale space:
@@ -4050,17 +4022,10 @@ u                    getSlot(c).setFromString((String)value);
         if (yoff > corner.y)
             yoff = corner.y;
 
-        if (VUE.RELATIVE_COORDS) {
-            rect.setRect(xoff,
-                         yoff,
-                         width,
-                         height);
-        } else {
-            rect.setRect(getX() + xoff,
-                         getY() + yoff,
-                         width,
-                         height);
-        }
+        rect.setRect(xoff,
+                     yoff,
+                     width,
+                     height);
         
         return rect;
     }

@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.24 $ / $Date: 2007-07-17 22:53:56 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2007-07-22 23:34:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -329,7 +329,12 @@ public class LWTraversal {
                 // have a direct hit on say, a node, and a close hit on a sibling such
                 // as a link that is connected to the node.  In that case we want to
                 // stay with the direct hit on the node and ignore the link, no matter
-                // how close we may be to it.
+                // how close we may be to it.  The one case this isn't ideal is if there
+                // is a link to a node that is currently linking to it's center, and not
+                // an edge, in which case the link actually does overlap it's sibling,
+                // and we could theoretically find out which portion overlaps and allow
+                // a close-hit on that, but this is a rare case and dealing with it
+                // would hardly be worth it.
 
                 final float closeEnoughSq;
                 if (pc.zoom < 1) {

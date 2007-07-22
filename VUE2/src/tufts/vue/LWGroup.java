@@ -42,7 +42,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.75 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -165,7 +165,10 @@ public class LWGroup extends LWContainer
         // current FIFO ordering appears to cover us (as long as the group is normalized
         // by the end of it's creation).
         
-        final Collection<LWComponent> reparenting = 
+        final Collection<LWComponent> reparenting;
+        
+        if (true) {
+            reparenting = 
             new HashSet<LWComponent>() {
                 @Override
                 public boolean add(LWComponent c) {
@@ -179,55 +182,64 @@ public class LWGroup extends LWContainer
                 }
             };
 
-        reparenting.addAll(selection);
+            reparenting.addAll(selection);
+            
+            setShapeFromContents(reparenting);
+        }
 
-        setShapeFromContents(reparenting);
-
+        else
+            
+        {
         
-//         //----------------------------------------------------------------------------------------
-//         // If both ends of any link are in the selection of what's being added to the
-//         // group, or are descendents of what's be added to the group, and that link's
-//         // parent is not already something other than the default link parent, scoop it
-//         // up as a proper child of the new group.
-//         //
-//         // Although the link cleanup task also enforces this condition, adding this code
-//         // here is much more perfomant when creating large groups, and it simplifies the
-//         // initial group creation code.
-//         //
-//         // OOPS -- PROBLEM: if we grab ANY links here, if they have any control points, when
-//         // their coordinates are localized, there's no undo manager to catch those events,
-//         // because this is a group under creation, and as such isn't in the model till
-//         // it's done being created!  (Mind you, this is also true for nodes, but curved
-//         // links have this special case problem of trying to undo a translate, as links
-//         // don't have a real location...)
-//         //
-//         // So the upshot is that our slow method of only adding links at the end
-//         // with cleanup tasks handles this better, because then the undo manager
-//         // gets all the events needed to sort things out...
-//         //----------------------------------------------------------------------------------------
-//         final Collection<LWComponent> allUniqueDescendents = new HashSet();
-//         final Collection<LWComponent> reparenting = new HashSet();
-//         for (LWComponent c : nodes) {
-//             //if (c instanceof LWLink) // the only links allowed are ones we grab
-//             //  continue; // enabled in order to support reveal's with links in them
-//             reparenting.add(c);
-//             allUniqueDescendents.add(c);
-//             c.getAllDescendents(ChildKind.PROPER, allUniqueDescendents);
-//         }
-//         final HashSet uniqueLinks = new HashSet();
-//         for (LWComponent c : allUniqueDescendents) {
-//             if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
-//             for (LWLink l : c.getLinks()) {
-//                 boolean bothEndsInPlay = !uniqueLinks.add(l);
-//                 if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
-//                 //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
-//                 if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
-//                     if (DEBUG.PARENTING) out("GRABBING " + l + " (both ends in group)");
-//                     reparenting.add(l);
-//                 }
-//             }
-//         }
-
+        //----------------------------------------------------------------------------------------
+        // If both ends of any link are in the selection of what's being added to the
+        // group, or are descendents of what's be added to the group, and that link's
+        // parent is not already something other than the default link parent, scoop it
+        // up as a proper child of the new group.
+        //
+        // Although the link cleanup task also enforces this condition, adding this code
+        // here is much more perfomant when creating large groups, and it simplifies the
+        // initial group creation code.
+        //
+        // OOPS -- PROBLEM: if we grab ANY links here, if they have any control points, when
+        // their coordinates are localized, there's no undo manager to catch those events,
+        // because this is a group under creation, and as such isn't in the model till
+        // it's done being created!  (Mind you, this is also true for nodes, but curved
+        // links have this special case problem of trying to undo a translate, as links
+        // don't have a real location...)
+        //
+        // So the upshot is that our slow method of only adding links at the end
+        // with cleanup tasks handles this better, because then the undo manager
+        // gets all the events needed to sort things out...
+        //----------------------------------------------------------------------------------------
+        //final Collection<LWComponent> reparenting = new HashSet();
+        reparenting = new HashSet();
+        final Collection<LWComponent> allUniqueDescendents = new HashSet();
+        for (LWComponent c : selection) {
+            reparenting.add(c);
+            allUniqueDescendents.add(c);
+            c.getAllDescendents(ChildKind.PROPER, allUniqueDescendents);
+        }
+        final HashSet uniqueLinks = new HashSet();
+        for (LWComponent c : allUniqueDescendents) {
+            if (DEBUG.PARENTING) out("ALL UNIQUE " + c);
+            for (LWLink l : c.getLinks()) {
+                boolean bothEndsInPlay = !uniqueLinks.add(l);
+                if (DEBUG.PARENTING) out("SEEING LINK " + l + " IN-PLAY=" + bothEndsInPlay);
+                //if (bothEndsInPlay && l.getParent() instanceof LWMap) { // why this LWMap check? is old in any case: need to allow slides
+                // TODO: right way to do this: only if link parent is currently the same as the top
+                // level parent all the selection contents are coming from...
+                if (bothEndsInPlay && !(c.getParent() instanceof LWGroup)) { // don't pull out of embedded group
+                    if (DEBUG.PARENTING) out("GRABBING " + l + " (both ends in group)");
+                    reparenting.add(l);
+                }
+            }
+        }
+        
+        setShapeFromContents(reparenting);
+        }
+        //----------------------------------------------------------------------------------------
+        
         
         // Be sure to preserve the current relative ordering of all
         // these components the new group.
@@ -397,7 +409,7 @@ public class LWGroup extends LWContainer
      */
     private Rectangle2D.Float getPreNormalBounds()
     {
-        if (getChildList().size() < 2) // if only zero or one child, we should be about to disperse...
+        if (numChildren() < 2) // if only zero or one child, we should be about to disperse...
             return LWMap.EmptyBounds;
         else
             return LWMap.getLocalBorderBounds(getChildren());
@@ -421,8 +433,8 @@ public class LWGroup extends LWContainer
             if (isDeleted())
                 return;
             
-            if (getChildList().size() < 2) {
-                if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("AUTO-DISPERSING on child count " + getChildList().size());
+            if (numChildren() < 2) {
+                if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("AUTO-DISPERSING on child count " + numChildren());
                 disperse();
             } else {
                 normalize();
@@ -523,7 +535,7 @@ public class LWGroup extends LWContainer
     
     private void translateSelection(double dx, double dy)
     {
-        for (LWComponent c : getChildList()) {
+        for (LWComponent c : getChildren()) {
 
             // If parent and some child both in selection and you drag, the selection
             // (an LWGroup) and the parent fight to control the location of the child.
@@ -680,7 +692,7 @@ public class LWGroup extends LWContainer
         if (hasDecoratedFeatures()) {
             return super.intersectsImpl(rect);
         } else {
-            for (LWComponent c : getChildList())
+            for (LWComponent c : getChildren())
                 if (c.intersects(rect))                 // todo: not in parent coords (?)
                     return true;
             return false;
