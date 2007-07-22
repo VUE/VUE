@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.147 $ / $Date: 2007-07-22 03:31:23 $ / $Author: sfraize $
+ * @version $Revision: 1.148 $ / $Date: 2007-07-22 23:33:00 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -482,17 +482,21 @@ public class LWMap extends LWContainer
         // Start by calling this on the map itself.
 
         for (LWComponent c : children) {
-            if (c instanceof LWContainer && c.hasChildren()) {
-                if (isGroupRelative(getModelVersion()) && c instanceof LWGroup) {
-                    if (DEBUG.Enabled) System.out.println(" DM#1 ALREADY RELATIVE EXCEPT LINKS: " + c);
-                    //((LWGroup)c).normalize(); // we normalize all groups later
-                    continue;
+            if (c instanceof LWContainer && c.hasChildren() && !c.isManagingChildLocations()) {
+
+                if (c instanceof LWGroup) {
+                    // old groups didn't support fill color, but may have had one persisted anyway:
+                    if (java.awt.Color.white.equals(c.getFillColor()))
+                        c.setFillColor(null);
+                    if (isGroupRelative(getModelVersion())) {
+                        if (DEBUG.Enabled) System.out.println(" DM#1 ALREADY RELATIVE EXCEPT LINKS: " + c);
+                        //((LWGroup)c).normalize(); // we normalize all groups later
+                        continue;
+                    }
                 }
                 
                 upgradeAbsoluteToRelativeCoords((LWContainer) c);
                 upgradeAbsoluteToRelativeCoords(c.getChildren());
-                //if (c instanceof LWGroup)
-                //    ((LWGroup)c).normalize(); // TODO: may need to wait till everything is laid out? see test-pathway.vue
             }
         }
     }
@@ -507,13 +511,15 @@ public class LWMap extends LWContainer
             final LWContainer parent = link.getParent();
 
             if (parent instanceof LWMap) {
-                if (DEBUG.Enabled) System.out.println("LINK ALREADY RELATIVE: " + link);
+                //if (DEBUG.Enabled) System.out.println("LINK ALREADY RELATIVE: " + link);
             } else {
                 //if (DEBUG.Enabled) System.out.println("MAKING LINK PARENT RELATIVE: " + link);
                 if (DEBUG.Enabled) link.out("MAKING LINK PARENT RELATIVE");
                 // theoretically the parent could be scaled -- e.g., link is in a group that
                 // is in a node, tho this is rare case...
-                link.translate(-parent.getX(), -parent.getY());
+                // Parent container should already have been converted to relative,
+                // so we now need to use getMapX/Y here for the offset:
+                link.translate(-parent.getMapX(), -parent.getMapY());
             }
             
             // Now make sure link is parented to it's common parent:
@@ -528,6 +534,10 @@ public class LWMap extends LWContainer
         for (LWComponent c : container.getChildren()) {
             if (c instanceof LWLink)
                 continue;
+            // todo??? use getX/Y or getMapX/Y ? if the component and container are UNCOVERTED ALREADY,
+            // then getX/Y is fine, as these are already in the old absolute form -- but if, e.g.,
+            // the container were already converted, we need to use getMapX/Y -- check the order
+            // of operations here...
             c.takeLocation(c.getX() - container.getX(),
                            c.getY() - container.getY());
         }
@@ -1185,7 +1195,7 @@ public class LWMap extends LWContainer
     public AffineTransform transformDown(final AffineTransform a) { return a; }
     /** optimized LWMap noop: remove if/when embed maps in maps */
     @Override
-    public void transformRelative(final Graphics2D g) {}
+    protected void transformRelative(final Graphics2D g) {}
     /** optimized LWMap noop: remove if/when embed maps in maps */
     @Override
     public void transformZero(final Graphics2D g) {}
