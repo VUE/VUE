@@ -220,7 +220,7 @@ public class HierarchyViewHierarchyModel extends HierarchyModel {
         
         if (previousNode != null)
         {
-            x = previousNode.getX() + previousNode.getBoundsWidth() + 2;
+            x = previousNode.getX() + previousNode.getLocalBorderWidth() + 2;
             y = previousNode.getY();
         }
         
