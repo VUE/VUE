@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.11 $ / $Date: 2007-06-04 21:14:04 $ / $Author: dan $
+ * @version $Revision: 1.12 $ / $Date: 2007-07-23 18:35:47 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -48,8 +48,12 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     private JButton generateButton;
     private boolean dynamic = false;
     
+    private DockWindow dw;
+    
     public MergeMapsControlPanel(final DockWindow dw) 
     {
+        this.dw = dw;
+        
         
         String dynamicString = VueResources.getString("merge.view.settings.dynamic");
         if(dynamicString.equals("true"))
@@ -103,22 +107,50 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                dw.setVisible(false);
            }
         });
-        generateButton = new JButton("Generate");
+        generateButton = new JButton("Generate New Map");
         generateButton.addActionListener(new ActionListener()
         {
            public void actionPerformed(ActionEvent e)
            {
-               LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
+               //final LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
                //merge.setMapList(mapSelectionPanel.getMapList());
                //merge.setBaseMap(mapSelectionPanel.getBaseMap());
                
-               setMergeMapSettings(merge);
+               //setMergeMapSettings(merge);
                
-               if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
+               Runnable merger = new Runnable()
+               {
+                   public void run()
+                   {
+                      LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
+                      setMergeMapSettings(merge);
+                      JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
+                      //JPanel loadingLabel = new JPanel(new BorderLayout());
+                      JPanel loadingLabel = new JPanel();
+                      loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+                      loadingLabel.add(loadingLabelImage);
+                      
+                      dw.setContent(loadingLabel);
+                      
+                      if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
+                        merge.fillAsVoteMerge();
+                      else
+                        merge.fillAsWeightMerge();
+                        VUE.displayMap(merge);
+                        dw.setContent(MergeMapsControlPanel.this);
+                        dw.repaint();
+                   }
+               };
+               
+               Thread mergeThread = new Thread(merger);
+               mergeThread.start();
+               //SwingUtilities.invokeLater(merger);
+               
+               /*if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
                  merge.fillAsVoteMerge();
                else
                  merge.fillAsWeightMerge();
-               MapViewer v = VUE.displayMap(merge);
+               MapViewer v = VUE.displayMap(merge);*/
                
                //tufts.vue.LWCEvent event = new tufts.vue.LWCEvent(v,merge,new LWComponent.Key("Merge Map Displayed"));
                //v.LWCChanged(event);
