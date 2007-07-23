@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.136 $ / $Date: 2007-06-26 18:43:21 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.136 2007-06-26 18:43:21 anoop Exp $ -->
+<!-- $Revision: 1.137 $ / $Date: 2007-07-23 20:03:05 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.137 2007-07-23 20:03:05 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -150,6 +150,7 @@
                    VUE-MacOSX.jar
                    VUE-Java15.jar
                    activation_unsigned.jar
+                   arq-2.5.3.jar
                    mail.jar
                    saaj-api-unsigned.jar
                    saaj-impl-unsigned.jar
@@ -179,7 +180,7 @@
                    id.jar
                    jakarta-regexp-1.2.jar
                    jdom.jar
-                   jena-2.5.2.jar
+                   jena-2.5.3.jar
 				   jhapi.jar
                    jakarta-oro-2.0.8.jar
 				   javatar.jar
@@ -308,6 +309,7 @@
     <pathelement path="${lib.home}/fedora-client.jar"/>
     <pathelement path="${lib.home}/fedora-server.jar"/>
     <pathelement path="${lib.home}/googleapi.jar"/>
+    <pathelement path="${lib.home}/arq-2.5.3.jar" />
     <pathelement path="${lib.home}/axis.jar"/>
     <pathelement path="${lib.home}/axis-ant.jar"/>
     <pathelement path="${lib.home}/commons-discovery.jar"/>
@@ -344,7 +346,7 @@
     <pathelement path="${lib.home}/jsse.jar" />
     <pathelement path="${lib.home}/javatar.jar" />
     <pathelement path="${lib.home}/jms.jar" />
-    <pathelement path="${lib.home}/jena-2.5.2.jar" />
+    <pathelement path="${lib.home}/jena-2.5.3.jar" />
     <pathelement path="${lib.home}/namespace.jar" />
     <pathelement path="${lib.home}/xsdlib.jar" />
     <pathelement path="${lib.home}/jaxrpc-api.jar" />
