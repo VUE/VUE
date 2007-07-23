@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.416 $ / $Date: 2007-07-22 23:34:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.417 $ / $Date: 2007-07-23 23:44:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3650,7 +3650,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                     String s = null;
                     if (LWC instanceof LWMap && ((LWMap)LWC).getFile() != null)
-                        s = ((LWMap)LWC).getFile().toString();
+                        s = ((LWMap)LWC).getFile().getAbsolutePath();
                     if (LWC.hasResource())
                         s = LWC.getResource().toString();
                     if (s == null && LWC.hasLabel())
