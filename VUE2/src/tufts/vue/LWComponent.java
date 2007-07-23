@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.311 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
+ * @version $Revision: 1.312 $ / $Date: 2007-07-23 23:43:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2033,12 +2033,10 @@ u                    getSlot(c).setFromString((String)value);
     
     public boolean isTransparent() {
         return mFillColor.isTransparent();
-        //return fillColor == null || fillColor.getAlpha() == 0;
     }
     
     public boolean isTranslucent() {
         return mFillColor.isTranslucent();
-        //return fillColor == null || fillColor.getAlpha() != 0xFF;
     }
     
     /**
@@ -2061,7 +2059,6 @@ u                    getSlot(c).setFromString((String)value);
     
     void takeFillColor(Color color) {
         mFillColor.take(color);
-        //this.fillColor = color;
     }
 
     // We still need these standard style setters & getters for backward compat
