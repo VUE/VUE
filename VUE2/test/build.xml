@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.28 $ / $Date: 2007-06-19 18:06:34 $ -->
+<!-- $Revision: 1.29 $ / $Date: 2007-07-23 20:26:24 $ -->
 
 <!-- 
 This ant build file:
@@ -332,13 +332,13 @@ This ant build file:
 		<classpath refid="compile.classpath"/>
 		<sysproperty key="testProfile" value="sakai-basicProfile.xml"/>
 	</java>
--->	
 	<echo message="Submitted Adapter Test"/>
 	<java classname="junit.textui.TestRunner" failonerror="true" fork="true">
 		<arg value="edu.tufts.osidimpl.testing.repository.OsidTester"/>
 		<classpath refid="compile.classpath"/>
 		<sysproperty key="testProfile" value="submissionAdapterProfile.xml"/>
 	</java>
+-->	
 	</target>
 	
 	<!--- =============  Sakai Integration Tests =========-->

@@ -124,7 +124,7 @@
               <!--If a Value element has a value, the Type element must also have a value-->
 
               <part>
-                <type>partStructure/URL@mit.edu</type>
+                <parttype>partStructure/URL@mit.edu</parttype>
 
                 <value>http://www.blackshipsandsamurai.com/BSS_COLLECTION_JPEGS/01_375L_narr_Dinner_lg.jpg</value>
               </part>
@@ -137,20 +137,20 @@
   <assettypes repositoryid="VC.001">
    <type>asset/image@mit.edu</type>
   </assettypes>
+
   <assetsbytype repositoryid="VC.001">
-   <type>
-	asset/image@mit.edu
+   <assettype>asset/image@mit.edu</assettype>
 	<assets any="false">
 	 <asset>
 	  <displayname />
 	  <description />
-	  <id>01_375L_narr_Dinner</id>
+	  <id>01_001_narr_Title</id>
 	  <type />
 	 </asset>
 	</assets>
-   </type>
   </assetsbytype>
-  <supportsbrowsing repositoryid="VC.001">true</supportsbrowsing>
-  <supportssearching repositoryid="VC.001">true</supportssearching>
-  <supportsupdating repositoryid="VC.001">true</supportsupdating>
+
+  <supportsbrowse repositoryid="VC.001">true</supportsbrowse>
+  <supportssearch repositoryid="VC.001">true</supportssearch>
+  <supportsupdate repositoryid="VC.001">true</supportsupdate>
 </managerImpl>

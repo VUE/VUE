@@ -36,15 +36,15 @@ public class GetAssetsByTypeTest extends TestCase
 					org.osid.shared.Id id = Utilities.getIdManager().getId(idString);
 					org.osid.repository.Repository repository = repositoryManager.getRepository(id);
 					
-					org.w3c.dom.NodeList typesNodeList = repositoryElement.getElementsByTagName(OsidTester.TYPE_TAG);
+					org.w3c.dom.NodeList typesNodeList = repositoryElement.getElementsByTagName(OsidTester.ASSET_TYPE_TAG);
 					int numTypes = typesNodeList.getLength();
 					for (int j=0; j < numTypes; j++) {
 						org.w3c.dom.Element typeElement = (org.w3c.dom.Element)typesNodeList.item(j);
 						String assetTypeString = null;
 						assetTypeString = typeElement.getFirstChild().getNodeValue();
 						org.osid.shared.Type assetType = Utilities.stringToType(assetTypeString);
-						
-						org.w3c.dom.NodeList assetNodeList = typeElement.getElementsByTagName(OsidTester.ASSET_TAG);
+  						
+						org.w3c.dom.NodeList assetNodeList = repositoryElement.getElementsByTagName(OsidTester.ASSET_TAG);
 						int numAssets = assetNodeList.getLength();
 						if (numAssets > 0) {
 							
@@ -55,7 +55,7 @@ public class GetAssetsByTypeTest extends TestCase
 								org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
 								
 								// check asset metadata, if specified
-								System.out.println("Assets by Type");
+								System.out.println("PASSED: Assets by Type");
 								AssetMetadataTest amt = new AssetMetadataTest(nextAsset,assetElement,(new Integer(i)).toString());
 							}
 						}
