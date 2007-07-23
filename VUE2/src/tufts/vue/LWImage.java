@@ -407,8 +407,8 @@ public class LWImage extends
     public synchronized void gotImageError(Object imageSrc, String msg) {
         // set image dimensions so if we resize w/out image it works
         mImageError = true;
-        mImageWidth = (int) getAbsoluteWidth();
-        mImageHeight = (int) getAbsoluteHeight();
+        mImageWidth = (int) getWidth();
+        mImageHeight = (int) getHeight();
         if (mImageWidth < 1) {
             mImageWidth = 128;
             mImageHeight = 128;
@@ -427,9 +427,9 @@ public class LWImage extends
         // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
         // They can still crop down if they like, but this prevents them from making it any bigger.
         if (mImageWidth < 0)
-            mImageWidth = (int) getAbsoluteWidth();
+            mImageWidth = (int) getWidth();
         if (mImageHeight < 0)
-            mImageHeight = (int) getAbsoluteHeight();
+            mImageHeight = (int) getHeight();
     }
 
     /** record the actual pixel dimensions of the underlying raw image */
@@ -600,7 +600,7 @@ public class LWImage extends
     private Shape getClipShape() {
         //return super.drawnShape;
         // todo: cache & handle knowing if we need to update
-        return new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight());
+        return new Rectangle2D.Float(0,0, getWidth(), getHeight());
     }
 
     private static final AlphaComposite HudTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.1f);
@@ -687,7 +687,7 @@ public class LWImage extends
 //         if (getStrokeWidth() > 0) {
 //             dc.g.setStroke(new BasicStroke(getStrokeWidth() * 2));
 //             dc.g.setColor(getStrokeColor());
-//             dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+//             dc.g.draw(new Rectangle2D.Float(0,0, getWidth(), getHeight()));
 //         }
 
         drawImage(dc);
@@ -695,7 +695,7 @@ public class LWImage extends
         if (getStrokeWidth() > 0) {
             dc.g.setStroke(this.stroke);
             dc.g.setColor(getStrokeColor());
-            dc.g.draw(new Rectangle2D.Float(0,0, getAbsoluteWidth(), getAbsoluteHeight()));
+            dc.g.draw(new Rectangle2D.Float(0,0, getWidth(), getHeight()));
         }
         
         if (isSelected() && dc.isInteractive()) {
@@ -720,8 +720,8 @@ public class LWImage extends
     protected void drawImage(DrawContext dc)
     {    	    	
         if (mImage == null) {
-            int w = (int) getAbsoluteWidth();
-            int h = (int) getAbsoluteHeight();
+            int w = (int) getWidth();
+            int h = (int) getHeight();
             if (mImageError)
                 dc.g.setColor(ErrorColor);
             else
@@ -761,8 +761,8 @@ public class LWImage extends
     protected void drawImage(DrawContext dc)
     {    	    	
         if (mImage == null) {
-            int w = (int) getAbsoluteWidth();
-            int h = (int) getAbsoluteHeight();
+            int w = (int) getWidth();
+            int h = (int) getHeight();
             if (mImageError)
                 dc.g.setColor(ErrorColor);
             else
@@ -881,10 +881,10 @@ public class LWImage extends
             off.x = 0;
         if (off.y > 0)
             off.y = 0;
-        if (off.x + getImageWidth() < getAbsoluteWidth())
-            off.x = getAbsoluteWidth() - getImageWidth();
-        if (off.y + getImageHeight() < getAbsoluteHeight())
-            off.y = getAbsoluteHeight() - getImageHeight();
+        if (off.x + getImageWidth() < getWidth())
+            off.x = getWidth() - getImageWidth();
+        if (off.y + getImageHeight() < getHeight())
+            off.y = getHeight() - getImageHeight();
     }
     
     /** Keep LWImage filled with image bits (never display "area" outside of the image)
@@ -914,15 +914,15 @@ public class LWImage extends
             off.y = 0;
         }
         // Keep us from panning beyond right or bottom
-        if (getImageWidth() + off.x < getAbsoluteWidth()) {
+        if (getImageWidth() + off.x < getWidth()) {
             //System.out.println("out right");
-            loc.x = (imageStart.x + getImageWidth()) - getAbsoluteWidth();
-            off.x = getAbsoluteWidth() - getImageWidth();
+            loc.x = (imageStart.x + getImageWidth()) - getWidth();
+            off.x = getWidth() - getImageWidth();
         }
-        if (getImageHeight() + off.y < getAbsoluteHeight()) {
+        if (getImageHeight() + off.y < getHeight()) {
             //System.out.println("out bot");
-            loc.y = (imageStart.y + getImageHeight()) - getAbsoluteHeight();
-            off.y = getAbsoluteHeight() - getImageHeight();
+            loc.y = (imageStart.y + getImageHeight()) - getHeight();
+            off.y = getHeight() - getImageHeight();
         }
 
     }
@@ -1039,7 +1039,7 @@ public class LWImage extends
             mImage = image;
             setRawImageSize(image.getWidth(null), image.getHeight(null));
             // If the size hasn't already been set, set it.
-            //if (getAbsoluteWidth() < 10 && getAbsoluteHeight() < 10)
+            //if (getWidth() < 10 && getHeight() < 10)
                 setSize(mImageWidth, mImageHeight);
             notify(LWKey.RepaintAsync);
         } else {
@@ -1137,8 +1137,8 @@ public class LWImage extends
             if (DEBUG.IMAGE) out("ERROR");
             mImageError = true;
             // set image dimensions so if we resize w/out image it works
-            mImageWidth = (int) getAbsoluteWidth();
-            mImageHeight = (int) getAbsoluteHeight();
+            mImageWidth = (int) getWidth();
+            mImageHeight = (int) getHeight();
             if (mImageWidth < 1) {
                 mImageWidth = 100;
                 mImageHeight = 100;

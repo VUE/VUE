@@ -985,7 +985,7 @@ private static int OverviewMapSizeIndex = 5;
         
         for (NavNode nav : mNavNodes) {
             if (DEBUG.PRESENT) System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
-            if (nav.containsParentCoord(e.getX(), e.getY())) {
+            if (nav.containsLocalCoord(e.getX(), e.getY())) {
                 if (DEBUG.PRESENT) System.out.println("HIT " + nav);
                 if (nav.page.equals(mVisited.prev())) {
                     revisitPrior();

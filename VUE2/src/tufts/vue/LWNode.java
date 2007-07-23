@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.176 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.177 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1361,7 +1361,7 @@ public class LWNode extends LWContainer
         
         while (i.hasNext()) {
             LWComponent c = (LWComponent) i.next();
-            float w = c.getBoundsWidth();
+            float w = c.getLocalBorderWidth();
             if (w > maxWidth)
                 maxWidth = w;
         }
@@ -1699,11 +1699,11 @@ public class LWNode extends LWContainer
             else
                 y += ChildVerticalGap * getScale();
             c.setLocation(baseX, y);
-            y += c.getScaledHeight();
+            y += c.getLocalHeight();
 
             if (result != null) {
                 // track max width
-                float w = c.getScaledBoundsWidth();
+                float w = c.getLocalBorderWidth();
                 if (w > maxWidth)
                     maxWidth = w;
             }
@@ -1731,7 +1731,7 @@ public class LWNode extends LWContainer
             while (i.hasNext()) {
                 LWComponent c = (LWComponent) i.next();
                 if (center)
-                    c.setLocation(baseX + (width - c.getBoundsWidth())/2, y);
+                    c.setLocation(baseX + (width - c.getLocalBorderWidth())/2, y);
                 else
                     c.setLocation(baseX, y);
                 y += c.getHeight();
@@ -1747,7 +1747,7 @@ public class LWNode extends LWContainer
         void addChild(LWComponent c)
         {
             super.add(c);
-            float w = c.getBoundsWidth();
+            float w = c.getLocalBorderWidth();
             if (w > width)
                 width = w;
         }

@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.148 $ / $Date: 2007-07-22 23:33:00 $ / $Author: sfraize $
+ * @version $Revision: 1.149 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -476,13 +476,16 @@ public class LWMap extends LWContainer
 //         processed.add(container);
 //     }
 
+    /** recursively upgrade all children */
+    
     private void upgradeAbsoluteToRelativeCoords(Collection<LWComponent> children)
     {
         // We must process the components top-down: adjust parent, then adjust children
-        // Start by calling this on the map itself.
+        // Start by calling this on the children of the map itself.  The top level
+        // children of the don't need adjusting -- only their children.
 
         for (LWComponent c : children) {
-            if (c instanceof LWContainer && c.hasChildren() && !c.isManagingChildLocations()) {
+            if (c instanceof LWContainer && c.hasChildren()) {
 
                 if (c instanceof LWGroup) {
                     // old groups didn't support fill color, but may have had one persisted anyway:
@@ -495,7 +498,8 @@ public class LWMap extends LWContainer
                     }
                 }
                 
-                upgradeAbsoluteToRelativeCoords((LWContainer) c);
+                if (!c.isManagingChildLocations())
+                    upgradeAbsoluteToRelativeCoords((LWContainer) c);
                 upgradeAbsoluteToRelativeCoords(c.getChildren());
             }
         }

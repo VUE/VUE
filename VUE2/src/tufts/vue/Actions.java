@@ -1286,7 +1286,7 @@ public class Actions implements VueConstants
                 // staggering (the x adjustment) does give them more flexibility on future
                 // arrange actions tho.
                 newLocation.setLocation(lastLocation.getX() + 10,
-                                        lastLocation.getY() + lastItem.getBoundsHeight());
+                                        lastLocation.getY() + lastItem.getLocalBorderHeight());
             }
 
             lastItem = createNewItem(viewer, newLocation);

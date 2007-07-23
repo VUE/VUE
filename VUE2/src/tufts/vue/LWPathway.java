@@ -49,7 +49,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.173 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.174 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1161,6 +1161,8 @@ public class LWPathway extends LWContainer
             // a map-view node)
             // Actually, totally recheck this.  Good enough for now tho.
 
+            out("DRAWING in " + dc);
+            
             if (!getFillColor().equals(dc.getFill())) {
                 dc.g.setColor(getFillColor());
                 dc.g.fill(getZeroShape());

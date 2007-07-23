@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.310 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.311 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3179,8 +3179,15 @@ u                    getSlot(c).setFromString((String)value);
 //         //setSize(w / getMapScaleF(), h / getMapScaleF());
 //     }
     
-    /** for XML restore only -- issues no event updates */ public void setX(float x) { this.x = x; }
-    /** for XML restore only -- issues no event updates */ public void setY(float y) { this.y = y; }
+    /** for XML restore only -- issues no event updates */
+    public void setX(float x) { this.x = x; }
+    /** for XML restore only -- issues no event updates */
+    public void setY(float y) { this.y = y; }
+    /** for castor restore -- will not trigger any events */
+    public void setWidth(float w) { this.width = w; }
+    /** for castor restore -- will not trigger any events */
+    public void setHeight(float h) { this.height = h; }
+    
 
     /*
      * getMapXXX methods are for values in absolute map positions and scales (needed for VUE.RELATIVE_COORDS == true)
@@ -3190,27 +3197,25 @@ u                    getSlot(c).setFromString((String)value);
      * (better naming scheme might be "getRenderXXX" or "getAbsoluteXX" ?)
      */
     
-    public float getX() { return this.x; }
-    public float getY() { return this.y; }
+    public float getX()         { return this.x; }
+    public float getY()         { return this.y; }
+    public float getWidth()     { return this.width; }
+    public float getHeight()    { return this.height; }
 
-    public float getScaledWidth()       { return (float) (this.width * getScale()); }
-    public float getScaledHeight()      { return (float) (this.height * getScale()); }
-    public float getWidth()             { return this.width; }
-    public float getHeight()            { return this.height; }
-
-    @Deprecated
-    protected float getAbsoluteWidth()     { return this.width; }
-    @Deprecated
-    protected float getAbsoluteHeight()    { return this.height; }
+    /** @return the width inside the local parent (width * scale) */
+    public float getLocalWidth()       { return (float) (this.width * getScale()); }
+    /** @return the height inside the local parent (height * scale) */
+    public float getLocalHeight()      { return (float) (this.height * getScale()); }
     
+    /** @return on-map width when viewed at 100% */
     public float getMapWidth()          { return (float) (this.width * getMapScale()); }
+    /** @return on-map height when viewed at 100% */
     public float getMapHeight()         { return (float) (this.height * getMapScale()); }
 
-    // do we still need these?  if so rename getBorder* for consistency
-    public float getBoundsHeight()      { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
-    public float getBoundsWidth()       { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
-    public float getScaledBoundsWidth() { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
-    public float getScaledBoundsHeight() { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
+    /** @return local width including any border stroke ((width + stroke) * scale) */
+    public float getLocalBorderWidth() { return (float) ((this.width + mStrokeWidth.get()) * getScale()); }
+    /** @return local height including any border stroke ((height + stroke) * scale) */
+    public float getLocalBorderHeight() { return (float) ((this.height + mStrokeWidth.get()) * getScale()); }
     
 
 
@@ -3380,19 +3385,6 @@ u                    getSlot(c).setFromString((String)value);
     //-----------------------------------------------------------------------------
     
 
-
-    // these 2 for persistance ONLY -- they don't deliver detectable events!
-    /** for persistance ONLY */
-    public void setAbsoluteWidth(float w) { this.width = w; }
-    /** for persistance ONLY */
-    public void setAbsoluteHeight(float h) { this.height = h; }
-    
-    /* @return true if when this this component draws, it draws and picks on the map as a whole, not relative to it's coordinate space (default is false) */
-    //public boolean hasAbsoluteMapLocation() { return false; }
-    
-    /* @return true if when this this component draws, it draws and picks relative to it's parent's coordinate space (default is false) */
-    //public boolean hasParentLocation() { return false; }
-    
     /** @return uri
      * returns an unique uri for a component. If component already has one it is returned else an new uri is created and returned.
      * At present uris will be created through rdf index
@@ -3462,13 +3454,13 @@ u                    getSlot(c).setFromString((String)value);
     
     /** @return the raw, zero based, non-scaled bounds */
     protected Rectangle2D.Float getZeroBounds() {
-        return new Rectangle2D.Float(0, 0, getAbsoluteWidth(), getAbsoluteHeight());
+        return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
     }
     
     /** @return the PARENT based bounds  -- this is the local component x,y  width*scale,height*scale, where scale
      * is any local scale this component has (not the total map scale: the scale that includes the scaling of all ancestors) */
     public Rectangle2D.Float getLocalBounds() {
-        return new Rectangle2D.Float(getX(), getY(), getScaledWidth(), getScaledHeight());
+        return new Rectangle2D.Float(getX(), getY(), getLocalWidth(), getLocalHeight());
     }
 
     /** @return the local (parent-based) border bounds */
@@ -3960,11 +3952,11 @@ u                    getSlot(c).setFromString((String)value);
     // will need need to dump this hack and do all in LWTraversal, or have the
     // local LWComponent contains/intersects code adjust for the local transformation
     // themselves.
-    public boolean containsParentCoord(float x, float y) {
+    public boolean containsLocalCoord(float x, float y) {
         return x >= this.x
             && y >= this.y
-            && x <= (this.x+getScaledWidth())
-            && y <= (this.y+getScaledHeight());
+            && x <= (this.x+getLocalWidth())
+            && y <= (this.y+getLocalHeight());
     }
     
 
@@ -4079,7 +4071,6 @@ u                    getSlot(c).setFromString((String)value);
             drawDecorated(dc);
 
         if (DEBUG.BOXES) {
-            //if (!hasAbsoluteMapLocation()) {
             if (!(this instanceof LWLink)) {
                 
                 dc.g.setTransform(saveTransform);

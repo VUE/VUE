@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.54 $ / $Date: 2007-07-22 23:34:28 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -73,7 +73,7 @@ public class LWSlide extends LWContainer
     
     @Override
     public boolean isMoveable() {
-        return getParent() instanceof LWPathway == false;
+        return getParent() != null && getParent() instanceof LWPathway == false;
     }
 
     /** @return false */
