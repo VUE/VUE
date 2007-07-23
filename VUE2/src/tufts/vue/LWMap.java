@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.149 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
+ * @version $Revision: 1.150 $ / $Date: 2007-07-23 23:30:05 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -499,7 +499,7 @@ public class LWMap extends LWContainer
                 }
                 
                 if (!c.isManagingChildLocations())
-                    upgradeAbsoluteToRelativeCoords((LWContainer) c);
+                    upgradeChildrenFromAbsoluteToRelative((LWContainer) c);
                 upgradeAbsoluteToRelativeCoords(c.getChildren());
             }
         }
@@ -533,7 +533,7 @@ public class LWMap extends LWContainer
     
     
 
-    private void upgradeAbsoluteToRelativeCoords(LWContainer container) {
+    private void upgradeChildrenFromAbsoluteToRelative(LWContainer container) {
         if (DEBUG.Enabled) System.out.println("CONVERTING TO RELATIVE in " + this + "; container: " + container);
         for (LWComponent c : container.getChildren()) {
             if (c instanceof LWLink)
@@ -615,6 +615,14 @@ public class LWMap extends LWContainer
         //----------------------------------------------------------------------------------------
         
 
+        
+        
+// Do NOT do this here: will seriously break old maps.  It slighly improves some of our
+// interim formats (1-2), but makes others a complete mess.
+//         for (LWComponent c : allRestored)
+//                 if (c instanceof LWGroup)
+//                     ((LWGroup)c).normalize();
+        
         // Layout non-links:
         for (LWComponent c : allRestored) {
             // mark all, including links, now, as when we get to them, links-to-links may
