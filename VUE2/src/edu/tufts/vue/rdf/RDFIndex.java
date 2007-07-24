@@ -44,6 +44,7 @@ public class RDFIndex extends ModelCom {
     com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://vue#","child");
     com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://vue#","author");
     com.hp.hpl.jena.rdf.model.Property hasTag = createProperty("user://user#","tag");
+    private static RDFIndex defaultIndex;
     
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
@@ -70,10 +71,13 @@ public class RDFIndex extends ModelCom {
         System.out.println("INDEX:"+this);
         String queryString =
                 "PREFIX vue: <vue://vue#>"+
-                "SELECT ?id ?label ?resource " +
-                "WHERE {" +
-                "      ?resource vue:label \""+keyword+ "\""+
-                "      }";
+                "PREFIX user: <user://user#>"+
+                "SELECT ?resource " +
+                "WHERE{ {" +
+                "      ?resource vue:label \""+keyword+ "\" } UNION  {"+
+                "      ?resource user:tag \""+keyword+ "\""+
+                
+                "      }}";
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, this);
         ResultSet results = qe.execSelect();
@@ -125,23 +129,26 @@ public class RDFIndex extends ModelCom {
     }
     
     public static RDFIndex getDefaultIndex() {
-        RDFIndex index = new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
+        if(defaultIndex == null) {
+            return createDefaultIndex();
+        } else {
+            return defaultIndex;
+        }
+      
+    }
+    
+    private static RDFIndex createDefaultIndex() {
+        defaultIndex = new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
         try {
             File indexFile = new File(INDEX_FILE);
             if(indexFile.exists()) {
-                index.read(new FileReader(indexFile),VUE_BASE);
+                defaultIndex.read(new FileReader(indexFile),VUE_BASE);
             }
         } catch(Throwable t) {
             t.printStackTrace();
         }
-        index.search("one");
-        return index;
-    }
-    
-    @Deprecated
-    public static RDFIndex createDefaultIndex() {
-        
-        return new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
+        defaultIndex.search("one");
+        return defaultIndex;
     }
     
 }
