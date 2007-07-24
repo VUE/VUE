@@ -38,11 +38,11 @@ public class RDFIndex extends ModelCom {
     
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
     public static final String VUE_BASE = "vue-index://";
-    com.hp.hpl.jena.rdf.model.Property idOf = createProperty("vue://","id");
-    com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://","label");
-    com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://","child");
-    com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://","author");
-    com.hp.hpl.jena.rdf.model.Property hasTag = createProperty("user://","tag");
+    com.hp.hpl.jena.rdf.model.Property idOf = createProperty("vue://vue#","id");
+    com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://vue#","label");
+    com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://vue#","child");
+    com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://vue#","author");
+    com.hp.hpl.jena.rdf.model.Property hasTag = createProperty("user://user#","tag");
     
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
