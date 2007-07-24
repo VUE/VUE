@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.314 $ / $Date: 2007-07-24 21:29:30 $ / $Author: sfraize $
+ * @version $Revision: 1.315 $ / $Date: 2007-07-24 21:30:20 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3576,8 +3576,9 @@ u                    getSlot(c).setFromString((String)value);
     //-----------------------------------------------------------------------------
     //
     // transformDownA + transformDownG are the two core routines that everything
-    // ultimate uses -- e.g., placing a test rotation in these methods makes
-    // it work everywhere that's using the transformation code.
+    // ultimately uses -- e.g., placing a test rotation in these methods makes
+    // it work everywhere that's using the transformation code (drawing, picking,
+    // and link connections)
     //
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
