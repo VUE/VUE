@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.313 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
+ * @version $Revision: 1.314 $ / $Date: 2007-07-24 21:29:30 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3589,17 +3589,14 @@ u                    getSlot(c).setFromString((String)value);
     {
         if (ROTATE_TEST && parent instanceof LWMap) {
             
-            // transform to center, then scale, then rotate (order
-            // scale+rotate shouldn't matter) then translate back out
-            // to x,y -- this produces on-center rotation.
+            // rotate around center (relative to map-bounds)
             
             final float hw = getWidth() / 2;
             final float hh = getHeight() / 2;
-            a.translate(getX(), getY());
-            //a.translate(getX() + hw, getY() + hw);
+            a.translate(getX() + hw, getY() + hh);
             a.scale(scale, scale);
-            a.rotate(Math.PI / 8); // test
-            //a.translate(-hw, -hh);
+            a.rotate(Math.PI / 8);
+            a.translate(-hw, -hh);
             
         } else {
             
@@ -3615,18 +3612,15 @@ u                    getSlot(c).setFromString((String)value);
     protected void transformDownG(final Graphics2D g)
     {
         if (ROTATE_TEST && parent instanceof LWMap) {
-            
-            // transform to center, then scale, then rotate (order
-            // scale+rotate shouldn't matter) then translate back out
-            // to x,y -- this produces on-center rotation.
+
+            // rotate around center (relative to map-bounds)
             
             final float hw = getWidth() / 2;
             final float hh = getHeight() / 2;
-            g.translate(getX(), getY());
-            //g.translate(getX() + hw, getY() + hw);
+            g.translate(getX() + hw, getY() + hh);
             g.scale(scale, scale);
-            g.rotate(Math.PI / 8); // test
-            //g.translate(-hw, -hh);
+            g.rotate(Math.PI / 8);
+            g.translate(-hw, -hh);
             
         } else {
             
@@ -4100,7 +4094,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     public void drawInParent(DrawContext dc)
     {
-        // this will cascade to all children when they draw, combining with their calls to transformRelative
+        // this will cascade to all children when they draw, combining with their calls to transformDown
         transformDownG(dc.g);
         
         final AffineTransform saveTransform = dc.g.getTransform();
