@@ -123,11 +123,11 @@ public class RSSDataSource  extends VueDataSource{
             try
             {
               //res = new URLResource(new URL(entry.getUri()));
-              System.out.println("trying to create rss item resource entry is: " + entry);
+              //System.out.println("trying to create rss item resource entry is: " + entry);
               String link = entry.getLink();
-              System.out.println("trying to create rss resource - link:" + link);
+              //System.out.println("trying to create rss resource - link:" + link);
               URL url = new URL(link);
-              System.out.println("trying to create rss resource - url:" + url);
+              //System.out.println("trying to create rss resource - url:" + url);
               /*link = *///java.net.URLDecoder.decode(link,"UTF-8");
               res = new URLResource(url);
             }
