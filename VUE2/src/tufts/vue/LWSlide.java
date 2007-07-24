@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.55 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-07-24 20:33:52 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -95,14 +95,17 @@ public class LWSlide extends LWContainer
     }
     
     
-//     @Override
-//     void setParent(LWContainer parent) {
-//         super.setParent(parent);
-//         if (parent instanceof LWPathway)
-//             ; // default
-//         else
-//             ; // testing -- can renable some properties
-//     }
+    @Override
+    void setParent(LWContainer parent) {
+        super.setParent(parent);
+        if (parent instanceof LWPathway) {
+            ; // default
+        } else {
+            // This should only ever happen if a slide is drag-copied onto the map
+            if (getFillColor() == null)
+                setFillColor(Color.black);
+        }
+    }
 
 
     LWComponent getSourceNode() {
@@ -119,7 +122,7 @@ public class LWSlide extends LWContainer
          if (mFillColor.isTransparent()) {
              final LWSlide master = getMasterSlide();
              if (master == null)
-                 return DEBUG.Enabled ? getFillColor() : Color.red;
+                 return getFillColor();
              else
                  return master.getFillColor();
          } else
