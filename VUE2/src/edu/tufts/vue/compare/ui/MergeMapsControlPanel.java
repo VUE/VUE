@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.12 $ / $Date: 2007-07-23 18:35:47 $ / $Author: dan $
+ * @version $Revision: 1.13 $ / $Date: 2007-07-24 11:47:50 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -122,13 +122,16 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                {
                    public void run()
                    {
+                      generateButton.setEnabled(false);
                       LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
                       setMergeMapSettings(merge);
                       JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
                       //JPanel loadingLabel = new JPanel(new BorderLayout());
                       JPanel loadingLabel = new JPanel();
+                      JLabel progressLabel = new JLabel("In Progress...");
                       loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
                       loadingLabel.add(loadingLabelImage);
+                      loadingLabel.add(progressLabel);
                       
                       dw.setContent(loadingLabel);
                       
@@ -139,6 +142,8 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                         VUE.displayMap(merge);
                         dw.setContent(MergeMapsControlPanel.this);
                         dw.repaint();
+                        
+                      generateButton.setEnabled(true);  
                    }
                };
                
