@@ -129,6 +129,7 @@ public class RDFIndex extends ModelCom {
         } catch(Throwable t) {
             t.printStackTrace();
         }
+        index.search("one");
         return index;
     }
     
