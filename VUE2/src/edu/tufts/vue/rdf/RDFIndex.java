@@ -78,8 +78,8 @@ public class RDFIndex extends ModelCom {
         while(results.hasNext())  {
             Object o = results.next();
             ResultBinding res = (ResultBinding)o ;
-            r.add(res.get("resouce"));
-            System.out.println("Resouce :"+res.get("resource"));
+            r.add(res.get("resource"));
+            System.out.println("Resource :"+res.get("resource"));
             
         }
         ResultSetFormatter.out(System.out, results, query);
