@@ -59,8 +59,6 @@ public class RDFIndex extends ModelCom {
         }
         for(LWComponent comp: map.getAllDescendents()) {
             rdfize(comp,mapR);
-            
-            
         }
         System.out.println("Size of index:"+this.size());
     }
@@ -68,7 +66,6 @@ public class RDFIndex extends ModelCom {
     public List<URI> search(String keyword) {
         List<URI> r = new ArrayList<URI>();
         System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
-        System.out.println("INDEX:"+this);
         String queryString =
                 "PREFIX vue: <vue://vue#>"+
                 "PREFIX user: <user://user#>"+
@@ -89,10 +86,7 @@ public class RDFIndex extends ModelCom {
             }catch(Throwable t) {
                 t.printStackTrace();
             }
-            System.out.println("Resource :"+res.get("resource"));
         }
-        ResultSetFormatter.out(System.out, results, query);
-        
         qe.close();
         return r;
     }
@@ -134,7 +128,7 @@ public class RDFIndex extends ModelCom {
         } else {
             return defaultIndex;
         }
-      
+        
     }
     
     private static RDFIndex createDefaultIndex() {
