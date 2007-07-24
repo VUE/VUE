@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.312 $ / $Date: 2007-07-23 23:43:49 $ / $Author: sfraize $
+ * @version $Revision: 1.313 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2118,35 +2118,6 @@ u                    getSlot(c).setFromString((String)value);
     }
 
 
-//     /** default label X position impl: center the label in the bounding box */
-//     public float getLabelX()
-//     {
-//         //float x = getCenterX();
-//         if (hasLabel())
-//             return getLabelBox().getMapX();
-//         else if (labelBox != null)
-//             return getCenterX() - labelBox.getMapWidth() / 2;
-//         else
-//             return getCenterX();
-//         //  x -= (labelBox.getMapWidth() / 2) + 1;
-//         //return x;
-//     }
-//     /** default label Y position impl: center the label in the bounding box */
-//     public float getLabelY()
-//     {
-//         if (hasLabel())
-//             return getLabelBox().getMapY();
-//         else if (labelBox != null)
-//             return getCenterY() - labelBox.getMapHeight() / 2;
-//         else
-//             return getCenterY();
-        
-//         //float y = getCenterY();
-//         //if (hasLabel())
-//         //  y -= labelBox.getMapHeight() / 2;
-//         //return y;
-//     }
-    
     void setParent(LWContainer newParent) {
 
         if (DEBUG.UNDO) System.err.println("*** SET-PARENT: " + newParent + " for " + this);
@@ -2505,8 +2476,8 @@ u                    getSlot(c).setFromString((String)value);
         // expand the given rectangle in all directions such that the distance
         // from our center point of this component to each edge is the same.
 
-        final float cx = getCenterX();
-        final float cy = getCenterY();
+        final float cx = getMapCenterX();
+        final float cy = getMapCenterY();
 
         final float topDiff = cy - r.y;
         final float botDiff = (r.y + r.height) - cy;
@@ -3060,12 +3031,8 @@ u                    getSlot(c).setFromString((String)value);
     
     public Point2D getLocation()
     {
-        return new Point2D.Float(this.x, this.y);
+        return new Point2D.Float(getX(), getY());
     }
-//     public Point2D getCenterPoint()
-//     {
-//         return new Point2D.Float(getCenterX(), getCenterY());
-//     }
     
     /** set component to this many pixels in size, quietly, with no event notification */
     protected void takeSize(float w, float h)
@@ -3241,11 +3208,11 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /** @return center x of the component in absolute map coordinates */
-    public float getCenterX() {
+    public float getMapCenterX() {
         return getMapX() + getMapWidth() / 2;
     }
     /** @return center y of the component in absolute map coordinates */
-    public float getCenterY() {
+    public float getMapCenterY() {
         return getMapY() + getMapHeight() / 2;
     }
 
@@ -3271,37 +3238,62 @@ u                    getSlot(c).setFromString((String)value);
     {
         //if (relative == null) Util.printStackTrace("null relative for " + this + ": " + relative);
 
-        final float scale = getMapScaleF();
-
         if (relative == this) {
+
+            if (DEBUG.Enabled)
+                Util.printStackTrace("debug: " + this + " is computing link connetion center relative to itself");
+            //final float scale = getMapScaleF();
             
-            point.x = getLocalCenterX() * scale;
-            point.y = getLocalCenterY() * scale;
+            point.x = getZeroCenterX();
+            point.y = getZeroCenterY();
+            //point.x = getZeroCenterX() * scale;
+            //point.y = getZeroCenterY() * scale;
             
-        } else if (relative == null || relative == getParent()) {
+        } else if (relative == null) {
+      //} else if (relative == null || relative == parent) {
 
             // if relative is null, just return available local data w/out accessing the parent.
             // This can happen normally during init.
 
             if (this instanceof LWLink) {
-                point.x = getLocalCenterX();
-                point.y = getLocalCenterY();
+                point.x = getZeroCenterX();
+                point.y = getZeroCenterY();
             } else {
-                //point.x = getX() + getLocalCenterX() * scale;
-                //point.y = getY() + getLocalCenterY() * scale;
-                point.x = getX() + getLocalCenterX();
-                point.y = getY() + getLocalCenterY();
+                // works for connecting to something scaled for a map link to a scaled map-node:
+                //point.x = getX() + getZeroCenterX() * scale;
+                //point.y = getY() + getZeroCenterY() * scale;
+                // works for connecting to inside a scaled context (e.g., a scaled down on-map slide)
+                point.x = getX() + getZeroCenterX();
+                point.y = getY() + getZeroCenterY();
             }
 
+        } else if (true || ROTATE_TEST) {
+
+            // can we construct a relativing x-hierarchy transformer in one pass?
+            // e.g., a combination of transformDown's then I guess transformUp's (would need that),
+            // on an AffineTransform, should produce a x-hierarchy transformer.
+
+            // Anyway, this is the safest method possible: transform up to the map,
+            // then back down to the other context, taking no shortcuts.
+
+            point.x = getZeroCenterX();
+            point.y = getZeroCenterY();
+            transformZeroToMapPoint(point, point);
+            relative.transformMapToZeroPoint(point, point);
+            
         } else {
+
+            // note that this is the NET scale -- scale effective at the map level
+            // -- THIS ISN'T CORRECT -- we need the scale relative to relative...
+            final float scale = getMapScaleF();
 
             if (this instanceof LWLink) {
                 // todo: consider getMapX/Y on LWLink override to return getParent().getMapX/Y (need to check all calls tho...)
-                point.x = getParent().getMapX() + getLocalCenterX() * scale;
-                point.y = getParent().getMapY() + getLocalCenterY() * scale;
+                point.x = parent.getMapX() + getZeroCenterX() * scale;
+                point.y = parent.getMapY() + getZeroCenterY() * scale;
             } else {
-                point.x = getMapX() + getLocalCenterX() * scale;
-                point.y = getMapY() + getLocalCenterY() * scale;
+                point.x = getMapX() + getZeroCenterX() * scale;
+                point.y = getMapY() + getZeroCenterY() * scale;
             }
 
             // point now has map coords -- now make relative to desired component
@@ -3315,20 +3307,28 @@ u                    getSlot(c).setFromString((String)value);
             if (DEBUG.Enabled) {
                 if (relative != null && !hasAncestor(relative)) {
                     // only if not the special invisible link endpoint, which has no parent (thus no ancestors)
-                    if (getClass().getEnclosingClass() != LinkTool.LinkModeTool.class)
-                        Util.printStackTrace("debug warning: " + this + " is computing link connetion center relative to a non-ancestor: " + relative);
+                    if (getClass().getEnclosingClass() != LinkTool.LinkModeTool.class) {
+                        //String msg = "debug: " + this + " is computing link connetion center relative to a non-ancestor: " + relative;
+                        String msg = "non-ancestor: " + relative + " used as parent-relative of " + this;
+                        if (DEBUG.META)
+                            Util.printStackTrace(msg);
+                        else
+                            VUE.Log.debug(msg);
+                    }
                 }
             }
             
 
-            relative.transformMapToLocalPoint(point, point);
+            relative.transformMapToZeroPoint(point, point);
         }
     }
 
-    protected float getLocalCenterX() {
+    /** @return our center in our zero-based coordinate space: e.g., 1/2 our width.  Links
+     * will compute differentely, as their zero-based coordinate space is their parent's space (same as local space) */
+    protected float getZeroCenterX() {
         return getWidth() / 2;
     }
-    protected float getLocalCenterY() {
+    protected float getZeroCenterY() {
         return getHeight() / 2;
     }
     
@@ -3540,7 +3540,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     
-    protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
+    //protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
     
 
     /** @return an AffineTransform that when applied to a graphics context, will have us drawing properly
@@ -3556,7 +3556,7 @@ u                    getSlot(c).setFromString((String)value);
         } else {
             a = parent.getZeroTransform();
         }
-        return transformDown(a);
+        return transformDownA(a);
     }
 
     /**
@@ -3567,36 +3567,74 @@ u                    getSlot(c).setFromString((String)value);
     protected AffineTransform getRelativeTransform(LWContainer ancestor) {
 
         if (parent == ancestor || parent == null)
-            return transformDown(new AffineTransform());
+            return transformDownA(new AffineTransform());
         else
-            return transformDown(parent.getRelativeTransform(ancestor));
+            return transformDownA(parent.getRelativeTransform(ancestor));
     }
 
-
-    /** transform the given AffineTransform down from our parent to us, the child */
-    // transformDown + transformRelative are the two core routines that everything
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
+    //
+    // transformDownA + transformDownG are the two core routines that everything
     // ultimate uses -- e.g., placing a test rotation in these methods makes
     // it work everywhere that's using the transformation code.
-    protected AffineTransform transformDown(final AffineTransform a) {
-        a.translate(getX(), getY());
-        final double scale = getScale();
-        if (scale != 1)
+    //
+    //-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
+
+    private final static boolean ROTATE_TEST = false;
+
+    /** transform the given AffineTransform down from our parent to us, the child */
+    protected AffineTransform transformDownA(final AffineTransform a)
+    {
+        if (ROTATE_TEST && parent instanceof LWMap) {
+            
+            // transform to center, then scale, then rotate (order
+            // scale+rotate shouldn't matter) then translate back out
+            // to x,y -- this produces on-center rotation.
+            
+            final float hw = getWidth() / 2;
+            final float hh = getHeight() / 2;
+            a.translate(getX(), getY());
+            //a.translate(getX() + hw, getY() + hw);
             a.scale(scale, scale);
-        //if (parent instanceof LWMap) a.rotate(Math.PI / 8); // test
+            a.rotate(Math.PI / 8); // test
+            //a.translate(-hw, -hh);
+            
+        } else {
+            
+            a.translate(this.x, this.y);
+            if (scale != 1)
+                a.scale(scale, scale);
+            
+        }
         return a;
     }
 
     /** transform relative to the child after already being transformed relative to the parent */
-    // transformDown + transformRelative are the two core routines that everything
-    // ultimate uses -- e.g., placing a test rotation in these methods makes
-    // it work everywhere that's using the transformation code.
-    // todo: also rename to transformDown for consistency
-    protected void transformRelative(final Graphics2D g) {
-        g.translate(getX(), getY());
-        final double scale = getScale();
-        if (scale != 1)
+    protected void transformDownG(final Graphics2D g)
+    {
+        if (ROTATE_TEST && parent instanceof LWMap) {
+            
+            // transform to center, then scale, then rotate (order
+            // scale+rotate shouldn't matter) then translate back out
+            // to x,y -- this produces on-center rotation.
+            
+            final float hw = getWidth() / 2;
+            final float hh = getHeight() / 2;
+            g.translate(getX(), getY());
+            //g.translate(getX() + hw, getY() + hw);
             g.scale(scale, scale);
-        //if (parent instanceof LWMap) g.rotate(Math.PI / 8); // test
+            g.rotate(Math.PI / 8); // test
+            //g.translate(-hw, -hh);
+            
+        } else {
+            
+            g.translate(this.x, this.y);
+            if (scale != 1)
+                g.scale(scale, scale);
+            
+        }
     }
 
     /** Will transform all the way from the the map down to the component, wherever nested/scaled.
@@ -3606,46 +3644,66 @@ u                    getSlot(c).setFromString((String)value);
         // todo: need a relative to parent transform only for cascading application during drawing
         // (and ultimate picking when impl is optimized)
             
-        if (getParent() == null) {
+        if (parent == null) {
             ;
         } else {
-            getParent().transformZero(g);
+            parent.transformZero(g);
         }
         
-        transformRelative(g);
+        transformDownG(g);
 
     }
-
-    // TODO: for consistencey, transformMapToLocal* / transformLocalToMap* should
-    // really be called transformMapToZero and transformZeroToMap -- as these
-    // use the zero transforms.  This is confusing because of our use of
-    // getLocalBounds, which are PARENT-local bounds.
 
     /**
      * @param mapPoint, a point in map coordinates to transform to local coordinates
-     * @param nodePoint the destination Point2D to place the resulting transformed coordinate -- may be
+     * @param zeroPoint the destination Point2D to place the resulting transformed coordinate -- may be
      * the same object as mapPoint (it will be written over)
-     * @return the transformed point (will be nodePoint if transformed, mapPoint if no transformation was needed,
-     * although mapPoint x/y values should stil be copied to nodePoint)
+     * @return the transformed point (will be zeroPoint if transformed, mapPoint if no transformation was needed,
+     * although mapPoint x/y values should stil be copied to zeroPoint)
      */
-    public Point2D transformMapToLocalPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
+    public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float zeroPoint) {
+
+        if (parent instanceof LWMap && scale == 1.0 && !ROTATE_TEST) { // OPTIMIZATION
+            zeroPoint.x = mapPoint.x - this.x;
+            zeroPoint.y = mapPoint.y - this.y;
+            return zeroPoint;
+        }
+        
         try {
-            getZeroTransform().inverseTransform(mapPoint, nodePoint);
+            getZeroTransform().inverseTransform(mapPoint, zeroPoint);
         } catch (java.awt.geom.NoninvertibleTransformException e) {
             Util.printStackTrace(e);
         }
-        return nodePoint;
-        
+        return zeroPoint;
     }
 
-    /** @param mapRect will be transformed (written over) and returned */
-    protected Rectangle2D transformMapToLocalRect(Rectangle2D mapRect) {
 
-        if (getParent() instanceof LWMap) {
-            // this is an optimization we'll want to remove if we ever
-            // embed maps in maps
+    protected Point2D transformZeroToMapPoint(Point2D.Float zeroPoint, Point2D.Float mapPoint) {
+
+        if (parent instanceof LWMap && scale == 1.0 && !ROTATE_TEST) { // OPTIMIZATION
+            mapPoint.x = zeroPoint.x + this.x;
+            mapPoint.y = zeroPoint.y + this.y;
+            return mapPoint;
+        }
+        
+        getZeroTransform().transform(zeroPoint, mapPoint);
+        return mapPoint;
+    }
+    
+
+
+    /** @param mapRect will be transformed (written over) and returned -- leaves in LOCAL coords: those of our parent
+     * THIS CURRENTLY ONLY WORKS FOR LINKS */
+    protected Rectangle2D transformMapToParentLocalRect(Rectangle2D mapRect) {
+
+        if (parent instanceof LWMap && scale == 1.0 && !ROTATE_TEST) {
+            // This is an optimization we'll want to remove if we ever
+            // embed maps in maps.
             return mapRect;
         }
+
+        // TODO: if want to handle rotation, need to transform each corner of
+        // the rectangle separately.
 
         final AffineTransform tx = getZeroTransform();
         double[] points = new double[8]; // todo opt: can do as len 4 & overwrite
@@ -3679,7 +3737,7 @@ u                    getSlot(c).setFromString((String)value);
      * into map coordinates.  The passed in Rectangle2D.Float will be modified
      * and returned.
      */
-    public Rectangle2D.Float transformLocalToMapRect(Rectangle2D.Float rect) {
+    public Rectangle2D.Float transformZeroToMapRect(Rectangle2D.Float rect) {
         final double scale = getMapScale();
         if (scale != 1) {
             rect.x *= scale;
@@ -3771,104 +3829,89 @@ u                    getSlot(c).setFromString((String)value);
         return hit;
     }
     
+
 //     /**
-//      * Does x,y fall within the selection target for this component.
-//      * This default impl adds a 30 pixel swath to bounding box.
+//      * We divide area around the bounding box into 8 regions -- directly
+//      * above/below/left/right can compute distance to nearest edge
+//      * with a single subtract.  For the other regions out at the
+//      * corners, do a distance calculation to the nearest corner.
+//      * Behaviour undefined if x,y are within component bounds.
 //      */
-//     public boolean targetContains(float x, float y)
+//     public float distanceToEdgeSq(float x, float y)
 //     {
-//         final int swath = 30; // todo: preference
-//         float sx = this.x - swath;
-//         float sy = this.y - swath;
-//         float ex = this.x + getWidth() + swath;
-//         float ey = this.y + getHeight() + swath;
-        
-//         return x >= sx && x <= ex && y >= sy && y <= ey;
+//         float ex = this.x + getWidth();
+//         float ey = this.y + getHeight();
+
+//         if (x >= this.x && x <= ex) {
+//             // we're directly above or below this component
+//             return y < this.y ? this.y - y : y - ey;
+//         } else if (y >= this.y && y <= ey) {
+//             // we're directly to the left or right of this component
+//             return x < this.x ? this.x - x : x - ex;
+//         } else {
+//             // This computation only makes sense following the above
+//             // code -- we already know we must be closest to a corner
+//             // if we're down here.
+//             float nearCornerX = x > ex ? ex : this.x;
+//             float nearCornerY = y > ey ? ey : this.y;
+//             float dx = nearCornerX - x;
+//             float dy = nearCornerY - y;
+//             return dx*dx + dy*dy;
+//         }
 //     }
 
-    /**
-     * We divide area around the bounding box into 8 regions -- directly
-     * above/below/left/right can compute distance to nearest edge
-     * with a single subtract.  For the other regions out at the
-     * corners, do a distance calculation to the nearest corner.
-     * Behaviour undefined if x,y are within component bounds.
-     */
-    public float distanceToEdgeSq(float x, float y)
-    {
-        float ex = this.x + getWidth();
-        float ey = this.y + getHeight();
+//     public Point2D nearestPoint(float x, float y)
+//     {
+//         float ex = this.x + getWidth();
+//         float ey = this.y + getHeight();
+//         Point2D.Float p = new Point2D.Float(x, y);
 
-        if (x >= this.x && x <= ex) {
-            // we're directly above or below this component
-            return y < this.y ? this.y - y : y - ey;
-        } else if (y >= this.y && y <= ey) {
-            // we're directly to the left or right of this component
-            return x < this.x ? this.x - x : x - ex;
-        } else {
-            // This computation only makes sense following the above
-            // code -- we already know we must be closest to a corner
-            // if we're down here.
-            float nearCornerX = x > ex ? ex : this.x;
-            float nearCornerY = y > ey ? ey : this.y;
-            float dx = nearCornerX - x;
-            float dy = nearCornerY - y;
-            return dx*dx + dy*dy;
-        }
-    }
+//         if (x >= this.x && x <= ex) {
+//             // we're directly above or below this component
+//             if (y < this.y)
+//                 p.y = this.y;
+//             else
+//                 p.y = ey;
+//         } else if (y >= this.y && y <= ey) {
+//             // we're directly to the left or right of this component
+//             if (x < this.x)
+//                 p.x = this.x;
+//             else
+//                 p.x = ex;
+//         } else {
+//             // This computation only makes sense following the above
+//             // code -- we already know we must be closest to a corner
+//             // if we're down here.
+//             float nearCornerX = x > ex ? ex : this.x;
+//             float nearCornerY = y > ey ? ey : this.y;
+//             p.x = nearCornerX;
+//             p.y = nearCornerY;
+//         }
+//         return p;
+//     }
 
-    public Point2D nearestPoint(float x, float y)
-    {
-        float ex = this.x + getWidth();
-        float ey = this.y + getHeight();
-        Point2D.Float p = new Point2D.Float(x, y);
+//     public float distanceToEdge(float x, float y)
+//     {
+//         return (float) Math.sqrt(distanceToEdgeSq(x, y));
+//     }
 
-        if (x >= this.x && x <= ex) {
-            // we're directly above or below this component
-            if (y < this.y)
-                p.y = this.y;
-            else
-                p.y = ey;
-        } else if (y >= this.y && y <= ey) {
-            // we're directly to the left or right of this component
-            if (x < this.x)
-                p.x = this.x;
-            else
-                p.x = ex;
-        } else {
-            // This computation only makes sense following the above
-            // code -- we already know we must be closest to a corner
-            // if we're down here.
-            float nearCornerX = x > ex ? ex : this.x;
-            float nearCornerY = y > ey ? ey : this.y;
-            p.x = nearCornerX;
-            p.y = nearCornerY;
-        }
-        return p;
-    }
-
-    public float distanceToEdge(float x, float y)
-    {
-        return (float) Math.sqrt(distanceToEdgeSq(x, y));
-    }
-
+//     /**
+//      * Return the square of the distance from x,y to the center of
+//      * this components bounding box.
+//      */
+//     public float distanceToCenterSq(float x, float y)
+//     {
+//         float cx = getCenterX();
+//         float cy = getCenterY();
+//         float dx = cx - x;
+//         float dy = cy - y;
+//         return dx*dx + dy*dy;
+//     }
     
-    /**
-     * Return the square of the distance from x,y to the center of
-     * this components bounding box.
-     */
-    public float distanceToCenterSq(float x, float y)
-    {
-        float cx = getCenterX();
-        float cy = getCenterY();
-        float dx = cx - x;
-        float dy = cy - y;
-        return dx*dx + dy*dy;
-    }
-    
-    public float distanceToCenter(float x, float y)
-    {
-        return (float) Math.sqrt(distanceToCenterSq(x, y));
-    }
+//     public float distanceToCenter(float x, float y)
+//     {
+//         return (float) Math.sqrt(distanceToCenterSq(x, y));
+//     }
     
     public void drawPathwayDecorations(DrawContext dc)
     {
@@ -4058,7 +4101,7 @@ u                    getSlot(c).setFromString((String)value);
     public void drawInParent(DrawContext dc)
     {
         // this will cascade to all children when they draw, combining with their calls to transformRelative
-        transformRelative(dc.g);
+        transformDownG(dc.g);
         
         final AffineTransform saveTransform = dc.g.getTransform();
 
@@ -4087,8 +4130,8 @@ u                    getSlot(c).setFromString((String)value);
                 if (DEBUG.LINK && isSelected() && getLinks().size() > 0) {
                     final Rectangle2D.Float pureFan = getFanBounds();
                     final Rectangle2D.Float fan = getCenteredFanBounds();
-                    final float cx = getCenterX();
-                    final float cy = getCenterY();
+                    final float cx = getMapCenterX();
+                    final float cy = getMapCenterY();
                     final Line2D xaxis = new Line2D.Float(fan.x, cy, fan.x + fan.width, cy);
                     final Line2D yaxis = new Line2D.Float(cx, fan.y, cx, fan.y + fan.height);
                     dc.setMapDrawing();

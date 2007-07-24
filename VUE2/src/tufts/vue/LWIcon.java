@@ -320,7 +320,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             // TODO: don't need to do this if there's already a tip showing!
             if (tipIcon != null) {
                 tipComponent = tipIcon.getToolTipComponent();
-                final Rectangle2D tipRegion = mLWC.transformLocalToMapRect((Rectangle2D.Float) tipIcon.getBounds2D());
+                final Rectangle2D tipRegion = mLWC.transformZeroToMapRect((Rectangle2D.Float) tipIcon.getBounds2D());
 
                 // if node, compute avoid region node+tipRegion,
                 // if link avoid = label+entire tip block
@@ -337,7 +337,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                         // Just stay way from the whole icon block:
                         avoidRegion = this;
                     }
-                    mLWC.transformLocalToMapRect(avoidRegion);
+                    mLWC.transformZeroToMapRect(avoidRegion);
                 } else {
                     avoidRegion = mLWC.getBounds();
                 }

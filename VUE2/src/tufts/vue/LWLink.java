@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.164 $ / $Date: 2007-07-24 01:09:02 $ / $Author: sfraize $
+ * @version $Revision: 1.165 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -377,7 +377,7 @@ public class LWLink extends LWComponent
     {
         // returning true will disallow label-edit
         // when single clicking over an icon.
-        return mIconBlock.contains(e.getMapX(), e.getMapY());
+        return mIconBlock.contains(e.getMapX(), e.getMapY()); // TODO: need e.getLocalPoint(this)
     }
     
     public boolean handleDoubleClick(MapMouseEvent e)
@@ -576,7 +576,7 @@ public class LWLink extends LWComponent
         final Point2D.Float local;
         if (e == null) {
             local = new Point2D.Float(mapX, mapY);
-            transformMapToLocalPoint(local, local);
+            transformMapToZeroPoint(local, local);
         } else
             local = e.getLocalPoint(this);
         
@@ -1177,7 +1177,7 @@ public class LWLink extends LWComponent
             // it to local (parent) coordinates first, before checking the segments, which
             // all have local coordinates.
             final Rectangle2D tmpRect = (Rectangle2D) mapRect.clone();
-            localRect = transformMapToLocalRect(tmpRect);
+            localRect = transformMapToParentLocalRect(tmpRect);
             if (DEBUG.LINK && mXMLRestoreUnderway) {
                 System.out.println("TRANSFORMED " + this);
                 if (!localRect.equals(mapRect))
@@ -1185,6 +1185,11 @@ public class LWLink extends LWComponent
                                        + "\n\t" + Util.fmt(localRect));
             }
         }
+
+//         if (! localRect.intersects(getX(), getY(), getWidth(), getHeight())) {
+//             // fast-reject on pre-computed bounding box
+//             return false;
+//         }
         
         if (mCurve != null) {
             for (Line2D seg : new SegIterator())
@@ -1195,11 +1200,12 @@ public class LWLink extends LWComponent
                 return true;
         }
         
-        if (mIconBlock.intersects(localRect))
+        if (mIconBlock.isShowing() && mIconBlock.intersects(localRect))
             return true;
-        else if (hasLabel()) {
+
+        if (labelBox != null && hasLabel())
             return labelBox.boxIntersects(localRect);
-        } else
+        else
             return false;
     }
 
@@ -1225,12 +1231,27 @@ public class LWLink extends LWComponent
         
     }
 
+    @Override
     protected boolean containsImpl(float x, float y, float zoom) {
-        return pickDistance(x, y, zoom) == 0 ? true : false;
+        // link coordinates are all parent-local, so containsImpl is passing us a coordinate
+        // in the space of our parent.
+        final float lx = getX();
+        final float ly = getY();
+        if (x < lx || y < ly || x > lx + getWidth() || y > ly + getHeight()) {
+            // fast reject on pre-computed bounding box (which already includes stroke width)
+            return false;
+        } else {
+            return pickDistance(x, y, zoom) == 0 ? true : false;
+        }
     }
     
 
-    /** @return 0 means a hit, -1 a completely miss, > 0 means distance, to be sorted out by caller  */
+    /**
+     * @return values:
+     * 0 means a direct hit on the line or label.  Return values greater than 0 represent the square of the distance from
+     * the passed in coordinate to the stroke of the link (ignoring any label box)
+     */
+    
     @Override
     // todo: now that we handle slop/zoom centrally in Picker, we can get rid of zoom arg to pickDistance
     protected float pickDistance(float x, float y, float zoom)
@@ -1244,7 +1265,6 @@ public class LWLink extends LWComponent
         float minDistSq = Float.MAX_VALUE;
         
         if (mCurve != null) {
-            // todo: fast reject: false if outside bounding box of end points and control points
             float distSq;
 
             // Check the distance from all the segments in the flattened curve
@@ -1267,7 +1287,7 @@ public class LWLink extends LWComponent
         if (!isNestedLink()) {
             if (mIconBlock.contains(x, y))
                 return 0;
-            else if (hasLabel() && labelBox.boxContains(x, y))
+            else if (hasLabel() && labelBox != null && labelBox.boxContains(x, y))
                 return 0;
         }
         
@@ -1766,16 +1786,28 @@ public class LWLink extends LWComponent
     
 
     /** as all link coordinates are relative to their parent, this just calls
-        parent.transformMapToLocalPoint */
+        parent.transformMapToZeroPoint */
     @Override
-    public Point2D transformMapToLocalPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
-        return parent.transformMapToLocalPoint(mapPoint, nodePoint);
+    public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
+        return parent.transformMapToZeroPoint(mapPoint, nodePoint);
     }
     
-    /** noop */
+    /** noop -- links contextualized to the parent by definition */
     @Override
-    protected void transformRelative(final Graphics2D g) {
+    protected void transformDownG(final Graphics2D g) {
         // do nothing: link coordinate space is in it's parent
+    }
+    
+    
+    /** @return a unmodified -- a noop */
+    @Override
+    protected AffineTransform transformDownA(AffineTransform a) {
+
+        // As transformDown moves from the parent to the child, and
+        // links exist in the parent context, there's nothing for us
+        // to do.
+        
+        return a;
     }
     
     /** perform parent.transformZero */
@@ -1783,17 +1815,6 @@ public class LWLink extends LWComponent
     public void transformZero(Graphics2D g) {
         if (parent != null)
             parent.transformZero(g);
-    }
-    
-    /** @return a unmodified -- a noop */
-    @Override
-    protected AffineTransform transformDown(AffineTransform a) {
-
-        // As transformDown moves from the parent to the child, and
-        // links exist in the parent context, there's nothing for us
-        // to do.
-        
-        return a;
     }
     
     /** @return parent.getZeroTransform() */
@@ -2057,6 +2078,9 @@ public class LWLink extends LWComponent
         
         if (labelBox != null && hasLabel())
             bounds.add(labelBox.getBoxBounds());
+
+        if (mIconBlock.isShowing())
+            bounds.add(mIconBlock);
 
 
         // Record the size & location w/out triggering update events:
@@ -2678,8 +2702,8 @@ public class LWLink extends LWComponent
             //float y = textBox.getMapHeight();
             dc.g.drawString(parent.getUniqueComponentTypeLabel(), 0, y += inc);
             dc.g.drawString(String.format("txtBounds: %s", Util.out(tbounds)),           0, y += inc);
-            dc.g.drawString(String.format("centerLoc: %+4.0f,%+4.0f", getLocalCenterX(), getLocalCenterY()), 0, y += inc);
-            dc.g.drawString(String.format("centerMap: %+4.0f,%+4.0f", getCenterX(), getCenterY()), 0, y += inc);
+            dc.g.drawString(String.format("centerZro: %+4.0f,%+4.0f", getZeroCenterX(), getZeroCenterY()), 0, y += inc);
+            dc.g.drawString(String.format("centerMap: %+4.0f,%+4.0f", getMapCenterX(), getMapCenterY()), 0, y += inc);
             dc.g.drawString(String.format("     head: %+4.0f,%+4.0f", head.x, head.y),             0, y += inc);
             dc.g.drawString(String.format("     tail: %+4.0f,%+4.0f", tail.x, tail.y),             0, y += inc);
             //dc.g.drawString(parent.getDiagnosticLabel(), 0, 30);
@@ -2824,7 +2848,7 @@ public class LWLink extends LWComponent
     public void initTextBoxLocation(TextBox textBox) {
         if (mRecompute)
             computeLink();
-        textBox.setBoxCenter(getLocalCenterX(), getLocalCenterY());
+        textBox.setBoxCenter(getZeroCenterX(), getZeroCenterY());
         
 //         if (mCurveControls > 0)
 //             textBox.setBoxCenter(mCurveCenterX, mCurveCenterY);
@@ -2835,13 +2859,13 @@ public class LWLink extends LWComponent
 
 
     @Override
-    protected float getLocalCenterX() {
+    protected float getZeroCenterX() {
         //if (mRecompute) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
         return mCurveControls > 0 ? mCurveCenterX : mCenterX;
     }
     
     @Override
-    protected float getLocalCenterY() {
+    protected float getZeroCenterY() {
         //if (mRecompute) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
         return mCurveControls > 0 ? mCurveCenterY : mCenterY;
     }

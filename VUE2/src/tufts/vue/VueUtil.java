@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.83 $ / $Date: 2007-07-22 03:31:24 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -387,10 +387,15 @@ public class VueUtil extends tufts.Util
     
     public static Line2D.Float computeConnector(LWComponent c1, LWComponent c2, Line2D.Float result)
     {
-        float segX1 = c1.getCenterX();
-        float segY1 = c1.getCenterY();
-        float segX2 = c2.getCenterX();
-        float segY2 = c2.getCenterY();
+
+        // TODO: do these defaults still want to be the map-center now that we do
+        // relative coords and parent-local links?  Shouldn't they be the center
+        // relative to some desired parent focal? (e.g. a link parent)
+        
+        float segX1 = c1.getMapCenterX();
+        float segY1 = c1.getMapCenterY();
+        float segX2 = c2.getMapCenterX();
+        float segY2 = c2.getMapCenterY();
 
         // compute intersection at shape 2 of ray from center of shape 1 to center of shape 2
         //float[] intersection_at_2 = computeIntersection(segX1, segY1, segX2, segY2, c2.getShape());

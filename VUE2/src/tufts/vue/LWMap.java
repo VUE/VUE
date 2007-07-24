@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.150 $ / $Date: 2007-07-23 23:30:05 $ / $Author: sfraize $
+ * @version $Revision: 1.151 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1201,22 +1201,27 @@ public class LWMap extends LWContainer
 
     /** optimized for LWMap: remove if/when embed maps in maps */
     @Override
-    public AffineTransform getZeroTransform() { return new AffineTransform(); }
+    public AffineTransform getZeroTransform() {
+        return new AffineTransform();
+    }
     /** optimized LWMap noop: remove if/when embed maps in maps */
     @Override
-    public AffineTransform transformDown(final AffineTransform a) { return a; }
+    protected AffineTransform transformDownA(final AffineTransform a) {
+        return a;
+    }
     /** optimized LWMap noop: remove if/when embed maps in maps */
     @Override
-    protected void transformRelative(final Graphics2D g) {}
+    protected void transformDownG(final Graphics2D g) {}
     /** optimized LWMap noop: remove if/when embed maps in maps */
     @Override
     public void transformZero(final Graphics2D g) {}
+    
     /** optimized LWMap noop: remove if/when embed maps in maps
      * Just copies mapPoint to nodePoint.
      * @return mapPoint
      */
     @Override
-    public Point2D transformMapToLocalPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
+    public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
         nodePoint.x = mapPoint.x;
         nodePoint.y = mapPoint.y;
         return mapPoint;
