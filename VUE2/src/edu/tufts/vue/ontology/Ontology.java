@@ -125,6 +125,7 @@ public class Ontology {
                style = NodeStyle.DEFAULT_NODE_STYLE;
             else
                 style = edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE;
+            type.setStyle(style);
             types.add(type);
             
         }
