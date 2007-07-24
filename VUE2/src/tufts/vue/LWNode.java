@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.178 $ / $Date: 2007-07-24 20:35:30 $ / $Author: sfraize $
+ * @version $Revision: 1.179 $ / $Date: 2007-07-24 21:08:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -275,7 +275,9 @@ public class LWNode extends LWContainer
         mShape = shape;
         mShape.setFrame(0, 0, getWidth(), getHeight());
         layout();
+        updateConnectedLinks(null);
         notify(LWKey.Shape, new Undoable(old) { void undo() { setShapeInstance((RectangularShape)old); }} );
+        
     }
 
     public void setXMLshape(RectangularShape shape) {
