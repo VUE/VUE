@@ -550,13 +550,22 @@ public class LWMergeMap extends LWMap {
           ci = getActiveFileList().iterator();
         while(i.hasNext())
         {
+          LWMap m = i.next();
+          System.out.println("LWMergeMap, computing matrix array next map is: " + m.getLabel());
           Boolean b = Boolean.TRUE;
           if(ci!=null && ci.hasNext())
           {    
              b = ci.next();
           }
-          if(b.booleanValue())
-            cms.add(new ConnectivityMatrix(i.next()));
+          if(b.booleanValue() || (m==getBaseMap()))
+          {
+            System.out.println("LWMergeMap, computing matrix array actually adding: " + m.getLabel());
+            cms.add(new ConnectivityMatrix(m));
+          }
+          else
+          {
+            System.out.println("LWMergeMap, computing matrix array not adding: " + m.getLabel());
+          }
         }
         
         ArrayList<Style> nodeStyles = new ArrayList<Style>();
@@ -585,6 +594,7 @@ public class LWMergeMap extends LWMap {
           while(maps.hasNext())
           {
             LWMap m = maps.next();
+            System.out.println("LWMergeMap: next map - " + m.getLabel());
             Boolean b = Boolean.TRUE;
             if(ci!=null && ci.hasNext())
             {    
@@ -592,7 +602,12 @@ public class LWMergeMap extends LWMap {
             }
             if(m!=baseMap && b.booleanValue())
             {
+                System.out.println("LWMergeMap: actually adding - " + m.getLabel());
                 addMergeNodesForMap(m,weightAggregate,nodeStyles);
+            }
+            else
+            {
+                System.out.println("LWMergeMap: not adding - " + m.getLabel());
             }
           }
         }
@@ -603,6 +618,7 @@ public class LWMergeMap extends LWMap {
         while(children.hasNext())
         {
              LWComponent comp = (LWComponent)children.next();
+             System.out.println("LWMergeMap, computing colors, next component - " + comp.getLabel());
              if(comp instanceof LWNode)
              {
                   LWNode node = (LWNode)comp;
