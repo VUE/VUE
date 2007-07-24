@@ -30,7 +30,9 @@ import edu.tufts.vue.metadata.*;
 import tufts.vue.*;
 
 import com.hp.hpl.jena.rdf.model.impl.*;
+import com.hp.hpl.jena.sparql.core.*;
 import com.hp.hpl.jena.graph.*;
+import com.hp.hpl.jena.query.*;
 
 public class RDFIndex extends ModelCom {
     
@@ -62,8 +64,27 @@ public class RDFIndex extends ModelCom {
     }
     
     public List search(String keyword) {
-       System.out.println("Searching for: "+keyword);
-       
+        List r = new ArrayList();
+        System.out.println("Searching for: "+keyword);
+        String queryString =
+                "PREFIX vue: <vue://vue#>"+
+                "SELECT ?id ?label ?resource " +
+                "WHERE {" +
+                "      ?resource vue:label \""+keyword+ "\""+
+                "      }";
+        Query query = QueryFactory.create(queryString);
+        QueryExecution qe = QueryExecutionFactory.create(query, this);
+        ResultSet results = qe.execSelect();
+        while(results.hasNext())  {
+            Object o = results.next();
+            ResultBinding res = (ResultBinding)o ;
+            r.add(res.get("resouce"));
+            System.out.println("Resouce :"+res.get("resource"));
+            
+        }
+        ResultSetFormatter.out(System.out, results, query);
+        
+        qe.close();
         return null;
     }
     
@@ -103,10 +124,10 @@ public class RDFIndex extends ModelCom {
         try {
             File indexFile = new File(INDEX_FILE);
             if(indexFile.exists()) {
-               index.read(new FileReader(indexFile),VUE_BASE); 
+                index.read(new FileReader(indexFile),VUE_BASE);
             }
         } catch(Throwable t) {
-            
+            t.printStackTrace();
         }
         return index;
     }
