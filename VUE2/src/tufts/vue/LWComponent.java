@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.315 $ / $Date: 2007-07-24 21:30:20 $ / $Author: sfraize $
+ * @version $Revision: 1.316 $ / $Date: 2007-07-24 21:55:34 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4850,8 +4850,8 @@ u                    getSlot(c).setFromString((String)value);
 
         if (DEBUG.IMAGE)  {
             System.out.println();
-            out(TERM_CYAN +
-                "createImage:"
+            System.out.println(TERM_CYAN +
+                "createImage: " + this
                 + "\n\t zoomRequst: " + zoomRequest
                 + "\n\t    maxSize: " + maxSize
                 + "\n\t  mapBounds: " + fmt(bounds)
@@ -4897,7 +4897,7 @@ u                    getSlot(c).setFromString((String)value);
             // an ARGB and we fill it with full alpha first, tho we really shouldn't
             // have each component caching it's own image: some kind of small
             // recently used image buffers cache would make more sense.
-            if (DEBUG.DND || DEBUG.IMAGE) out(TERM_BLUE + "got cached image: " + mCachedImage + TERM_CLEAR);
+            if (DEBUG.DND || DEBUG.IMAGE) out(TERM_BLUE + "\ngot cached image: " + mCachedImage + TERM_CLEAR);
         } else {
             mCachedImage = new BufferedImage(width, height, imageType);
             if (DEBUG.DND || DEBUG.IMAGE) out(TERM_RED + "created image: " + mCachedImage + TERM_CLEAR);
@@ -5005,6 +5005,12 @@ u                    getSlot(c).setFromString((String)value);
             dc.g.setColor(Color.red);
             dc.g.fillRect(-Short.MAX_VALUE/2,-Short.MAX_VALUE/2, // larger values than this can blow out internal GC code and we get nothing
                            Short.MAX_VALUE, Short.MAX_VALUE);
+        }
+
+        if (this instanceof LWImage) {
+            // for some reason, raw images don't seem to want to draw unless we fill first
+            dc.g.setColor(Color.white);
+            dc.g.fill(bounds);
         }
         
 
