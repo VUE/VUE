@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.464 $ / $Date: 2007-07-24 14:53:29 $ / $Author: anoop $ 
+ * @version $Revision: 1.465 $ / $Date: 2007-07-24 20:09:06 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -100,7 +100,21 @@ public class VUE
     private static FloatingZoomPanel floatingZoomPanel; 
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
-    public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
+    private static edu.tufts.vue.rdf.RDFIndex RDFIndex;
+    private static Object RDFIndexLock;
+
+    //public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
+
+    public static edu.tufts.vue.rdf.RDFIndex getIndex() {
+        if (RDFIndex == null && !SKIP_RDF_INDEX) {
+            synchronized (RDFIndexLock) {
+                if (RDFIndex == null)
+                    RDFIndex = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
+            }
+        }
+        return RDFIndex;
+    }
+
    
     private static final ActiveInstance<LWPathway>
         ActivePathwayHandler = new ActiveInstance<LWPathway>(LWPathway.class) {
@@ -345,6 +359,8 @@ public class VUE
                 SKIP_DR = true;
             } else if (args[i].equals("-noem")) {
                 SKIP_EDITOR_MANAGER = true;
+            } else if (args[i].equals("-noidx")) {
+                SKIP_RDF_INDEX = true;
             } else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
             else
@@ -368,6 +384,7 @@ public class VUE
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
     private static boolean SKIP_SPLASH = false;
     private static boolean SKIP_EDITOR_MANAGER = false;
+    private static boolean SKIP_RDF_INDEX = false;
     private static String NAME;
 	
     private static DRBrowser DR_BROWSER;
@@ -1616,20 +1633,25 @@ public class VUE
         LWMap ensureChecked = getActiveMap(); // in case of full-screen
         for (int i = 0; i < tabs; i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
-            VUE.index.index(map);
+            if (VUE.getIndex() != null)
+                VUE.getIndex().index(map);
             
             if (map == ensureChecked)
                 ensureChecked = null;
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
         }
-         try {
-             VUE.index.write(new FileWriter(VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file")));
-            System.out.println("Writing index to"+VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file"));
-         } catch (Throwable t) {
-           System.out.println("Exception attempting to save index " +t);
-           t.printStackTrace();
-         }  
+
+        if (getIndex() != null) {
+            try {
+                VUE.getIndex().write(new FileWriter(VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file")));
+                System.out.println("Writing index to"+VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file"));
+            } catch (Throwable t) {
+                System.out.println("Exception attempting to save index " +t);
+                t.printStackTrace();
+            }
+        }
+        
         if (ensureChecked != null && !askSaveIfModified(ensureChecked))
             return false;
         else
