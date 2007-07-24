@@ -26,6 +26,7 @@ package edu.tufts.vue.rdf;
 
 import java.util.*;
 import java.io.*;
+import java.net.*;
 import edu.tufts.vue.metadata.*;
 import tufts.vue.*;
 
@@ -63,8 +64,8 @@ public class RDFIndex extends ModelCom {
         System.out.println("Size of index:"+this.size());
     }
     
-    public List search(String keyword) {
-        List r = new ArrayList();
+    public List<URI> search(String keyword) {
+        List<URI> r = new ArrayList<URI>();
         System.out.println("Searching for: "+keyword);
         String queryString =
                 "PREFIX vue: <vue://vue#>"+
@@ -78,8 +79,12 @@ public class RDFIndex extends ModelCom {
         while(results.hasNext())  {
             Object o = results.next();
             ResultBinding res = (ResultBinding)o ;
-            r.add(res.get("resource"));
-            System.out.println("Resource :"+res.get("resource")); 
+            try {
+                r.add(new URI(res.get("resource").toString()));
+            }catch(Throwable t) {
+                t.printStackTrace();
+            }
+            System.out.println("Resource :"+res.get("resource"));
         }
         ResultSetFormatter.out(System.out, results, query);
         
