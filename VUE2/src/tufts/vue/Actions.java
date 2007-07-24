@@ -29,7 +29,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+
 import javax.swing.Action;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -64,8 +68,74 @@ public class Actions implements VueConstants
     static final private KeyStroke keyStroke(int vk) {
         return keyStroke(vk, 0);
     }
-
     
+    //--------------------------------------------------
+    // PDF Export Notes Actions
+    //--------------------------------------------------
+    private static final File getFileForPresentation()
+    {
+    	if (VUE.getActivePathway() == null || VUE.getActivePathway().getEntries().isEmpty())
+    	{
+			VueUtil.alert(null,"There is no presentation selected or the presentation selected contains no slides, please select a valid presentation.", "Invalid Active Presentation");
+			return null;
+    	}
+		JFileChooser chooser = new JFileChooser();
+		File pdfFileName = null;
+		
+        int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save as");
+        if (option == JFileChooser.APPROVE_OPTION) 
+        {
+            pdfFileName = chooser.getSelectedFile();
+
+            if (pdfFileName == null) 
+            	return null;
+
+            if(!pdfFileName.getName().endsWith(".pdf")) 
+            	pdfFileName = new File(pdfFileName.getAbsoluteFile()+".pdf");                	
+            
+            if (pdfFileName.exists()) {
+                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + pdfFileName.getName() + "\'", 
+                        VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                                      
+            }           
+            
+            return pdfFileName;
+        }
+        else
+        	return null;
+		
+    }
+    public static final VueAction PresentationNotes =
+    	new VueAction("Speaker Notes") {
+		public void act() 
+		{
+			File pdfFile = getFileForPresentation();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createPresentationNotes(pdfFile);
+		}
+    };
+    
+
+    public static final VueAction AudienceNotes =
+    	new VueAction("Audience Notes") {
+		public void act() 
+		{
+			File pdfFile = getFileForPresentation();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createAudienceNotes(pdfFile);
+		}
+    };
+    
+
+    public static final VueAction FullPageSlideNotes =
+    	new VueAction("Slide Deck") {
+		public void act() 
+		{			
+			File pdfFile = getFileForPresentation();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createPresentationSlidesNotes(pdfFile);
+		}
+    };
     //-------------------------------------------------------
     // Selection actions
     //-------------------------------------------------------

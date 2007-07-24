@@ -25,7 +25,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.43 $ / $Date: 2007-07-19 15:31:04 $ / $Author: mike $
+ * @version $Revision: 1.44 $ / $Date: 2007-07-24 17:14:21 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -152,6 +152,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(Actions.Revert);
         fileMenu.addSeparator();
         fileMenu.add(publishAction);
+        JMenu pdfExportMenu = new JMenu("Create PDF");
+        pdfExportMenu.add(Actions.PresentationNotes);
+        pdfExportMenu.add(Actions.AudienceNotes);
+        pdfExportMenu.add(Actions.FullPageSlideNotes);
+        fileMenu.add(pdfExportMenu);
+               
         fileMenu.addSeparator();
         fileMenu.add(printAction);
         fileMenu.add(printAction).setText("Print Visible...");                
