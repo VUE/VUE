@@ -66,7 +66,8 @@ public class RDFIndex extends ModelCom {
     
     public List<URI> search(String keyword) {
         List<URI> r = new ArrayList<URI>();
-        System.out.println("Searching for: "+keyword);
+        System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
+        System.out.println("INDEX:"+this);
         String queryString =
                 "PREFIX vue: <vue://vue#>"+
                 "SELECT ?id ?label ?resource " +
