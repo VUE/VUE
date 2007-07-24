@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.417 $ / $Date: 2007-07-23 23:44:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.418 $ / $Date: 2007-07-24 20:35:11 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -144,7 +144,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected static boolean sDragUnderway;
     //protected Point2D.Float dragPosition = new Point2D.Float();
     
-    protected LWComponent indication;   // current indication (drag rollover hilite)
+    protected static LWComponent indication;   // current indication (drag rollover hilite -- ONLY ONE PER ALL MAPS)
     protected LWComponent rollover;   // current rollover (mouse rollover hilite)
     
     private MapDropTarget mapDropTarget;
@@ -1451,87 +1451,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
     
-    /*
-     * [TODO: changed] By default, add all nodes hit by this box to a list for doing selection.
-     * If NO nodes are in the list, search for links within the region
-     * instead.  Of @param onlyLinks is true, only search for links.
-     */
-    /*
-    private java.util.List computeSelection(Rectangle2D mapRect, boolean onlyLinks) {
-        java.util.List hits = new java.util.ArrayList();
-        java.util.Iterator i = getMap().getChildIterator();
-        // todo: if want nested children to get seleced, will need a descending iterator
-        
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            
-            if (!c.isDrawn())
-                continue;
-            
-            boolean isLink = c instanceof LWLink;
-            //if (!onlyLinks && isLink) // DISABLED IGNORING OF LINKS FOR NOW
-            //  continue;
-            if (onlyLinks && !isLink)
-                continue;
-            if (c.intersects(mapRect))
-                hits.add(c);
-        }
-        if (onlyLinks)
-            return hits;
-        
-        // if found nothing but links, now grab the links
-        if (hits.size() == 0) {
-            i = getMap().getChildIterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                if (!(c instanceof LWLink))
-                    continue;
-                if (c.intersects(mapRect))
-                    hits.add(c);
-            }
-        }
-        return hits;
-    }
-    */
-    
-    // TODO: consolodate this into a single LWContainer tree descent code -- allow for
-    // traversals that can hit a point (for clicks) or a region (for selection) and
-    // handle all the hidden/filter cases, as well as allowing for only selecting
-    // certian types (for various selection types, including new ones like select
-    // children, etc) -- the traversal is essentially dynamic search, and if we're heavy
-    // duty enough even the filter code could use it (tho performance may be an issue at
-    // that point).  (So, we might have a "Traversal" object that does the search).
-
-    // also, e.g.: if want nested children to get seleced, will need a descending iterator
-    // ALSO: move this to VueTool  code
-
-    /*
-    
-    private java.util.List<LWComponent> computeSelection(Rectangle2D mapRect, Class selectionType) {
-        java.util.List<LWComponent> hits = new java.util.ArrayList();
-        java.util.Iterator<LWComponent> i = mFocal.getChildIterator();
-
-        // TODO: no good for picking a link that somehow gets to be child of some map object,
-        // but expands across regular map region -- can't just check top-level!
-
-        // ALSO: this isn't ignoring hidden layers!
-        
-        while (i.hasNext()) {
-            LWComponent c = i.next();
-            
-            if (!c.isDrawn())
-                continue;
-            
-            if (selectionType != null && !selectionType.isInstance(c))
-                continue;
-            
-            if (c.intersects(mapRect))
-                hits.add(c);
-        }
-        return hits;
-    }
-    */
-
     private java.util.List computeSelection(final Rectangle2D mapRect)
     {
         PickContext pc = getPickContext((Rectangle2D.Float) mapRect);
@@ -1539,73 +1458,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return LWTraversal.RegionPick.pick(pc);
     }
 
-    
-    /*
-    public LWComponent findClosestEdge(java.util.List hits, float x, float y) {
-        return findClosest(hits, x, y, true);
-    }
-    */
-    /*
-    public LWComponent findClosestCenter(java.util.List hits, float x, float y)
-    {
-        return findClosest(hits, x, y, false);
-        }*/
-    
-    // todo: we probably need to abandon this whole closest thing, which was neat,
-    // and just go for the cleaner, more traditional layer approach (uppermost
-    // layer is always hit first).
-    // also, architecturally, does this belong somewhere else?
-    protected LWComponent X_findClosest(java.util.List hits, float x, float y, boolean toEdge) {
-        if (hits.size() == 1)
-            return (LWComponent) hits.get(0);
-        else if (hits.size() == 0)
-            return null;
-        
-        java.util.Iterator i;
-        /*
-        java.util.List topLayer = new java.util.ArrayList();
-        if (!toEdge) {
-            // scale is a proxy for the layers created by parent/child relationships
-            // todo: perhaps do real layering, or have parent handle hit detection...
-            float smallestScale = 99f;
-            i = hits.iterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                if (c.getLayer() < smallestScale)
-                    smallestScale = c.getLayer();
-            }
-            i = hits.iterator();
-            while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
-                if (c.getLayer() == smallestScale)
-                    topLayer.add(c);
-            }
-            if (topLayer.size() == 1)
-                return (LWComponent) topLayer.get(0);
-        } else {
-            topLayer = hits;
-            }*/
-        
-        float shortest = Float.MAX_VALUE;
-        float distance;
-        LWComponent closest = null;
-        //i = topLayer.iterator();
-        i = hits.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (toEdge)
-                distance = c.distanceToEdgeSq(x, y);
-            else
-                distance = c.distanceToCenterSq(x, y);
-            if (distance < shortest) {
-                shortest = distance;
-                closest = c;
-            }
-        }
-        return closest;
-    }
-    
-    
     
     void setIndicated(LWComponent c) {
         if (indication == c)
@@ -1616,7 +1468,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
-        if (c instanceof LWSlide && !c.isMoveable()) { 
+        if (c instanceof LWSlide && !c.isMoveable()) {
             //if (c instanceof LWSlide && mFocal != c) {
 
             // We never want to indicate the slide-icon on the main map for any reason,
