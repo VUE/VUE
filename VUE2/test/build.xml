@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.29 $ / $Date: 2007-07-23 20:26:24 $ -->
+<!-- $Revision: 1.30 $ / $Date: 2007-07-24 15:58:40 $ -->
 
 <!-- 
 This ant build file:
@@ -122,7 +122,8 @@ This ant build file:
 	<pathelement path="${lib.home}/jsse.jar" />
 
    <!-- RDF support -->
-   <pathelement path="${lib.home}/jena-2.5.2.jar" />
+   <pathelement path="${lib.home}/arq-2.5.3.jar" />
+   <pathelement path="${lib.home}/jena-2.5.3.jar" />
     <pathelement path="${lib.home}/iri.jar" />
      <pathelement path="${lib.home}/concurrent.jar" />
     <pathelement location="${java.class.path}" />
