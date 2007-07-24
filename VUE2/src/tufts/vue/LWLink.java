@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.163 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.164 $ / $Date: 2007-07-24 01:09:02 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -94,7 +94,6 @@ public class LWLink extends LWComponent
         //float lineX, lineY; // end of curve / line -- can be different than x / y if there is a connector shape
         //RectangularShape shape; // e.g. an arrow -- null means none
         
-        //final Point2D.Float point = new Point2D.Float();
         final Point2D.Float mapPoint = new Point2D.Float();
         
         // for control points
@@ -126,8 +125,8 @@ public class LWLink extends LWComponent
         }
 
         void duplicate(End end) {
-            this.x = end.x;
-            this.y = end.y;
+            x = end.x;
+            y = end.y;
             mapPoint.x = end.mapPoint.x;
             mapPoint.y = end.mapPoint.y;
         }
@@ -2823,7 +2822,8 @@ public class LWLink extends LWComponent
 
     @Override
     public void initTextBoxLocation(TextBox textBox) {
-        
+        if (mRecompute)
+            computeLink();
         textBox.setBoxCenter(getLocalCenterX(), getLocalCenterY());
         
 //         if (mCurveControls > 0)
