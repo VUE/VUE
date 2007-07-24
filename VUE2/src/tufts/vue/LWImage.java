@@ -934,14 +934,14 @@ public class LWImage extends
     }
 
 
-    private LWSelection.Controller[] controlPoints = new LWSelection.Controller[1];
-    /** interface ControlListener */
-    public LWSelection.Controller[] X_getControlPoints() // DEIMPLEMENTED
-    {
-        controlPoints[0] = new LWSelection.Controller(getCenterX(), getCenterY());
-        controlPoints[0].setColor(null); // no fill (transparent)
-        return controlPoints;
-    }
+//     private LWSelection.Controller[] controlPoints = new LWSelection.Controller[1];
+//     /** interface ControlListener */
+//     public LWSelection.Controller[] X_getControlPoints() // DEIMPLEMENTED
+//     {
+//         controlPoints[0] = new LWSelection.Controller(getMapCenterX(), getMapCenterY());
+//         controlPoints[0].setColor(null); // no fill (transparent)
+//         return controlPoints;
+//     }
 
     public String paramString() {
         return super.paramString() + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");

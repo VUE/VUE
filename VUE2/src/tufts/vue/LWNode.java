@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.177 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
+ * @version $Revision: 1.178 $ / $Date: 2007-07-24 20:35:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -143,7 +143,7 @@ public class LWNode extends LWContainer
     /** internal convenience */
     LWNode(String label, float x, float y, RectangularShape shape)
     {
-        super.label = label; // todo: this for debugging
+        super.label = label; // make sure label initially set for debugging
         setFillColor(DEFAULT_NODE_FILL);
         if (shape == null)
             setShape(tufts.vue.shape.RoundRect2D.class);
@@ -153,13 +153,9 @@ public class LWNode extends LWContainer
         setStrokeWidth(DEFAULT_NODE_STROKE_WIDTH);
         setStrokeColor(DEFAULT_NODE_STROKE_COLOR);
         setLocation(x, y);
-        //if (getAbsoluteWidth() < 10 || getAbsoluteHeight() < 10)
-        //setSize(MIN_SIZE,MIN_SIZE);
         this.width = NEEDS_DEFAULT;
         this.height = NEEDS_DEFAULT;
-        //this.font = DEFAULT_NODE_FONT;
-        setFont(DEFAULT_NODE_FONT); // shouldn't need to do this, but label not getting created in setLabel?
-        //getLabelBox(); // shoudn't need to do this either: first attempt at labelbox should get it! (not working either!)
+        setFont(DEFAULT_NODE_FONT);
         setLabel(label);       
         
     }
@@ -355,18 +351,6 @@ public class LWNode extends LWContainer
     public boolean isManagingChildLocations() {
         return true;
     }
-    
-    
-
-//     /** @return true if the given property is currently supported on this component
-//      * Overriden to disable fill support if current a text node */
-//     @Override
-//     public boolean supportsProperty(Key key) {
-//         if (isTextNode() && key == LWKey.FillColor)
-//             return false;
-//         else
-//             return super.supportsProperty(key);
-//     }
     
     
     /**
