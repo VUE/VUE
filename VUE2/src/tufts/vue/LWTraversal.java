@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.26 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2007-07-25 17:14:32 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -208,8 +208,8 @@ public class LWTraversal {
 
     public static class PointPick extends LWTraversal.Picker
     {
-        final Point2D.Float mapPoint = new Point2D.Float();
-        final Point2D.Float nodePoint = new Point2D.Float();
+        private final Point2D.Float mapPoint = new Point2D.Float();
+        private final Point2D.Float zeroPoint = new Point2D.Float();
             
         private LWComponent hit;
         private LWComponent closeHit;
@@ -225,35 +225,30 @@ public class LWTraversal {
             this(e.getViewer().getPickContext(e.getMapX(), e.getMapY()));
         }
         
-        public boolean acceptTraversal(LWComponent c) {
-            if (super.acceptTraversal(c)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
+//         public boolean acceptTraversal(LWComponent c) {
+//             if (super.acceptTraversal(c)) {
+//                 return true;
+//             } else {
+//                 return false;
+//             }
+//         }
 
         public void visit(LWComponent c) {
 
-            //if (DEBUG.PICK && DEBUG.META) eout("PointPick VISITED: " + c);
             if (DEBUG.PICK) eout("   VISIT: " + c);
 
-            c.transformMapToZeroPoint(mapPoint, nodePoint);
-            if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + nodePoint);
+            // todo performance: if we don't ever moved to having cached transforms, we
+            // could keep an AffineTransform in the picker, and for each traversal,
+            // apply transformDownA on a clone of the top level object, passing that
+            // transform down to further depth visits to be cloned and hava
+            // transformDownA applied to it.  Then use that transform here to apply it's
+            // inverse transform to the point.
 
-//             try {
-//                 // todo: can keep a cached transform for each parent encountered...
-//                 // todo: use transformMapToLocalPoint, and override it in LWMap/LWLink for
-//                 // optimization / avoid creating all those empty AffineTransform's...
-//                 c.getLocalTransform().inverseTransform(mapPoint, localPoint);
-//                 if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + localPoint);
-//             } catch (java.awt.geom.NoninvertibleTransformException e) {
-//                 e.printStackTrace();
-//                 return;
-//             }
-                
-            final float hitResult = c.pickDistance(nodePoint.x,
-                                                   nodePoint.y,
+            c.transformMapToZeroPoint(mapPoint, zeroPoint);
+            if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + zeroPoint);
+
+            final float hitResult = c.pickDistance(zeroPoint.x,
+                                                   zeroPoint.y,
                                                    pc.zoom);
 
             //if (DEBUG.PICK && DEBUG.META) {
