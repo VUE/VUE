@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.127 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.128 $ / $Date: 2007-07-25 21:16:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -1031,41 +1031,9 @@ public abstract class LWContainer extends LWComponent
         int links = 0;
         int images = 0;
         int other = 0;
-        
-        /*
-        final Rectangle2D clipBounds;
-        final Shape clip = dc.g.getClip();
-        if (clip instanceof Rectangle2D) {
-            clipBounds = (Rectangle2D) clip;
-            if (DEBUG.PAINT) System.out.println("CLIPBOUNDS=" + Util.out(clipBounds) + " for " + this);
-            //System.out.println("      mvrr="+MapViewer.RepaintRegion);
-        } else {
-            clipBounds = dc.g.getClipBounds();
-            if (DEBUG.PAINT || DEBUG.CONTAINMENT) {
-                out("CURRENT SHAPE CLIP: " + clip + " for " + this);
-                out("        CLIPBOUNDS: " + Util.out(clipBounds));
-            }
-
-            // fudge clip bounds to deal with anti-aliasing
-            // edges that are being missed (only at the top level)
-//               if (dc.focal == this) {
-//               if (clipBounds != null)
-//               clipBounds.grow(1,1);
-//               }
-        }
-        */
-
                 
-        //LWComponent focused = null;
+        
         for (LWComponent c : getChildren()) {
-
-            // make sure the rollover is painted on top
-            // a bit of a hack to do this here -- better MapViewer
-            //if (c.isRollover() && c.getParent() instanceof LWNode) {
-//             if (c.isZoomedFocus()) {
-//                 focused = c;
-//                 continue;
-//             }
 
             //-------------------------------------------------------
             // Using a requiresPaint is a huge speed optimzation.
@@ -1086,23 +1054,11 @@ public abstract class LWContainer extends LWComponent
                 }
             }
         }
-
-//         if (focused != null) {
-//             setFocusComponent(focused);
-//             drawChildSafely(dc, focused);
-//         } else
-//             setFocusComponent(null);
                 
         if (DEBUG.PAINT && (DEBUG.META || this instanceof LWMap)) 
             System.out.println("PAINTED " + links + " links, " + nodes + " nodes, " + images + " images, " + other + " other; for " + this);
     }
 
-//     public void setFocusComponent(LWComponent c)
-//     {
-//         this.focusComponent = c;
-//     }
-    
-    
 
     private void drawChildSafely(DrawContext _dc, LWComponent c)
     {
