@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.165 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
+ * @version $Revision: 1.166 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1232,7 +1232,7 @@ public class LWLink extends LWComponent
     }
 
     @Override
-    protected boolean containsImpl(float x, float y, float zoom) {
+    protected boolean containsImpl(float x, float y, PickContext pc) {
         // link coordinates are all parent-local, so containsImpl is passing us a coordinate
         // in the space of our parent.
         final float lx = getX();
@@ -1241,7 +1241,7 @@ public class LWLink extends LWComponent
             // fast reject on pre-computed bounding box (which already includes stroke width)
             return false;
         } else {
-            return pickDistance(x, y, zoom) == 0 ? true : false;
+            return pickDistance(x, y, pc) == 0 ? true : false;
         }
     }
     
@@ -1254,7 +1254,7 @@ public class LWLink extends LWComponent
     
     @Override
     // todo: now that we handle slop/zoom centrally in Picker, we can get rid of zoom arg to pickDistance
-    protected float pickDistance(float x, float y, float zoom)
+    protected float pickDistance(float x, float y, PickContext pc)
     {
         if (mRecompute)
             computeLink();

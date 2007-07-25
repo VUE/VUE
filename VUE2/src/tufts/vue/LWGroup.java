@@ -23,6 +23,7 @@ import static tufts.Util.*;
 
 import java.util.*;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
@@ -42,7 +43,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.76 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -646,10 +647,14 @@ public class LWGroup extends LWContainer
             drawChildren(dc);
 
         if (isSelected() && dc.isInteractive() && dc.focal != this) {
-            java.awt.Shape shape = getZeroShape();
+            final Shape shape = getZeroShape();
             if (DEBUG.CONTAINMENT) out("drawing selection bounds shape " + shape);
             dc.g.setColor(COLOR_HIGHLIGHT);
             dc.g.fill(shape);
+        } else if (isZoomedFocus() && !hasDecoratedFeatures()) {
+            dc.setAbsoluteStroke(1);
+            dc.g.setColor(COLOR_SELECTION);
+            dc.g.draw(getZeroShape());
         }
 
     }
@@ -676,9 +681,9 @@ public class LWGroup extends LWContainer
      * the standard impl applies of containing any point in the bounding box.
      */
     @Override
-    protected boolean containsImpl(final float x, final float y, float zoom) {
-        if (hasDecoratedFeatures())
-            return super.containsImpl(x, y, zoom);
+    protected boolean containsImpl(final float x, final float y, PickContext pc) {
+        if (pc.isZoomRollover || hasDecoratedFeatures())
+            return super.containsImpl(x, y, pc);
         else
             return false;
     }

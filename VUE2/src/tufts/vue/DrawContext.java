@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.43 $ / $Date: 2007-07-11 21:32:05 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -51,12 +51,13 @@ public class DrawContext
     
     private int index;
     private int maxLayer = Short.MAX_VALUE; // don't draw layers above this level
-    private boolean disableAntiAlias = false;
-    private boolean isInteractive = false;
-    private boolean isDraftQuality = false;
-    private boolean isBlackWhiteReversed = false;
-    private boolean isPresenting = false;
-    private boolean isEditMode = false;
+    private boolean disableAntiAlias;
+    private boolean isInteractive;
+    private boolean isDraftQuality;
+    private boolean isBlackWhiteReversed;
+    private boolean isPresenting;
+    private boolean isEditMode;
+    private boolean isDrawingPathways = true;
     public final Rectangle frame; // if we have the pixel dimensions of the surface we're drawing on, they go here
 
     public final LWComponent focal;
@@ -67,8 +68,7 @@ public class DrawContext
 
     private final Shape rawClip;
     private final AffineTransform rawTransform;
-    //private final AffineTransform mapTransform;
-    AffineTransform mapTransform; // tmp hack
+    private final AffineTransform mapTransform;
     
     private Rectangle2D masterClipRect; // for drawing map nodes
     private Color fillColor;
@@ -332,11 +332,11 @@ public class DrawContext
         isInteractive = t;
     }
 
-    public boolean isInteractive() {
+    public final boolean isInteractive() {
         return isInteractive;
     }
 
-    public boolean isBlackWhiteReversed() {
+    public final boolean isBlackWhiteReversed() {
         return isBlackWhiteReversed;
     }
 
@@ -348,7 +348,7 @@ public class DrawContext
         isPresenting = t;
     }
 
-    public boolean isPresenting() {
+    public final boolean isPresenting() {
         return isPresenting;
     }
 
@@ -357,17 +357,22 @@ public class DrawContext
         isEditMode = t;
     }
 
-    public boolean isEditMode() {
+    public final boolean isEditMode() {
         return isEditMode;
     }
 
-    public boolean drawPathways() {
-        return true;
+    public final boolean drawPathways() {
+        return isDrawingPathways;
         //return !isPresenting() && focal instanceof LWMap;
         //    return !isFocused && !isPresenting();
     }
 
-    public boolean isFocused() {
+    public void setDrawPathways(boolean drawPathways) {
+        isDrawingPathways = drawPathways;
+    }
+    
+
+    public final boolean isFocused() {
         return focal instanceof LWMap == false;
     }
 
@@ -375,7 +380,7 @@ public class DrawContext
         isDraftQuality = t;
     }
 
-    public boolean isDraftQuality() {
+    public final boolean isDraftQuality() {
         return isDraftQuality;
     }
 
@@ -494,6 +499,7 @@ public class DrawContext
         this.isDraftQuality = dc.isDraftQuality;
         this.isBlackWhiteReversed = dc.isBlackWhiteReversed;
         this.isPresenting = dc.isPresenting;
+        this.isDrawingPathways = dc.isDrawingPathways;
         //this.activeTool = dc.activeTool;
         //this.inMapDraw = dc.inMapDraw;
         this.mapTransform = dc.mapTransform;

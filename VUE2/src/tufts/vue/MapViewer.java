@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.418 $ / $Date: 2007-07-24 20:35:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.419 $ / $Date: 2007-07-25 21:17:52 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -94,6 +94,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , java.awt.event.MouseWheelListener               
 {
     static int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
+    //static int RolloverAutoZoomDelay = 1;
     static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
     static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
     private static boolean autoZoomEnabled = PreferencesManager.getBooleanPrefValue(edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance());
@@ -145,7 +146,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //protected Point2D.Float dragPosition = new Point2D.Float();
     
     protected static LWComponent indication;   // current indication (drag rollover hilite -- ONLY ONE PER ALL MAPS)
-    protected LWComponent rollover;   // current rollover (mouse rollover hilite)
     
     private MapDropTarget mapDropTarget;
     
@@ -1410,7 +1410,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             adjustCanvasSize();
         
         if (e.key == LWKey.Deleting) {
-            if (rollover == e.getComponent())
+            if (mRollover == e.getComponent())
                 clearRollover();
 //         } else if (e.key == LWKey.FillColor && e.getComponent() == mMap && mFocal == mMap) {
 //             setBackground(mMap.getFillColor());
@@ -1623,10 +1623,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private Timer rolloverTimer = new Timer();
     private TimerTask rolloverTask = null;
     private void runRolloverTask() {
+        //if (true) return;
         //System.out.println("task run " + this);
-        float mapX = screenToMapX(lastMouseX);
-        float mapY = screenToMapY(lastMouseY);
-        LWComponent hit = pickNode(mapX, mapY);
+        final float mapX = screenToMapX(lastMouseX);
+        final float mapY = screenToMapY(lastMouseY);
+
+        //LWComponent hit = pickNode(mapX, mapY);
+        final PickContext pc = getPickContext(mapX, mapY);
+        pc.isZoomRollover = true;
+        final LWComponent hit = LWTraversal.PointPick.pick(pc);
+        
         if (DEBUG.ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
         //if (hit != null && VueSelection.size() <= 1)
         if (hit != null)
@@ -1643,9 +1649,47 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
     
-    private double mZoomoverOldScale;
-    private Point2D mZoomoverOldLoc = null;
+    private LWComponent mRollover;   // current rollover (mouse rollover hilite)
+    private double mRolloverOldScale;
+    //private double mZoomoverOldScale;
+    //private Point2D mZoomoverOldLoc = null;
+
+    private static boolean allowsZoomedRollover(LWComponent c) {
+        if (c == null || c instanceof LWLink || c instanceof LWPortal || c instanceof LWSlide)
+            return false;
+        else
+            return true;
+    }
+    
     void setRollover(LWComponent c) {
+
+        if (mRollover == c || !allowsZoomedRollover(c))
+            return;
+        
+        if (DEBUG.Enabled) out("**SET ROLLOVER " + c);
+
+        if (mRollover != null) {
+            if (c.hasAncestor(mRollover)) {
+                if (DEBUG.Enabled) out("IS ANCESTOR ROLLOVER");
+                return;
+            }
+            clearRollover();
+        }
+
+        mRollover = c;
+        //mRolloverOldScale = c.getScale();
+        mRollover.setZoomedFocus(true);
+
+        repaint();
+
+        //final double curMapZoom = getZoomFactor();
+        //final double curMapScale = mRollover.getMapScale();
+
+        //mRollover.setScale(1.0 / curMapZoom);
+        //mRollover.setScale(2.0);
+        
+//         double newMapScale = mRollover.getMapScale();
+
 
 //         //if (rollover != c && (c instanceof LWNode || c instanceof LWLink)) {
 //         // link labels need more work to be zoomable
@@ -1685,6 +1729,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         }
     }
     void clearRollover() {
+
+        if (mRollover == null)
+            return;
+        
+        if (DEBUG.Enabled) out("clear rollover " + mRollover);
+
+        //mRollover.setScale(mRolloverOldScale);
+        mRollover.setZoomedFocus(false);
+        mRollover = null;
+
+        repaint();
+        
 //         if (rollover != null) {
 //             if (DEBUG.ROLLOVER) System.out.println("clrRollover: " + rollover);
 //             if (rolloverTask != null) {
@@ -2026,6 +2082,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
         //dc.setActiveTool(getCurrentTool());
         //dc.setMaxLayer(getMaxLayer());
+
+        //dc.zoomedFocus = mRollover;
         
         return dc;
     }
@@ -2341,9 +2399,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // now draw the map / focal
             mFocal.draw(dc);
         }
+
+        if (mRollover != null) {
+            final DrawContext zoomDC = dc.create();
+            zoomDC.setClipOptimized(false);
+            zoomDC.setDrawPathways(false);
+            zoomDC.g.setComposite(ZoomTransparency);            
+            mRollover.draw(zoomDC);
+        }
     }
 
-
+    private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
     
     
     /** This paintChildren is a no-op.  super.paint() will call this,
@@ -4503,7 +4569,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (sLastMouseOver != null) {
                     // we were over a node (not just empty map space)
                     //viewer.clearTip(); // in case it had a tip displayed
-                    if (sLastMouseOver == rollover)
+                    if (sLastMouseOver == mRollover && allowsZoomedRollover(hit))
                         clearRollover();
                     //MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
                     sLastMouseOver.mouseExited(mme);
@@ -4568,27 +4634,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
 
-//             if (getAutoZoomEnabled()) {
-//             	if (RolloverAutoZoomDelay >= 0) {
-//                     if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !(activeTextEdit != null)) {
-//                         if (RolloverAutoZoomDelay > 10) {
-//                             if (rolloverTask != null)
-//                                 rolloverTask.cancel();
-//                             rolloverTask = new RolloverTask();
-//                             try {
-//                                 rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-//                             } catch (IllegalStateException ex) {
-//                                 // don't know why this happens somtimes...
-//                                 System.out.println(ex + " (fallback: creating new timer)");
-//                                 rolloverTimer = new Timer();
-//                                 rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
-//                             }
-//                         } else {
-//                             runRolloverTask();
-//                         }
-//                     }
-//             	}
-//             }
+            if (getAutoZoomEnabled() && RolloverAutoZoomDelay > 0) {
+                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && activeTextEdit == null) {
+                    if (RolloverAutoZoomDelay > 10) {
+                        if (rolloverTask != null)
+                            rolloverTask.cancel();
+                        rolloverTask = new RolloverTask();
+                        try {
+                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                        } catch (IllegalStateException ex) {
+                            // don't know why this happens somtimes...
+                            System.out.println(ex + " (fallback: creating new timer)");
+                            rolloverTimer = new Timer();
+                            rolloverTimer.schedule(rolloverTask, RolloverAutoZoomDelay);
+                        }
+                    } else {
+                        runRolloverTask();
+                    }
+                }
+            }
         }
         
         public void mouseEntered(MouseEvent e) {
@@ -4614,7 +4678,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         public void mouseExited(MouseEvent e) {
             if (DEBUG.MOUSE||DEBUG.ROLLOVER) out(e.paramString());
 
-            if (sLastMouseOver != null && sLastMouseOver == rollover)
+            if (sLastMouseOver != null && sLastMouseOver == mRollover)
                 clearRollover();
 
             if (false && sLastMouseOver != null) {

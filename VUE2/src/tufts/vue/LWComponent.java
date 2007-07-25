@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.316 $ / $Date: 2007-07-24 21:55:34 $ / $Author: sfraize $
+ * @version $Revision: 1.317 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -180,7 +180,7 @@ public class LWComponent
     protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
     protected transient boolean selected = false;
-    protected transient boolean rollover = false;
+    //protected transient boolean rollover = false;
     protected transient boolean isZoomedFocus = false;
     protected transient int mHideBits = 0x0; // any bit set means we're hidden
 
@@ -2839,7 +2839,7 @@ u                    getSlot(c).setFromString((String)value);
     }
         
 
-    private boolean linkNotificationDisabled = false;
+    //private boolean linkNotificationDisabled = false;
     protected void takeLocation(float x, float y) {
         if (DEBUG.LAYOUT) {
             out("takeLocation " + x + "," + y);
@@ -2965,7 +2965,7 @@ u                    getSlot(c).setFromString((String)value);
         } else {
             // this always needs to happen no matter what, even during undo
             // (e.g., the shape of curves isn't stored anywhere -- always needs to be recomputed)
-            if (!linkNotificationDisabled)
+            //if (!linkNotificationDisabled)
                 updateConnectedLinks(this);
         }
     }
@@ -2977,15 +2977,18 @@ u                    getSlot(c).setFromString((String)value);
      */
     protected void updateConnectedLinks(LWComponent movingSrc)
     {
-        if (mLinks != null && mLinks.size() > 0)
-            for (LWLink link : mLinks)
-                link.notifyEndpointMoved(movingSrc, this);
+        //if (!linkNotificationDisabled) // todo: if still end up using this feature, need to pass this bit on down to children
+        if (!isZoomedFocus())
+            if (mLinks != null && mLinks.size() > 0)
+                for (LWLink link : mLinks)
+                    link.notifyEndpointMoved(movingSrc, this);
     }
     
     /** a notification to the component that it's absolute map location has changed by the given absolute map dx / dy */
     // todo: may be better named ancestorMoved or ancestorTranslated or some such
     protected void notifyMapLocationChanged(LWComponent movingSrc, double mdx, double mdy) {
-        if (!linkNotificationDisabled) // todo: if still end up using this feature, need to pass this bit on down to children
+        //if (!linkNotificationDisabled) // todo: if still end up using this feature, need to pass this bit on down to children
+        if (!isZoomedFocus())
             updateConnectedLinks(movingSrc);
     }
 
@@ -3019,15 +3022,15 @@ u                    getSlot(c).setFromString((String)value);
                     (float) p.getY() - getHeight()/2);
     }
 
-    /** special case for mapviewer rollover zooming to skip calling updateConnectedLinks
-     * If the component is temporarily zoomed, we don't want/need to update all the connected links.
-     */
-    void setCenterAtQuietly(Point2D p)
-    {
-        linkNotificationDisabled = true;
-        setCenterAt(p);
-        linkNotificationDisabled = false;
-    }
+//     /** special case for mapviewer rollover zooming to skip calling updateConnectedLinks
+//      * If the component is temporarily zoomed, we don't want/need to update all the connected links.
+//      */
+//     void setCenterAtQuietly(Point2D p)
+//     {
+//         linkNotificationDisabled = true;
+//         setCenterAt(p);
+//         linkNotificationDisabled = false;
+//     }
     
     public Point2D getLocation()
     {
@@ -3584,6 +3587,7 @@ u                    getSlot(c).setFromString((String)value);
     //-----------------------------------------------------------------------------
 
     private final static boolean ROTATE_TEST = false;
+    private final static double ZoomScale = 2;
 
     /** transform the given AffineTransform down from our parent to us, the child */
     protected AffineTransform transformDownA(final AffineTransform a)
@@ -3600,10 +3604,22 @@ u                    getSlot(c).setFromString((String)value);
             a.translate(-hw, -hh);
             
         } else {
-            
-            a.translate(this.x, this.y);
-            if (scale != 1)
-                a.scale(scale, scale);
+
+            if (isZoomedFocus) {
+                if (false && this instanceof LWSlide) {
+                    final double scale = SlideIconScale * 2;
+                    a.scale(scale, scale);
+                } else {
+                    // Zoom on-center
+                    a.translate(this.x - this.width / 2,
+                                this.y - this.height / 2);
+                    a.scale(ZoomScale, ZoomScale);
+                }
+            } else {
+                a.translate(this.x, this.y);
+                if (scale != 1)
+                    a.scale(scale, scale);
+            }
             
         }
         return a;
@@ -3625,10 +3641,21 @@ u                    getSlot(c).setFromString((String)value);
             
         } else {
             
-            g.translate(this.x, this.y);
-            if (scale != 1)
-                g.scale(scale, scale);
-            
+            if (isZoomedFocus) {
+                if (false && this instanceof LWSlide) {
+                    final double scale = SlideIconScale * 2;
+                    g.scale(scale, scale);
+                } else {
+                    // Zoom on-center
+                    g.translate(this.x - this.width / 2,
+                                this.y - this.height / 2);
+                    g.scale(ZoomScale, ZoomScale);
+                }
+            } else {
+                g.translate(this.x, this.y);
+                if (scale != 1)
+                    g.scale(scale, scale);
+            }
         }
     }
 
@@ -3658,7 +3685,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float zeroPoint) {
 
-        if (parent instanceof LWMap && scale == 1.0 && !ROTATE_TEST) { // OPTIMIZATION
+        if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
             zeroPoint.x = mapPoint.x - this.x;
             zeroPoint.y = mapPoint.y - this.y;
             return zeroPoint;
@@ -3675,7 +3702,7 @@ u                    getSlot(c).setFromString((String)value);
 
     protected Point2D transformZeroToMapPoint(Point2D.Float zeroPoint, Point2D.Float mapPoint) {
 
-        if (parent instanceof LWMap && scale == 1.0 && !ROTATE_TEST) { // OPTIMIZATION
+        if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
             mapPoint.x = zeroPoint.x + this.x;
             mapPoint.y = zeroPoint.y + this.y;
             return mapPoint;
@@ -3691,7 +3718,7 @@ u                    getSlot(c).setFromString((String)value);
      * THIS CURRENTLY ONLY WORKS FOR LINKS */
     protected Rectangle2D transformMapToParentLocalRect(Rectangle2D mapRect) {
 
-        if (parent instanceof LWMap && scale == 1.0 && !ROTATE_TEST) {
+        if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
             // This is an optimization we'll want to remove if we ever
             // embed maps in maps.
             return mapRect;
@@ -3732,26 +3759,53 @@ u                    getSlot(c).setFromString((String)value);
      * into map coordinates.  The passed in Rectangle2D.Float will be modified
      * and returned.
      */
-    public Rectangle2D.Float transformZeroToMapRect(Rectangle2D.Float rect) {
-        final double scale = getMapScale();
-        if (scale != 1) {
-            rect.x *= scale;
-            rect.y *= scale;
-            rect.width *= scale;
-            rect.height *= scale;
-        }
-        if (this instanceof LWLink) {
-            // todo: eventually rewrite this routine entirely to use the transformations
-            // (will need that if ever want to handle rotation, as well as to skip this
-            // special case for links).
-            rect.x += getParent().getMapX();
-            rect.y += getParent().getMapY();
-        } else {
-            rect.x += getMapX();
-            rect.y += getMapY();
-        }
+    public Rectangle2D.Float transformZeroToMapRect(Rectangle2D.Float zeroRect) {
+    //public Rectangle2D transformZeroToMapRect(Rectangle2D zeroRect) {
+
+        final AffineTransform tx = getZeroTransform();
+        double[] points = new double[8]; // todo opt: can do as len 4 & overwrite
+        points[0] = zeroRect.getX();
+        points[1] = zeroRect.getY();
+        points[2] = points[0] + zeroRect.getWidth();
+        points[3] = points[1] + zeroRect.getHeight();
         
-        return rect;
+        tx.transform(points, 0, points, 4, 2);
+
+        zeroRect.setRect(points[4],
+                        points[5],
+                        points[6] - points[4],
+                        points[7] - points[5]
+                        );
+
+        return zeroRect;
+        
+//         mapRect.x = (float) points[4];
+//         mapRect.y = (float) points[5];
+//         mapRect.width = (float) (points[6] - points[4]);
+//         mapRect.height = (float) (points[7] - points[5]);
+
+
+
+        
+//         final double scale = getMapScale();
+//         if (scale != 1) {
+//             rect.x *= scale;
+//             rect.y *= scale;
+//             rect.width *= scale;
+//             rect.height *= scale;
+//         }
+//         if (this instanceof LWLink) {
+//             // todo: eventually rewrite this routine entirely to use the transformations
+//             // (will need that if ever want to handle rotation, as well as to skip this
+//             // special case for links).
+//             rect.x += getParent().getMapX();
+//             rect.y += getParent().getMapY();
+//         } else {
+//             rect.x += getMapX();
+//             rect.y += getMapY();
+//         }
+        
+//         return rect;
     }
                 
     
@@ -3785,6 +3839,9 @@ u                    getSlot(c).setFromString((String)value);
         // always draw the focal
         if (dc.focal == this)
             return true;
+
+        if (isZoomedFocus())
+            return false;
         
         // if filtered, don't draw, unless has children, in which case
         // we need to draw just in case any of the children are NOT filtered.
@@ -3795,22 +3852,30 @@ u                    getSlot(c).setFromString((String)value);
         //if (getLayer() > dc.getMaxLayer())
         //    return false;
 
-        if (!dc.isClipOptimized()) {
-            // If we're drawing raw, always draw everything, don't
-            // check against the master "map" clip rect, as that's only
-            // for drawing map elements (e.g., we may be drawing
-            // a LWComponent that's a decoration or GUI element,
-            // like a navigation node, or a master slide background).
+        if (dc.isClipOptimized()) {
+            if (intersects(dc.getMasterClipRect()))
+                return true;
+            
+            if (isDrawingSlideIcon())
+                return getMapSlideIconBounds().intersects(dc.getMasterClipRect());
+            else
+                return false;
+        } else {
+            
+            // Not clip optimized means don't bother to check the master clip to see if
+            // we need to draw: just always draw everything no matter where it is
+            // (unless it was hidden, etc).  E.g., if we're drawing to generate an
+            // image, or drawing a zoomed rollover, we already know we just need to draw
+            // the component no matter what.
+            
+            // More examples: when drawing raw, always draw everything, don't check
+            // against the master "map" clip rect, as that's only for drawing map
+            // elements (e.g., we may be drawing a LWComponent that's a decoration or
+            // GUI element, like a navigation node, or a master slide background).
+            
             return true;
         }
 
-        if (intersects(dc.getMasterClipRect()))
-            return true;
-
-        if (isDrawingSlideIcon())
-            return getMapSlideIconBounds().intersects(dc.getMasterClipRect());
-        else
-            return false;
     }
     
 
@@ -3943,17 +4008,10 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
     
-    public final boolean contains(Point2D p, float zoom) {
-        return contains((float)p.getX(), (float)p.getY(), zoom);
-    }
 
     /** @return true if the given x/y (already transformed to our local coordinate space), is within our shape */
-    public final boolean contains(float x, float y) {
-        return contains(x, y, 1f);
-    }
-    
-    public final boolean contains(float x, float y, float zoom) {
-        if (containsImpl(x, y, zoom))
+    public final boolean contains(float x, float y, PickContext pc) {
+        if (containsImpl(x, y, pc))
             return true;
         else if (isDrawingSlideIcon()) {
             if (DEBUG.PICK) out("Checking slide icon bounds " + getSlideIconBounds());
@@ -3963,15 +4021,15 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /** @return 0 means a hit, -1 a completely miss, > 0 means distance, to be sorted out by caller  */
-    protected float pickDistance(float x, float y, float zoom) {
-        return contains(x, y, zoom) ? 0 : -1;
+    protected float pickDistance(float x, float y, PickContext pc) {
+        return contains(x, y, pc) ? 0 : -1;
     }
 
     /**
      * Default implementation: checks bounding box, including any stroke width.
      * Subclasses should override for more accurate hit detection.
      */
-    protected boolean containsImpl(float x, float y, float zoom)
+    protected boolean containsImpl(float x, float y, PickContext pc)
     {
         final float stroke = getStrokeWidth() / 2;
         
@@ -3995,7 +4053,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
-    private final float SlideScale = 0.125f;
+    private static final float SlideIconScale = 0.125f;
     private Rectangle2D.Float mSlideIconBounds;
     public Rectangle2D.Float getSlideIconBounds() {
         if (mSlideIconBounds == null)
@@ -4029,8 +4087,9 @@ u                    getSlot(c).setFromString((String)value);
 
     protected Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
     {
-        final float width = LWSlide.SlideWidth * SlideScale;
-        final float height = LWSlide.SlideHeight * SlideScale;
+        // TODO: below should take into account actual slide size...
+        final float width = LWSlide.SlideWidth * SlideIconScale;
+        final float height = LWSlide.SlideHeight * SlideIconScale;
 
         Point2D.Float corner = getCorner();
         
@@ -4148,22 +4207,29 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /**
-     * for directly forcing the drawing or redrawing a single component at it's proper map location
-     * If you are going to use the passed in DrawContext after this call for other map drawing operations,
-     * be sure to pass in dc.create() from the caller, as this call leaves it in an undefined state.
-     **/
+     *
+     * This is NOT the method used to draw a component during routine drawing of the
+     * entire map.  This is for directly forcing the drawing or redrawing a single
+     * component at it's proper map location.  The passed in DrawContext gc is expected
+     * to be transformed for drawing the top-level map.  If you are going to use the
+     * passed in DrawContext after this call for other map drawing operations, be sure
+     * to pass in dc.create() from the caller, as this call will leaves it in a
+     * generally undefined state (probably rooted at the node).
+     *
+     */
     public void draw(DrawContext dc) {
         dc.setClipOptimized(false); // ensure all children draw even if not inside clip
         transformZero(dc.g);
         if (dc.focal == this) {
             drawRaw(dc);
         } else {
-            if (true) {
+            if (isZoomedFocus()) {
+                // include any slide icons
+                drawDecorated(dc);
+            } else {
                 if (dc.drawPathways())
                     drawPathwayDecorations(dc);
                 drawRaw(dc);
-            } else {
-                drawDecorated(dc); // to heavy for now: don't want slide icons
             }
         }
     }
@@ -4173,7 +4239,7 @@ u                    getSlot(c).setFromString((String)value);
         drawImpl(dc);
     }
     
-    protected void drawDecorated(DrawContext dc)
+    protected final void drawDecorated(DrawContext dc)
     {
         final LWPathway.Entry entry = getEntryToDisplay();
         //final boolean drawSlide = (entry != null);
@@ -4198,11 +4264,11 @@ u                    getSlot(c).setFromString((String)value);
 
             dc.setClipOptimized(false);
             dc.g.translate(slideFrame.x, slideFrame.y);
-            dc.g.scale(SlideScale, SlideScale);
+            dc.g.scale(SlideIconScale, SlideIconScale);
 
             // A hack so that when LWLinks (hasAbsoluteMapLocation) pop to map drawing, they
             // don't pop up beyond this point.
-            dc.mapTransform = dc.g.getTransform();
+            //dc.mapTransform = dc.g.getTransform();
             
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.9f));
             //entry.pathway.getMasterSlide().drawImpl(dc);
@@ -4581,34 +4647,30 @@ u                    getSlot(c).setFromString((String)value);
         return isVisible() && !isFiltered();
     }
     
-    public void setRollover(boolean tv)
-    {
-        if (this.rollover != tv) {
-            this.rollover = tv;
-        }
-    }
-
-//     public void setZoomedFocus(boolean tv) {
-//         return;
-//         //throw new UnsupportedOperationException();
-//         /*
-//         if (this.isZoomedFocus != tv) {
-//             this.isZoomedFocus = tv;
+//     public void setRollover(boolean tv)
+//     {
+//         if (this.rollover != tv) {
+//             this.rollover = tv;
 //         }
+//     }
+//     public boolean isRollover() {
+//         return this.rollover;
+//     }
+
+
+    public void setZoomedFocus(boolean zoomedFocus) {
+        //isZoomedFocus = false;
+        isZoomedFocus = zoomedFocus;
+//        linkNotificationDisabled = zoomedFocus;
 //         if (getParent() != null) {
 //             getParent().setFocusComponent(tv ? this : null);
 //         }
-//         */
-//     }
+    }
 
-    public boolean isZoomedFocus() {
+    public final boolean isZoomedFocus() {
         return isZoomedFocus;
     }
     
-    public boolean isRollover() {
-        return this.rollover;
-    }
-
     public void mouseEntered(MapMouseEvent e)
     {
         if (DEBUG.ROLLOVER) System.out.println("MouseEntered:     " + this);

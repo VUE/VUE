@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.179 $ / $Date: 2007-07-24 21:08:28 $ / $Author: sfraize $
+ * @version $Revision: 1.180 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -640,12 +640,12 @@ public class LWNode extends LWContainer
     */
 
     @Override
-    protected boolean containsImpl(float x, float y, float zoom) {
+    protected boolean containsImpl(float x, float y, PickContext pc) {
         if (isRectShape) {
             // won't be perfect for round-rect at big scales, but good
             // enough, and takes into account stroke width
-            return super.containsImpl(x, y, zoom);
-        } else if (super.containsImpl(x, y, zoom)) {
+            return super.containsImpl(x, y, pc);
+        } else if (super.containsImpl(x, y, pc)) {
             
             // above was a fast-reject check on the bounding box, now check the actual shape:
             
@@ -1840,8 +1840,7 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
 
         if (hasChildren()) {
-            if (isZoomedFocus())
-                dc.g.setComposite(ZoomTransparency);
+            //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
             super.drawChildren(dc);
         }
     }
@@ -1879,11 +1878,9 @@ public class LWNode extends LWContainer
             Color fillColor = getRenderFillColor(dc);
             if (fillColor != null && fillColor.getAlpha() != 0) { // transparent if null
                 dc.g.setColor(fillColor);
-                if (isZoomedFocus())
-                    dc.g.setComposite(ZoomTransparency);
+                //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
                 dc.g.fill(mShape);
-                if (isZoomedFocus())
-                    dc.g.setComposite(AlphaComposite.Src);
+                //if (isZoomedFocus()) dc.g.setComposite(AlphaComposite.Src);
             }
         }
 

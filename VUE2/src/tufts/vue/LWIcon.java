@@ -339,7 +339,9 @@ public abstract class LWIcon extends Rectangle2D.Float
                     }
                     mLWC.transformZeroToMapRect(avoidRegion);
                 } else {
-                    avoidRegion = mLWC.getBounds();
+                    // So it works when zoomed focus, use the transform:
+                    avoidRegion = mLWC.transformZeroToMapRect(mLWC.getZeroBounds());
+                    //avoidRegion = mLWC.getBounds();
                 }
                 
                 e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);

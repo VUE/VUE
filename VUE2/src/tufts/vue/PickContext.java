@@ -23,7 +23,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.8 $ / $Date: 2007-05-23 03:45:52 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-07-25 21:17:52 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -51,6 +51,9 @@ public class PickContext
 
     /** Don't ever pick this one particular node */
     public LWComponent excluded = null;
+
+    /** If true, special picking rules for the zoomed rollover pick */
+    public boolean isZoomRollover;
 
     /** Only pick instances of this type (some LWComponent subclass) */
     //public Class pickType = null;

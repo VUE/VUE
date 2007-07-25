@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.27 $ / $Date: 2007-07-25 17:14:32 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -247,9 +247,13 @@ public class LWTraversal {
             c.transformMapToZeroPoint(mapPoint, zeroPoint);
             if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + zeroPoint);
 
+            // note: passing an uncloned PickContext down to each visited component
+            // is a bit risky, as all implementations must be sure not to modify
+            // it in any way.
+
             final float hitResult = c.pickDistance(zeroPoint.x,
                                                    zeroPoint.y,
-                                                   pc.zoom);
+                                                   pc);
 
             //if (DEBUG.PICK && DEBUG.META) {
             if (DEBUG.PICK) {

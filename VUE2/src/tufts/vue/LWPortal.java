@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.10 $ / $Date: 2007-07-22 23:34:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.11 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -84,6 +84,15 @@ public class LWPortal extends LWNode
     public int getFocalMargin() {
         return 0;
     }
+
+    @Override
+    protected boolean containsImpl(final float x, final float y, PickContext pc) {
+        if (pc.isZoomRollover)
+            return false; // allow picking through the portal -- never zoom portals
+        else
+            return super.containsImpl(x, y, pc);
+    }
+    
     
     
     @Override

@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.151 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
+ * @version $Revision: 1.152 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -870,14 +870,9 @@ public class LWMap extends LWContainer
         return false;
     }
     
-//     @Override
-//     protected boolean containsImpl(float x, float y, float zoom) {
-//         return true;
-//     }
-    
     /** @return Float.MAX_VALUE: map contains all points, but any contents take priority */
     @Override
-    protected float pickDistance(float x, float y, float zoom) {
+    protected final float pickDistance(float x, float y, PickContext pc) {
         return Float.MAX_VALUE;
     }
 
@@ -886,7 +881,7 @@ public class LWMap extends LWContainer
      * is nothing -- we just @return null.
      */
     @Override
-    protected LWComponent defaultPick(PickContext pc) {
+    protected final LWComponent defaultPick(PickContext pc) {
         //return this; // allow picking of the map
         return null;
     }
