@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.465 $ / $Date: 2007-07-24 20:09:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.466 $ / $Date: 2007-07-27 19:41:01 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -101,7 +101,7 @@ public class VUE
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
     private static edu.tufts.vue.rdf.RDFIndex RDFIndex;
-    private static Object RDFIndexLock;
+    private static Object RDFIndexLock= new Object();
 
     //public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
 
@@ -1612,8 +1612,7 @@ public class VUE
      * @return true if we're cleared to exit, false if we want to abort the exit
      */
     public static boolean isOkayToExit() {
-
-    	//update the windows properties
+       //update the windows properties
         DR_BROWSER_DOCK.saveWindowProperties();
         pathwayDock.saveWindowProperties();
         if (formatDock != null)
@@ -1624,15 +1623,16 @@ public class VUE
         ObjectInspector.saveWindowProperties();
         outlineDock.saveWindowProperties();
         ApplicationFrame.saveWindowProperties();
-        
+       
         if (mMapTabsLeft == null) // so debug harnesses can quit (no maps displayed)
             return true;
-        
+       
         // TODO: use active map instances
         int tabs = mMapTabsLeft.getTabCount();
         LWMap ensureChecked = getActiveMap(); // in case of full-screen
         for (int i = 0; i < tabs; i++) {
             LWMap map = mMapTabsLeft.getMapAt(i);
+            System.out.println("indexing map "+map.getLabel()+ " index size="+VUE.getIndex().size());
             if (VUE.getIndex() != null)
                 VUE.getIndex().index(map);
             
