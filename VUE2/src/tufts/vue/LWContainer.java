@@ -32,7 +32,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.128 $ / $Date: 2007-07-25 21:16:11 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2007-07-30 23:31:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -147,9 +147,11 @@ public abstract class LWContainer extends LWComponent
     protected void updateConnectedLinks(LWComponent movingSrc)
     {
         super.updateConnectedLinks(movingSrc);
-        // these components are moving in absolute map coordinates, even tho their local location isn't changing
-        for (LWComponent c : getChildren()) 
-            c.updateConnectedLinks(movingSrc);
+        if (updatingLinks()) {
+            // these components are moving in absolute map coordinates, even tho their local location isn't changing
+            for (LWComponent c : getChildren()) 
+                c.updateConnectedLinks(movingSrc);
+        }
     }
 
     /** called by LWChangeSupport, available here for override by parent classes that want to
