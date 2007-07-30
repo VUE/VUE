@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.419 $ / $Date: 2007-07-25 21:17:52 $ / $Author: sfraize $ 
+ * @version $Revision: 1.420 $ / $Date: 2007-07-30 23:35:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2367,6 +2367,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (mFocal == null)
             return;
+
+        if (DEBUG.VIEWER && mRollover != null)
+            mRollover.updateConnectedLinks(null);
         
         if (mFocal.isTranslucent() && mFocal != mMap) {
             // If our fill is in any way translucent, the underlying
@@ -2404,7 +2407,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final DrawContext zoomDC = dc.create();
             zoomDC.setClipOptimized(false);
             zoomDC.setDrawPathways(false);
-            zoomDC.g.setComposite(ZoomTransparency);            
+            //zoomDC.setAlpha(0.8f); // Not what we want here (for image generation only?)
+            zoomDC.g.setComposite(ZoomTransparency);
             mRollover.draw(zoomDC);
         }
     }
@@ -2835,6 +2839,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // no resize handles if only links or groups
             resizeControl.active = false;
         } else {
+      //} else if (mRollover == null) { // don't draw selection handles during zoomed rollover
             if (TEST || selection.size() > 1) {
                 dc.g.draw(mapSelectionBounds);
             } else {
@@ -3930,7 +3935,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == 'U') { DEBUG.UNDO = !DEBUG.UNDO; }
                 else if (c == 'V') { DEBUG.VIEWER = !DEBUG.VIEWER; }
                 else if (c == 'W') { DEBUG.WORK = !DEBUG.WORK; }
-                //else if (c == 'W') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
+                else if (c == 'r') { DEBUG.ROLLOVER = !DEBUG.ROLLOVER; }
                 else if (c == 'X') { DEBUG.TEXT = !DEBUG.TEXT; }
                 else if (c == 'Z') { resetScrollRegion(); }
                 
@@ -4569,9 +4574,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (sLastMouseOver != null) {
                     // we were over a node (not just empty map space)
                     //viewer.clearTip(); // in case it had a tip displayed
-                    if (sLastMouseOver == mRollover && allowsZoomedRollover(hit))
-                        clearRollover();
-                    //MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
+
+                    //if (sLastMouseOver == mRollover && allowsZoomedRollover(hit)) // do we still need this?
+                    //    clearRollover();
+                    
                     sLastMouseOver.mouseExited(mme);
                 }
 
@@ -4636,7 +4642,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             if (getAutoZoomEnabled() && RolloverAutoZoomDelay > 0) {
                 if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && activeTextEdit == null) {
-                    if (RolloverAutoZoomDelay > 10) {
+                    if (RolloverAutoZoomDelay > 10 && mRollover == null) {
                         if (rolloverTask != null)
                             rolloverTask.cancel();
                         rolloverTask = new RolloverTask();
