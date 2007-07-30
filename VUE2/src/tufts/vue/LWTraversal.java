@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.28 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-07-30 23:32:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -79,7 +79,10 @@ public class LWTraversal {
             if (acceptChildren(c)) {
                 if (DEBUG.PICK) eoutln("Traverse: " + c);
                 depth++;
-                traverseChildren(c.getChildList());
+                if (c.isManagingChildLocations())
+                    traverseChildrenZoomUnderSiblings(c.getChildList());
+                else
+                    traverseChildren(c.getChildList());
                 depth--;
             }
             if (done) return;
@@ -100,14 +103,41 @@ public class LWTraversal {
         // TODO: could more cleanly handle our slide-icon hack by having a special
         // call to ask for the child list, and if someone has a slide icon, return
         // a list with that always at the the end (on top)
-            
+        
         for (ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
-            //traverse(i.previous().getView());
             traverse(i.previous());
             if (done)
                 return;
         }
     }
+    
+    public void traverseChildrenZoomUnderSiblings(java.util.List<LWComponent> children)
+    {
+        // if we encounder a zoomed rollover, all siblings get priority
+        // (so you can get to siblings that might have been obscurved by it's increased size)
+
+        // Note that this shouldn't be used in instances where the siblings might be actually
+        // overlapping when non-zoomed, as we get flashing back and forth every time
+        // the mouse moves.
+        
+        LWComponent zoomedFocus = null;
+        
+        for (ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
+            final LWComponent c = i.previous();
+            if (c.isZoomedFocus()) {
+                zoomedFocus = c;
+            } else {
+                traverse(c);
+                if (done)
+                    return;
+            }
+        }
+
+        if (zoomedFocus != null) 
+            traverse(zoomedFocus);
+    }
+
+    
 
         
     /** It's possible we may accept the traversal of an object, without accepting it for a visit
@@ -408,6 +438,7 @@ public class LWTraversal {
             }
 
             if (DEBUG.PICK) eoutln("PointPick:     PICKED: " + picked + "\n");
+            else if (DEBUG.WORK && picked != null) System.out.println("PICKED " + picked);
             return picked;
         }
         
