@@ -35,7 +35,7 @@ import java.awt.geom.AffineTransform;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.44 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2007-07-30 23:31:13 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -430,11 +430,15 @@ public class DrawContext
     /** set a stroke width that stays constant on-screen at given
      * width independent of any current scaling (presuming
      * scaling is same in X/Y direction's -- only tracks X scale factor).
-     * @deprecated -- doesn't take into account stroke style (dashing)
+     * NOTE: doesn't take into account stroke style (dashing) -- always produces
+     * solid stroke.
      */
     public void setAbsoluteStroke(double width)
     {
-        this.g.setStroke(new java.awt.BasicStroke((float) (width / this.g.getTransform().getScaleX())));
+        double scale = this.g.getTransform().getScaleX();
+        if (scale <= 0)
+            scale = 1;
+        this.g.setStroke(new java.awt.BasicStroke((float) (width / scale)));
     }
 
     /**
