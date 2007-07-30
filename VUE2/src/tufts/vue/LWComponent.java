@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.317 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
+ * @version $Revision: 1.318 $ / $Date: 2007-07-30 23:34:29 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2966,6 +2966,7 @@ u                    getSlot(c).setFromString((String)value);
             // this always needs to happen no matter what, even during undo
             // (e.g., the shape of curves isn't stored anywhere -- always needs to be recomputed)
             //if (!linkNotificationDisabled)
+            if (updatingLinks())
                 updateConnectedLinks(this);
         }
     }
@@ -2978,7 +2979,7 @@ u                    getSlot(c).setFromString((String)value);
     protected void updateConnectedLinks(LWComponent movingSrc)
     {
         //if (!linkNotificationDisabled) // todo: if still end up using this feature, need to pass this bit on down to children
-        if (!isZoomedFocus())
+        if (updatingLinks())
             if (mLinks != null && mLinks.size() > 0)
                 for (LWLink link : mLinks)
                     link.notifyEndpointMoved(movingSrc, this);
@@ -2988,7 +2989,7 @@ u                    getSlot(c).setFromString((String)value);
     // todo: may be better named ancestorMoved or ancestorTranslated or some such
     protected void notifyMapLocationChanged(LWComponent movingSrc, double mdx, double mdy) {
         //if (!linkNotificationDisabled) // todo: if still end up using this feature, need to pass this bit on down to children
-        if (!isZoomedFocus())
+        if (updatingLinks())
             updateConnectedLinks(movingSrc);
     }
 
@@ -3022,16 +3023,6 @@ u                    getSlot(c).setFromString((String)value);
                     (float) p.getY() - getHeight()/2);
     }
 
-//     /** special case for mapviewer rollover zooming to skip calling updateConnectedLinks
-//      * If the component is temporarily zoomed, we don't want/need to update all the connected links.
-//      */
-//     void setCenterAtQuietly(Point2D p)
-//     {
-//         linkNotificationDisabled = true;
-//         setCenterAt(p);
-//         linkNotificationDisabled = false;
-//     }
-    
     public Point2D getLocation()
     {
         return new Point2D.Float(getX(), getY());
@@ -3589,15 +3580,22 @@ u                    getSlot(c).setFromString((String)value);
     private final static boolean ROTATE_TEST = false;
     private final static double ZoomScale = 2;
 
-    /** transform the given AffineTransform down from our parent to us, the child */
+    /**
+     * Transform the given AffineTransform down from our parent to us, the child.
+     */
+
+    private static final int RotSteps = 180;
+    private static final double RotStep = Math.PI * 2 / RotSteps;
+    private static int RotCount = 0;
+    
     protected AffineTransform transformDownA(final AffineTransform a)
     {
         if (ROTATE_TEST && parent instanceof LWMap) {
             
             // rotate around center (relative to map-bounds)
             
-            final float hw = getWidth() / 2;
-            final float hh = getHeight() / 2;
+            final double hw = getWidth() / 2;
+            final double hh = getHeight() / 2;
             a.translate(getX() + hw, getY() + hh);
             a.scale(scale, scale);
             a.rotate(Math.PI / 8);
@@ -3610,54 +3608,126 @@ u                    getSlot(c).setFromString((String)value);
                     final double scale = SlideIconScale * 2;
                     a.scale(scale, scale);
                 } else {
-                    // Zoom on-center
-                    a.translate(this.x - this.width / 2,
-                                this.y - this.height / 2);
+
+                    // Zoom on-center.
+                    
+                    // To make this simple, we first translate to the local center (our
+                    // center location in parent coords, compensating for any of our own
+                    // scale), then apply the new zoomed scale, then translate back out
+                    // by our raw width.  This isn't done often, so no point in over
+                    // optimizing.
+
+                    final double halfWidth = getWidth() / 2;
+                    final double halfHeight = getHeight() / 2;
+                    final double ourScale = getScale();
+
+                    // Translate to local center:
+                    a.translate(getX() + halfWidth * ourScale,
+                                getY() + halfHeight * ourScale);
+
+                    if (DEBUG.VIEWER) {
+                        // note that due to nature of this testing uber-hack, the more
+                        // children something has, the faster it rotates.
+                        a.rotate(RotStep * RotCount);
+                        if (++RotCount >= RotSteps)
+                            RotCount = 0;
+                    }
+                    
+                    // Set the super-zoom scale:
                     a.scale(ZoomScale, ZoomScale);
+                    a.translate(-halfWidth, -halfHeight);
                 }
             } else {
                 a.translate(this.x, this.y);
-                if (scale != 1)
-                    a.scale(scale, scale);
+                if (this.scale != 1)
+                    a.scale(this.scale, this.scale);
             }
             
         }
         return a;
     }
 
+//     /** Must include overrides of all AffineTransform methods used in transformDownA */
+//     private static final class GCAffineProxy extends AffineTransform {
+//         private Graphics2D g;
+//         @Override
+//         public final void translate(double x, double y) { g.translate(x, y); }
+//         @Override
+//         public final void scale(double xs, double ys) { g.scale(xs, ys); }
+//         @Override
+//         public final void rotate(double t) { g.rotate(t); }
+//     }
+
+//     private static final GCAffineProxy GCAP = new GCAffineProxy();
+
+//     /** transform relative to the child after already being transformed relative to the parent */
+//     protected void transformDownG(final Graphics2D g) {
+//         GCAP.g = g; // not exactly thread-safe -- this temporary while we work on this code (unroll duplicate code later)
+//         transformDownA(GCAP);
+//     }
+    
+
+
     /** transform relative to the child after already being transformed relative to the parent */
-    protected void transformDownG(final Graphics2D g)
+    // NOTE THAT THE CODE IN THIS METHOD IS A PURE DUPLICATE OF transformDownA
+    protected void transformDownG(final Graphics2D a)
     {
         if (ROTATE_TEST && parent instanceof LWMap) {
-
+            
             // rotate around center (relative to map-bounds)
             
-            final float hw = getWidth() / 2;
-            final float hh = getHeight() / 2;
-            g.translate(getX() + hw, getY() + hh);
-            g.scale(scale, scale);
-            g.rotate(Math.PI / 8);
-            g.translate(-hw, -hh);
+            final double hw = getWidth() / 2;
+            final double hh = getHeight() / 2;
+            a.translate(getX() + hw, getY() + hh);
+            a.scale(scale, scale);
+            a.rotate(Math.PI / 8);
+            a.translate(-hw, -hh);
             
         } else {
-            
+
             if (isZoomedFocus) {
                 if (false && this instanceof LWSlide) {
                     final double scale = SlideIconScale * 2;
-                    g.scale(scale, scale);
+                    a.scale(scale, scale);
                 } else {
-                    // Zoom on-center
-                    g.translate(this.x - this.width / 2,
-                                this.y - this.height / 2);
-                    g.scale(ZoomScale, ZoomScale);
+
+                    // Zoom on-center.
+                    
+                    // To make this simple, we first translate to the local center (our
+                    // center location in parent coords, compensating for any of our own
+                    // scale), then apply the new zoomed scale, then translate back out
+                    // by our raw width.  This isn't done often, so no point in over
+                    // optimizing.
+
+                    final double halfWidth = getWidth() / 2;
+                    final double halfHeight = getHeight() / 2;
+                    final double ourScale = getScale();
+
+                    // Translate to local center:
+                    a.translate(getX() + halfWidth * ourScale,
+                                getY() + halfHeight * ourScale);
+
+                    if (DEBUG.VIEWER) {
+                        // note that due to nature of this testing uber-hack, the more
+                        // children something has, the faster it rotates.
+                        a.rotate(RotStep * RotCount);
+                        if (++RotCount >= RotSteps)
+                            RotCount = 0;
+                    }
+                    
+                    // Set the super-zoom scale:
+                    a.scale(ZoomScale, ZoomScale);
+                    a.translate(-halfWidth, -halfHeight);
                 }
             } else {
-                g.translate(this.x, this.y);
-                if (scale != 1)
-                    g.scale(scale, scale);
+                a.translate(this.x, this.y);
+                if (this.scale != 1)
+                    a.scale(this.scale, this.scale);
             }
+            
         }
     }
+
 
     /** Will transform all the way from the the map down to the component, wherever nested/scaled.
      * So drawing at 0,0 will draw in the upper left of the component. */
@@ -4209,12 +4279,13 @@ u                    getSlot(c).setFromString((String)value);
     /**
      *
      * This is NOT the method used to draw a component during routine drawing of the
-     * entire map.  This is for directly forcing the drawing or redrawing a single
-     * component at it's proper map location.  The passed in DrawContext gc is expected
-     * to be transformed for drawing the top-level map.  If you are going to use the
-     * passed in DrawContext after this call for other map drawing operations, be sure
-     * to pass in dc.create() from the caller, as this call will leaves it in a
-     * generally undefined state (probably rooted at the node).
+     * entire map (unless this is the map itself).  This is for directly forcing the
+     * drawing or redrawing a single component at it's proper map location.  The passed
+     * in DrawContext gc is expected to be transformed for drawing the top-level map
+     * (minimally transformed).  If you are going to use the passed in DrawContext after
+     * this call for other map drawing operations, be sure to pass in dc.create() from
+     * the caller, as this call will leaves it in a generally undefined state (probably
+     * rooted at the node).
      *
      */
     public void draw(DrawContext dc) {
@@ -4659,17 +4730,18 @@ u                    getSlot(c).setFromString((String)value);
 
 
     public void setZoomedFocus(boolean zoomedFocus) {
-        //isZoomedFocus = false;
         isZoomedFocus = zoomedFocus;
 //        linkNotificationDisabled = zoomedFocus;
-//         if (getParent() != null) {
-//             getParent().setFocusComponent(tv ? this : null);
-//         }
     }
 
     public final boolean isZoomedFocus() {
         return isZoomedFocus;
     }
+
+    protected boolean updatingLinks() {
+        return !isZoomedFocus || DEBUG.VIEWER;
+    }
+    
     
     public void mouseEntered(MapMouseEvent e)
     {
