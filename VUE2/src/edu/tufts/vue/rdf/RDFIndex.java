@@ -30,28 +30,29 @@ import java.net.*;
 import edu.tufts.vue.metadata.*;
 import tufts.vue.*;
 
+import edu.tufts.vue.ontology.*;
+import edu.tufts.vue.metadata.*;
 import com.hp.hpl.jena.rdf.model.impl.*;
 import com.hp.hpl.jena.sparql.core.*;
 import com.hp.hpl.jena.graph.*;
 import com.hp.hpl.jena.query.*;
 
 public class RDFIndex extends ModelCom {
-    
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
     public static final String VUE_BASE = "vue-index://";
-    com.hp.hpl.jena.rdf.model.Property idOf = createProperty("vue://vue#","id");
-    com.hp.hpl.jena.rdf.model.Property labelOf = createProperty("vue://vue#","label");
-    com.hp.hpl.jena.rdf.model.Property childOf = createProperty("vue://vue#","child");
-    com.hp.hpl.jena.rdf.model.Property authorOf = createProperty("vue://vue#","author");
-    com.hp.hpl.jena.rdf.model.Property hasTag = createProperty("user://user#","tag");
+    public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL+"#";
+    com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
+    com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
+    com.hp.hpl.jena.rdf.model.Property childOf = createProperty(VUE_ONTOLOGY,Constants.CHILD);
+    com.hp.hpl.jena.rdf.model.Property authorOf = createProperty(VUE_ONTOLOGY,Constants.AUTHOR);
+    com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
     private static RDFIndex defaultIndex;
     
-    
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
-        super(base);
+        super(base);        
     }
     public void index(LWMap map) {
-        com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource("vue://"+map.getURI().toString());
+        com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(Constants.RESOURCE_URL+map.getURI().toString());
         mapR.addProperty(idOf,map.getID());
         mapR.addProperty(authorOf,System.getProperty("user.name"));
         if(map.getLabel() != null){
@@ -65,24 +66,21 @@ public class RDFIndex extends ModelCom {
     
     public List<URI> search(String keyword) {
         List<URI> r = new ArrayList<URI>();
-        System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
+        //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
         String queryString =
-                "PREFIX vue: <vue://vue#>"+
-                "PREFIX user: <user://user#>"+
-                "SELECT ?resource " +
-                "WHERE{ {" +
-                "      ?resource vue:label \""+keyword+ "\" } UNION  {"+
-                "      ?resource user:tag \""+keyword+ "\""+
-                
-                "      }}";
+                "PREFIX vue: <"+VUE_ONTOLOGY+">"+
+               "SELECT ?resource " +
+                "WHERE{" +
+                "      ?resource ?x \""+keyword+ "\" } ";
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, this);
         ResultSet results = qe.execSelect();
+        //System.out.println("Query: "+query+" result set:"+results);
         while(results.hasNext())  {
-            Object o = results.next();
-            ResultBinding res = (ResultBinding)o ;
-            try {
-                r.add(new URI(res.get("resource").toString()));
+            QuerySolution qs = results.nextSolution();
+             try {
+        ///        System.out.println("Resource: "+qs.getResource("resource"));
+                r.add(new URI(qs.getResource("resource").toString()));
             }catch(Throwable t) {
                 t.printStackTrace();
             }
@@ -101,7 +99,7 @@ public class RDFIndex extends ModelCom {
     }
     
     public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR) {
-        com.hp.hpl.jena.rdf.model.Resource r = this.createResource("vue://"+component.getURI().toString());
+        com.hp.hpl.jena.rdf.model.Resource r = this.createResource(Constants.RESOURCE_URL+component.getURI().toString());
         r.addProperty(idOf,component.getID());
         if(component.getLabel() != null){
             r.addProperty(labelOf,component.getLabel());
@@ -128,7 +126,6 @@ public class RDFIndex extends ModelCom {
         } else {
             return defaultIndex;
         }
-        
     }
     
     private static RDFIndex createDefaultIndex() {
@@ -136,7 +133,7 @@ public class RDFIndex extends ModelCom {
         try {
             File indexFile = new File(INDEX_FILE);
             if(indexFile.exists()) {
-                defaultIndex.read(new FileReader(indexFile),VUE_BASE);
+                defaultIndex.read(new FileReader(indexFile),Constants.RESOURCE_URL);
             }
         } catch(Throwable t) {
             t.printStackTrace();
