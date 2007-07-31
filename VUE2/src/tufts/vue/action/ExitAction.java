@@ -74,6 +74,7 @@ public class ExitAction extends VueAction {
             // any exception at this point and we've a serious problem: immediately force quit
             java.awt.Toolkit.getDefaultToolkit().beep();
             System.err.println("VUE exit exception; aborting.");
+            tufts.Util.printStackTrace(t);
             System.exit(-1);
         }
         
