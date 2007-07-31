@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.320 $ / $Date: 2007-07-31 02:03:26 $ / $Author: sfraize $
+ * @version $Revision: 1.321 $ / $Date: 2007-07-31 02:04:35 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3272,11 +3272,11 @@ u                    getSlot(c).setFromString((String)value);
 
             point.x = getZeroCenterX();
             point.y = getZeroCenterY();
-            out("    ZeroCenter: " + point);
+            if (DEBUG.LINK) out("    ZeroCenter: " + point);
             transformZeroToMapPoint(point, point);
-            out("     MapCenter: " + point);
+            if (DEBUG.LINK) out("     MapCenter: " + point);
             relative.transformMapToZeroPoint(point, point);
-            out("RelativeCenter: " + point + " to " + relative);
+            if (DEBUG.LINK) out("RelativeCenter: " + point + " to " + relative);
             
         } else {
 

@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.166 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
+ * @version $Revision: 1.167 $ / $Date: 2007-07-31 02:04:26 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -179,7 +179,8 @@ public class LWLink extends LWComponent
 
         public String toString() 
         {
-            String s = "End[" + fmt(this);
+            //String s = "End[" + fmt(this);
+            String s = "End[" + String.format("%4.0f,%4.0f", x, y);
             if (node != null)
                 s += " " + node;
             return s + "]";
