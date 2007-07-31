@@ -48,6 +48,7 @@ public class RDFIndex extends ModelCom {
     com.hp.hpl.jena.rdf.model.Property authorOf = createProperty(VUE_ONTOLOGY,Constants.AUTHOR);
     com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
     private static RDFIndex defaultIndex;
+    private boolean isAutoIndexing = AUTO_INDEX;
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
@@ -71,20 +72,20 @@ public class RDFIndex extends ModelCom {
     
     public List<URI> search(String keyword) {
         List<URI> r = new ArrayList<URI>();
-        //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
+        System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
         String queryString =
                 "PREFIX vue: <"+VUE_ONTOLOGY+">"+
-                "SELECT ?resource " +
+                "SELECT ?resource ?keyword " +
                 "WHERE{" +
-                "      ?resource ?x \""+keyword+ "\" } ";
+                "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\") } ";
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, this);
         ResultSet results = qe.execSelect();
-        //System.out.println("Query: "+query+" result set:"+results);
+        System.out.println("Query: "+query+" result set:"+results);
         while(results.hasNext())  {
             QuerySolution qs = results.nextSolution();
             try {
-                ///        System.out.println("Resource: "+qs.getResource("resource"));
+                        System.out.println("Resource: "+qs.getResource("resource"));
                 r.add(new URI(qs.getResource("resource").toString()));
             }catch(Throwable t) {
                 t.printStackTrace();
@@ -152,6 +153,15 @@ public class RDFIndex extends ModelCom {
         }
     }
     
+    public void startAutoIndexing() {
+        
+        isAutoIndexing = true;
+    }
+    
+    public void stopAutoIndexing() {
+        
+        isAutoIndexing = false;
+    }
     private static RDFIndex createDefaultIndex() {
         defaultIndex = new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
         try {
