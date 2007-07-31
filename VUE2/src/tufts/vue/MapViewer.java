@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.422 $ / $Date: 2007-07-31 02:04:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.423 $ / $Date: 2007-07-31 23:11:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2425,22 +2425,32 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mFocal.draw(dc);
         }
 
-        if (mRollover != null) {
-            final DrawContext zdc = dc.create();
-            zdc.setClipOptimized(false);
-            zdc.setDrawPathways(false);
-            //zoomDC.setAlpha(0.8f); // Not what we want here (for image generation only?)
-            zdc.g.setComposite(ZoomTransparency);
-            mRollover.transformZero(zdc.g);
-            if (mRollover.isTransparent()) {
-                Color fill = mRollover.getRenderFillColor(zdc);
-                if (fill == null || fill.getAlpha() == 0)
-                    fill = getMap().getFillColor();
-                zdc.g.setColor(fill);
-                zdc.g.fill(mRollover.getZeroShape());
+        if (mRollover != null)
+            drawZoomedFocus(mRollover, dc.create());
+    }
+
+    private void drawZoomedFocus(LWComponent zoomed, DrawContext dc)
+    {
+        dc.setClipOptimized(false);
+        dc.setDrawPathways(false);
+        //dc.setAlpha(0.8f); // Not what we want here (for image generation only?)
+        dc.g.setComposite(ZoomTransparency);
+        zoomed.transformZero(dc.g);
+        if (zoomed.hasChildren() && zoomed.isTransparent()) {
+            Color fill = zoomed.getRenderFillColor(dc);
+            if ((fill == null || fill.getAlpha() == 0) && zoomed.parent != null) {
+                // should getRenderFillColor already be doing this?
+                fill = zoomed.parent.getRenderFillColor(dc);
             }
-            mRollover.drawZero(zdc);
+            if (fill == null || fill.getAlpha() == 0) {
+                // default fallback: use map fill
+                fill = getMap().getFillColor();
+            }
+            dc.g.setColor(fill);
+            dc.g.fill(zoomed.getZeroShape());
         }
+        zoomed.drawZero(dc);
+        
     }
 
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
