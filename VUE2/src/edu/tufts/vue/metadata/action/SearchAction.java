@@ -52,22 +52,12 @@ public class SearchAction extends AbstractAction
         
         public void loadKeywords(String searchString)
         {
+            
             tags = new ArrayList<String>();
-            String[] parsedQuotes = searchString.split("\"");
-            for(int i=0;i<parsedQuotes.length;i++)
+            String[] parsedSpaces = searchString.split(" ");
+            for(int i=0;i<parsedSpaces.length;i++)
             {
-                if(i%2 == 0)
-                {
-                    tags.add(parsedQuotes[i]);
-                }
-                else
-                {
-                    String[] parsedSpaces = parsedQuotes[i].split(" ");
-                    for(int j=0;j<parsedSpaces.length;j++)
-                    {
-                      tags.add(parsedSpaces[j]);  
-                    }
-                }
+                tags.add(parsedSpaces[i]);
             }
             
         }
@@ -100,13 +90,15 @@ public class SearchAction extends AbstractAction
               {
                 URI uri = foundIterator.next();
                 LWComponent r = (LWComponent)edu.tufts.vue.rdf.VueIndexedObjectsMap.getObjectForID(uri);
-                if(r!=null && r.getMap().equals(VUE.getActiveMap()))
+                if(r!=null && (r.getMap() != null) && r.getMap().equals(VUE.getActiveMap()))
                 {
                    comps.add(r);
                 }
               }
              }
            }
+          
+           System.out.println("VUE Object Index: " + edu.tufts.vue.rdf.VueIndexedObjectsMap.objs);
         }
         
         public String getName()
