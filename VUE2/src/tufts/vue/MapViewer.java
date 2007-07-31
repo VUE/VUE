@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.423 $ / $Date: 2007-07-31 23:11:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.424 $ / $Date: 2007-07-31 23:27:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2429,6 +2429,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             drawZoomedFocus(mRollover, dc.create());
     }
 
+    private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
+    
     private void drawZoomedFocus(LWComponent zoomed, DrawContext dc)
     {
         dc.setClipOptimized(false);
@@ -2437,6 +2439,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.g.setComposite(ZoomTransparency);
         zoomed.transformZero(dc.g);
         if (zoomed.hasChildren() && zoomed.isTransparent()) {
+
+            // If it's transparent and has children, provide
+            // a fill so we can see the children contrasted
+            // against the background.
+            
             Color fill = zoomed.getRenderFillColor(dc);
             if ((fill == null || fill.getAlpha() == 0) && zoomed.parent != null) {
                 // should getRenderFillColor already be doing this?
@@ -2453,8 +2460,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
     }
 
-    private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
-    
     
     /** This paintChildren is a no-op.  super.paint() will call this,
      * and we want it to do nothing because we need to invoke this
@@ -2462,11 +2467,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * super.paintChildren directly, only if there is an activeTextEdit,
      * at the bottom of paintComponent()).
      */
+    @Override
     protected void paintChildren(Graphics g) {}
     
     /** overriden only to catch when the activeTextEdit is being
      * removed from the panel */
     // todo: Add the active text edit to the layered pane?
+    @Override
     public void remove(Component c) {
         try {
             super.remove(c);
@@ -6135,9 +6142,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
     
-    public static boolean getAutoZoomEnabled()
+    public boolean getAutoZoomEnabled()
     {
-    	return autoZoomEnabled;
+    	return autoZoomEnabled && (activeTool instanceof PresentationTool) == false;
     }
 
     public static void setAutoZoomEnabled(boolean enabled)
