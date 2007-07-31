@@ -43,7 +43,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.77 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -682,7 +682,7 @@ public class LWGroup extends LWContainer
      */
     @Override
     protected boolean containsImpl(final float x, final float y, PickContext pc) {
-        if (pc.isZoomRollover || hasDecoratedFeatures())
+        if ((pc.isZoomRollover && pc.pickDepth < 1) || hasDecoratedFeatures())
             return super.containsImpl(x, y, pc);
         else
             return false;

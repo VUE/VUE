@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.29 $ / $Date: 2007-07-30 23:32:28 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -79,7 +79,7 @@ public class LWTraversal {
             if (acceptChildren(c)) {
                 if (DEBUG.PICK) eoutln("Traverse: " + c);
                 depth++;
-                if (c.isManagingChildLocations())
+                if (true || c.isManagingChildLocations())
                     traverseChildrenZoomUnderSiblings(c.getChildList());
                 else
                     traverseChildren(c.getChildList());

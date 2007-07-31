@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.318 $ / $Date: 2007-07-30 23:34:29 $ / $Author: sfraize $
+ * @version $Revision: 1.319 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3578,7 +3578,7 @@ u                    getSlot(c).setFromString((String)value);
     //-----------------------------------------------------------------------------
 
     private final static boolean ROTATE_TEST = false;
-    private final static double ZoomScale = 2;
+    protected static double ZoomRolloverScale;
 
     /**
      * Transform the given AffineTransform down from our parent to us, the child.
@@ -3634,10 +3634,15 @@ u                    getSlot(c).setFromString((String)value);
                     }
                     
                     // Set the super-zoom scale:
-                    a.scale(ZoomScale, ZoomScale);
+                    a.scale(ZoomRolloverScale, ZoomRolloverScale);
                     a.translate(-halfWidth, -halfHeight);
                 }
             } else {
+                
+                //-------------------------------------------------------
+                // This is the default, standard case:
+                //-------------------------------------------------------
+                
                 a.translate(this.x, this.y);
                 if (this.scale != 1)
                     a.scale(this.scale, this.scale);
@@ -3647,6 +3652,7 @@ u                    getSlot(c).setFromString((String)value);
         return a;
     }
 
+//     // When working on transformDownA, comment this code in, and comment out transformDownG
 //     /** Must include overrides of all AffineTransform methods used in transformDownA */
 //     private static final class GCAffineProxy extends AffineTransform {
 //         private Graphics2D g;
@@ -3662,7 +3668,7 @@ u                    getSlot(c).setFromString((String)value);
 
 //     /** transform relative to the child after already being transformed relative to the parent */
 //     protected void transformDownG(final Graphics2D g) {
-//         GCAP.g = g; // not exactly thread-safe -- this temporary while we work on this code (unroll duplicate code later)
+//         GCAP.g = g; // not exactly thread-safe -- this temporary while we work on this code (cut/paste duplicate when done)
 //         transformDownA(GCAP);
 //     }
     
@@ -3716,10 +3722,15 @@ u                    getSlot(c).setFromString((String)value);
                     }
                     
                     // Set the super-zoom scale:
-                    a.scale(ZoomScale, ZoomScale);
+                    a.scale(ZoomRolloverScale, ZoomRolloverScale);
                     a.translate(-halfWidth, -halfHeight);
                 }
             } else {
+                
+                //-------------------------------------------------------
+                // This is the default, standard case:
+                //-------------------------------------------------------
+                
                 a.translate(this.x, this.y);
                 if (this.scale != 1)
                     a.scale(this.scale, this.scale);
@@ -4230,7 +4241,7 @@ u                    getSlot(c).setFromString((String)value);
         final AffineTransform saveTransform = dc.g.getTransform();
 
         if (dc.focal == this || dc.isFocused())
-            drawRaw(dc);
+            drawZero(dc);
         else
             drawDecorated(dc);
 
@@ -4292,20 +4303,23 @@ u                    getSlot(c).setFromString((String)value);
         dc.setClipOptimized(false); // ensure all children draw even if not inside clip
         transformZero(dc.g);
         if (dc.focal == this) {
-            drawRaw(dc);
+            drawZero(dc);
         } else {
-            if (isZoomedFocus()) {
-                // include any slide icons
-                drawDecorated(dc);
-            } else {
-                if (dc.drawPathways())
-                    drawPathwayDecorations(dc);
-                drawRaw(dc);
-            }
+            if (dc.drawPathways())
+                drawPathwayDecorations(dc);
+            drawZero(dc);
+//             if (isZoomedFocus()) {
+//                 // include any slide icons
+//                 drawDecorated(dc);
+//             } else {
+//                 if (dc.drawPathways())
+//                     drawPathwayDecorations(dc);
+//                 drawRaw(dc);
+//             }
         }
     }
     
-    public void drawRaw(DrawContext dc) {
+    public void drawZero(DrawContext dc) {
         dc.checkComposite(this);
         drawImpl(dc);
     }
@@ -4321,7 +4335,7 @@ u                    getSlot(c).setFromString((String)value);
 
         if (drawSlide) {
 
-            drawRaw(dc);
+            drawZero(dc);
 
             final LWSlide slide = entry.getSlide();
             
@@ -4379,7 +4393,7 @@ u                    getSlot(c).setFromString((String)value);
                 }
             }
             
-            drawRaw(dc);
+            drawZero(dc);
         }
     }
 

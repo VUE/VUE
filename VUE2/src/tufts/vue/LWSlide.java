@@ -29,7 +29,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.56 $ / $Date: 2007-07-24 20:33:52 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -260,7 +260,7 @@ public class LWSlide extends LWContainer
             dc.g.setStroke(VueConstants.STROKE_TWO);
             dc.g.draw(getZeroShape());
         }
-        drawRaw(dc);
+        drawZero(dc);
     }
     
     public void rebuild() {

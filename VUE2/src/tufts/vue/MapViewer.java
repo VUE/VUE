@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.420 $ / $Date: 2007-07-30 23:35:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.421 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1649,8 +1649,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
     
-    private LWComponent mRollover;   // current rollover (mouse rollover hilite)
-    private double mRolloverOldScale;
+    private static LWComponent mRollover;   // current rollover (mouse rollover hilite)
+    //private double mRolloverOldScale;
     //private double mZoomoverOldScale;
     //private Point2D mZoomoverOldLoc = null;
 
@@ -1671,18 +1671,40 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (mRollover != null) {
             if (c.hasAncestor(mRollover)) {
                 if (DEBUG.Enabled) out("IS ANCESTOR ROLLOVER");
+                //c.setZoomedFocus(true); // test hack for cascading zoomed-focus...
+                // currnetly impossible given single comonent required for picking code,
+                // as well as drawing code in MapViewer...
                 return;
             }
             clearRollover();
         }
 
+        final double mapZoom = getZoomFactor();
+        double netZoom;
+
+        if (mapZoom <= 1.0) {
+            final double normalZoom = 1 / getZoomFactor(); // zoom needed to get to 100%
+            netZoom = normalZoom * 2;
+            if (netZoom > 4) {
+                netZoom = normalZoom;
+                if (netZoom > 6)
+                    netZoom = 8;
+            }
+        } else if (mapZoom > 2.0) {
+            if (DEBUG.Enabled) out("**SET ROLLOVER: skipped -- overzoom");
+            return;
+        } else
+            netZoom = 2;
+        
+        if (DEBUG.Enabled) out("**SET ROLLOVER NET ZOOM: " + netZoom);
+        LWComponent.ZoomRolloverScale = netZoom;
+            
         mRollover = c;
         //mRolloverOldScale = c.getScale();
         mRollover.setZoomedFocus(true);
 
         repaint();
 
-        //final double curMapZoom = getZoomFactor();
         //final double curMapScale = mRollover.getMapScale();
 
         //mRollover.setScale(1.0 / curMapZoom);
@@ -2404,12 +2426,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         if (mRollover != null) {
-            final DrawContext zoomDC = dc.create();
-            zoomDC.setClipOptimized(false);
-            zoomDC.setDrawPathways(false);
+            final DrawContext zdc = dc.create();
+            zdc.setClipOptimized(false);
+            zdc.setDrawPathways(false);
             //zoomDC.setAlpha(0.8f); // Not what we want here (for image generation only?)
-            zoomDC.g.setComposite(ZoomTransparency);
-            mRollover.draw(zoomDC);
+            zdc.g.setComposite(ZoomTransparency);
+            mRollover.transformZero(zdc.g);
+            if (mRollover.isTransparent()) {
+                Color fill = mRollover.getRenderFillColor(zdc);
+                if (fill == null || fill.getAlpha() == 0)
+                    fill = getMap().getFillColor();
+                zdc.g.setColor(fill);
+                zdc.g.fill(mRollover.getZeroShape());
+            }
+            mRollover.drawZero(zdc);
         }
     }
 
