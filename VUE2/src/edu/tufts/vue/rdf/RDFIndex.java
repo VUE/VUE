@@ -38,7 +38,8 @@ import com.hp.hpl.jena.graph.*;
 import com.hp.hpl.jena.query.*;
 
 public class RDFIndex extends ModelCom {
-    public static final int MAX_SIZE = 60;
+    public static final int MAX_SIZE = VueResources.getInt("rdf.index.size");
+    public static final boolean AUTO_INDEX= VueResources.getBool("rdf.index.auto");
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
     public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL+"#";
     com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
