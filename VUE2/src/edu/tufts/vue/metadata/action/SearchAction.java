@@ -74,6 +74,8 @@ public class SearchAction extends AbstractAction
         
         public void performSearch()
         {
+          edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
+            
           finds = new ArrayList<List<URI>>();
           
           List<URI> found = null;

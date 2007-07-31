@@ -55,8 +55,12 @@ public class MetadataSearchGUI extends JPanel {
     {
         setLayout(new BorderLayout());
         searchField = new JTextField();
+        searchField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(9,9,9,9),
+                              BorderFactory.createLineBorder(new java.awt.Color(200,200,200),1)));
         JPanel buttonPanel = new JPanel(new BorderLayout());
         searchButton = new JButton(new SearchAction(searchField));
+        searchButton.setBackground(java.awt.Color.WHITE);
+        buttonPanel.setBackground(java.awt.Color.WHITE);
         buttonPanel.add(BorderLayout.EAST,searchButton);
         add(BorderLayout.NORTH,searchField);
         add(buttonPanel);
