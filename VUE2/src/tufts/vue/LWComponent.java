@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.324 $ / $Date: 2007-07-31 16:45:49 $ / $Author: dan $
+ * @version $Revision: 1.325 $ / $Date: 2007-07-31 22:24:18 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -171,7 +171,10 @@ public class LWComponent
     private URI uri;
     protected float width = NEEDS_DEFAULT;
     protected float height = NEEDS_DEFAULT;
-    protected java.awt.Dimension textSize = null; // only for use with wrapped text
+    //protected java.awt.Dimension textSize = null; // only for use with wrapped text
+
+    /** cached affine transform for use by getZeroTransform() */
+    private final AffineTransform _zeroTransform = new AffineTransform();
 
 
     /*
@@ -1892,7 +1895,7 @@ u                    getSlot(c).setFromString((String)value);
     
     /** @deprecated - not really deprecated, intended for persistance only */
     public void setXMLtextBox(java.awt.Dimension d) {
-        this.textSize = d;
+        //this.textSize = d;
     }
 
     /** for persistance */
@@ -3537,25 +3540,33 @@ u                    getSlot(c).setFromString((String)value);
         return r;
     }
     
-    
-    //protected static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
-    
-
     /** @return an AffineTransform that when applied to a graphics context, will have us drawing properly
      * relative to this component, including any applicable scaling.  So after this is applied,
      * 0,0 will draw in the upper left hand corner of the component */
     //create and recursively set a transform to get from the Map to this object's coordinate space
     // note: structure is same in the different transform methods
-    // TODO OPT: can cache this transform if track all ancestor hierarcy, location AND scale changes
-    public AffineTransform getZeroTransform() {
-        final AffineTransform a;
-        if (parent == null) {
-            a = new AffineTransform();
-        } else {
-            a = parent.getZeroTransform();
-        }
-        return transformDownA(a);
+    // TODO OPT: can cache this transform: if track all ancestor hierarcy, location AND scale changes,
+    // can skip recomputing it each time.
+    public final AffineTransform getZeroTransform() {
+        return loadZeroTransform(_zeroTransform);
+//         final AffineTransform a;
+//         if (parent == null) {
+//             a = new AffineTransform();
+//         } else {
+//             a = parent.getZeroTransform();
+//         }
+//         return transformDownA(a);
     }
+
+    protected final AffineTransform loadZeroTransform(final AffineTransform a) {
+        if (parent == null) {
+            a.setToIdentity();
+            return transformDownA(a);
+        } else {
+            return transformDownA(parent.loadZeroTransform(a));
+        }
+    }
+    
 
     /**
      * @return the transform that takes us from the given ancestor down to our local coordinate space/scale

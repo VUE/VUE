@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.152 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
+ * @version $Revision: 1.153 $ / $Date: 2007-07-31 22:24:19 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1194,11 +1194,12 @@ public class LWMap extends LWContainer
 
 
 
-    /** optimized for LWMap: remove if/when embed maps in maps */
-    @Override
-    public AffineTransform getZeroTransform() {
-        return new AffineTransform();
-    }
+//     /** optimized for LWMap: remove if/when embed maps in maps */
+//     @Override
+//     public AffineTransform getZeroTransform() {
+//         return new AffineTransform();
+//     }
+    
     /** optimized LWMap noop: remove if/when embed maps in maps */
     @Override
     protected AffineTransform transformDownA(final AffineTransform a) {

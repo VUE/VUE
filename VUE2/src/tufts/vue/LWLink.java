@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.168 $ / $Date: 2007-07-31 02:19:13 $ / $Author: sfraize $
+ * @version $Revision: 1.169 $ / $Date: 2007-07-31 22:24:18 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1786,58 +1786,39 @@ public class LWLink extends LWComponent
     }
     
 
-    /** as all link coordinates are relative to their parent, this just calls
-        parent.transformMapToZeroPoint */
+    /** @return a unmodified: leave us in the parent context; all link coordinates are relative to the parent */
     @Override
-    public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
-        return parent.transformMapToZeroPoint(mapPoint, nodePoint);
+    protected final AffineTransform transformDownA(AffineTransform a) {
+        return a;
     }
-    
-    /** noop -- links contextualized to the parent by definition */
+    /** noop -- leave the GC in the parent context;  all link coordinates are relative to the parent */
     @Override
-    protected void transformDownG(final Graphics2D g) {
+    protected final void transformDownG(final Graphics2D g) {
         // do nothing: link coordinate space is in it's parent
     }
     
     
-    /** @return a unmodified -- a noop */
-    @Override
-    protected AffineTransform transformDownA(AffineTransform a) {
-
-        // As transformDown moves from the parent to the child, and
-        // links exist in the parent context, there's nothing for us
-        // to do.
-        
-        return a;
-    }
     
-    /** perform parent.transformZero */
-    @Override
-    public void transformZero(Graphics2D g) {
-        if (parent != null)
-            parent.transformZero(g);
-    }
-    
-    /** @return parent.getZeroTransform() */
-    @Override
-    public AffineTransform getZeroTransform() {
-        return parent.getZeroTransform();
-    }
-
-//     /** @return getX() -- links coords are always map/absolute */
-//     public float getMapX() {
-//         if (VUE.RELATIVE_COORDS)
-//             return getX();
-//         else
-//             return super.getMapX();
+//     // this only an optimization
+//     /** perform parent.transformZero */
+//     @Override
+//     public void transformZero(Graphics2D g) {
+//         if (parent != null)
+//             parent.transformZero(g);
 //     }
     
-//     /** @return getY() -- links coords are always map/absolute */
-//     public float getMapY() {
-//         if (VUE.RELATIVE_COORDS)
-//             return getY();
-//         else
-//             return super.getMapY();
+//     // This only an optimization
+//     /** as all link coordinates are relative to their parent, this just calls
+//         parent.transformMapToZeroPoint */
+//     @Override
+//     public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
+//         return parent.transformMapToZeroPoint(mapPoint, nodePoint);
+//     }
+    
+//     /** @return parent.getZeroTransform() */
+//     @Override
+//     public AffineTransform getZeroTransform() {
+//         return parent.getZeroTransform();
 //     }
 
 
