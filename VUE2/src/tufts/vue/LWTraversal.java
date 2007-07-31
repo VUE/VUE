@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.30 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-07-31 23:27:22 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -263,12 +263,13 @@ public class LWTraversal {
 //             }
 //         }
 
+        @Override
         public void visit(LWComponent c) {
 
             if (DEBUG.PICK) eout("   VISIT: " + c);
 
-            // todo performance: if we don't ever moved to having cached transforms, we
-            // could keep an AffineTransform in the picker, and for each traversal,
+            // todo performance: if we don't ever moved to having cached map transforms,
+            // we could keep an AffineTransform in the picker, and for each traversal,
             // apply transformDownA on a clone of the top level object, passing that
             // transform down to further depth visits to be cloned and hava
             // transformDownA applied to it.  Then use that transform here to apply it's
@@ -391,7 +392,7 @@ public class LWTraversal {
             LWComponent picked = null;
             
             if (hit != null) {
-                LWContainer parent = hit.getParent();
+                final LWContainer parent = hit.getParent();
                 if (parent != null) {
 
                     // This is a hack for groups to replace our getPickLevel functionality:
@@ -455,6 +456,7 @@ public class LWTraversal {
             this.mapRect = new Rectangle2D.Float(pc.x, pc.y, pc.width, pc.height);
         }
 
+        @Override
         public void visit(LWComponent c) {
             if (DEBUG.PICK) System.out.println("VISIT " + c);
             // region picks should never select the root object the region is
