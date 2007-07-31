@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.325 $ / $Date: 2007-07-31 22:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.326 $ / $Date: 2007-07-31 22:48:09 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -171,7 +171,6 @@ public class LWComponent
     private URI uri;
     protected float width = NEEDS_DEFAULT;
     protected float height = NEEDS_DEFAULT;
-    //protected java.awt.Dimension textSize = null; // only for use with wrapped text
 
     /** cached affine transform for use by getZeroTransform() */
     private final AffineTransform _zeroTransform = new AffineTransform();
