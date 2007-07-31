@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.323 $ / $Date: 2007-07-31 15:31:03 $ / $Author: dan $
+ * @version $Revision: 1.324 $ / $Date: 2007-07-31 16:45:49 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3387,7 +3387,7 @@ u                    getSlot(c).setFromString((String)value);
         if(uri == null) {
             try {
                     uri = new URI(edu.tufts.vue.rdf.RDFIndex.getUniqueId());
-                    edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(new URI("vue://"+uri),this);
+                    edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri,this);
                 } catch (Throwable t) {
                     tufts.Util.printStackTrace(t, "Failed to create an uri for  "+label);
                 }
