@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.180 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $
+ * @version $Revision: 1.181 $ / $Date: 2007-07-31 22:47:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -119,6 +119,8 @@ public class LWNode extends LWContainer
 
     private transient boolean inLayout = false;
     private transient boolean isCenterLayout = false;// todo: get rid of this and use mChildPos, etc for boxed layout also
+
+    private java.awt.Dimension textSize = null; // only for use with wrapped text
 
     
 
