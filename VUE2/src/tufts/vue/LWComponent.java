@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.319 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $
+ * @version $Revision: 1.320 $ / $Date: 2007-07-31 02:03:26 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3272,8 +3272,11 @@ u                    getSlot(c).setFromString((String)value);
 
             point.x = getZeroCenterX();
             point.y = getZeroCenterY();
+            out("    ZeroCenter: " + point);
             transformZeroToMapPoint(point, point);
+            out("     MapCenter: " + point);
             relative.transformMapToZeroPoint(point, point);
+            out("RelativeCenter: " + point + " to " + relative);
             
         } else {
 
@@ -3766,11 +3769,12 @@ u                    getSlot(c).setFromString((String)value);
      */
     public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float zeroPoint) {
 
-        if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
-            zeroPoint.x = mapPoint.x - this.x;
-            zeroPoint.y = mapPoint.y - this.y;
-            return zeroPoint;
-        }
+// This doesn't work if we're a link!
+//         if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
+//             zeroPoint.x = mapPoint.x - this.x;
+//             zeroPoint.y = mapPoint.y - this.y;
+//             return zeroPoint;
+//         }
         
         try {
             getZeroTransform().inverseTransform(mapPoint, zeroPoint);
@@ -3783,11 +3787,12 @@ u                    getSlot(c).setFromString((String)value);
 
     protected Point2D transformZeroToMapPoint(Point2D.Float zeroPoint, Point2D.Float mapPoint) {
 
-        if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
-            mapPoint.x = zeroPoint.x + this.x;
-            mapPoint.y = zeroPoint.y + this.y;
-            return mapPoint;
-        }
+// This doesn't work if we're a link!
+//         if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
+//             mapPoint.x = zeroPoint.x + this.x;
+//             mapPoint.y = zeroPoint.y + this.y;
+//             return mapPoint;
+//         }
         
         getZeroTransform().transform(zeroPoint, mapPoint);
         return mapPoint;
