@@ -53,7 +53,7 @@ public class RDFIndex extends ModelCom {
         super(base);
     }
     public void index(LWMap map) {
-        com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(Constants.RESOURCE_URL+map.getURI().toString());
+        com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(map.getURI().toString());
         try {
             addProperty(mapR,idOf,map.getID());
             addProperty(mapR,authorOf,System.getProperty("user.name"));
@@ -104,7 +104,7 @@ public class RDFIndex extends ModelCom {
     }
     
     public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR) {
-        com.hp.hpl.jena.rdf.model.Resource r = this.createResource(Constants.RESOURCE_URL+component.getURI().toString());
+        com.hp.hpl.jena.rdf.model.Resource r = this.createResource(component.getURI().toString());
         try {
             addProperty(r,idOf,component.getID());
             if(component.getLabel() != null){
@@ -141,8 +141,7 @@ public class RDFIndex extends ModelCom {
         }
     }
     public static String getUniqueId() {
-        
-        return edu.tufts.vue.util.GUID.generate();
+        return Constants.RESOURCE_URL+edu.tufts.vue.util.GUID.generate();
     }
     
     public static RDFIndex getDefaultIndex() {
