@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.167 $ / $Date: 2007-07-31 02:04:26 $ / $Author: sfraize $
+ * @version $Revision: 1.168 $ / $Date: 2007-07-31 02:19:13 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1943,6 +1943,16 @@ public class LWLink extends LWComponent
             // use raw/zero shape because we use the local transform in computeIntersection
             headShape = head.node.getZeroShape(); 
             headTransform = head.node.getRelativeTransform(parent);
+            
+            // TODO PERFORMANCE: can we to use the same relative transform for the
+            // connection center as for the node itself?  I think so....  Is it safe to
+            // rely on the ancestor-only relative transform here?  Aren't we seeing
+            // non-ancestor x-hierarhcy transforms in some cases? (groups/undo?)
+            // Ideally, we'd have a getRelativeTransform which could be optimized for
+            // ancestors, tho if it gets to the top w/out finding the desired ancestor,
+            // it could construct a x-hierarchy relative transform from scratch as a
+            // fallback.
+            
         }
 
         if (headShape != null) {

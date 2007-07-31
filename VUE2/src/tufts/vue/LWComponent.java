@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.321 $ / $Date: 2007-07-31 02:04:35 $ / $Author: sfraize $
+ * @version $Revision: 1.322 $ / $Date: 2007-07-31 02:19:00 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3581,16 +3581,17 @@ u                    getSlot(c).setFromString((String)value);
     //-----------------------------------------------------------------------------
 
     private final static boolean ROTATE_TEST = false;
-    protected static double ZoomRolloverScale;
-
-    /**
-     * Transform the given AffineTransform down from our parent to us, the child.
-     */
 
     private static final int RotSteps = 180;
     private static final double RotStep = Math.PI * 2 / RotSteps;
     private static int RotCount = 0;
     
+    /** set by model clients (e.g., MapViewer) for the zoomed rollover component */
+    protected static double ZoomRolloverScale;
+
+    /**
+     * Transform the given AffineTransform down from our parent to us, the child.
+     */
     protected AffineTransform transformDownA(final AffineTransform a)
     {
         if (ROTATE_TEST && parent instanceof LWMap) {
