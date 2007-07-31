@@ -38,8 +38,8 @@ import com.hp.hpl.jena.graph.*;
 import com.hp.hpl.jena.query.*;
 
 public class RDFIndex extends ModelCom {
+    public static final int MAX_SIZE = 60;
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
-    public static final String VUE_BASE = "vue-index://";
     public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL+"#";
     com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
     com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
@@ -49,17 +49,21 @@ public class RDFIndex extends ModelCom {
     private static RDFIndex defaultIndex;
     
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
-        super(base);        
+        super(base);
     }
     public void index(LWMap map) {
         com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(Constants.RESOURCE_URL+map.getURI().toString());
-        mapR.addProperty(idOf,map.getID());
-        mapR.addProperty(authorOf,System.getProperty("user.name"));
-        if(map.getLabel() != null){
-            mapR.addProperty(labelOf,map.getLabel());
-        }
-        for(LWComponent comp: map.getAllDescendents()) {
-            rdfize(comp,mapR);
+        try {
+            addProperty(mapR,idOf,map.getID());
+            addProperty(mapR,authorOf,System.getProperty("user.name"));
+            if(map.getLabel() != null){
+                addProperty(mapR,labelOf,map.getLabel());
+            }
+            for(LWComponent comp: map.getAllDescendents()) {
+                rdfize(comp,mapR);
+            }
+        } catch(Exception ex) {
+            System.out.println("RDFIndex.index: "+ex);
         }
         System.out.println("Size of index:"+this.size());
     }
@@ -69,7 +73,7 @@ public class RDFIndex extends ModelCom {
         //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
         String queryString =
                 "PREFIX vue: <"+VUE_ONTOLOGY+">"+
-               "SELECT ?resource " +
+                "SELECT ?resource " +
                 "WHERE{" +
                 "      ?resource ?x \""+keyword+ "\" } ";
         Query query = QueryFactory.create(queryString);
@@ -78,8 +82,8 @@ public class RDFIndex extends ModelCom {
         //System.out.println("Query: "+query+" result set:"+results);
         while(results.hasNext())  {
             QuerySolution qs = results.nextSolution();
-             try {
-        ///        System.out.println("Resource: "+qs.getResource("resource"));
+            try {
+                ///        System.out.println("Resource: "+qs.getResource("resource"));
                 r.add(new URI(qs.getResource("resource").toString()));
             }catch(Throwable t) {
                 t.printStackTrace();
@@ -100,21 +104,41 @@ public class RDFIndex extends ModelCom {
     
     public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR) {
         com.hp.hpl.jena.rdf.model.Resource r = this.createResource(Constants.RESOURCE_URL+component.getURI().toString());
-        r.addProperty(idOf,component.getID());
-        if(component.getLabel() != null){
-            r.addProperty(labelOf,component.getLabel());
-        }
-        com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
-        this.add(statement);
-        List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
-        Iterator<VueMetadataElement> i = metadata.iterator();
-        while(i.hasNext()) {
-            VueMetadataElement element = i.next();
-            statement = this.createStatement(r,hasTag,element.getObject().toString());
-            this.add(statement);
+        try {
+            addProperty(r,idOf,component.getID());
+            if(component.getLabel() != null){
+                addProperty(r,labelOf,component.getLabel());
+            }
+            com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
+            
+            addStatement(statement);
+            List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
+            Iterator<VueMetadataElement> i = metadata.iterator();
+            while(i.hasNext()) {
+                VueMetadataElement element = i.next();
+                statement = this.createStatement(r,hasTag,element.getObject().toString());
+                addStatement(statement);
+            }
+        } catch(Exception ex) {
+            System.out.println("RDFIndex.rdfize: "+ex);
         }
     }
     
+    public void addStatement(com.hp.hpl.jena.rdf.model.Statement statement)  throws Exception {
+        if(size() < MAX_SIZE) {
+            super.add(statement);
+        } else {
+            throw new Exception("Size of index: "+size()+ " exceeds MAX_SIZE: "+MAX_SIZE);
+        }
+    }
+    
+    public void addProperty(com.hp.hpl.jena.rdf.model.Resource r, com.hp.hpl.jena.rdf.model.Property p,String value) throws Exception {
+        if(size() <MAX_SIZE) {
+            r.addProperty(p,value);
+        } else {
+            throw new Exception("Size of index: "+size()+ " exceeds MAX_SIZE: "+MAX_SIZE);
+        }
+    }
     public static String getUniqueId() {
         
         return edu.tufts.vue.util.GUID.generate();
