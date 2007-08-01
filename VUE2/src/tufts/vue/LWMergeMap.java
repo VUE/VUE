@@ -649,6 +649,7 @@ public class LWMergeMap extends LWMap {
                LWNode node2 = (LWNode)children2.next();
                if(node2 != node1) {
                   int c = weightAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
+                  int c2 = weightAggregate.getConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node1));
                   if(c > 0) {
                     double score = 100*c/weightAggregate.getCount();
                     if(score > 100)
@@ -661,6 +662,11 @@ public class LWMergeMap extends LWMap {
                     }
                     Style currLinkStyle = linkStyles.get(getInterval(score)-1);
                     LWLink link = new LWLink(node1,node2);
+                    if(c2>0 && !getFilterOnBaseMap())
+                    {
+                      link.setArrowState(LWLink.ARROW_BOTH);
+                      weightAggregate.setConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node1),0);
+                    }
                     //todo: applyCSS here
                     link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
                     addLink(link);

@@ -52,7 +52,7 @@ public class WeightAggregate extends ConnectivityMatrix {
                 size = matrixSize;
             }
             for(int index1 = 0;index1 < getLabels().size();index1++) {
-                for(int index2= index1+1; index2<getLabels().size();index2++) {
+                for(int index2= 0; index2<getLabels().size();index2++) {
                     c[index1][index2] += matrix.getConnection((String)getLabels().get(index1),(String)getLabels().get(index2));
                 }
             }
