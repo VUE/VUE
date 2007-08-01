@@ -16,7 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package test.repository.tdl;
+package repository.tdl;
 
 public class repositoryDump
 {

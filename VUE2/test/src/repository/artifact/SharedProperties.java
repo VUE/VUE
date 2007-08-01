@@ -16,7 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package test.repository.artifact;
+package repository.artifact;
 
 public class SharedProperties
 implements org.osid.shared.Properties

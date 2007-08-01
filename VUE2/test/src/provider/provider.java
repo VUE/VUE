@@ -1,4 +1,4 @@
-package test.provider;
+package provider;
 
 import java.util.Properties;
 

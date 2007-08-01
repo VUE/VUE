@@ -16,7 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package test.repository.artifact;
+package repository.artifact;
 
 public class repositoryDump
 {

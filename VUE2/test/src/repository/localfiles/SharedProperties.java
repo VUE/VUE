@@ -16,7 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package test.repository.localfiles;
+package repository.localfiles;
 
 public class SharedProperties
 implements org.osid.shared.Properties

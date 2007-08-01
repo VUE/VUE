@@ -16,7 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package test.repository.google.global;
+package repository.google.global;
 
 public class ObjectIterator
 implements org.osid.shared.ObjectIterator

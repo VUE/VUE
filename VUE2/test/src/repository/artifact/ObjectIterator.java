@@ -16,7 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package test.repository.artifact;
+package repository.artifact;
 
 public class ObjectIterator
 implements org.osid.shared.ObjectIterator

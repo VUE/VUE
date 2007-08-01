@@ -16,7 +16,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package test.repository.google.local;
+package repository.google.local;
 
 public class Type
 extends org.osid.shared.Type
