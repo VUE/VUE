@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.326 $ / $Date: 2007-07-31 22:48:09 $ / $Author: sfraize $
+ * @version $Revision: 1.327 $ / $Date: 2007-08-01 16:44:23 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1327,7 +1327,14 @@ u                    getSlot(c).setFromString((String)value);
         c.stroke = this.stroke; // cached info only
 
         
-        // TODO: need to duplicate meta-data list
+        // duplicate meta-data list
+        List<edu.tufts.vue.metadata.VueMetadataElement> md = getMetadataList().getMetadata();
+        List<edu.tufts.vue.metadata.VueMetadataElement> mdc = c.getMetadataList().getMetadata();
+        Iterator<edu.tufts.vue.metadata.VueMetadataElement> i = md.iterator();
+        while(i.hasNext())
+        {
+            mdc.add(i.next());
+        }
 
         c.copyStyle(this);
 
@@ -1346,7 +1353,7 @@ u                    getSlot(c).setFromString((String)value);
 
         if (cc.patcher != null)
             cc.patcher.track(this, c);
-
+                
         return c;
     }
 

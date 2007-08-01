@@ -18,6 +18,8 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import edu.tufts.vue.metadata.*;
+import edu.tufts.vue.rdf.*;
 import edu.tufts.vue.style.*;
 import edu.tufts.vue.ontology.*;
 
@@ -26,6 +28,7 @@ import java.awt.datatransfer.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.dnd.*;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
@@ -231,6 +234,24 @@ public class TypeList extends JList {
         //blocking reload of style, need to account for 
         //new style before reenabling
         //typeCache.put(type,compFor);
+        
+        List metadata = compFor.getMetadataList().getMetadata();
+        VueMetadataElement typeElement = new VueMetadataElement();
+        typeElement.setObject(ontType);
+        // need to maybe add a List with both ontology and assignID?
+        // or maybe modify url -- it was not clear what
+        // this data represented in the metadata list under info...
+        //VueMetadataElement typeAssignID = new VueMetadataElement();
+        /*try
+        {
+          typeAssignID.setObject(new URI(RDFIndex.getUniqueId()));
+        }
+        catch(java.net.URISyntaxException e)
+        {
+          System.out.println("Malformed URL when assigning id to ontology assignment operation: " + e);
+        }*/
+        metadata.add(typeElement);
+        //metadata.add(typeAssignID);
         
         return compFor;
     }

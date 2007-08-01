@@ -157,7 +157,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            comp.setLayout(new java.awt.BorderLayout());
            if(col == 0)
            {
-               comp.add(new JTextField(current.getMetadataList().getMetadata().get(row).getObject().toString()));
+               if(value instanceof edu.tufts.vue.ontology.OntType)
+                 comp.add(new JLabel(((edu.tufts.vue.ontology.OntType)value).getLabel()));
+               else
+                 comp.add(new JTextField(current.getMetadataList().getMetadata().get(row).getObject().toString()));
            }
            else if(col == 1)               
            {
@@ -262,6 +265,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
          
          public boolean isCellEditable(int row,int column)
          {
+             if(getValueAt(row,column) instanceof edu.tufts.vue.ontology.OntType)
+                 return false;
              if(column == 0)
                  return true;
              else
