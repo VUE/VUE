@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.30 $ / $Date: 2007-07-24 15:58:40 $ -->
+<!-- $Revision: 1.31 $ / $Date: 2007-08-01 14:34:54 $ -->
 
 <!-- 
 This ant build file:
@@ -48,7 +48,7 @@ This ant build file:
   <property name="build.class"     value="${build.home}/classes" />
   <property name="build.lib"       value="${basedir}/lib" />
   <property name="vue.classes"     value="${basedir}/../src/build/classes" />
-  <property name="lib.home"        value="../lib"/>
+  <property name="lib.home"        value="${basedir}/../lib"/>
 
 <!--  ==================== Compilation Control Options ==================== -->
 <!--
@@ -99,9 +99,8 @@ This ant build file:
     <pathelement location="${lib.home}/okiSID.jar" />	
 	<pathelement location="${lib.home}/log4j-1.2.12.jar" />
 	<pathelement location="${lib.home}/MRJAdapter.jar" />
-        <pathelement location="${lib.home}/apple-laf.jar" />
+    <pathelement location="${lib.home}/apple-laf.jar" />
     <pathelement location="artifact.xml" />
-    <pathelement location="../src/build/classes" />
     <pathelement location="../src/build/classes/edu/tufts/osidimpl/repository/artifact.ArtifactResult.class" />
     
 	<!-- for provider -->
