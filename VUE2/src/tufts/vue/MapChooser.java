@@ -26,7 +26,7 @@
 
 package tufts.vue;
 
-import junit.extensions.ActiveTestSuite;
+//import junit.extensions.ActiveTestSuite;
 import tufts.vue.action.ActionUtil;
 
 
