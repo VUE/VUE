@@ -10,6 +10,7 @@
 		<property key="sakaiPassword" value="VueSakai2007!"/>
 		<property key="sakaiHost" value="http://vue-dl.tccs.tufts.edu"/>
 		<property key="sakaiPort" value="8180"/>
+		<property key="sakaiAuthenticationDebug" value="true"/>
   </configuration>
   
   <allassets any="true" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier"/>

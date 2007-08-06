@@ -37,6 +37,7 @@ implements org.osid.authentication.AuthenticationManager
 	private String password = null;
 	private String host = null;
 	private String port = null;
+	private boolean debug = false;
 		
     public org.osid.shared.TypeIterator getAuthenticationTypes()
     throws org.osid.authentication.AuthenticationException
@@ -71,6 +72,12 @@ implements org.osid.authentication.AuthenticationManager
 		this.password = this.configuration.getProperty("sakaiPassword");
 		this.host = this.configuration.getProperty("sakaiHost");
 		this.port = this.configuration.getProperty("sakaiPort");
+
+		// show web services errors?
+		String debugString = this.configuration.getProperty("sakaiAuthenticationDebug");
+		if (debugString != null) {
+			this.debug = (debugString.trim().toLowerCase().equals("true"));
+		}
 		
 		//System.out.println("username " + this.username);
 		//System.out.println("password " + this.password);
@@ -99,7 +106,7 @@ implements org.osid.authentication.AuthenticationManager
 			
 			//System.out.println("Sent SakaiLogin.login( " + this.username + ", " + this.password + " ), got + " + sessionId);
 		} catch (Throwable t) {
-			//t.printStackTrace();
+			if (this.debug) t.printStackTrace();
 			throw new org.osid.authentication.AuthenticationException(org.osid.OsidException.PERMISSION_DENIED);
 		}
 	}
