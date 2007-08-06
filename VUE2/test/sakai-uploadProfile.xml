@@ -12,9 +12,8 @@
 		<property key="sakaiPort" value="8180"/>
   </configuration>
   
-    <allassets any="true" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier" assetid="/group/27b63481-494f-42b0-00f1-a1048d26efb5/"/>
-<!--    <contentget assetid="/group/27b63481-494f-42b0-00f1-a1048d26efb5/black shipsjpg.jpg" class="edu.tufts.osidimpl.testing.sakai.GetContentHelper"/>
--->
-  <contentupdate assetid="/group/27b63481-494f-42b0-00f1-a1048d26efb5/" class="edu.tufts.osidimpl.testing.sakai.UpdateContentHelper"/>
+    <allassets any="true" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier" assetid="/group/VUE/"/>
+    <contentget assetid="/group/VUE/iitkgp.jpg" class="edu.tufts.osidimpl.testing.sakai.GetContentHelper"/>
+  <contentupdate assetid="/group/VUE/" class="edu.tufts.osidimpl.testing.sakai.UpdateContentHelper"/>
 
 </managerImpl>

@@ -14,11 +14,11 @@
   </configuration>
   
   <allassets any="true" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier"/>
-  <allassets any="true" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier" assetid="/group/27b63481-494f-42b0-00f1-a1048d26efb5/"/>
-  <allassets any="false" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier" assetid="/group/27b63481-494f-42b0-00f1-a1048d26efb5/">
+  <allassets any="true" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier" assetid="/group/VUE/"/>
+  <allassets any="false" repositoryid="vue-dl.tccs.tufts.edu.Virtual-Root-Identifier" assetid="/group/VUE/">
 	<assets>
 		<asset>
-			<displayname>Black Ships Image</displayname>
+			<displayname>iitkgp.jpg</displayname>
 		</asset>
 	</assets>
   </allassets>
@@ -70,6 +70,6 @@
     <type>search/title@mit.edu</type>
   </searchtypes>
   
-  <assetbyidviamanager assetid="/group/27b63481-494f-42b0-00f1-a1048d26efb5/"/>
+  <assetbyidviamanager assetid="/group/VUE/iitkgp.jpg"/>
 
 </managerImpl>

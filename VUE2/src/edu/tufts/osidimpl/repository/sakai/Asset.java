@@ -65,6 +65,7 @@ implements org.osid.repository.Asset
 				record.createPart(URLPartStructure.getInstance().getId(),url);
 			}
 		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 		this.displayName = displayName;
     }
@@ -117,6 +118,7 @@ implements org.osid.repository.Asset
 				this.displayName = name;
 			}
 		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 	}
 	
