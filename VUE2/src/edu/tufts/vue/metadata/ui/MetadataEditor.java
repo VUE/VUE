@@ -138,7 +138,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        {
            JComponent comp = new JPanel();
            if(col == 0)
-               comp =  new JLabel("Tag");
+               comp =  new JLabel("Keywords:");
            else if(col == 1)
            {
                comp = new JLabel();
@@ -162,7 +162,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                if(value instanceof edu.tufts.vue.ontology.OntType)
                  comp.add(new JLabel(((edu.tufts.vue.ontology.OntType)value).getLabel()));
                else
-                 comp.add(new JTextField(current.getMetadataList().getMetadata().get(row).getObject().toString()));
+                 comp.add(new JTextField(value.toString()));
            }
            else if(col == 1)               
            {
@@ -210,7 +210,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            comp.setLayout(new java.awt.BorderLayout());
            if(col == 0)
            {
-               field.setText(current.getMetadataList().getMetadata().get(row).getObject().toString());
+               field.setText(value.toString());
                comp.add(field);
            }
            else if(col == 1)               
@@ -254,7 +254,11 @@ public class MetadataEditor extends JPanel implements ActiveListener {
              // how about getMetadataBundle.getMetadataList()?
              if(current !=null)
              {    
-               return current.getMetadataList().getMetadata().size();
+               int size = current.getMetadataList().getMetadata().size();
+               if(size > 0)
+                   return size;
+               else
+                   return 1;
              }
              else
                return 1;
@@ -283,7 +287,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
              
              if(column == 0 && current != null)
              {    
-               return current.getMetadataList().getMetadata().get(row).getObject();
+               if(row!=0 || current.getMetadataList().getMetadata().size() > 0)  
+                 return current.getMetadataList().getMetadata().get(row).getObject();
+               else
+                 return "";
              }
              else
              {
