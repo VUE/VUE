@@ -43,6 +43,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     public final static int ROW_INSET = 5;
     
+    public final static int BUTTON_COL_WIDTH = 35;
+    
     private JTable metadataTable;
     private JScrollPane scroll;
     private tufts.vue.LWComponent current;
@@ -57,7 +59,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         {
                    public void mousePressed(java.awt.event.MouseEvent evt)
                    {
-                       if(evt.getX()>metadataTable.getWidth()-50)
+                       if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {
                          //System.out.println("metadata: mouse pressed" + evt);
                          VueMetadataElement vme = new VueMetadataElement();
@@ -77,7 +79,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                {
                    public void mouseReleased(java.awt.event.MouseEvent evt)
                    {
-                       if(evt.getX()>metadataTable.getWidth()-50)
+                       if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {
                          if(metadataTable.getSelectedColumn()==1)
                             MetadataEditor.this.current.getMetadataList().getMetadata().remove(metadataTable.getSelectedRow());
@@ -88,8 +90,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         }); 
         metadataTable.getColumnModel().getColumn(0).setHeaderRenderer(new MetadataTableHeaderRenderer());
         metadataTable.getColumnModel().getColumn(1).setHeaderRenderer(new MetadataTableHeaderRenderer());
-        metadataTable.getColumnModel().getColumn(0).setMinWidth(150);
-        metadataTable.getColumnModel().getColumn(1).setMaxWidth(50);
+        metadataTable.getColumnModel().getColumn(0).setMinWidth(200-BUTTON_COL_WIDTH);
+        metadataTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH);
         
         metadataTable.setDefaultRenderer(Object.class,new MetadataTableRenderer());
         metadataTable.setDefaultEditor(Object.class, new MetadataTableEditor());
