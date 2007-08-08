@@ -30,6 +30,7 @@ package tufts.vue;
 /**
  *
  * @author  akumar03
+ * @version $Revision: 1.4 $ / $Date: 2007-08-08 14:14:13 $ / $Author: peter $
  */
 import java.io.IOException;
 public interface Publishable {
@@ -38,6 +39,7 @@ public interface Publishable {
     public static final int PUBLISH_MAP = 1; // just the map
     public static final int PUBLISH_CMAP = 2; // the map with selected resources in IMSCP format
     public static final int PUBLISH_ALL = 3; // all resources published to fedora and map published with pointers to resources.
+    public static final int PUBLISH_SAKAI = 4; // an IMSCP to Sakai
     public static final int PUBLISH_ALL_MODES = 10; // this means that datasource can publish to any mode.
     public static final int PUBLISH_ZIP = 5; 
     /*

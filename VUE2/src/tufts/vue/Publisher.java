@@ -47,20 +47,12 @@ import tufts.vue.action.*;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.46 $ / $Date: 2007-06-08 19:13:03 $ / $Author: anoop $
+ * @version $Revision: 1.47 $ / $Date: 2007-08-08 14:14:13 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
     
     /** Creates a new instance of Publisher */
-    
-    public static final int PUBLISH_NO_MODES = 0;;
-    public static final int PUBLISH_MAP = 1; // just the map
-    public static final int PUBLISH_CMAP = 2; // the map with selected resources in IMSCP format
-    public static final int PUBLISH_SAKAI = 4; // an IMSCP to Sakai
-    public static final int PUBLISH_ALL = 3; // all resources published to fedora and map published with pointers to resources.
-    public static final int PUBLISH_ZIP = 5; 
-    public static final int PUBLISH_ALL_MODES = 10; // this means that datasource can publish to any mode.
-    //todo: create a pubishable interface for Datatasources. Create an interface for datasources and have separate implementations for each type of datasource.
+    //todo: Create an interface for datasources and have separate implementations for each type of datasource.
     
     public static final String FILE_PREFIX = "file://";
     public static final int SELECTION_COL = 0; // boolean selection column in resource table
@@ -78,7 +70,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
 	"“Export IMSCP Map to Sakai” saves concept map in Sakai content hosting system.","Zips map with local resources."
     };
     
-    private int publishMode = PUBLISH_MAP;
+    private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
     private String IMSManifest; // the string is written to manifest file;
@@ -156,7 +148,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         //informationArea.setBackground(Color.WHITE);
         informationArea.setSize(PUB_WIDTH-50, PUB_HEIGHT/3);
         JLabel dsLabel = new JLabel("Where would you like to save the map:");
-        dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publisher.PUBLISH_ALL_MODES));
+        dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publishable.PUBLISH_ALL_MODES));
         dataSourceComboBox.setToolTipText("Select export location.");
         dataSourceComboBox.addActionListener(this);
         JPanel buttonPanel = new JPanel();
@@ -448,13 +440,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         if(e.getSource() == publishMapRButton) {
             finishButton.setEnabled(true);
             nextButton.setEnabled(false);
-            publishMode = PUBLISH_MAP;
+            publishMode = Publishable.PUBLISH_MAP;
             updatePublishPanel();
         }
         if(e.getSource() == publishZipRButton) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
-            publishMode = PUBLISH_ZIP;
+            publishMode = Publishable.PUBLISH_ZIP;
             updatePublishPanel();
         }
         /*
@@ -468,7 +460,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         if(e.getSource() == publishSakaiRButton) {
             finishButton.setEnabled(false);
             nextButton.setEnabled(true);
-            publishMode = PUBLISH_SAKAI;
+            publishMode = Publishable.PUBLISH_SAKAI;
             //updatePublishPanel();
 			System.out.println("Sakai Data Sources:");
 			try {
@@ -572,15 +564,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
          * data can change.
          */
         
-        
-        
         public void setValueAt(Object value, int row, int col) {
             ((Vector)data.elementAt(row)).setElementAt(value,col);
             fireTableCellUpdated(row, col);
         }
     }
-    
-    
-    
     
 }
