@@ -34,9 +34,22 @@ import com.hp.hpl.jena.util.iterator.*;
 import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
+import java.io.*;
+
+// castor classes
+import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.Unmarshaller;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
+
+import org.exolab.castor.mapping.Mapping;
+import org.exolab.castor.mapping.MappingException;
+import org.xml.sax.InputSource;
+import osid.dr.*;
 
 public class OntManager {
     public static final String ONT_NOT_FOUND = "Ontology Not Found";
+    public static final String ONT_FILE = tufts.vue.VueResources.getString("ontology.save");
     public static final int RDFS = 0;
     public static final int OWL = 1;
     /** Creates a new instance of OntManager */
@@ -64,7 +77,7 @@ public class OntManager {
         } else if(type.isEqual(OntologyType.OWL_TYPE)) {
             ont = new OWLLOntology(ontUrl);
         }
-         if(ont != null) {
+        if(ont != null) {
             ontList.add(ont);
         }
         return ont;
@@ -80,6 +93,10 @@ public class OntManager {
     }
     public List<Ontology> getOntList() {
         return ontList;
+    }
+    
+    public void setOntList(List<Ontology> list) {
+        this.ontList = list;
     }
     public Ontology getOntology(URL ontUrl) {
         for(Ontology ont: ontList) {
@@ -101,6 +118,38 @@ public class OntManager {
     
     public Ontology applyStyle(URL ontUrl, URL cssUrl) {
         return null;
+    }
+    
+    public void save() {
+        if(ontManager != null) {
+            try {
+                File file = new File(tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+ONT_FILE);
+                Mapping mapping = new Mapping();
+                FileWriter writer = new FileWriter(file);
+                Marshaller marshaller = new Marshaller(writer);
+                marshaller.setMapping(tufts.vue.action.ActionUtil.getDefaultMapping());
+                System.out.println("Marshalling OntManager. Class = "+this.getClass());
+                marshaller.marshal(this);
+                writer.flush();
+                writer.close();
+            } catch(Exception ex) {
+                tufts.vue.VUE.Log.error("OntManager.save: "+ex);
+            }
+        } else
+            tufts.vue.VUE.Log.error("OntManager.save: OntManager not initialized");
+        
+    }
+    
+    public void load() {
+        try {
+            Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller();
+            File file = new File(tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+ONT_FILE);
+            FileReader reader = new FileReader(file);
+            ontManager = (OntManager) unmarshaller.unmarshal(new InputSource(reader));
+            reader.close();
+        } catch(Exception ex) {
+            tufts.vue.VUE.Log.error("OntManager.save: "+ex);
+        }
     }
     public  static OntManager getOntManager() {
         if(ontManager == null) {
