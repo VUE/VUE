@@ -712,4 +712,30 @@
         <bind-xml name="done" node="element" />
       </field>
 </class>
+
+<!-- mapping pertaining to saving ontolologies -->
+<class name="edu.tufts.vue.ontology.OntManager" auto-complete="false">
+    <map-to xml="edu.tufts.vue.ontology.OntManager" />
+    <field name="ontList" type="edu.tufts.vue.ontology.Ontology" collection="arraylist">
+        <bind-xml name="Ontology" />
+    </field>
+</class>
+<class name="edu.tufts.vue.ontology.Ontology" auto-complete="false">
+    <map-to xml="edu.tufts.vue.ontology.Ontology "/>
+    <field name="base" node="attribute" type="string">
+        <bind-xml name="base" />
+    </field>
+    <field name="label" node="attribute" type="string">
+        <bind-xml name="label" />
+    </field>
+    <field name="cssFileName"  node="attribute" type="string">
+        <bind-xml name="cssFileName" />
+    </field>
+</class>
+<class name="edu.tufts.vue.ontology.OWLLOntology" extends="edu.tufts.vue.ontology.Ontology"  auto-complete="false"> 
+    <map-to xml="edu.tufts.vue.ontology.OWLLOntology "/>
+</class>
+<class name="edu.tufts.vue.ontology.RDFSOntology" extends="edu.tufts.vue.ontology.Ontology"  auto-complete="false"> 
+    <map-to xml="edu.tufts.vue.ontology.RDFSOntology "/>
+</class>
 </mapping>

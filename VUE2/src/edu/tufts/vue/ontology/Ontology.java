@@ -74,7 +74,7 @@ public class Ontology {
     public void setLabel() {
         ONT_COUNTER++;
         label = DEFAULT_ONT_LABEL+ONT_COUNTER;
-    } 
+    }
     public void setOntTypes(List<OntType> types) {
         this.types = types;
     }
@@ -99,6 +99,16 @@ public class Ontology {
     public URL getStyle() {
         return this.cssUrl;
     }
+    public void setCssFileName(String fileName) {
+        try {
+            cssUrl = new URL(fileName);
+        } catch(Exception ex)  {
+            System.out.println("Ontology.cssFileName" + ex);
+        }
+    }
+    public String getCssFileName() {
+        return cssUrl.toString();
+    }
     public String toString() {
         String s = new String();
         s = "Base: "+base;
@@ -121,8 +131,8 @@ public class Ontology {
             type.setBase(base);
             type.setComment(c.getComment(null));
             Style style;
-            if(c instanceof OntClass) 
-               style = NodeStyle.DEFAULT_NODE_STYLE;
+            if(c instanceof OntClass)
+                style = NodeStyle.DEFAULT_NODE_STYLE;
             else
                 style = edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE;
             type.setStyle(style);
@@ -156,7 +166,7 @@ public class Ontology {
             }
             if(style == edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE) {
                 if(c instanceof OntClass) {
-                style = Style.getStyle(DEFAULT_NODE,styleMap);
+                    style = Style.getStyle(DEFAULT_NODE,styleMap);
                 } else {
                     style = Style.getStyle(DEFAULT_LINK,styleMap);
                 }
