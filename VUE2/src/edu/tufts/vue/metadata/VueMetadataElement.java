@@ -18,6 +18,10 @@
 
 package edu.tufts.vue.metadata;
 
+import edu.tufts.vue.ontology.*;
+
+import java.net.*;
+
 /*
  * VueMetadataElement.java
  *
@@ -27,9 +31,17 @@ package edu.tufts.vue.metadata;
  */
 public class VueMetadataElement {
     
-   // for the most general case, pairs of Strings etc. to follow. 
+   private String value;
+   private URI key;
    private Object obj;
-    
+   private int type;
+   
+   public static final int TAG = 0;
+   public static final int CATEGORY = 1;
+   public static final int ONTO_TYPE = 2;
+   
+   public static final String VUE_ONT = "vue.tufts.edu/vue.rdfs";
+   
    public Object getObject()
    {
        return obj;
@@ -38,6 +50,68 @@ public class VueMetadataElement {
    public void setObject(Object obj)
    {
        this.obj = obj;
+       if(obj instanceof String)
+       {    
+           type = TAG;
+           value = (String)obj;
+           try
+           {
+             key = new URI(VUE_ONT + "#TAG");
+           }
+           catch(URISyntaxException exc)
+           {
+             System.out.println("VueMetadataElement setObject: URISyntaxException: " + exc);
+           }
+       }
+       else if(obj instanceof String[])
+       {
+           type = CATEGORY;
+           value = ((String[])obj)[1];
+           try
+           {
+             key = new URI(VUE_ONT + "#" + ((String[])obj)[2]);
+           }
+           catch(URISyntaxException exc)
+           {
+             System.out.println("VueMetadataElement setObject: URISyntaxException: " + exc);
+           }
+       }
+       else
+       {
+           type = ONTO_TYPE;
+           OntType type = (OntType)(obj);
+           value = type.getBase() + "#" + type.getLabel();
+           try
+           {
+             key = new URI(VUE_ONT+"#ontoType");
+           }
+           catch(URISyntaxException exc)
+           {
+             System.out.println("VueMetadataElement setObject: URISyntaxException: " + exc);
+           }
+       }
+   }
+   
+   public String getValue()
+   {
+       return value;
+   }
+   
+   public URI getKey()
+   {
+       return key;
+   }
+   
+   public void setKey(URI key)
+   {
+       this.key = key;
+       // how recreate obj?
+   }
+   
+   public void setValue(String value)
+   {
+       this.value = value;
+       // how recreate obj;
    }
     
 }
