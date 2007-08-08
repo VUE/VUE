@@ -287,8 +287,19 @@ public class MetadataEditor extends JPanel implements ActiveListener {
              
              if(column == 0 && current != null)
              {    
-               if(row!=0 || current.getMetadataList().getMetadata().size() > 0)  
-                 return current.getMetadataList().getMetadata().get(row).getObject();
+               java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();  
+               if(row!=0 || list.size() > 0)  
+               {
+                 VueMetadataElement ele = list.get(row);
+                 if(ele.getObject()!=null)
+                 {    
+                   return ele.getObject();
+                 }
+                 else
+                 {
+                   return ele.getValue();
+                 }
+               }
                else
                  return "";
              }
