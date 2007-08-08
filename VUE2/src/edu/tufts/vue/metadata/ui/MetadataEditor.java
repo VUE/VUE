@@ -19,6 +19,7 @@
 package edu.tufts.vue.metadata.ui;
 
 import edu.tufts.vue.metadata.VueMetadataElement;
+import edu.tufts.vue.ontology.OntType;
 import java.awt.event.FocusAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
@@ -159,8 +160,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            comp.setLayout(new java.awt.BorderLayout());
            if(col == 0)
            {
-               if(value instanceof edu.tufts.vue.ontology.OntType)
-                 comp.add(new JLabel(((edu.tufts.vue.ontology.OntType)value).getLabel()));
+               if(value instanceof OntType)
+                 comp.add(new JLabel(((OntType)value).getLabel()));
                else
                  comp.add(new JTextField(value.toString()));
            }
@@ -271,7 +272,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
          
          public boolean isCellEditable(int row,int column)
          {
-             if(getValueAt(row,column) instanceof edu.tufts.vue.ontology.OntType)
+             if(getValueAt(row,column) instanceof OntType)
                  return false;
              if(column == 0)
                  return true;
@@ -297,7 +298,17 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                  }
                  else
                  {
-                   return ele.getValue();
+                   if(ele.getType() == VueMetadataElement.ONTO_TYPE)
+                   {
+                      OntType type = new OntType();
+                      type.setLabel(ele.getValue().substring(ele.getValue().lastIndexOf("#")+1,ele.getValue().length()));
+                      type.setBase(ele.getValue().substring(0,ele.getValue().lastIndexOf("#")-1));
+                      return type;
+                   }   
+                   else
+                   {
+                    return ele.getValue();
+                   }
                  }
                }
                else

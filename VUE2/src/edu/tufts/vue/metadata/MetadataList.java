@@ -45,4 +45,9 @@ public class MetadataList {
       metadataList.add(element);
     }
     
+    public void setMetadata(List<VueMetadataElement> list)
+    {
+        metadataList = list;
+    }
+    
 }

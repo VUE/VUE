@@ -102,6 +102,13 @@
     </field>
   </class>
   -->
+  
+  <class name="edu.tufts.vue.metadata.VueMetadataElement">
+      <field name="value" type="java.lang.String"/>
+      <field name="key" type="java.lang.String"/>
+      <field name="type"/>
+  </class>
+  
   <class name="tufts.vue.LWComponent" identity="ID">
     <!-- castor can figure out types, we leave string as defaulted.
       -->
@@ -156,6 +163,8 @@
                 <!-- temporarily(?) return to old node filter get method -->
                 <!-- <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> -->
                 <field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> 
+                
+                <field name="metadataList"/>
 
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">

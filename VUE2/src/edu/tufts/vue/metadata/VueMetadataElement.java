@@ -32,7 +32,7 @@ import java.net.*;
 public class VueMetadataElement {
     
    private String value;
-   private URI key;
+   private String key;
    private Object obj;
    private int type;
    
@@ -54,41 +54,20 @@ public class VueMetadataElement {
        {    
            type = TAG;
            value = (String)obj;
-           try
-           {
-             key = new URI(VUE_ONT + "#TAG");
-           }
-           catch(URISyntaxException exc)
-           {
-             System.out.println("VueMetadataElement setObject: URISyntaxException: " + exc);
-           }
+           key = VUE_ONT + "#TAG";
        }
        else if(obj instanceof String[])
        {
            type = CATEGORY;
            value = ((String[])obj)[1];
-           try
-           {
-             key = new URI(VUE_ONT + "#" + ((String[])obj)[2]);
-           }
-           catch(URISyntaxException exc)
-           {
-             System.out.println("VueMetadataElement setObject: URISyntaxException: " + exc);
-           }
+           key = VUE_ONT + "#" + ((String[])obj)[2];
        }
        else
        {
            type = ONTO_TYPE;
            OntType type = (OntType)(obj);
            value = type.getBase() + "#" + type.getLabel();
-           try
-           {
-             key = new URI(VUE_ONT+"#ontoType");
-           }
-           catch(URISyntaxException exc)
-           {
-             System.out.println("VueMetadataElement setObject: URISyntaxException: " + exc);
-           }
+           key = VUE_ONT+"#ontoType";
        }
    }
    
@@ -97,21 +76,33 @@ public class VueMetadataElement {
        return value;
    }
    
-   public URI getKey()
+   public String getKey()
    {
        return key;
    }
    
-   public void setKey(URI key)
+   public void setKey(String key)
    {
        this.key = key;
-       // how recreate obj?
+       // object does not currently get recreated from persistence, 
+       // gui handles this
    }
    
    public void setValue(String value)
    {
        this.value = value;
-       // how recreate obj;
+       // object does not currently get recreated from persistence, 
+       // gui handles this
+   }
+   
+   public void setType(int type)
+   {
+       this.type = type;
+   }
+   
+   public int getType()
+   {
+       return type;
    }
     
 }
