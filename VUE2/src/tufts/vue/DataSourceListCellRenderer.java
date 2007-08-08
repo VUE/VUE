@@ -32,6 +32,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
     private final Icon myComputerIcon = VueResources.getImageIcon("dataSourceMyComputer");
     private final Icon savedResourcesIcon = VueResources.getImageIcon("dataSourceSavedResources");
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
+    private final Icon rssIcon = VueResources.getImageIcon("dataSourceRSS");
     private final PolygonIcon breakIcon = new PolygonIcon(Color.LIGHT_GRAY);
     private edu.tufts.vue.dsm.DataSource infoDataSource;
     private final static String OFFLINE = "offline";
@@ -133,7 +134,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         } else if ( value instanceof edu.tufts.vue.rss.RSSDataSource) { 
             mRow.setBorder(DividerBorder);
             displayName = ((DataSource)value).getDisplayName();            
-            mIconLabel.setIcon(remoteIcon);
+            mIconLabel.setIcon(rssIcon);
         }else
             mRow.setBorder(DividerBorder);
             
