@@ -23,6 +23,8 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 import java.util.regex.*;
+
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 
 import javax.swing.*;
@@ -53,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.23 $ / $Date: 2007-06-08 19:12:28 $ / $Author: anoop $
+ * @version $Revision: 1.24 $ / $Date: 2007-08-09 21:31:06 $ / $Author: mike $
  */
 
 // TODO: this class currently a humongous mess...
@@ -1274,8 +1276,44 @@ public class URLResource implements Resource, XMLUnmarshalListener
         else if (isImage)
             // TODO: this not a good idea... only doing it so Images can put meta-data back into it
             return this;
-        else
-            return null;
+        else if (mURL_Browse != null)
+        {
+        	//attempt to get a thumbshot of it.        	
+        	String s = mURL_Browse.toString();
+        	String thumbShotURL = "http://open.thumbshots.org/image.pxf?url="+ s;
+        	URL thumbShot = null;
+        	Image i = null;
+        	try {
+				thumbShot = new URL(thumbShotURL);
+				i = ImageIO.read(thumbShot);				
+	        	
+				if ((i.getHeight(null) <= 1) ||
+						(i.getWidth(null) <=1))
+				{
+					if (DEBUG.WEBSHOTS)
+						out("This was a valid URL but there is no webshot available : " + thumbShotURL);
+					return null;
+				}
+				else if (i == null)
+				{
+					if (DEBUG.WEBSHOTS)
+						out("Didn't get a valid return from webshots : " + thumbShotURL);
+					return null;
+				}
+							
+	        	
+			} catch (Throwable e) {
+				// TODO Auto-generated catch block
+			}	
+        	
+			if (DEBUG.WEBSHOTS)
+				out("Returning webshot image");
+
+			return i;
+        }
+        else 
+        	return null;
+            
 
         
         /*
