@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.328 $ / $Date: 2007-08-08 17:38:30 $ / $Author: dan $
+ * @version $Revision: 1.329 $ / $Date: 2007-08-10 16:24:14 $ / $Author: anoop $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3413,6 +3413,24 @@ u                    getSlot(c).setFromString((String)value);
     public void setURI(URI uri) {
        this.uri = uri; 
     }
+     /* Methods to persist url through castor
+     * We don't want to save URI object
+     *
+    */
+    public void setURIString(String URIString) {
+        try {
+                    uri = new URI(URIString);
+                    edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri,this);
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t, "Failed to set an uri for  "+label);
+                }
+           
+    }
+    
+    public String getURIString() {
+        return getURI().toString();
+    }
+    
     /*
     public void setShape(Shape shape)
     {

@@ -165,7 +165,7 @@
                 <field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> 
                 
                 <field name="metadataList"/>
-
+                <field name="URIString" />
                 <!-- We can save a shape interface, but it won't restore properly -->
 		<!-- field name="shape" type="java.awt.Shape">
 			<bind-xml name="shape" node="element"/>
