@@ -78,7 +78,7 @@ public class RDFIndex extends ModelCom {
                 "SELECT ?resource ?keyword " +
                 "WHERE{" +
                 "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\") } ";
-        Query query = QueryFactory.create(queryString);
+        com.hp.hpl.jena.query.Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, this);
         ResultSet results = qe.execSelect();
         //System.out.println("Query: "+query+" result set:"+results);
