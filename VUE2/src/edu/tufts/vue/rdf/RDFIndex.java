@@ -72,7 +72,7 @@ public class RDFIndex extends ModelCom {
     
     public List<URI> search(String keyword) {
         List<URI> r = new ArrayList<URI>();
-        System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
+        //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
         String queryString =
                 "PREFIX vue: <"+VUE_ONTOLOGY+">"+
                 "SELECT ?resource ?keyword " +
@@ -81,11 +81,11 @@ public class RDFIndex extends ModelCom {
         Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, this);
         ResultSet results = qe.execSelect();
-        System.out.println("Query: "+query+" result set:"+results);
+        //System.out.println("Query: "+query+" result set:"+results);
         while(results.hasNext())  {
             QuerySolution qs = results.nextSolution();
             try {
-                        System.out.println("Resource: "+qs.getResource("resource"));
+                //              System.out.println("Resource: "+qs.getResource("resource"));
                 r.add(new URI(qs.getResource("resource").toString()));
             }catch(Throwable t) {
                 t.printStackTrace();
@@ -118,11 +118,14 @@ public class RDFIndex extends ModelCom {
             Iterator<VueMetadataElement> i = metadata.iterator();
             while(i.hasNext()) {
                 VueMetadataElement element = i.next();
-                statement = this.createStatement(r,hasTag,element.getObject().toString());
+                System.out.println("Resouece: "+r+" Element:"+element+" class of element:"+element.getClass());
+                if(element.getObject() != null)
+                    statement = this.createStatement(r,hasTag,element.getObject().toString());
                 addStatement(statement);
             }
         } catch(Exception ex) {
             System.out.println("RDFIndex.rdfize: "+ex);
+            ex.printStackTrace();
         }
     }
     
@@ -153,14 +156,41 @@ public class RDFIndex extends ModelCom {
         }
     }
     
-    public void startAutoIndexing() {
-        
+    public void startAutoIndexing() {   
         isAutoIndexing = true;
     }
     
-    public void stopAutoIndexing() {
-        
+    public void stopAutoIndexing() {      
         isAutoIndexing = false;
+    }
+    
+    public void regenerate() {
+        System.out.println("Before Indexing size: "+size());
+        List stmtList  = listStatements().toList();
+        for(int i = 0;i<stmtList.size();i++) {
+            com.hp.hpl.jena.rdf.model.Statement statementI = (com.hp.hpl.jena.rdf.model.Statement)stmtList.get(i);
+            for(int j = i+1;j<stmtList.size();j++) {
+                com.hp.hpl.jena.rdf.model.Statement statementJ = (com.hp.hpl.jena.rdf.model.Statement) stmtList.get(j);
+                if(compareStatements(statementI,statementJ)) {
+                    remove(statementJ);
+                }
+            }
+        }
+        System.out.println("After Indexing size: "+size());
+        
+    }
+    
+    private boolean compareStatements(com.hp.hpl.jena.rdf.model.Statement stmt1,com.hp.hpl.jena.rdf.model.Statement stmt2) {
+        if(!stmt1.getSubject().toString().equals(stmt2.getSubject().toString())) {
+            
+            return false;
+        }
+        if(!stmt1.getObject().toString().equals(stmt2.getObject().toString())) {
+            return false;
+        }if(!stmt1.getPredicate().toString().equals(stmt2.getPredicate().toString())) {
+            return false;
+        }
+        return true;
     }
     private static RDFIndex createDefaultIndex() {
         defaultIndex = new RDFIndex(com.hp.hpl.jena.graph.Factory.createGraphMem());
