@@ -18,6 +18,7 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import edu.tufts.vue.ontology.OntManager;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -203,9 +204,37 @@ public class OntologyBrowser extends JPanel {
             
         };
         
+        
+       tufts.vue.VueAction removeOntology = new tufts.vue.VueAction() {
+            {
+                setActionName("Remove Selected Ontology");
+            }
+            
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                
+                try
+                {
+                  edu.tufts.vue.ontology.Ontology ont = (edu.tufts.vue.ontology.Ontology)getBrowser().getViewer().getList().getSelectedValue();
+                  OntManager.getOntManager().removeOntology(new java.net.URL(ont.getBase()));
+                  edu.tufts.vue.ontology.OntManager.getOntManager().save();
+                  //resultsStack.updateUI();
+                }
+                catch(java.net.MalformedURLException mue)
+                {
+                  System.out.println("OntologyBrowser: remove ontology url exception" + mue);
+                }
+                getViewer().getList().updateUI();
+                //repaint();
+                revalidate();
+            }
+            
+        };
+
+        
         Action[] actions = {
             new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
-            applyStyle
+            applyStyle,
+            removeOntology
                     //new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
                     //new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
                     //addRDFSToBrowser,

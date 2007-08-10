@@ -52,7 +52,10 @@ public class OntologyList extends javax.swing.JList {
         {
             //String displayString = (edu.tufts.vue.ontology.OntManager.getOntManager().getOntList().get(index)).toString();
             //return displayString.substring(8);
-            return edu.tufts.vue.ontology.OntManager.getOntManager().getOntList().get(index);
+            if(index > edu.tufts.vue.ontology.OntManager.getOntManager().getOntList().size() - 1 )
+                return null;
+            else
+                return edu.tufts.vue.ontology.OntManager.getOntManager().getOntList().get(index);
         }
         
         public int getSize()
