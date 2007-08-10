@@ -26,33 +26,39 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
 
 public class OWLLOntology extends Ontology {
-     OntModel m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
+    OntModel m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
     /** Creates a new instance of OWLLOntology */
     public OWLLOntology() {
         
     }
-     public OWLLOntology(URL ontUrl) {
+    public OWLLOntology(URL ontUrl) {
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
-        readOntTypes(m.listNamedClasses());
-        readOntTypes(m.listObjectProperties());
-        readOntTypes( m.listOntProperties());
+        readAllSupportedOntTypes();
     }
     
     public OWLLOntology(URL ontUrl,URL cssUrl) {
         this.cssUrl = cssUrl;
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
+        readAllSupportedOntTypesWithCss();
+    }
+    public void readAllSupportedOntTypes() {
+        readOntTypes(m.listNamedClasses());
+        readOntTypes(m.listObjectProperties());
+        readOntTypes( m.listOntProperties());
+    }
+    
+    public void readAllSupportedOntTypesWithCss(){
         readOntTypes(m.listOntProperties(),cssUrl);
         readOntTypes(m.listObjectProperties(),cssUrl);
         readOntTypes(m.listNamedClasses(),cssUrl);
     }
-    
     /**
      * @param args the command line arguments
      */
-   public org.osid.shared.Type getType() {
-       return OntologyType.OWL_TYPE;
-   }
+    public org.osid.shared.Type getType() {
+        return OntologyType.OWL_TYPE;
+    }
     
 }

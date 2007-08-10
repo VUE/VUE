@@ -26,7 +26,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import tufts.vue.*;
 import tufts.vue.gui.*;
-
+import java.net.*;
 /*
  * OntologyBrowser.java
  *
@@ -38,7 +38,7 @@ public class OntologyBrowser extends JPanel {
     
     
     JPanel ontologiesPanel;
-
+    
     final static DockWindow ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");;
     DockWindow typeDock;
     private static boolean initialized = false;
@@ -48,33 +48,29 @@ public class OntologyBrowser extends JPanel {
     private OntologyViewer ontologyViewer;
     
     private static OntologyBrowser singleton;
-
+    
     final JComponent populatePane = new Widget("Populate Types") {
-            private Component editor, result;
-            {
-                setOpaque(false);
-            }
+        private Component editor, result;
+        {
+            setOpaque(false);
+        }
     };
     
     private WidgetStack resultsStack = new WidgetStack("types stack");
     
     private static TypeList selectedOntology = null;
     
-    public DockWindow getDockWindow()
-    {
+    public DockWindow getDockWindow() {
         return ontologyDock;
     }
     
-    public static TypeList getSelectedList()
-    {
+    public static TypeList getSelectedList() {
         return selectedOntology;
     }
     
-    public Widget addTypeList(final edu.tufts.vue.ontology.ui.TypeList list,String name)
-    {
+    public Widget addTypeList(final edu.tufts.vue.ontology.ui.TypeList list,String name) {
         list.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent listSelectionEvent)
-            {
+            public void valueChanged(ListSelectionEvent listSelectionEvent) {
                 selectedOntology = list;
                 fireOntologySelectionChanged(list);
             }
@@ -90,48 +86,54 @@ public class OntologyBrowser extends JPanel {
         return w;
     }
     
-    public static OntologyBrowser getBrowser()
-    {
-    	if (singleton == null)
-    		singleton = new OntologyBrowser();
-    	
+    public static OntologyBrowser getBrowser() {
+        if (singleton == null)
+            singleton = new OntologyBrowser();
+        
         return singleton;
     }
     
    /* public static OntologyBrowser createBrowser(boolean delayedLoading,DockWindow ontologyDock,DockWindow typeDock)
     {
-    	if (singleton == null)
-    		return new OntologyBrowser(delayedLoading,ontologyDock,typeDock);
-    	else
-    	{
-    		
-    	}
+        if (singleton == null)
+                return new OntologyBrowser(delayedLoading,ontologyDock,typeDock);
+        else
+        {
+    
+        }
     }
     */
     
-    private OntologyBrowser()
-    {
+    private OntologyBrowser() {
         ontologiesPanel = this;
         typeDock = null;
         ontologyDock.setResizeEnabled(false);
     }
     
-    public void initializeBrowser(boolean delayedLoading, DockWindow typeDock) 
-    {
+    public void initializeBrowser(boolean delayedLoading, DockWindow typeDock) {
         
         setLayout(new javax.swing.BoxLayout(this,javax.swing.BoxLayout.Y_AXIS));
         setName("Ontologies");
-     
+        
         this.typeDock = typeDock;
         this.ontologiesPanel = this;
+        edu.tufts.vue.ontology.OntManager.getOntManager().load();
         
-        if(delayedLoading)
-        {
+        for( edu.tufts.vue.ontology.Ontology o: edu.tufts.vue.ontology.OntManager.getOntManager().getOntList()) {
+            TypeList list = new TypeList();
+            tufts.vue.gui.Widget w =  addTypeList(list, o.getLabel());
+            try {
+               list.loadOntology(new URL(o.getBase()),o.getStyle(),OntologyChooser.getOntType(new URL(o.getBase())),this,w);
+            } catch(Exception ex) {
+                System.out.println("OntologyBrowser.inililiazeBrowser: "+ex);
+            }
+            
+        }
+         
+        if(delayedLoading) {
             //TBD see DRBrowser for likely path that will be taken when loading ontologies at startup
             // e.g. fedora ontology
-        }
-        else
-        {
+        } else {
             loadOntologyViewer();
         }
         
@@ -139,13 +141,13 @@ public class OntologyBrowser extends JPanel {
         ((Widget)populatePane).setTitleHidden(true);
         
         buildSingleDockWindow();
-          
+        
         /*tufts.vue.VueAction addRDFSToBrowser = new tufts.vue.VueAction()
         {
               {
                   setActionName("Add RDFS Ontology");
               }
-              
+         
               public void actionPerformed(java.awt.event.ActionEvent e)
               {
                  // actually this shows up in the title of the Ontology Browser Dock Window..
@@ -156,13 +158,13 @@ public class OntologyBrowser extends JPanel {
                  rdfsooa.setViewer(null);
               }
         };
-          
+         
         tufts.vue.VueAction addOWLToBrowser = new tufts.vue.VueAction()
         {
               {
                   setActionName("Add OWL Ontology");
               }
-              
+         
               public void actionPerformed(java.awt.event.ActionEvent e)
               {
                  // shows up in Ontology Browser Dock Window title
@@ -174,25 +176,19 @@ public class OntologyBrowser extends JPanel {
               }
         }; */
         
-        tufts.vue.VueAction applyStyle = new tufts.vue.VueAction()
-        {
+        tufts.vue.VueAction applyStyle = new tufts.vue.VueAction() {
             {
                 setActionName("Import Style Sheet");
-            }  
+            }
             
-            public void actionPerformed(java.awt.event.ActionEvent e)
-            {
+            public void actionPerformed(java.awt.event.ActionEvent e) {
                 javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
                 chooser.showOpenDialog(OntologyBrowser.this);
-                if(chooser.getSelectedFile()!=null)
-                {
+                if(chooser.getSelectedFile()!=null) {
                     java.net.URL cssURL = null;
-                    try
-                    {        
-                      cssURL = chooser.getSelectedFile().toURL();
-                    }
-                    catch(java.net.MalformedURLException mue)
-                    {
+                    try {
+                        cssURL = chooser.getSelectedFile().toURL();
+                    } catch(java.net.MalformedURLException mue) {
                         System.out.println("trouble opening css file: " + mue);
                     }
                     int selectedOntology = getViewer().getList().getSelectedIndex();
@@ -202,22 +198,22 @@ public class OntologyBrowser extends JPanel {
                     // need getTypeList() method in order to refresh the typelist model...
                     // also need a list of typelist that corresponds to the ont list .. or maybe
                     // can just get the component at that location in the viewer?
-                }    
+                }
             }
             
         };
-          
+        
         Action[] actions = {
             new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
             applyStyle
-            //new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
-            //new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
-            //addRDFSToBrowser,
-            //addOWLToBrowser
+                    //new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
+                    //new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
+                    //addRDFSToBrowser,
+                    //addOWLToBrowser
         };
         tufts.vue.gui.Widget.setMenuActions(this,actions);
-          
-       // singleton = this;
+        
+        // singleton = this;
         initialized = true;
         
         /*TypeList list = new TypeList();
@@ -225,8 +221,8 @@ public class OntologyBrowser extends JPanel {
         java.net.URL cssURL = VueResources.getURL("fedora.ontology.css");
         tufts.vue.gui.Widget w = addTypeList(list,"Fedora Ontology");//edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()));
         //getViewer().getList().updateUI();
-        list.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,w); 
-        
+        list.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,w);
+         
         TypeList nodeList = new TypeList();
         ontURL = VueResources.getURL("fedora.support.ontology.rdf");
         cssURL = VueResources.getURL("fedora.support.ontology.css");
@@ -235,14 +231,12 @@ public class OntologyBrowser extends JPanel {
         nodeList.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,wForNode); */
         
     }
-    			
-    public static boolean isInitialized()
-    {
-    	return initialized;
+    
+    public static boolean isInitialized() {
+        return initialized;
     }
     
-    public void loadOntologyViewer()
-    {
+    public void loadOntologyViewer() {
         //OntologyViewer ontologyViewer = new OntologyViewer(this);
         ontologyViewer = new OntologyViewer(this);
         ontologyViewer.setName("Ontology Viewer");
@@ -250,24 +244,21 @@ public class OntologyBrowser extends JPanel {
         revalidate();
     }
     
-    public OntologyViewer getViewer()
-    {
+    public OntologyViewer getViewer() {
         return ontologyViewer;
     }
     
-    public static Object getSelectedOntology()
-    {
+    public static Object getSelectedOntology() {
         Object value =  getBrowser().getViewer().getList().getSelectedValue();
         return value + ":" + value.getClass();
     }
     
-    public void buildSingleDockWindow()
-    {
+    public void buildSingleDockWindow() {
         
         WidgetStack stack = new WidgetStack(getName());
-
+        
         Widget.setWantsScroller(stack, true);
-
+        
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane,0f);
         
@@ -279,21 +270,17 @@ public class OntologyBrowser extends JPanel {
         return populatePane;
     }*/
     
-    public void addOntologySelectionListener(OntologySelectionListener osl)
-    {
+    public void addOntologySelectionListener(OntologySelectionListener osl) {
         ontologySelectionListenerList.add(osl);
     }
     
-    public void removeOntologySelectionListener(OntologySelectionListener osl)
-    {
+    public void removeOntologySelectionListener(OntologySelectionListener osl) {
         ontologySelectionListenerList.remove(osl);
     }
     
-    private void fireOntologySelectionChanged(TypeList selection)
-    {
+    private void fireOntologySelectionChanged(TypeList selection) {
         Iterator<OntologySelectionListener> i = ontologySelectionListenerList.iterator();
-        while(i.hasNext())
-        {
+        while(i.hasNext()) {
             OntologySelectionListener osl = i.next();
             osl.ontologySelected(new OntologySelectionEvent(selection));
         }

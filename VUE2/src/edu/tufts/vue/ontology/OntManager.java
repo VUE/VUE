@@ -64,7 +64,7 @@ public class OntManager {
         } else if(type.isEqual(OntologyType.OWL_TYPE)) {
             ont = new OWLLOntology(ontUrl,cssUrl);
         }
-        if(ont != null) {
+        if(ont != null && !ontList.contains(ont)) {
             ontList.add(ont);
         }
         return ont;
@@ -77,7 +77,7 @@ public class OntManager {
         } else if(type.isEqual(OntologyType.OWL_TYPE)) {
             ont = new OWLLOntology(ontUrl);
         }
-        if(ont != null) {
+        if(ont != null && !ontList.contains(ont)) {
             ontList.add(ont);
         }
         return ont;
@@ -146,6 +146,7 @@ public class OntManager {
             File file = new File(tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+ONT_FILE);
             FileReader reader = new FileReader(file);
             ontManager = (OntManager) unmarshaller.unmarshal(new InputSource(reader));
+            loadSavedOntTypes() ;
             reader.close();
         } catch(Exception ex) {
             tufts.vue.VUE.Log.error("OntManager.save: "+ex);
@@ -156,6 +157,15 @@ public class OntManager {
             ontManager = new OntManager();
         }
         return ontManager;
+    }
+    
+    private void loadSavedOntTypes() {
+        for(Ontology o: ontList) {
+            if(o.getStyle() == null)
+                o.readAllSupportedOntTypes();
+            else
+                o.readAllSupportedOntTypesWithCss();
+        }
     }
     
 }

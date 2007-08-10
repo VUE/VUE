@@ -453,6 +453,7 @@ public class TypeList extends JList {
           //browser.getViewer().repaint();
           //browser.revalidate();
          // browser.repaint();
+          edu.tufts.vue.ontology.OntManager.getOntManager().save();
          }
        };
        

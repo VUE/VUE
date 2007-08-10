@@ -46,18 +46,25 @@ public class RDFSOntology extends Ontology{
     public RDFSOntology(URL ontUrl) {
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
-        readOntTypes(m.listNamedClasses());
-        readOntTypes(m.listOntProperties());
+        readAllSupportedOntTypes();
     }
     
     public RDFSOntology(URL ontUrl,URL cssUrl) {
         this.cssUrl = cssUrl;
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
+        readAllSupportedOntTypesWithCss();
+    }
+    
+    public void readAllSupportedOntTypes() {
+        readOntTypes(m.listNamedClasses());
+        readOntTypes(m.listOntProperties());
+    }
+    
+    public void readAllSupportedOntTypesWithCss(){
         readOntTypes(m.listOntProperties(),cssUrl);
         readOntTypes(m.listNamedClasses(),cssUrl);
     }
-
     public org.osid.shared.Type getType() {
         return OntologyType.RDFS_TYPE;
     }

@@ -39,7 +39,7 @@ import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
 import org.w3c.dom.stylesheets.LinkStyle;
 
-public class Ontology {
+abstract public class Ontology {
     public static final String ONT_CLASS_NODE = "node.OntClass";
     public static final String DEFAULT_NODE = "node.default";
     public static final String ONT_PROPERTY_LINK = "link.OntProperty";
@@ -99,15 +99,18 @@ public class Ontology {
     public URL getStyle() {
         return this.cssUrl;
     }
-    public void setCssFileName(String fileName) {
+    public void setCssFileName(String cssFileName) {
         try {
-            cssUrl = new URL(fileName);
+            cssUrl = new URL(cssFileName);
         } catch(Exception ex)  {
             System.out.println("Ontology.cssFileName" + ex);
         }
     }
     public String getCssFileName() {
-        return cssUrl.toString();
+        if(cssUrl == null) {
+            return null;
+        }else
+            return cssUrl.toString();
     }
     public String toString() {
         String s = new String();
@@ -118,6 +121,18 @@ public class Ontology {
         return s;
     }
     
+    public boolean equals(Object o) {
+        if(o instanceof Ontology) {
+            Ontology ontology = (Ontology)o;
+            if(this.base.equals(ontology.getBase()) && this.label.equals(ontology.getLabel())) {
+                return true;
+            } else {
+                return false;
+            }
+        }else {
+            return false;
+        }
+    }
     public  void readOntTypes(ExtendedIterator iter) {
         while(iter.hasNext()) {
             OntResource c = (OntResource) iter.next();
@@ -179,6 +194,10 @@ public class Ontology {
         }
         
     }
+    
+    abstract public void readAllSupportedOntTypes();
+    
+    abstract public void readAllSupportedOntTypesWithCss();
     
     
 }
