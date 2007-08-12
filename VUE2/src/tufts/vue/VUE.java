@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.468 $ / $Date: 2007-07-31 15:31:03 $ / $Author: dan $ 
+ * @version $Revision: 1.469 $ / $Date: 2007-08-12 04:01:31 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1196,7 +1196,7 @@ public class VUE
                     ;//formatDock.setSize(new Dimension(690,54));
         	else
         		formatDock.setSize(new Dimension(620,54));
-        	DR_BROWSER_DOCK.showRolledUp();
+        	//DR_BROWSER_DOCK.showRolledUp();
         	formatDock.setLocation(GUI.GInsets.left+300,
                     GUI.GInsets.top+25);        	
         	
