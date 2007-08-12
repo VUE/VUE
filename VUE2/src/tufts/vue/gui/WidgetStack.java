@@ -38,7 +38,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.33 $ / $Date: 2007-06-02 20:23:12 $ / $Author: dan $
+ * @version $Revision: 1.34 $ / $Date: 2007-08-12 03:49:44 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -581,11 +581,14 @@ public class WidgetStack extends Widget
 
         public void paintComponent(Graphics g) {
             paintGradient((Graphics2D)g);
-            super.paintComponent(g);
+            //In Java 6 calling super.paintComponent() here prevents the Gradient from painting,
+            //since all widgetTitles have gradients I think this should be OK will need to back test in Java 5.
+         //   super.paintComponent(g);
         }
 
         private void paintGradient(Graphics2D g)
         {
+        	System.out.println("paint gradient " + mGradient.toString());
             if (false && mEmbeddedStack)
                 g.setPaint(GradientEmbedded);
             else
