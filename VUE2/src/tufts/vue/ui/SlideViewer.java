@@ -474,6 +474,7 @@ if (true) return;
     @Override
     protected DrawContext getDrawContext(Graphics2D g) {
         DrawContext dc = super.getDrawContext(g);
+        dc.setDrawPathways(false);        
         dc.setEditMode(btnMaster.isSelected());
         /* dc.focal now handles this 
         if (isMapView) {
