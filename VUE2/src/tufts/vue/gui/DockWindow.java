@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.102 $ / $Date: 2007-05-21 16:36:59 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2007-08-12 19:12:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1113,7 +1113,7 @@ public class DockWindow extends javax.swing.JWindow
                 {
                     if (wpp.isWindowVisible())
                         {
-                            System.out.println("OTHER");
+                            //System.out.println("OTHER");
                             suggestLocation((int)p.getX(),(int)p.getY());
 
                             if (wpp.isRolledUp())
