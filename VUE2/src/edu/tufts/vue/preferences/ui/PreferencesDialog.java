@@ -88,9 +88,11 @@ public class PreferencesDialog extends JDialog {
 		array[2] = new String("Images");
 		
 		TreePath path = findByName(prefTree,array);
-		PrefTreeNode node = (PrefTreeNode) path.getLastPathComponent();		
+		PrefTreeNode node = (PrefTreeNode) path.getLastPathComponent();
+		
 		splitPane.setRightComponent(node.getPrefObject().getPreferenceUI());
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		prefTree.setSelectionRow(1);
 	}
 		
 		  // Finds the path in tree as specified by the array of names. The names array is a
