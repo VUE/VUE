@@ -38,7 +38,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-08-12 03:49:44 $ / $Author: mike $
+ * @version $Revision: 1.35 $ / $Date: 2007-08-12 03:50:32 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -588,7 +588,7 @@ public class WidgetStack extends Widget
 
         private void paintGradient(Graphics2D g)
         {
-        	System.out.println("paint gradient " + mGradient.toString());
+        	//System.out.println("paint gradient " + mGradient.toString());
             if (false && mEmbeddedStack)
                 g.setPaint(GradientEmbedded);
             else
