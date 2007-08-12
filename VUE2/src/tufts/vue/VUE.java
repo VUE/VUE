@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.470 $ / $Date: 2007-08-12 19:10:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.471 $ / $Date: 2007-08-12 19:12:19 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1632,7 +1632,7 @@ public class VUE
        
         // TODO: use active map instances
         int tabs = mMapTabsLeft.getTabCount();
-        LWMap ensureChecked = getActiveMap(); // in case of full-screen
+        //LWMap ensureChecked = getActiveMap(); // in case of full-screen
         for (int i = 0; i < tabs; i++) {
             final LWMap map = mMapTabsLeft.getMapAt(i);
             if (VUE.getIndex() != null) {
@@ -1644,8 +1644,8 @@ public class VUE
                 }
             }
             
-            if (map == ensureChecked)
-                ensureChecked = null;
+//             if (map == ensureChecked)
+//                 ensureChecked = null;
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
         }
@@ -1659,11 +1659,13 @@ public class VUE
                 t.printStackTrace();
             }
         }
+
+        return true;
         
-        if (ensureChecked != null && !askSaveIfModified(ensureChecked))
-            return false;
-        else
-            return true;
+//         if (ensureChecked != null && !askSaveIfModified(ensureChecked))
+//             return false;
+//         else
+//             return true;
              
     }
     
