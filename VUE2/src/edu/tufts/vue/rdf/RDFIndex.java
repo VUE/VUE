@@ -77,7 +77,7 @@ public class RDFIndex extends ModelCom {
                 "PREFIX vue: <"+VUE_ONTOLOGY+">"+
                 "SELECT ?resource ?keyword " +
                 "WHERE{" +
-                "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\") } ";
+                "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
         com.hp.hpl.jena.query.Query query = QueryFactory.create(queryString);
         QueryExecution qe = QueryExecutionFactory.create(query, this);
         ResultSet results = qe.execSelect();
