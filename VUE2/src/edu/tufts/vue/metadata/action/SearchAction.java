@@ -64,15 +64,17 @@ public class SearchAction extends AbstractAction
         
         public void performSearch()
         {
-          edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
-            
+         // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
+           edu.tufts.vue.rdf.RDFIndex index = new  edu.tufts.vue.rdf.RDFIndex();
+           index.index(VUE.getActiveMap());
           finds = new ArrayList<List<URI>>();
           
           List<URI> found = null;
 
           for(int i=0;i<tags.size();i++)
           {
-             found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
+             //found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
+              found = index.search(tags.get(i));
              finds.add(found);
           }     
                     
@@ -98,7 +100,7 @@ public class SearchAction extends AbstractAction
              }
            }
           
-           System.out.println("VUE Object Index: " + edu.tufts.vue.rdf.VueIndexedObjectsMap.objs);
+          // System.out.println("VUE Object Index: " + edu.tufts.vue.rdf.VueIndexedObjectsMap.objs);
         }
         
         public String getName()

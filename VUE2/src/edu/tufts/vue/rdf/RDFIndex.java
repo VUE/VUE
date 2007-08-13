@@ -53,6 +53,10 @@ public class RDFIndex extends ModelCom {
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
     }
+    
+    public RDFIndex() {
+        super(com.hp.hpl.jena.graph.Factory.createGraphMem());
+    }
     public void index(LWMap map) {
         com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(map.getURI().toString());
         try {
@@ -67,7 +71,7 @@ public class RDFIndex extends ModelCom {
         } catch(Exception ex) {
             System.out.println("RDFIndex.index: "+ex);
         }
-        System.out.println("Size of index:"+this.size());
+        if(DEBUG.RDF) System.out.println("Size of index:"+this.size());
     }
     
     public List<URI> search(String keyword) {
@@ -118,7 +122,7 @@ public class RDFIndex extends ModelCom {
             Iterator<VueMetadataElement> i = metadata.iterator();
             while(i.hasNext()) {
                 VueMetadataElement element = i.next();
-                System.out.println("Resouece: "+r+" Element:"+element+" class of element:"+element.getClass());
+                if(DEBUG.RDF) System.out.println("Resouece: "+r+" Element:"+element+" class of element:"+element.getClass());
                 if(element.getObject() != null)
                     statement = this.createStatement(r,hasTag,element.getObject().toString());
                 addStatement(statement);
@@ -156,11 +160,11 @@ public class RDFIndex extends ModelCom {
         }
     }
     
-    public void startAutoIndexing() {   
+    public void startAutoIndexing() {
         isAutoIndexing = true;
     }
     
-    public void stopAutoIndexing() {      
+    public void stopAutoIndexing() {
         isAutoIndexing = false;
     }
     
@@ -202,7 +206,6 @@ public class RDFIndex extends ModelCom {
         } catch(Throwable t) {
             t.printStackTrace();
         }
-        defaultIndex.search("one");
         return defaultIndex;
     }
     
