@@ -77,6 +77,8 @@ public class DEBUG
     public static boolean DR = false; // digital repository & data sources
     
     public static boolean META = false; // generic toggle to use in combination with other flags
+    
+    public static boolean RDF = false;
 
     public static  void setAllEnabled(boolean t) {
         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
@@ -150,6 +152,7 @@ public class DEBUG
             else if (a.startsWith("nav"))    DEBUG.NAV = true;
             else if (a.startsWith("link"))   DEBUG.LINK = true;
             else if (a.startsWith("style"))  DEBUG.STYLE = true;
+            else if (a.startsWith("rdf")) DEBUG.RDF = true;
         }
     }
 
