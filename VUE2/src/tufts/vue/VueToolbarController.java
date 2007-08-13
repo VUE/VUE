@@ -37,7 +37,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.69 $ / $Date: 2007-06-08 19:40:35 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2007-08-13 00:20:49 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -123,7 +123,7 @@ public class VueToolbarController
         final Component ontologyNodeComponent;
         final Component ontologyLinkComponent;
         final int ONTOLOGY_NODE_POSITION=1;
-        final int ONTOLOGY_LINK_POSITION=2;
+        final int ONTOLOGY_LINK_POSITION=1;
         
         Map buttons = getToolbar().getToolButtons();
         PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());

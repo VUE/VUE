@@ -33,7 +33,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-05-17 21:55:18 $ / $Author: mike $ 
+ * @version $Revision: 1.35 $ / $Date: 2007-08-13 00:20:49 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -157,7 +157,7 @@ public class VueToolPanel extends JPanel
     public void addTools( VueTool [] pTools, int[] separators) {
     	int separatorIndex =0;
         for( int i=0; i<pTools.length + separators.length; i++) {
-        	if (i==separators[separatorIndex])
+        	if ((separatorIndex < separators.length) && i==separators[separatorIndex])
         	{
         		addSeparator();
         		separatorIndex++;
