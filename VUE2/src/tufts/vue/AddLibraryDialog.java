@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.63 $ / $Date: 2007-06-26 18:44:20 $ / $Author: anoop $
+ * @version $Revision: 1.64 $ / $Date: 2007-08-14 19:33:33 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -228,6 +228,8 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
         
 		this.oldDataSource = null;
 		this.newDataSource = null;
+		descriptionTextArea.setText("");
+
         try {
        //     GUI.activateWaitCursor();
             if (dataSourceManager == null) {
@@ -316,7 +318,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     }
                 } else {
                     org.osid.provider.Provider p = (org.osid.provider.Provider)(((JList)lse.getSource()).getSelectedValue());
-                    descriptionTextArea.setText(p.getDescription());
+					String desc = p.getDescription();
+					if (desc != null) {
+						desc = java.net.URLDecoder.decode(desc);
+						descriptionTextArea.setText(desc);
+					} else {
+						descriptionTextArea.setText("");
+					}
                 }
             } catch (Throwable t) {
                 t.printStackTrace();
