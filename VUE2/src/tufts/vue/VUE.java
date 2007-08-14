@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.471 $ / $Date: 2007-08-12 19:12:19 $ / $Author: sfraize $ 
+ * @version $Revision: 1.472 $ / $Date: 2007-08-14 17:11:31 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -1649,7 +1649,7 @@ public class VUE
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
         }
-
+/**
         if (getIndex() != null) {
             try {
                 VUE.getIndex().write(new FileWriter(VueUtil. getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file")));
@@ -1659,7 +1659,7 @@ public class VUE
                 t.printStackTrace();
             }
         }
-
+**/
         return true;
         
 //         if (ensureChecked != null && !askSaveIfModified(ensureChecked))
