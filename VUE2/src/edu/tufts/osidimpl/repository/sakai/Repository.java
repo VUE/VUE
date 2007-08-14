@@ -343,20 +343,7 @@ implements org.osid.repository.Repository
 			// note this is a name match NOT a site search
 			org.osid.repository.AssetIterator assetIterator = getAssets();
 			while (assetIterator.hasNextAsset()) {
-				org.osid.repository.Asset asset = assetIterator.nextAsset();
-				if (asset.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
-					result.addElement(asset);
-				}
-				// descend to resources, if appropriate
-				if (asset.getAssetType().isEqual(Utilities.getCollectionAssetType())) {
-					org.osid.repository.AssetIterator subAssetIterator = asset.getAssets();
-					while (subAssetIterator.hasNextAsset()) {
-						org.osid.repository.Asset subAsset = subAssetIterator.nextAsset();
-						if (subAsset.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
-							result.addElement(subAsset);
-						}
-					}
-				}
+				result = match(assetIterator.nextAsset(), result, criteria);
 			}
 			
 		} catch (Throwable t) {
@@ -365,6 +352,26 @@ implements org.osid.repository.Repository
         }
 		return new AssetIterator(result);
     }
+	
+	private java.util.Vector match(org.osid.repository.Asset asset, java.util.Vector result, String criteria)
+	{
+		try {
+			// descend to resources, if appropriate
+			if (asset.getAssetType().isEqual(Utilities.getCollectionAssetType())) {
+				org.osid.repository.AssetIterator subAssetIterator = asset.getAssets();
+				while (subAssetIterator.hasNextAsset()) {
+					result = match(subAssetIterator.nextAsset(), result, criteria);
+				}
+			} else {
+				if (asset.getDisplayName().toLowerCase().indexOf(criteria) != -1) {
+					result.addElement(asset);
+				}
+			}
+		} catch (Throwable t) {
+			
+		}
+		return result;
+	}
 
     public org.osid.shared.Id copyAsset(org.osid.repository.Asset asset)
     throws org.osid.repository.RepositoryException
