@@ -56,6 +56,9 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         
         metadataTable = new JTable(new MetadataTableModel());
         metadataTable.setGridColor(new java.awt.Color(255,255,255,0));
+        //metadataTable.setGridColor(getBackground());
+        //metadataTable.setOpaque(false);
+        metadataTable.setBackground(getBackground());
         metadataTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter()
         {
                    public void mousePressed(java.awt.event.MouseEvent evt)
@@ -82,10 +85,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    {
                        if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {
-                         if(metadataTable.getSelectedColumn()==1)
-                            MetadataEditor.this.current.getMetadataList().getMetadata().remove(metadataTable.getSelectedRow());
+                         java.util.List<VueMetadataElement> metadataList = MetadataEditor.this.current.getMetadataList().getMetadata();
+                         int selectedRow = metadataTable.getSelectedRow();
+                         if(metadataTable.getSelectedColumn()==1 && metadataList.size() > selectedRow)
+                         {
+                            metadataList.remove(selectedRow);
                             metadataTable.repaint();
                             requestFocusInWindow();
+                         }
                        }
                    }
         }); 
@@ -101,6 +108,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         metadataTable.getTableHeader().setReorderingAllowed(false);
         
         scroll = new JScrollPane(metadataTable);
+        //scroll.setOpaque(false);
+        scroll.setBackground(getBackground());
+        scroll.getViewport().setBackground(getBackground());
+        //System.out.println("MetadataEditor - scroll background: " + getBackground());
         metadataTable.addFocusListener(new FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent fe)
             {
@@ -116,6 +127,12 @@ public class MetadataEditor extends JPanel implements ActiveListener {
 
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         add(scroll);
+        
+        JPanel optionsPanel = new JPanel();
+        optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        optionsPanel.add(new tufts.vue.gui.VueButton("advancedSearchMore"));
+        optionsPanel.add(new JLabel("more options"));
+        add(optionsPanel);
         tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
         
         validate();
@@ -145,8 +162,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                comp = new JLabel();
                ((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
            }
-           
+
+           comp.setOpaque(true);
+           comp.setBackground(MetadataEditor.this.getBackground());
+           //comp.setForeground(java.awt.Color.RED);
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
+           //comp.setOpaque(false);
+
+           //System.out.println("MetadataEditor - Table Header Renderer background color: " + MetadataEditor.this.getBackground());
            return comp;
        }
     }
