@@ -32,93 +32,90 @@ import tufts.vue.*;
  *
  * @author dhelle01
  */
-public class SearchAction extends AbstractAction
-{
+public class SearchAction extends AbstractAction {
     
-  private List<List<URI>> finds = null;
- 
-  private List<String> tags; 
-  private List<LWComponent> comps;
-  
-  private JTextField searchInput;
-  
-  //public final String name = "Search";
-  
-        public SearchAction(JTextField searchInput)
-        {
-            super("Search");
-            this.searchInput = searchInput;
-        }
-        
-        public void loadKeywords(String searchString)
-        {
-            
-            tags = new ArrayList<String>();
-            String[] parsedSpaces = searchString.split(" ");
-            for(int i=0;i<parsedSpaces.length;i++)
-            {
-                tags.add(parsedSpaces[i]);
+    private List<List<URI>> finds = null;
+    
+    private List<String> tags;
+    private List<LWComponent> comps;
+    
+    private JTextField searchInput;
+    private edu.tufts.vue.rdf.RDFIndex index;
+    //public final String name = "Search";
+    
+    public SearchAction(JTextField searchInput) {
+        super("Search");
+        this.searchInput = searchInput;
+        Thread t = new Thread() {
+            public void run() {
+                index = new  edu.tufts.vue.rdf.RDFIndex();
+                index.index(VUE.getActiveMap());
             }
-            
+        };
+        t.start();
+        
+        
+    }
+    
+    public void loadKeywords(String searchString) {
+        
+        tags = new ArrayList<String>();
+        String[] parsedSpaces = searchString.split(" ");
+        for(int i=0;i<parsedSpaces.length;i++) {
+            tags.add(parsedSpaces[i]);
         }
         
-        public void performSearch()
-        {
-         // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
-             long t0 = System.currentTimeMillis();
-             if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
-           edu.tufts.vue.rdf.RDFIndex index = new  edu.tufts.vue.rdf.RDFIndex();
-            if(DEBUG.RDF)System.out.println("Created index object: "+(System.currentTimeMillis()-t0));
-           index.index(VUE.getActiveMap());
-           if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
-           
-          finds = new ArrayList<List<URI>>();
-          
-          List<URI> found = null;
+    }
+    
+    public void performSearch() {
+        // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
+        long t0 = System.currentTimeMillis();
+        synchronized(index) { 
+        if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
+        index.index(VUE.getActiveMap());
+        if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
+        }
+        finds = new ArrayList<List<URI>>();
+        
+        List<URI> found = null;
+        
+        for(int i=0;i<tags.size();i++) {
+            //found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
+            if(DEBUG.RDF)System.out.println("Beginning search "+i+" at: "+(System.currentTimeMillis()-t0));
+            found = index.search(tags.get(i));
+            if(DEBUG.RDF)System.out.println("Ending search "+i+" at: "+(System.currentTimeMillis()-t0));
+            finds.add(found);
+        }
 
-          for(int i=0;i<tags.size();i++)
-          {
-             //found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
-               if(DEBUG.RDF)System.out.println("Beginning search "+i+" at: "+(System.currentTimeMillis()-t0));
-              found = index.search(tags.get(i));
-               if(DEBUG.RDF)System.out.println("Ending search "+i+" at: "+(System.currentTimeMillis()-t0));
-             finds.add(found);
-          }     
-                    
-          Iterator<List<URI>> findsIterator = finds.iterator();
-               
-          comps = new ArrayList<LWComponent>();
-               
-          while(findsIterator.hasNext())
-          {
+        Iterator<List<URI>> findsIterator = finds.iterator();
+        
+        comps = new ArrayList<LWComponent>();
+        
+        while(findsIterator.hasNext()) {
             found = findsIterator.next();
-            if(found !=null)
-            {
-              Iterator<URI> foundIterator = found.iterator();
-              while(foundIterator.hasNext())
-              {
-                URI uri = foundIterator.next();
-                LWComponent r = (LWComponent)edu.tufts.vue.rdf.VueIndexedObjectsMap.getObjectForID(uri);
-                if(r!=null && (r.getMap() != null) && r.getMap().equals(VUE.getActiveMap()))
-                {
-                   comps.add(r);
+            if(found !=null) {
+                Iterator<URI> foundIterator = found.iterator();
+                while(foundIterator.hasNext()) {
+                    URI uri = foundIterator.next();
+                    LWComponent r = (LWComponent)edu.tufts.vue.rdf.VueIndexedObjectsMap.getObjectForID(uri);
+                    if(r!=null && (r.getMap() != null) && r.getMap().equals(VUE.getActiveMap())) {
+                        comps.add(r);
+                    }
                 }
-              }
-             }
-           }
-          
-          // System.out.println("VUE Object Index: " + edu.tufts.vue.rdf.VueIndexedObjectsMap.objs);
+            }
         }
         
-        public String getName()
-        {
-            return "Search";
-        }
+        // System.out.println("VUE Object Index: " + edu.tufts.vue.rdf.VueIndexedObjectsMap.objs);
+    }
+    
+    public String getName() {
+        return "Search";
+    }
+    
+    public void actionPerformed(ActionEvent e) {
         
-        public void actionPerformed(ActionEvent e) {
-        
-            loadKeywords(searchInput.getText());
-            performSearch();
-            VUE.getSelection().setTo(comps.iterator());
-        }
+        loadKeywords(searchInput.getText());
+        performSearch();
+        VUE.getSelection().setTo(comps.iterator());
+    }
 }

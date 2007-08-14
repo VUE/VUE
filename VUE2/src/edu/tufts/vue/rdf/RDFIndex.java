@@ -49,13 +49,22 @@ public class RDFIndex extends ModelCom {
     com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
     private static RDFIndex defaultIndex;
     private boolean isAutoIndexing = AUTO_INDEX;
-    
+    private  com.hp.hpl.jena.query.Query query;
+    private QueryExecution qe;
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
     }
     
     public RDFIndex() {
         super(com.hp.hpl.jena.graph.Factory.createDefaultGraph());
+        // creating dummy query object. to make the search faster;
+         String queryString =
+                "PREFIX vue: <"+VUE_ONTOLOGY+">"+
+                "SELECT ?resource ?keyword " +
+                "WHERE{" +
+                "      ?resource ?x ?keyword  } ";
+        query = QueryFactory.create(queryString);
+        qe = QueryExecutionFactory.create(query, this);
     }
     public void index(LWMap map) {
         long t0 = System.currentTimeMillis();
@@ -85,6 +94,9 @@ public class RDFIndex extends ModelCom {
     }
     
     public List<URI> search(String keyword) {
+        long t0 = System.currentTimeMillis();
+        if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
         List<URI> r = new ArrayList<URI>();
         //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
         String queryString =
@@ -92,14 +104,17 @@ public class RDFIndex extends ModelCom {
                 "SELECT ?resource ?keyword " +
                 "WHERE{" +
                 "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
-        com.hp.hpl.jena.query.Query query = QueryFactory.create(queryString);
-        QueryExecution qe = QueryExecutionFactory.create(query, this);
+        if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        query = QueryFactory.create(queryString);
+        qe = QueryExecutionFactory.create(query, this);
+        if(DEBUG.RDF) System.out.println("SEARCH- created query "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
         ResultSet results = qe.execSelect();
-        //System.out.println("Query: "+query+" result set:"+results);
+        if(DEBUG.RDF) System.out.println("SEARCH- executed query: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
         while(results.hasNext())  {
             QuerySolution qs = results.nextSolution();
             try {
-                //              System.out.println("Resource: "+qs.getResource("resource"));
                 r.add(new URI(qs.getResource("resource").toString()));
             }catch(Throwable t) {
                 t.printStackTrace();
