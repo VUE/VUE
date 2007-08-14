@@ -38,7 +38,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.35 $ / $Date: 2007-08-12 03:50:32 $ / $Author: mike $
+ * @version $Revision: 1.36 $ / $Date: 2007-08-14 18:54:52 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -732,7 +732,7 @@ public class WidgetStack extends Widget
         	setIcon(VueResources.getImageIcon(iconChar+".raw"));        	     
         	Insets noInsets=new Insets(0,0,0,0);
             setAlignmentY(0.5f);
-            setBorder(new javax.swing.border.EmptyBorder(0,0,3,0));
+            setBorder(new javax.swing.border.EmptyBorder(3,0,3,5));
             addMouseListener(this);
             setAction(action);           
             
