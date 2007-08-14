@@ -72,6 +72,7 @@ public class SearchAction extends AbstractAction {
         long t0 = System.currentTimeMillis();
         synchronized(index) { 
         if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
+        index.remove(index);
         index.index(VUE.getActiveMap());
         if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
         }
