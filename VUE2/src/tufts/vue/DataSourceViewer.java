@@ -1138,7 +1138,7 @@ public class DataSourceViewer extends JPanel
             map.addProperty("Provider Description",(Object)dataSource.getProviderDescription());
             String online = dataSource.isOnline() ? "Yes" : "No";
             map.addProperty("Online?",(Object)online);
-            String supportsUpd = dataSource.supportsUpdate() ? "The Library Supports Updating" : "The Library Is Read Only";
+            String supportsUpd = dataSource.supportsUpdate() ? "The Resource Supports Updating" : "The Resource Is Read Only";
             map.addProperty("Supports Update?",(Object)supportsUpd);
             
             org.osid.shared.TypeIterator typeIterator = repository.getAssetTypes();
