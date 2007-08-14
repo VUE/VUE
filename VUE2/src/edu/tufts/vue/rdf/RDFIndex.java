@@ -55,19 +55,29 @@ public class RDFIndex extends ModelCom {
     }
     
     public RDFIndex() {
-        super(com.hp.hpl.jena.graph.Factory.createGraphMem());
+        super(com.hp.hpl.jena.graph.Factory.createDefaultGraph());
     }
     public void index(LWMap map) {
+        long t0 = System.currentTimeMillis();
+        if(DEBUG.RDF)System.out.println("INDEX - begin index: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        
         com.hp.hpl.jena.rdf.model.Resource mapR = this.createResource(map.getURI().toString());
+        if(DEBUG.RDF)System.out.println("INDEX - create resource for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
         try {
             addProperty(mapR,idOf,map.getID());
             addProperty(mapR,authorOf,System.getProperty("user.name"));
             if(map.getLabel() != null){
                 addProperty(mapR,labelOf,map.getLabel());
             }
-            for(LWComponent comp: map.getAllDescendents()) {
+            if(DEBUG.RDF) System.out.println("INDEX - added properties for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+            
+            for(LWComponent comp: map.getAllDescendents())
                 rdfize(comp,mapR);
-            }
+            
+            if(DEBUG.RDF)System.out.println("INDEX - after indexing all components: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+            
         } catch(Exception ex) {
             System.out.println("RDFIndex.index: "+ex);
         }

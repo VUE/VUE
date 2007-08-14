@@ -65,8 +65,13 @@ public class SearchAction extends AbstractAction
         public void performSearch()
         {
          // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
+             long t0 = System.currentTimeMillis();
+             if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
            edu.tufts.vue.rdf.RDFIndex index = new  edu.tufts.vue.rdf.RDFIndex();
+            if(DEBUG.RDF)System.out.println("Created index object: "+(System.currentTimeMillis()-t0));
            index.index(VUE.getActiveMap());
+           if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
+           
           finds = new ArrayList<List<URI>>();
           
           List<URI> found = null;
@@ -74,7 +79,9 @@ public class SearchAction extends AbstractAction
           for(int i=0;i<tags.size();i++)
           {
              //found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
+               if(DEBUG.RDF)System.out.println("Beginning search "+i+" at: "+(System.currentTimeMillis()-t0));
               found = index.search(tags.get(i));
+               if(DEBUG.RDF)System.out.println("Ending search "+i+" at: "+(System.currentTimeMillis()-t0));
              finds.add(found);
           }     
                     
@@ -108,8 +115,8 @@ public class SearchAction extends AbstractAction
             return "Search";
         }
         
-        public void actionPerformed(ActionEvent e)
-        {
+        public void actionPerformed(ActionEvent e) {
+        
             loadKeywords(searchInput.getText());
             performSearch();
             VUE.getSelection().setTo(comps.iterator());
