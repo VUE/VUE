@@ -21,6 +21,7 @@ package edu.tufts.vue.ontology.ui;
 import edu.tufts.vue.ontology.OntManager;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
@@ -39,6 +40,8 @@ public class OntologyBrowser extends JPanel {
     
     
     JPanel ontologiesPanel;
+    
+    private HashMap<String,Widget> widgetMap = new HashMap<String,Widget>();
     
     final static DockWindow ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");;
     DockWindow typeDock;
@@ -79,6 +82,9 @@ public class OntologyBrowser extends JPanel {
         
         Widget w = new Widget("Loading " + name);
         w.add(list);
+        
+        widgetMap.put(name,w);
+        
         resultsStack.addPane(w);
         list.revalidate();
         w.revalidate();
@@ -217,12 +223,18 @@ public class OntologyBrowser extends JPanel {
                   edu.tufts.vue.ontology.Ontology ont = (edu.tufts.vue.ontology.Ontology)getBrowser().getViewer().getList().getSelectedValue();
                   OntManager.getOntManager().removeOntology(new java.net.URL(ont.getBase()));
                   edu.tufts.vue.ontology.OntManager.getOntManager().save();
+                                  
+                  Widget w = widgetMap.get(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()));
+                  resultsStack.setHidden(w,true);
+                  resultsStack.remove(w);
+                  widgetMap.remove(w);
                   //resultsStack.updateUI();
                 }
                 catch(java.net.MalformedURLException mue)
                 {
                   System.out.println("OntologyBrowser: remove ontology url exception" + mue);
                 }
+                
                 getViewer().getList().updateUI();
                 //repaint();
                 revalidate();
