@@ -118,7 +118,7 @@ public class DataSourceViewer extends JPanel
             loadDataSources();
             VUE.Log.info("DataSourceViewer; Loaded old style data sources.");
         } catch (Throwable t) {
-            VueUtil.alert("Error loading old data source","Error");
+            VueUtil.alert("Error loading old Resource","Error");
         }
         try {
             // load new data sources
@@ -133,7 +133,7 @@ public class DataSourceViewer extends JPanel
             }
         } catch (Throwable t) {
             t.printStackTrace();
-            VueUtil.alert("Error loading data source","Error");
+            VueUtil.alert("Error loading Resource","Error");
         }
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
