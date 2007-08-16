@@ -123,14 +123,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                 if(metadataTable.getSelectedColumn() == buttonColumn)
                     return;
                 
-                System.out.println("MetadataEditor: selected column in focus gained " + metadataTable.getSelectedColumn());
+                //System.out.println("MetadataEditor: selected column in focus gained " + metadataTable.getSelectedColumn());
                 
                 metadataTable.editCellAt(metadataTable.getSelectedRow(),metadataTable.getSelectedColumn());
                 //metadataTable.editCellAt(metadataTable.getSelectedRow(),buttonColumn-1);
                 MetadataTableEditor editor = (MetadataTableEditor)metadataTable.getCellEditor();
                 if(editor!=null)
                 {
-                  System.out.println("MetadataEditor, editor class type: " + editor.getClass());
+                  //System.out.println("MetadataEditor, editor class type: " + editor.getClass());
                   if(metadataTable.getSelectedColumn() == (buttonColumn - 1) )
                     editor.focusField();
                 }
@@ -142,7 +142,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-        JButton advancedSearch = new tufts.vue.gui.VueButton("advancedSearchMore");
+        
+        final JLabel optionsLabel = new JLabel("more options");
+        final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
+        advancedSearch.setBorder(BorderFactory.createEmptyBorder());
         advancedSearch.addActionListener(new java.awt.event.ActionListener(){
            public void actionPerformed(java.awt.event.ActionEvent e)
            {
@@ -151,11 +154,15 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                {
                  buttonColumn = 2;
                  model.setColumns(3);
+                 advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
+                 optionsLabel.setText("less options");
                }
                else
                {
                  buttonColumn = 1;
                  model.setColumns(2);
+                 advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
+                 optionsLabel.setText("more options");
                }
                
                adjustColumnModel();
@@ -165,7 +172,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            }
         });
         optionsPanel.add(advancedSearch);
-        optionsPanel.add(new JLabel("more options"));
+        optionsPanel.add(optionsLabel);
         add(optionsPanel);
         tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
         
@@ -246,7 +253,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            {
                int n = categories.getModel().getSize();
                String currValue = table.getModel().getValueAt(row,col).toString();
-               System.out.println("Renderer -- currValue: " + currValue);
+               //System.out.println("Renderer -- currValue: " + currValue);
                //categories.setSelectedIndex(0);
                for(int i=0;i<n;i++)
                {
@@ -327,8 +334,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
               {
                   if(ie.getStateChange()==java.awt.event.ItemEvent.SELECTED)
                   {
-                    System.out.println("MetadataEditor - categories item state changed: " + ie);
-                    System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
+                    //System.out.println("MetadataEditor - categories item state changed: " + ie);
+                    //System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
                     VueMetadataElement vme = new VueMetadataElement();
                     String[] keyValuePair = {categories.getSelectedItem().toString(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
                     vme.setObject(keyValuePair);
@@ -357,7 +364,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    currentVME = metadata.get(row);
                   
                   VueMetadataElement vme = new VueMetadataElement();
-                  System.out.println("MetadataEditor -- value at position where text field focus lost: " +  table.getModel().getValueAt(row,col));
+                  //System.out.println("MetadataEditor -- value at position where text field focus lost: " +  table.getModel().getValueAt(row,col));
                   if(currentVME!=null && !(currentVME.getObject() instanceof String[]))
                   {
                     vme.setObject(field.getText());
@@ -377,10 +384,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   {
                     current.getMetadataList().getMetadata().add(vme); 
                   }
-                  System.out.println("MetadataEditor -- value at position where text field focus lost - after set: " +  table.getModel().getValueAt(row,col));
+                  //System.out.println("MetadataEditor -- value at position where text field focus lost - after set: " +  table.getModel().getValueAt(row,col));
                   if(buttonColumn == 2)
                   {
-                      System.out.println("MetadataEditor -- drop down value :" + table.getModel().getValueAt(row,buttonColumn-2));
+                      //System.out.println("MetadataEditor -- drop down value :" + table.getModel().getValueAt(row,buttonColumn-2));
                   }
                   stopCellEditing();
               }
@@ -393,12 +400,12 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                //int loc = 0;
                int n = categories.getModel().getSize();
                String currValue = table.getModel().getValueAt(row,col).toString();
-               System.out.println("Editor -- currValue: " + currValue);
+               //System.out.println("Editor -- currValue: " + currValue);
                for(int i=0;i<n;i++)
                {
                    if(categories.getModel().getElementAt(i).equals(currValue))
                    {
-                       System.out.println("found category");
+                       //System.out.println("found category");
                        categories.setSelectedIndex(i);
                    }
                }
