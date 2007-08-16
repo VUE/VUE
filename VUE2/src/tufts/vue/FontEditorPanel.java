@@ -30,15 +30,20 @@ import java.beans.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
+import javax.swing.text.html.HTML;
+/*MIKEK
+import com.lightdev.app.shtm.SHTMLEditorKit;
+import com.lightdev.app.shtm.SHTMLEditorKitActions;
+*/
 
 
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.55 $ / $Date: 2007-05-25 04:01:06 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-08-16 21:05:12 $ / $Author: mike $
  *
  */
-public class FontEditorPanel extends JPanel
+public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
                                      //implements LWEditor
 //    implements ActionListener, VueConstants//, PropertyChangeListener//implements PropertyChangeListener
 {
@@ -64,12 +69,23 @@ public class FontEditorPanel extends JPanel
     private static final Insets NoInsets = new Insets(0,0,0,0);
     private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
     private static final int VertSqueeze = 5;
-
+    
+    //plain text action listener
+    final ActionListener styleChangeHandler;
+    //rich text actions
+/*
+ MIKEK
+    private final SHTMLEditorKitActions.BoldAction richBoldAction = new  SHTMLEditorKitActions.BoldAction(null);
+    private final SHTMLEditorKitActions.ItalicAction richItalicAction = new SHTMLEditorKitActions.ItalicAction(null);
+    private final SHTMLEditorKitActions.UnderlineAction richUnderlineAction = new SHTMLEditorKitActions.UnderlineAction(null);
+	private final SHTMLEditorKitActions.ToggleListAction toggleBulletsAction = new SHTMLEditorKitActions.ToggleListAction(null,"toggleListAction",HTML.Tag.UL);
+    private final SHTMLEditorKitActions.ToggleListAction toggleNumbersAction = new SHTMLEditorKitActions.ToggleListAction(null, "toggleNumbersAction", HTML.Tag.OL);	  
+*/
     public FontEditorPanel(Object propertyKey)
     {
     	//super(BoxLayout.X_AXIS);
     	setLayout(new GridBagLayout());
-
+    //MIKEK	ActiveInstance.addAllActiveListener(this);
         mPropertyKey = propertyKey;
 
         //setFocusable(false);
@@ -189,7 +205,7 @@ public class FontEditorPanel extends JPanel
         //mSizeField.setMaximumSize(mSizeField.getPreferredSize());
         //mSizeField.setBackground(VueTheme.getVueColor());
 
-        final ActionListener styleChangeHandler =
+        styleChangeHandler =
             new LWPropertyHandler<Integer>(LWKey.FontStyle) {
                 public Integer produceValue() {
                     int style = Font.PLAIN;
@@ -213,14 +229,15 @@ public class FontEditorPanel extends JPanel
                 }
         };
  		
-        mBoldButton = new VueButton.Toggle("font.button.bold", styleChangeHandler);
+        mBoldButton = new VueButton.Toggle("font.button.bold",styleChangeHandler);
+        
         mItalicButton = new VueButton.Toggle("font.button.italic", styleChangeHandler);
         mUnderlineButton = new VueButton.Toggle("font.button.underline", styleChangeHandler);
         alignmentButton = new AlignmentDropDown();
         
          Color[] textColors = VueResources.getColorArray("textColorValues");
-        String[] textColorNames = VueResources.getStringArray("textColorNames");
-        mTextColorButton = new ColorMenuButton(textColors, textColorNames, true);
+        //String[] textColorNames = VueResources.getStringArray("textColorNames");
+        mTextColorButton = new ColorMenuButton(textColors, true);
         mTextColorButton.setColor(Color.black);
         mTextColorButton.setPropertyKey(LWKey.TextColor);
         mTextColorButton.setToolTipText("Text Color");
@@ -318,6 +335,18 @@ public class FontEditorPanel extends JPanel
         mUnderlineButton.setEnabled(false);
         add(mUnderlineButton,gbc);
         
+        /*gbc.gridy=1;
+        gbc.gridx=4;        
+        gbc.fill=GridBagConstraints.NONE;
+        orderedListButton.setEnabled(false);
+        add(orderedListButton,gbc);
+        
+        gbc.gridy=1;
+        gbc.gridx=5;        
+        gbc.fill=GridBagConstraints.NONE;
+        unorderedListButton.setEnabled(false);
+        add(unorderedListButton,gbc);
+        */
         
                 
         
@@ -644,5 +673,61 @@ public class FontEditorPanel extends JPanel
 
         VueUtil.displayComponent(new FontEditorPanel(LWKey.Font));
     }
-     
+
+/* MIKEK
+	public void activeChanged(ActiveEvent e) {
+		//Object hasn't changed do nothing...
+		if (e.active == e.oldActive)
+			return;
+		else if (e.active instanceof LWText)
+		{
+			LWText text = (LWText)e.active;
+			
+			richBoldAction.setEditorPane(text.getRichLabelBox());
+			richItalicAction.setEditorPane(text.getRichLabelBox());
+			richUnderlineAction.setEditorPane(text.getRichLabelBox());
+			toggleBulletsAction.setEditorPane(text.getRichLabelBox());
+			toggleNumbersAction.setEditorPane(text.getRichLabelBox());
+			
+			mUnderlineButton.setEnabled(true);
+			orderedListButton.setEnabled(true);
+			unorderedListButton.setEnabled(true);
+			
+			mBoldButton.removeActionListener(styleChangeHandler);
+			mBoldButton.addActionListener(richBoldAction);			
+			
+			mItalicButton.removeActionListener(styleChangeHandler);
+			mItalicButton.addActionListener(richItalicAction);			
+			
+			mUnderlineButton.removeActionListener(styleChangeHandler);			
+			mUnderlineButton.addActionListener(richUnderlineAction);						
+			
+						
+			orderedListButton.addActionListener(toggleNumbersAction);
+			unorderedListButton.addActionListener(toggleBulletsAction);
+			
+			
+		}
+		else
+		{			
+			mUnderlineButton.setEnabled(false);
+			orderedListButton.setEnabled(false);
+			unorderedListButton.setEnabled(false);
+			
+			mBoldButton.removeActionListener(richBoldAction);
+			mBoldButton.addActionListener(styleChangeHandler);			
+			
+			mItalicButton.removeActionListener(richItalicAction);
+			mItalicButton.addActionListener(styleChangeHandler);
+			
+			mUnderlineButton.removeActionListener(richUnderlineAction);			
+			//mUnderlineButton.addActionListener(styleChangeHandler);
+			
+			orderedListButton.removeActionListener(toggleNumbersAction);
+			unorderedListButton.removeActionListener(toggleBulletsAction);
+			
+		}
+				
+	}
+  */   
 }

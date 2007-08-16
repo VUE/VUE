@@ -50,7 +50,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.11 $ / $Date: 2007-05-25 04:01:06 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2007-08-16 21:05:12 $ / $Author: mike $
 < */
  
 public class FillToolPanel extends ToolPanel
@@ -61,7 +61,7 @@ public class FillToolPanel extends ToolPanel
     /** stroke color editor button **/
     protected ColorMenuButton mStrokeColorButton;
     private final Color [] fillColors = VueResources.getColorArray("fillColorValues");
-     private final String [] fillColorNames = VueResources.getStringArray("fillColorNames");
+  //   private final String [] fillColorNames = VueResources.getStringArray("fillColorNames");
      private final Color[] strokeColors = VueResources.getColorArray("strokeColorValues");
      private final String[] strokeColorNames = VueResources.getStringArray("strokeColorNames");
      private final JLabel fillLabel = new JLabel("Fill: ");
@@ -92,7 +92,7 @@ public class FillToolPanel extends ToolPanel
         // Fill Color menu
         //-------------------------------------------------------
         //TODO: need to come back here and move these tooltips into properties. -mikek         
-        mFillColorButton = new ColorMenuButton(fillColors, fillColorNames, true);
+        mFillColorButton = new ColorMenuButton(fillColors, true);
         mFillColorButton.setPropertyKey(LWKey.FillColor);
         mFillColorButton.setColor((Color)fillPrefColor.getValue());
         mFillColorButton.setToolTipText("Fill Color");
@@ -107,7 +107,7 @@ public class FillToolPanel extends ToolPanel
         // Stroke Color menu
         //-------------------------------------------------------
         
-        mStrokeColorButton = new ColorMenuButton(strokeColors, strokeColorNames, true);
+        mStrokeColorButton = new ColorMenuButton(strokeColors, true);
         mStrokeColorButton.setPropertyKey(LWKey.StrokeColor);
         mStrokeColorButton.setColor((Color)strokePrefColor.getValue());
         //mStrokeColorButton.setButtonIcon(new LineIcon(16,16, 4, false));
