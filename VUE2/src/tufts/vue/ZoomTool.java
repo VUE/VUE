@@ -35,7 +35,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.66 $ / $Date: 2007-06-08 19:19:00 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-08-16 02:55:56 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -81,23 +81,23 @@ public class ZoomTool extends VueTool
         return true;
     }
 
-    public boolean isZoomOutToMapMode()
+/*    public boolean isZoomOutToMapMode()
     {
     	   return getSelectedSubTool().getID().equals("zoomTool.zoomOutToMap");
     }
-    
+  */  
     public boolean isZoomFullScreenMode()
     {
-    	   return getSelectedSubTool().getID().equals("zoomTool.zoomFullScreen");
+    	   return getSelectedSubTool().getID().equals("zoomTool.zoomIn");
     }
     public boolean isZoomOutMode() {
         return getSelectedSubTool().getID().equals("zoomTool.zoomOut");
     }
     
-    public boolean isZoomInMode() {
+    /*public boolean isZoomInMode() {
         return getSelectedSubTool().getID().equals("zoomTool.zoomIn");
     }
-
+*/
     public boolean supportsSelection() { return false; }
 
     public boolean supportsDraggedSelector(MapMouseEvent e)
@@ -174,11 +174,12 @@ public class ZoomTool extends VueTool
 //                            +" isZoomFullScreen:"+isZoomFullScreenMode()
 //                            +" isZoomOutToMap:"+isZoomOutToMapMode());
 
-        if (isZoomInMode() || isZoomOutMode())
+        //if (isZoomInMode() || isZoomOutMode())
+        if (isZoomOutMode())
             return false;
         
-        if (isZoomOutToMapMode())
-            return false;
+        //if (isZoomOutToMapMode())
+        //    return false;
 
         final LWComponent picked = e.getPicked();
         final MapViewer viewer = e.getViewer();
@@ -191,6 +192,7 @@ public class ZoomTool extends VueTool
                 oldFocal = null;
             } else {
                 // zoom out to the whole map
+            	
                 setZoomFit(viewer, true);
             }
             zoomedTo = null;
@@ -408,8 +410,8 @@ public class ZoomTool extends VueTool
             ) {
             if (isZoomOutMode())
                 setZoomBigger(p);
-            else if (isZoomOutToMapMode())
-            	setZoom(1.0);
+        //    else if (isZoomOutToMapMode())
+        //    	setZoom(1.0);
             else            	
                 setZoomSmaller(p);
         } else {
@@ -419,8 +421,8 @@ public class ZoomTool extends VueTool
             } else {
                 if (isZoomOutMode())
                     setZoomSmaller(p);
-                else if (isZoomOutToMapMode())
-                	setZoom(1.0);
+          //      else if (isZoomOutToMapMode())
+            //    	setZoom(1.0);
                 else
                     setZoomBigger(p);
             }
@@ -530,6 +532,7 @@ public class ZoomTool extends VueTool
                 if (animate) {
                     animatedZoomTo(viewer, newZoom, offset);
                     //if (DEBUG.Enabled) System.out.println("zoomFinal " + newZoom);
+                    
                 }
                 
                 setZoom(viewer, newZoom, false, DONT_FOCUS, true);
