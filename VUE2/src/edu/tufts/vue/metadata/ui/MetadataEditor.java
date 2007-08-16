@@ -259,7 +259,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                {
                    if(categories.getModel().getElementAt(i).equals(currValue))
                    {
-                      System.out.println("found category");
+                      //System.out.println("found category");
                        categories.setSelectedIndex(i);
                    }
                }
@@ -365,7 +365,13 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   
                   VueMetadataElement vme = new VueMetadataElement();
                   //System.out.println("MetadataEditor -- value at position where text field focus lost: " +  table.getModel().getValueAt(row,col));
-                  if(currentVME!=null && !(currentVME.getObject() instanceof String[]))
+                  
+                  if(currentVME==null)
+                  {
+                    vme.setObject(field.getText());   
+                  }
+                  else
+                  if(!(currentVME.getObject() instanceof String[]))
                   {
                     vme.setObject(field.getText());
                   }
