@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.69 $ / $Date: 2007-07-22 23:30:38 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2007-08-16 01:36:55 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -603,10 +603,15 @@ public class ActionUtil {
                 }
             } else if (line.startsWith(VUE_COMMENT_START + " Saving version")) {
                 if (DEBUG.IO) System.out.println("Found saving version line: " + line);
-                savingVersion = line.substring(line.indexOf("VUE"), line.length());
-                if (savingVersion.indexOf("-->") > 10)
-                    savingVersion = savingVersion.substring(0, savingVersion.indexOf("-->"));
-                savingVersion = savingVersion.trim();
+                final int savingVersionIndex = line.indexOf("VUE");
+                if (savingVersionIndex > 0) {
+                    savingVersion = line.substring(line.indexOf("VUE"), line.length());
+                    if (savingVersion.indexOf("-->") > 10)
+                        savingVersion = savingVersion.substring(0, savingVersion.indexOf("-->"));
+                    savingVersion = savingVersion.trim();
+                } else {
+                    VUE.Log.warn(url + ": unknown saving version XML comment [" + line + "]");
+                }
                 if (DEBUG.IO) System.out.println("Saving version: [" + savingVersion + "]");
             }
                 
