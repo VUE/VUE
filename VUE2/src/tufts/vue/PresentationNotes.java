@@ -3,6 +3,7 @@ package tufts.vue;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -27,7 +28,76 @@ import com.lowagie.text.pdf.PdfTemplate;
 import com.lowagie.text.pdf.PdfWriter;
 
 public class PresentationNotes {
+/*
+	public static void createMapAsPDF(File file)
+	{
+        // step 1: creation of a document-object
+        Document document = new Document(PageSize.LETTER.rotate());
+        
+        try {
+            // step 2:
+            // we create a writer that listens to the document
+            // and directs a PDF-stream to a file            
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
+            writer.setDefaultColorspace(PdfName.DEFAULTRGB, null);
+           // writer.setStrictImageSequence(true);
+            // step 3: we open the document
+            
+            document.open();            
+            
+            PdfContentByte cb = writer.getDirectContent();
 
+            PdfTemplate tp = PdfTemplate.createTemplate(writer, document.getPageSize().width()-70, document.getPageSize().height()-70);            
+            Graphics2D g2d = tp.createGraphics(document.getPageSize().width()-70, document.getPageSize().height()-70, new DefaultFontMapper(),false,100.0f);
+                       
+
+
+
+
+            
+            
+            Dimension page = new Dimension((int)document.getPageSize().getWidth(),(int)document.getPageSize().getHeight());
+            // compute zoom & offset for visible map components
+            Point2D.Float offset = new Point2D.Float();
+            // center vertically only if landscape mode
+            //if (format.getOrientation() == PageFormat.LANDSCAPE)
+            //TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
+            Rectangle2D bounds = VUE.getActiveMap().getBounds();
+            double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
+System.out.println(scale  + " zoom factor...");
+            // set up the DrawContext
+            DrawContext dc = new DrawContext(g2d,
+                      scale,
+                      -offset.x,
+                      -offset.y,
+                      null, // frame would be the PageFormat offset & size rectangle
+                      VUE.getActiveMap(),
+                      false); // todo: absolute links shouldn't be spec'd here
+
+        //    dc.setAntiAlias(true);
+         //   dc.setMapDrawing();
+            dc.setClipOptimized(false);
+
+            VUE.getActiveMap().drawZero(dc);
+            tp.setRGBColorStrokeF(255f, 0f, 0f);
+            tp.circle(250f, 100f, 80f);
+            tp.stroke();
+
+            document.add(Image.getInstance(tp));
+            document.newPage();
+                                                          
+        }
+        catch(DocumentException de) {
+            System.err.println(de.getMessage());
+        }
+        catch(IOException ioe) {
+            System.err.println(ioe.getMessage());
+        }
+        
+        // step 5: we close the document
+        document.close();
+    }
+    */			
 	public static void createPresentationSlidesNotes(File file)
 	{
         // step 1: creation of a document-object

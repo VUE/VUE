@@ -105,6 +105,40 @@ public class Actions implements VueConstants
         	return null;
 		
     }
+    private static final File getFileForActiveMap()
+    {
+    	if (VUE.getActiveMap() == null)
+    	{
+			VueUtil.alert(null,"There is no active map, please open a valid map.", "Invalid Map");
+			return null;
+    	}
+		JFileChooser chooser = new JFileChooser();
+		File pdfFileName = null;
+		
+        int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save as");
+        if (option == JFileChooser.APPROVE_OPTION) 
+        {
+            pdfFileName = chooser.getSelectedFile();
+
+            if (pdfFileName == null) 
+            	return null;
+
+            if(!pdfFileName.getName().endsWith(".pdf")) 
+            	pdfFileName = new File(pdfFileName.getAbsoluteFile()+".pdf");                	
+            
+            if (pdfFileName.exists()) {
+                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + pdfFileName.getName() + "\'", 
+                        VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                                      
+            }           
+            
+            return pdfFileName;
+        }
+        else
+        	return null;
+		
+    }
+
     public static final VueAction PresentationNotes =
     	new VueAction("Speaker Notes") {
 		public void act() 
@@ -136,6 +170,16 @@ public class Actions implements VueConstants
 				tufts.vue.PresentationNotes.createPresentationSlidesNotes(pdfFile);
 		}
     };
+    /*
+    public static final VueAction MapAsPDF =
+    	new VueAction("Map") {
+		public void act() 
+		{			
+			File pdfFile = getFileForActiveMap();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createMapAsPDF(pdfFile);
+		}
+    };*/
     //-------------------------------------------------------
     // Selection actions
     //-------------------------------------------------------
