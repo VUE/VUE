@@ -58,7 +58,7 @@ public class CategoryComboBoxModel extends DefaultComboBoxModel {
             if(i <ont.getOntTypes().size()) {
                 return ont.getOntTypes().get(i).getLabel();
             } else if(i == ont.getOntTypes().size()) {
-                return new JLabel("------------");
+                return new String("------------");
             } else {
                 i -= ont.getOntTypes().size();
                 i--; // for the divider int the middle;
