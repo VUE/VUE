@@ -46,6 +46,7 @@ public class CategoryComboBoxRenderer extends DefaultListCellRenderer {
         if(value != null){
             if((value instanceof edu.tufts.vue.ontology.OntType)) {
                 setText(((OntType)value).getLabel());
+                System.out.println("RENDERER(OntType) - label:"+((OntType)value).getLabel()+" index: "+index+" selected:"+isSelected);
                 if (isSelected) {
                     setBackground(list.getSelectionBackground());
                     setForeground(list.getSelectionForeground());
@@ -56,7 +57,10 @@ public class CategoryComboBoxRenderer extends DefaultListCellRenderer {
                 
                 
             } else {
+                System.out.println("RENDERER  - label:"+value.toString()+"class:"+ value.getClass()+" index: "+index+" selected:"+isSelected);
                 setText(value.toString());
+                setBackground(list.getBackground());
+                setForeground(list.getForeground());
             }
         }
         
