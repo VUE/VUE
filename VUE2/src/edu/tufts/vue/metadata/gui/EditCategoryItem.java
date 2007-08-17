@@ -31,7 +31,7 @@ public class EditCategoryItem {
     public EditCategoryItem() {
     }
     
-    public String toStirng() {
+    public String toString() {
         return DEFAULT;
     }
     
