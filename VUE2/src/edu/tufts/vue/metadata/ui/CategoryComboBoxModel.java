@@ -39,6 +39,7 @@ public class CategoryComboBoxModel extends DefaultComboBoxModel {
     /** Creates a new instance of CategoryComboBoxModel */
     public CategoryComboBoxModel() {
         vueCategoryModel = tufts.vue.VUE.getCategoryModel();
+        setSelectedItem(getElementAt(0));
     }
     public Object getSelectedItem() {
         return selectedItem;
