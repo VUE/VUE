@@ -28,11 +28,16 @@ package edu.tufts.vue.metadata;
 import java.util.*;
 import  edu.tufts.vue.ontology.*;
 import java.net.*;
+import java.io.*;
+
 public class CategoryModel extends ArrayList<Ontology>{
     int ontTypesCount = 0;
     private static Map<URL,Ontology> ontCache = new HashMap<URL,Ontology>();
+    private Ontology customOntology;
     public CategoryModel() {
+        System.out.println("Creating Category Model");
         loadDefaultVUEOntologies();
+        loadCustomOntology(false);
     }
     
     public void loadDefaultVUEOntologies() {
@@ -41,7 +46,7 @@ public class CategoryModel extends ArrayList<Ontology>{
             try {
                 loadOntology(tufts.vue.VueResources.getBundle().getClass().getResource(ontologyUrls[i]));
             } catch(Throwable t) {
-                tufts.vue.VUE.Log.error("Problem loading metadata: "+ontologyUrls[i]+" Errror:"+t.getMessage());
+                tufts.vue.VUE.Log.error("Problem loading metadata: "+ontologyUrls[i]+" Error:"+t.getMessage());
             }
         }
     }
@@ -61,4 +66,20 @@ public class CategoryModel extends ArrayList<Ontology>{
         return ontTypesCount;
     }
     
+    private void loadCustomOntology(boolean flag)  {
+        try {
+            if(customOntology == null && !flag) {
+                customOntology = new RDFSOntology(new File(tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+tufts.vue.VueResources.getString("metadata.custom.file")).toURI().toURL());
+                ontTypesCount += customOntology.getOntTypes().size();
+                add(customOntology);
+            } else if(flag) {
+                remove(customOntology);
+                customOntology = new RDFSOntology(new File(tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+tufts.vue.VueResources.getString("metadata.custom.file")).toURI().toURL());
+                ontTypesCount += customOntology.getOntTypes().size();
+                add(customOntology);
+            }
+        } catch(Throwable t) {
+            tufts.vue.VUE.Log.error("Problem loading custom metadata Error:"+t.getMessage());
+        }
+    }
 }
