@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.473 $ / $Date: 2007-08-16 18:17:15 $ / $Author: mike $ 
+ * @version $Revision: 1.474 $ / $Date: 2007-08-17 20:43:09 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -102,9 +102,14 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
     private static edu.tufts.vue.rdf.RDFIndex RDFIndex;
     private static Object RDFIndexLock= new Object();
-
+    private static edu.tufts.vue.metadata.CategoryModel categoryModel;
     //public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
-
+    public static  edu.tufts.vue.metadata.CategoryModel getCategoryModel() {
+        if(categoryModel == null) {
+            categoryModel = new edu.tufts.vue.metadata.CategoryModel();
+        }
+        return categoryModel;
+    }
     public static edu.tufts.vue.rdf.RDFIndex getIndex() {
         if (RDFIndex == null && !SKIP_RDF_INDEX) {
             synchronized (RDFIndexLock) {
@@ -633,7 +638,8 @@ public class VUE
 
         //VUE.clearWaitCursor();
 
-        
+        // load the category model
+        getCategoryModel();
         Log.debug("initApplication completed.");
     }
 
