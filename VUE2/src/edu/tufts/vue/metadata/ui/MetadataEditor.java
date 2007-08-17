@@ -247,7 +247,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
            JPanel comp = new JPanel();
-           JComboBox categories = new JComboBox(dublinCoreTemp);
+           //JComboBox categories = new JComboBox(dublinCoreTemp);
+           JComboBox categories = new JComboBox();
+           categories.setModel(new CategoryComboBoxModel());
+           
            comp.setLayout(new java.awt.BorderLayout());
            if(col == buttonColumn-2)
            {
@@ -317,7 +320,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        public java.awt.Component getTableCellEditorComponent(final JTable table,final Object value,boolean isSelected,final int row,final int col)
        {
            field = new JTextField();
-           categories = new JComboBox(dublinCoreTemp);
+           categories = new JComboBox();//new JComboBox(dublinCoreTemp);
+           categories.setModel(new CategoryComboBoxModel());
            
           /* categories.addFocusListener(new FocusAdapter(){
                public void focusLost(java.awt.event.FocusEvent fe)
@@ -439,13 +443,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            comp.setOpaque(false);
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
            
-           field.addMouseListener(new MouseAdapter() {
+           /*field. metadataTable. getParent(). */ /*getRootPane().addMouseListener(new MouseAdapter() {
                public void mouseExited(MouseEvent me)
                {
                    //System.out.println("MetadataEditor table cell - exited: " + me);
-                   stopCellEditing();
+                   System.out.println("MetadataEditor -  mouse exited table - " + me);
+                     stopCellEditing();
                }
-           });
+           });*/
            
            return comp;
        }
