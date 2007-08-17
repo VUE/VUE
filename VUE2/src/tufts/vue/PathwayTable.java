@@ -39,6 +39,7 @@ import java.awt.dnd.DropTargetListener;
 import java.awt.dnd.InvalidDnDOperationException;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.plaf.TableUI;
@@ -59,7 +60,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.73 $ / $Date: 2007-06-18 20:37:19 $ / $Author: mike $
+ * @version $Revision: 1.74 $ / $Date: 2007-08-17 02:59:06 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -131,7 +132,9 @@ public class PathwayTable extends JTable
         this.setBackground(BGColor);
         //this.setSelectionBackground(SelectedBGColor);
      //   this.setDragEnabled(true);
-
+        
+    //    ToolTipManager.sharedInstance().registerComponent(this);
+        
         this.getTableHeader().setReorderingAllowed(false);
         this.getTableHeader().setResizingAllowed(false);
         
@@ -366,7 +369,7 @@ public class PathwayTable extends JTable
                 if (row == -1)
                     row = lastSelectedRow;
                 if (row != -1)
-                    getTableModel().setValueAt(currentColor = c, row, 5);
+                    getTableModel().setValueAt(currentColor = c, row, 4);
             }		
 		}
 
@@ -495,7 +498,7 @@ public class PathwayTable extends JTable
         }  
     }
     */
-    private class LabelRenderer extends DefaultTableCellRenderer {
+    private class LabelRenderer extends DefaultTableCellRenderer{
         
         public java.awt.Component getTableCellRendererComponent(
                                     javax.swing.JTable jTable, 
@@ -506,19 +509,19 @@ public class PathwayTable extends JTable
                                     int col)
         {
             final LWPathway.Entry entry = getTableModel().getEntry(row);
-            if (entry == null)
-                return null;
-         
-           // setBorder(DefaultBorder);
-
             String debug = "";
-
+            
+            if (entry == null)
+                return this;
+         
             if (DEBUG.PATHWAY) debug = "(row"+row+")";
+         
             GradientLabel gl = new GradientLabel(entry.pathway);
+            JLabel label = new JLabel();
             
             setMinimumSize(new Dimension(10, 20));
             setPreferredSize(new Dimension(500, 20));      
-            setOpaque(true);
+
             
             if (entry.isPathway())
             {
@@ -545,10 +548,13 @@ public class PathwayTable extends JTable
             		 setForeground(Color.white);
             		 setText(debug+"   " + entry.getLabel());            		
             	  }
+            	this.setOpaque(false);
+                gl.setLayout(new BorderLayout());
+                gl.add(this,BorderLayout.CENTER);            	
+                return gl;
             }
             else {
-            	//entry is not a pathway if you're in the wrong column go null;
-            	
+            	//entry is not a pathway if you're in the wrong column go null;            	
             	//only return the label for the proper column...
             	
             	final LWPathway activePathway = VUE.getActivePathway();
@@ -558,15 +564,20 @@ public class PathwayTable extends JTable
             		if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
             		{
             			setBackground(selectedColor);
-            			setForeground(selectedColor);
-            			
+            			setForeground(selectedColor);            			            			
             		}
             		else
             		{
             			setBackground(BGColor);
             			setForeground(BGColor);
             		}
-            		return this;
+            		this.setOpaque(false);
+                	label.setForeground(this.getForeground());
+                	label.setBackground(this.getBackground());
+                	label.setOpaque(true);
+                	label.setLayout(new BorderLayout());
+                	label.add(this,BorderLayout.CENTER);
+                	return label;
             	}
             	
                 setFont(SelectedEntryFont);
@@ -588,19 +599,18 @@ public class PathwayTable extends JTable
                         
                         
                 }
-            }
-            
-            if (entry.isPathway())
-            {
+                
             	this.setOpaque(false);
-            	gl.setLayout(new BorderLayout());
-            	gl.add(this,BorderLayout.CENTER);            	
-            	return gl;
-            }
-            else                  	
-            	return this;
-        }  
-    }
+            	label.setForeground(this.getForeground());
+            	label.setBackground(this.getBackground());
+            	label.setOpaque(true);
+            	label.setLayout(new BorderLayout());
+            	label.add(this,BorderLayout.CENTER);
+            	return label;
+            }                        	
+        }
+
+	}
  
     private class GradientLabel extends JPanel
     {
@@ -655,18 +665,18 @@ public class PathwayTable extends JTable
         {
             final LWPathway.Entry entry = getTableModel().getEntry(row);
             if (entry == null)
-                return null;
-            
-            
-            
+                return this;
+                                    
             this.setBorder(DefaultBorder);
             
-            if (entry.isPathway()) {
+            
+            if (entry.isPathway()) 
+            {
                 boolean bool = false;
                 if (obj instanceof Boolean)
                     bool = ((Boolean)obj).booleanValue();
                 
-                if (col == PathwayTableModel.COL_VISIBLEnMAPVIEW) {
+                if (col == PathwayTableModel.COL_VISIBLE) {
                     setIcon(bool ? eyeOpen : eyeClosed);
                     setBorder(iconBorder);
                     setToolTipText("Show/hide pathway");
@@ -676,10 +686,20 @@ public class PathwayTable extends JTable
                         setBackground(selectedColor);
                     else
                         setBackground(BGColor);
-                                        
+                    
+                    if (entry.hasNotes()) {
+                        setIcon(notesIcon);
+                        setToolTipText(entry.getNotes());
+                    } else {
+                        setToolTipText(null);
+                        setIcon(null);
+                    }                                        
                 }
-                else if (col == PathwayTableModel.COL_LOCKED) {
+                else if (col == PathwayTableModel.COL_LOCKEDnMAPVIEW) {                	
+            		
+                    setBorder(iconBorder);
                     setIcon(bool ? lockIcon : lockOpenIcon);
+                    this.setAlignmentY(JLabel.CENTER_ALIGNMENT);
                     if (entry.node == VUE.getActivePathway() && entry.pathway.getCurrentEntry() == entry)
                         setBackground(selectedColor);
                     else
@@ -693,43 +713,13 @@ public class PathwayTable extends JTable
                     else
                         setBackground(BGColor);
                 }
+               
+               GradientLabel gl = new GradientLabel(entry.pathway);
+         	   this.setOpaque(false);
+         	   gl.add(this);
+         	   return gl;
             }
-
-            // This applies to both regular entries as well as pathway entries:           
-            if (col == PathwayTableModel.COL_NOTES) {
-                if (entry.hasNotes()) {
-                    setIcon(notesIcon);
-                    setToolTipText(entry.getNotes());
-                } else {
-                    setToolTipText(null);
-                    setIcon(null);
-                }
-            }  else if (col == PathwayTableModel.COL_VISIBLEnMAPVIEW && !entry.isPathway()) 
-            {
-            	boolean bool = false;
-                if (obj instanceof Boolean)
-                    bool = ((Boolean)obj).booleanValue();
-                setBorder(iconBorder);
-                if (entry.hasVariableDisplayMode())
-                    setIcon(bool ? mapViewIcon : slideViewIcon);
-                else
-                    setIcon(null);
-                setToolTipText("Toggle map/slide node");
-                final LWPathway activePathway = VUE.getActivePathway();
-            	if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
-        		{
-        			setBackground(selectedColor);
-        			setForeground(selectedColor);
-            		setOpaque(true);        			        			
-        		}
-        		else
-        		{
-        			setBackground(BGColor);
-        			setOpaque(true);        			
-        			setForeground(BGColor);        			
-        		}
-            } 
-            else if (!entry.isPathway())
+            else
             {
             	final LWPathway activePathway = VUE.getActivePathway();
             	//System.out.println("return null");
@@ -737,30 +727,48 @@ public class PathwayTable extends JTable
         		{
         			setBackground(selectedColor);
         			setForeground(selectedColor);
-            		setOpaque(true);
+            		setOpaque(true);            	
         			setIcon(null);
         			
         		}
         		else
         		{
         			setBackground(BGColor);
-        			setOpaque(true);        			
+        			setOpaque(true);        		
         			setForeground(BGColor);
         			setIcon(null);
         		}
+            	
+                if (col == PathwayTableModel.COL_NOTES) {
+                    if (entry.hasNotes()) {
+                        setIcon(notesIcon);
+                        setToolTipText(entry.getNotes());
+                    } else {
+                        setToolTipText(null);
+                        setIcon(null);
+                    }
+                }
+                else if (col == PathwayTableModel.COL_LOCKEDnMAPVIEW) 
+                {
+                	boolean bool = false;
+                    if (obj instanceof Boolean)
+                        bool = ((Boolean)obj).booleanValue();
+                    
+                    setBorder(iconBorder);
+                    
+                    if (entry.hasVariableDisplayMode())
+                        setIcon(bool ? mapViewIcon : slideViewIcon);
+                    else
+                        setIcon(null);
+                    
+                    setToolTipText("Toggle map/slide node");
+                    
+                } 
+
         		return this;             
-            }
-            
-           if (entry.isPathway())
-           {
-        	   GradientLabel gl = new GradientLabel(entry.pathway);
-        	   this.setOpaque(false);
-        	   gl.add(this);
-        	   return gl;
-           }
-           else        	   
-            return this;            
-        }  
+            }                                             	                
+        }
+        
     }
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
     public String toString()
@@ -939,16 +947,16 @@ public class PathwayTable extends JTable
 	
 	    if (entry.isPathway()) 
 	    {
-            if (col == PathwayTableModel.COL_VISIBLEnMAPVIEW ||
+            if (col == PathwayTableModel.COL_VISIBLE ||
                 col == PathwayTableModel.COL_OPEN ||
-                col == PathwayTableModel.COL_LOCKED) {
+                col == PathwayTableModel.COL_LOCKEDnMAPVIEW) {
                 // setValue forces a value toggle in these cases
                 setValueAt(entry.pathway, row, col);
         //        selectedEntry = false;
             }
             //pathway.setCurrentIndex(-1);
         } 
-	    else if (col == PathwayTableModel.COL_VISIBLEnMAPVIEW && entry.hasVariableDisplayMode()) 
+	    else if (col == PathwayTableModel.COL_LOCKEDnMAPVIEW && entry.hasVariableDisplayMode()) 
         {
             setValueAt(entry.pathway, row,col);
           //  selectedEntry = false;
