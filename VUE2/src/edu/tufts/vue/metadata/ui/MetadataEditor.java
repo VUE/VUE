@@ -250,7 +250,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            //JComboBox categories = new JComboBox(dublinCoreTemp);
            JComboBox categories = new JComboBox();
            categories.setModel(new CategoryComboBoxModel());
-           
+           categories.setRenderer(new CategoryComboBoxRenderer());
            comp.setLayout(new java.awt.BorderLayout());
            if(col == buttonColumn-2)
            {
@@ -322,6 +322,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            field = new JTextField();
            categories = new JComboBox();//new JComboBox(dublinCoreTemp);
            categories.setModel(new CategoryComboBoxModel());
+           categories.setRenderer(new CategoryComboBoxRenderer());
            
           /* categories.addFocusListener(new FocusAdapter(){
                public void focusLost(java.awt.event.FocusEvent fe)
