@@ -30,6 +30,7 @@ import  edu.tufts.vue.ontology.*;
 import java.net.*;
 public class CategoryModel extends ArrayList<Ontology>{
     int ontTypesCount = 0;
+    private static Map<URL,Ontology> ontCache = new HashMap<URL,Ontology>();
     public CategoryModel() {
         loadDefaultVUEOntologies();
     }
@@ -46,9 +47,14 @@ public class CategoryModel extends ArrayList<Ontology>{
     }
     
     public void  loadOntology(URL url) {
-        Ontology ontology = new RDFSOntology(url);
-        ontTypesCount += ontology.getOntTypes().size();
-        add(ontology);
+        if(ontCache.get(url) == null) {
+            Ontology ontology = new RDFSOntology(url);
+            ontTypesCount += ontology.getOntTypes().size();
+            add(ontology);
+            ontCache.put(url,ontology);
+        } else {
+            add(ontCache.get(url));
+        }
     }
     
     public int getOntTypesSize() {
