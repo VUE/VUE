@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.103 $ / $Date: 2007-08-12 19:12:38 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2007-08-18 17:06:07 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -200,7 +200,14 @@ public class DockWindow extends javax.swing.JWindow
             // being enabled, combo box pop-ups dissapear way
             // to easily unless you do this (as soon as you mouse
             // into the toolbar, they dismiss)
-            setFocusableWindowState(false);
+            //setFocusableWindowState(false);
+
+        	//I'll have to check this against a mac but on windows
+        	//this behaves better without this set to false.  you can
+        	//actually bring the window forward in the z-order when 
+        	//you click on its borderbar, maybe this was a problem in
+        	//an old java verison since the dockwinow hadn't been used 
+        	//in toolbar mode in a while? -MK
         }
         mBaseTitle = title;
         setTitle(title);

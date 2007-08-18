@@ -678,7 +678,7 @@ public class LinkTool extends VueTool
             if (pLinkDest instanceof LWLink)
                 commonParent.ensurePaintSequence(link, pLinkDest);
             VUE.getSelection().setTo(link);
-            if (pMakeConnection && comboMode)
+            if (pMakeConnection)
                 e.getViewer().activateLabelEdit(createdNode ? pLinkDest : link);
             
         }
