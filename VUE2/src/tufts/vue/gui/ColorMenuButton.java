@@ -52,7 +52,7 @@ import com.sun.codemodel.JLabel;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-08-16 21:05:12 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2007-08-19 14:05:56 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -114,14 +114,14 @@ implements ActionListener, tufts.vue.LWEditor
         popupWindow.getContentPane().add(p);
         popupWindow.pack();
     }
-	
+    private JPanel colorPanel = new JPanel();
     public JPanel buildMenu(Color[] colors, boolean custom)
     {    	
     	// 4 x 15
     	JPanel parent = new JPanel();
     	parent.setLayout(new BorderLayout());
-    	JPanel panel = new JPanel();
-    	panel.setLayout(new GridLayout(0,4,2,2));
+    	
+    	colorPanel.setLayout(new GridLayout(0,4,2,2));
     	
     	for (int i = 0; i < colors.length ; i++)
     	{
@@ -132,14 +132,14 @@ implements ActionListener, tufts.vue.LWEditor
     		colorButton.setIcon(icon);
     		colorButton.setPreferredSize(new Dimension(20,20));
     		colorButton.addActionListener(this);
-    		panel.add(colorButton);
+    		colorPanel.add(colorButton);
     	}
     	JButton item = new JButton("other...");
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) { handleValueSelection(runCustomChooser()); }});
     	item.setBorderPainted(false);
 		item.setContentAreaFilled(false);		
-		parent.add(panel,BorderLayout.CENTER);
+		parent.add(colorPanel,BorderLayout.CENTER);
 		parent.add(item,BorderLayout.SOUTH);
     	return parent;
     }
@@ -167,6 +167,36 @@ implements ActionListener, tufts.vue.LWEditor
             ((BlobIcon)i).setColor(c);
     //    if (c == null)
     //        mPopup.setSelected(super.mEmptySelection);
+        
+        int count = colorPanel.getComponentCount();            
+        for (int p = 0 ; p< count; p++)
+        {
+        	Component comp = colorPanel.getComponent(p);
+        	if (comp instanceof JButton)
+            {
+            	JButton b = ((JButton)comp);
+            	if (b.getIcon() instanceof BlobIcon)
+            	{
+            		BlobIcon blob = ((BlobIcon)b.getIcon());            	
+            		//System.out.println(String.format("RGB: %d,%d,%d @ %.0f%%", c.getRed(), c.getGreen(), c.getBlue(),
+                    //        100f * ((float)c.getAlpha()) / 255f));
+            		//System.out.println(String.format("RGB BLOB: %d,%d,%d @ %.0f%%", blob.getColor().getRed(),  blob.getColor().getGreen(),  blob.getColor().getBlue(),
+                    //        100f * ((float) blob.getColor().getAlpha()) / 255f));
+            		Color blobColor = blob.getColor();
+            		
+            		if (blobColor.getRed() == c.getRed() && blobColor.getBlue() == c.getBlue() && blobColor.getGreen() == c.getGreen() && blobColor.getAlpha() == c.getAlpha())
+            		{
+            			//System.out.println("MATCH");
+            			b.setBorderPainted(true);
+            			b.setBorder(BorderFactory.createLineBorder(Color.gray));
+            		}
+            		else
+            		{//System.out.println(" NO MATCH");
+            			b.setBorderPainted(false);
+            		}
+            	}
+            }
+        }
         repaint();
     }
 	 
@@ -247,6 +277,8 @@ implements ActionListener, tufts.vue.LWEditor
             Object oldValue = produceValue();
             displayValue(newPropertyValue);
             firePropertyChanged(oldValue, newPropertyValue);
+            
+          
         }
         repaint();
     }
@@ -300,7 +332,7 @@ implements ActionListener, tufts.vue.LWEditor
                     + (getBorder() == null ? 0
                         : getBorder().getBorderInsets(this).bottom));
             popupWindow.setLocation(location); 
-            popupWindow.setVisible(true);
+            popupWindow.setVisible(true);                        
             popupWindow.requestFocus();
         } else {
             // hide it otherwise         
@@ -310,7 +342,7 @@ implements ActionListener, tufts.vue.LWEditor
             	JButton b = ((JButton)(arg0).getSource());
             	if (b.getIcon() instanceof BlobIcon)
             	{
-            		BlobIcon blob = ((BlobIcon)b.getIcon());
+            		BlobIcon blob = ((BlobIcon)b.getIcon());            	
             		selectValue(blob.getColor());
             	}
             }
