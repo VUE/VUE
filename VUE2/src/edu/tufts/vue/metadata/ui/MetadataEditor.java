@@ -242,6 +242,44 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        }
     }
     
+    
+    public void findCategory(Object currValue,int row,int col,int n,JComboBox categories)
+    {
+    
+               //Object currValue = table.getModel().getValueAt(row,col); //.toString();
+               //System.out.println("Editor -- currValue: " + currValue);
+               for(int i=0;i<n;i++)
+               {
+                   System.out.println("MetadataTable looking for category currValue: " + currValue);
+                   System.out.println("MetadataTable looking for category model element at " + i + " " +
+                           categories.getModel().getElementAt(i));
+                   
+                   Object item = categories.getModel().getElementAt(i);
+                   String currLabel = "";
+                   if(currValue instanceof OntType)
+                       currLabel = ((OntType)currValue).getLabel();
+                   else
+                       currLabel = currValue.toString();
+                   
+                   System.out.println("MetadataTable currLabel:" + currLabel);
+                   
+                   if(item instanceof OntType)
+                     System.out.println("MetadataTable looking at category model OntType element at " + i + " " +
+                           ((OntType)item).getLabel());
+                   
+                   System.out.println("MetadataTable ------------------- " + i );
+                   
+                   if(item instanceof OntType &&
+                           ((OntType)item).getLabel().equals(currLabel))
+                   {
+                       //System.out.println("found category");
+                       categories.setSelectedIndex(i);
+                   }
+                   
+               }
+               
+    }
+    
     class MetadataTableRenderer extends DefaultTableCellRenderer
     {   
        //private JComboBox categories = new JComboBox(dublinCoreTemp);
@@ -259,6 +297,23 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            {
                int n = categories.getModel().getSize();
                
+               if(current.getMetadataList().getMetadata().size() <= row)
+               {
+                   comp.add(categories);
+                   return comp;
+               }
+               
+               
+               Object currObject = current.getMetadataList().getMetadata().get(row).getObject();//table.getModel().getValueAt(row,col);
+               if(!(currObject instanceof String[]))
+               {
+                   comp.add(categories);
+                   return comp;
+               }
+               Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[0]);
+               findCategory(currValue,row,col,n,categories); 
+              
+               /*
                Object currValue = table.getModel().getValueAt(row,col); //.toString();
                //System.out.println("Editor -- currValue: " + currValue);
                for(int i=0;i<n;i++)
@@ -274,9 +329,13 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    else
                        currLabel = currValue.toString();
                    
+                   System.out.println("MetadataTable currLabel:" + currLabel);
+                   
                    if(item instanceof OntType)
                      System.out.println("MetadataTable looking at category model OntType element at " + i + " " +
                            ((OntType)item).getLabel());
+                   
+                   System.out.println("MetadataTable ------------------- " + i );
                    
                    if(item instanceof OntType &&
                            ((OntType)item).getLabel().equals(currLabel))
@@ -285,7 +344,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                        categories.setSelectedIndex(i);
                    }
                    
-               }
+               }*/
                
                
                /*String currValue = table.getModel().getValueAt(row,col).toString();
@@ -392,7 +451,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                     //System.out.println("MetadataEditor - categories item state changed: " + ie);
                     //System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
                     VueMetadataElement vme = new VueMetadataElement();
-                    String[] keyValuePair = {categories.getSelectedItem().toString(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
+                    String[] keyValuePair = {((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
                     vme.setObject(keyValuePair);
                     vme.setType(VueMetadataElement.CATEGORY);
                     //table.getModel().setValueAt(vme,row,col);
@@ -460,7 +519,25 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                //categories.setSelectedIndex(1);
                //int loc = 0;
                int n = categories.getModel().getSize();
-               Object currValue = table.getModel().getValueAt(row,col); //.toString();
+               
+               if(current.getMetadataList().getMetadata().size() <= row)
+               {
+                   comp.add(categories);
+                   return comp;
+               }
+
+               Object currObject = current.getMetadataList().getMetadata().get(row).getObject();//table.getModel().getValueAt(row,col);
+               if(!(currObject instanceof String[]))
+               {
+                   comp.add(categories);
+                   return comp;
+               }
+               Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[1]);
+               findCategory(currValue,row,col,n,categories); 
+               
+               findCategory(currValue,row,col,n,categories);
+               
+               /*
                //System.out.println("Editor -- currValue: " + currValue);
                for(int i=0;i<n;i++)
                {
@@ -485,7 +562,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                        //System.out.println("found category");
                        categories.setSelectedIndex(i);
                    }
-               }
+               }*/
                comp.add(categories);
            }
            else
