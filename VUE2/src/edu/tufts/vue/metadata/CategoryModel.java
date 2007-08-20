@@ -66,6 +66,21 @@ public class CategoryModel extends ArrayList<Ontology>{
         return ontTypesCount;
     }
     
+    public void addCustomCategory(String name) {
+        OntType ontType = new OntType();
+        ontType.setLabel(name);
+        ontType.setBase(customOntology.getBase());
+        ontType.setId(customOntology.getBase()+name);
+        customOntology.getOntTypes().add(ontType);
+    }
+    
+    public void removeCustomCategory(OntType ontType) {
+        customOntology.getOntTypes().remove(ontType);
+    }
+    
+    public Ontology getCustomOntology() {
+        return customOntology;
+    }
     private void loadCustomOntology(boolean flag)  {
         try {
             if(customOntology == null && !flag) {
