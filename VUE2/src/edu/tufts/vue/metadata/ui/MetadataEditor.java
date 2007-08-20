@@ -21,6 +21,8 @@ package edu.tufts.vue.metadata.ui;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.ontology.OntType;
 import java.awt.event.FocusAdapter;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import javax.swing.*;
 import javax.swing.event.*;
@@ -251,11 +253,42 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            JComboBox categories = new JComboBox();
            categories.setModel(new CategoryComboBoxModel());
            categories.setRenderer(new CategoryComboBoxRenderer());
+           
            comp.setLayout(new java.awt.BorderLayout());
            if(col == buttonColumn-2)
            {
                int n = categories.getModel().getSize();
-               String currValue = table.getModel().getValueAt(row,col).toString();
+               
+               Object currValue = table.getModel().getValueAt(row,col); //.toString();
+               //System.out.println("Editor -- currValue: " + currValue);
+               for(int i=0;i<n;i++)
+               {
+                   System.out.println("MetadataTable looking for category currValue: " + currValue);
+                   System.out.println("MetadataTable looking for category model element at " + i + " " +
+                           categories.getModel().getElementAt(i));
+                   
+                   Object item = categories.getModel().getElementAt(i);
+                   String currLabel = "";
+                   if(currValue instanceof OntType)
+                       currLabel = ((OntType)currValue).getLabel();
+                   else
+                       currLabel = currValue.toString();
+                   
+                   if(item instanceof OntType)
+                     System.out.println("MetadataTable looking at category model OntType element at " + i + " " +
+                           ((OntType)item).getLabel());
+                   
+                   if(item instanceof OntType &&
+                           ((OntType)item).getLabel().equals(currLabel))
+                   {
+                       //System.out.println("found category");
+                       categories.setSelectedIndex(i);
+                   }
+                   
+               }
+               
+               
+               /*String currValue = table.getModel().getValueAt(row,col).toString();
                //System.out.println("Renderer -- currValue: " + currValue);
                //categories.setSelectedIndex(0);
                for(int i=0;i<n;i++)
@@ -265,8 +298,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                       //System.out.println("found category");
                        categories.setSelectedIndex(i);
                    }
-               }
-               comp.add(categories);
+               }*/
+               comp.add(categories); 
            }
            else if(col == buttonColumn-1)
            {
@@ -323,6 +356,23 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            categories = new JComboBox();//new JComboBox(dublinCoreTemp);
            categories.setModel(new CategoryComboBoxModel());
            categories.setRenderer(new CategoryComboBoxRenderer());
+           
+           categories.addItemListener(new ItemListener() 
+           {
+               public void itemStateChanged(ItemEvent e) 
+               {
+                   if(e.getStateChange() == ItemEvent.SELECTED)
+                   {
+                       if(e.getItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
+                       {
+                           //System.out.println("MetdataEditor edit item selected: " + e);
+                           tufts.vue.gui.DockWindow ec = tufts.vue.gui.GUI.createDockWindow("Edit Categories", new CategoryEditor());
+                           ec.setBounds(200,200,300,300);
+                           ec.setVisible(true);
+                       }
+                   }
+               }
+           });
            
           /* categories.addFocusListener(new FocusAdapter(){
                public void focusLost(java.awt.event.FocusEvent fe)
@@ -410,11 +460,27 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                //categories.setSelectedIndex(1);
                //int loc = 0;
                int n = categories.getModel().getSize();
-               String currValue = table.getModel().getValueAt(row,col).toString();
+               Object currValue = table.getModel().getValueAt(row,col); //.toString();
                //System.out.println("Editor -- currValue: " + currValue);
                for(int i=0;i<n;i++)
                {
-                   if(categories.getModel().getElementAt(i).equals(currValue))
+                   System.out.println("MetadataTable looking for category currValue: " + currValue);
+                   System.out.println("MetadataTable looking for category model element at " + i + " " +
+                           categories.getModel().getElementAt(i));
+                   
+                   Object item = categories.getModel().getElementAt(i);
+                   String currLabel = "";
+                   if(currValue instanceof OntType)
+                       currLabel = ((OntType)currValue).getLabel();
+                   else
+                       currLabel = currValue.toString();
+                   
+                   if(item instanceof OntType)
+                     System.out.println("MetadataTable looking at category model OntType element at " + i + " " +
+                           ((OntType)item).getLabel());
+                   
+                   if(item instanceof OntType &&
+                           ((OntType)item).getLabel().equals(currLabel))
                    {
                        //System.out.println("found category");
                        categories.setSelectedIndex(i);
