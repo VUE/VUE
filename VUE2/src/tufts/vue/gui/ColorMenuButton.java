@@ -52,7 +52,7 @@ import com.sun.codemodel.JLabel;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-08-19 14:05:56 $ / $Author: mike $
+ * @version $Revision: 1.14 $ / $Date: 2007-08-20 13:13:54 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -184,7 +184,7 @@ implements ActionListener, tufts.vue.LWEditor
                     //        100f * ((float) blob.getColor().getAlpha()) / 255f));
             		Color blobColor = blob.getColor();
             		
-            		if (blobColor.getRed() == c.getRed() && blobColor.getBlue() == c.getBlue() && blobColor.getGreen() == c.getGreen() && blobColor.getAlpha() == c.getAlpha())
+            		if (c != null && blobColor != null && blobColor.getRed() == c.getRed() && blobColor.getBlue() == c.getBlue() && blobColor.getGreen() == c.getGreen() && blobColor.getAlpha() == c.getAlpha())
             		{
             			//System.out.println("MATCH");
             			b.setBorderPainted(true);
