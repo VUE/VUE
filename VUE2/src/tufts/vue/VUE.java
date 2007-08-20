@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.474 $ / $Date: 2007-08-17 20:43:09 $ / $Author: anoop $ 
+ * @version $Revision: 1.475 $ / $Date: 2007-08-20 15:56:48 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -1639,6 +1639,8 @@ public class VUE
         // TODO: use active map instances
         int tabs = mMapTabsLeft.getTabCount();
         //LWMap ensureChecked = getActiveMap(); // in case of full-screen
+        // disabled indexing
+        /**
         for (int i = 0; i < tabs; i++) {
             final LWMap map = mMapTabsLeft.getMapAt(i);
             if (VUE.getIndex() != null) {
@@ -1649,12 +1651,13 @@ public class VUE
                     Util.printStackTrace(t, "Exception indexing duing exit: " + map);
                 }
             }
-            
+        
 //             if (map == ensureChecked)
 //                 ensureChecked = null;
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
         }
+         **/
 /**
         if (getIndex() != null) {
             try {
