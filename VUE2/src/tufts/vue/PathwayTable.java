@@ -60,7 +60,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.74 $ / $Date: 2007-08-17 02:59:06 $ / $Author: mike $
+ * @version $Revision: 1.75 $ / $Date: 2007-08-21 14:30:00 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -121,15 +121,16 @@ public class PathwayTable extends JTable
         this.eyeClosed = VueResources.getImageIcon("pathwayOff");
         this.mapViewIcon = VueResources.getImageIcon("mapView");
         this.slideViewIcon = VueResources.getImageIcon("slideView");
-        
+        this.setDoubleBuffered(true);
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
-        this.setShowVerticalLines(true);        
-        this.setShowHorizontalLines(true);
-        this.setGridColor(Color.lightGray);
+        this.setShowVerticalLines(false);        
+       this.setShowHorizontalLines(true);
+      //  this.setGridColor(Color.lightGray);
         this.setIntercellSpacing(new Dimension(0,1));
         this.setBackground(BGColor);
+        this.setIgnoreRepaint(true);
         //this.setSelectionBackground(SelectedBGColor);
      //   this.setDragEnabled(true);
         
@@ -315,19 +316,14 @@ public class PathwayTable extends JTable
 			             MouseListener
     {
         Color currentColor;
-        JPanel button;
-
+        ColorRenderer button;
+        int curRow =0;
+        
         public ColorEditor() {
             button = new ColorRenderer();
-            //button.addActionListener(this);
             button.addMouseListener(this);
             button.setBorder(null);
-            //button.setBorder(new LineBorder(BGColor, 3));
         }
-
-//        public void actionPerformed(ActionEvent e) {
-    
-  //      }
 
         public Object getCellEditorValue() {
             return currentColor;
@@ -338,9 +334,13 @@ public class PathwayTable extends JTable
                                                      boolean isSelected,
                                                      int row,
                                                      int column) {
+        	curRow=row;
             currentColor = (Color)value;
-            button.setBackground(currentColor);
-            return button;
+         //   button.setBackground(currentColor);
+           // button.setForeground(currentColor);            
+            Component c = button.getTableCellRendererComponent(table, value, isSelected,true, row, column);
+            c.addMouseListener(this);
+            return c;
         }
 
 		public void mouseClicked(MouseEvent arg0) {
@@ -361,15 +361,15 @@ public class PathwayTable extends JTable
 //			 TODO Auto-generated method stub
 	        if (VUE.getActivePathway().isLocked())
                 return;
+	    //    System.out.println(e.getY());
+	        if (e.getY() > 20)
+	        	return;
+	        
+	        
             Color c = VueUtil.runColorChooser("Pathway Color Selection", currentColor, VUE.getDialogParent());
             fireEditingStopped();
             if (c != null) {
-                // why the row checking here?
-                int row = getSelectedRow();
-                if (row == -1)
-                    row = lastSelectedRow;
-                if (row != -1)
-                    getTableModel().setValueAt(currentColor = c, row, 4);
+                    getTableModel().setValueAt(currentColor = c, curRow, 4);
             }		
 		}
 
@@ -391,11 +391,10 @@ public class PathwayTable extends JTable
     	public ColorRenderer() {
             setOpaque(true);
             
-         //   setBorder(new LineBorder(BGColor, 1)); // fyi: empty border no good: won't paint over
-        	Gradient = new GradientPaint(0,           0, TopGradient1,
-                    0, 20, BottomGradient1);
-        	Gradient2 = new GradientPaint(0,           0, TopGradient2,
-                    0, 20, BottomGradient2);
+        	//Gradient = new GradientPaint(0,           0, TopGradient1,
+            //        0, 20, BottomGradient1);
+        	//Gradient2 = new GradientPaint(0,           0, TopGradient2,
+            //        0, 20, BottomGradient2);
         	
             setToolTipText("Select Color");
         }
@@ -403,66 +402,82 @@ public class PathwayTable extends JTable
     	//final RoundRectangle2D BlobShape = new RoundRectangle2D.Float();
     	Color paintColor = null;
     	
-        protected void paintComponent(Graphics g)
+   /*     protected void paintComponent(Graphics g)
         {
-        	paintGradient((Graphics2D)g);
-        	//g.setClip(2, 2, getWidth()-4, getHeight()-4);
         	Graphics2D g2 = (Graphics2D)g;
+        	paintGradient(g2);        	
         	g2.setColor(paintColor);
-        	//BlobShape.setRoundRect(2, 2, getWidth()-8, getHeight()-4, 7, 7);
-        	//g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);                          
-            g2.fillRoundRect(2, 2, getWidth()-8, getHeight()-4,7,7);
+            g2.fillRoundRect(2, 2, getWidth()-8, 20-4,7,7);
             g2.setColor(Color.gray);
-            g2.drawRoundRect(2, 2, getWidth()-8, getHeight()-4,7,7);
-        	//g2.fill(BlobShape);
-        //	super.paintComponent(g);
+            g2.drawRoundRect(2, 2, getWidth()-8, 20-4,7,7);
         }
         
+        public void setPaintColor(Color c)
+        {
+        	paintColor = c;        	
+        }
         private void paintGradient(Graphics2D g)
-        {       
+        {
+        	Paint p = g.getPaint();
+
         	final LWPathway.Entry entry = getTableModel().getEntry(curRow);
+        	final LWPathway activePathway = VUE.getActivePathway();
+//        	final LWPathway.Entry entryReal = getTableModel().getEntry(PathwayTable.this.getSelectedRow());
+        	//entry.
+           // if (entry.pathway != null && entryReal.equals(entry.pathway))
         	
-        	paintColor = this.getForeground();
-        	
-            if (entry.pathway != null && entry.pathway == VUE.getActivePathway())
+        	if (entry != null && entry.pathway != null && entry.node == activePathway) 
                 g.setPaint(Gradient);
             else
                 g.setPaint(Gradient2);
             
             g.fillRect(0, 0, getWidth(),20);
+            g.setPaint(p);
+            g.setColor(Color.white);             
+            g.fillRect(0,20,getWidth(),40);
         }
-        
+        boolean useGoldGradient = true;
+        */
         public java.awt.Component getTableCellRendererComponent(
                                     JTable table, Object color, 
                                     boolean isSelected, boolean hasFocus, 
                                     int row, int col)
         {
+        	  
             final LWPathway.Entry entry = getTableModel().getEntry(row);
+            
+           // paintColor =  (Color)getTableModel().getValueAt(row, 4);
             curRow=row;
+            paintColor = (Color)color;
+            GradientLabel gl = new GradientLabel(entry.pathway,paintColor);
+            
             if (entry == null) {
             	{
-            		setBackground((Color) color);
-                    setForeground((Color) color);
-                return this;
+            	//	setBackground((Color) color);
+                 //   setForeground((Color) color);
+                return gl;
             	}
-            } else if (entry.isPathway()) {
-                setBackground((Color) color);
-                setForeground((Color) color);
+            } 
+            else if (entry.isPathway()) {
+                //setBackground((Color) color);
+                //setForeground((Color) color);
                
-                return this;
-            } else
+                return gl;
+            } 
+            else
             {
             	JLabel p = new DefaultTableCellRenderer();
             	p.setOpaque(true);
             	final LWPathway activePathway = VUE.getActivePathway();
             	if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
         		{
-            		
+            	//	useGoldGradient = true;
             		p.setBackground(selectedColor);
             		p.setForeground(selectedColor);
         		}
             	else
             	{
+            	//	useGoldGradient=false;
             		p.setBackground(BGColor);
             		p.setForeground(BGColor);
             	}
@@ -472,32 +487,6 @@ public class PathwayTable extends JTable
              //   return null;
         }  
     }
-  /*  private class BooleanRenderer extends JCheckBox implements TableCellRenderer {
-        public BooleanRenderer() {
-            setFocusable(false);
-            setToolTipText("Set as the Revealer");
-        }
-        public java.awt.Component getTableCellRendererComponent(
-                                    JTable table, Object color, 
-                                    boolean isSelected, boolean hasFocus, 
-                                    int row, int col)
-        {
-            final LWPathway.Entry entry = getTableModel().getEntry(row);
-            if (entry == null)
-                return null;
-            
-            if (entry.isPathway()) {
-                if (entry.pathway == VUE.getActivePathway())
-                    setBackground(selectedColor);
-                else
-                    setBackground(BGColor);
-                setSelected(getTableModel().getPathwayList().getRevealer() == entry.pathway);
-                return this;
-            } else
-                return null;
-        }  
-    }
-    */
     private class LabelRenderer extends DefaultTableCellRenderer{
         
         public java.awt.Component getTableCellRendererComponent(
@@ -516,15 +505,18 @@ public class PathwayTable extends JTable
          
             if (DEBUG.PATHWAY) debug = "(row"+row+")";
          
-            GradientLabel gl = new GradientLabel(entry.pathway);
+          
             JLabel label = new JLabel();
             
             setMinimumSize(new Dimension(10, 20));
             setPreferredSize(new Dimension(500, 20));      
-
-            
+          
             if (entry.isPathway())
             {
+            	String emptyString = null;
+            	            	
+            	  GradientLabel gl = new GradientLabel(entry.pathway);
+            	  
             	  if (col == PathwayTableModel.COL_OPEN) 
             	  {
                   	boolean bool = false;
@@ -538,6 +530,14 @@ public class PathwayTable extends JTable
             	  else
             	  {
             		  final LWPathway p = entry.pathway;
+            		  if (entry.pathway.getEntries().isEmpty())
+            		  {
+            			  if (entry.pathway.getEntries().isEmpty())
+                      		emptyString = "This presentation is empty";
+                      	
+            			  gl = new GradientLabel(entry.pathway,emptyString);
+            			  setRowHeight(row, 40);            			
+            		  }
             		  /*if (p == VUE.getActivePathway())
                     	setBackground(Color.red);
                 	else*/
@@ -546,11 +546,13 @@ public class PathwayTable extends JTable
             		 setBackground(BGColor);
             		 setFont(PathwayFont);
             		 setForeground(Color.white);
-            		 setText(debug+"   " + entry.getLabel());            		
+            		 setText(debug+"   " + entry.getLabel());
+            		// this.setAlignmentY(Component.TOP_ALIGNMENT);
             	  }
             	this.setOpaque(false);
                 gl.setLayout(new BorderLayout());
-                gl.add(this,BorderLayout.CENTER);            	
+                gl.add(this,BorderLayout.NORTH);
+       		 
                 return gl;
             }
             else {
@@ -625,34 +627,70 @@ public class PathwayTable extends JTable
        private GradientPaint Gradient = null;
        
        private GradientPaint Gradient2 = null;
+       private String emptyString = null;
+       private Color paintColor = null;
        
+       public GradientLabel(LWPathway pathway, String emptyString, Color paintColor)
+       {
+    	   setOpaque(false);
+       	path=pathway;
+       	Gradient = new GradientPaint(0,           0, TopGradient1,
+                   0, 20, BottomGradient1);
+       	Gradient2 = new GradientPaint(0,           0, TopGradient2,
+                   0, 20, BottomGradient2);
+       	setLayout(new BorderLayout());
+       this.paintColor = paintColor;
+           setPreferredSize(new Dimension(getWidth(),40));
+           
+           this.emptyString = emptyString;
+       }
+       
+       public GradientLabel(LWPathway pathway, String emptyString)
+       {
+    	   this(pathway,emptyString,null);
+       }
         public GradientLabel(LWPathway pathway)
         {
-        	setOpaque(false);
-        	path=pathway;
-        	Gradient = new GradientPaint(0,           0, TopGradient1,
-                    0, 20, BottomGradient1);
-        	Gradient2 = new GradientPaint(0,           0, TopGradient2,
-                    0, 20, BottomGradient2);
+        	this(pathway,null,null);
+        }
+        
+        public GradientLabel(LWPathway pathway, Color paintColor)
+        {
+        	this(pathway,null,paintColor);
         }
         
         
     	 public void paintComponent(Graphics g) {
-             paintGradient((Graphics2D)g);
-             super.paintComponent(g);
+    		 Graphics2D g2 = (Graphics2D)g;
+    		 paintGradient(g2);
+             if (paintColor != null)
+             {            	                                              	
+               g2.setColor(paintColor);
+               g2.fillRoundRect(2, 2, getWidth()-8, 20-4,7,7);
+               g2.setColor(Color.gray);
+               g2.drawRoundRect(2, 2, getWidth()-8, 20-4,7,7);
+             }                                
          }
 
          private void paintGradient(Graphics2D g)
          {       
+        	 Paint p = g.getPaint();
              if (path != null && path == VUE.getActivePathway())
                  g.setPaint(Gradient);
              else
                  g.setPaint(Gradient2);
              
              g.fillRect(0, 0, getWidth(),20);
+             
+             g.setPaint(p);
+             g.setColor(Color.white);                    
+             g.fillRect(0,20,getWidth(),40);
+             g.setColor(Color.lightGray);
+             if (emptyString != null)
+            	 g.drawString(emptyString, 0, 33);
          }
     }
-    private Border iconBorder = new EmptyBorder(0,3,0,0);
+    private Border iconBorder = new EmptyBorder(5,3,0,0);
     private class ImageRenderer extends DefaultTableCellRenderer {
         
         public java.awt.Component getTableCellRendererComponent(
@@ -663,6 +701,8 @@ public class PathwayTable extends JTable
                                     int row, 
                                     int col)
         {
+        	
+        	
             final LWPathway.Entry entry = getTableModel().getEntry(row);
             if (entry == null)
                 return this;
@@ -716,7 +756,7 @@ public class PathwayTable extends JTable
                
                GradientLabel gl = new GradientLabel(entry.pathway);
          	   this.setOpaque(false);
-         	   gl.add(this);
+         	   gl.add(this,BorderLayout.NORTH);
          	   return gl;
             }
             else
@@ -935,16 +975,18 @@ public class PathwayTable extends JTable
 		
 	}
 	public void mousePressed(MouseEvent e) {
+		
 		  int row = getSelectedRow();
 		  PathwayTableModel tableModel = getTableModel();
 	      lastSelectedRow = row;
 	      int col = getSelectedColumn();
-	      
+	      //this.changeSelection(row,col,false,false);
 	      if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: selected row "+row+", col "+col);
 	                    
 	                    
 	      final LWPathway.Entry entry = tableModel.getEntry(row);	
-	
+	      if (entry.pathway.getEntries().isEmpty())
+	    	  return;
 	    if (entry.isPathway()) 
 	    {
             if (col == PathwayTableModel.COL_VISIBLE ||
@@ -961,6 +1003,7 @@ public class PathwayTable extends JTable
             setValueAt(entry.pathway, row,col);
           //  selectedEntry = false;
         }
+	    
     }
 	
 	public void mouseReleased(MouseEvent e) {
