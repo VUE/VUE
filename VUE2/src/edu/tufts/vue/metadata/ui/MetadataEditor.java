@@ -52,7 +52,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     private JScrollPane scroll;
     private tufts.vue.LWComponent current;
     
-    private String[] dublinCoreTemp = {"Tag","Creator","Description","User-Custom"};
+    //private String[] dublinCoreTemp = {"Tag","Creator","Description","User-Custom"};
     
     private int buttonColumn = 1;
     
@@ -435,7 +435,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                        {
                            //System.out.println("MetdataEditor edit item selected: " + e);
                            tufts.vue.gui.DockWindow ec = tufts.vue.gui.GUI.createDockWindow("Edit Categories", new CategoryEditor());
-                           ec.setBounds(200,200,300,300);
+                           //ec.setBounds(200,200,300,300);
+                           ec.pack();
                            ec.setVisible(true);
                        }
                    }
