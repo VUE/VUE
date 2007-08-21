@@ -41,7 +41,8 @@ public class RDFIndex extends ModelCom {
     public static final int MAX_SIZE = VueResources.getInt("rdf.index.size");
     public static final boolean AUTO_INDEX= VueResources.getBool("rdf.index.auto");
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
-    public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL+"#";
+    public static final String ONT_SEPARATOR = "#";
+    public static final String VUE_ONTOLOGY = Constants.ONTOLOGY_URL+ONT_SEPARATOR;
     com.hp.hpl.jena.rdf.model.Property idOf = createProperty(VUE_ONTOLOGY,Constants.ID);
     com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
     com.hp.hpl.jena.rdf.model.Property childOf = createProperty(VUE_ONTOLOGY,Constants.CHILD);
@@ -149,7 +150,7 @@ public class RDFIndex extends ModelCom {
                 VueMetadataElement element = i.next();
                 if(DEBUG.RDF) System.out.println("Resouece: "+r+" Element:"+element+" class of element:"+element.getClass());
                 if(element.getObject() != null)
-                    statement = this.createStatement(r,hasTag,element.getObject().toString());
+                    statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
                 addStatement(statement);
             }
         } catch(Exception ex) {
@@ -207,6 +208,14 @@ public class RDFIndex extends ModelCom {
         }
         System.out.println("After Indexing size: "+size());
         
+    }
+    
+    public  com.hp.hpl.jena.rdf.model.Property createPropertyFromKey(String key) throws Exception {
+        String words[] = key.split(ONT_SEPARATOR);
+        if(words.length < 2){
+            throw new Exception("createPropertyFromKey: The key format is wrong. key - "+key);
+        }
+        return createProperty(words[0],words[1]);
     }
     
     private boolean compareStatements(com.hp.hpl.jena.rdf.model.Statement stmt1,com.hp.hpl.jena.rdf.model.Statement stmt2) {
