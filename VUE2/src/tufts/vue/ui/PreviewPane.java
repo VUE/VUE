@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.15 $ / $Date: 2007-05-14 03:31:46 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2007-08-21 19:20:43 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -133,7 +133,7 @@ public class PreviewPane extends JPanel
 
             if (FirstPreview /*&& mPreviewData != null*/) {
                 FirstPreview = false;
-                Widget.setExpanded(PreviewPane.this, true);
+                //Widget.setExpanded(PreviewPane.this, true);
                 // This now handled in Widget.java:
                 //GUI.makeVisibleOnScreen(PreviewPane.this);
             } else {
