@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.475 $ / $Date: 2007-08-20 15:56:48 $ / $Author: anoop $ 
+ * @version $Revision: 1.476 $ / $Date: 2007-08-21 18:24:02 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1638,9 +1638,9 @@ public class VUE
        
         // TODO: use active map instances
         int tabs = mMapTabsLeft.getTabCount();
-        //LWMap ensureChecked = getActiveMap(); // in case of full-screen
+     //   LWMap ensureChecked = getActiveMap(); // in case of full-screen
         // disabled indexing
-        /**
+/**        
         for (int i = 0; i < tabs; i++) {
             final LWMap map = mMapTabsLeft.getMapAt(i);
             if (VUE.getIndex() != null) {
@@ -1657,7 +1657,7 @@ public class VUE
             if (!askSaveIfModified(mMapTabsLeft.getMapAt(i)))
                 return false;
         }
-         **/
+   **/     
 /**
         if (getIndex() != null) {
             try {
@@ -1671,10 +1671,10 @@ public class VUE
 **/
         return true;
         
-//         if (ensureChecked != null && !askSaveIfModified(ensureChecked))
-//             return false;
-//         else
-//             return true;
+   //      if (ensureChecked != null && !askSaveIfModified(ensureChecked))
+   //          return false;
+   //      else
+   //          return true;
              
     }
     
@@ -1696,8 +1696,26 @@ public class VUE
         if (inNativeFullScreen())
             toggleFullScreen();
         
+        Component c = VUE.getDialogParent();
+        
+        if (VUE.getDialogParent() != null)
+        {
+        	//Get the screen size
+        	Toolkit toolkit = Toolkit.getDefaultToolkit();
+        	Dimension screenSize = toolkit.getScreenSize();
+        	
+        	
+        	
+        	Point p = c.getLocationOnScreen();
+        	
+        	if ((p.x + c.getWidth() > screenSize.width) ||
+        			(p.y + c.getHeight() > screenSize.height))
+        	{
+        		c = null;
+        	}
+        }
         int response = JOptionPane.showOptionDialog
-            (VUE.getDialogParent(),
+            (c,
         
              "Do you want to save the changes you made to \n"
              + "'" + map.getLabel() + "'?"
