@@ -74,7 +74,9 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                        {
                          //System.out.println("metadata: mouse pressed" + evt);
                          VueMetadataElement vme = new VueMetadataElement();
-                         vme.setObject("");
+                         String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+                         vme.setType(VueMetadataElement.CATEGORY);
+                         vme.setObject(emptyEntry);
                          //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
                          MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
                          ((MetadataTableModel)metadataTable.getModel()).refresh();
@@ -213,6 +215,15 @@ public class MetadataEditor extends JPanel implements ActiveListener {
          
          current = active;
          
+         if(current !=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
+         {
+           VueMetadataElement vme = new VueMetadataElement();
+           String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+           vme.setType(VueMetadataElement.CATEGORY);
+           vme.setObject(emptyEntry);
+           MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
+         }
+         
          ((MetadataTableModel)metadataTable.getModel()).refresh();
        }
     }
@@ -239,7 +250,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            //comp.setForeground(java.awt.Color.RED);
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
            //comp.setOpaque(false);
-
+           
            //System.out.println("MetadataEditor - Table Header Renderer background color: " + MetadataEditor.this.getBackground());
            return comp;
        }
@@ -344,6 +355,9 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            
            comp.setOpaque(false);
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
+           
+           //comp.setOpaque(true);
+           //comp.setBackground(java.awt.Color.BLUE);
            
            return comp;
        }
@@ -572,6 +586,9 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                }
            });*/
            
+           //comp.setOpaque(true);
+           //comp.setBackground(java.awt.Color.RED);
+           
            return comp;
        }
        
@@ -640,7 +657,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   VueMetadataElement ele = list.get(row);
                   //$
                     if(!(ele.getObject() instanceof String[]))
-                      return "Tag";
+                      return "vue.tufts.edu/vue.rdfs#TAG";
                   //$
                   String[] obj = (String[])ele.getObject();
                   if(obj == null)
@@ -653,7 +670,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   }
                 }
                 else
-                  return "Tag";
+                  return "vue.tufts.edu/vue.rdfs#TAG";
              }
              else
              if( (column == buttonColumn - 1) && current != null)
