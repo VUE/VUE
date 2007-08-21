@@ -73,10 +73,26 @@ public class CategoryEditor extends JPanel
         customCategoryTable.getColumnModel().getColumn(1).setHeaderRenderer(new CustomCategoryTableHeaderRenderer());
         int editorWidth = getWidth();
         customCategoryTable.getColumnModel().getColumn(0).setMinWidth(editorWidth-BUTTON_COL_WIDTH);
-        customCategoryTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH);  
+        customCategoryTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH); 
         
+        customCategoryTable.setRowHeight(ROW_HEIGHT);
+        customCategoryTable.getTableHeader().setReorderingAllowed(false);
+        
+        metadataSetTable.setRowHeight(ROW_HEIGHT);
+        metadataSetTable.getTableHeader().setReorderingAllowed(false);
+
+        customCategoryTable.setGridColor(new java.awt.Color(getBackground().getRed(),getBackground().getBlue(),getBackground().getGreen(),0));
+        customCategoryTable.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        customCategoryTable.setIntercellSpacing(new java.awt.Dimension(0,0));
         final JScrollPane scroll = new JScrollPane(customCategoryTable);
-        
+        scroll.setBackground(getBackground());
+        scroll.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        //scroll.setBorder(BorderFactory.createEmptyBorder(100,100,100,100));\
+        //scroll.setBorder(null);
+        //scroll.getViewport().setOpaque(false);
+        scroll.setViewportBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        //scroll.getColumnHeader().setBorder(null);
+
         customCategoryTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter()
         {
                    public void mousePressed(java.awt.event.MouseEvent evt)
@@ -98,16 +114,23 @@ public class CategoryEditor extends JPanel
        });
 
         
-        customPanel.add(new JScrollPane(scroll));
+        customPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        //scroll.getViewport().getInsets();
+        customPanel.add(scroll);
+        //customPanel.add(customCategoryTable);
         add(setPanel);
         // add separator
         add(customPanel);
+        
+        System.out.println("scroll: " + scroll);
+        System.out.println("categoryTable: " + customCategoryTable);
     }
     
     class CustomCategoryTableHeaderRenderer extends DefaultTableCellRenderer
     {   
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
+           setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
            JComponent comp = new JPanel();
            if(col == 0)
                comp =  new JLabel("Categories:");
@@ -208,16 +231,25 @@ public class CategoryEditor extends JPanel
         JCheckBox check = new JCheckBox();
         JTextField label = new JTextField();
         
+        public CustomCategoryTableRenderer()
+        {
+            setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        }
+        
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,
                                                                 boolean hasFocus,int row,int col)
         {
+            JPanel comp = new JPanel(new java.awt.BorderLayout());
+            
             if(col == 1)
             {
                 checkPanel.add(check);
-                return checkPanel;
+                comp.add(check);
+                //return checkPanel;
             }
             if(col == 0)
             {
+                //label.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
                 
                 System.out.println("CategoryEditor: " + value.getClass());
                 
@@ -230,11 +262,13 @@ public class CategoryEditor extends JPanel
                 {
                   label.setText(value.toString());
                 }
-                return label;
+                comp.add(label);
+                //return label;
             }
             
-            label.setText("ERROR");
-            return label;
+            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
+            //label.setText("ERROR");
+            return comp;
         }
     }
     
@@ -249,15 +283,20 @@ public class CategoryEditor extends JPanel
         {
             super(new JTextField());
             label = (JTextField)getComponent();
+            // test for save of loaded file -- not saving correctly 8-21-07
+            //tufts.vue.VUE.getCategoryModel().saveCustomOntology();
         }
         
         public java.awt.Component getTableCellEditorComponent(final JTable table,Object value,boolean isSelected,
                                                                 final int row,int col)
         {
+            JPanel comp = new JPanel(new java.awt.BorderLayout());
+            
             if(col == 1)
             {
                 checkPanel.add(check);
-                return checkPanel;
+                comp.add(check);
+                //return checkPanel;
             }
             if(col == 0)
             {
@@ -275,16 +314,22 @@ public class CategoryEditor extends JPanel
                    {
                        if( (row == table.getModel().getRowCount() - 1) && newCategoryRequested )
                        {
-                           tufts.vue.VUE.getCategoryModel().addCustomCategory(label.getText());
+                           CategoryModel cats = tufts.vue.VUE.getCategoryModel();
+                           cats.addCustomCategory(label.getText());
+                           // comment out for now -- produces error
+                           //cats.saveCustomOntology();
                        }
                    }
                 });
 
-                return label;
+                comp.add(label);
+                //return label;
             }
-            
-            label.setText("ERROR");
-            return label;
+
+            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
+            return comp;
+            //label.setText("ERROR");
+            //return label;
         }
     }
     
@@ -352,16 +397,31 @@ public class CategoryEditor extends JPanel
         }
         
         public int getRowCount()
-        {
-            if(!newCategoryRequested)
+        {          
+            Ontology customOntology = vueCategoryModel.getCustomOntology();
+            
+            if(customOntology == null || vueCategoryModel.getCustomOntology().getOntTypes().size() ==0)
+            {
+                newCategoryRequested = true;
+                return 1;
+            }
+            
+
+            if(/*(customOntology !=null) &&*/ !newCategoryRequested)
               return vueCategoryModel.getCustomOntology().getOntTypes().size();
-            else
+            else if(customOntology != null)
               return vueCategoryModel.getCustomOntology().getOntTypes().size() + 1;
+            else
+              return 0;
             // vueCategoryModel.getCustomCategories.getSize();
         }
         
         public Object getValueAt(int row,int col)
         {
+            if(col == 0 && vueCategoryModel.getCustomOntology() == null)
+            {
+                return "";
+            }
             if(col == 0 && row < vueCategoryModel.getCustomOntology().getOntTypes().size())
             {
               OntType category = vueCategoryModel.getCustomOntology().getOntTypes().get(row);
