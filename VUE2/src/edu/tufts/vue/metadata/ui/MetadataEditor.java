@@ -135,6 +135,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   //System.out.println("MetadataEditor, editor class type: " + editor.getClass());
                   if(metadataTable.getSelectedColumn() == (buttonColumn - 1) )
                     editor.focusField();
+                  else
+                    editor.focusCombo();
                 }
             }
         });
@@ -408,6 +410,13 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        {
            field.requestFocus();
        }
+       
+       public void focusCombo()
+       {
+          // categories.requestFocus();
+           //categories.firePopupMenuWillBecomeVisible();
+           categories.showPopup();
+       }
         
        public java.awt.Component getTableCellEditorComponent(final JTable table,final Object value,boolean isSelected,final int row,final int col)
        {
@@ -448,9 +457,16 @@ public class MetadataEditor extends JPanel implements ActiveListener {
               {
                   if(ie.getStateChange()==java.awt.event.ItemEvent.SELECTED)
                   {
+                      
+                    if(!(categories.getSelectedItem() instanceof OntType))
+                        return;
+                      
                     //System.out.println("MetadataEditor - categories item state changed: " + ie);
                     //System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
                     VueMetadataElement vme = new VueMetadataElement();
+                    
+                    System.out.println(categories.getSelectedItem().getClass());
+                    
                     String[] keyValuePair = {((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
                     vme.setObject(keyValuePair);
                     vme.setType(VueMetadataElement.CATEGORY);
