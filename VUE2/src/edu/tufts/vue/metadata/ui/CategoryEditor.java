@@ -64,7 +64,6 @@ public class CategoryEditor extends JPanel
         metadataSetTable.setDefaultRenderer(java.lang.Object.class,new SetTableRenderer());
         metadataSetTable.setDefaultEditor(java.lang.Object.class,new SetTableEditor());
         setPanel.add(metadataSetTable);
-        //setPanel.add(new JScrollPane(metadataSetTable));
         customPanel = new JPanel();
         customCategoryTable = new JTable(new MetadataCategoryTableModel());
         customCategoryTable.setDefaultRenderer(java.lang.Object.class,new CustomCategoryTableRenderer());
@@ -87,11 +86,7 @@ public class CategoryEditor extends JPanel
         final JScrollPane scroll = new JScrollPane(customCategoryTable);
         scroll.setBackground(getBackground());
         scroll.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
-        //scroll.setBorder(BorderFactory.createEmptyBorder(100,100,100,100));\
-        //scroll.setBorder(null);
-        //scroll.getViewport().setOpaque(false);
-        scroll.setViewportBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-        //scroll.getColumnHeader().setBorder(null);
+        scroll.getViewport().setOpaque(false);
 
         customCategoryTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter()
         {
@@ -115,11 +110,10 @@ public class CategoryEditor extends JPanel
 
         
         customPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
-        //scroll.getViewport().getInsets();
+
         customPanel.add(scroll);
-        //customPanel.add(customCategoryTable);
         add(setPanel);
-        // add separator
+        // todo: add separator
         add(customPanel);
         
         System.out.println("scroll: " + scroll);
@@ -228,13 +222,8 @@ public class CategoryEditor extends JPanel
     class CustomCategoryTableRenderer extends DefaultTableCellRenderer
     {
         JPanel checkPanel = new JPanel();
-        JCheckBox check = new JCheckBox();
+        //JCheckBox check = new JCheckBox();
         JTextField label = new JTextField();
-        
-        public CustomCategoryTableRenderer()
-        {
-            setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-        }
         
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,
                                                                 boolean hasFocus,int row,int col)
@@ -243,8 +232,9 @@ public class CategoryEditor extends JPanel
             
             if(col == 1)
             {
-                checkPanel.add(check);
-                comp.add(check);
+                JLabel button = new JLabel();
+                button.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
+                comp.add(button);
                 //return checkPanel;
             }
             if(col == 0)
