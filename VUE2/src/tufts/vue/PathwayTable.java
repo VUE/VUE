@@ -60,7 +60,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.75 $ / $Date: 2007-08-21 14:30:00 $ / $Author: mike $
+ * @version $Revision: 1.76 $ / $Date: 2007-08-21 15:10:17 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -686,6 +686,7 @@ public class PathwayTable extends JTable
              g.setColor(Color.white);                    
              g.fillRect(0,20,getWidth(),40);
              g.setColor(Color.lightGray);
+             g.setFont(EntryFont);
              if (emptyString != null)
             	 g.drawString(emptyString, 0, 33);
          }

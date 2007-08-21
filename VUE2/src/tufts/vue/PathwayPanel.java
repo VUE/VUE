@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.99 $ / $Date: 2007-08-21 14:29:59 $ / $Author: mike $
+ * @version $Revision: 1.100 $ / $Date: 2007-08-21 15:10:17 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -220,7 +220,7 @@ public class PathwayPanel extends JPanel
         GridBagConstraints c = new GridBagConstraints();
         setLayout(bag);
         
-        c.insets = new Insets(1,45,1,1);                
+        c.insets = new Insets(1,30,1,1);                
         c.weightx = 1.0; // make sure everything can fill to width
         c.anchor=GridBagConstraints.WEST;
         c.gridx=0;
@@ -237,6 +237,7 @@ public class PathwayPanel extends JPanel
         c.gridheight=1;
         c.gridwidth=1;
         JLabel createPres = new JLabel(VueResources.getString("presentationDiaaog.presentationName.text"));
+        createPres.setFont(smallFont);
         add(createPres,c);
 
 
@@ -252,7 +253,7 @@ public class PathwayPanel extends JPanel
         lblPlay.setLabelFor(btnPlay);
         
         add(btnPlay,c);
-        c.insets = new Insets(1,1,1,45);        
+        c.insets = new Insets(1,1,1,30);        
         c.gridwidth = GridBagConstraints.REMAINDER; // put everything in one column
         c.weightx = 1.0; // make sure everything can fill to width
         c.anchor=GridBagConstraints.EAST;        
@@ -260,6 +261,7 @@ public class PathwayPanel extends JPanel
         c.gridwidth=1;
         c.gridy=0;
         c.gridx=3;
+        lblPlay.setFont(smallFont);
         add(lblPlay,c);
         
         c.anchor=GridBagConstraints.CENTER;
