@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.476 $ / $Date: 2007-08-21 18:24:02 $ / $Author: mike $ 
+ * @version $Revision: 1.477 $ / $Date: 2007-08-22 15:00:46 $ / $Author: dan $ 
  */
 
 public class VUE
@@ -809,10 +809,7 @@ public class VUE
 
         MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
         mapInspectorPanel = new MapInspectorPanel();
-        if(InspectorPane.META_VERSION == InspectorPane.NEW)
-          MapInspector.setContent(new edu.tufts.vue.metadata.ui.MetadataSearchGUI());
-        else
-          MapInspector.setContent(mapInspectorPanel);
+        MapInspector.setContent(mapInspectorPanel);
         
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector

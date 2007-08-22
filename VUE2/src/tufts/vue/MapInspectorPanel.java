@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.51 $ / $Date: 2007-05-10 00:05:17 $ / $Author: sfraize $ 
+ * @version $Revision: 1.52 $ / $Date: 2007-08-22 15:00:46 $ / $Author: dan $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -72,7 +72,6 @@ public class MapInspectorPanel extends JPanel
         mTabbedPane = new JTabbedPane();
         VueResources.initComponent( mTabbedPane, "tabPane");
         
-        
         mInfoPanel = new InfoPanel();
         //mPathPanel = new PathwayPane();
         mFilterApplyPanel = new FilterApplyPanel();
@@ -81,8 +80,12 @@ public class MapInspectorPanel extends JPanel
         
         mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         //mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
-        mTabbedPane.addTab( mFilterApplyPanel.getName(), mFilterApplyPanel);
-        mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
+        if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
+        {
+          mTabbedPane.addTab( mFilterApplyPanel.getName(), mFilterApplyPanel);
+          mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
+        }
+        
         // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
         
         add( BorderLayout.CENTER, mTabbedPane );
@@ -276,7 +279,10 @@ public class MapInspectorPanel extends JPanel
             linePanel.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
             propertiesEditor = new PropertiesEditor(true);
             JPanel metadataPanel = new JPanel(new BorderLayout());
-            metadataPanel.add(propertiesEditor,BorderLayout.CENTER);
+            if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
+            {
+              metadataPanel.add(propertiesEditor,BorderLayout.CENTER);
+            }
             //metadataPanel.setBorder(BorderFactory.createEmptyBorder(0,9,0,6));
             
             c.weighty = 1.0;

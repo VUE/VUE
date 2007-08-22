@@ -281,8 +281,19 @@ public class Actions implements VueConstants
     public static final Action SearchFilterAction =
         new VueAction("Search") {
             public void act() {
-            	VUE.getMapInfoDock().setVisible(true);
-            	VUE.getMapInspectorPanel().activateFilterTab();
+                if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
+                {    
+            	  VUE.getMapInfoDock().setVisible(true);
+            	  VUE.getMapInspectorPanel().activateFilterTab();
+                }
+                else
+                {
+                  tufts.vue.gui.DockWindow SearchWindow = tufts.vue.gui.GUI.createDockWindow("Search");
+                  //tufts.vue.gui.DockWindow SearchWindow = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("searchWindowTitle"));
+                  SearchWindow.setContent(new edu.tufts.vue.metadata.ui.MetadataSearchGUI());
+                  SearchWindow.setLocation(200,200);
+                  SearchWindow.setVisible(true);
+                }
             }
         };
 

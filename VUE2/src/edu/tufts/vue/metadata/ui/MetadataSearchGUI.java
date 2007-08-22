@@ -23,6 +23,7 @@ import java.awt.BorderLayout;
 import java.awt.event.*;
 import java.net.*;
 import javax.swing.*;
+import javax.swing.table.*;
 import tufts.vue.*;
 
 import java.util.*;
@@ -40,15 +41,40 @@ import java.util.*;
  */
 public class MetadataSearchGUI extends JPanel {
     
+    public static final int ONE_LINE = 0;
+    
+    //ONE_LINE
     private JTextField searchField;
     private JTable searchTable;
     private JButton searchButton;
     private List<URI> found = null;
     private List<List<URI>> finds = null;
     
+    //TEXT FIELD BASED
+    private JPanel optionsPanel;
+    private JComboBox searchTypesChoice;
+    private String[] searchTypes = {"Basic","Categories","Advanced"};
+    
+    private JPanel fieldsPanel;
+    private JTable searchTermsTable;
+
+    
     public MetadataSearchGUI() 
     {
         setUpOneLineSearch();      
+    }
+    
+    public MetadataSearchGUI(int type)
+    {
+        if(type == ONE_LINE)
+        {
+           setUpOneLineSearch();
+        }
+        else
+        {
+           setUpFieldsSearch();
+        }
+        
     }
     
     public void setUpOneLineSearch()
@@ -64,6 +90,44 @@ public class MetadataSearchGUI extends JPanel {
         buttonPanel.add(BorderLayout.EAST,searchButton);
         add(BorderLayout.NORTH,searchField);
         add(buttonPanel);
+    }
+    
+    public void setUpFieldsSearch()
+    {
+        setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
+        optionsPanel = new JPanel();
+        fieldsPanel = new JPanel();
+        
+        searchTypesChoice = new JComboBox(searchTypes);
+        
+        
+        searchTermsTable = new JTable(new SearchTermsTableModel());
+        
+        
+        add(optionsPanel);
+        add(fieldsPanel);
+    }
+    
+    class SearchTermsTableModel extends AbstractTableModel
+    {
+        
+        //public List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+        
+        public int getRowCount()
+        {
+            return 0;
+        }
+        
+        public int getColumnCount()
+        {
+            return 0;
+        }
+        
+        public Object getValueAt(int row,int col)
+        {
+            return null;
+        }
+        
     }
         
 }

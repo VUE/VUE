@@ -89,19 +89,26 @@ public class AnalyzeCM extends VueAction {
         }*/
         
         
-        if(w==null)
+        int MMC_VERSION = 1;
+        
+        if(MMC_VERSION == 1)
         {
-          w = tufts.vue.gui.GUI.createDockWindow("Merge Maps");
-          w.setLocation(200,200);
-          edu.tufts.vue.compare.ui.MergeMapsControlPanel mmcp = new edu.tufts.vue.compare.ui.MergeMapsControlPanel(w);
+          if(w==null)
+          {
+            w = tufts.vue.gui.GUI.createDockWindow("Merge Maps");
+            w.setLocation(200,200);
+            edu.tufts.vue.compare.ui.MergeMapsControlPanel mmcp = new edu.tufts.vue.compare.ui.MergeMapsControlPanel(w);
+          }
+          else
+            w.setVisible(true);
         }
-        else
-          w.setVisible(true);
         
-     /*   tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
-        
-        if(w==null)
+        if(MMC_VERSION == 0)
         {
+          tufts.vue.gui.DockWindow w = MergeMapsChooser.getDockWindow();
+        
+          if(w==null)
+          {
            mmc = new MergeMapsChooser();
            w = tufts.vue.gui.GUI.createDockWindow("Merge Maps",mmc);
            MergeMapsChooser.setDockWindow(w); 
@@ -110,17 +117,18 @@ public class AnalyzeCM extends VueAction {
                  //MergeMapsChooser.loadDefaultStyle();
                  //mmc.refreshSettings();
            //$
-        }
+          }
         
-        if(!w.isVisible())
-        {
-          if(!(VUE.getActiveMap() instanceof LWMergeMap))
+          if(!w.isVisible())
+          {
+            if(!(VUE.getActiveMap() instanceof LWMergeMap))
             MergeMapsChooser.loadDefaultStyle();
-          mmc.refreshSettings();
-          w.setLocation(200,200);
-          w.pack();
-          w.setVisible(true);
-        } */
+            mmc.refreshSettings();
+            w.setLocation(200,200);
+            w.pack();
+            w.setVisible(true);
+          } 
+        }
                 
     }
     
