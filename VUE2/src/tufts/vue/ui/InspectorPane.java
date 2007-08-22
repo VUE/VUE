@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.ui.MetadataEditor;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-08-22 15:00:45 $ / $Author: dan $
+ * @version $Revision: 1.41 $ / $Date: 2007-08-22 15:26:03 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -49,7 +49,7 @@ public class InspectorPane extends JPanel
     
     public static int OLD = 0;
     public static int NEW = 1;
-    public static final int META_VERSION = NEW; 
+    public static final int META_VERSION = VueResources.getInt("metadata.version");
     
     private final Image NoImage = VueResources.getImage("NoImage");
 
@@ -90,6 +90,7 @@ public class InspectorPane extends JPanel
         }
         else
         {
+          // Previously experimented with "Tags" here
           stack.addPane("Keywords",               mUserMetaData,          1f);  
         }
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
