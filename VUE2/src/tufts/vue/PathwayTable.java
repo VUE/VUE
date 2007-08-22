@@ -60,7 +60,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.77 $ / $Date: 2007-08-22 16:13:16 $ / $Author: mike $
+ * @version $Revision: 1.78 $ / $Date: 2007-08-22 18:02:39 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -130,6 +130,7 @@ public class PathwayTable extends JTable
         this.setGridColor(Color.lightGray);
         this.setIntercellSpacing(new Dimension(0,1));
         this.setBackground(BGColor);
+        
        // this.setIgnoreRepaint(true);
         //this.setSelectionBackground(SelectedBGColor);
      //   this.setDragEnabled(true);
@@ -489,6 +490,7 @@ public class PathwayTable extends JTable
     }
     private class LabelRenderer extends DefaultTableCellRenderer{
         
+    	
         public java.awt.Component getTableCellRendererComponent(
                                     javax.swing.JTable jTable, 
                                     Object value, 
@@ -529,12 +531,13 @@ public class PathwayTable extends JTable
                   }
             	  else
             	  {
-            		  final LWPathway p = entry.pathway;
+            		 // final LWPathway p = entry.pathway;
             		  if (entry.pathway.getEntries().isEmpty())
             		  {
             			  if (entry.pathway.getEntries().isEmpty())
                       		emptyString = "This presentation is empty";
-                      //	  setRowHeight(row, 40);            			
+            			  if (getRowHeight(row) != 40)
+            				  setRowHeight(row, 40);            			
             			  gl = new GradientLabel(entry.pathway,emptyString);
             			
             		  }
@@ -552,7 +555,7 @@ public class PathwayTable extends JTable
             	this.setOpaque(false);
                 gl.setLayout(new BorderLayout());
                 gl.add(this,BorderLayout.NORTH);
-       		 
+       		 	
                 return gl;
             }
             else {
