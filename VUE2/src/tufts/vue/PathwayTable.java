@@ -60,7 +60,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.76 $ / $Date: 2007-08-21 15:10:17 $ / $Author: mike $
+ * @version $Revision: 1.77 $ / $Date: 2007-08-22 16:13:16 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -121,16 +121,16 @@ public class PathwayTable extends JTable
         this.eyeClosed = VueResources.getImageIcon("pathwayOff");
         this.mapViewIcon = VueResources.getImageIcon("mapView");
         this.slideViewIcon = VueResources.getImageIcon("slideView");
-        this.setDoubleBuffered(true);
+       // this.setDoubleBuffered(true);
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
         this.setShowVerticalLines(false);        
        this.setShowHorizontalLines(true);
-      //  this.setGridColor(Color.lightGray);
+        this.setGridColor(Color.lightGray);
         this.setIntercellSpacing(new Dimension(0,1));
         this.setBackground(BGColor);
-        this.setIgnoreRepaint(true);
+       // this.setIgnoreRepaint(true);
         //this.setSelectionBackground(SelectedBGColor);
      //   this.setDragEnabled(true);
         
@@ -534,9 +534,9 @@ public class PathwayTable extends JTable
             		  {
             			  if (entry.pathway.getEntries().isEmpty())
                       		emptyString = "This presentation is empty";
-                      	
+                      //	  setRowHeight(row, 40);            			
             			  gl = new GradientLabel(entry.pathway,emptyString);
-            			  setRowHeight(row, 40);            			
+            			
             		  }
             		  /*if (p == VUE.getActivePathway())
                     	setBackground(Color.red);
@@ -669,7 +669,8 @@ public class PathwayTable extends JTable
                g2.fillRoundRect(2, 2, getWidth()-8, 20-4,7,7);
                g2.setColor(Color.gray);
                g2.drawRoundRect(2, 2, getWidth()-8, 20-4,7,7);
-             }                                
+             }              
+           //  super.paintComponent(g2);
          }
 
          private void paintGradient(Graphics2D g)
