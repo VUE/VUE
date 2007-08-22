@@ -307,7 +307,7 @@ public class CategoryEditor extends JPanel
                            CategoryModel cats = tufts.vue.VUE.getCategoryModel();
                            cats.addCustomCategory(label.getText());
                            // comment out for now -- produces error
-                           //cats.saveCustomOntology();
+                           cats.saveCustomOntology();
                        }
                    }
                 });
