@@ -732,26 +732,35 @@ public class Util
     }
 
     
-    public static java.util.Iterator EmptyIterator = new java.util.Iterator() {
+    public static final java.util.Iterator EmptyIterator = new java.util.Iterator() {
             public boolean hasNext() { return false; }
             public Object next() { throw new NoSuchElementException(); }
             public void remove() { throw new UnsupportedOperationException(); }
+            public String toString() { return "EmptyIterator"; }
         };
 
+    public static final Iterable EmptyIterable = new Iterable() {
+            public Iterator iterator() { return EmptyIterator; }
+            public String toString() { return "EmptyIterable"; }
+        };
+    
+
     /** Convenience class: provides a single element iterator */
-    public static class SingleIterator implements java.util.Iterator, Iterable {
-        private Object object;
-        public SingleIterator(Object o) {
+    public static final class SingleIterator<T> implements java.util.Iterator<T>, Iterable<T> {
+        private T object;
+        public SingleIterator(T o) {
             object = o;
         }
         public boolean hasNext() { return object != null; }
-        public Object next() { if (object == null) throw new NoSuchElementException(); Object o = object; object = null; return o; }
+        public T next() { if (object == null) throw new NoSuchElementException(); T o = object; object = null; return o; }
         public void remove() { throw new UnsupportedOperationException(); }
-        public Iterator iterator() { return this; }
+        public Iterator<T> iterator() { return this; }
+        public String toString() { return "SingleIterator[" + object + "]"; }
+        
     };
     
     /** Convenience class: provides an array iterator */
-    public static class ArrayIterator implements java.util.Iterator, Iterable {
+    public static final class ArrayIterator implements java.util.Iterator, Iterable {
         private Object[] array;
         private int index;
         public ArrayIterator(Object[] a) {
@@ -766,7 +775,7 @@ public class Util
 
     /** GroupIterator allows you to construct a new iterator that
      * will aggregate an underlying set of Iterators and/or Collections */
-    public static class GroupIterator extends java.util.ArrayList
+    public static final class GroupIterator extends java.util.ArrayList
         implements java.util.Iterator, Iterable
     {
         int iterIndex = 0;
@@ -968,6 +977,39 @@ public class Util
 			 (int)(c.getGreen()*factor),
 			 (int)(c.getBlue() *factor));
     }
+
+
+    public static final float brightness(java.awt.Color c) {
+            
+        if (c == null)
+            return 0;
+
+        final int r = c.getRed();
+        final int g = c.getGreen();
+        final int b = c.getBlue();
+
+        int max = (r > g) ? r : g;
+        if (b > max) max = b;
+            
+        return ((float) max) / 255f;
+    }
+        
+    /** @return a new color, which is a mix a given color with alpha, plus another NON alpha color */
+    // ... wouldn't take much more to mix multiple alpha's, tho normally some color at bottom should
+    // always be non-alpha
+    public static final Color alphaMix(java.awt.Color ac, java.awt.Color c) {
+        final float r = ac.getRed();
+        final float g = ac.getGreen();
+        final float b = ac.getBlue();
+        final float alpha = ac.getAlpha();
+        final float mix = 255 - alpha;
+
+        return new Color((int) ( (r * alpha + mix * c.getRed()  ) / 255f + 0.5f ),
+                         (int) ( (g * alpha + mix * c.getGreen()) / 255f + 0.5f ),
+                         (int) ( (b * alpha + mix * c.getBlue() ) / 255f + 0.5f ));
+        }
+
+    
 
 
     /** a JPanel that anti-aliases text */
@@ -1191,11 +1233,13 @@ public class Util
             r = (Rectangle2D) shape;
             name = "Rect";
         } else {
-            name = "Shape";
-            if (shape == null)
+            if (shape == null) {
+                name = "Shape";
                 r = null;
-            else
+            } else {
+                name = shape.getClass().getName();
                 r = shape.getBounds2D();
+            }
         }
         
         return shape == null
@@ -1207,11 +1251,28 @@ public class Util
         
     }
 
+    public static String fmt(final java.awt.Color c) {
+        if (c == null)
+            return "<null-Color>";
+        
+        if (c.getAlpha() != 0xFF)
+            return String.format("Color(%d,%d,%d,%d)", c.getRed(), c.getGreen(), c.getBlue(), c.getAlpha());
+        else
+            return String.format("Color(%d,%d,%d)", c.getRed(), c.getGreen(), c.getBlue());
+    }
+
     public static String fmt(java.awt.geom.Point2D p) {
         if (p == null)
             return "<null-Point2D>";
         else
             return String.format("%.1f,%.1f", p.getX(), p.getY());
+    }
+
+    public static String fmt(java.awt.geom.Line2D l) {
+        if (l == null)
+            return "<null-Line2D>";
+        else
+            return String.format("%.1f,%.1f -> %.1f,%.1f", l.getX1(), l.getY1(), l.getX2(), l.getY2());
     }
     
 
@@ -1464,6 +1525,8 @@ public class Util
             
         }
         }}
+
+        //System.exit(-1); // e.g.: enable for debugging severe stack overflows
     }
 
     private static boolean includeInTrace(StackTraceElement trace, String prefix) {
