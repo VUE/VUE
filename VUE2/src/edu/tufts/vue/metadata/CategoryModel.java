@@ -35,6 +35,8 @@ import com.hp.hpl.jena.ontology.*;
 
 public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
     public static final String CUSTOM_METADATA_FILE = tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+tufts.vue.VueResources.getString("metadata.custom.file");
+    public static final String ONT_SEPARATOR = "#";
+    
     int ontTypesCount = 0;
     private static Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>();
     private edu.tufts.vue.ontology.Ontology customOntology;
@@ -90,11 +92,12 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
         try {
             OntModel m = ModelFactory.createOntologyModel(OntModelSpec.RDFS_MEM,null);
             for(OntType ontType: customOntology.getOntTypes()) {
-                m.createClass(ontType.getLabel());
+                m.createClass(customOntology.getBase()+ONT_SEPARATOR+ontType.getLabel());
             }
             m.write(new BufferedWriter(new FileWriter(CUSTOM_METADATA_FILE)));
         }catch(Throwable t) {
             tufts.vue.VUE.Log.error("Problem saving custom metadata - Error:"+t.getMessage());
+            t.printStackTrace();
         }
     }
     private void loadCustomOntology(boolean flag)  {
@@ -110,7 +113,10 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
                 add(customOntology);
             }
         } catch(Throwable t) {
-            tufts.vue.VUE.Log.error("Problem loading custom metadata - Error:"+t.getMessage());
+            customOntology = new RDFSOntology();
+            customOntology.setBase(CUSTOM_METADATA_FILE);
+            tufts.vue.VUE.Log.error("Problem loading custom metadata, creating new one - Error:"+t.getMessage());
+           
         }
     }
 }
