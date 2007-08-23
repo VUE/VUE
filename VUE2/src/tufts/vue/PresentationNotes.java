@@ -122,15 +122,16 @@ System.out.println(scale  + " zoom factor...");
                 LWSlide slide = entry.getSlide();
                 PdfContentByte cb = writer.getDirectContent();
                 //cb.cr
-                PdfTemplate tp = PdfTemplate.createTemplate(writer, document.getPageSize().width()-70, document.getPageSize().height()-70);
+                PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-70, document.getPageSize().height()-70);
                 //PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
                 Graphics2D g2d = tp.createGraphics(document.getPageSize().width()-70, document.getPageSize().height()-70, new DefaultFontMapper(),false,100.0f);
                 DrawContext dc = new DrawContext(g2d,0.90); 
-                dc.setClipOptimized(false);
+                dc.setClipOptimized(false); 
                 slide.drawZero(dc);                                                                                            
-                                                                                                                         
-                document.add(Image.getInstance(tp));
-                
+                g2d.dispose();                                                                                                         
+                //document.add(Image.getInstance(tp));
+                cb.addTemplate(tp, 35, 35);
+                //document.newPage();
                 document.newPage();
             
                 
