@@ -204,6 +204,31 @@ public class MetadataSearchGUI extends JPanel {
         }
     }
     
+    public void findCategory(Object currValue,int row,int col,JComboBox categories)
+    {
+   
+        int n = categories.getModel().getSize();
+        for(int i=0;i<n;i++)
+        {
+                   
+           Object item = categories.getModel().getElementAt(i);
+           String currLabel = "";
+           if(currValue instanceof OntType)
+              currLabel = ((OntType)currValue).getLabel();
+           else
+              currLabel = currValue.toString();
+                  
+                   
+           if(item instanceof OntType && ((OntType)item).getLabel().equals(currLabel))
+           {
+              categories.setSelectedIndex(i);
+           }
+                   
+        }
+               
+    }
+
+    
     public java.awt.Component createRendererComponent(Object value,final int row,int col)
     {   
            JPanel comp = new JPanel();
@@ -222,13 +247,10 @@ public class MetadataSearchGUI extends JPanel {
                     {
                         VueMetadataElement newElement = new VueMetadataElement();
                         newElement.setType(VueMetadataElement.CATEGORY);
-                        String[] newTerm = {"Tag",field.getText()};
+                        System.out.println("key: " + ((String[])searchTerms.get(row).getObject())[0]);
+                        String[] newTerm = {((String[])searchTerms.get(row).getObject())[0],field.getText()};
                         searchTerm.setObject(newTerm);
-                        //((String[])searchTerm)[1] = field.getText();
-                        // todo: also save category at this point?
                     }
-                    System.out.println("focus lost: " + ((String[])searchTerms.get(row).getObject())[1]);
-                    System.out.println("focus lost -- get value " + searchTerms.get(row).getValue());
                 }
              });
              field.setText(value.toString());
@@ -263,6 +285,12 @@ public class MetadataSearchGUI extends JPanel {
                 }
              });
              
+             Object currValueObject = searchTerms.get(row).getObject();
+             if(currValueObject instanceof String[])
+             {    
+               findCategory(((String[])searchTerms.get(row).getObject())[0],row,col,categories);
+             }
+             
              comp.add(categories);
            }
            else
@@ -280,61 +308,6 @@ public class MetadataSearchGUI extends JPanel {
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
           
            return comp;
-           /*if(col == buttonColumn-2)
-           {
-               int n = categories.getModel().getSize();
-               
-               if(current.getMetadataList().getMetadata().size() <= row)
-               {
-                   comp.add(categories);
-                   return comp;
-               }
-               
-               
-               Object currObject = current.getMetadataList().getMetadata().get(row).getObject();//table.getModel().getValueAt(row,col);
-               if(!(currObject instanceof String[]))
-               {
-                   comp.add(categories);
-                   return comp;
-               }
-               Object currValue = /*(edu.tufts.vue.ontology.OntType)*///(((String[])currObject)[0]);
-               /*findCategory(currValue,row,col,n,categories); 
-              
-               comp.add(categories); 
-           }
-           else if(col == buttonColumn-1)
-           {
-               if(value instanceof OntType)
-               {
-                 comp.add(new JLabel(((OntType)value).getLabel()));
-               }
-               else
-               if(value instanceof VueMetadataElement)
-               {
-                   VueMetadataElement vme = (VueMetadataElement)value;
-                   if(vme.getType() == VueMetadataElement.CATEGORY)
-                   {
-                      comp.add(new JTextField(vme.getValue()));
-                   }
-               }
-               else
-                 comp.add(new JTextField(value.toString()));
-           }
-           else if(col == buttonColumn)               
-           {
-               JLabel buttonLabel = new JLabel();
-               buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
-               comp.add(buttonLabel);
-           }
-           
-           comp.setOpaque(false);
-           comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
-           
-           //comp.setOpaque(true);
-           //comp.setBackground(java.awt.Color.BLUE);
-           
-           return comp; */
-
     }
     
     class SearchTermsTableHeaderRenderer extends DefaultTableCellRenderer
