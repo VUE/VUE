@@ -52,8 +52,23 @@ public class SearchAction extends AbstractAction {
                 index.index(VUE.getActiveMap());
             }
         };
-        t.start();
+        t.start(); 
+    }
+    
+    public SearchAction(java.util.List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms)
+    {
         
+    }
+    
+    /**
+     *
+     * could help for easy creation/synch of text field in toolbar 
+     * from multiple field based version of search window
+     * preferably: use previous method instead
+     *
+     **/
+    public SearchAction(String[] searchTerms)
+    {
         
     }
     
