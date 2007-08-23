@@ -47,7 +47,9 @@ public class RDFIndex extends ModelCom {
     com.hp.hpl.jena.rdf.model.Property labelOf = createProperty(VUE_ONTOLOGY,Constants.LABEL);
     com.hp.hpl.jena.rdf.model.Property childOf = createProperty(VUE_ONTOLOGY,Constants.CHILD);
     com.hp.hpl.jena.rdf.model.Property authorOf = createProperty(VUE_ONTOLOGY,Constants.AUTHOR);
+    com.hp.hpl.jena.rdf.model.Property colorOf = createProperty(VUE_ONTOLOGY,Constants.COLOR);
     com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
+    
     private static RDFIndex defaultIndex;
     private boolean isAutoIndexing = AUTO_INDEX;
     private  com.hp.hpl.jena.query.Query query;
@@ -141,6 +143,9 @@ public class RDFIndex extends ModelCom {
             if(component.getLabel() != null){
                 addProperty(r,labelOf,component.getLabel());
             }
+            if(component.getXMLfillColor() != null) {
+                addProperty(r,colorOf,component.getXMLfillColor());
+            } 
             com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
             
             addStatement(statement);
