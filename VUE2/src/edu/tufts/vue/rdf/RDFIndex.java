@@ -127,6 +127,10 @@ public class RDFIndex extends ModelCom {
         return r;
     }
     
+    public List<URI> search(Query query) {
+        return search(query.createSPARQLQuery());
+    }
+    
     public void save() {
         
     }

@@ -32,15 +32,22 @@ import java.util.*;
 
 public class Query  {
     public enum Operation { AND , OR }
+    public enum Qualifier {STARTS_WITH, CONTAINS,MATCH, WITHOUT,MATCH_CASE};
     private boolean regex = true;
     private Operation oper  = Operation.AND;
-    private Map<String,String> criteria = new HashMap<String,String>();
+    //private Map<String,String> criteria = new HashMap<String,String>();
+    private  List<Criteria> criteriaList = new ArrayList<Criteria>();
     /** Creates a new instance of Query */
     public Query() {
     }
     
     public void addCriteria(String key,String value) {
-        criteria.put(key,value);
+        Criteria criteria = new Criteria(key,value);
+        criteriaList.add(criteria);
+    }
+    
+    public void addCriteria(){
+        
     }
     
     public String createSPARQLQuery() {
@@ -48,11 +55,37 @@ public class Query  {
         query =  "PREFIX vue: <"+RDFIndex.VUE_ONTOLOGY+">"+
                 "SELECT ?resource ?keyword " +
                 "WHERE{";
-        for(String key: criteria.keySet()) {
-            query +=  "?resource "+key+" ?keyword FILTER regex(?keyword,\""+criteria.get(key)+ "\") .";
+        for(Criteria criteria: criteriaList) {
+            switch(criteria.qualifier)  {
+                case CONTAINS:
+                    query +=  "?resource "+criteria.key+" ?keyword FILTER regex(?keyword,\""+criteria.value+ "\") .";
+                    break;
+                case MATCH_CASE:
+                    query +=  "?resource "+criteria.key+" "+criteria.value+ "\") .";
+                    break;
+                case STARTS_WITH:
+                    query +=  "?resource "+criteria.key+" ?keyword FILTER regex(?keyword,\"^"+criteria.value+ "\") .";
+                    break;
+                    
+            }
         }
         query  = "}";
         return query;
+    }
+    
+    class Criteria {
+        String key;
+        Qualifier qualifier;
+        String value;
+        public Criteria(String key, String value) {
+            this(key,value,Qualifier.CONTAINS);
+        }
+        
+        public Criteria(String key, String value, Qualifier qualifier) {
+            this.key = key;
+            this.value = value;
+            this.qualifier  =     qualifier;
+        }
     }
     
 }
