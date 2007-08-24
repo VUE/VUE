@@ -658,6 +658,39 @@ public class Actions implements VueConstants
         //public void act() { VUE.ObjectInspector.setVisible(true); }
     };
     
+    public static final LWCAction AddImageAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addImage.label")) {
+        public void act(LWComponent c) 
+        {
+        	JFileChooser chooser = new JFileChooser();
+    		File fileName = null;
+    		
+            int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
+            if (option == JFileChooser.APPROVE_OPTION) 
+            {
+                fileName = chooser.getSelectedFile();
+
+                if (fileName == null) 
+                	return;
+
+                //if(!pdfFileName.getName().endsWith(".pdf")) 
+                //	pdfFileName = new File(pdfFileName.getAbsoluteFile()+".pdf");                	
+                
+                //if (pdfFileName.exists()) {
+                 //   int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + pdfFileName.getName() + "\'", 
+                 //           VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                 //                         
+                //}
+                //LWNode node = NodeModeTool.createNewNode();
+                LWImage image= new LWImage();
+                
+                image.setResource(new URLResource(fileName.getAbsolutePath()));
+                //node.addChild(image);
+                c.addChild(image);
+            }
+        	
+        }
+    };
+
     public static final Action NotesAction = new VueAction(VueResources.getString("mapViewer.componentMenu.notes.label")) {
         public void act() {        	
         	
