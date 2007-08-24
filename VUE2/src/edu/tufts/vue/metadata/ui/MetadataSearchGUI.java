@@ -108,7 +108,7 @@ public class MetadataSearchGUI extends JPanel {
     public void setUpFieldsSearch()
     {
         setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-        optionsPanel = new JPanel();
+        optionsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
         fieldsPanel = new JPanel(new java.awt.BorderLayout());
         
         
