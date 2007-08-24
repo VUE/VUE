@@ -25,7 +25,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.45 $ / $Date: 2007-08-16 11:38:40 $ / $Author: mike $
+ * @version $Revision: 1.46 $ / $Date: 2007-08-24 17:20:09 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -156,7 +156,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         pdfExportMenu.add(Actions.PresentationNotes);
         pdfExportMenu.add(Actions.AudienceNotes);
         pdfExportMenu.add(Actions.FullPageSlideNotes);
-    //    pdfExportMenu.add(Actions.MapAsPDF);
+        pdfExportMenu.add(Actions.MapAsPDF);
         fileMenu.add(pdfExportMenu);
                
         fileMenu.addSeparator();

@@ -170,7 +170,7 @@ public class Actions implements VueConstants
 				tufts.vue.PresentationNotes.createPresentationSlidesNotes(pdfFile);
 		}
     };
-    /*
+    
     public static final VueAction MapAsPDF =
     	new VueAction("Map") {
 		public void act() 
@@ -179,7 +179,7 @@ public class Actions implements VueConstants
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createMapAsPDF(pdfFile);
 		}
-    };*/
+    };
     //-------------------------------------------------------
     // Selection actions
     //-------------------------------------------------------

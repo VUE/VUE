@@ -28,7 +28,7 @@ import com.lowagie.text.pdf.PdfTemplate;
 import com.lowagie.text.pdf.PdfWriter;
 
 public class PresentationNotes {
-/*
+
 	public static void createMapAsPDF(File file)
 	{
         // step 1: creation of a document-object
@@ -45,18 +45,14 @@ public class PresentationNotes {
             
             document.open();            
             
+
             PdfContentByte cb = writer.getDirectContent();
 
-            PdfTemplate tp = PdfTemplate.createTemplate(writer, document.getPageSize().width()-70, document.getPageSize().height()-70);            
-            Graphics2D g2d = tp.createGraphics(document.getPageSize().width()-70, document.getPageSize().height()-70, new DefaultFontMapper(),false,100.0f);
-                       
+            PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-70, document.getPageSize().height()-70);
 
-
-
-
+            Graphics2D g2d = tp.createGraphics(document.getPageSize().width()-70, document.getPageSize().height()-70, new DefaultFontMapper(),false,100.0f);                                   
             
-            
-            Dimension page = new Dimension((int)document.getPageSize().getWidth(),(int)document.getPageSize().getHeight());
+            Dimension page = new Dimension((int)document.getPageSize().width()-70,(int)document.getPageSize().getHeight()-70);
             // compute zoom & offset for visible map components
             Point2D.Float offset = new Point2D.Float();
             // center vertically only if landscape mode
@@ -64,7 +60,7 @@ public class PresentationNotes {
             //TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
             Rectangle2D bounds = VUE.getActiveMap().getBounds();
             double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
-System.out.println(scale  + " zoom factor...");
+            System.out.println(scale  + " zoom factor...");
             // set up the DrawContext
             DrawContext dc = new DrawContext(g2d,
                       scale,
@@ -79,11 +75,9 @@ System.out.println(scale  + " zoom factor...");
             dc.setClipOptimized(false);
 
             VUE.getActiveMap().drawZero(dc);
-            tp.setRGBColorStrokeF(255f, 0f, 0f);
-            tp.circle(250f, 100f, 80f);
-            tp.stroke();
-
-            document.add(Image.getInstance(tp));
+            g2d.dispose();
+            
+            cb.addTemplate(tp,35,35);
             document.newPage();
                                                           
         }
@@ -97,7 +91,7 @@ System.out.println(scale  + " zoom factor...");
         // step 5: we close the document
         document.close();
     }
-    */			
+			
 	public static void createPresentationSlidesNotes(File file)
 	{
         // step 1: creation of a document-object
@@ -110,8 +104,7 @@ System.out.println(scale  + " zoom factor...");
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
             writer.setDefaultColorspace(PdfName.DEFAULTRGB, null);
             writer.setStrictImageSequence(true);
-            PdfPTable table;
-            PdfPCell cell;    
+                
             // step 3: we open the document
             
             document.open();            
