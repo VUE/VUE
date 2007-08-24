@@ -62,12 +62,16 @@ public class VueMetadataElement {
            value = ((String[])obj)[1];
            key = VUE_ONT + "#" + ((String[])obj)[0];
        }
-       else
+       else if(obj instanceof OntType)
        {
            type = ONTO_TYPE;
            OntType type = (OntType)(obj);
            value = type.getBase() + "#" + type.getLabel();
            key = VUE_ONT+"#ontoType";
+       }
+       else
+       {
+           type = TAG;
        }
    }
    
@@ -98,6 +102,13 @@ public class VueMetadataElement {
    public void setType(int type)
    {
        this.type = type;
+       if( (type == CATEGORY) && (obj == null) )
+       {
+           int len = (VUE_ONT + "#").length();
+           String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+           obj = pairedValue;
+           System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
+       }
    }
    
    public int getType()
