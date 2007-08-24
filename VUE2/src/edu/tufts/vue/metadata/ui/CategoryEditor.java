@@ -64,7 +64,7 @@ public class CategoryEditor extends JPanel
         metadataSetTable.setDefaultRenderer(java.lang.Object.class,new SetTableRenderer());
         metadataSetTable.setDefaultEditor(java.lang.Object.class,new SetTableEditor());
         setPanel.add(metadataSetTable);
-        customPanel = new JPanel();
+        customPanel = new JPanel(new java.awt.BorderLayout());
         customCategoryTable = new JTable(new MetadataCategoryTableModel());
         customCategoryTable.setDefaultRenderer(java.lang.Object.class,new CustomCategoryTableRenderer());
         customCategoryTable.setDefaultEditor(java.lang.Object.class,new CustomCategoryTableEditor());
@@ -112,7 +112,7 @@ public class CategoryEditor extends JPanel
         customPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
 
         customPanel.add(scroll);
-        add(setPanel);
+        //add(setPanel);
         // todo: add separator
         add(customPanel);
         

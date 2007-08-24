@@ -52,8 +52,6 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     private JScrollPane scroll;
     private tufts.vue.LWComponent current;
     
-    //private String[] dublinCoreTemp = {"Tag","Creator","Description","User-Custom"};
-    
     private int buttonColumn = 1;
     
     public MetadataEditor(tufts.vue.LWComponent current)
@@ -75,8 +73,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                          //System.out.println("metadata: mouse pressed" + evt);
                          VueMetadataElement vme = new VueMetadataElement();
                          String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
-                         vme.setType(VueMetadataElement.CATEGORY);
                          vme.setObject(emptyEntry);
+                         vme.setType(VueMetadataElement.CATEGORY);
                          //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
                          MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
                          ((MetadataTableModel)metadataTable.getModel()).refresh();
@@ -296,7 +294,6 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     class MetadataTableRenderer extends DefaultTableCellRenderer
     {   
-       //private JComboBox categories = new JComboBox(dublinCoreTemp);
         
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {

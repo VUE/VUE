@@ -78,6 +78,7 @@ public class MetadataSearchGUI extends JPanel {
     
     public MetadataSearchGUI(int type)
     {
+        
         if(type == ONE_LINE)
         {
            setUpOneLineSearch();
@@ -108,7 +109,15 @@ public class MetadataSearchGUI extends JPanel {
     {
         setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         optionsPanel = new JPanel();
-        fieldsPanel = new JPanel();
+        fieldsPanel = new JPanel(new java.awt.BorderLayout());
+        
+        
+         /*VueMetadataElement newElement = new VueMetadataElement();
+         String pairedObject[] = {"Tag",""};
+         newElement.setObject(pairedObject);
+         newElement.setType(VueMetadataElement.CATEGORY);
+         searchTerms.add(newElement);*/
+               //((SearchTermsTableModel)searchTermsTable.getModel()).refresh();
         
         searchTypesChoice = new JComboBox(searchTypes);
         final JLabel optionsLabel = new JLabel("show options");
@@ -246,10 +255,9 @@ public class MetadataSearchGUI extends JPanel {
                     if(searchTerm.getObject() instanceof String[])
                     {
                         VueMetadataElement newElement = new VueMetadataElement();
-                        newElement.setType(VueMetadataElement.CATEGORY);
-                        System.out.println("key: " + ((String[])searchTerms.get(row).getObject())[0]);
                         String[] newTerm = {((String[])searchTerms.get(row).getObject())[0],field.getText()};
                         searchTerm.setObject(newTerm);
+                        newElement.setType(VueMetadataElement.CATEGORY);
                     }
                 }
              });
@@ -278,9 +286,7 @@ public class MetadataSearchGUI extends JPanel {
                         ele.setType(VueMetadataElement.CATEGORY);
                         ele.setObject(pairedObject);
                         searchTerms.set(row,ele);
-                        
-                        System.out.println("searchTerm for row: " + row + "," + ((String[])searchTerms.get(row).getObject())[0]);
-                        System.out.println("searchTerm for row: " + row + "," + ((String[])searchTerms.get(row).getObject())[1]);
+
                     }
                 }
              });
