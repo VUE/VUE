@@ -29,21 +29,36 @@ import java.beans.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.plaf.basic.BasicComboBoxEditor;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyledEditorKit;
+import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
-/*MIKEK
+import javax.swing.text.html.StyleSheet;
+
+import com.lightdev.app.shtm.AttributeComponent;
+import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.SHTMLEditorKit;
 import com.lightdev.app.shtm.SHTMLEditorKitActions;
-*/
+import com.lightdev.app.shtm.SHTMLEditorPane;
+import com.lightdev.app.shtm.SHTMLPanelImpl;
+import com.lightdev.app.shtm.StyleSelector;
+import com.lightdev.app.shtm.Util;
+
 
 
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.56 $ / $Date: 2007-08-16 21:05:12 $ / $Author: mike $
+ * @version $Revision: 1.57 $ / $Date: 2007-08-24 00:09:11 $ / $Author: mike $
  *
  */
-public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
+public class FontEditorPanel extends JPanel implements ActiveListener, CaretListener
                                      //implements LWEditor
 //    implements ActionListener, VueConstants//, PropertyChangeListener//implements PropertyChangeListener
 {
@@ -59,7 +74,7 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
     private final AbstractButton mItalicButton;
     private final AbstractButton mUnderlineButton;
     private final AlignmentDropDown alignmentButton;
-    private final ColorMenuButton mTextColorButton;
+    private static ColorMenuButton mTextColorButton;
     private final AbstractButton orderedListButton = new VueButton("list.button.ordered");
     private final AbstractButton unorderedListButton = new VueButton("list.button.unordered");
 	
@@ -72,23 +87,34 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
     
     //plain text action listener
     final ActionListener styleChangeHandler;
+    private FontPropertyHandler fontPropertyHandler = null;
+    
     //rich text actions
-/*
- MIKEK
     private final SHTMLEditorKitActions.BoldAction richBoldAction = new  SHTMLEditorKitActions.BoldAction(null);
     private final SHTMLEditorKitActions.ItalicAction richItalicAction = new SHTMLEditorKitActions.ItalicAction(null);
     private final SHTMLEditorKitActions.UnderlineAction richUnderlineAction = new SHTMLEditorKitActions.UnderlineAction(null);
 	private final SHTMLEditorKitActions.ToggleListAction toggleBulletsAction = new SHTMLEditorKitActions.ToggleListAction(null,"toggleListAction",HTML.Tag.UL);
     private final SHTMLEditorKitActions.ToggleListAction toggleNumbersAction = new SHTMLEditorKitActions.ToggleListAction(null, "toggleNumbersAction", HTML.Tag.OL);	  
-*/
+    private final SHTMLEditorKitActions.ToggleAction paraAlignLeftAction = new SHTMLEditorKitActions.ToggleAction(null, "paraAlignLeftAction",CSS.Attribute.TEXT_ALIGN, com.lightdev.app.shtm.Util.CSS_ATTRIBUTE_ALIGN_LEFT);
+    private final SHTMLEditorKitActions.ToggleAction paraAlignCenterAction = new SHTMLEditorKitActions.ToggleAction(null, "paraAlignCenterAction",CSS.Attribute.TEXT_ALIGN, com.lightdev.app.shtm.Util.CSS_ATTRIBUTE_ALIGN_CENTER);
+    private final SHTMLEditorKitActions.ToggleAction paraAlignRightAction = new SHTMLEditorKitActions.ToggleAction(null, "paraAlignRightAction",CSS.Attribute.TEXT_ALIGN, com.lightdev.app.shtm.Util.CSS_ATTRIBUTE_ALIGN_RIGHT);
+    private final SHTMLEditorKitActions.FontFamilyAction fontFamilyAction = new SHTMLEditorKitActions.FontFamilyAction(null);
+    private final SHTMLEditorKitActions.FontSizeAction fontSizeAction = new SHTMLEditorKitActions.FontSizeAction(null);
+    private final SHTMLEditorKitActions.FontColorAction fontColorAction = new SHTMLEditorKitActions.FontColorAction(null);
+    private final AlignmentListener alignmentListener = new AlignmentListener();
+    
+//    dynRes.addAction(fontFamilyAction, new SHTMLEditorKitActions.FontFamilyAction(this));
+//    dynRes.addAction(fontSizeAction, new SHTMLEditorKitActions.FontSizeAction(this));
+//    dynRes.addAction(fontColorAction, new SHTMLEditorKitActions.FontColorAction(this));
+
     public FontEditorPanel(Object propertyKey)
     {
     	//super(BoxLayout.X_AXIS);
     	setLayout(new GridBagLayout());
-    //MIKEK	ActiveInstance.addAllActiveListener(this);
+    	ActiveInstance.addAllActiveListener(this);
         mPropertyKey = propertyKey;
 
-        //setFocusable(false);
+        setFocusable(false);
         
         //Box box = Box.createHorizontalBox();
         // we set this border only to create a gap around these components
@@ -116,15 +142,13 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
         if (GUI.isMacAqua())
             mFontCombo.setBorder(new EmptyBorder(1,0,0,0));
 
+        fontPropertyHandler = new FontPropertyHandler(mFontCombo);
         mFontCombo.setMaximumRowCount(30);
         mFontCombo.setOpaque(false);
         // Set selected items BEFORE adding action listeners, or during startup
         // we think a user has actually selected this item!
         mFontCombo.setSelectedItem("Arial");
-        mFontCombo.addActionListener(new LWPropertyHandler<String>(LWKey.FontName, mFontCombo) {
-                public String produceValue() { return (String) mFontCombo.getSelectedItem(); }
-                public void displayValue(String value) { mFontCombo.setSelectedItem(value); }
-            });
+        mFontCombo.addActionListener(fontPropertyHandler);
 //         We don't appear to get any events here!
 //         mFontCombo.addItemListener(new ItemListener() {
 //                 public void itemStateChanged(ItemEvent e) {
@@ -335,7 +359,7 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
         mUnderlineButton.setEnabled(false);
         add(mUnderlineButton,gbc);
         
-        /*gbc.gridy=1;
+        gbc.gridy=1;
         gbc.gridx=4;        
         gbc.fill=GridBagConstraints.NONE;
         orderedListButton.setEnabled(false);
@@ -346,21 +370,36 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
         gbc.fill=GridBagConstraints.NONE;
         unorderedListButton.setEnabled(false);
         add(unorderedListButton,gbc);
-        */
-        
-                
-        
-        
-        //alignmentButton.setBorder(BorderFactory.createEmptyBorder());
-        //alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
-        //alignmentButton.getComboBox().setEnabled(false);
-        //add(alignmentButton,gbc);
+                                        
+        gbc.gridy=1;
+        gbc.gridx=7;
+        gbc.fill=GridBagConstraints.BOTH;
+        gbc.insets = new Insets(5,0,0,0);
+        alignmentButton.setBorder(BorderFactory.createEmptyBorder());
+        alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
+        alignmentButton.getComboBox().setEnabled(false);
+        add(alignmentButton,gbc);
  	
         //displayValue(VueConstants.FONT_DEFAULT);
 
         //initColors(VueTheme.getToolbarColor());
     }
 
+    public static ColorMenuButton getTextColorButton()
+    {
+    	return mTextColorButton;
+    }
+    private class FontPropertyHandler extends LWPropertyHandler<String>
+    {
+    	//new LWPropertyHandler<String>(LWKey.FontName, mFontCombo) {
+    	
+    	public FontPropertyHandler(JComboBox combo)
+    	{
+    		super(LWKey.FontName,combo);
+    	}
+        public String produceValue() { return (String) mFontCombo.getSelectedItem(); }
+        public void displayValue(String value) { mFontCombo.setSelectedItem(value); }
+    }
     private class CustomComboBoxRenderer extends DefaultListCellRenderer {
 
     	public Component getListCellRendererComponent( JList list,
@@ -674,24 +713,31 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
         VueUtil.displayComponent(new FontEditorPanel(LWKey.Font));
     }
 
-/* MIKEK
+
 	public void activeChanged(ActiveEvent e) {
 		//Object hasn't changed do nothing...
 		if (e.active == e.oldActive)
 			return;
 		else if (e.active instanceof LWText)
 		{
-			LWText text = (LWText)e.active;
-			
+			final LWText text = (LWText)e.active;
+			text.getRichLabelBox().addCaretListener(this);
 			richBoldAction.setEditorPane(text.getRichLabelBox());
 			richItalicAction.setEditorPane(text.getRichLabelBox());
 			richUnderlineAction.setEditorPane(text.getRichLabelBox());
 			toggleBulletsAction.setEditorPane(text.getRichLabelBox());
 			toggleNumbersAction.setEditorPane(text.getRichLabelBox());
-			
+			paraAlignLeftAction.setEditorPane(text.getRichLabelBox());
+			paraAlignCenterAction.setEditorPane(text.getRichLabelBox());
+			paraAlignRightAction.setEditorPane(text.getRichLabelBox());
+			fontFamilyAction.setEditorPane(text.getRichLabelBox());
+		    fontSizeAction.setEditorPane(text.getRichLabelBox());
+		    fontColorAction.setEditorPane(text.getRichLabelBox());
+		    		
 			mUnderlineButton.setEnabled(true);
 			orderedListButton.setEnabled(true);
 			unorderedListButton.setEnabled(true);
+			alignmentButton.getComboBox().setEnabled(true);
 			
 			mBoldButton.removeActionListener(styleChangeHandler);
 			mBoldButton.addActionListener(richBoldAction);			
@@ -706,6 +752,33 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
 			orderedListButton.addActionListener(toggleNumbersAction);
 			unorderedListButton.addActionListener(toggleBulletsAction);
 			
+			mFontCombo.addActionListener(fontFamilyAction);
+			mFontCombo.removeActionListener(fontPropertyHandler);
+			
+			mSizeField.removeActionListener(fontPropertyHandler);
+			mSizeField.addActionListener(fontSizeAction);
+			
+			//mTextColorButton.removeActionListener(fontPropertyHandler);
+			//
+			mTextColorButton.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent e)
+				{
+				 	Color color =FontEditorPanel.getTextColorButton().getColor();
+				    SimpleAttributeSet set = new SimpleAttributeSet();
+				        String colorString = "#" + Integer.toHexString(
+				                color.getRGB()).substring(2);
+				        Util.styleSheet().addCSSAttribute(set,
+				                CSS.Attribute.COLOR, colorString);
+				        
+				            set.addAttribute(HTML.Attribute.COLOR, colorString);
+				        				        				 
+				            text.getRichLabelBox().applyAttributes(set, false);
+				}
+			});
+			
+			alignmentButton.getComboBox().addItemListener(alignmentListener);
+
 			
 		}
 		else
@@ -713,6 +786,7 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
 			mUnderlineButton.setEnabled(false);
 			orderedListButton.setEnabled(false);
 			unorderedListButton.setEnabled(false);
+			alignmentButton.setEnabled(false);
 			
 			mBoldButton.removeActionListener(richBoldAction);
 			mBoldButton.addActionListener(styleChangeHandler);			
@@ -723,11 +797,150 @@ public class FontEditorPanel extends JPanel //MIKEKimplements ActiveListener
 			mUnderlineButton.removeActionListener(richUnderlineAction);			
 			//mUnderlineButton.addActionListener(styleChangeHandler);
 			
-			orderedListButton.removeActionListener(toggleNumbersAction);
-			unorderedListButton.removeActionListener(toggleBulletsAction);
+			mFontCombo.removeActionListener(fontFamilyAction);
+			mFontCombo.addActionListener(fontPropertyHandler);
 			
+			//orderedListButton.removeActionListener(toggleNumbersAction);
+			//unorderedListButton.removeActionListener(toggleBulletsAction);
+	
 		}
 				
 	}
-  */   
+
+	private class AlignmentListener implements ItemListener
+	{
+			public void itemStateChanged(ItemEvent arg0) 
+			{
+				if (arg0.getStateChange() == ItemEvent.SELECTED)					
+				{						
+					int itemCase = ((Integer)arg0.getItem()).intValue();
+					switch (itemCase)
+					{
+						case 0:
+							paraAlignLeftAction.actionPerformed(null);
+							break;
+						case 1:
+							paraAlignCenterAction.actionPerformed(null);
+							break;
+						case 2:
+							paraAlignRightAction.actionPerformed(null);
+							break;
+						default:
+							//if in doubt
+							paraAlignLeftAction.actionPerformed(null);
+							break;
+					}														
+				}
+			}			
+	}
+	
+	public AttributeSet getMaxAttributes(RichTextBox text,final int caretPosition) 
+	{
+		
+	    final Element paragraphElement = ((SHTMLDocument)text.getDocument()).getParagraphElement(caretPosition);
+	      final StyleSheet styleSheet = ((SHTMLDocument)text.getDocument()).getStyleSheet();
+	      return SHTMLPanelImpl.getMaxAttributes(paragraphElement, styleSheet);
+	}
+	AttributeSet getMaxAttributes(RichTextBox editorPane,
+	          String elemName)
+	  {
+		SHTMLDocument doc = (SHTMLDocument)editorPane.getDocument();
+	      Element e = doc.getCharacterElement(editorPane.getSelectionStart());
+	      StyleSheet s = doc.getStyleSheet();
+	      if(elemName != null && elemName.length() > 0) {
+	          e = Util.findElementUp(elemName, e);
+	          return SHTMLPanelImpl.getMaxAttributes(e, s);
+	      }
+	      final MutableAttributeSet maxAttributes = (MutableAttributeSet)SHTMLPanelImpl.getMaxAttributes(e, s);
+	      final StyledEditorKit editorKit = (StyledEditorKit)editorPane.getEditorKit();
+	      final MutableAttributeSet inputAttributes = editorKit.getInputAttributes();
+	      maxAttributes.addAttributes(inputAttributes);
+	      return maxAttributes;
+	  }
+
+	private final void updateFormatControls(CaretEvent e)
+	{
+			final RichTextBox text = (RichTextBox)e.getSource();
+		/*    SHTMLDocument doc = (SHTMLDocument)text.getDocument();
+	        Element element = doc.getParagraphElement(text.getCaretPosition()-1);
+	        AttributeSet set = element.getAttributes();
+	        Element charElem =doc.getCharacterElement(text.getCaretPosition()-1);
+	        AttributeSet charSet = charElem.getAttributes();
+	        
+	        Enumeration enume = charSet.getAttributeNames();
+	        */
+	    Component c;
+	    Action action;
+	    int count = getComponentCount();
+	    
+	    AttributeSet a = getMaxAttributes(text, null);
+	    for(int i = 0; i < count; i++) {
+	      c = this.getComponent(i);
+	      if(c instanceof AttributeComponent) {
+	      /*  if(c instanceof StyleSelector) {
+	          SetStyleAction ssa = (SetStyleAction) ((StyleSelector) c).getAction();
+	          final AttributeSet oldAttibuteSet = ((AttributeComponent) c).getValue();
+	          if(! a.isEqual(oldAttibuteSet)){
+	              ssa.setIgnoreActions(true);
+	              ((AttributeComponent) c).setValue(a);
+	              ssa.setIgnoreActions(false);
+	          }
+	        }*/
+	        //else {
+	          ((AttributeComponent) c).setValue(a);
+	       // }
+	      }
+	      else if(c instanceof AbstractButton) {
+	        action = ((AbstractButton) c).getAction();
+	        if((action != null) && (action instanceof AttributeComponent)) {
+	          ((AttributeComponent) action).setValue(a);
+	        }
+	      }
+	    }
+
+	        //while (enume.hasMoreElements())
+	       // {
+	       // 	Object o = enume.nextElement();
+	       // 	System.out.println("name : " + o.toString());
+	      //  	System.out.println("val : " + charSet.getAttribute(o));
+	       // }
+	        /*
+	        if (charSet.getAttribute("font-style") != null.equals("italic"))
+	        	mItalicButton.setSelected(true);
+	        else
+	        	mItalicButton.setSelected(false);
+	        */
+	        //String val = (String)set.getAttribute("text-align");
+	       // if (val == null)
+	       // 	val = "left";
+	        /*
+	        if (val.equals("left") && alignmentButton.getComboBox().getSelectedIndex() != 0)	        	
+	        	alignmentButton.getComboBox().setSelectedIndex(0);
+	       	else if (val.equals("center") && alignmentButton.getComboBox().getSelectedIndex() != 1)
+	       		alignmentButton.getComboBox().setSelectedIndex(1);
+	        else if (val.equals("right") && alignmentButton.getComboBox().getSelectedIndex() != 2)
+	        	alignmentButton.getComboBox().setSelectedIndex(2);
+	        */
+	        //System.out.println(richItalicAction.getValue().getAttribute("font-style"));
+	        
+	        
+	        /*System.out.println(set.getAttribute(HTML.Attribute.FACE));
+	        System.out.println(set.getAttribute(HTML.Attribute.SIZE));
+	        System.out.println(set.getAttribute(HTML.Attribute.COLOR));
+	        System.out.println(set.getAttribute(HTML.Attribute.ALIGN));
+	       */
+	        
+	       // System.out.println(element.getAttributes());
+	}
+	
+	  public void caretUpdate(final CaretEvent e) {
+		  
+		      EventQueue.invokeLater(new Runnable(){
+
+		            public void run() {
+		                //updateFormatControls(e);
+		            }            
+		        });		  
+		  }
+
 }

@@ -1381,6 +1381,14 @@ public class Actions implements VueConstants
         }
     };
 
+    public static final VueAction NewRichText =
+        new NewItemAction("New Rich Text", keyStroke(KeyEvent.VK_R, COMMAND)) {
+            @Override
+            LWComponent createNewItem() {
+                return NodeModeTool.createRichTextNode("new text");
+            }
+        };
+
     public static final Action[] NEW_OBJECT_ACTIONS = {
         NewNode,
         NewText,

@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.424 $ / $Date: 2007-07-31 23:27:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.425 $ / $Date: 2007-08-24 00:09:11 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -117,6 +117,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected LWComponent mLastFocal;
     /** Current on-map text edit, null if no edit active */
     protected TextBox activeTextEdit;
+    
+    /** Current on-map text edit, null if no edit active */
+    protected RichTextBox activeRichTextEdit;
     
     // todo make a "ResizeControl" -- a control abstraction that's
     // less than a whole VueTool -- it depends on the current selection,
@@ -169,6 +172,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private final VueTool LinkTool = VueTool.getInstance(tufts.vue.LinkTool.class);
     private final VueTool TextTool = VueTool.getInstance(tufts.vue.TextTool.class);
     private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
+    private final VueTool RichTextTool = VueTool.getInstance(tufts.vue.RichTextTool.class);
 
     //-------------------------------------------------------
     // Scroll-pane support
@@ -899,7 +903,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         super.reshape(x,y, w,h);
 
-        if (DEBUG.VIEWER || ignore && activeTextEdit != null)
+        if (DEBUG.VIEWER || ignore && (activeTextEdit != null || activeRichTextEdit != null))
             // if active text is transparent, we'll need this to draw under blinking cursor
             repaint(); 
 
@@ -2330,7 +2334,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
          */
         
         //setOpaque(false);
-        if (activeTextEdit != null)     // This is a real Swing JComponent
+        if (activeTextEdit != null || activeRichTextEdit !=null)     // This is a real Swing JComponent
             super.paintChildren(incomingGC); // add to layered pane instead?
         //setOpaque(true);
     }
@@ -2492,16 +2496,32 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     VueAction.setAllActionsIgnored(false);
                 }
             }
+            else if (c == activeRichTextEdit) {
+                activeRichTextEdit = null;
+                try {
+                    // TextBox now handles this, as it may want to reshape itself
+                    // before repainting.
+                    //repaint();
+                    if (VUE.getActiveViewer() == this)
+                        requestFocus();
+                } finally {
+                    // make absolutely certian no matter what
+                    // that we re-enable actions.
+                    VueAction.setAllActionsIgnored(false);
+                }
+            }
         }
     }
     
     void cancelLabelEdit() {
         if (activeTextEdit != null)
             remove(activeTextEdit);
+        if (activeRichTextEdit != null)        	
+        	remove(activeRichTextEdit);
     }
     
     boolean isEditingLabel() {
-        return activeTextEdit != null;
+        return activeTextEdit != null || activeRichTextEdit != null;
     }
     
     /**
@@ -2524,29 +2544,58 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     
     void activateLabelEdit(LWComponent lwc) {
-        if (activeTextEdit != null && activeTextEdit.getLWC() == lwc)
+        if ((activeTextEdit != null && activeTextEdit.getLWC() == lwc) ||
+        		(activeRichTextEdit != null && activeRichTextEdit.getLWC() == lwc))
             return;
         if (!lwc.supportsUserLabel() || !lwc.supportsProperty(LWKey.Label))
             return;
         if (activeTextEdit != null)
             remove(activeTextEdit);
+        if (activeRichTextEdit != null)
+        {
+        	System.out.println("REMOVE RICH TEXT EDITOR");
+        	remove(activeRichTextEdit);
+        }
         // todo robust: make sure can never accidentally happen on a
         // closed map viewer, or all actions will go off and never
         // come back on again, because the textbox will never get
         // focus so it can lose it and turn them back on.
         VueAction.setAllActionsIgnored(true);
-        activeTextEdit = lwc.getLabelBox();
-        activeTextEdit.saveCurrentText();
-        if (activeTextEdit.getText().length() < 1)
-            activeTextEdit.setText("label");
+        if (lwc instanceof LWText)
+        {
+        	activeRichTextEdit = ((LWText)lwc).getRichLabelBox();
+        	activeRichTextEdit.saveCurrentText();
+        	if (activeRichTextEdit.getText().length() < 1)
+        		activeRichTextEdit.setText("label");
+        }
+        else
+        {
+        	activeTextEdit = lwc.getLabelBox();
+        	activeTextEdit.saveCurrentText();
+        	if (activeTextEdit.getText().length() < 1)
+        		activeTextEdit.setText("label");
+        }
         
-        Point2D.Float point = activeTextEdit.getBoxPoint();
+        Point2D.Float point = null;
+        
+        if (lwc instanceof LWText)
+        	point = activeRichTextEdit.getBoxPoint();
+        else
+        	point = activeTextEdit.getBoxPoint();
         if (DEBUG.TEXT || DEBUG.WORK) out("BOX POINT LOCAL: " + fmt(point));
         
         if (Float.isNaN(point.x)) {
             // Float.NaN is marker for an uninitialized TextBox location
-            lwc.initTextBoxLocation(activeTextEdit);
-            point = activeTextEdit.getBoxPoint();
+        	if (lwc instanceof LWText)
+        	{
+        		((LWText)lwc).initRichTextBoxLocation(activeRichTextEdit);
+        		point = activeRichTextEdit.getBoxPoint();
+        	}
+        	else
+        	{
+        		lwc.initTextBoxLocation(activeTextEdit);
+        		point = activeTextEdit.getBoxPoint();
+        	}
             if (DEBUG.TEXT || DEBUG.WORK) out(" BOX POINT INIT: " + fmt(point));
             
         }
@@ -2559,14 +2608,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final int screenY = mapToScreenY(point.y);
         
         //if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format("screen X/Y: %d,%d", screenX, screenY));
-        
-        activeTextEdit.setLocation(screenX, screenY);
-        
-        activeTextEdit.selectAll();
-        add(activeTextEdit);
+        if (lwc instanceof LWText)
+        {
+        	activeRichTextEdit.setLocation(screenX,screenY);
+        	activeRichTextEdit.selectAll();
+        	add(activeRichTextEdit);
+        }
+        else
+        {
+        	activeTextEdit.setLocation(screenX, screenY);        
+        	activeTextEdit.selectAll();
+        	add(activeTextEdit);
+        }
       //  VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(activeTextEdit);
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from addNotify");
-        activeTextEdit.requestFocus();
+        
+        if (lwc instanceof LWText)
+        {
+        	activeRichTextEdit.requestFocus();
+        }
+        else
+        	activeTextEdit.requestFocus();
+        
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from requestFocus");
     }
     
@@ -4163,7 +4226,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 out("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "] focusOwner=" + wasFocusOwner);
             }
 
-            mLabelEditWasActiveAtMousePress = (activeTextEdit != null);
+            mLabelEditWasActiveAtMousePress = ((activeTextEdit != null) || (activeRichTextEdit != null));
             if (DEBUG.FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
             // TODO: if we didn' HAVE focus, don't change the selection state --
             // only use the mouse click to gain focus.
@@ -4290,7 +4353,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     setDragger(mme.getDragRequest()); // TODO: okay, at least HERE, dragComponent CAN be a real component...
                     //dragOffset.setLocation(0,0); // todo: want this? control poins also need dragOffset
                 }
-                else if (e.isShiftDown()) {
+                else if (e.isShiftDown() || (Util.isWindowsPlatform() && e.isControlDown())) {
                     //-------------------------------------------------------
                     // Shift was down: TOGGLE SELECTION STATUS
                     //-------------------------------------------------------
@@ -4688,7 +4751,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
 
             if (getAutoZoomEnabled() && RolloverAutoZoomDelay > 0) {
-                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && activeTextEdit == null) {
+                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && (activeTextEdit == null && activeRichTextEdit == null)) {
                     if (RolloverAutoZoomDelay > 10 && mRollover == null) {
                         if (rolloverTask != null)
                             rolloverTask.cancel();
@@ -5494,7 +5557,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         boolean handled = false;
                         // move to arrow tool?
                         
-                        if (activeTool == TextTool) {
+                        if (activeTool == TextTool || activeTool == RichTextTool) {
                             activateLabelEdit(hitComponent);
                             handled = true;
                         } else {
@@ -5507,10 +5570,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         //todo: below not triggering under arrow tool if we just dragged the link --
                         // justSelected must be inappropriately set to the dragged component
                         if (!handled &&
-                            (activeTool == TextTool || hitComponent.isSelected() && hitComponent != justSelected))
+                            (activeTool == TextTool || activeTool == RichTextTool || hitComponent.isSelected() && hitComponent != justSelected))
                             activateLabelEdit(hitComponent);
                         
-                    } else if (activeTool == TextTool || activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class)) {
+                    } else if (activeTool == TextTool || activeTool == RichTextTool || 
+                    		activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class)) {
                         
                         // on mousePressed, we request focus, and if there was an
                         // activeTextEdit TextBox, it lost focus and closed itself out
@@ -5523,6 +5587,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                 Actions.NewNode.fire(MapViewer.this);
                             else if (activeTool == TextTool)
                                 Actions.NewText.fire(MapViewer.this);
+                            else if (activeTool == RichTextTool)
+                            	Actions.NewRichText.fire(MapViewer.this);
                         }
                     }
                 /*
@@ -5536,7 +5602,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                     boolean handled = false;
                     
-                    if (activeTool == TextTool) {
+                    if (activeTool == TextTool || activeTool == RichTextTool) {
                         activateLabelEdit(hitComponent);
                         handled = true;
                     } else {
@@ -5679,7 +5745,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // want to let an active on-map text edit keep it.
         if (id == FocusEvent.FOCUS_GAINED)
             requestFocus = false;
-        else if (id == MouseEvent.MOUSE_ENTERED && activeTextEdit != null)
+        else if (id == MouseEvent.MOUSE_ENTERED && (activeTextEdit != null || activeRichTextEdit != null))
             requestFocus = false;
         else if (id == MouseEvent.MOUSE_PRESSED && GUI.isMenuPopup(event))
             requestFocus = false;

@@ -42,7 +42,7 @@ public class EditorManager
         void resolveToProvisional(long freeBits) {
             if (DEBUG.STYLE && (DEBUG.META /*|| DEBUG.WORK*/)) tufts.Util.printStackTrace(this + " RESOLVING TO " + provisional);
             
-            if (token == LWNode.TYPE_TEXT) {
+            if (token == LWNode.TYPE_TEXT || token == LWText.TYPE_RICHTEXT) {
 
                 // special case for "text" nodes:
                 // don't assume shape or fill was pre-ordained for the text object
@@ -70,7 +70,7 @@ public class EditorManager
          */
         LWComponent produceStyle()
         {
-            if (token == LWNode.TYPE_TEXT) {
+            if (token == LWNode.TYPE_TEXT || token == LWText.TYPE_RICHTEXT) {
                 // special case for "text" nodes:
                 if (style.isTransparent() &&
                     style.getStrokeWidth() <= 0 &&

@@ -397,6 +397,16 @@ public class NodeTool extends VueTool
             return node;
         }
         
+        /** @return a "text" node initialized to the current style in the VUE editors.
+        [old: Will adjust text size for current zoom level]
+    */
+    public static LWText createRichTextNode(String text)
+    {
+        LWText node = buildRichTextNode(text);
+                    
+        return node;
+    }
+        
         private static LWNode initAsTextNode(LWNode node)
         {
             if (node != null)
@@ -410,6 +420,13 @@ public class NodeTool extends VueTool
             initAsTextNode(node);
             return node;
         }
+
+        public static LWText buildRichTextNode(String s) {
+            LWText text = new LWText();
+            text.setLabel(s);            
+            return text;
+        }
+
     }
 
     public Class<? extends Shape>[] getAllShapeClasses() {
