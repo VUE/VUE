@@ -18,6 +18,9 @@
 
 package edu.tufts.vue.metadata.action;
 
+import edu.tufts.vue.rdf.*;
+import edu.tufts.vue.metadata.*;
+
 import java.awt.event.*;
 import java.net.*;
 import java.util.*;
@@ -34,18 +37,46 @@ import tufts.vue.*;
  */
 public class SearchAction extends AbstractAction {
     
+    public static final int FIELD = 0;
+    public static final int QUERY = 1;
+    
     private List<List<URI>> finds = null;
     
     private List<String> tags;
+    private Query query;
     private List<LWComponent> comps;
     
     private JTextField searchInput;
     private edu.tufts.vue.rdf.RDFIndex index;
     //public final String name = "Search";
     
+    private int searchType = FIELD;
+    private List<VueMetadataElement> searchTerms;
+    
     public SearchAction(JTextField searchInput) {
         super("Search");
         this.searchInput = searchInput;
+        runIndex();
+        searchType = FIELD;
+        /*Thread t = new Thread() {
+            public void run() {
+                index = new  edu.tufts.vue.rdf.RDFIndex();
+                index.index(VUE.getActiveMap());
+            }
+        };
+        t.start();*/ 
+    }
+    
+    public SearchAction(java.util.List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms)
+    {  
+        super("Search");
+        runIndex();
+        searchType = QUERY;
+        this.searchTerms = searchTerms;
+    }
+    
+    public void runIndex()
+    {
         Thread t = new Thread() {
             public void run() {
                 index = new  edu.tufts.vue.rdf.RDFIndex();
@@ -55,11 +86,6 @@ public class SearchAction extends AbstractAction {
         t.start(); 
     }
     
-    public SearchAction(java.util.List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms)
-    {
-        
-    }
-    
     /**
      *
      * could help for easy creation/synch of text field in toolbar 
@@ -67,10 +93,10 @@ public class SearchAction extends AbstractAction {
      * preferably: use previous method instead
      *
      **/
-    public SearchAction(String[] searchTerms)
+    /*public SearchAction(String[] searchTerms)
     {
         
-    }
+    }*/
     
     public void loadKeywords(String searchString) {
         
@@ -82,7 +108,25 @@ public class SearchAction extends AbstractAction {
         
     }
     
+    public void createQuery()
+    {
+        query = new Query();
+        Iterator<VueMetadataElement> criterias = searchTerms.iterator();
+        while(criterias.hasNext())
+        {
+            VueMetadataElement criteria = criterias.next();
+            query.addCriteria(criteria.getKey(),criteria.getValue());
+        }
+        
+    }
+    
     public void performSearch() {
+        
+        if(searchType == QUERY)
+        {
+            createQuery();
+        }
+        
         // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
         long t0 = System.currentTimeMillis();
         synchronized(index) { 
@@ -95,12 +139,19 @@ public class SearchAction extends AbstractAction {
         
         List<URI> found = null;
         
-        for(int i=0;i<tags.size();i++) {
-            //found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
-            if(DEBUG.RDF)System.out.println("Beginning search "+i+" at: "+(System.currentTimeMillis()-t0));
-            found = index.search(tags.get(i));
-            if(DEBUG.RDF)System.out.println("Ending search "+i+" at: "+(System.currentTimeMillis()-t0));
-            finds.add(found);
+        if(searchType == FIELD)
+        {
+          for(int i=0;i<tags.size();i++) {
+              //found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
+              if(DEBUG.RDF)System.out.println("Beginning search "+i+" at: "+(System.currentTimeMillis()-t0));
+              found = index.search(tags.get(i));
+              if(DEBUG.RDF)System.out.println("Ending search "+i+" at: "+(System.currentTimeMillis()-t0));
+              finds.add(found);
+          }
+        }
+        else if(searchType == QUERY)
+        {
+            finds.add(index.search(query));
         }
 
         Iterator<List<URI>> findsIterator = finds.iterator();
@@ -130,7 +181,10 @@ public class SearchAction extends AbstractAction {
     
     public void actionPerformed(ActionEvent e) {
         
-        loadKeywords(searchInput.getText());
+        if(searchType == FIELD)
+        {
+          loadKeywords(searchInput.getText());
+        }
         performSearch();
         VUE.getSelection().setTo(comps.iterator());
     }
