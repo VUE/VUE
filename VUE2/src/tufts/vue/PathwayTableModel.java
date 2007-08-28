@@ -397,12 +397,12 @@ public class PathwayTableModel extends DefaultTableModel
             LWPathway p = entry.pathway;
             try {
                 switch (col) {
-                case COL_VISIBLE: return new Boolean(p.isVisible());
-                case COL_COLOR: return p.getStrokeColor();
-                case COL_OPEN: return new Boolean(p.isOpen());
+                case COL_VISIBLE: return p.isVisible() ? Boolean.TRUE : Boolean.FALSE;
+                case COL_COLOR: return p.getColor();
+                case COL_OPEN: return p.isOpen() ? Boolean.TRUE : Boolean.FALSE;
                 case COL_LABEL: return p.getDisplayLabel();
-                case COL_NOTES: return new Boolean(p.hasNotes());
-                case COL_LOCKEDnMAPVIEW: return new Boolean(p.isLocked());
+                case COL_NOTES: return p.hasNotes() ? Boolean.TRUE : Boolean.FALSE;
+                case COL_LOCKEDnMAPVIEW: return p.isLocked() ? Boolean.TRUE : Boolean.FALSE;
               //  case COL_REVEALER: return new Boolean(getPathwayList().getRevealer() == p);
                 //case COL_REVEALER: return new Boolean(p.isRevealer());
                 }
@@ -415,7 +415,7 @@ public class PathwayTableModel extends DefaultTableModel
                 if (col == COL_LABEL)                               	
                     return entry.getLabel();  
                 else if (col == COL_LOCKEDnMAPVIEW)
-                    return new Boolean(entry.isMapView());
+                    return entry.isMapView() ? Boolean.TRUE : Boolean.FALSE;
             } catch (Exception e) {
                 e.printStackTrace();
                 System.err.println("exception in the table model, setting pathway element cell:" + e);
