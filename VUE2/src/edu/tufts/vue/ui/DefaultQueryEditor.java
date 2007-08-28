@@ -153,11 +153,27 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	public void refresh()
 	{
+		org.osid.repository.Repository[] oldRepositories = repositories.clone();
+		//if the repository list has changed we need to set the panel back to basic...
+		//because the state can get confused, looks like this has probably happened all along
+		//but just got noticed now. -MK 8/28
+		
 		repositories = sourcesAndTypesManager.getRepositoriesToSearch();
-		if (repositories.length == 0) {
-			makePanel(NOTHING_SELECTED);
-		} else {
-			makePanel(this.currentStyle);
+		if (oldRepositories.length ==repositories.length)
+		{
+			if (repositories.length == 0) {
+				makePanel(NOTHING_SELECTED);
+			} else {
+				makePanel(this.currentStyle);
+			}	
+		}
+		else
+		{
+			if (repositories.length == 0) {
+				makePanel(NOTHING_SELECTED);
+			} else {
+				makePanel(BASIC);
+			}
 		}
 	}
 	
@@ -166,17 +182,23 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		this.removeAll();
 		switch (kind) {
 			case NOTHING_SELECTED:
+				//System.out.println("NOTHING SEL");
 				makeNothingSelectedPanel();
 				this.searchType = this.keywordSearchType;
 				break;
 			case BASIC:
+				//System.out.println("BASIC SEL");
 				makeBasicPanel();
 				this.searchType = this.keywordSearchType;
 				break;
 			case ADVANCED_INTERSECTION:
+				//System.out.println("ADVNCED SEL");
 				makeAdvancedIntersectionPanel();
 				this.searchType = this.multiFieldSearchType;
 				break;
+			//default:
+				//System.out.println("DEFAULT SEL");
+				//break;
 //			case ADVANCED_UNION:
 //				makeAdvancedUnionPanel();
 //				this.searchType = this.multiFieldSearchType;
