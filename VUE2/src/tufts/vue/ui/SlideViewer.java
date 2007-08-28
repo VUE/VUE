@@ -371,10 +371,18 @@ if (true) return;
     }
     */
 
+    @Override
+    protected boolean skipAllPainting() {
+        return VUE.inNativeFullScreen();
+    }
+    
+
     protected void load(LWPathway.Entry entry)
     {
-        if (VUE.inNativeFullScreen())
+        if (VUE.inNativeFullScreen()) {
+            // don't slow us down with our updates if we're in native full screen / presenting
             return;
+        }
         
         if (DEBUG.PRESENT) out("SlideViewer: loading " + entry);
         mLastLoad = entry;
@@ -452,10 +460,12 @@ if (true) return;
 
     @Override
     protected void drawFocal(DrawContext dc) {
-        if (mLastLoad != null && mLastLoad.isMapView()) {
+        //if (mLastLoad != null && mLastLoad.isMapView()) {
+        if (mLastLoad != null && !mLastLoad.canProvideSlide()) {
             // have to fill first, or super.drawFocal will fill over us...
-            dc.fill(getBackgroundFillColor(dc));
-            mLastLoad.pathway.getMasterSlide().drawIntoFrame(dc);
+            dc.fillBackground(getBackgroundFillColor(dc));
+            mLastLoad.pathway.getMasterSlide().drawFit(dc, 0);
+            //mLastLoad.pathway.getMasterSlide().drawIntoFrame(dc);
         }
         super.drawFocalRaw(dc);
             
