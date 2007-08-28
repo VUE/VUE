@@ -25,21 +25,23 @@ import java.awt.Color;
 import java.awt.Shape;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.Rectangle;
 import java.awt.AlphaComposite;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 
+import java.awt.RenderingHints;
+//import static java.awt.RenderingHints.*;
+
 /**
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.45 $ / $Date: 2007-07-30 23:31:13 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2007-08-28 17:50:21 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
-public class DrawContext
+public final class DrawContext
 {
     public final Graphics2D g;
     public final double zoom;
@@ -69,6 +71,8 @@ public class DrawContext
     private final Shape rawClip;
     private final AffineTransform rawTransform;
     private final AffineTransform mapTransform;
+
+    //private AffineTransform lastTransform;
     
     private Rectangle2D masterClipRect; // for drawing map nodes
     private Color fillColor;
@@ -76,6 +80,7 @@ public class DrawContext
     public LWComponent skipDraw;
 
     private boolean isClipOptimized = true;
+    private boolean isAnimating;
 
     // todo: consider including a Conatiner arg in here, for
     // MapViewer, etc.  And replace zoom with a getZoom
@@ -113,8 +118,9 @@ public class DrawContext
     public DrawContext(Graphics g, LWComponent focal)
     {
         this(g, 1.0, 0, 0, (Rectangle) null, focal, false);
-        setFill(focal.getRenderFillColor(null));
+        //setBackgroundFill(focal.getRenderFillColor(null)); // caller should do manually
     }
+    
     public DrawContext(Graphics g, double zoom)
     {
         this(g, zoom, 0, 0, (Rectangle) null, (LWComponent) null, false);
@@ -124,19 +130,46 @@ public class DrawContext
         this(g, 1.0);
     }
 
-    public void fill(Color c) {
+    DrawContext push() {
+        return create();
+//         if (lastTransform != null)
+//             Util.printStackTrace("overpush");
+//         lastTransform = g.getTransform();
+//         return this;
+    }
+
+    void pop() {
+//         if (lastTransform == null)
+//             Util.printStackTrace("underpush");
+//         g.setTransform(lastTransform);
+//         lastTransform = null;
+    }
+    
+
+    public void fillBackground(Color c) {
         if (fillColor != null)
             Util.printStackTrace(this + " already filled with " + fillColor);
-        setFill(c);
+        setBackgroundFill(c);
         g.setColor(c);
         g.fill(g.getClipBounds());
     }
 
-    public Color getFill() {
+    /** Fill the given shape will the given color: will be a noop if the fill color matches the current BG fill */
+    public void fillArea(final Shape shape, final Color fill) {
+        if (fill == null || fill.equals(fillColor)) {
+            if (DEBUG.PRESENT && DEBUG.META) Util.printStackTrace("skipping fillArea matching existing bg fill " + fill + " " + fmt(shape));
+            return;
+        }
+        g.setColor(fill);
+        g.fill(shape);
+    }
+    
+
+    public Color getBackgroundFill() {
         return fillColor;
     }
     
-    public void setFill(Color c) {
+    public void setBackgroundFill(Color c) {
         if (DEBUG.IMAGE) out("setFill: " + c);
         fillColor = c;
     }
@@ -179,6 +212,13 @@ public class DrawContext
     }
     
     */
+
+    public boolean isAnimating() {
+        return isAnimating;
+    }
+    public void setAnimating(boolean animating) {
+        isAnimating = animating;
+    }
     
     public void setMapDrawing() {
         isClipOptimized = true;
@@ -292,7 +332,7 @@ public class DrawContext
     
 
     public void checkComposite(LWComponent c) {
-        if (alpha != 1f) {
+        if (false&&alpha != 1f) {
             
             // if we're going to do a non-opaque fill during a general transparent
             // rendering situation, change temporarily to the SRC_OVER rule instead of
@@ -402,27 +442,40 @@ public class DrawContext
         if (disableAntiAlias)
             on = false;
         
-        Object shapeVal = on ? RenderingHints.VALUE_ANTIALIAS_ON : RenderingHints.VALUE_ANTIALIAS_OFF;
-        Object textVal = on ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF;
-        this.g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, shapeVal);
-        this.g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, textVal);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                           on
+                           ? RenderingHints.VALUE_ANTIALIAS_ON
+                           : RenderingHints.VALUE_ANTIALIAS_OFF);
+                           
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                           on
+                           ? RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+                           : RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+                           
     }
 
     public void setPrioritizeQuality(boolean on)
     {
-        this.g.setRenderingHint(RenderingHints.KEY_RENDERING, on
+        g.setRenderingHint(RenderingHints.KEY_RENDERING,
+                                on
                                 ? RenderingHints.VALUE_RENDER_QUALITY
                                 : RenderingHints.VALUE_RENDER_SPEED);
+
+        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING,
+                                on
+                                ? RenderingHints.VALUE_COLOR_RENDER_QUALITY
+                                : RenderingHints.VALUE_COLOR_RENDER_SPEED);
     }
 
-    public void setPrioritizeSpeed(boolean on)
+    public void setPrioritizeSpeed(boolean speed)
     {
-        setPrioritizeQuality(!on);
+        setPrioritizeQuality(!speed);
     }
     
     public void setFractionalFontMetrics(boolean on)
     {
-        this.g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, on
+        this.g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS,
+                                on
                                 ? RenderingHints.VALUE_FRACTIONALMETRICS_ON
                                 : RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
     }
@@ -440,6 +493,14 @@ public class DrawContext
             scale = 1;
         this.g.setStroke(new java.awt.BasicStroke((float) (width / scale)));
     }
+
+    public void setAbsoluteScale(double absScale)
+    {
+        final double adjScale = (1 / g.getTransform().getScaleX()) * absScale;
+        if (adjScale > 0)
+            g.scale(adjScale, adjScale);
+    }
+    
 
     /**
      * An arbitrary counter that can be set & read.
@@ -470,12 +531,15 @@ public class DrawContext
 
     public String toString() {
         //return String.format("DrawContext@%x[zoom=%.2f mapOffset=%.1f,%.1f focal=%s]",
-        return String.format("DrawContext@%06X[z%.2f %s %s]",
+        return String.format("DrawContext@%06X[%.1f%% %s %s%s]",
                              hashCode(),
-                             zoom,
+                             zoom * 100,
                              //offsetX, offsetY,
-                             focal == null ? "null focal" : focal.getUniqueComponentTypeLabel(),
-                             fmt(masterClipRect)
+                             focal == null ? "null-focal" : focal.getUniqueComponentTypeLabel(),
+                             fmt(masterClipRect),
+                             isClipOptimized
+                             ? " DRAW-ALL"
+                             : " CLIPPING"
                              );
         
     }
@@ -493,6 +557,21 @@ public class DrawContext
     {
         //System.out.println("transform before dupe: " + dc.g.getTransform());
         this.g = (Graphics2D) dc.g.create();
+        //this.g = dc.g;
+
+        // This helps itext (tho is not a workaround) -- it looks like the GC provided by
+        // itext doesn't handle create properly -- it almost looks as if a fill is required
+        // every time a new GC is created for fill's in subsequent child fill's or even text to work
+        // (tho stroking does seem to work) -- e.g., a group with no fill at all will
+        // not fill any of it's children, or draw any text -- you only see strokes.
+        // Setting a fill doesn't always guarantee to fix this tho...  vanilla
+        // side (non map-view) content seems to be the worst.
+        
+        //g.setColor(new java.awt.Color(4,4,4,4)); // helps
+        //g.setColor(new java.awt.Color(0,0,0,0)); // less help
+        //g.fillRect(-Short.MAX_VALUE/2, -Short.MAX_VALUE/2, Short.MAX_VALUE, Short.MAX_VALUE);
+        
+                
         //System.out.println("transform after  dupe: " + g.getTransform());
         this.zoom = dc.zoom;
         this.offsetX = dc.offsetX;
@@ -519,6 +598,7 @@ public class DrawContext
         this.skipDraw = dc.skipDraw;
         this.fillColor = dc.fillColor;
         this.isClipOptimized = dc.isClipOptimized;
+        this.isAnimating = dc.isAnimating;
 
         if (DEBUG.PAINT) out("CLONE of " + dc);
         //out("CLONED: " + Util.tag(masterClipRect) + " from " + dc);
@@ -528,12 +608,18 @@ public class DrawContext
     }
 
 
-    /*
-    public DrawContext createScaled(float scale)
-    {
-        DrawContext dc = new DrawContext(this);
-        dc.scale *= scale;
-        return dc;
-    }
-    */
+//     @Override
+//     public final Object clone() {
+// //         final DrawContext dc = new DrawContext(g);
+// //         return dc;
+//         try {
+//             final DrawContext dc = (DrawContext) super.clone();
+//             dc.focal = null;
+//             return dc;
+//         } catch (CloneNotSupportedException e) {
+//             e.printStackTrace();
+//         }
+//         return null;
+//     }
+
 }
