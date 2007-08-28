@@ -31,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.76 $ / $Date: 2007-07-20 18:20:26 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2007-08-28 17:34:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -626,7 +626,14 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public String toString()
     {
         String content = (size() != 1 ? "" : " (" + first().toString() + ")");
-        return "LWSelection[" + size() + (isClone?" CLONE]":"]" + content);
+        return "LWSelection["
+            + size()
+            + " src=" + source
+            + 
+            (isClone
+             ? " CLONE]"
+             : ("]" + content)
+             );
     }
     
 }
