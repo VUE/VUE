@@ -36,7 +36,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.76 $ / $Date: 2007-07-12 02:12:16 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2007-08-28 17:53:26 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -364,6 +364,12 @@ public abstract class VueTool extends AbstractAction
     public final boolean supportsXORSelectorDrawing() {
         return false;
     }
+    
+    /** @return true -- sub-impl's return false if this tool is currently preventing changes to any other active tool */
+    public boolean permitsToolChange() {
+        return true;
+    }
+    
 
     /** what to do, if anything, when the tool is selected */
     public void handleToolSelection(boolean selected, VueTool otherTool) {
@@ -384,10 +390,6 @@ public abstract class VueTool extends AbstractAction
      */
     public void handleFullScreen(boolean entering, boolean nativeMode) {}
 
-    /** @return true if this tool is currently preventing changes to any other active tool */
-    public boolean isLockingActiveTool() {
-        return false;
-    }
 
     /** mark this tool as temporarily activated */
     public void setTemporary(boolean t) {
