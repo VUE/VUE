@@ -92,8 +92,8 @@ public class PresentationNotes {
         document.close();
     }
 			
-	public static void createPresentationSlidesNotes(File file)
-	{
+    public static void createPresentationSlidesNotes(File file)
+    {
         // step 1: creation of a document-object
         Document document = new Document(PageSize.LETTER.rotate());
         
@@ -104,30 +104,66 @@ public class PresentationNotes {
             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
             writer.setDefaultColorspace(PdfName.DEFAULTRGB, null);
             writer.setStrictImageSequence(true);
-                
+            PdfPTable table;
+            PdfPCell cell;    
             // step 3: we open the document
             
-            document.open();            
+            document.open();
             
-            for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) 
-            {
+            final float pageWidth = document.getPageSize().width();
+            final float pageHeight = document.getPageSize().height();
+            final float fillWidth = pageWidth - 70;
+            final float fillHeight = pageHeight - 70;
+
+            if (DEBUG.Enabled) {
+                System.out.println("\n---------------------------------");
+                System.out.println("PDF DOCUMENT: pageSize " + document.getPageSize());
+                System.out.println("fillWidth=" + fillWidth + " fillHeight=" + fillHeight);
+            }
+            
+            
+            for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
+                if (DEBUG.Enabled) {
+                    System.out.println("\nHANDLING ENTRY " + entry);
+                }
             	
-                LWSlide slide = entry.getSlide();
-                PdfContentByte cb = writer.getDirectContent();
-                //cb.cr
-                PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-70, document.getPageSize().height()-70);
-                //PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
-                Graphics2D g2d = tp.createGraphics(document.getPageSize().width()-70, document.getPageSize().height()-70, new DefaultFontMapper(),false,100.0f);
-                DrawContext dc = new DrawContext(g2d,0.90); 
-                dc.setClipOptimized(false); 
-                slide.drawZero(dc);                                                                                            
-                g2d.dispose();                                                                                                         
-                //document.add(Image.getInstance(tp));
-                cb.addTemplate(tp, 35, 35);
-                //document.newPage();
-                document.newPage();
-            
+                final LWSlide slide = entry.getSlide();
+                final LWComponent toDraw = (slide == null ? entry.node : slide);
+                //final float scale = fillWidth / toDraw.getWidth(); // assumes wide aspect
                 
+                //final PdfContentByte cb = writer.getDirectContent();
+                //cb.cr
+                final PdfTemplate template = PdfTemplate.createTemplate(writer, fillWidth, fillHeight);
+                final Graphics2D graphics = template.createGraphics(fillWidth, fillHeight, new DefaultFontMapper(), false, 100.0f);
+                final DrawContext dc = new DrawContext(graphics, 1.0);
+                //final DrawContext dc = new DrawContext(graphics, scale);
+                //final DrawContext dc = new DrawContext(graphics, toDraw);
+                dc.setClipOptimized(false);
+                dc.setInteractive(false);
+                
+                if (DEBUG.Enabled) {
+                    System.out.println("  DRAWING INTO " + dc + " g=" + graphics + " clip=" + tufts.Util.fmt(graphics.getClip()));
+                    dc.g.setColor(Color.green);
+                    dc.g.fillRect(-Short.MAX_VALUE/2, -Short.MAX_VALUE/2, Short.MAX_VALUE, Short.MAX_VALUE);
+                }
+
+                //final java.awt.geom.AffineTransform tx = dc.g.getTransform();
+                //toDraw.drawZero(dc);
+                toDraw.drawFit(dc, 0);
+                if (DEBUG.PDF) {
+                    //dc.g.setTransform(tx);
+                    final String dcDesc = dc.toString() + String.format(" scale=%.1f%%", dc.g.getTransform().getScaleX() * 100);
+                    dc.setRawDrawing();
+                    dc.g.setColor(Color.red);
+                    dc.g.setFont(VueConstants.FixedSmallFont);
+                    dc.g.drawString(dcDesc, 10, fillHeight - 27);
+                    dc.g.drawString(entry.toString(), 10, fillHeight - 16);
+                    dc.g.drawString(toDraw.toString(), 10, fillHeight - 5);
+                }
+                
+                graphics.dispose();
+                document.add(Image.getInstance(template));
+                document.newPage();
             }
         }
         catch(DocumentException de) {
@@ -139,7 +175,56 @@ public class PresentationNotes {
         
         // step 5: we close the document
         document.close();
-    }			
+    }
+    
+// 	public static void createPresentationSlidesNotes(File file)
+// 	{
+//         // step 1: creation of a document-object
+//         Document document = new Document(PageSize.LETTER.rotate());
+        
+//         try {
+//             // step 2:
+//             // we create a writer that listens to the document
+//             // and directs a PDF-stream to a file            
+//             PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
+//             writer.setDefaultColorspace(PdfName.DEFAULTRGB, null);
+//             writer.setStrictImageSequence(true);
+                
+//             // step 3: we open the document
+            
+//             document.open();            
+            
+//             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) 
+//             {
+            	
+//                 LWSlide slide = entry.getSlide();
+//                 PdfContentByte cb = writer.getDirectContent();
+//                 //cb.cr
+//                 PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-70, document.getPageSize().height()-70);
+//                 //PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
+//                 Graphics2D g2d = tp.createGraphics(document.getPageSize().width()-70, document.getPageSize().height()-70, new DefaultFontMapper(),false,100.0f);
+//                 DrawContext dc = new DrawContext(g2d,0.90); 
+//                 dc.setClipOptimized(false); 
+//                 slide.drawZero(dc);                                                                                            
+//                 g2d.dispose();                                                                                                         
+//                 //document.add(Image.getInstance(tp));
+//                 cb.addTemplate(tp, 35, 35);
+//                 //document.newPage();
+//                 document.newPage();
+            
+                
+//             }
+//         }
+//         catch(DocumentException de) {
+//             System.err.println(de.getMessage());
+//         }
+//         catch(IOException ioe) {
+//             System.err.println(ioe.getMessage());
+//         }
+        
+//         // step 5: we close the document
+//         document.close();
+//     }			
 	/*
 	public static void createPresentationNotes(File file)
 	{
