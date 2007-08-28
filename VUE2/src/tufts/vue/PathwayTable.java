@@ -61,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.80 $ / $Date: 2007-08-28 19:36:34 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2007-08-28 20:27:14 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -571,7 +571,10 @@ public class PathwayTable extends JTable
                 
             		 setBackground(BGColor);
             		 setFont(PathwayFont);
-            		 setForeground(Color.white);
+                         if (VUE.getActiveEntry() == entry)
+                             setForeground(Color.black);
+                         else
+                             setForeground(Color.white);
             		 setText(debug+"   " + entry.getLabel());
             		// this.setAlignmentY(Component.TOP_ALIGNMENT);
             	  }
