@@ -140,6 +140,7 @@ public class LWImage extends
             return false;
     }
 
+    /** @return false: images are never transparent */
     @Override
     public boolean isTransparent() {
         if (false)// && this instanceof LWNode)
@@ -148,6 +149,7 @@ public class LWImage extends
             return false;
     }
     
+    /** @return false: images are never translucent */
     @Override
     public boolean isTranslucent() {
         if (false)// && this instanceof LWNode) {
@@ -170,7 +172,7 @@ public class LWImage extends
 
     /** This currently makes LWImages invisible to selection (they're locked in their parent node */
     //@Override
-    protected LWComponent defaultPick(PickContext pc) {
+    protected LWComponent defaultPickImpl(PickContext pc) {
         if (getClass().isAssignableFrom(LWNode.class)) {
             return super.defaultPick(pc);
         } else {
@@ -198,16 +200,19 @@ public class LWImage extends
     
 
     /** this for backward compat with old save files to establish the image as a special "node" image */
+    @Override
     public void XML_addNotify(String name, Object parent) {
         super.XML_addNotify(name, parent);
         if (parent instanceof LWNode)
             updateNodeIconStatus((LWNode)parent);
     }
 
-    void setParent(LWContainer parent) {
+    @Override
+    protected void setParent(LWContainer parent) {
         super.setParent(parent);
         updateNodeIconStatus(parent);
     }
+    
     /*
     protected void reparentNotify(LWContainer parent) {
         super.reparentNotify(parent);
@@ -642,11 +647,11 @@ public class LWImage extends
 
         final Shape shape = getClipShape();
 
-
         if (isNodeIcon && dc.focal != this) {
 
             drawImage(dc);
-            if (!getParent().isTransparent()) {
+            if (dc.isInteractive() && !getParent().isTransparent()) {
+                // this is somehow making itext PDF generation through a GC worse... (probably just a bad tickle)
                 dc.g.setStroke(STROKE_TWO);
                 //dc.g.setColor(IconBorderColor);
                 dc.g.setColor(getParent().getRenderFillColor(dc).darker());
@@ -656,8 +661,13 @@ public class LWImage extends
         } else {
             
             if (!super.isTransparent()) {
-                dc.g.setColor(getFillColor());
-                dc.g.fill(shape);
+                final Color fill = getFillColor();
+                if (fill == null || fill.getAlpha() == 0) {
+                    Util.printStackTrace("isTransparent lied about fill " + fill);
+                } else {
+                    dc.g.setColor(fill);
+                    dc.g.fill(shape);
+                }
             }
 
             drawImage(dc);
@@ -728,7 +738,8 @@ public class LWImage extends
                 dc.g.setColor(Color.darkGray);
             dc.g.fillRect(0, 0, w, h);
             dc.g.setColor(Color.lightGray);
-            dc.g.drawRect(0, 0, w, h); // can't see this line at small scales
+            //dc.g.setStroke(STROKE_ONE);
+            //dc.g.drawRect(0, 0, w, h); // can't see this line at small scales
             return;
         }
         
@@ -743,10 +754,11 @@ public class LWImage extends
 //             dc.g.setComposite(AlphaComposite.Src);
 //         }
 
-        Shape oldClip = dc.g.getClip();
         if (false && isCropped()) {
-            dc.g.clip(getClipShape());
+            Shape oldClip = dc.g.getClip();
+            dc.g.clip(getClipShape()); // this clip/restore clip may be screwing up our PDF export library
             dc.g.drawImage(mImage, transform, null);
+            dc.g.setClip(oldClip);
         } else {
             //dc.g.clip(super.drawnShape);
             transform.scale(getWidth() / mImageWidth, getHeight() / mImageHeight);
@@ -754,7 +766,6 @@ public class LWImage extends
             //dc.g.drawImage(mImage, 0, 0, (int)super.width, (int)super.height, null);
             //dc.g.drawImage(mImage, 0, 0, mImageWidth, mImageHeight, null);
         }
-        dc.g.setClip(oldClip);
    }
 
     /*
