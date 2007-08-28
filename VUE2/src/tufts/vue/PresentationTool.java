@@ -90,8 +90,8 @@ public class PresentationTool extends VueTool
         }
         Page(LWComponent c) {
             if (c instanceof LWSlide) {
-                if (((LWSlide)c).getEntry() != null) {
-                    entry = ((LWSlide)c).getEntry();
+                if (((LWSlide)c).getPathwayEntry() != null) {
+                    entry = ((LWSlide)c).getPathwayEntry();
                     node = null;
                 } else {
                     if (DEBUG.Enabled) Util.printStackTrace("creating page for slide w/out entry: " + c);
@@ -342,14 +342,13 @@ public class PresentationTool extends VueTool
     //private static final Color NavFillColor = new Color(64,64,64,96);
     private static final Color NavStrokeColor = new Color(96,93,93);
     private static final Color NavTextColor = Color.darkGray;
+
+    private static final int SlideRoom = 30;
     
     private class NavNode extends LWNode {
         
-        //final LWComponent destination;
         final Page page; // destination page
-        //final LWPathway pathway;
-        
-        //NavNode(LWComponent destination, LWPathway pathway)
+
         NavNode(Page destinationPage)
         {
             super(null);
@@ -385,23 +384,53 @@ public class PresentationTool extends VueTool
             setLabel(label);
             setFont(NavFont);
             setTextColor(NavTextColor);
-            setFillColor(NavFillColor);
         
-            if (pathway != null)
-                setStrokeColor(pathway.getStrokeColor());
-            else
+            if (pathway != null) {
+                // Nav node for jumping to another pathway
+                //final Color color = Util.alphaMix(pathway.getColor(), pathway.getMasterSlide().getFillColor());
+                final Color color = Util.alphaMix(pathway.getColor(), Color.gray);
+                //final Color color = pathway.getColor();
+                mFillColor.setFixedAlpha(224);
+                setFillColor(color);
+                setTextColor(Color.black);
+                setStrokeWidth(0);
+                //setStrokeColor(color);
+                //setStrokeWidth(3);
+            } else {
                 setStrokeColor(NavStrokeColor);
-        
-            setStrokeWidth(pathway == null ? 2 : 3);
+                setFillColor(NavFillColor);
+                setStrokeWidth(2);
+            }
+            
             //setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
             //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20)); // is default
             setAutoSized(false); 
-            setSize(200, getHeight() + 6);
+            //setSize(200, getHeight() + 6);
+            setSize(200 + SlideRoom, getHeight() + 6);
+        }
+
+        @Override
+        public void draw(DrawContext dc) {
+            dc.setClipOptimized(false); // ensure all children draw even if not inside clip
+            transformZero(dc.g);
+            drawZero(dc);
+            if (page.entry != null && page.entry.hasSlide()) {
+                final LWSlide slide = page.entry.getSlide();
+                final double scale = (getHeight()-10) / slide.getHeight();
+                final double iconHeight = slide.getHeight() * scale;
+                //final double iconWidth = slide.getWidth() * scale;
+                dc.g.translate(getWidth() - (SlideRoom+12),
+                               (getHeight() - iconHeight)/2);
+                dc.g.scale(scale, scale);
+                slide.drawZero(dc);
+                //dc.g.setColor(Color.black);
+                //dc.g.drawString("HELLO", 0, 0);
+            }
         }
         
         // force label at left (non-centered)                
         @Override
-        protected float relativeLabelX() { return -NavNodeX + 10; }
+        protected final float relativeLabelX() { return -NavNodeX + 10; }
 
     }
 
@@ -732,6 +761,7 @@ private static int OverviewMapSizeIndex = 5;
         //final DrawContext dc = sourceDC;
 
         dc.setFrameDrawing();
+        //dc.setPresenting(true);
 
         float overviewMapFraction = OverviewMapScales[OverviewMapSizeIndex];
         final Rectangle panner = new Rectangle(0,0,
@@ -887,9 +917,10 @@ private static int OverviewMapSizeIndex = 5;
             mapPoint.y /= mNavMapDC.zoom;
                 
             out("over nav map at " +  mapPoint);
-            PickContext pc = new PickContext(mapPoint.x, mapPoint.y);
-            pc.root = e.getViewer().getMap();
-            LWComponent hit = LWTraversal.PointPick.pick(pc);
+            final MapViewer viewer = e.getViewer();
+            final PickContext pc = new PickContext(viewer.getLastDC(), mapPoint.x, mapPoint.y);
+            pc.root = viewer.getMap();
+            final LWComponent hit = LWTraversal.PointPick.pick(pc);
             //out("hit=" + hit);
             if (hit != null)
                 e.getViewer().setIndicated(hit);
@@ -932,6 +963,9 @@ private static int OverviewMapSizeIndex = 5;
     {
         if (checkForNavNodeClick(e))
             return true;
+
+        //if (e.isShiftDown())
+        //    return false;
 
         final LWComponent hit = e.getPicked();
         
@@ -1025,6 +1059,8 @@ private static int OverviewMapSizeIndex = 5;
             mNextPage = VUE.getSelection().first();
         else
             mNextPage = null;
+
+        VUE.getSelection().clear();
 
         //handleSelectionChange(VUE.getSelection());
         //mStartButton.requestFocus();
@@ -1142,7 +1178,7 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     private void loadPathway(LWPathway pathway) {
-        if (DEBUG.PRESENT) Util.printStackTrace("FYI, loadPathway: " + pathway);
+        if (DEBUG.PRESENT) new Throwable("FYI, loadPathway: " + pathway).printStackTrace();
         LWComponent.swapLWCListener(this, mPathway, pathway);
         mPathway = pathway;
     }
@@ -1200,7 +1236,7 @@ private static int OverviewMapSizeIndex = 5;
         if (page.onPathway()) {
             if (page.pathway() != mPathway)
                 loadPathway(page.pathway());
-            if (!VUE.inNativeFullScreen()) // don't send any events just in case
+            //if (!VUE.inNativeFullScreen()) // don't send any events just in case
                 VUE.setActive(LWPathway.Entry.class, this, page.entry);
             mLastPathwayPage = page;
             //mPathwayIndex = page.entry.index();
@@ -1315,9 +1351,10 @@ private static int OverviewMapSizeIndex = 5;
             
             LWComponent node = ((LWSlide)c).getSourceNode();
 
-            if (node != null && node.isDrawingSlideIcon())
-                return ((LWSlide)c).getSourceNode().getMapSlideIconBounds();
-            else if (node != null)
+//             if (node != null && node.isDrawingSlideIcon())
+//                 return ((LWSlide)c).getSourceNode().getMapSlideIconBounds();
+//             else
+                if (node != null)
                 return node.getBounds();
             else {
                 // We're presumably on a "combo" node that's not on the map:
@@ -1366,7 +1403,7 @@ private static int OverviewMapSizeIndex = 5;
                         if (mFadeEffect)
                             makeInvisible();
                         mFocal = mCurrentPage.getPresentationFocal();
-                        viewer.loadFocal(mFocal, true);
+                        viewer.loadFocal(mFocal, true, false);
                         //zoomToFocal(page.getPresentationFocal(), false);
                         //zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
                         if (mScreenBlanked)
@@ -1380,7 +1417,7 @@ private static int OverviewMapSizeIndex = 5;
         if (startUnderway) {
             mFocal = newFocal;
             if (DEBUG.PRESENT) out("handleFocalSwitch: starting focal " + newFocal);
-            viewer.loadFocal(newFocal, true);
+            viewer.loadFocal(newFocal, true, false);
             return true;
         }
             
@@ -1422,7 +1459,7 @@ private static int OverviewMapSizeIndex = 5;
             // if the new focal is a parent of old focal, first
             // load it (without auto-zooming), so we can pan across
             // it while we animate
-            viewer.loadFocal(animatingFocal, false);
+            viewer.loadFocal(animatingFocal, false, false);
             mFocal = newFocal;
             if (animatingFocal == newFocal)
                 loaded = true;
@@ -1461,7 +1498,7 @@ private static int OverviewMapSizeIndex = 5;
             if (true) { // just in case...
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 mFocal = newFocal;
-                viewer.loadFocal(newFocal, true);
+                viewer.loadFocal(newFocal, true, false);
             }});
         }
 
@@ -1528,14 +1565,22 @@ private static int OverviewMapSizeIndex = 5;
     
 
     @Override
-    public boolean isLockingActiveTool() {
-        return VUE.inNativeFullScreen();
-    }
-     
-
-    @Override
     public DrawContext getDrawContext(DrawContext dc) {
         dc.setPresenting(true);
+
+        // If this is a transition along a pathway, we want to figure
+        // that out so we can draw the pathways in the case, even
+        // while animating (so you can see the travel along the
+        // pathway stroke).  And what we REALLY want is to only draw
+        // the pathway we're animating along (perhaps we could do that
+        // here manually in postDraw, or even just draw the single
+        // connector stroke between those two nodes!)
+        
+        //        if (mCurrentPage != null)
+        //            dc.setDrawPathways(mCurrentPage.node instanceof LWMap);
+
+        dc.setDrawPathways(dc.isAnimating() || mCurrentPage.node instanceof LWMap);
+        
         if (false &&mShowNavNodes)
             dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
         return dc;
@@ -1544,22 +1589,33 @@ private static int OverviewMapSizeIndex = 5;
     
     @Override
     public void handlePreDraw(DrawContext dc, MapViewer viewer) {
+
+        if (dc.focal instanceof LWMap) {
+            dc.fillBackground(Color.darkGray);
+            return;
+        }
+
+        
         if (mPathway != null) {
             if (mCurrentPage != null) {
                 final LWSlide master = mPathway.getMasterSlide();
                 boolean drawMaster = false;
+                out("FILLING FOR ENTRY " + mCurrentPage.entry);
                 if (mCurrentPage.entry != null) {
-                    dc.fill(mCurrentPage.entry.getFullScreenFillColor(dc));
-                    if (mCurrentPage.entry.isMapView())
+                    dc.fillBackground(mCurrentPage.entry.getFullScreenFillColor(dc));
+                    if (!mCurrentPage.entry.hasSlide())
                         drawMaster = true;
                 } else {
-                    dc.fill(master.getFillColor());
+                    dc.fillBackground(master.getFillColor());
                     // current page has no entry: we've navigated off pathway
                     // onto an arbitrary map node:
                     drawMaster = false;
                 }
-                if (drawMaster)
-                    master.drawIntoFrame(dc);
+                if (drawMaster) {
+                    out("DRAWING MASTER " + master);
+                    master.drawFit(dc.create(), 0);
+                    //master.drawIntoFrame(dc);
+                }
             }
         }
     }
@@ -1575,7 +1631,8 @@ private static int OverviewMapSizeIndex = 5;
             // it.
         
             //dc.g.setComposite(AlphaComposite.Src);
-            drawNavNodes(dc.create());
+            if (dc.isInteractive())
+                drawNavNodes(dc.create());
             if (mDidAutoShowNavNodes) {
                 mShowNavNodes = mForceShowNavNodes = false;
                 mDidAutoShowNavNodes = false;
@@ -1634,6 +1691,8 @@ private static int OverviewMapSizeIndex = 5;
         
         makeNavNodes(mCurrentPage, dc.getFrame());
 
+        dc.setDrawPathways(false);
+        dc.setInteractive(false);
         for (LWComponent c : mNavNodes) {
             dc.setFrameDrawing(); // reset the GC each time, as draw translate it to local coords each time
             c.draw(dc);
@@ -1644,15 +1703,17 @@ private static int OverviewMapSizeIndex = 5;
     
     private void makeNavNodes(Page page, Rectangle frame)
     {
-        // always add the current pathway at the top
-        //if (node.inPathway(mPathway))
-        if (page.onPathway(mPathway))
-            mNavNodes.add(createNavNode(page));
+//         // always add the current pathway at the top
+//         //if (node.inPathway(mPathway))
+//         if (page.onPathway(mPathway))
+//             mNavNodes.add(createNavNode(page));
+// Having the order switch on the user sucks...
 
         final LWComponent mapNode = page.getOriginalMapNode();
         
         for (LWPathway otherPath : mapNode.getPathways()) {
-            if (otherPath != mPathway && !otherPath.isFiltered())
+            //if (otherPath != mPathway && !otherPath.isFiltered())
+            if (!otherPath.isFiltered())
                 mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
         }
 
@@ -1851,6 +1912,14 @@ private static int OverviewMapSizeIndex = 5;
     public boolean hasDecorations() { return true; }
     /** @return true */
     public boolean usesRightClick() { return true; }
+
+
+    /** @return false if in native full screen */
+    @Override
+    public boolean permitsToolChange() {
+        return !VUE.inNativeFullScreen();
+    }
+
 
     
 }
