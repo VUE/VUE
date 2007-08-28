@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.76 $ / $Date: 2007-05-30 18:22:32 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2007-08-28 17:51:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -780,12 +780,12 @@ public class GUI
         return FullScreenWindow;
     }
 
-    public static Window getCurrentRootWindow() {
-        if (FullScreen.inFullScreen())
-            return FullScreenWindow;
-        else
-            return VUE.getRootWindow();
-    }
+//     public static Window getCurrentRootWindow() {
+//         if (FullScreen.inFullScreen())
+//             return FullScreenWindow;
+//         else
+//             return VUE.getRootWindow();
+//     }
 
     /**
      * Find the containing Window of the given Component, and make sure it's displayed
