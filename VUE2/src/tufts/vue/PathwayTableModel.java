@@ -398,7 +398,7 @@ public class PathwayTableModel extends DefaultTableModel
             try {
                 switch (col) {
                 case COL_VISIBLE: return p.isVisible() ? Boolean.TRUE : Boolean.FALSE;
-                case COL_COLOR: return p.getColor();
+                case COL_COLOR: return p.getStrokeColor();
                 case COL_OPEN: return p.isOpen() ? Boolean.TRUE : Boolean.FALSE;
                 case COL_LABEL: return p.getDisplayLabel();
                 case COL_NOTES: return p.hasNotes() ? Boolean.TRUE : Boolean.FALSE;
