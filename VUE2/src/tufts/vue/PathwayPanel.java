@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.100 $ / $Date: 2007-08-21 15:10:17 $ / $Author: mike $
+ * @version $Revision: 1.101 $ / $Date: 2007-08-28 19:02:30 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -343,19 +343,19 @@ public class PathwayPanel extends JPanel
         // Set up the listeners
         //-------------------------------------------------------                        
         VUE.addActiveListener(LWPathway.class, this);
-        VUE.addActiveListener(LWPathway.Entry.class, this);
+        //VUE.addActiveListener(LWPathway.Entry.class, this);
         
         VUE.getSelection().addListener(new LWSelection.Listener() {
                 public void selectionChanged(LWSelection s) {
-                    final LWPathway curPath = getSelectedPathway();
-                    if (s.size() == 1 && s.first().inPathway(curPath)) {
-                        if (DEBUG.Enabled)
-                            System.out.println(Util.TERM_RED
-                                               + "PathwayPanel skipping unsafe current path index update of "
-                                               + curPath
-                                               + Util.TERM_CLEAR);
-                        //curPath.setIndex(curPath.firstIndexOf(s.first()));
-                    } else
+//                     final LWPathway curPath = getSelectedPathway();
+//                     if (s.size() == 1 && s.first().inPathway(curPath)) {
+//                         if (DEBUG.Enabled)
+//                             System.out.println(Util.TERM_RED
+//                                                + "PathwayPanel skipping unsafe current path index update of "
+//                                                + curPath
+//                                                + Util.TERM_CLEAR);
+//                         //curPath.setIndex(curPath.firstIndexOf(s.first()));
+//                     } else
                         updateEnabledStates();
                 }
             }     
@@ -823,10 +823,10 @@ public class PathwayPanel extends JPanel
     }
     
     
-    public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
-    	updateTextAreas(entry);
-        updateEnabledStates();
-    }
+//     public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
+//     	updateTextAreas(entry);
+//         updateEnabledStates();
+//     }
     
     public void activeChanged(ActiveEvent e, LWPathway pathway) {
 
@@ -1259,61 +1259,61 @@ public class PathwayPanel extends JPanel
     }
 
     
-    private boolean mTrailingNoteSave;
-    private void updateTextAreas(LWPathway.Entry entry)
-    {
-        if (DEBUG.PATHWAY||DEBUG.META)
-            System.out.println(this + " updateTextAreas: " + entry + ", skipping="+mTrailingNoteSave);
+//     private boolean mTrailingNoteSave;
+//     private void updateTextAreas(LWPathway.Entry entry)
+//     {
+//         if (DEBUG.PATHWAY||DEBUG.META)
+//             System.out.println(this + " updateTextAreas: " + entry + ", skipping="+mTrailingNoteSave);
         
-        if (mTrailingNoteSave)
-            return;
+//         if (mTrailingNoteSave)
+//             return;
         
-        try {
+//         try {
 
-            // Save any unsaved changes before re-setting the labels.  This is backup
-            // lazy-save as workaround for java focusLost limitation.
+//             // Save any unsaved changes before re-setting the labels.  This is backup
+//             // lazy-save as workaround for java focusLost limitation.
 
-            // We also wrap this in a loop spoiler because if notes do get saved at this
-            // point, we'll come back here with an update event, and we want to ignore
-            // it as we're switching to a new note anyway.  Ideally, focusLost on the
-            // notesArea would have already handled this, but unfortunately java
-            // delivers that event LAST, after the new focus component has gotten and
-            // handled all it's events, and if it was the PathwayTable selecting another
-            // curent node to display, this code is needed to be sure the note gets
-            // saved.
+//             // We also wrap this in a loop spoiler because if notes do get saved at this
+//             // point, we'll come back here with an update event, and we want to ignore
+//             // it as we're switching to a new note anyway.  Ideally, focusLost on the
+//             // notesArea would have already handled this, but unfortunately java
+//             // delivers that event LAST, after the new focus component has gotten and
+//             // handled all it's events, and if it was the PathwayTable selecting another
+//             // curent node to display, this code is needed to be sure the note gets
+//             // saved.
             
-            mTrailingNoteSave = true;
-            ensureNotesSaved(); 
-        } finally {
-            mTrailingNoteSave = false;
-        }
+//             mTrailingNoteSave = true;
+//             ensureNotesSaved(); 
+//         } finally {
+//             mTrailingNoteSave = false;
+//         }
     
-        if (entry == null) {
-            pathLabel.setText("");
-            pathElementLabel.setText("");
-            notesArea.setText("");
-            setSelectedEntry(null);
-            return;
-        }
+//         if (entry == null) {
+//             pathLabel.setText("");
+//             pathElementLabel.setText("");
+//             notesArea.setText("");
+//             setSelectedEntry(null);
+//             return;
+//         }
 
-        String pathText = entry.pathway.getLabel();
-        String entryText;
+//         String pathText = entry.pathway.getLabel();
+//         String entryText;
 
-        if (entry.isPathway()) {
-            entryText = "";
-        } else {
-            pathText += ": ";
-            if (DEBUG.PATHWAY) pathText += "(" + (entry.index()+1) + ") ";
-            entryText = entry.getLabel();
-        }
+//         if (entry.isPathway()) {
+//             entryText = "";
+//         } else {
+//             pathText += ": ";
+//             if (DEBUG.PATHWAY) pathText += "(" + (entry.index()+1) + ") ";
+//             entryText = entry.getLabel();
+//         }
 
-        pathLabel.setText(pathText);
-        pathElementLabel.setText(entryText);
-        notesArea.setText(entry.getNotes());
+//         pathLabel.setText(pathText);
+//         pathElementLabel.setText(entryText);
+//         notesArea.setText(entry.getNotes());
         
-        mNoteKeyWasPressed = false;
-        setSelectedEntry(entry);
-    }
+//         mNoteKeyWasPressed = false;
+//         setSelectedEntry(entry);
+//     }
 
     public static void main(String[] args) {
         System.out.println("PathwayPanel:main");
