@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.154 $ / $Date: 2007-08-28 18:52:33 $ / $Author: sfraize $
+ * @version $Revision: 1.155 $ / $Date: 2007-08-28 20:16:36 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -808,8 +808,7 @@ public class LWMap extends LWContainer
                 if (path.isDrawn()) {
                     if (path == active)
                         continue;
-                    path.drawPathway(dc.push());
-                    dc.pop();
+                    path.drawPathway(dc.create());
                         
                 } else if (path == active)
                     active = null; // active isn't being drawn
@@ -823,8 +822,9 @@ public class LWMap extends LWContainer
             // will.
             
             if (active != null) {
-                active.drawPathway(dc.push());
-                dc.pop();
+                final DrawContext pdc = dc.create();
+                active.drawPathway(pdc);
+                pdc.dispose();
             }
             
             

@@ -33,7 +33,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.130 $ / $Date: 2007-08-28 18:49:39 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2007-08-28 20:16:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -1082,10 +1082,9 @@ public abstract class LWContainer extends LWComponent
         // todo opt: don't create all these GC's?
         // todo: if selection going to draw in map, consolodate it here!
         // todo: same goes for pathway decorations!
-        final DrawContext dc = _dc.push();
+        final DrawContext dc = _dc.create();
         try {
             drawChild(c, dc);
-            dc.pop();
         } catch (Throwable t) {
             synchronized (System.err) {
                 tufts.Util.printStackTrace(t);
@@ -1099,10 +1098,9 @@ public abstract class LWContainer extends LWComponent
                 System.err.println("***        clipBounds: " + dc.g.getClipBounds());
             }
         }
-// TODO: good idea to put this back...
-//         finally {
-//             dc.g.dispose();
-//         }
+        finally {
+            dc.dispose();
+        }
     }
 
     

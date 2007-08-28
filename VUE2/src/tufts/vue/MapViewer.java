@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.427 $ / $Date: 2007-08-28 18:39:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.428 $ / $Date: 2007-08-28 20:16:36 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2355,8 +2355,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         if (DEBUG.VIEWER) {
-            drawViewerDebug(dc.push());
-            dc.pop();
+            drawViewerDebug(dc.create());
         }
 
         // If there's an active text edit, draw it:
@@ -2524,14 +2523,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         if (mRollover != null) {
-            drawZoomedFocus(mRollover, dc.push());
-            dc.pop();
+            drawZoomedFocus(mRollover, dc.create()).dispose();
         }
     }
 
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
     
-    private void drawZoomedFocus(LWComponent zoomed, DrawContext dc)
+    private DrawContext drawZoomedFocus(LWComponent zoomed, DrawContext dc)
     {
         dc.setClipOptimized(false);
         dc.setDrawPathways(false);
@@ -2557,7 +2555,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             dc.g.fill(zoomed.getZeroShape());
         }
         zoomed.drawZeroDecorated(dc, true);
-        
+        return dc;
     }
 
     
