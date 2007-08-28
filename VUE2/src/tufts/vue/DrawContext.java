@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.46 $ / $Date: 2007-08-28 17:50:21 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-08-28 20:15:07 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -130,21 +130,13 @@ public final class DrawContext
         this(g, 1.0);
     }
 
-    DrawContext push() {
-        return create();
-//         if (lastTransform != null)
-//             Util.printStackTrace("overpush");
-//         lastTransform = g.getTransform();
-//         return this;
+    public void dispose() {
+        // in case we try to use it after this, this should ensure exceptions:
+        isClipOptimized = true;
+        masterClipRect = null;
+        g.dispose();
     }
-
-    void pop() {
-//         if (lastTransform == null)
-//             Util.printStackTrace("underpush");
-//         g.setTransform(lastTransform);
-//         lastTransform = null;
-    }
-    
+        
 
     public void fillBackground(Color c) {
         if (fillColor != null)
@@ -538,8 +530,8 @@ public final class DrawContext
                              focal == null ? "null-focal" : focal.getUniqueComponentTypeLabel(),
                              fmt(masterClipRect),
                              isClipOptimized
-                             ? " DRAW-ALL"
-                             : " CLIPPING"
+                             ? " CLIPPING"
+                             : " DRAW-ALL"
                              );
         
     }
