@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-07-31 23:27:22 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2007-08-28 18:58:23 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -54,14 +54,17 @@ public class LWTraversal {
     protected final boolean preOrder;
     protected boolean done = false;
     protected int depth = 0;
-
+    
+    protected final PickContext pc;
+    
     /** Note: if preOrder is true, a node can be visited if accept(node) is true, even if acceptTraversal(node) is false */
-    LWTraversal(boolean preOrder) {
+    LWTraversal(boolean preOrder, PickContext pc) {
         this.preOrder = preOrder;
+        this.pc = pc;
     }
 
-    LWTraversal() {
-        this(POST_ORDER);
+    LWTraversal(PickContext pc) {
+        this(POST_ORDER, pc);
     }
 
     public void traverse(LWComponent c) {
@@ -74,20 +77,32 @@ public class LWTraversal {
             if (done) return;
         }
             
+        final List<LWComponent> pickList = new ArrayList();
+        
         if (acceptTraversal(c)) {
-            //if (DEBUG.PICK) eoutln("Traverse: " + c);
+            if (DEBUG.PICK) eoutln("Travers0: " + c);
             if (acceptChildren(c)) {
-                if (DEBUG.PICK) eoutln("Traverse: " + c);
+                if (DEBUG.PICK) eoutln("Travers1: " + c);
                 depth++;
+                if (depth > 15) {
+                    tufts.Util.printStackTrace("aborting pick at depth " + depth + " in case of loop; pickList: " +
+                                               c.getPickList(pc, pickList));
+                    done = true;
+                    return;
+                }
                 if (true || c.isManagingChildLocations())
-                    traverseChildrenZoomUnderSiblings(c.getChildList());
+                    traverseChildrenZoomFocusIsUnderSiblings(c.getPickList(pc, pickList));
+                //traverseChildrenZoomUnderSiblings(c.getChildList());
                 else
-                    traverseChildren(c.getChildList());
+                    traverseChildren(c.getPickList(pc, pickList));
+                //traverseChildren(c.getChildList());
                 depth--;
             }
             if (done) return;
             if (!preOrder && accept(c))
                 visit(c);
+        } else {
+            if (DEBUG.PICK) eoutln("**DENIED: " + c);
         }
     }
 
@@ -95,7 +110,7 @@ public class LWTraversal {
         return true;
     }
         
-    public void traverseChildren(java.util.List<LWComponent> children)
+    public void traverseChildren(java.util.List<LWComponent> pickChildren)
     {
         // default behaviour of traversals is to traverse list in reverse so
         // that top-most components are seen first
@@ -104,14 +119,14 @@ public class LWTraversal {
         // call to ask for the child list, and if someone has a slide icon, return
         // a list with that always at the the end (on top)
         
-        for (ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
+        for (ListIterator<LWComponent> i = pickChildren.listIterator(pickChildren.size()); i.hasPrevious();) {
             traverse(i.previous());
             if (done)
                 return;
         }
     }
     
-    public void traverseChildrenZoomUnderSiblings(java.util.List<LWComponent> children)
+    public void traverseChildrenZoomFocusIsUnderSiblings(java.util.List<LWComponent> children)
     {
         // if we encounder a zoomed rollover, all siblings get priority
         // (so you can get to siblings that might have been obscurved by it's increased size)
@@ -144,7 +159,8 @@ public class LWTraversal {
      * (e.g., we're only interesting in visiting children).  However, if we're POST_ORDER,
      * and a node is NOT accepted for traversal, it is also not accepted for visiting.
      */
-    public boolean acceptTraversal(LWComponent c) { return c.hasChildren(); }
+    public boolean acceptTraversal(LWComponent c) { return c.hasPicks(); }
+    //public boolean acceptTraversal(LWComponent c) { return c.hasChidren(); }
         
     /**
      * @return true if this component meets our criteria for visiting
@@ -173,29 +189,41 @@ public class LWTraversal {
      */
     public static abstract class Picker extends LWTraversal
     {
-        protected final PickContext pc;
+        //protected final PickContext pc;
         //protected final boolean strayChildren = true; // for now, always search for children even outside of bounds (performance issue only)
 
         Picker(PickContext pc) {
-            this.pc = pc;
-            if (DEBUG.PICK) System.out.println("Picker created: " + pc);
+            //this.pc = pc;
+            super(pc);
+            if (DEBUG.PICK) System.out.println("Picker created: " + getClass().getName() + "; " +  pc);
         }
     
         
         /** If we reject traversal, we are also rejecting all children of this object */
         @Override
         public boolean acceptTraversal(LWComponent c) {
-            if (c == pc.dropping)
+            if (c == pc.dropping) {
+                if (DEBUG.PICK) eoutln("DENIED: dropping " + c);
                 return false;
-            else if (!c.isDrawn())
+            }
+            
+            if (!c.isDrawn()) {
+                if (DEBUG.PICK) eoutln("DENIED: not-drawn " + c);
                 return false;
-            else if (depth > pc.maxDepth)
+            }
+            
+            if (depth > pc.maxDepth) {
+                if (DEBUG.PICK) eoutln("DENIED: depth " + c + " depth " + depth + " > maxDepth " + pc.maxDepth);
                 return false;
-            else if (c.getLayer() > pc.maxLayer)
+            }
+            
+            if (c.getLayer() > pc.maxLayer) {
+                if (DEBUG.PICK) eoutln("DENIED: layer " + c);
                 return false;
+            }
+            
             //else return strayChildren || c.contains(mapX, mapY); // for now, ALWAYS work as if strayChildren was true
-            else
-                return true;
+            return true;
         }
 
         @Override
@@ -208,7 +236,8 @@ public class LWTraversal {
             // getPickLevel() feature?  Just throw it out if we gotta..
             //return pc.pickDepth >= c.getPickLevel();
             //return true;
-            return c.hasChildren();
+            //return c.hasChildren();
+            return c.hasPicks();
         }
         
 
@@ -391,12 +420,17 @@ public class LWTraversal {
 
             LWComponent picked = null;
             
-            if (hit != null) {
+            if (hit != null && hit.isPathwayOwned() && hit instanceof LWSlide) {
+                
+                // allow a slide-icon to be picked no matter what
+                picked = hit;
+                
+            } else if (hit != null) {
                 final LWContainer parent = hit.getParent();
                 if (parent != null) {
 
                     // This is a hack for groups to replace our getPickLevel functionality:
-                    
+
                     final LWGroup topGroupAncestor = (LWGroup) parent.getTopMostAncestorOfType(LWGroup.class);
                     if (pc.pickDepth > 0) {
                         // DEEP PICK:
@@ -445,7 +479,9 @@ public class LWTraversal {
         
     }
 
-
+    
+    //public static Rectangle2D mapRect; // for testing rotated transformMapToZeroRect
+    
     public static class RegionPick extends LWTraversal.Picker
     {
         final Rectangle2D mapRect;
@@ -458,14 +494,20 @@ public class LWTraversal {
 
         @Override
         public void visit(LWComponent c) {
-            if (DEBUG.PICK) System.out.println("VISIT " + c);
+            if (DEBUG.PICK) eoutln("VISIT " + c);
             // region picks should never select the root object the region is
             // being dragged inside
             if (c != pc.root && c != pc.excluded && c.intersects(mapRect)) {
-                if (DEBUG.PICK) System.out.println("  HIT " + c);
+                if (DEBUG.PICK) eoutln("  HIT " + c);
                 hits.add(c);
             }
 
+        }
+
+        @Override
+        public void traverse(LWComponent c) {
+            if (DEBUG.PICK) eoutln("RGN-TRVSE " + c);
+            super.traverse(c);
         }
 
         public static java.util.List<LWComponent> pick(PickContext pc) {
