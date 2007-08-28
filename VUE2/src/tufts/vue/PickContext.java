@@ -23,7 +23,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.9 $ / $Date: 2007-07-25 21:17:52 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-08-28 18:41:04 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -34,8 +34,11 @@ public class PickContext
     }
         
     
-    /** Where in the tree to start picking (usually the top-level LWMap, but sometimes a sub-focal) */
+    /** Where in the tree to start picking.  Usually this is top-level object in the MapViewer (the focal), but sometimes a sub-focal. */
     public LWComponent root;
+    
+    /** the DrawContext that produced the current display */
+    public final DrawContext dc;
 
     /** Max layer to access -- determined by the UI/viewer (currently a hack till real layers) */
     public int maxLayer = Short.MAX_VALUE;
@@ -72,21 +75,24 @@ public class PickContext
     public final float width, height;
 
 
-    public PickContext(float x, float y) {
+    public PickContext(DrawContext dc, float x, float y) {
+        this.dc = dc;
         this.x = x;
         this.y = y;
         width = height = 0;
     }
-    public PickContext() {
-        this(Float.NaN,Float.NaN);
-    }
-    public PickContext(java.awt.geom.Rectangle2D.Float r) {
+//     public PickContext() {
+//         this(Float.NaN,Float.NaN);
+//     }
+    public PickContext(DrawContext dc, java.awt.geom.Rectangle2D.Float r) {
+        this.dc = dc;
         x = r.x;
         y = r.y;
         width = r.width;
         height = r.height;
     }
-    public PickContext(java.awt.geom.Rectangle2D r) {
+    public PickContext(DrawContext dc, java.awt.geom.Rectangle2D r) {
+        this.dc = dc;
         x = (float) r.getX();
         y = (float) r.getY();
         width = (float) r.getWidth();
