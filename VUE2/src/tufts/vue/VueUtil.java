@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.84 $ / $Date: 2007-07-24 20:38:09 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2007-08-28 17:37:14 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -377,6 +377,36 @@ public class VueUtil extends tufts.Util
         line.setLine(x_axis, y1, x_axis, y2);
         return line;
     }
+
+    /** clip the given amount of length off each end of the given line -- negative values will extend the line length */
+    public static Line2D.Float clipEnds(final Line2D.Float line, final double clipLength)
+    {
+        final double rise = line.y1 - line.y2; // delta Y
+        final double run = line.x1 - line.x2; // delta X
+        final double slope = run / rise; // inverse slope is what works here: due to +y is down in coord system?
+        final double theta = Math.atan(slope);
+        final double clipX = Math.sin(theta) * clipLength;
+        final double clipY = Math.cos(theta) * clipLength;
+
+        if (DEBUG.PATHWAY) {
+            out("\nLine: " + fmt(line) + " clipping lenth off ends: " + clipLength);
+            out(String.format("XD %.1f YD %.1f Slope %.1f Theta %.2f  clipX %.1f clipY %.1f", run, rise, slope, theta, clipX, clipY));
+        }
+
+        if (line.y1 < line.y2) {
+            line.x1 += clipX;
+            line.x2 -= clipX;
+            line.y1 += clipY;
+            line.y2 -= clipY;
+        } else {
+            line.x1 -= clipX;
+            line.x2 += clipX;
+            line.y1 -= clipY;
+            line.y2 += clipY;
+        }
+
+        return line;
+    }
     
 
     /**
@@ -392,10 +422,10 @@ public class VueUtil extends tufts.Util
         // relative coords and parent-local links?  Shouldn't they be the center
         // relative to some desired parent focal? (e.g. a link parent)
         
-        float segX1 = c1.getMapCenterX();
-        float segY1 = c1.getMapCenterY();
-        float segX2 = c2.getMapCenterX();
-        float segY2 = c2.getMapCenterY();
+        final float segX1 = c1.getMapCenterX();
+        final float segY1 = c1.getMapCenterY();
+        final float segX2 = c2.getMapCenterX();
+        final float segY2 = c2.getMapCenterY();
 
         // compute intersection at shape 2 of ray from center of shape 1 to center of shape 2
         //float[] intersection_at_2 = computeIntersection(segX1, segY1, segX2, segY2, c2.getShape());
