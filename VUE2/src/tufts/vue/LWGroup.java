@@ -24,6 +24,7 @@ import static tufts.Util.*;
 import java.util.*;
 import java.awt.Graphics2D;
 import java.awt.Shape;
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
@@ -43,7 +44,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.78 $ / $Date: 2007-07-31 01:36:18 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2007-08-28 18:50:18 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -500,28 +501,30 @@ public class LWGroup extends LWContainer
         getParent().deleteChildPermanently(this);
     }
 
-    /* groups are always transparent -- defer to parent for background fill color */
-    @Override
-    public java.awt.Color getRenderFillColor(DrawContext dc)
-    {
-        if (FancyGroups)
-            return super.getRenderFillColor(dc);
+
+
+//     /* groups are always transparent -- defer to parent for background fill color */
+//     @Override
+//     public java.awt.Color getRenderFillColor(DrawContext dc)
+//     {
+//         if (FancyGroups)
+//             return super.getRenderFillColor(dc);
         
-        if (dc != null && (dc.focal == this || getParent() == null))
-            return dc.getFill();
-        else if (getParent() != null)
-            return getParent().getRenderFillColor(dc);
-        else
-            return null;
-    }
+//         if (dc != null && (dc.focal == this || getParent() == null))
+//             return dc.getFill();
+//         else if (getParent() != null)
+//             return getParent().getRenderFillColor(dc);
+//         else
+//             return null;
+//     }
     
-    public java.awt.Color getFillColor()
-    {
-        if (FancyGroups)
-            return super.getFillColor();
-        else
-            return null;
-    }
+//     public java.awt.Color getFillColor()
+//     {
+//         if (FancyGroups)
+//             return super.getFillColor();
+//         else
+//             return null;
+//     }
 
     @Override
     public void setMapLocation(double x, double y) {
@@ -625,7 +628,34 @@ public class LWGroup extends LWContainer
         else
             super.draw(dc);
     }
-    
+
+    private final Color getPathwayColor() {
+        final LWPathway exclusive = getExclusiveVisiblePathway();
+        if (exclusive != null)
+            return exclusive.getColor();
+        else if (inPathway(VUE.getActivePathway()) && VUE.getActivePathway().isDrawn())
+            return VUE.getActivePathway().getColor();
+        else
+            return null;
+    }
+
+    private static final boolean TrackPathwayColor = false;
+
+    // We won't need this at all assumung we go back to handled only as pathway overlap
+    @Override
+    public Color getRenderFillColor(DrawContext dc)
+     {
+         if (TrackPathwayColor && dc != null && dc.drawPathways() && isTransparent()) {
+             return getPathwayColor();
+//              final LWPathway exclusive = getExclusiveVisiblePathway();
+//              if (exclusive != null)
+//                  return exclusive.getColor();
+//              else if (inPathway(VUE.getActivePathway()) && VUE.getActivePathway().isDrawn())
+//                  return VUE.getActivePathway().getColor();
+         }
+         //return null;
+         return super.getRenderFillColor(dc);
+    }
 
     @Override
     protected void drawImpl(DrawContext dc)
@@ -638,23 +668,53 @@ public class LWGroup extends LWContainer
             dc.setAbsoluteStroke(1.0);
             dc.g.draw(shape);
         }
-        
-        if (FancyGroups)
-            // draw fill, border & children
-            super.drawImpl(dc);
-        else
-            // don't draw fill or border
-            drawChildren(dc);
 
-        if (isSelected() && dc.isInteractive() && dc.focal != this) {
-            final Shape shape = getZeroShape();
-            if (DEBUG.CONTAINMENT) out("drawing selection bounds shape " + shape);
-            dc.g.setColor(COLOR_HIGHLIGHT);
-            dc.g.fill(shape);
-        } else if (isZoomedFocus() && !hasDecoratedFeatures()) {
-            dc.setAbsoluteStroke(1);
-            dc.g.setColor(COLOR_SELECTION);
+        final Color fill;
+        
+        if (TrackPathwayColor) {
+            if (dc.drawPathways() && dc.focal != this && isTransparent()) {
+                final Color c = getPathwayColor();
+                if (c != null)
+                    fill = c;
+            } else
+                fill = getFillColor();
+        } else {
+            // this REALLY should be an overlay (or just the old style border) not a back fill, to make clear this isn't
+            // a fill color on the object.
+            fill = getFillColor();
+        }
+
+        if (fill != null && fill.getAlpha() != 0)  {
+            dc.g.setColor(fill);
+            dc.g.fill(getZeroShape());
+        }
+        
+        if (getStrokeWidth() > 0) {
+            dc.g.setStroke(this.stroke);
+            dc.g.setColor(getStrokeColor());
             dc.g.draw(getZeroShape());
+        }
+        
+        drawChildren(dc);
+
+//         if (FancyGroups)
+//             // draw fill, border & children
+//             super.drawImpl(dc);
+//         else
+//             // don't draw fill or border
+//             drawChildren(dc);
+
+        if (dc.isInteractive()) {
+            if (isSelected() && dc.focal != this) {
+                final Shape shape = getZeroShape();
+                if (DEBUG.CONTAINMENT) out("drawing selection bounds shape " + shape);
+                dc.g.setColor(COLOR_HIGHLIGHT);
+                dc.g.fill(shape);
+            } else if (isZoomedFocus() && !hasDecoratedFeatures()) {
+                dc.setAbsoluteStroke(1);
+                dc.g.setColor(COLOR_SELECTION);
+                dc.g.draw(getZeroShape());
+            }
         }
 
     }
@@ -670,6 +730,8 @@ public class LWGroup extends LWContainer
     protected LWComponent pickChild(PickContext pc, LWComponent c) {
         // needed for groups embeeded in groups:
         if (pc.pickDepth > 0)
+            return c;
+        else if (c.isPathwayOwned() && c instanceof LWSlide)  // to allow slide icon picking 
             return c;
         else
             return this;
@@ -706,10 +768,12 @@ public class LWGroup extends LWContainer
 
     private boolean hasDecoratedFeatures() 
     {
-        if (FancyGroups)
-            return getStrokeWidth() > 0 || !isTransparent();
-        else
-            return getEntryToDisplay() != null;
+        return getStrokeWidth() > 0 || !isTransparent();
+        
+//         if (FancyGroups)
+//             return getStrokeWidth() > 0 || !isTransparent();
+//         else
+//             return getEntryToDisplay() != null;
     }
     
     
