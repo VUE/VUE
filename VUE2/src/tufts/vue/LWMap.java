@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.153 $ / $Date: 2007-07-31 22:24:19 $ / $Author: sfraize $
+ * @version $Revision: 1.154 $ / $Date: 2007-08-28 18:52:33 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -67,6 +67,7 @@ public class LWMap extends LWContainer
     
     /** the list of LWPathways, if any */
     private LWPathwayList mPathways;
+    // todo: rename mPathwayList unless we get rid of mPathways in LWComponent (at least both are private)    
     
     /** the author of the map **/
     private String mAuthor;
@@ -104,20 +105,18 @@ public class LWMap extends LWContainer
     
     // only to be used during a restore from persisted
     public LWMap() {
-        init();
+        initMap();
         setLabel(InitLabel);
         mLWCFilter = new LWCFilter(this);
-        mFillColor.setAllowTranslucence(false);
         // on restore, set to 0 initially: if has a model version in the save file,
         // it will be overwritten
         setModelVersion(0); 
     }
     
     public LWMap(String label) {
-        init();
+        initMap();
         setID("0");
         setFillColor(java.awt.Color.white);
-        mFillColor.setAllowTranslucence(false);        
         setTextColor(COLOR_TEXT);
         setStrokeColor(COLOR_STROKE);
         setFont(FONT_DEFAULT);
@@ -139,7 +138,8 @@ public class LWMap extends LWContainer
         // todo: listen to child for events & pass up
     }
 
-    protected void init() {
+    protected void initMap() {
+        //mFillColor.setAllowAlpha(false);        
         disablePropertyTypes(KeyType.STYLE);
         enableProperty(LWKey.FillColor);
         disableProperty(LWKey.Label);
@@ -747,7 +747,7 @@ public class LWMap extends LWContainer
     
     // do nothing
     //void setScale(float scale) { }
-    
+
     @Override
     public void draw(DrawContext dc) {
         if (DEBUG.SCROLL || DEBUG.CONTAINMENT) {
@@ -764,38 +764,83 @@ public class LWMap extends LWContainer
             dc.g.fill(dc.g.getClipBounds());
         }
         */
-        
+
         /*
-         * Draw all the children of the map
+         * Draw all the children of the map.
          *
          * Note that when the map draws, it does NOT fill the background,
          * as the background color of the map is usually a special case
          * property used to completely fill the background of an underlying
          * GUI component or an image.
          */
-        super.drawChildren(dc);
         
-        /*
-         * Draw the pathways
-         */
-        if (mPathways != null && dc.drawPathways()) {
-            int pathIndex = 0;
-            for (LWPathway path : mPathways) {
-                if (path.isDrawn()) {
-                    dc.setIndex(pathIndex++);
-                    path.drawPathway(dc.create());
-                }
-            }
+        // We don't draw the pathways on top if we're zoomed in: otherwise
+        // they may obscure a pseudo-focal (e.g., a slide)
+        
+        if (dc.zoom > PathwayOnTopZoomThreshold) {
+            drawPathways(dc);
+            super.drawChildren(dc);
+        } else {
+            super.drawChildren(dc);
+            drawPathways(dc);
         }
 
-        if (DEBUG.BOXES) {
-            dc.g.setColor(java.awt.Color.red);
-            dc.g.setStroke(STROKE_ONE);
-            for (LWComponent c : getAllDescendents()) {
-                if (c.isDrawingSlideIcon())
-                    dc.g.draw(c.getMapSlideIconBounds());
+        
+//         if (DEBUG.BOXES) {
+//             dc.g.setColor(java.awt.Color.red);
+//             dc.g.setStroke(STROKE_ONE);
+//             for (LWComponent c : getAllDescendents()) {
+//                 if (c.isDrawingSlideIcon())
+//                     dc.g.draw(c.getMapSlideIconBounds());
+//             }
+//         }
+        
+    }
+
+    private void drawPathways(DrawContext dc)
+    {
+                    
+        if (mPathways != null && dc.drawPathways()) {
+            
+            LWPathway active = VUE.getActivePathway();
+            
+            for (LWPathway path : mPathways) {
+                if (path.isDrawn()) {
+                    if (path == active)
+                        continue;
+                    path.drawPathway(dc.push());
+                    dc.pop();
+                        
+                } else if (path == active)
+                    active = null; // active isn't being drawn
             }
+
+            // Draw the active one last (on top)
+            
+            // If these all have equal transparency, this shouldn't
+            // actually make a visible difference, but if the active
+            // should take on non-transparent value, it definitely
+            // will.
+            
+            if (active != null) {
+                active.drawPathway(dc.push());
+                dc.pop();
+            }
+            
+            
         }
+
+
+        
+//         if (mPathways != null && dc.drawPathways()) {
+//             int pathIndex = 0;
+//             for (LWPathway path : mPathways) {
+//                 if (path.isDrawn()) {
+//                     dc.setIndex(pathIndex++);
+//                     path.drawPathway(dc.create());
+//                 }
+//             }
+//         }
     }
 
     public java.awt.image.BufferedImage createImage(double alpha, java.awt.Dimension maxSize, java.awt.Color fillColor, double mapZoom) {
@@ -883,6 +928,7 @@ public class LWMap extends LWContainer
     @Override
     protected final LWComponent defaultPick(PickContext pc) {
         //return this; // allow picking of the map
+        // OPTIMIZATION: if embed maps in maps, lose this override (and make LWComponent version final)
         return null;
     }
 
@@ -1016,7 +1062,7 @@ public class LWMap extends LWContainer
      * This is called so often that we keep a single cached object with the current value.
      */
     @Override
-    public Rectangle2D.Float getBounds() {
+    public Rectangle2D.Float getMapBounds() {
 
         // TODO: OPTIMIZE!  This is getting called EIGHT (8) times per event --
         // e.g. computing the entire bounds of the map 8 times per mouse drag when
