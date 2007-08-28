@@ -126,17 +126,35 @@ class LWCInspector extends javax.swing.JPanel
         add(lockBtn, BorderLayout.SOUTH);
         //add(metadataPane,BorderLayout.SOUTH);
 
-        VUE.ModelSelection.addListener(this);
-        VUE.addActiveListener(LWPathway.class, this);
+        //VUE.ModelSelection.addListener(this);
+        VUE.addActiveListener(LWPathway.Entry.class, this);
+        VUE.addActiveListener(LWComponent.class, this);
     }
 
-    public void activeChanged(ActiveEvent e, LWPathway path) {
+//     public void activeChanged(ActiveEvent e, LWPathway path) {
+//         if (lockBtn.isSelected())
+//             return;
+//         if (path != null)
+//             loadItem(path);
+//     }
+
+    public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
+        if (entry.isPathway() && VUE.getSelection().isEmpty())
+            loadItem(entry.pathway.getMasterSlide());
+    }
+    
+
+    public void activeChanged(ActiveEvent e, LWComponent c) {
         if (lockBtn.isSelected())
             return;
-        if (path != null)
-            loadItem(path);
+        if (c == null)
+            loadItem(VUE.getActiveMap());
+        else if (c instanceof LWPathway)
+            loadItem(((LWPathway)c).getMasterSlide());
+        else
+            loadItem(c);
     }
-
+    
     private void setUpMetadataPane() {
         BoxLayout layout = new BoxLayout(metadataPane,BoxLayout.Y_AXIS);
         metadataPane.setLayout(layout);
@@ -350,6 +368,12 @@ class LWCInspector extends javax.swing.JPanel
         if (c == null || c.getAlpha() != 255)
             c = Color.gray;
         labelField.setBackground(c);
+        if (Color.black.equals(c))
+            labelField.setForeground(Color.white);
+        else
+            labelField.setForeground(Color.darkGray);
+            
+            
 //         if (c.isTranslucent() || c.getRenderFillColor() == null)
 //             labelField.setBackground(Color.gray);
 //         else
