@@ -31,7 +31,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.11 $ / $Date: 2007-07-25 21:17:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.12 $ / $Date: 2007-08-28 18:56:16 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -39,9 +39,12 @@ public class LWPortal extends LWNode
     private static final Color DarkFill = new Color(0,0,0,64);
     private static final Color LightFill = new Color(255,255,255,64);
     private static final Color DebugFill = new Color(0,255,0,128);
+    private static final Color DefaultFill = new Color(128,128,128,128);
     
     public LWPortal() {
         disablePropertyTypes(KeyType.STYLE);
+        //enableProperty(LWKey.StrokeWidth);
+        //enableProperty(LWKey.StrokeColor);
         enableProperty(LWKey.Shape);
         //disableProperty(LWKey.Label);
     }
@@ -80,6 +83,12 @@ public class LWPortal extends LWNode
         return false;
     }
 
+    /** @return false: portals can never have slides of their own */
+    @Override
+    public final boolean supportsSlide() {
+        return false;
+    }
+    
     @Override
     public int getFocalMargin() {
         return 0;
@@ -93,27 +102,67 @@ public class LWPortal extends LWNode
             return super.containsImpl(x, y, pc);
     }
     
-    
-    
+    @Override
+    public Color getRenderFillColor(DrawContext dc) {
+        if (dc != null && dc.focal != null)
+            return dc.focal.mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
+        else
+            return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
+    }
+
     @Override
     protected void drawImpl(DrawContext dc)
     {
-        if (DEBUG.BOXES || DEBUG.CONTAINMENT) {
-            dc.g.setColor(DebugFill);
-            dc.g.fill(getZeroShape());
-        } else if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
+        //if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
+        if (dc.focal instanceof LWPortal) {
             // no fill: don't show the portal fill if we, or any
             // other portal, is currently the focal
-            if (false) {
-                dc.g.setColor(Color.blue);
-                dc.g.setStroke(VueConstants.STROKE_TWO);
+        } else if (hasEntries()) {
+//             final LWPathway exclusive = getExclusiveVisiblePathway();
+//             if (exclusive != null)
+//                 dc.g.setColor(exclusive.getColor());
+//             else if (inPathway(VUE.getActivePathway()))
+//                 dc.g.setColor(VUE.getActivePathway().getColor());
+//             else 
+//                 dc.g.setColor(getRenderFillColor(dc));
+
+            final Color fill = getPriorityPathwayColor(dc);
+            if (fill == null)
+                dc.g.setColor(getRenderFillColor(dc));
+            else
+                dc.g.setColor(fill);
+
+            //dc.g.setColor(DefaultFill);
+            if (dc.zoom > PathwayOnTopZoomThreshold) {
+                dc.g.setStroke(new java.awt.BasicStroke(LWPathway.PathBorderStrokeWidth));
                 dc.g.draw(getZeroShape());
+            } else {
+                dc.g.fill(getZeroShape());
             }
         } else {
             // Show the portal region:
             dc.g.setColor(getRenderFillColor(dc));
             dc.g.fill(getZeroShape());
         }
+
+
+        
+//         if (DEBUG.BOXES || DEBUG.CONTAINMENT) {
+//             dc.g.setColor(DebugFill);
+//             dc.g.fill(getZeroShape());
+//         } else if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
+//             // no fill: don't show the portal fill if we, or any
+//             // other portal, is currently the focal
+//             if (false) {
+//                 dc.g.setColor(Color.blue);
+//                 dc.g.setStroke(VueConstants.STROKE_TWO);
+//                 dc.g.draw(getZeroShape());
+//             }
+//         } else {
+//             // Show the portal region:
+//             dc.g.setColor(getRenderFillColor(dc));
+//             dc.g.fill(getZeroShape());
+//         }
     }
 
     /*
@@ -144,14 +193,6 @@ public class LWPortal extends LWNode
         return false;
     }
     
-    @Override
-    public Color getRenderFillColor(DrawContext dc) {
-        if (dc != null)
-            return dc.focal.mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
-        else
-            return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
-    }
-
     @Override
     public boolean supportsChildren() {
         return false;
