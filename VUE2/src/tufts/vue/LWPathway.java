@@ -47,7 +47,7 @@ import java.awt.geom.*;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.175 $ / $Date: 2007-08-28 18:56:06 $ / $Author: sfraize $
+ * @version $Revision: 1.176 $ / $Date: 2007-08-28 20:39:31 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -182,8 +182,17 @@ public class LWPathway extends LWContainer
         }
 
         public LWSlide getSlide() {
+            return getSlide(false);
+        }
+        
+        /** force a slide no matter what: e.g., for printing */
+        public LWSlide produceSlide() {
+            return getSlide(true);
+        }
+        
+        private LWSlide getSlide(boolean force) {
             if (isMapView()) {
-                if (node.supportsSlide()) {
+                if (force || node.supportsSlide()) {
                     //if (slide == null || slide instanceof MapSlide == false)
                     if (mapSlide == null)
                         mapSlide = new MapSlide(this);
@@ -1128,7 +1137,10 @@ public class LWPathway extends LWContainer
             setPathwayEntry(e);
             //Util.printStackTrace("new MapSlide " + this + " for entry " + e);
             disableProperty(LWKey.FillColor); // we don't persist map slides, so don't allow this to change: won't be permanent
-            setParent((LWContainer)e.node);
+            if (e.node instanceof LWContainer)
+                setParent((LWContainer)e.node);
+            else
+                Util.printStackTrace(this + "; Can't yet parent this slide to non-container node: " + e.node);
         }
 
         @Override
