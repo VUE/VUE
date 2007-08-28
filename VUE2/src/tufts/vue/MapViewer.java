@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.426 $ / $Date: 2007-08-24 20:28:15 $ / $Author: mike $ 
+ * @version $Revision: 1.427 $ / $Date: 2007-08-28 18:39:54 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -117,7 +117,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected LWComponent mLastFocal;
     /** Current on-map text edit, null if no edit active */
     protected TextBox activeTextEdit;
-    
     /** Current on-map text edit, null if no edit active */
     protected RichTextBox activeRichTextEdit;
     
@@ -151,6 +150,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected static LWComponent indication;   // current indication (drag rollover hilite -- ONLY ONE PER ALL MAPS)
     
     private MapDropTarget mapDropTarget;
+    private MapScrollPane mapScrollPane;
     
     //-------------------------------------------------------
     // Pan & Zoom Support
@@ -172,8 +172,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private final VueTool LinkTool = VueTool.getInstance(tufts.vue.LinkTool.class);
     private final VueTool TextTool = VueTool.getInstance(tufts.vue.TextTool.class);
     private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
+    private final VueTool NodeModeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
     private final VueTool RichTextTool = VueTool.getInstance(tufts.vue.RichTextTool.class);
-
+    
     //-------------------------------------------------------
     // Scroll-pane support
     //-------------------------------------------------------
@@ -288,7 +289,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mViewport = (MapViewport) getParent();
             setAutoscrolls(true);
 
-            MapScrollPane mapScrollPane = (MapScrollPane) mViewport.getParent();
+            mapScrollPane = (MapScrollPane) mViewport.getParent();
             mFocusIndicator = mapScrollPane.getFocusIndicator();
 
             // TODO: need to install the MouseWheelRelay here, as we get added/removed notify
@@ -297,6 +298,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
         } else {
             mViewport = null;
+            mapScrollPane = null;
 
             // Only do this if not in a scroll-pane.  If we are,
             // it will add us, creating a relay so it can process
@@ -410,7 +412,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private void adjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast)
     {
-        if (inScrollPane) {
+        if (inScrollPane && mFocal instanceof LWMap) {
+            // 2007-08-21 added check for map focal: never mess w/cavas if focal isn't a map (we now disable scroll bars entirely in that case)
             if (mFocal.hasContent())
                 mViewport.adjustSize(expand, trimNorthWest, trimSouthEast);
             else
@@ -819,7 +822,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (c instanceof LWLink)
             return c.getFanBounds();
         else
-            return c.getBounds();
+            return c.getPaintBounds();
     }
     
     private Rectangle2D.Float getFocalBounds() {
@@ -871,6 +874,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             Util.printStackTrace(t, "MapViewer failed processing event " + e);
         }
     }
+
+    private boolean hasActiveTextEdit() {
+        return activeTextEdit != null || activeRichTextEdit != null;
+    }
     
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =
@@ -903,7 +910,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         super.reshape(x,y, w,h);
 
-        if (DEBUG.VIEWER || ignore && (activeTextEdit != null || activeRichTextEdit != null))
+        if (DEBUG.VIEWER || ignore && hasActiveTextEdit())
             // if active text is transparent, we'll need this to draw under blinking cursor
             repaint(); 
 
@@ -937,6 +944,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private boolean zoomFitUnderway = false;
     protected void fitToFocal() {
+        fitToFocal(false);
+    }
+    protected void fitToFocal(boolean animate) {
         if (zoomFitUnderway) {
             //out("ZOOM UNDERWAY");
             return;
@@ -950,13 +960,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
         zoomFitUnderway = true;
         try {
-            doFitToFocal();
+            doFitToFocal(animate);
         } finally {
             zoomFitUnderway = false;
         }
     }
+
+    protected boolean canAnimate() {
+        return !inScrollPane();
+        //return PoppingToTop || !inScrollPane();
+        //return true;
+    }
     
-    private void doFitToFocal()
+    private void doFitToFocal(boolean animate)
     {
         if (DEBUG.PRESENT || DEBUG.VIEWER) out("fitToFocal", mFocal);
         mFitToFocalRequested = false;
@@ -966,22 +982,43 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
-        final boolean animate = false;
         final Rectangle2D zoomBounds = getFocalBounds();
 
-//         int margin = 30;
-//         if (mFocal instanceof LWSlide ||
-//             mFocal instanceof LWPortal ||
-//             mFocal instanceof LWImage
-//             )
-//             margin = 0;
-
         if (DEBUG.PRESENT || DEBUG.VIEWER) out("fitToFocal", mFocal + " at " + zoomBounds);
-        
-        ZoomTool.setZoomFitRegion(this,
-                                  zoomBounds,
-                                  mFocal.getFocalMargin(),
-                                  animate);
+
+        if (animate && mLastFocal != null && mLastFocal instanceof LWMap == false && canAnimate()) {
+            // if last focal was the map, don't bother to ensure we're fit to it
+            ZoomTool.setZoomFitRegion(this,
+                                      getFocalBounds(mLastFocal),
+                                      0,
+                                      false);
+        }
+
+        if (ScrollBarHiding && mFocal instanceof LWMap) {
+            // this was only a problem when we stripped the scroll bars when focusing into, e.g., a slide --
+            // the available canvas size was too big when we came through here -- the AWT
+            // hasn't had a change yet to run the re-add of the scroll bars, so we can only
+            // do this accurately later in the AWT, tho sometimes we get a flash repaint of the
+            // map (the new focal) at what looks like the zoom of the old focal (and presumably
+            // it's old offset)
+            
+            //ZoomTool.setZoomFit(this, animate);
+            //adjustCanvasSize();
+            //resetScrollRegion();
+            //ZoomTool.setZoomFit(this);
+            //resetScrollRegion();
+            //adjustCanvasSize();
+            //ZoomTool.setZoomFit(this);
+            //VUE.invokeAfterAWT(new Runnable() { public void run() {  resetScrollRegion(); }});
+            resetScrollRegion();
+            VUE.invokeAfterAWT(new Runnable() { public void run() { ZoomTool.setZoomFit(MapViewer.this); }});
+            
+        } else {
+            ZoomTool.setZoomFitRegion(this,
+                                      zoomBounds,
+                                      mFocal.getFocalMargin(),
+                                      animate);
+        }
         
     }
 
@@ -1067,31 +1104,37 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         mOffset.x = mOffset.y = 0;
     }
     
-    /** let the active tool handle the focal transition if it wants */
     public void switchFocal(LWComponent newFocal) {
+        switchFocal(newFocal, false);
+    }
+    
+    /** let the active tool handle the focal transition if it wants -- note that ANIMATE will only work properly if the focal is switching to a parent focal */
+    public void switchFocal(LWComponent newFocal, boolean animate) {
         if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", newFocal);
         if (activeTool != null && activeTool.handleFocalSwitch(this, mFocal, newFocal)) {
             if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", "activeTool handled: " + activeTool);
             ; // the active tool has handled the focal loading and any desired auto-fit
         } else {
             if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("switchFocal", "vanilla load " + newFocal);
-            loadFocal(newFocal);
+            loadFocal(newFocal, true, animate);
         }
         
     }
         
     /** actualy load the new focal */
     public void loadFocal(LWComponent focal) {
-        loadFocal(focal, true);
+        loadFocal(focal, true, false);
     }
     
+    private static final boolean ScrollBarHiding = false;
+
     /** actualy load the new focal */
-    public void loadFocal(LWComponent focal, boolean fitToFocal) {
+    public void loadFocal(LWComponent focal, boolean fitToFocal, boolean animate) {
         if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal", focal + "; autoFit=" + fitToFocal);
         //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
         if (mFocal == focal) {
             if (fitToFocal)
-                fitToFocal();
+                fitToFocal(animate);
             return;
         }
 
@@ -1114,6 +1157,27 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (mMap == null)
                 tufts.Util.printStackTrace("no map in focal! " + mFocal);
             mFocal.addLWCListener(this);
+
+            if (inScrollPane()) {
+                if (ScrollBarHiding) {
+                    if (mFocal instanceof LWMap) {
+                        mapScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+                        mapScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+                    } else {
+                        mapScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+                        mapScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+                    }
+                    // not helping to get get our canvas updated before we need the new canvas bounds to compute the zoom fit area
+                    //invalidate();
+                    //validate();
+                    //mapScrollPane.revalidate(); 
+                    //revalidate();
+                } else {
+                    final boolean enable = mFocal instanceof LWMap;
+                    mapScrollPane.getHorizontalScrollBar().setEnabled(enable);
+                    mapScrollPane.getVerticalScrollBar().setEnabled(enable);
+                }
+            }
             
         } else
             mMap = null;
@@ -1128,7 +1192,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         //if (AutoZoomToMapOnLoad || autoZoom) {
         if (fitToFocal) {
-            fitToFocal();
+            fitToFocal(animate);
         }
         
         if (focal == null)
@@ -1136,32 +1200,44 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     public void popToMapFocal() {
-        popFocal(true);
+        popFocal(true, false);
     }
 
     protected boolean popFocal() {
         return popFocal(false);
     }
+
+    protected boolean popFocal(boolean toTop) {
+        return popFocal(toTop, false);
+    }
     
     /** refocus the viewer on the parent of the curent focal
      * @return true if we were able to change the focal
      */
-    protected boolean popFocal(boolean toTopLevel)
+    private boolean PoppingToTop;
+    protected boolean popFocal(boolean toTopLevel, boolean animate)
     {
         if (DEBUG.PRESENT || DEBUG.WORK) out("popFocal", "up from " + mFocal + "; toTop=" + toTopLevel);
         if (mFocal == null)
             return false;
 
         if (toTopLevel) {
-            switchFocal(mFocal.getMap());
+            PoppingToTop = true;
+            try {
+                switchFocal(mFocal.getMap(), animate);
+            } finally {
+                PoppingToTop = false;
+            }
             return true;
         }
         
-        LWComponent parent = mFocal.getParent();
+        final LWComponent parent = mFocal.getParent();
         if (parent instanceof LWPathway)
-            switchFocal(parent.getMap());
+            switchFocal(parent.getMap(), animate);
+        else if (mFocal instanceof LWSlide && mFocal.isPathwayOwned())
+            switchFocal(parent.getMap(), animate);
         else if (parent != null)
-            switchFocal(parent);
+            switchFocal(parent, animate);
         else
             return false;
         
@@ -1169,50 +1245,31 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
 
-    /*
-    void setFocal(LWComponent focal) {
-        if (focal == null) {
-            if (mFocal != null)
-                mFocal.removeLWCListener(this);
-            mFocal = mMap;
-            mMap.addLWCListener(this);
-        } else {
-            mFocal = focal;
-            mFocal.addLWCListener(this);
-            mMap.removeLWCListener(this);
-        }
-    }
-    
-    private void unloadMap() {
-        mMap.removeLWCListener(this);
-        mMap = null;
-        mFocal = null;
-    }
-    
-    protected void loadMap(LWMap map) {
-        if (map == null)
-            throw new IllegalArgumentException(this + " loadMap: null LWMap");
-        if (mMap == map)
-            return;
-        if (mMap != null)
-            unloadMap();
-        mMap = map;
-        mFocal = map;
-        mMap.addLWCListener(this);
-        if (mMap.getUndoManager() == null) {
-            if (mMap.isModified()) {
-                out("Note: this map has modifications undo will not see");
-                //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
-            }
-            mMap.setUndoManager(new UndoManager(mMap));
-        }
-        repaint();
-    }
-    */
+
+//     private boolean immediateRepaint = false;
+//     void paintImmediately() {
+//         immediateRepaint = true;
+//         try {
+//             paintImmediately(getVisibleBounds());
+//         } finally {
+//             immediateRepaint = false;
+//         }
+//     }
 
     void paintImmediately() {
         paintImmediately(getVisibleBounds());
     }
+
+    private boolean isAnimating;
+    protected void setAnimating(boolean animating) {
+        isAnimating = animating;
+    }
+
+    protected boolean isAnimating() {
+        return isAnimating;
+    }
+    
+    
     
     private void RR(Rectangle r) {
         if (OPTIMIZED_REPAINT)
@@ -1472,21 +1529,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
-        if (c instanceof LWSlide && !c.isMoveable()) {
-            //if (c instanceof LWSlide && mFocal != c) {
+//         if (c instanceof LWSlide && !c.isMoveable()) {
+//             //if (c instanceof LWSlide && mFocal != c) {
 
-            // We never want to indicate the slide-icon on the main map for any reason,
-            // as it's not really "there" right now.  E.g., you can't link to, or drop
-            // objects into it, etc.  This is still allowed for slides that completely
-            // own the viewer (they are the focal, e.g. as in SlideViewer) The
-            // slide-icons can still be picked and selected via LWComponent hacks, but
-            // we never want them indicated;
+//             // We never want to indicate the slide-icon on the main map for any reason,
+//             // as it's not really "there" right now.  E.g., you can't link to, or drop
+//             // objects into it, etc.  This is still allowed for slides that completely
+//             // own the viewer (they are the focal, e.g. as in SlideViewer) The
+//             // slide-icons can still be picked and selected via LWComponent hacks, but
+//             // we never want them indicated;
 
-            // Actually, we never need the slide indicated at all for the moment:
-            // no need to show it in the SlideViewer either.
+//             // Actually, we never need the slide indicated at all for the moment:
+//             // no need to show it in the SlideViewer either.
         
-            return;
-        }
+//             return;
+//         }
             
         clearIndicated();
         indication = c;
@@ -1530,7 +1587,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected PickContext getPickContext(float x, float y)
     {
-        final PickContext pc = initPickContext(new PickContext(x, y));
+        final PickContext pc = initPickContext(new PickContext(mDC, x, y));
         
         if (mFocal instanceof LWPortal) {
             // we can pick right through the portal to the underlying map by using using
@@ -1546,12 +1603,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     protected PickContext getPickContext(Rectangle2D.Float rect)
     {
-        final PickContext pc = initPickContext(new PickContext(rect));
+        final PickContext pc = initPickContext(new PickContext(mDC, rect));
         
         // never pick the focal for a dragged selection -- it's the background
         pc.excluded = mFocal;
-        // for rectangular picks, only ever pick top-level items (no children)
-        pc.maxDepth = 1;
+        if (!LWComponent.SwapFocalOnSlideZoom && mDC != null && mDC.zoom <= 4) {
+            // hack for zoom dependent selection: allow rect to pick into the slide
+            // -- would need more work for proper impl, as this will pick contents
+            // of other slide icons underneath us! (as well as the nearby parent node itself)
+            pc.maxDepth = Short.MAX_VALUE; // this is also the default in the PickContext
+        } else {
+            // default: for rectangular picks, only ever pick top-level items (no children)
+            pc.maxDepth = 1;
+        }
         
         return activeTool.initPick(pc, rect);
     }
@@ -1659,7 +1723,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //private Point2D mZoomoverOldLoc = null;
 
     private static boolean allowsZoomedRollover(LWComponent c) {
-        if (c == null || c instanceof LWLink || c instanceof LWPortal || c instanceof LWSlide)
+        //if (c == null || c instanceof LWLink || c instanceof LWPortal || c instanceof LWSlide)
+        if (c == null || c instanceof LWLink || c instanceof LWPortal)
             return false;
         else
             return true;
@@ -1688,7 +1753,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (mapZoom <= 1.0) {
             final double normalZoom = 1 / getZoomFactor(); // zoom needed to get to 100%
-            netZoom = normalZoom * 2;
+            if (c instanceof LWSlide)
+                netZoom = normalZoom / 2;
+            else
+                netZoom = normalZoom * 2;
             if (netZoom > 4) {
                 netZoom = normalZoom;
                 if (netZoom > 6)
@@ -1697,9 +1765,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         } else if (mapZoom > 2.0) {
             if (DEBUG.Enabled) out("**SET ROLLOVER: skipped -- overzoom");
             return;
-        } else
-            netZoom = 2;
-        
+        } else {
+            if (c instanceof LWSlide)
+                netZoom = 0.5;
+            else
+                netZoom = 2;
+        }
+
         if (DEBUG.Enabled) out("**SET ROLLOVER NET ZOOM: " + netZoom);
         LWComponent.ZoomRolloverScale = netZoom;
             
@@ -2032,7 +2104,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private int paints=0;
     //private boolean redrawingSelector = false;
+
+    protected boolean skipAllPainting() {
+        return VUE.inFullScreen() && instanceName != tufts.vue.gui.FullScreen.VIEWER_NAME;
+    }
+    
+    
     public void paint(Graphics g) {
+
+        if (skipAllPainting())
+            return;
+        
         long start = 0;
         if (DEBUG.PAINT) {
             System.out.print("paint " + paints + " RAW-clipBounds=" + g.getClipBounds()+" "); System.out.flush();
@@ -2093,34 +2175,81 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
             return "New Map";
     }
-    
+
+    protected final DrawContext getLastDC() {
+        return mDC;
+    }
+
+
+    /** The last used (current for picking) DrawContext */
+    private DrawContext mDC;
     
     /**
      * @return a DrawContext which has adjusted the Graphics for current pan and zoom
      */
     protected DrawContext getDrawContext(Graphics2D g) {
-        DrawContext dc = new DrawContext(g, getZoomFactor(), -getOriginX(), -getOriginY(), getVisibleBounds(), mFocal, true);
         
-        dc.setInteractive(true);
-        dc.setAntiAlias(DEBUG_ANTI_ALIAS);
-        dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
-        dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
-        dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
+        final DrawContext dc = new DrawContext(g,
+                                               getZoomFactor(),
+                                               -getOriginX(),
+                                               -getOriginY(),
+                                               getVisibleBounds(),
+                                               mFocal,
+                                               true);
+        dc.setAnimating(isAnimating);
+        
+        if (isAnimating) {
+            // This usually means we're animating: prioritize everything for speed:
+            
+            //dc.setDrawPathways(false);
+            dc.setInteractive(false);
+            //dc.setAntiAlias(DEBUG_ANTI_ALIAS);
+            dc.setAntiAlias(false);
+            dc.disableAntiAlias(true); // prevent anyone else from setting it
+            dc.setPrioritizeSpeed(true);
+            dc.setFractionalFontMetrics(false);
+            dc.setDraftQuality(true);
+            
+        } else {
+            
+            dc.setInteractive(true);
+            dc.setDrawPathways(true);
+            dc.setAntiAlias(DEBUG_ANTI_ALIAS);
+            if (!DEBUG_ANTI_ALIAS)
+                dc.disableAntiAlias(true);
+            dc.setPrioritizeQuality(DEBUG_RENDER_QUALITY);
+            dc.setFractionalFontMetrics(DEBUG_FONT_METRICS);
+            dc.disableAntiAlias(DEBUG_ANTI_ALIAS == false);
+        }
+        
         //dc.setActiveTool(getCurrentTool());
         //dc.setMaxLayer(getMaxLayer());
-
         //dc.zoomedFocus = mRollover;
         
         return dc;
     }
-    
+
+    private boolean dragSelectorEnabled(MapMouseEvent mme) {
+        if (mFocal instanceof LWPathway.MapSlide)
+            return false;
+        else
+            return activeTool.supportsDraggedSelector(mme);
+    }
+
     private static final Color rrColor = Color.yellow;
     /**
      * Java Swing JComponent.paintComponent -- paint the map on the map viewer canvas
      */
     public void paintComponent(final Graphics incomingGC)
     {
-        final Graphics2D g = (Graphics2D) incomingGC.create();
+        final Graphics2D g;
+
+        if (hasActiveTextEdit()) {
+            // if we have an active text edit, we'll need the incomingGC in pristine state at the and
+            g = (Graphics2D) incomingGC.create();
+        } else {
+            g = (Graphics2D) incomingGC;
+        }
         
         /*
         Rectangle cb = g.getClipBounds();
@@ -2144,6 +2273,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         final DrawContext dc = activeTool.getDrawContext(getDrawContext(g));
+        this.mDC = dc;
 
         //-------------------------------------------------------
         // DRAW THE THE CURRENT FOCAL (usually the MAP)
@@ -2154,6 +2284,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //-------------------------------------------------------
         
         dc.setMapDrawing();
+        
         if (DEBUG_SHOW_ORIGIN) {
             out("DRAWING ORIGIN");
             // why isn't this working anymore?  was just after fill, but
@@ -2173,18 +2304,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
         
-        /*
-        if (dragComponent != null) {
-            g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
-            dragComponent.draw(g2);
-        }
-         */
-        
-        /*
-        if (true||!VueUtil.isMacPlatform()) // try aa selection on mac for now (todo)
-            //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_OFF);
-            dc.setAntiAlias(true);
-        */
         
         //-------------------------------------------------------
         // DRAW THE CURRENT INDICATION, if any (for targeting during drags)
@@ -2207,7 +2326,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final LWSelection s = VueSelection;
 
-        if (s == null || s.isEmpty() || !activeTool.supportsResizeControls()) {
+        if (s == null || s.isEmpty() || !activeTool.supportsResizeControls() || isAnimating) {
             resizeControl.active = false;
         } else  {
             final LWComponent remoteFocal = s.getFocal();
@@ -2236,108 +2355,83 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         if (DEBUG.VIEWER) {
-            dc.setRawDrawing();
-            g.setColor(Color.red);
-            g.setStroke(new java.awt.BasicStroke(1f));
-            g.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
-            
-            int iX = (int) (screenToMapX(_mouse.x) * 100);
-            int iY = (int) (screenToMapY(_mouse.y) * 100);
-            float mapX = iX / 100f;
-            float mapY = iY / 100f;
+            drawViewerDebug(dc.push());
+            dc.pop();
+        }
 
-            Point2D mapCoords = new Point2D.Float(mapX, mapY);
-            Point canvas = getLocation();
-            Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
+        // If there's an active text edit, draw it:
+
+        if (hasActiveTextEdit())     // This is a real Swing JComponent
+            super.paintChildren(incomingGC);
+    }
+
+    protected void drawViewerDebug(DrawContext dc)
+    {
+        dc.setRawDrawing();
+
+        final Graphics2D g = dc.g;
+        
+        g.setColor(Color.red);
+        g.setStroke(new java.awt.BasicStroke(1f));
+        g.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
+            
+        int iX = (int) (screenToMapX(_mouse.x) * 100);
+        int iY = (int) (screenToMapY(_mouse.y) * 100);
+        float mapX = iX / 100f;
+        float mapY = iY / 100f;
+
+        Point2D mapCoords = new Point2D.Float(mapX, mapY);
+        Point canvas = getLocation();
+        Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
                                                      
             
-            g.setFont(VueConstants.FixedFont);
-            int x = -getX() + 40;
-            int y = -getY() + 100;
-            //int x = dc.frame.x;
-            //int y = dc.frame.y;
-            //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
-            if (true) {
-                g.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
-                g.drawString("     map mouse: " + out(mapCoords), x, y+=15);
-                g.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
-                g.drawString(" ~screen mouse: " + out(screen), x, y+=15);
-                g.drawString("     canvas at: " + out(canvas), x, y+= 15);
-                /*if (inScrollPane){
-                Point extent = viewportToCanvasPoint(mouse);
-                Point2D map = extentToMapPoint(extent);
-                g2.drawString("  extent point: " + out(extent), x, y+=15);
-                g2.drawString("     map point: " + out(map), x, y+=15);
-                }*/
-                if (inScrollPane){
+        g.setFont(VueConstants.FixedFont);
+        int x = -getX() + 40;
+        int y = -getY() + 100;
+        //int x = dc.frame.x;
+        //int y = dc.frame.y;
+        //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
+        if (true) {
+            g.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
+            g.drawString("     map mouse: " + out(mapCoords), x, y+=15);
+            g.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
+            g.drawString(" ~screen mouse: " + out(screen), x, y+=15);
+            g.drawString("     canvas at: " + out(canvas), x, y+= 15);
+            /*if (inScrollPane){
+              Point extent = viewportToCanvasPoint(mouse);
+              Point2D map = extentToMapPoint(extent);
+              g2.drawString("  extent point: " + out(extent), x, y+=15);
+              g2.drawString("     map point: " + out(map), x, y+=15);
+              }*/
+            if (inScrollPane){
                 g.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
-                }
-                g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
-                g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
-                g.drawString("    canvas-size " + out(getSize()), x, y+=15);
-                g.drawString("          frame " + out(dc.getFrame()), x, y+=15);
             }
-            if (inScrollPane) {
-                g.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
-            }
-            g.drawString("zoom " + getZoomFactor(), x, y+=15);
-            g.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
-            g.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
-            g.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
-            //g.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
-            g.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
-            g.drawString("Focal " + this.mFocal, x, y+=15);
-            g.drawString("  MAP " + this.mMap, x, y+=15);
+            g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
+            g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
+            g.drawString("    canvas-size " + out(getSize()), x, y+=15);
+            g.drawString("          frame " + out(dc.getFrame()), x, y+=15);
+        }
+        if (inScrollPane) {
+            g.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
+        }
+        g.drawString("zoom " + getZoomFactor(), x, y+=15);
+        g.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
+        g.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
+        g.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
+        //g.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
+        g.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
+        g.drawString("Focal " + this.mFocal, x, y+=15);
+        g.drawString("  MAP " + this.mMap, x, y+=15);
 
-            Point2D center = getVisibleCenter();
-            dc.setAbsoluteStroke(1);
-            // easily gets lost when way zoomed in because coords > MaxCoord
-            //g2.draw(new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord));
-            //g2.draw(new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
-            g.drawLine(-99999, (int) Math.round(center.getY()), 99999, (int) Math.round(center.getY()));
-            g.drawLine((int) Math.round(center.getX()), -99999, (int) Math.round(center.getX()), 99999);
-        }
-
-        /*
-        if (DEBUG_SHOW_ORIGIN && mZoomFactor >= 6.0) {
-            //g2.setComposite(java.awt.AlphaComposite.Xor);
-            g2.translate(-getOriginX(), -getOriginY());
-            g2.setStroke(STROKE_ONE);
-            g2.setColor(Color.black);
-            g2.draw(Xaxis);
-            g2.draw(Yaxis);
-        }
-        */
-        
-        //g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, AA_ON);
-        dc.setAntiAlias(true);
-        
-        /*
-        if (false&&mTipMessage != null) {
-            g2.setFont(FONT_MEDIUM);
-            TextRow msg = new TextRow(mTipMessage, g2);
-            int x = mTipPoint.x - (int) msg.getWidth();
-            int y = mTipPoint.y - (int) (msg.getHeight() / 2f);
-            x -= 2;
-            if (VueUtil.isMacPlatform())
-                g2.setColor(COLOR_TOOLTIP);
-            else
-                g2.setColor(SystemColor.info);
-            int p=3;
-            g2.fillRect(x-p, y-p, (int)msg.getWidth()+p*2, (int)msg.getHeight()+p*2-1);
-            g2.setColor(Color.black);
-            g2.setStroke(STROKE_ONE);
-            g2.drawRect(x-p, y-p, (int)msg.getWidth()+p*2, (int)msg.getHeight()+p*2-1);
-            g2.setColor(SystemColor.infoText);
-            msg.draw(x, y);
-        }
-         */
-        
-        //setOpaque(false);
-        if (activeTextEdit != null || activeRichTextEdit !=null)     // This is a real Swing JComponent
-            super.paintChildren(incomingGC); // add to layered pane instead?
-        //setOpaque(true);
+        Point2D center = getVisibleCenter();
+        dc.setAbsoluteStroke(1);
+        // easily gets lost when way zoomed in because coords > MaxCoord
+        //g2.draw(new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord));
+        //g2.draw(new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
+        g.drawLine(-99999, (int) Math.round(center.getY()), 99999, (int) Math.round(center.getY()));
+        g.drawLine((int) Math.round(center.getX()), -99999, (int) Math.round(center.getX()), 99999);
     }
+    
 
     protected static final Color DefaultFillColor = Color.white;
     protected Color getBackgroundFillColor(DrawContext dc)
@@ -2383,12 +2477,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected void drawFocalRaw(DrawContext dc)
     {
-        if (dc.getFill() == null) {
+        if (dc.getBackgroundFill() == null) {
             // unless the active tool has already done some kind
             // of special fill, fill the entire background
             // before drawing anything else (must to do this
             // to clear out the prior graphics context).
-            dc.fill(getBackgroundFillColor(dc));
+            dc.fillBackground(getBackgroundFillColor(dc));
         }
         
         if (mFocal == null)
@@ -2429,8 +2523,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mFocal.draw(dc);
         }
 
-        if (mRollover != null)
-            drawZoomedFocus(mRollover, dc.create());
+        if (mRollover != null) {
+            drawZoomedFocus(mRollover, dc.push());
+            dc.pop();
+        }
     }
 
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
@@ -2460,7 +2556,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             dc.g.setColor(fill);
             dc.g.fill(zoomed.getZeroShape());
         }
-        zoomed.drawZero(dc);
+        zoomed.drawZeroDecorated(dc, true);
         
     }
 
@@ -2482,22 +2578,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         try {
             super.remove(c);
         } finally {
+            boolean removedEdit = false;
             if (c == activeTextEdit) {
                 activeTextEdit = null;
-                try {
-                    // TextBox now handles this, as it may want to reshape itself
-                    // before repainting.
-                    //repaint();
-                    if (VUE.getActiveViewer() == this)
-                        requestFocus();
-                } finally {
-                    // make absolutely certian no matter what
-                    // that we re-enable actions.
-                    VueAction.setAllActionsIgnored(false);
-                }
-            }
-            else if (c == activeRichTextEdit) {
+                removedEdit = true;
+            } else if (c == activeRichTextEdit) {
                 activeRichTextEdit = null;
+                removedEdit = true;
+            }
+            if (removedEdit) {
                 try {
                     // TextBox now handles this, as it may want to reshape itself
                     // before repainting.
@@ -2517,11 +2606,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (activeTextEdit != null)
             remove(activeTextEdit);
         if (activeRichTextEdit != null)        	
-        	remove(activeRichTextEdit);
+            remove(activeRichTextEdit);
     }
     
     boolean isEditingLabel() {
-        return activeTextEdit != null || activeRichTextEdit != null;
+        return hasActiveTextEdit();
     }
     
     /**
@@ -2544,8 +2633,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     
     void activateLabelEdit(LWComponent lwc) {
-        if ((activeTextEdit != null && activeTextEdit.getLWC() == lwc) ||
-        		(activeRichTextEdit != null && activeRichTextEdit.getLWC() == lwc))
+        if (activeTextEdit != null && activeTextEdit.getLWC() == lwc)
+            return;
+        if (activeRichTextEdit != null && activeRichTextEdit.getLWC() == lwc)
             return;
         if (!lwc.supportsUserLabel() || !lwc.supportsProperty(LWKey.Label))
             return;
@@ -2561,6 +2651,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // come back on again, because the textbox will never get
         // focus so it can lose it and turn them back on.
         VueAction.setAllActionsIgnored(true);
+
         if (lwc instanceof LWText)
         {
         	activeRichTextEdit = ((LWText)lwc).getRichLabelBox();
@@ -2576,28 +2667,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         		activeTextEdit.setText("label");
         }
         
-        Point2D.Float point = null;
         
+        Point2D.Float point = null;
         if (lwc instanceof LWText)
-        	point = activeRichTextEdit.getBoxPoint();
+            point = activeRichTextEdit.getBoxPoint();
         else
-        	point = activeTextEdit.getBoxPoint();
+            point = activeTextEdit.getBoxPoint();
         if (DEBUG.TEXT || DEBUG.WORK) out("BOX POINT LOCAL: " + fmt(point));
         
         if (Float.isNaN(point.x)) {
             // Float.NaN is marker for an uninitialized TextBox location
-        	if (lwc instanceof LWText)
-        	{
-        		((LWText)lwc).initRichTextBoxLocation(activeRichTextEdit);
-        		point = activeRichTextEdit.getBoxPoint();
-        	}
-        	else
-        	{
-        		lwc.initTextBoxLocation(activeTextEdit);
-        		point = activeTextEdit.getBoxPoint();
-        	}
-            if (DEBUG.TEXT || DEBUG.WORK) out(" BOX POINT INIT: " + fmt(point));
             
+            if (lwc instanceof LWText) {
+                ((LWText)lwc).initRichTextBoxLocation(activeRichTextEdit);
+                point = activeRichTextEdit.getBoxPoint();
+            }
+            else {
+                lwc.initTextBoxLocation(activeTextEdit);
+                point = activeTextEdit.getBoxPoint();
+            }
+            if (DEBUG.TEXT || DEBUG.WORK) out(" BOX POINT INIT: " + fmt(point));
         }
 
         lwc.getZeroTransform().transform(point, point);
@@ -2608,27 +2697,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final int screenY = mapToScreenY(point.y);
         
         //if (DEBUG.WORK||DEBUG.CONTAINMENT) out(String.format("screen X/Y: %d,%d", screenX, screenY));
-        if (lwc instanceof LWText)
-        {
-        	activeRichTextEdit.setLocation(screenX,screenY);
-        	activeRichTextEdit.selectAll();
-        	add(activeRichTextEdit);
-        }
-        else
-        {
-        	activeTextEdit.setLocation(screenX, screenY);        
-        	activeTextEdit.selectAll();
-        	add(activeTextEdit);
-        }
-      //  VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(activeTextEdit);
-        if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from addNotify");
         
         if (lwc instanceof LWText)
         {
-        	activeRichTextEdit.requestFocus();
+            activeRichTextEdit.setLocation(screenX,screenY);
+            activeRichTextEdit.selectAll();
+            add(activeRichTextEdit);
         }
         else
-        	activeTextEdit.requestFocus();
+        {
+            activeTextEdit.setLocation(screenX, screenY);        
+            activeTextEdit.selectAll();
+            add(activeTextEdit);
+        }
+
+      //  VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(activeTextEdit);
+        if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from addNotify");
+        if (lwc instanceof LWText)
+            activeRichTextEdit.requestFocus();
+        else
+            activeTextEdit.requestFocus();
         
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from requestFocus");
     }
@@ -2741,16 +2829,27 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      
      */
 
+    private static final AlphaComposite HiddenTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
+
     private static void drawSelectionGhost(DrawContext dc, LWComponent c)
     {
         // todo: the ideal is to always draw the ghost (not just when
         // dragging) but figure out a way not to uglify the border if
         // it's visible with the blue streak -- may XOR draw to the border
         // color? (or it's inverse)
-        Shape shape = c.getZeroShape();
+        final Shape shape = c.getZeroShape();
         c.transformZero(dc.g);
+
+        if (!c.isDrawn()) {
+            dc.g.setComposite(HiddenTransparency);
+            c.drawZero(dc);
+            dc.g.setComposite(AlphaComposite.Src);
+        }
+        
+        dc.g.setColor(COLOR_SELECTION);
         dc.setAbsoluteStroke(1.0);
         dc.g.draw(shape);
+        
         if (false && shape instanceof RectangularPoly2D) {
             // Inscribe many sided poly's in a circle so the user can
             // more easily make all the sides of equal length if they want.
@@ -2810,13 +2909,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         boolean atLeastOneVisible = false;
         for (LWComponent c : selection) {
 
-            if (c instanceof LWSlide && !c.isMoveable()) {
-                // hack for slides, which are currently not proper children of anyone
-                // (prevents selection of a slide icon from drawing a selection
-                // drag frame for the 0,0 based slide, which isn't really on
-                // any map -- it's owned by the pathway).
-                continue;
-            }
+//             if (c instanceof LWSlide && !c.isMoveable()) {
+//                 // hack for slides, which are currently not proper children of anyone
+//                 // (prevents selection of a slide icon from drawing a selection
+//                 // drag frame for the 0,0 based slide, which isn't really on
+//                 // any map -- it's owned by the pathway).
+//                 continue;
+//             }
 
             if (mFocalParent != null) {
                 /*
@@ -3116,8 +3215,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         indication.transformZero(dc.g);
 
-        if (DEBUG.PICK &&
-            (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)) {
+        if (DEBUG.PICK
+            //&& (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)
+            ) {
             dc.g.setColor(Color.green);
             dc.setAlpha(0.5);
             dc.g.fill(indication.getZeroShape());
@@ -3739,7 +3839,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected void setToDrag(LWSelection s) {
         //if (s.only() instanceof LWSlide) s.clear(); // okay, this stopped us from picking up the slide, but too soon: can't change BG color
-        if (s.size() > 0 && s.first().isMoveable() && activeTool.supportsSelection()) {
+        if (isAnimating) {
+            if (DEBUG.Enabled) Util.printStackTrace("drag not allowed: animating");
+        } if (s.size() > 0 && s.first().isMoveable() && activeTool.supportsSelection()) {
             if (DEBUG.WORK) out("set to drag " + s);
             draggedSelectionGroup.useSelection(s);
             setDragger(draggedSelectionGroup);
@@ -3750,6 +3852,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     protected void setDragger(LWComponent c) {
+        if (isAnimating && c != null) {
+            if (DEBUG.Enabled) Util.printStackTrace("dragger not allowed: animating");
+            return;
+        }
         //out("\n***DRAG SET TO " + c);
         dragComponent = c;
         //if (c instanceof LWGroup) tufts.Util.printStackTrace("DRAGGERSET");
@@ -3947,7 +4053,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return;
                 }*/
             
-            if (!activeTool.isLockingActiveTool()) {
+            if (activeTool.permitsToolChange()) {
             
                 // Check for shortcut-keys that would activate another tool:
                 
@@ -3962,36 +4068,41 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         }
                     }
                 }
-            }
+
             
 
-            if (tempToolKeyDown == 0 && !isDraggingSelectorBox && !sDragUnderway && keyCode != 0) {
-                VueTool tempTool = null;
-                for (VueTool tool : VueTool.getTools()) {
-                    if (tool.getActiveWhileDownKeyCode() == keyCode) {
-                        tempTool = tool;
-                        break;
+                if (tempToolKeyDown == 0 &&
+                    !isDraggingSelectorBox &&
+                    !sDragUnderway &&
+                    keyCode != 0)
+                {
+                    VueTool tempTool = null;
+                    for (VueTool tool : VueTool.getTools()) {
+                        if (tool.getActiveWhileDownKeyCode() == keyCode) {
+                            tempTool = tool;
+                            break;
+                        }
+                    }
+                    if (tempTool != null) {
+                        tempToolKeyDown = keyCode;
+                        tempToolWasActive = activeTool;
+                        if (keyCode == KeyEvent.VK_CONTROL ||
+                            keyCode == KeyEvent.VK_ALT ||
+                            keyCode == KeyEvent.VK_SHIFT ||
+                            keyCode == KeyEvent.VK_META) {
+                            // for temp tool activators that are modifier keys (e.g.,
+                            // LinkTool), we wait until we get a mouse pressed before fully
+                            // selecting because the modifier keys are too generally
+                            // used/pressed to change the cursor for every time we hold it
+                            // down.
+                            // TODO: we're also currently requiring a click on a node(!),
+                            // which is still the old special case link-tool code.
+                            tempToolPendingActivation = tempTool;
+                        } else
+                            activateTool(tempTool, true);
                     }
                 }
-                if (tempTool != null) {
-                    tempToolKeyDown = keyCode;
-                    tempToolWasActive = activeTool;
-                    if (keyCode == KeyEvent.VK_CONTROL ||
-                        keyCode == KeyEvent.VK_ALT ||
-                        keyCode == KeyEvent.VK_SHIFT ||
-                        keyCode == KeyEvent.VK_META) {
-                        // for temp tool activators that are modifier keys (e.g.,
-                        // LinkTool), we wait until we get a mouse pressed before fully
-                        // selecting because the modifier keys are too generally
-                        // used/pressed to change the cursor for every time we hold it
-                        // down.
-                        // TODO: we're also currently requiring a click on a node(!),
-                        // which is still the old special case link-tool code.
-                        tempToolPendingActivation = tempTool;
-                    } else
-                        activateTool(tempTool, true);
-                }
-            }
+            }            
             
             
             //-------------------------------------------------------
@@ -4227,7 +4338,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 out("[" + e.paramString() + (e.isPopupTrigger() ? " POP":"") + "] focusOwner=" + wasFocusOwner);
             }
 
-            mLabelEditWasActiveAtMousePress = ((activeTextEdit != null) || (activeRichTextEdit != null));
+            mLabelEditWasActiveAtMousePress = hasActiveTextEdit();
             if (DEBUG.FOCUS) System.out.println("\tmouse-pressed active text edit="+mLabelEditWasActiveAtMousePress);
             // TODO: if we didn' HAVE focus, don't change the selection state --
             // only use the mouse click to gain focus.
@@ -4302,15 +4413,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // if a LWSlide picked, animate zoom into it, and then load as focal
                 mme.setPicked(hitComponent);
                 
-                // this is a hack:
-                if (hitComponent instanceof LWSlide && mFocal instanceof LWMap) {
-                    LWComponent node = ((LWSlide)hitComponent).getSourceNode();
-                    if (node != null) {
-                        LWPathway.Entry entry = node.getEntryToDisplay();
-                        if (entry != null)
-                            VUE.setActive(LWPathway.Entry.class, this, entry);
-                    }
-                }                                  
+//                 // this is a hack:
+//                 if (hitComponent instanceof LWSlide && mFocal instanceof LWMap) {
+//                     LWComponent node = ((LWSlide)hitComponent).getSourceNode();
+//                     if (node != null) {
+//                         LWPathway.Entry entry = node.getEntryToDisplay();
+//                         if (entry != null)
+//                             VUE.setActive(LWPathway.Entry.class, this, entry);
+//                     }
+//                 }
+                
             } else {
                 hitComponent = null;
             }
@@ -4432,7 +4544,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
 
             if (dragComponent == null) {
-                if (activeTool.supportsDraggedSelector(mme))
+                if (dragSelectorEnabled(mme))
                     isDraggingSelectorBox = true;
                 else
                     isDraggingSelectorBox = false;
@@ -4752,7 +4864,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
 
             if (getAutoZoomEnabled() && RolloverAutoZoomDelay > 0) {
-                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && (activeTextEdit == null && activeRichTextEdit == null)) {
+                if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !hasActiveTextEdit()) {
                     if (RolloverAutoZoomDelay > 10 && mRollover == null) {
                         if (rolloverTask != null)
                             rolloverTask.cancel();
@@ -4981,7 +5093,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, draggedSelectorBox);
             
             
-            if (!activeTool.supportsDraggedSelector(mme) && !activeTool.supportsResizeControls()) 
+            if (!dragSelectorEnabled(mme) && !activeTool.supportsResizeControls()) 
                 return;
             // todo: dragControls could be skipped! [WAS TRUE W/OUT RESIZE CONTROL CHECK ABOVE]
             // todo serious: now text tool leaves a dragged box around!
@@ -5273,14 +5385,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
                 // this allows dropping into a group
-                if (dragComponent == null || !isDropRequest(e))
+                if (dragComponent == null || !isDropRequest(e)) {
                     ; // nothing dragged, or shift requst to skip reparenting
-                else
-                    if (DEBUG.EVENTS) System.out.println(TERM_GREEN + "\nINTERNAL MAP MOUSE DROP EVENT in " + this
+                } else {
+                        if (DEBUG.EVENTS) System.out.println(TERM_GREEN + "\nINTERNAL MAP MOUSE DROP EVENT in " + this
                                                          + "\n\t     event: " + e
                                                          + "\n\tindication: " + indication
-                                                         + TERM_CLEAR);
-                    checkAndHandleDroppedReparenting();
+                                                             + TERM_CLEAR);
+                        checkAndHandleDroppedReparenting();
+                }
             }
             
             // special case event notification for any other viewers
@@ -5290,13 +5403,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (mouseWasDragged)
                 VUE.getUndoManager().mark("Drag");
             
-            if (draggedSelectorBox != null && !activeTool.supportsDraggedSelector(mme))
+            if (draggedSelectorBox != null && !dragSelectorEnabled(mme))
                 System.err.println("Illegal state warning: we've drawn a selector box w/out tool that supports it!");
             
             // reset in-drag only state
             clearIndicated();
             
-            if (draggedSelectorBox != null && activeTool.supportsDraggedSelector(mme)) {
+            if (draggedSelectorBox != null && dragSelectorEnabled(mme)) {
                 
                 //System.out.println("dragged " + draggedSelectorBox);
                 //Rectangle2D.Float hitRect = (Rectangle2D.Float) screenToMapRect(draggedSelectorBox);
@@ -5417,8 +5530,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (!droppedChild.supportsReparenting())
                     continue;
 
-                if (droppedChild instanceof LWSlide) // todo: something more abstract
-                    continue;
+//                 if (droppedChild instanceof LWSlide) // todo: something more abstract
+//                     continue;
 
                 final LWContainer currentParent = droppedChild.getParent();
 
@@ -5519,7 +5632,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         private final boolean isDoubleClickEvent(MouseEvent e) {
             return !activeToolAteMousePress
-                && e.getClickCount() == 2
+                && (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
                 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
         }
@@ -5529,6 +5642,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
                 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
         }
+
+    private final boolean activeToolIsText() {
+        return activeTool == TextTool || activeTool == RichTextTool;
+    }
+        
         
         
         public void mouseClicked(MouseEvent e) {
@@ -5558,7 +5676,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         boolean handled = false;
                         // move to arrow tool?
                         
-                        if (activeTool == TextTool || activeTool == RichTextTool) {
+                        if (activeToolIsText()) {
                             activateLabelEdit(hitComponent);
                             handled = true;
                         } else {
@@ -5571,11 +5689,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         //todo: below not triggering under arrow tool if we just dragged the link --
                         // justSelected must be inappropriately set to the dragged component
                         if (!handled &&
-                            (activeTool == TextTool || activeTool == RichTextTool || hitComponent.isSelected() && hitComponent != justSelected))
+                            (activeToolIsText() || hitComponent.isSelected() && hitComponent != justSelected))
                             activateLabelEdit(hitComponent);
                         
-                    } else if (activeTool == TextTool || activeTool == RichTextTool || 
-                    		activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class)) {
+                    } else if (activeToolIsText() || activeTool == NodeModeTool) {
                         
                         // on mousePressed, we request focus, and if there was an
                         // activeTextEdit TextBox, it lost focus and closed itself out
@@ -5584,12 +5701,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         // the edit via the click on the map
                         
                         if (!mLabelEditWasActiveAtMousePress) {
-                            if (activeTool == tufts.vue.NodeTool.NodeModeTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class) && (oneClickNodePref.getValue() == Boolean.TRUE))
+                            if (activeTool == NodeModeTool && (oneClickNodePref.getValue() == Boolean.TRUE))
                                 Actions.NewNode.fire(MapViewer.this);
                             else if (activeTool == TextTool)
                                 Actions.NewText.fire(MapViewer.this);
                             else if (activeTool == RichTextTool)
                             	Actions.NewRichText.fire(MapViewer.this);
+
                         }
                     }
                 /*
@@ -5603,7 +5721,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                     boolean handled = false;
                     
-                    if (activeTool == TextTool || activeTool == RichTextTool) {
+                    if (activeToolIsText()) {
                         activateLabelEdit(hitComponent);
                         handled = true;
                     } else {
@@ -5746,7 +5864,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // want to let an active on-map text edit keep it.
         if (id == FocusEvent.FOCUS_GAINED)
             requestFocus = false;
-        else if (id == MouseEvent.MOUSE_ENTERED && (activeTextEdit != null || activeRichTextEdit != null))
+        else if (id == MouseEvent.MOUSE_ENTERED && hasActiveTextEdit())
             requestFocus = false;
         else if (id == MouseEvent.MOUSE_PRESSED && GUI.isMenuPopup(event))
             requestFocus = false;
