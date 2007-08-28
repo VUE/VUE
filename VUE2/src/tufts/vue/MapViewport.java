@@ -230,7 +230,7 @@ public class MapViewport extends JViewport
         // only via ZoomFit).
         //------------------------------------------------------------------
         
-        Rectangle2D mapBounds = getMap().getBounds();
+        final Rectangle2D mapBounds = getMap().getPaintBounds();
         if (DEBUG.SCROLL) out("---MAP BOUNDS: " + out(mapBounds)
                               + " expand="+expand
                               + " trimNorthWest="+trimNorthWest
