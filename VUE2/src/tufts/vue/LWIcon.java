@@ -324,7 +324,7 @@ public abstract class LWIcon extends Rectangle2D.Float
 
                 // if node, compute avoid region node+tipRegion,
                 // if link avoid = label+entire tip block
-                final Rectangle2D.Float avoidRegion;
+                final Rectangle2D avoidRegion;
 
                 if (mLWC instanceof LWLink) {
                     if (mLWC.hasLabel()) {
