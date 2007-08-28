@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import static tufts.Util.fmt;
 import tufts.vue.shape.RectangularPoly2D;
                        
 import edu.tufts.vue.preferences.PreferencesManager;
@@ -39,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.181 $ / $Date: 2007-07-31 22:47:37 $ / $Author: sfraize $
+ * @version $Revision: 1.182 $ / $Date: 2007-08-28 18:54:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -295,9 +296,10 @@ public class LWNode extends LWContainer
         return mShape;
     }
 
-    protected Point2D.Float getCorner() {
+    @Override
+    protected Point2D.Float getZeroCorner() {
         if (isRectShape)
-            return super.getCorner();
+            return super.getZeroCorner();
 
         // find out where a line drawn from our local center to our
         // lower right bounding box intersects the lower right edge of
@@ -406,6 +408,9 @@ public class LWNode extends LWContainer
 
         //float cx = e.getComponentX();
         //float cy = e.getComponentY();
+
+        if (this instanceof LWPortal) // hack: clean this up -- maybe move all below to LWComponent...
+            return super.handleDoubleClick(e);
         
         final Point2D.Float localPoint = e.getLocalPoint(this);
         final float cx = localPoint.x;
@@ -600,6 +605,35 @@ public class LWNode extends LWContainer
         } else
             return false;
     }
+
+    @Override
+    protected boolean intersectsImpl(final Rectangle2D mapRect)
+    {
+        if (isRectShape) {
+            // if we're a rect-ish shape, the standard bounding-box impl will do
+            // (it will over-include the corners on round-rects, but that's okay)
+            return super.intersectsImpl(mapRect);
+        } else {
+            // TODO: only use the fast reject if this is for paint-clip testing?  already overkill?
+            if (super.intersectsImpl(mapRect) == false) {
+                return false; // fast-reject
+            } else {
+//                 if (DEBUG.BOXES && mapRect == LWTraversal.mapRect) {
+//                     final Rectangle2D zeroRect = transformMapToZeroRect(mapRect, null);
+//                     debugZeroRect.setRect(zeroRect);
+//                     out("debugZeroRect: " + fmt(debugZeroRect));
+//                     return getZeroShape().intersects(zeroRect);
+//                 } else
+                
+                // todo: this doesn't include stroke width (e.g., addStrokeToBounds, but will need a Rectangle2D.Float...)
+                // Not important for rect picking, but important for paint clipping...
+                // For that, would also need to include selection stroke, etc...
+                return getZeroShape().intersects(transformMapToZeroRect(mapRect, null));
+            }
+        }
+        
+    }
+
 
     /*
       // using the default means we're only intersecting with the rectangular bounds, not the actual shape...
@@ -1854,19 +1888,19 @@ public class LWNode extends LWContainer
         //-------------------------------------------------------
         
         if (isSelected() && dc.isInteractive() && dc.focal != this) {
-            LWPathway p = VUE.getActivePathway();
-            if (p != null && p.isVisible() && p.getCurrentNode() == this) {
-                // SPECIAL CASE:
-                // as the current element on the current pathway draws a huge
-                // semi-transparent stroke around it, skip drawing our fat 
-                // transparent selection stroke on this node.  So we just
-                // do nothing here.
-            } else {
+//             final LWPathway p = VUE.getActivePathway();
+//             if (p != null && p.isVisible() && p.getCurrentNode() == this) {
+//                 // SPECIAL CASE:
+//                 // as the current element on the current pathway draws a huge
+//                 // semi-transparent stroke around it, skip drawing our fat 
+//                 // transparent selection stroke on this node.  So we just
+//                 // do nothing here.
+//             } else {
                 dc.g.setColor(COLOR_HIGHLIGHT);
                 dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
                 //g.setStroke(new BasicStroke(stroke.getLineWidth() + SelectionStrokeWidth));
                 dc.g.draw(mShape);
-            }
+                //}
         }
         
 //         if (imageIcon != null) { // experimental
@@ -1877,6 +1911,11 @@ public class LWNode extends LWContainer
         if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
             ; // do nothing: no fill
         } else {
+
+            // itext debugging...
+            //dc.g.setColor(Color.blue);
+            //dc.g.fill(mShape);
+
             Color fillColor = getRenderFillColor(dc);
             if (fillColor != null && fillColor.getAlpha() != 0) { // transparent if null
                 dc.g.setColor(fillColor);
