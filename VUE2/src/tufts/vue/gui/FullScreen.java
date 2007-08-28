@@ -16,7 +16,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.5 $ / $Date: 2007-06-11 10:08:03 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-08-28 17:51:22 $ / $Author: sfraize $
  *
  */
 
@@ -44,6 +44,8 @@ public class FullScreen
     //private static javax.swing.JComponent fullScreenContent;
 
     private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
+
+    public static final String VIEWER_NAME = "FULL";
 
     //private static Frame cachedFSWnative = null;
 
@@ -151,8 +153,11 @@ public class FullScreen
         
     }
     
-
     public static boolean inFullScreen() {
+        return fullScreenMode || fullScreenNative;
+    }
+
+    public static boolean inWorkingFullScreen() {
         return fullScreenMode;
     }
     public static boolean inNativeFullScreen() {
@@ -201,7 +206,7 @@ public class FullScreen
             enterFullScreenMode(goNative);
         }
 
-        if (!FullScreen.inFullScreen())
+        if (!inWorkingFullScreen())
         {
             tufts.vue.VueToolbarController.getController()
                 .setSelectedTool(tufts.vue.VueToolbarController.getController().getSelectedTool());
@@ -255,7 +260,7 @@ public class FullScreen
         VUE.Log.debug("Entering full screen mode; goNative=" + goNative);
         if (FullScreenWindow == null) {
             FullScreenWindow = (FSWindow) GUI.getFullScreenWindow();
-            FullScreenWindow.getContentPane().add(FullScreenViewer = new MapViewer(null, "FULL"));
+            FullScreenWindow.getContentPane().add(FullScreenViewer = new MapViewer(null, VIEWER_NAME));
             //fullScreenWindow.pack();
         }
                 
