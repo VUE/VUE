@@ -61,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.79 $ / $Date: 2007-08-28 19:21:47 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2007-08-28 19:36:34 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -578,8 +578,11 @@ public class PathwayTable extends JTable
             	this.setOpaque(false);
                 gl.setLayout(new BorderLayout());
                 gl.add(this,BorderLayout.NORTH);
-       		 	
-                return gl;
+
+                // todo: not very efficient to be now using the GradientLabel this way --
+                // we're constructing one of these for each pathway for every single paint,
+                // and they create a ton of sub-objects themselves...
+                return gl; 
             }
             else {
             	//entry is not a pathway if you're in the wrong column go null;            	
@@ -640,64 +643,89 @@ public class PathwayTable extends JTable
 
 	}
  
+    private static final RoundRectangle2D BlobShape = new RoundRectangle2D.Float();
+    
     private class GradientLabel extends JPanel
     {
-    	 //Gradient painting necessities
+        //Gradient painting necessities
         private final Color
-        TopGradient1 = new Color(179,166,121),
-        BottomGradient1 = new Color(142,129,82);
+            TopGradient1 = new Color(179,166,121),
+            BottomGradient1 = new Color(142,129,82);
 
-       private final Color TopGradient2 = new Color(195,193,186);
-       private final Color BottomGradient2 = new Color(162,161,156);
-       private LWPathway path;
-       private GradientPaint Gradient = null;
+        private final Color TopGradient2 = new Color(195,193,186);
+        private final Color BottomGradient2 = new Color(162,161,156);
+        private LWPathway path;
+        private GradientPaint Gradient = null;
        
-       private GradientPaint Gradient2 = null;
-       private String emptyString = null;
-       private Color paintColor = null;
+        private GradientPaint Gradient2 = null;
+        private String emptyString = null;
+        private Color paintColor = null;
        
-       public GradientLabel(LWPathway pathway, String emptyString, Color paintColor)
-       {
-    	   setOpaque(false);
-       	path=pathway;
-       	Gradient = new GradientPaint(0,           0, TopGradient1,
-                   0, 20, BottomGradient1);
-       	Gradient2 = new GradientPaint(0,           0, TopGradient2,
-                   0, 20, BottomGradient2);
-       	setLayout(new BorderLayout());
-       this.paintColor = paintColor;
-           setPreferredSize(new Dimension(getWidth(),40));
+        public GradientLabel(LWPathway pathway, String emptyString, Color paintColor)
+        {
+            setOpaque(false);
+            path=pathway;
+            Gradient = new GradientPaint(0,           0, TopGradient1,
+                                         0, 20, BottomGradient1);
+            Gradient2 = new GradientPaint(0,           0, TopGradient2,
+                                          0, 20, BottomGradient2);
+            setLayout(new BorderLayout());
+            this.paintColor = paintColor;
+            setPreferredSize(new Dimension(getWidth(),40));
            
-           this.emptyString = emptyString;
-       }
+            this.emptyString = emptyString;
+        }
        
-       public GradientLabel(LWPathway pathway, String emptyString)
-       {
-    	   this(pathway,emptyString,null);
-       }
+        public GradientLabel(LWPathway pathway, String emptyString)
+        {
+            this(pathway,emptyString,null);
+        }
         public GradientLabel(LWPathway pathway)
         {
-        	this(pathway,null,null);
+            this(pathway,null,null);
         }
         
         public GradientLabel(LWPathway pathway, Color paintColor)
         {
-        	this(pathway,null,paintColor);
+            this(pathway,null,paintColor);
         }
         
         
-    	 public void paintComponent(Graphics g) {
-    		 Graphics2D g2 = (Graphics2D)g;
-    		 paintGradient(g2);
-             if (paintColor != null)
-             {            	                                              	
-               g2.setColor(paintColor);
-               g2.fillRoundRect(2, 2, getWidth()-8, 20-4,7,7);
-               g2.setColor(Color.gray);
-               g2.drawRoundRect(2, 2, getWidth()-8, 20-4,7,7);
-             }              
-           //  super.paintComponent(g2);
-         }
+        public void paintComponent(Graphics _g) {
+            final Graphics2D g = (Graphics2D) _g;
+            paintGradient(g);
+            if (paintColor != null)
+                paintColorBlob(g, paintColor);
+            //  super.paintComponent(g2);
+        }
+
+        private void paintColorBlob(final Graphics2D g, final Color color)
+        {
+            BlobShape.setRoundRect(2, 1, getWidth()-8, 20-4, 7, 7);
+
+            // Draw the pathway color swatch.
+            
+            // We want to show the translucent nature of the pathway
+            // color, so we fill with white first, so when we draw the
+            // translucent pathway color, it will be mixed with pure
+            // white (default map color)
+
+            g.setColor(Color.white);
+            g.fill(BlobShape);
+            g.setColor(color);
+            g.fill(BlobShape);
+
+            // Now draw a border on the color swatch:
+
+            g.setColor(Color.gray);
+            g.draw(BlobShape);
+
+//             g.setColor(color);
+//             g.fillRoundRect(2, 2, getWidth()-8, 20-4,7,7);
+//             g.setColor(Color.gray);
+//             g.drawRoundRect(2, 2, getWidth()-8, 20-4,7,7);
+        }              
+
 
          private void paintGradient(Graphics2D g)
          {       
