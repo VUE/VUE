@@ -145,7 +145,6 @@ public class PresentationNotes {
 
                 toDraw.drawFit(dc, 0);
                 if (DEBUG.PDF) {
-                    //dc.g.setTransform(tx);
                     final String dcDesc = dc.toString() + String.format(" scale=%.1f%%", dc.g.getTransform().getScaleX() * 100);
                     dc.setRawDrawing();
                     dc.g.setColor(Color.red);
@@ -155,7 +154,11 @@ public class PresentationNotes {
                     dc.g.drawString(toDraw.toString(), 10, fillHeight - 5);
                 }
                 
+                // the graphics dispose appears to be very important -- we've seen completely intermittant
+                // problems with generating many page PDF documents, which would be well explained by
+                // java or internal itext buffers running out of memory.
                 graphics.dispose();
+
                 document.add(Image.getInstance(template));
                 document.newPage();
             }
