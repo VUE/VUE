@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.37 $ / $Date: 2007-05-25 21:48:59 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2007-08-28 17:37:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -263,6 +263,7 @@ public class PrintAction extends tufts.vue.VueAction
                                              false); // todo: absolute links shouldn't be spec'd here
             dc.setAntiAlias(true);
             dc.setMapDrawing();
+            dc.setPrioritizeQuality(true);
 
             if (isPrintingView())
                 g.clipRect((int) Math.floor(bounds.getX()),
