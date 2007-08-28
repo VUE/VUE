@@ -1368,6 +1368,7 @@ public class UndoManager
                 } else if (propertyKey == LWKey.HierarchyChanging && allChangesToComponent.containsKey(LWKey.Created)) {
                     // this will happen once for every damn link auto-grabbed at the end of new group creation.
                     // We may want to re-enabled that auto-grabbing at group creation time for LWLinks...
+                    // Also, is happening on new master slide creation...
                     VUE.Log.debug("UndoManager: compressing hier change event for newly created component: " + component);
                     if (DEBUG.UNDO) System.out.println(" (compressed:NEW COMPONENT IGNORES HIER CHANGES)");
                     compressed = true;
