@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.gui.GUI;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -60,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.78 $ / $Date: 2007-08-22 18:02:39 $ / $Author: mike $
+ * @version $Revision: 1.79 $ / $Date: 2007-08-28 19:21:47 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -103,7 +104,7 @@ public class PathwayTable extends JTable
     private static final boolean showHeaders = true; // sets whether or not table column headers are shown
     private final int[] colWidths = {30,20,200,30,30,20};
 
-    private static Color selectedColor;
+    private static Color SelectedColor;
 
     public void setUI(TableUI ui)
     {
@@ -112,7 +113,7 @@ public class PathwayTable extends JTable
     public PathwayTable(PathwayTableModel model) {
         super(model);
         initComponents();
-        selectedColor = GUI.getTextHighlightColor();
+        SelectedColor = GUI.getTextHighlightColor();
 
         this.notesIcon = VueResources.getImageIcon("notes");
         this.lockIcon = VueResources.getImageIcon("lock");
@@ -291,6 +292,25 @@ public class PathwayTable extends JTable
                 changeSelection(row, -1, false, false);
         }
     }
+
+    private static Color lastAlpha;
+    private static Color lastMixed;
+    private static Color selectedColor(LWPathway p) {
+
+        //if (true) return SelectedColor;
+        
+        final Color alphaColor = p.getColor();
+        // todo: LWPathway should cache this as a white / non-alpha color
+        if (alphaColor != lastAlpha) {
+            lastAlpha = alphaColor;
+            lastMixed = Util.alphaMix(alphaColor, Color.white);
+        }
+        return lastMixed;
+    }
+    private static Color selectedColor(LWPathway.Entry e) {
+        return selectedColor(e.pathway);
+    }
+    
 
     /*
     LWPathway.Entry getLastSelectedEntry() {
@@ -473,8 +493,8 @@ public class PathwayTable extends JTable
             	if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
         		{
             	//	useGoldGradient = true;
-            		p.setBackground(selectedColor);
-            		p.setForeground(selectedColor);
+            		p.setBackground(selectedColor(entry));
+            		p.setForeground(selectedColor(entry));
         		}
             	else
             	{
@@ -488,6 +508,9 @@ public class PathwayTable extends JTable
              //   return null;
         }  
     }
+    
+    private static final Font ArrowIconFont = new Font("Lucida Sans Unicode", Font.PLAIN, 20);
+
     private class LabelRenderer extends DefaultTableCellRenderer{
         
     	
@@ -521,13 +544,13 @@ public class PathwayTable extends JTable
             	  
             	  if (col == PathwayTableModel.COL_OPEN) 
             	  {
-                  	boolean bool = false;
-                    if (value instanceof Boolean)
-                        bool = ((Boolean)value).booleanValue();
-                  
-                  	setFont(new Font("Lucida Sans Unicode", Font.PLAIN, 20));
-                  	setForeground(Color.white);
-                  	setText(bool ? " "+DownArrowChar : " "+RightArrowChar);                  
+                      boolean bool = false;
+                      if (value instanceof Boolean)
+                          bool = ((Boolean)value).booleanValue();
+                      
+                      setFont(ArrowIconFont);
+                      setForeground(Color.white);
+                      setText(bool ? " "+DownArrowChar : " "+RightArrowChar);                  
                   }
             	  else
             	  {
@@ -568,8 +591,8 @@ public class PathwayTable extends JTable
             	{
             		if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
             		{
-            			setBackground(selectedColor);
-            			setForeground(selectedColor);            			            			
+            			setBackground(selectedColor(entry));
+            			setForeground(selectedColor(entry));            			            			
             		}
             		else
             		{
@@ -590,7 +613,7 @@ public class PathwayTable extends JTable
                 if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) {
                     // This is the current item on the current path
                                         
-                	setBackground(selectedColor); 
+                	setBackground(selectedColor(entry)); 
                     
                     	setText(debug+"   "+entry.getLabel());
                     //setText(debug+"  * "+getText());
@@ -728,7 +751,7 @@ public class PathwayTable extends JTable
                 }              
                 else if (col == PathwayTableModel.COL_NOTES) {
                     if (entry.node == VUE.getActivePathway()  && entry.pathway.getCurrentEntry() == entry)
-                        setBackground(selectedColor);
+                        setBackground(selectedColor(entry));
                     else
                         setBackground(BGColor);
                     
@@ -746,7 +769,7 @@ public class PathwayTable extends JTable
                     setIcon(bool ? lockIcon : lockOpenIcon);
                     this.setAlignmentY(JLabel.CENTER_ALIGNMENT);
                     if (entry.node == VUE.getActivePathway() && entry.pathway.getCurrentEntry() == entry)
-                        setBackground(selectedColor);
+                        setBackground(selectedColor(entry));
                     else
                         setBackground(BGColor);
                     setToolTipText("Is locked");
@@ -754,7 +777,7 @@ public class PathwayTable extends JTable
                 else
                 {
                     if (entry.node == VUE.getActivePathway()  && entry.pathway.getCurrentEntry() == entry)
-                        setBackground(selectedColor);
+                        setBackground(selectedColor(entry));
                     else
                         setBackground(BGColor);
                 }
@@ -770,8 +793,8 @@ public class PathwayTable extends JTable
             	//System.out.println("return null");
             	if (entry.pathway == activePathway && entry.pathway.getCurrentEntry() == entry) 
         		{
-        			setBackground(selectedColor);
-        			setForeground(selectedColor);
+        			setBackground(selectedColor(entry));
+        			setForeground(selectedColor(entry));
             		setOpaque(true);            	
         			setIcon(null);
         			
