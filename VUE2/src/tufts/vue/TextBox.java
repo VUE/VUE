@@ -89,7 +89,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.55 $ / $Date: 2007-07-17 00:53:20 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-08-28 17:36:36 $ / $Author: sfraize $
  *
  */
 
@@ -919,7 +919,7 @@ public class TextBox extends JTextPane
     {
         if (TestDebug||DEBUG.TEXT) out("paintComponent @ " + getX() + "," + getY() + " parent=" + getParent());
 
-        MapViewer viewer = (MapViewer) javax.swing.SwingUtilities.getAncestorOfClass(MapViewer.class, this);
+        final MapViewer viewer = (MapViewer) javax.swing.SwingUtilities.getAncestorOfClass(MapViewer.class, this);
         if (viewer != null)
             ((Graphics2D)g).setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, viewer.AA_ON);
         // turn on anti-aliasing -- the cursor repaint loop doesn't
@@ -976,6 +976,20 @@ public class TextBox extends JTextPane
             inverted = false;
         
         //super.paintBorder(g);
+        
+//         // As of least Mac OS X 10.4.10 w/JVM 1.5.0_07 on 2007-08-13,
+//         // it appears there's no way to NOT render anti-aliased text,
+//         // unless there's some other way to override it in JTextPane/JTextComponent
+//         // Not a big deal -- we'd only like the option for a slight speed up
+//         // during animations.
+//         dc.g.setRenderingHint(java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
+//                               java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+//         dc.g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING,
+//                               java.awt.RenderingHints.VALUE_ANTIALIAS_OFF);
+//         // Even this doesn't appear to help:
+//         putClientProperty(com.sun.java.swing.SwingUtilities2.AA_TEXT_PROPERTY_KEY, Boolean.FALSE);
+        
+        
         super.paintComponent(dc.g);
         //super.paint(g);
 

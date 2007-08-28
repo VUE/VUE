@@ -25,7 +25,7 @@ import tufts.Util;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.9 $ / $Date: 2007-07-02 17:19:35 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-08-28 17:31:50 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -48,7 +48,10 @@ public class ActiveInstance<T>
     private ActiveEvent lastEvent;
     private boolean inNotify;
 
-    /** The active item itself wants to be told when it's been set to active or has lost it's active status */
+    /**
+     * If the active item itself wants to be told when it's been set to active or has lost it's active status,
+     * it can implement this interface, and it will be told as it goes active / inactive.
+     */
     public interface Markable {
         public void markActive(boolean active);
     }
