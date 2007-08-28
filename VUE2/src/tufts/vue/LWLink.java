@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.169 $ / $Date: 2007-07-31 22:24:18 $ / $Author: sfraize $
+ * @version $Revision: 1.170 $ / $Date: 2007-08-28 18:51:51 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -258,7 +258,7 @@ public class LWLink extends LWComponent
     }
 
     @Override
-    void setParent(LWContainer newParent) {
+    protected void setParent(LWContainer newParent) {
         super.setParent(newParent);
         mRecompute = true;
     }
@@ -1177,8 +1177,16 @@ public class LWLink extends LWComponent
             // As interectsImpl is called with a rectangle in map coordinates, we transform
             // it to local (parent) coordinates first, before checking the segments, which
             // all have local coordinates.
-            final Rectangle2D tmpRect = (Rectangle2D) mapRect.clone();
-            localRect = transformMapToParentLocalRect(tmpRect);
+            
+//             final Rectangle2D tmpRect = (Rectangle2D) mapRect.clone();
+//             //localRect = transformMapToParentLocalRect(tmpRect);
+
+//             localRect = transformMapToZeroRect(tmpRect);
+            
+            // Recall that the zero-rect for a link is actually the parent,
+            // so this is really the "local" rect.
+            localRect = transformMapToZeroRect(mapRect, null);
+            
             if (DEBUG.LINK && mXMLRestoreUnderway) {
                 System.out.println("TRANSFORMED " + this);
                 if (!localRect.equals(mapRect))
@@ -1726,11 +1734,11 @@ public class LWLink extends LWComponent
         return new Rectangle2D.Float(getX(), getY(), getWidth(), getHeight());
     }
 
-    /** overriden just to make sure the link is computed before returning a result from super.getBounds() */
+    /** overriden just to make sure the link is computed before returning a result from super.getMapBounds() */
     @Override
-    public Rectangle2D.Float getBounds() {
+    public Rectangle2D.Float getMapBounds() {
         if (mRecompute) computeLink();
-        return super.getBounds();
+        return super.getMapBounds();
     }
     
     /** @return "zero-based" bounds for the link, which for links are the same as it's local bounds: the bounds in it's parent
@@ -1742,15 +1750,15 @@ public class LWLink extends LWComponent
     }
 
 
-    /** @return getBounds() -- border (stroke) already included for links */
+    /** @return getMapBounds() -- border (stroke) already included for links */
     public Rectangle2D.Float getBorderBounds() {
-        return getBounds();
+        return getMapBounds();
     }
     
-    /** @return getBounds() -- border (stroke) + any text label already included for links */
+    /** @return getMapBounds() -- border (stroke) + any text label already included for links */
     @Override
     public Rectangle2D.Float getPaintBounds() {
-        return getBounds();
+        return getMapBounds();
     }
     
     /** @return getLocalBounds() -- border (stroke) already included for links */
@@ -1796,6 +1804,21 @@ public class LWLink extends LWComponent
     protected final void transformDownG(final Graphics2D g) {
         // do nothing: link coordinate space is in it's parent
     }
+
+    /** OPTIMIZATION FOR LWLink override */
+    // links use this for doing intersction with a map rect (for rect picking & clipping)
+    @Override
+    protected final Rectangle2D transformMapToZeroRect(Rectangle2D mapRect, Rectangle2D zeroRect) {
+        if (parent instanceof LWMap) {
+            // This is an optimization we'll want to remove if we ever
+            // embed maps in maps.
+            return mapRect;
+        } else {
+            // note this is being called on PARENT, not SUPER
+            return parent.transformMapToZeroRect(mapRect, zeroRect);
+        }
+    }
+    
     
     
     
@@ -2240,7 +2263,7 @@ public class LWLink extends LWComponent
     }
 
     /**
-     * Compute the rotation needed to normalize the ine segment to vertical orientation, making it
+     * Compute the rotation needed to normalize the line segment to vertical orientation, making it
      * parrallel to the Y axis.  So vertical lines will return either 0 or Math.PI (180 degrees), horizontal lines
      * will return +/- PI/2.  (+/- 90 degrees).  In the rotated space, +y values will move down, +x values will move right.
      */
@@ -2249,7 +2272,7 @@ public class LWLink extends LWComponent
     {
         final double xdiff = x1 - x2;
         final double ydiff = y1 - y2;
-        final double slope = xdiff / ydiff;
+        final double slope = xdiff / ydiff; // really, inverse slope
         double radians = -Math.atan(slope);
 
         if (xdiff >= 0 && ydiff >= 0)
@@ -2667,15 +2690,28 @@ public class LWLink extends LWComponent
         //                     textBox.setOpaque(true);
         //                 }
 
-        final Color textFill = getRenderFillColor(dc);
-        if (textFill != null || dc.isInteractive()) {
-            textBox.setBackground(textFill == null ? Color.white : textFill);
-            textBox.setOpaque(true);
-            //if (DEBUG.IMAGE) out("textFill: " + textFill);
-        } else {
+        if (dc.isDraftQuality()) {
             textBox.setBackground(null);
             textBox.setOpaque(false);
-            Util.printStackTrace(this + "; FYI: null (transparent) text fill");
+        } else {
+            Color textFill = getRenderFillColor(dc);
+            if (textFill != null || dc.isInteractive()) {
+
+                // experiment in color mixing:
+                if (textFill != null && textFill.getAlpha() != 255 && parent != null && parent.getParent() != null) {
+                    Color fill = parent.getParent().getRenderFillColor(dc); // really want to find the first non-transparent & non-alpha color
+                    if (fill != null && fill.getAlpha() == 255)
+                        textFill = Util.alphaMix(textFill, fill);
+                }
+                
+                textBox.setBackground(textFill == null ? Color.white : textFill);
+                textBox.setOpaque(true);
+                //if (DEBUG.IMAGE) out("textFill: " + textFill);
+            } else {
+                textBox.setBackground(null);
+                textBox.setOpaque(false);
+                //if (DEBUG.Enabled) Util.printStackTrace(this + "; FYI: null (transparent) text fill");
+            }
         }
                 
         final float lx = textBox.getBoxX();
@@ -2861,6 +2897,16 @@ public class LWLink extends LWComponent
         //if (mRecompute) computeLink(); // risks recursion loop (stack overflow) if we have a link-loop
         return mCurveControls > 0 ? mCurveCenterY : mCenterY;
     }
+
+    @Override
+    public float getMapCenterX() {
+        return parent.getMapX() + getZeroCenterX() * parent.getMapScaleF();
+    }
+    @Override
+    public float getMapCenterY() {
+        return parent.getMapX() + getZeroCenterY() * parent.getMapScaleF();
+    }
+    
     
 
     
