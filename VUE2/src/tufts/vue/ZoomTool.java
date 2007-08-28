@@ -18,6 +18,7 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import java.awt.Container;
 import java.awt.Point;
 import java.awt.Dimension;
@@ -27,6 +28,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Dimension2D;
 import javax.swing.*;
 
 /**
@@ -35,7 +37,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.67 $ / $Date: 2007-08-16 02:55:56 $ / $Author: mike $
+ * @version $Revision: 1.68 $ / $Date: 2007-08-28 17:56:10 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -346,7 +348,8 @@ public class ZoomTool extends VueTool
         // zoom-to for the map region of the slide icon:
                 
         setZoomFitRegion(viewer,
-                         slide.getSourceNode().getMapSlideIconBounds(),
+                         //slide.getSourceNode().getMapSlideIconBounds(),
+                         slide.getBounds(),
                          0,
                          animate);
         
@@ -371,7 +374,7 @@ public class ZoomTool extends VueTool
         if (zoomedTo instanceof LWSlide)
             ;
         else
-            dc.skipDraw = zoomedTo;
+            dc.skipDraw = zoomedTo; // don't draw now: force on top later
         return dc;
     }
     
@@ -380,7 +383,7 @@ public class ZoomTool extends VueTool
         if (zoomedTo instanceof LWSlide) {
             ;
         } else if (zoomedTo != null) {
-            zoomedTo.draw(dc);
+            zoomedTo.draw(dc); // force zoomed-to on-top
         }
     }
 
@@ -499,7 +502,7 @@ public class ZoomTool extends VueTool
     }
     
     /** @param currently only works if NOT in a scroll pane */
-    public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, int edgePadding, boolean animate)
+    public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, float borderGap, boolean animate)
     {
         if (mapRegion == null) {
             new Throwable("setZoomFitRegion: mapRegion is null for " + viewer).printStackTrace();
@@ -507,11 +510,12 @@ public class ZoomTool extends VueTool
         }
         Point2D.Double offset = new Point2D.Double();
         double newZoom = computeZoomFit(viewer.getVisibleSize(),
-                                        edgePadding,
+                                        borderGap,
                                         mapRegion,
                                         offset);
         
-        if (viewer.inScrollPane()) {
+        //if (viewer.inScrollPane()) {
+        if (!viewer.canAnimate()) {
             Point2D center = new Point2D.Double(mapRegion.getCenterX(), mapRegion.getCenterY());
             if (newZoom > MaxZoom)
                 newZoom = MaxZoom;
@@ -530,7 +534,12 @@ public class ZoomTool extends VueTool
             } else {
 
                 if (animate) {
-                    animatedZoomTo(viewer, newZoom, offset);
+                    viewer.setAnimating(true);
+                    try {
+                        animatedZoomTo(viewer, newZoom, offset);
+                    } finally {
+                        viewer.setAnimating(false);
+                    }
                     //if (DEBUG.Enabled) System.out.println("zoomFinal " + newZoom);
                     
                 }
@@ -541,8 +550,66 @@ public class ZoomTool extends VueTool
         }
     }
 
+    // may make sense to move a bunch of this code to MapViewer (e.g., animatedZoomTo, setZoom)
+
     /** Animate all but the last step of a zoom to the given given zoom and offset.   Caller must provide the final calls. */
     private static void animatedZoomTo(MapViewer viewer, double newZoom, Point2D offset)
+    {
+        // This will currenly only work on a viewer that's NOT
+        // in a scroll-pane (so ony full-screen windows for now)
+        // as the repaint does nothing to adjust the scrolling
+        // viewport.
+        
+        if (!viewer.canAnimate())
+            return;
+        
+        final int frames = DEBUG.Enabled ? 17 : 4;
+        final int framesOut = frames / 2;
+        final int framesIn = framesOut;
+
+        // will paint (frame - 1) intermediate frames: the last frame is left so the caller
+        // can establish the exact final display coordinate
+
+        final double zoomApex = .3;
+        
+        final double cz = viewer.getZoomFactor();
+        final double cx = viewer.getOriginX();
+        final double cy = viewer.getOriginY();
+                
+        final double dz = newZoom - cz;
+        //final double dzOut = zoomApex - cz;
+        //final double dzIn = newZoom - zoomApex;
+        final double dx = offset.getX() - cx;
+        final double dy = offset.getY() - cy;
+
+        final double iz = dz/frames;
+        //final double izOut = dzOut/framesOut;
+        //final double izIn = dzIn/framesIn;
+        final double ix = dx/frames;
+        final double iy = dy/frames;
+
+        double zoom;
+
+        // TODO: adjust zoom based on a curve (quadradic/parabola/sine wave) instead of
+        // linearly, and will need to get much fancier to get this to work at all (even
+        // with linear zoom adjustment): the offset also needs to be plotted to center
+        // on the path tracked from the start point to the end point.
+
+        for (int i = 1; i < frames; i++) {
+            zoom = cz + iz*i;
+//             if (i <= framesOut)
+//                 zoom = cz + izOut*i;
+//             else 
+//                 zoom = zoomApex - izIn*i;
+            //if (DEBUG.Enabled) System.out.format("zoomAnimate frame %2d %.1f%%\n", i, zoom*100);
+            setZoom(viewer, zoom, false, DONT_FOCUS, true);
+            viewer.setMapOriginOffset(cx + ix*i, cy + iy*i);
+            viewer.paintImmediately();
+        }
+    }
+
+    /*
+          private static void animatedZoomTo(MapViewer viewer, double newZoom, Point2D offset)
     {
         // This will currenly only work on a viewer that's NOT
         // in a scroll-pane (so ony full-screen windows for now)
@@ -554,31 +621,37 @@ public class ZoomTool extends VueTool
         
         //final int frames = 20;
         //final int frames = 16; 
-        final int frames = 4;
+        final int frames = DEBUG.Enabled ? 17 : 4;
 
         // will paint (frame - 1) intermediate frames: the last frame is left so the caller
         // can establish the exact final display coordinate
 
-        double cz = viewer.getZoomFactor();
-        double cx = viewer.getOriginX();
-        double cy = viewer.getOriginY();
+        
+        final double cz = viewer.getZoomFactor();
+        final double cx = viewer.getOriginX();
+        final double cy = viewer.getOriginY();
                 
-        double dz = newZoom - cz;
-        double dx = offset.getX() - cx;
-        double dy = offset.getY() - cy;
+        final double dz = newZoom - cz;
+        final double dx = offset.getX() - cx;
+        final double dy = offset.getY() - cy;
 
-        double iz = dz/frames;
-        double ix = dx/frames;
-        double iy = dy/frames;
+        final double iz = dz/frames;
+        final double ix = dx/frames;
+        final double iy = dy/frames;
+
+        double zoom;
 
         for (int i = 1; i < frames; i++) {
-            double zoom = cz + iz*i;
+            zoom = cz + iz*i;
             setZoom(viewer, zoom, false, DONT_FOCUS, true);
             viewer.setMapOriginOffset(cx + ix*i, cy + iy*i);
             viewer.paintImmediately();
             //if (DEBUG.Enabled) System.out.println("zoomAnimate " + zoom);
         }
+
+        
     }
+    */
     
     public static void setZoomFitRegion(Rectangle2D mapRegion, int edgePadding)
     {
@@ -615,7 +688,7 @@ public class ZoomTool extends VueTool
     }
     
     
-    public static double computeZoomFit(Dimension viewport, int borderGap, Rectangle2D bounds, Point2D offset) {
+    public static double computeZoomFit(Dimension2D viewport, float borderGap, Rectangle2D bounds, Point2D offset) {
         return computeZoomFit(viewport, borderGap, bounds, offset, true);
     }
     
@@ -628,24 +701,47 @@ public class ZoomTool extends VueTool
      *
      * @param outgoingOffset may be null (not interested in result)
      */
-    public static double computeZoomFit(java.awt.Dimension viewport,
-                                        int borderGap,
+    public static double computeZoomFit(Dimension2D viewport,
+                                        float borderGap,
                                         java.awt.geom.Rectangle2D bounds,
                                         java.awt.geom.Point2D outgoingOffset,
                                         boolean centerSmallerDimensionInViewport)
     {
         double newZoom;
 
-        if (viewport.width <= 0 || viewport.height <= 0 || bounds.isEmpty()) {
+        if (viewport.getWidth() <= 0 || viewport.getHeight() <= 0 || bounds.isEmpty()) {
             
             newZoom = 1.0;
             
         } else {
         
-            int viewWidth = viewport.width - borderGap * 2;
-            int viewHeight = viewport.height - borderGap * 2;
-            double vertZoom = (double) viewHeight / bounds.getHeight();
-            double horzZoom = (double) viewWidth / bounds.getWidth();
+            final double viewWidth, viewHeight;
+
+            if (borderGap < 0) {
+                // < 0 borderGap means using compute the gap at scale (just add it to
+                // the bounds of the region we want to zoom to) -- and of course
+                // use the magnitude of the gap -- we never shrink the zoom-to region.
+
+                final Rectangle2D.Float grownBounds = new Rectangle2D.Float();
+                grownBounds.setRect(bounds);
+                grownBounds.x -= -borderGap;
+                grownBounds.y -= -borderGap;
+                grownBounds.width += -borderGap * 2;
+                grownBounds.height += -borderGap * 2;
+
+                bounds = grownBounds;
+                
+                viewWidth = viewport.getWidth();
+                viewHeight = viewport.getHeight();
+
+            } else {
+                viewWidth = (viewport.getWidth() - borderGap * 2);
+                viewHeight = (viewport.getHeight() - borderGap * 2);
+            }
+
+            final double vertZoom = viewHeight / bounds.getHeight();
+            final double horzZoom = viewWidth / bounds.getWidth();
+            
             boolean centerVertical;
             if (horzZoom < vertZoom) {
                 newZoom = horzZoom;
@@ -659,8 +755,15 @@ public class ZoomTool extends VueTool
             // that had extra room to scale in.
                     
             if (outgoingOffset != null) {
-                double offsetX = bounds.getX() * newZoom - borderGap;
-                double offsetY = bounds.getY() * newZoom - borderGap;
+                double offsetX, offsetY;
+                
+                if (borderGap < 0) {
+                    offsetX = bounds.getX() * newZoom;
+                    offsetY = bounds.getY() * newZoom;
+                } else {
+                    offsetX = bounds.getX() * newZoom - borderGap;
+                    offsetY = bounds.getY() * newZoom - borderGap;
+                }
             
                 if (centerSmallerDimensionInViewport) {
                     if (centerVertical)
@@ -672,7 +775,7 @@ public class ZoomTool extends VueTool
             }
         }
         
-        if (DEBUG.PRESENT) System.out.format("ZoomTool: computed zoom of %.2f%% for map bounds %s in viewport %s\n", newZoom * 100, bounds, viewport);
+        if (DEBUG.PRESENT) System.out.format("ZoomTool: computed zoom of %7.2f%% for map bounds %s in viewport %s\n", newZoom * 100, Util.fmt(bounds), viewport);
         return newZoom < ZoomDefaults[0] ? ZoomDefaults[0] : newZoom; // never let us be less than min-zoom
     }
 
