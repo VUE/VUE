@@ -24,6 +24,7 @@ import java.util.*;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -32,7 +33,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.129 $ / $Date: 2007-07-30 23:31:54 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2007-08-28 18:49:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -49,9 +50,11 @@ public abstract class LWContainer extends LWComponent
     /*
      * Child handling code
      */
+    @Override
     public boolean hasChildren() {
         return mChildren != null && mChildren.size() > 0;
     }
+    @Override
     public int numChildren() {
         return mChildren == null ? 0 : mChildren.size();
     }
@@ -61,6 +64,12 @@ public abstract class LWContainer extends LWComponent
     public boolean supportsChildren() {
         return true;
     }
+
+    /** @return true by default */
+    public boolean supportsSlide() {
+        return true;
+    }
+    
 
     public boolean hasChild(LWComponent c) {
         return mChildren != null && mChildren.contains(c);
@@ -407,7 +416,11 @@ public abstract class LWContainer extends LWComponent
                 // new parent, and it's mapX / mapY will report correctly when asked (e.g., the
                 // bounds are immediatley correct for anyone listening to the location event).
                 c.setParent(this);
-                localizeCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
+                try {
+                    localizeCoordinates(c, oldParent, oldParentMapScale, oldMapX, oldMapY);
+                } catch (Throwable t) {
+                    Util.printStackTrace(t);
+                }
             }
             
         } else {
@@ -503,7 +516,7 @@ public abstract class LWContainer extends LWComponent
         // exactly where they need to be, right where they are, as set by the
         // dragging code.
 
-        if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("         now localized: " + c);
+        if (DEBUG.Enabled||DEBUG.PARENTING || DEBUG.CONTAINMENT) out("         now localized: " + c);
     }
     
     protected void removeChildImpl(LWComponent c)
@@ -789,7 +802,7 @@ public abstract class LWContainer extends LWComponent
             throw new IllegalStateException("*** Attempting to get index of a child of a deleted component!"
                                             + "\n\tdeleted parent=" + this
                                             + "\n\tseeking index of child=" + c);
-        return mChildren == null ? -1 : mChildren.indexOf(c);
+        return mChildren == null ? -128 : mChildren.indexOf(c);
     }
         
     /* To preseve the relative display order of a group of elements
@@ -875,7 +888,7 @@ public abstract class LWContainer extends LWComponent
         // Move to END of list, so it will paint last (visually on top)
         int idx = mChildren.indexOf(c);
         int idxLast = mChildren.size() - 1;
-        if (idx == idxLast)
+        if (idx < 0 || idx == idxLast)
             return false;
         //System.out.println("bringToFront " + c);
         notify(LWKey.HierarchyChanging);
@@ -916,7 +929,7 @@ public abstract class LWContainer extends LWComponent
         // Move toward the END of list, so it will paint later (visually on top)
         int idx = mChildren.indexOf(c);
         int idxLast = mChildren.size() - 1;
-        if (idx == idxLast)
+        if (idx < 0 || idx == idxLast)
             return false;
         //System.out.println("bringForward " + c);
         notify(LWKey.HierarchyChanging);
@@ -1010,8 +1023,10 @@ public abstract class LWContainer extends LWComponent
      */
     protected void drawImpl(DrawContext dc)
     {
-        if (!isTransparent()) {
-            dc.g.setColor(getFillColor());
+        //if (!isTransparent()) {
+        final Color fill = getRenderFillColor(dc);
+        if (fill != null) {
+            dc.g.setColor(fill);
             dc.g.fill(getZeroShape());
         }
         
@@ -1026,7 +1041,7 @@ public abstract class LWContainer extends LWComponent
 
     protected void drawChildren(DrawContext dc)
     {
-        if (!hasChildren())
+        if (hasChildren() == false)
             return;
 
         int nodes = 0;
@@ -1067,9 +1082,10 @@ public abstract class LWContainer extends LWComponent
         // todo opt: don't create all these GC's?
         // todo: if selection going to draw in map, consolodate it here!
         // todo: same goes for pathway decorations!
-        final DrawContext dc = _dc.create();
+        final DrawContext dc = _dc.push();
         try {
             drawChild(c, dc);
+            dc.pop();
         } catch (Throwable t) {
             synchronized (System.err) {
                 tufts.Util.printStackTrace(t);
@@ -1082,9 +1098,11 @@ public abstract class LWContainer extends LWComponent
                 System.err.println("***              clip: " + dc.g.getClip());
                 System.err.println("***        clipBounds: " + dc.g.getClipBounds());
             }
-        } finally {
-            dc.g.dispose();
         }
+// TODO: good idea to put this back...
+//         finally {
+//             dc.g.dispose();
+//         }
     }
 
     
@@ -1099,6 +1117,7 @@ public abstract class LWContainer extends LWComponent
      * and if we weren't given a LinkPatcher, to patch up any links
      * among our children.
      */
+    @Override
     public LWComponent duplicate(CopyContext cc)
     {
         boolean isPatcherOwner = false;
