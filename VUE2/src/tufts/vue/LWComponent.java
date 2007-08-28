@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.329 $ / $Date: 2007-08-10 16:24:14 $ / $Author: anoop $
+ * @version $Revision: 1.330 $ / $Date: 2007-08-28 18:47:35 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -186,22 +186,35 @@ public class LWComponent
     protected transient boolean isZoomedFocus = false;
     protected transient int mHideBits = 0x0; // any bit set means we're hidden
 
-    protected transient LWContainer parent = null;
+    protected transient LWContainer parent;
     protected transient LWComponent mParentStyle;
     protected transient LWComponent mSyncSource; // "semantic source" for nodes on slide to refer back to the concept map
     protected transient Collection<LWComponent> mSyncClients; // set of sync sources that point back to us
     protected transient boolean isStyle;
 
-    // list of LWLinks that contain us as an endpoint
+    /** list of links that contain us as an endpoint */
     private transient List<LWLink> mLinks;
-    private transient List<LWPathway> mPathways;
+    /** list of pathways that we are a member of */
+    protected transient List<LWPathway> mPathways;
+    /** list of all pathway entries that refer to us (one for each time we appear on an individual pathway) */
+    protected transient List<LWPathway.Entry> mEntries;
+    //private transient boolean hasVisibleSlideIcons;
+    
+    // todo memory perf: mEntries should subclass ArrayList and implement this iter
+    // so they can be allocated together, instead of leaving this slot here unused
+    // for ever node w/out pathway entries.
+    private SlideIconIter mVisibleSlideIconIterator;
+
+    
     private transient long mSupportedPropertyKeys;
     private transient boolean isMoveable = true;
 
     private transient double scale = 1.0;
 
     protected transient final LWChangeSupport mChangeSupport = new LWChangeSupport(this);
-    protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore? (todo: eliminate this as a member variable)
+
+    protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
+    
     protected transient BufferedImage mCachedImage;
 
     public static final Comparator XSorter = new Comparator<LWComponent>() {
@@ -460,7 +473,7 @@ public class LWComponent
             
             ClassProperties.put(clazz, propMaskForClass);
 
-            if (DEBUG.Enabled)
+            if (DEBUG.INIT || DEBUG.STYLE)
                 System.out.printf("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties\n", 
                               name,
                               //isStyleProperty ? "STYLE;" : "",
@@ -891,7 +904,9 @@ u                    getSlot(c).setFromString((String)value);
     
     
     public class ColorProperty extends Property<java.awt.Color> {
-        private boolean allowTranslucence = true;
+        private static final short ALPHA_NOT_PERMITTED = Short.MIN_VALUE;
+        private static final short NO_ALPHA_SET = -1;
+        private short fixedAlpha = NO_ALPHA_SET;
         
         ColorProperty(Key key) { super(key); }
         ColorProperty(Key key, Color defaultValue) {
@@ -907,23 +922,68 @@ u                    getSlot(c).setFromString((String)value);
             return value == null || value.getAlpha() != 0xFF;
         }
 
-        void setAllowTranslucence(boolean allow) {
-            allowTranslucence = allow;
+        void setAllowAlpha(boolean allow) {
+            if (allow)
+                fixedAlpha = NO_ALPHA_SET;
+            else
+                fixedAlpha = ALPHA_NOT_PERMITTED;
         }
 
+        /** alpha should be in the range 0-255 */
+        void setFixedAlpha(int alpha) {
+            if (alpha > 255)
+                alpha = 255;
+            else if (alpha < 0)
+                alpha = 0;
+            fixedAlpha = (short) alpha;
+            //out("SET FIXED ALPHA " + fixedAlpha);
+        }
+
+        @Override
+        void set(Color newColor) {
+
+            if (fixedAlpha < 0) {
+                super.set(newColor);
+                return;
+            }
+
+            if (value == newColor)
+                return;
+
+            // enforce the fixed alpha on the incoming color:
+            if (newColor != null && newColor.getAlpha() != fixedAlpha) {
+                //out("COLOR VALUE: " + newColor + " " + ColorToString(newColor) + " alpha=" + newColor.getAlpha());
+                newColor = new Color((newColor.getRGB() & 0xFFFFFF) + (fixedAlpha << 24), true);
+                //newColor = new Color(newColor.getRGB() + 0x80000000, true); // test -- hardcoded 50% alpha                
+                //out("used fixed alpha " + fixedAlpha + " producing " + newColor + " alpha=" + newColor.getAlpha() + " " + ColorToString(newColor));
+            }
+
+            super.set(newColor);
+        }
+        
+        @Override
         void take(Color c) {
-            if (!allowTranslucence && (c == null || c.getAlpha() != 0xFF))
+            //if (!allowTranslucence && (c == null || c.getAlpha() != 0xFF))
+            if (fixedAlpha < NO_ALPHA_SET && (c == null || c.getAlpha() != 0xFF))
                 throw new PropertyValueVeto(key + "; color with translucence: "
                                             + c
                                             + " alpha=" + c.getAlpha()
                                             + " not allowed on " + LWComponent.this);
+
+//             if (LWComponent.this instanceof LWNode)
+//                 super.take(c == null ? null : new Color(c.getRGB() + (fixedAlpha << 24), true));
+//             //super.take(c == null ? null : new Color(c.getRGB() + ((128 & 0xFF) << 24), true));
+//             //super.take(c == null ? null : new Color(c.getRGB() + 0x20000000, true));
+//             else
             super.take(c);
         }
 
+        @Override
         void setBy(String s) {
             set(StringToColor(s));
         }
 
+        @Override
         void setFromCSS(String key, String value) {
             // todo: CSS Style object could include the already instanced Color object
             // we ignore key: assume that whatever it is is a color value
@@ -934,8 +994,15 @@ u                    getSlot(c).setFromString((String)value);
          * e.g.: white returns 1, black returns 0
          */
         public float brightness() {
-            return LWComponent.brightness(value);
-         }
+            return Util.brightness(value);
+        }
+
+//         dynamic version not workng
+//         ///** @return the color, but with 50% alpha (half transparent) */
+//         public final Color getWithAlpha(float alpha) {
+//             return new Color(value.getRGB() + (((byte)(alpha*256)) << 6), true);
+//             //return new Color(value.getRGB() + 0x80000000, true);
+//         }
 
 
         String asString() {
@@ -943,21 +1010,6 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
     
-    public static float brightness(java.awt.Color c) {
-            
-        if (c == null)
-            return 0;
-
-        final int r = c.getRed();
-        final int g = c.getGreen();
-        final int b = c.getBlue();
-
-        int max = (r > g) ? r : g;
-        if (b > max) max = b;
-            
-        return ((float) max) / 255f;
-    }
-        
     public static Color StringToColor(final String s)
     {
         if (s.trim().length() < 1)
@@ -1399,11 +1451,22 @@ u                    getSlot(c).setFromString((String)value);
             return getParent().getNextUniqueID();
     }
 
+    //private static int MapDepth;
     public LWMap getMap() {
-        if (this.parent == null)
+        if (parent == null) {
             return null;
-        else
-            return this.parent.getMap();
+        } else {
+//             if (++MapDepth >= 64) { // DEBUG
+//                 Util.printStackTrace("PARENT LOOP at depth " + MapDepth);
+//                 System.err.println("LWC: " + this);
+//                 return null;
+//             }
+//             final LWMap m = parent.getMap();
+//             MapDepth--;
+//             return m;
+            return parent.getMap();
+            
+        }
     }
 
     public UndoManager getUndoManager() {
@@ -1784,6 +1847,12 @@ u                    getSlot(c).setFromString((String)value);
         return true;
     }
 
+    /** @return false by default -- only containers can have slides */
+    public boolean supportsSlide() {
+        return false;
+    }
+    
+
 
     /** @return true if we allow a link to the target, and the target allows a link to us.
      * Eventually we can use this to check ontology information.
@@ -1830,8 +1899,9 @@ u                    getSlot(c).setFromString((String)value);
         return mPathways != null && mPathways.size() > 0;
     }
 
+
     /** Is component in the given pathway? */
-    // TODO: rename onPathway
+    // rename onPathway?
     public boolean inPathway(LWPathway path)
     {
         if (mPathways == null || path == null)
@@ -1843,6 +1913,27 @@ u                    getSlot(c).setFromString((String)value);
         
         return false;
     }
+
+    /** @return null if we're in more than one visible pathway, or the LWPathway we're on if it's the only visible one */
+    public LWPathway getExclusiveVisiblePathway()
+    {
+        if (mPathways == null)
+            return null;
+
+        boolean foundOne = false;
+        LWPathway singleVisible = null;
+        for (LWPathway p : mPathways) {
+            if (p.isDrawn()) {
+                if (foundOne)
+                    return null;
+                foundOne = true;
+                singleVisible = p;
+            }
+        }
+        
+        return singleVisible;
+    }
+    
 
     public List<LWPathway> getPathways() {
         return mPathways == null ? java.util.Collections.EMPTY_LIST : mPathways;
@@ -1863,8 +1954,37 @@ u                    getSlot(c).setFromString((String)value);
 
         return false;
     }
+
+    public boolean hasEntries() {
+        return mEntries != null && mEntries.size() > 0;
+    }
+
+    public int numEntries() {
+        return mEntries == null ? 0 : mEntries.size();
+    }
     
-    void addPathwayRef(LWPathway p)
+
+    protected void addEntryRef(LWPathway.Entry e) {
+        if (mEntries == null) {
+            mEntries = new ArrayList();
+            mVisibleSlideIconIterator = new SlideIconIter();
+        }
+        if (!mEntries.contains(e))
+            mEntries.add(e);
+    }
+
+    protected void removeEntryRef(LWPathway.Entry e) {
+        if (mEntries == null) {
+            Util.printStackTrace(this + "; no entries! can't remove: " + e);
+            return;
+        }
+        if (!mEntries.remove(e))
+            Util.printStackTrace(this + "; Warning: didn't contain entry " + e);
+    }
+    
+    
+    // TODO: merge with addEntryRef/removeEntryRef
+    protected void addPathwayRef(LWPathway p)
     {
         if (mPathways == null)
             mPathways = new ArrayList();
@@ -1874,7 +1994,7 @@ u                    getSlot(c).setFromString((String)value);
         }
         //notify("pathway.add");
     }
-    void removePathwayRef(LWPathway p)
+    protected void removePathwayRef(LWPathway p)
     {
         if (mPathways == null) {
             if (DEBUG.META) tufts.Util.printStackTrace("attempt to remove non-existent pathwayRef to " + p + " in " + this);
@@ -2061,7 +2181,7 @@ u                    getSlot(c).setFromString((String)value);
         if (mFillColor.isTransparent()) {
             if (dc != null && dc.focal == this) {
                 //System.out.println("     DC FILL: " + dc.getFill() + " " + this);
-                return dc.getFill();
+                return dc.getBackgroundFill();
             } else if (parent != null) {
                 //System.out.println(" PARENT FILL: " + parent.getRenderFillColor(dc) + " " + this);
                 return parent.getRenderFillColor(dc);
@@ -2070,6 +2190,21 @@ u                    getSlot(c).setFromString((String)value);
         //System.out.println("DEFAULT FILL: " + mFillColor.get() + " " + this);
         return mFillColor.get();
     }
+
+    //private LWPathway lastPriorit;
+
+    public Color getPriorityPathwayColor(DrawContext dc) {
+        final LWPathway exclusive = getExclusiveVisiblePathway();
+        if (exclusive != null)
+            return exclusive.getColor();
+        else if (inPathway(VUE.getActivePathway()) && VUE.getActivePathway().isDrawn())
+            return VUE.getActivePathway().getColor();
+        else
+            return null;
+        //return getRenderFillColor(dc);
+    }
+
+    
     
     void takeFillColor(Color color) {
         mFillColor.take(color);
@@ -2131,10 +2266,15 @@ u                    getSlot(c).setFromString((String)value);
                              getHeight() / 2);
     }
 
+    public LWContainer getParent() {
+        return this.parent;
+    }
 
-    void setParent(LWContainer newParent) {
+
+    protected void setParent(LWContainer newParent) {
 
         if (DEBUG.UNDO) System.err.println("*** SET-PARENT: " + newParent + " for " + this);
+
         
         //final boolean linkNotify = (!mXMLRestoreUnderway && parent != null);
         if (parent == newParent) {
@@ -2143,6 +2283,12 @@ u                    getSlot(c).setFromString((String)value);
             //if (DEBUG.Enabled) Util.printStackTrace("redundant set-parent in " + this + "; parent=" + newParent);
             return;
         }
+
+        if (newParent.hasAncestor(this)) {
+            Util.printStackTrace("ATTEMPTED PARENT LOOP " + this + " can't make a child our parent: " + newParent);
+            return;
+        }
+        
         parent = newParent;
 //         if (linkNotify && mLinks.size() > 0)
 //             for (LWLink link : mLinks)
@@ -2203,10 +2349,6 @@ u                    getSlot(c).setFromString((String)value);
     /** @deprecated: tmp back compat only */ public LWComponent getParentStyle() { return null; }
 
 
-    public LWContainer getParent() {
-        return this.parent;
-    }
-
     // TODO: implement layers -- this a stop-gap for hiding LWSlides
     public int getLayer() {
         if (this.parent == null) {
@@ -2246,11 +2388,11 @@ u                    getSlot(c).setFromString((String)value);
     protected LWComponent defaultPick(PickContext pc) {
         // If we're dropping something, never allow us to be picked
         // if we're a descendent of what's being dropped! (would be a parent/child loop)
-        if (pc.dropping instanceof LWContainer && hasAncestor((LWContainer)pc.dropping))
+        if (pc.dropping != null && pc.dropping instanceof LWContainer && hasAncestor((LWComponent)pc.dropping))
             return null;
-        else if (isDrawingSlideIcon() && getMapSlideIconBounds().contains(pc.x, pc.y)) {
-            return getEntryToDisplay().getSlide();
-        }
+//         else if (isDrawingSlideIcon() && getMapSlideIconBounds().contains(pc.x, pc.y)) {
+//             return getEntryToDisplay().getSlide();
+//         }
         else
             return defaultPickImpl(pc);
     }
@@ -2282,6 +2424,13 @@ u                    getSlot(c).setFromString((String)value);
         return false;
     }
 
+    /** @return false; overriding impl's should return true if this
+     * component has children, and those children are always fully contained
+     * within the bounds of the parent */
+    public boolean fullyContainsChildren() {
+        return false;
+    }
+    
     public boolean hasChild(LWComponent c) {
         return false;
     }
@@ -2332,6 +2481,11 @@ u                    getSlot(c).setFromString((String)value);
     public boolean isMapVirtual() {
         return getParent() == null || !getParent().hasChild(this);
     }
+
+    /** @return 0 -- override to support children */
+    public int numChildren() {
+        return 0;
+    }
     
     public java.util.List<LWComponent> getChildList()
     {
@@ -2342,6 +2496,141 @@ u                    getSlot(c).setFromString((String)value);
     {
         return java.util.Collections.EMPTY_LIST;
     }
+    
+    public boolean hasPicks() {
+        return hasChildren() || hasEntries();
+    }
+
+    /** ordered for drawing and picking */
+    private final class SlideIconIter implements Iterator<LWSlide>, Iterable<LWSlide>
+    {
+        int nextIndex;
+        LWSlide nextSlide;
+        LWSlide onTop;
+        DrawContext dc;
+        LWPathway activePathway;
+        LWPathway.Entry activeEntry;
+        
+        private SlideIconIter() {
+            //System.out.println("\nSlideIter, entries=" + mEntries.size());
+            advance();
+        }
+
+        private void advance() {
+            //out("advance; nextIndex =" + nextIndex);
+            nextSlide = null;
+            int i = nextIndex;
+            for (; i < mEntries.size(); i++) {
+                final LWPathway.Entry e = mEntries.get(i);
+                //out("inspecting index " + i + " " + e);
+                if (e.hasVisibleSlide()) {
+                    final LWSlide slide = e.getSlide();
+                    if (activePathway == null && slide.isSelected()) {
+                        onTop = slide;
+                        //} else if (slide.getEntry().pathway == activePathway) {
+                    } else if (slide.getEntry() == activeEntry) {
+                        onTop = slide;
+                    } else {
+                        nextSlide = slide;
+                        break;
+                    }
+                }
+            }
+            
+            nextIndex = i + 1;
+
+            // if we're at the end, provide the selected (if there was one)
+            if (nextSlide == null) {
+                nextSlide = onTop;
+                onTop = null;
+            }
+        }
+        
+        public boolean hasNext() {
+            final boolean t = (nextSlide != null);
+            //out("hasNext " + t);
+            if (nextIndex > 100) {
+                Util.printStackTrace("loop");
+                return false;
+            }
+            return t;
+            //return nextSlide != null;
+        }
+        
+        public LWSlide next() {
+            if (nextSlide == null) {
+                if (DEBUG.Enabled) Util.printStackTrace(this + " next at end of SlideIter; entries= + mEntries");
+                return null;
+            }
+            final LWSlide s = nextSlide;
+            advance();
+            //out("return " + s);
+            return s;
+        }
+        
+        public void remove() { throw new UnsupportedOperationException(); }
+
+        public Iterator<LWSlide> iterator() {
+            // reset when re-used
+            nextIndex = 0;
+            nextSlide = null;
+            onTop = null;
+            if (dc != null && dc.isPresenting()) {
+                activePathway = VUE.getActivePathway();
+                //activeEntry = VUE.getActiveEntry();
+            } else {
+                activePathway = null;
+                //activeEntry = null;
+            }
+            activeEntry = VUE.getActiveEntry();
+            advance();
+            return this;
+        }
+    }
+
+
+    /** @return the slides for drawing as slide icons in the current picking and drawing order */
+    private final Iterable<LWSlide> seenSlideIcons(DrawContext dc) {
+//         if (mEntries == null || mEntries.size() == 0) {
+//             // this is sort of overkill, as we shouldn't even be calling this if hasEntries is false
+//             return Util.EmptyIterable;
+//         } else
+        if (mEntries.size() == 1) {
+            final LWPathway.Entry e = mEntries.get(0);
+            if (e.hasVisibleSlide())
+                return new Util.SingleIterator(e.getSlide());
+            else
+                return Util.EmptyIterable;
+        } else {
+            mVisibleSlideIconIterator.dc = dc;
+            return mVisibleSlideIconIterator;
+        }
+        //return new SlideIter();
+    }
+    
+
+    /**
+     * @return a list, to be traversed in reverse order.  If a new list needs to be constructed,
+     * it will dumped into stored, which will be returned.  Otherwise, an internal list may be returned.
+     */
+    public List<LWComponent> getPickList(PickContext pc, List<LWComponent> stored)
+    {
+        if (pc.root != this && hasEntries()) {
+            // todo performance: would be nice if we didn't even need to clear and
+            // load up a new list.
+            // also: might actually just get rid of SlideIter/seenSlides, and use getPickList
+            // down in draw...
+            synchronized (stored) {            
+                stored.clear();
+                stored.addAll(getChildren());
+                for (LWSlide s : seenSlideIcons(pc.dc))
+                    stored.add(s);
+            }
+            return stored;
+        } else
+            return (List) getChildren();
+    }
+    
     
     
     public java.util.Iterator<LWComponent> getChildIterator() {
@@ -2459,9 +2748,9 @@ u                    getSlot(c).setFromString((String)value);
     public Rectangle2D.Float getFanBounds(Rectangle2D.Float rect)
     {
         if (rect == null)
-            rect = getBounds();
+            rect = getMapBounds();
         else
-            rect.setRect(getBounds());
+            rect.setRect(getMapBounds());
             
         for (LWLink link : getLinks()) {
             final LWComponent head = link.getHead();
@@ -2704,6 +2993,11 @@ u                    getSlot(c).setFromString((String)value);
             return parent.hasAncestor(c);
     }
 
+    public boolean hasAncestorOfType(Class clazz) {
+        return getParentOfType(clazz) != null;
+    }
+    
+
     /** @return the first ancestor, EXCLUDING this component (starting with the parent), that is of the given type, or null if none found */
     public LWComponent getParentOfType(Class clazz) {
         LWComponent parent = getParent();
@@ -2714,6 +3008,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     /** @return the first ancestor, INCLUDING this component, that is of the given type, or null if none found */
+    // TODO: including this component is confusing...
     public LWComponent getAncestorOfType(Class clazz) {
         if (clazz.isInstance(this))
             return this;
@@ -2759,14 +3054,19 @@ u                    getSlot(c).setFromString((String)value);
         return 30;
     }
     
-    protected void setScale(double scale)
+    protected void takeScale(double newScale) {
+        if (DEBUG.LAYOUT) out("takeScale " + newScale);
+        this.scale = newScale;
+    }
+    
+    protected void setScale(double newScale)
     {
-        if (this.scale == scale)
+        if (this.scale == newScale)
             return;
         final double oldScale = this.scale;
-        if (DEBUG.LAYOUT) out("setScale " + scale);
+        //if (DEBUG.LAYOUT) out("setScale " + newScale);
         //if (DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue", "setScale " + scale);
-        this.scale = scale;
+        takeScale(newScale);
         
         // can only do this via debug inspector right now, and is causing lots of
         // suprious events during init:
@@ -2851,6 +3151,12 @@ u                    getSlot(c).setFromString((String)value);
     public boolean isMoveable() {
         return isMoveable;
     }
+
+    /** @return true if this component is "owned" by the pathway -- e.g., a slide that only appears as an icon */
+    public boolean isPathwayOwned() {
+        return false;
+    }
+    
         
 
     //private boolean linkNotificationDisabled = false;
@@ -3197,14 +3503,20 @@ u                    getSlot(c).setFromString((String)value);
             //if (DEBUG.Enabled && this instanceof LWMap == false)
             //    Util.printStackTrace("fetching mapX for unparented non-map: " + this);
             return getX();
-        } else
+        } else {
             return parent.getMapXPrecise() + getX() * parent.getMapScale();
+        }
     }
     protected double getMapYPrecise() {
         if (parent == null) {
             return getY();
-        } else
+        } else {
+            if (parent == this) { // DEBUG
+                Util.printStackTrace("PARENT LOOP " + this);
+                return getY();
+            }
             return parent.getMapYPrecise() + getY() * parent.getMapScale();
+        }
     }
 
     public float getMapX() {
@@ -3463,10 +3775,12 @@ u                    getSlot(c).setFromString((String)value);
             //System.out.println("TRANSFORMED SHAPE: " + rshape + " for " + this);
             return rshape;
         } else {
-            return getBounds();
+            return getMapBounds();
         }
     }
 
+
+    
     /** @return the raw shape of this object, not including any shape (the stroke is laid on top of the raw shape).
         This is the zero based non-scaled shape (always at 0,0) */
     private Shape getShape()
@@ -3474,15 +3788,40 @@ u                    getSlot(c).setFromString((String)value);
         return getZeroShape();
     }
 
-    /** @return the raw, zero based, non-scaled shape; default impl returns getZeroBounds */
+
+    private Rectangle2D.Float zeroBounds; // don't pre-allocate -- won't be used by overriding impl's
+    /** @return the raw, zero based, non-scaled shape; default impl returns same as getZeroBounds */
     public Shape getZeroShape() {
-        return getZeroBounds();
+        if (zeroBounds == null)
+            zeroBounds = new Rectangle2D.Float();
+        zeroBounds.width = getWidth();
+        zeroBounds.height = getHeight();
+        return zeroBounds;
     }
     
-    /** @return the raw, zero based, non-scaled bounds */
+    /**
+     * @return the raw, zero based, non-scaled bounds.
+     *
+     * Altho the x/y of the rectangle will normally be 0,0 (suggesting we could just use
+     * a size object here), that's not always the case: a component who shares it's
+     * coordinate space with it's parent (such as a link) will usually have a non-zero
+     * x/y in the zero bounds.
+     */
     protected Rectangle2D.Float getZeroBounds() {
         return new Rectangle2D.Float(0, 0, getWidth(), getHeight());
     }
+
+//     protected Size getZeroPaintSize() {
+
+//         final float strokeWidth = getStrokeWidth()l
+        
+//         if (strokeWidth > 0) {
+//             return new Size(getWidth() + strokeWidth, getHeight() + strokeWidth);
+//         } else {
+//             return new Size(getWidth(), getHeight());
+//         }
+//     }
+    
     
     /** @return the PARENT based bounds  -- this is the local component x,y  width*scale,height*scale, where scale
      * is any local scale this component has (not the total map scale: the scale that includes the scaling of all ancestors) */
@@ -3501,11 +3840,18 @@ u                    getSlot(c).setFromString((String)value);
         return addStrokeToBounds(getLocalBounds(), 0f);
     }
     
+    /** @return getMapBounds() -- map-coord (absolute) bounds of the stroke shape (not including any stroke width) */
+    public final Rectangle2D.Float getBounds()
+    {
+        return getMapBounds();
+    }
+
     /** @return map-coord (absolute) bounds of the stroke shape (not including any stroke width) */
-    public Rectangle2D.Float getBounds()
+    public Rectangle2D.Float getMapBounds()
     {
         return new Rectangle2D.Float(getMapX(), getMapY(), getMapWidth(), getMapHeight());
     }
+    
 
     /**
      * Return absolute map bounds for hit detection & clipping.  This will vary
@@ -3515,9 +3861,9 @@ u                    getSlot(c).setFromString((String)value);
     public Rectangle2D.Float getPaintBounds()
     {
         if (inDrawnPathway())
-            return addStrokeToBounds(getBounds(), LWPathway.PathwayStrokeWidth);
+            return addStrokeToBounds(getMapBounds(), LWPathway.PathBorderStrokeWidth);
         else
-            return addStrokeToBounds(getBounds(), 0);
+            return addStrokeToBounds(getMapBounds(), 0);
     }
 
     /**
@@ -3525,7 +3871,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     public Rectangle2D.Float getBorderBounds()
     {
-        return addStrokeToBounds(getBounds(), 0);
+        return addStrokeToBounds(getMapBounds(), 0);
     }
     
 
@@ -3720,9 +4066,16 @@ u                    getSlot(c).setFromString((String)value);
 
 
     /** transform relative to the child after already being transformed relative to the parent */
-    // NOTE THAT THE CODE IN THIS METHOD IS A PURE DUPLICATE OF transformDownA
     protected void transformDownG(final Graphics2D a)
     {
+        //-----------------------------------------------------------------------------
+        // NOTE THAT THE CODE IN THIS METHOD IS A PURE DUPLICATE OF transformDownA
+        // That is, it is literally a cut & paste of the body of transformDownA.
+        // The only difference is that our argument is of type Graphics2D, instead
+        // of AffineTransform -- we only call methods common to both classes.
+        // (and we don't return the passed in argument in this method)
+        //-----------------------------------------------------------------------------
+        
         if (ROTATE_TEST && parent instanceof LWMap) {
             
             // rotate around center (relative to map-bounds)
@@ -3841,81 +4194,114 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
+    /**
+     * @param mapRect -- incoming rectangle to transform to be relative to 0,0 of this component
+     * @param zeroRect -- result is placed here -- will be created if is null
+     * @return zeroRect
+     *
+     * E.g., if the incoming mapRect was from map coords 100,100->120,120, and this component was at 100,100,
+     * the resulting zeroRect in this case would be 0,0->20,20 (assuming no scale or rotation).
+     *
+     */
+    protected Rectangle2D transformMapToZeroRect(Rectangle2D mapRect, Rectangle2D zeroRect)
+    {
+        if (zeroRect == null)
+            zeroRect = (Rectangle2D) mapRect.clone(); // simpler than newInstace, tho we won't need the data-copy in the end
 
-    /** @param mapRect will be transformed (written over) and returned -- leaves in LOCAL coords: those of our parent
-     * THIS CURRENTLY ONLY WORKS FOR LINKS */
-    protected Rectangle2D transformMapToParentLocalRect(Rectangle2D mapRect) {
+        // If want to handle rotation, we'll need to transform each corner of the
+        // rectangle separately, generating Polygon2D (which sun never implemented!)  or
+        // a GeneralPath, in either case changing this method to return a Shape.  Better
+        // would be to keep a cached rotated map Shape in each object, tho that means
+        // solving the general problem of making sure we're updated any time our
+        // ultimate map location/size/scale/rotation, etc, changes, which of course
+        // changes if any of those values change on any ancestor.  If we did that, we'd
+        // also be able to fully cache the _zeroTransform w/out having to recompute it
+        // for each call just in case.  (Which would mean getting rid of this method
+        // entirely and using the map shape in intersects, etc) Of course, crap, we
+        // couldn't do all this for links, could we?  Tho maybe via special handing in an
+        // override... tho that would only work for the transform, not the shape, as the
+        // parent shape is useless to the link. FYI, currently, we only use this 
+        // for doing intersections of links and non-rectangular nodes
+        
+//         final double[] points = new double[8];
+//         final double width = zeroRect.getWidth();
+//         final double height = zeroRect.getHeight();
+//         // UL
+//         points[0] = zeroRect.getX();
+//         points[1] = zeroRect.getY();
+//         // UR
+//         points[2] = points[0] + width;
+//         points[3] = points[1];
+//         // LL
+//         points[4] = points[0];
+//         points[5] = points[1] + height;
+//         // LR
+//         points[6] = points[0] + width;
+//         points[7] = points[1] + height;
 
-        if (!isZoomedFocus && scale == 1.0 && parent instanceof LWMap && !ROTATE_TEST) { // OPTIMIZATION
-            // This is an optimization we'll want to remove if we ever
-            // embed maps in maps.
-            return mapRect;
-        }
 
-        // TODO: if want to handle rotation, need to transform each corner of
-        // the rectangle separately.
+        // Now that we know the below code can never handle rotation, we also might as
+        // well toss out using the transform entirely and just use getMapScale /
+        // getMapX/Y to mod a Rectangle2D.Float directly... Tho then our zoomed rollover
+        // mod, which is in the transformDown code would stop working for rectangle
+        // picking & clipping, tho we shouldn't need rect picking for zoomed rollovers,
+        // (only point picking) and the zoomed rollover always draws no matter what (in
+        // the MapViewer), so that may be moot, tho would need to fully test to be sure.
+        // All of the this also applies to transformZeroToMapRect below.
 
         final AffineTransform tx = getZeroTransform();
-        double[] points = new double[8]; // todo opt: can do as len 4 & overwrite
+        final double[] points = new double[4];
         points[0] = mapRect.getX();
         points[1] = mapRect.getY();
         points[2] = points[0] + mapRect.getWidth();
         points[3] = points[1] + mapRect.getHeight();
         try {
-            tx.inverseTransform(points, 0, points, 4, 2);
+            tx.inverseTransform(points, 0, points, 0, 2);
         } catch (java.awt.geom.NoninvertibleTransformException e) {
             Util.printStackTrace(e);
         }
 
-        mapRect.setRect(points[4],
-                        points[5],
-                        points[6] - points[4],
-                        points[7] - points[5]
-                        );
-//         mapRect.x = (float) points[4];
-//         mapRect.y = (float) points[5];
-//         mapRect.width = (float) (points[6] - points[4]);
-//         mapRect.height = (float) (points[7] - points[5]);
+        zeroRect.setRect(points[0],
+                         points[1],
+                         points[2] - points[0],
+                         points[3] - points[1]
+                         );
 
-        return mapRect;
+        return zeroRect;
         
     }
 
 
+    
     /**
      * This will take the given rectangle in local coordinates, and transform it
-     * into map coordinates.  The passed in Rectangle2D.Float will be modified
+     * into map coordinates.  The passed in Rectangle2D will be modified
      * and returned.
      */
-    public Rectangle2D.Float transformZeroToMapRect(Rectangle2D.Float zeroRect) {
-    //public Rectangle2D transformZeroToMapRect(Rectangle2D zeroRect) {
-
+    public Rectangle2D transformZeroToMapRect(Rectangle2D zeroRect)
+    {
         final AffineTransform tx = getZeroTransform();
-        double[] points = new double[8]; // todo opt: can do as len 4 & overwrite
+        final double[] points = new double[4];
+        
         points[0] = zeroRect.getX();
         points[1] = zeroRect.getY();
         points[2] = points[0] + zeroRect.getWidth();
         points[3] = points[1] + zeroRect.getHeight();
-        
-        tx.transform(points, 0, points, 4, 2);
+        tx.transform(points, 0, points, 0, 2);
 
-        zeroRect.setRect(points[4],
-                        points[5],
-                        points[6] - points[4],
-                        points[7] - points[5]
+        zeroRect.setRect(points[0],
+                        points[1],
+                        points[2] - points[0],
+                        points[3] - points[1]
                         );
-
+        
         return zeroRect;
-        
-//         mapRect.x = (float) points[4];
-//         mapRect.y = (float) points[5];
-//         mapRect.width = (float) (points[6] - points[4]);
-//         mapRect.height = (float) (points[7] - points[5]);
-
-
 
         
+        
+// Non-rotating & non-transform using version:        
 //         final double scale = getMapScale();
+//         // would this be right? scale the x/y first?
 //         if (scale != 1) {
 //             rect.x *= scale;
 //             rect.y *= scale;
@@ -3933,30 +4319,33 @@ u                    getSlot(c).setFromString((String)value);
 //             rect.y += getMapY();
 //         }
         
-//         return rect;
     }
                 
-    
-    
-    
     
     /**
      * Default implementation: checks bounding box
      * Subclasses should override and compute via shape.
      * INTERSECTIONS always intersect based on map bounds, as opposed to contains, which tests a local point.
      */
-    public final boolean intersects(Rectangle2D rect)
+    public final boolean intersects(Rectangle2D mapRect)
     {
-        final boolean hit = intersectsImpl(rect);
-        //if (DEBUG.PAINT) System.out.println("INTERSECTS " + fmt(rect) + " " + (hit?"YES":"NO ") + " for " + fmt(getPaintBounds()) + " " + this);
-        
-        if (hit)
-            return true;
-        else if (isDrawingSlideIcon() && getMapSlideIconBounds().intersects(rect))
-            return true;
-        else
-            return false;
+        return intersectsImpl(mapRect);
+//         final boolean hit = intersectsImpl(rect);
+//         //if (DEBUG.PAINT) System.out.println("INTERSECTS " + fmt(rect) + " " + (hit?"YES":"NO ")
+//         //+ " for " + fmt(getPaintBounds()) + " " + this);
+//         return hit;
     }
+    
+    /** default impl intersects the render/paint bounds, including any borders (we use this for draw clipping as well as selection) */
+    protected boolean intersectsImpl(Rectangle2D mapRect) {
+        //if (DEBUG.CONTAINMENT) System.out.println("INTERSECTS " + Util.fmt(rect));
+        final Rectangle2D bounds = getPaintBounds();
+        final boolean hit = mapRect.intersects(bounds);
+        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + fmt(mapRect) + " " + (hit?"YES":"NO ") + " for " + fmt(bounds) + " of " + this);
+        //Util.printClassTrace("tufts.vue.LW", "INTERSECTS " + this);
+        return hit;
+    }
+    
 
     /** @return true if this component currently requires painting and intersects the master paint region */
     public boolean requiresPaint(DrawContext dc)
@@ -3981,12 +4370,64 @@ u                    getSlot(c).setFromString((String)value);
         //    return false;
 
         if (dc.isClipOptimized()) {
+
+            //-----------------------------------------------------------------------------
+            // Returning true when parent.fullContainsChildren() is true will prevent a
+            // ton of intersects calls (and subsequent map-bounds computations involving
+            // transform fetches and their application to rectangles) when we have lots
+            // objects that are going to need drawing no matter what (e.g., lots of
+            // slide icons visible and we're zoomed out), tho it will cause the pixel
+            // drawing code to be invoked more often that it needs to when zoomed in.
+            // It's a basic trade-off.
+            //
+            // NOT checking this optimizes us for fast painting when zoomed way in on
+            // sub-components of the map/slides (e.g., during presentations), and that's
+            // the current chosen priority.
+            //
+            // As either method can safely be used (checking or not checking), we allow
+            // the check, but only if it looks like we're reasonably zoomed-out.  Either
+            // method is okay because this check is just an early way to say something
+            // requires painting, and it's always okay to paint -- the worse that
+            // happens is something off screen is painted, and we waste time in the
+            // graphics pipeline having it clipped.  Essentailly, when run, this check
+            // just lets us skip the intersects call below.
+            //
+            // The reason this is meaningful is we only get here if the parent
+            // has already determined it needs to paint, and if that's the case,
+            // and it fully contains it's children, if the parent is likely to
+            // be fully on-screen, we should just go ahead and paint all the children.
+            
+            if (parent != null && dc.zoom <= 1.0 && parent.fullyContainsChildren())
+                return true;
+            
+            //-----------------------------------------------------------------------------
+
+            if (hasEntries()) {
+                
+                // for now, if we have ANY pathway entries, we say we have to draw, so
+                // that if they're needed, any slide icons will draw (even if the parent
+                // node is clipped: this is because the slide icons lie outside the
+                // node).  Really, we only need to return true here if we're on any
+                // pathways that are visible & showing slide icons, and we have at least
+                // one actual slide.  Todo: cache that info so we can check it here
+                // (such a bit would need to update when any pathway visibility changes,
+                // or it's show icons bit flips, or our pathway memberships change,
+                // etc....)
+
+                // Also, once we'd determined there were slide icons to draw, we'd
+                // also want to check each of their bounds to see if they're within
+                // the master clip rect, tho right now they all scrunch together,
+                // so that would be a bit of overkill.
+                
+                return true;
+            }
+            
             if (intersects(dc.getMasterClipRect()))
                 return true;
             
-            if (isDrawingSlideIcon())
-                return getMapSlideIconBounds().intersects(dc.getMasterClipRect());
-            else
+//             if (isDrawingSlideIcon())
+//                 return getMapSlideIconBounds().intersects(dc.getMasterClipRect());
+//             else
                 return false;
         } else {
             
@@ -4007,16 +4448,6 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
-    /** default impl intersects the render/paint bounds, including any borders (we use this for draw clipping as well as selection) */
-    protected boolean intersectsImpl(Rectangle2D mapRect) {
-        //if (DEBUG.CONTAINMENT) System.out.println("INTERSECTS " + Util.fmt(rect));
-        final Rectangle2D bounds = getPaintBounds();
-        final boolean hit = mapRect.intersects(bounds);
-        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + fmt(mapRect) + " " + (hit?"YES":"NO ") + " for " + fmt(bounds) + " of " + this);
-        //Util.printClassTrace("tufts.vue.LW", "INTERSECTS " + this);
-        return hit;
-    }
-    
 
 //     /**
 //      * We divide area around the bounding box into 8 regions -- directly
@@ -4101,19 +4532,23 @@ u                    getSlot(c).setFromString((String)value);
 //         return (float) Math.sqrt(distanceToCenterSq(x, y));
 //     }
     
-    public void drawPathwayDecorations(DrawContext dc)
-    {
-        if (mPathways == null)
-            return;
+//     public void drawPathwayDecorations(DrawContext dc)
+//     {
+//         if (mPathways == null)
+//             return;
         
-        for (LWPathway path : mPathways) {
-            //if (!dc.isFocused && path.isDrawn()) {
-            if (path.isDrawn()) {
-                path.drawComponentDecorations(dc.create(), this);
-            }
-        }
+//         if (LWPathway.PathwayAsDots || this instanceof LWLink)
+//             LWPathway.drawPathwayDot(dc.create(), this);
         
-    }
+//         if (!LWPathway.PathwayAsDots && isTransparent()) {
+//             for (LWPathway path : mPathways) {
+//                 //if (!dc.isFocused && path.isDrawn()) {
+//                 if (path.isDrawn()) {
+//                     path.drawPathwayBorder(dc.create(), this);
+//                 }
+//             }
+//         }
+//     }
 
     /** if this component is selected and we're not printing, draw a selection indicator */
     // todo: drawing of selection should be handled by the MapViewer and/or the currently
@@ -4141,10 +4576,11 @@ u                    getSlot(c).setFromString((String)value);
     public final boolean contains(float x, float y, PickContext pc) {
         if (containsImpl(x, y, pc))
             return true;
-        else if (isDrawingSlideIcon()) {
-            if (DEBUG.PICK) out("Checking slide icon bounds " + getSlideIconBounds());
-            return getSlideIconBounds().contains(x, y);
-        } else
+//         else if (isDrawingSlideIcon()) {
+//             if (DEBUG.PICK) out("Checking slide icon bounds " + getSlideIconBounds());
+//             return getSlideIconBounds().contains(x, y);
+//         }
+        else
             return false;
     }
 
@@ -4181,45 +4617,72 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
-    private static final float SlideIconScale = 0.125f;
-    private Rectangle2D.Float mSlideIconBounds;
-    public Rectangle2D.Float getSlideIconBounds() {
-        if (mSlideIconBounds == null)
-            mSlideIconBounds = computeSlideIconBounds(new Rectangle2D.Float());
-        else if (true || mSlideIconBounds.x == Float.NaN) // need a reshape/reshapeImpl trigger on move/resize to properly re-validate (wait: NaN != NaN !)
-            computeSlideIconBounds(mSlideIconBounds);
-        return mSlideIconBounds;
-    }
+    public static final float SlideIconScale = 0.125f;
+//     private Rectangle2D.Float mSlideIconBounds;
+//     public Rectangle2D.Float getSlideIconBounds() {
+//         if (mSlideIconBounds == null)
+//             mSlideIconBounds = computeSlideIconBounds(new Rectangle2D.Float());
+//         else if (true || mSlideIconBounds.x == Float.NaN) // need a reshape/reshapeImpl trigger on move/resize to properly re-validate (wait: NaN != NaN !)
+//             computeSlideIconBounds(mSlideIconBounds);
+//         return mSlideIconBounds;
+//     }
 
-    public Rectangle2D.Float getMapSlideIconBounds() {
-        Rectangle2D.Float slideIcon = (Rectangle2D.Float) getSlideIconBounds().clone();
-        final float scale = getMapScaleF();
-        // Compress the local slide icon coords into the node's scale space:
-        slideIcon.x *= scale;
-        slideIcon.y *= scale;
-        // Now make them absolute map coordintes (no longer local):
-        slideIcon.x += getMapX();
-        slideIcon.y += getMapY();
-        // Now scale down size:
-        slideIcon.width *= scale;
-        slideIcon.height *= scale;
+//     public Rectangle2D.Float getMapSlideIconBounds() {
+//         Rectangle2D.Float slideIcon = (Rectangle2D.Float) getSlideIconBounds().clone();
+//         final float scale = getMapScaleF();
+//         // Compress the local slide icon coords into the node's scale space:
+//         slideIcon.x *= scale;
+//         slideIcon.y *= scale;
+//         // Now make them absolute map coordintes (no longer local):
+//         slideIcon.x += getMapX();
+//         slideIcon.y += getMapY();
+//         // Now scale down size:
+//         slideIcon.width *= scale;
+//         slideIcon.height *= scale;
 
-        return slideIcon;
-    }
+//         return slideIcon;
+//     }
 
     /** @return the local lower right hand corner of the component: for rectangular shapes, this is just [width,height]
      * Non-rectangular shapes can override to do something fancier. */
-    protected Point2D.Float getCorner() {
+    protected Point2D.Float getZeroCorner() {
         return new Point2D.Float(getWidth(), getHeight());
     }
 
-    protected Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
-    {
-        // TODO: below should take into account actual slide size...
-        final float width = LWSlide.SlideWidth * SlideIconScale;
-        final float height = LWSlide.SlideHeight * SlideIconScale;
+//     protected Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
+//     {
+//         // TODO: below should take into account actual slide size...
+//         final float width = LWSlide.SlideWidth * SlideIconScale;
+//         final float height = LWSlide.SlideHeight * SlideIconScale;
 
-        Point2D.Float corner = getCorner();
+//         Point2D.Float corner = getZeroCorner();
+        
+//         float xoff = corner.x - 60;
+//         float yoff = corner.y - 60;
+
+//         // If shape is small, try and keep it from overlapping too much (esp the label)
+//         if (xoff < getWidth() / 2f)
+//             xoff = getWidth() / 2f;
+//         if (yoff < getHeight() * 0.75f)
+//             yoff = getHeight() * 0.75f;
+
+//         // This can happen for wierd shapes (e.g., shield)
+//         if (xoff > corner.x)
+//             xoff = corner.x;
+//         if (yoff > corner.y)
+//             yoff = corner.y;
+
+//         rect.setRect(xoff,
+//                      yoff,
+//                      width,
+//                      height);
+        
+//         return rect;
+//     }
+
+    private Point2D.Float getSlideIconStackLocation()
+    {
+        final Point2D.Float corner = getZeroCorner();
         
         float xoff = corner.x - 60;
         float yoff = corner.y - 60;
@@ -4230,49 +4693,13 @@ u                    getSlot(c).setFromString((String)value);
         if (yoff < getHeight() * 0.75f)
             yoff = getHeight() * 0.75f;
 
-        // This can happen for wierd shapes (e.g., shield)
-        if (xoff > corner.x)
-            xoff = corner.x;
-        if (yoff > corner.y)
-            yoff = corner.y;
+        // todo: can reuse getZeroCorner point2D instead of creating anew...
+        return new Point2D.Float(xoff, yoff);
 
-        rect.setRect(xoff,
-                     yoff,
-                     width,
-                     height);
-        
-        return rect;
     }
+    
+    //protected final Rectangle2D debugZeroRect = new Rectangle2D.Double();
 
-    /** If there's a pathway entry we want to be showing, return it, otherwise, null */
-    LWPathway.Entry getEntryToDisplay()
-    {
-        LWPathway path = VUE.getActivePathway();
-
-        if (!inPathway(path)) {
-            if (mPathways != null && mPathways.size() > 0)
-                path = mPathways.get(0); // show the first pathway it's in if it's not in the active pathway
-            else
-                path = null;
-        }
-            
-        if (path != null && path.isShowingSlides()) {
-            final LWPathway.Entry entry = path.getCurrentEntry();
-            // This is just in case the node is in the pathway more than once: if it is,
-            // and the current entry is for this node, use that, otherwise, just
-            // use the first entry for the the node.
-            if (entry != null && entry.node == this)
-                return entry;
-            else
-                return path.getEntry(path.firstIndexOf(this));
-        }
-        return null;
-    }
-
-    public boolean isDrawingSlideIcon() {
-        final LWPathway.Entry entry = getEntryToDisplay();
-        return entry != null && !entry.isMapView;
-    }
     
     /**
      * For every component, draw any needed pathway decorations and related slide icons,
@@ -4284,55 +4711,61 @@ u                    getSlot(c).setFromString((String)value);
     {
         // this will cascade to all children when they draw, combining with their calls to transformDown
         transformDownG(dc.g);
-        
-        final AffineTransform saveTransform = dc.g.getTransform();
+
+        final AffineTransform zeroTransform = DEBUG.BOXES ? dc.g.getTransform() : null;
 
         if (dc.focal == this || dc.isFocused())
             drawZero(dc);
         else
-            drawDecorated(dc);
+            drawZeroDecorated(dc, true);
 
-        if (DEBUG.BOXES) {
-            if (!(this instanceof LWLink)) {
-                
-                dc.g.setTransform(saveTransform);
-                
-                // scaling testing -- draw an exactly 8x8 pixel (rendered) box
-                //dc.g.setStroke(STROKE_ONE); // make sure stroke is set to 1!
-                dc.setAbsoluteStroke(1); // make sure stroke is set to 1!
-                dc.g.setColor(Color.green);
-                dc.g.drawRect(0,0,7,7);
-
-                // show the center-point to corner intersect line (debug slide icon placement):
-                dc.g.setColor(Color.red);
-                //dc.setAbsoluteStroke(1);
-                dc.g.setStroke(STROKE_ONE);
-                dc.g.draw(new Line2D.Float(new Point2D.Float(getWidth()/2, getHeight()/2), getCorner()));
-
-                if (DEBUG.LINK && isSelected() && getLinks().size() > 0) {
-                    final Rectangle2D.Float pureFan = getFanBounds();
-                    final Rectangle2D.Float fan = getCenteredFanBounds();
-                    final float cx = getMapCenterX();
-                    final float cy = getMapCenterY();
-                    final Line2D xaxis = new Line2D.Float(fan.x, cy, fan.x + fan.width, cy);
-                    final Line2D yaxis = new Line2D.Float(cx, fan.y, cx, fan.y + fan.height);
-                    dc.setMapDrawing();
-                    dc.setAbsoluteStroke(4);
-                    //dc.g.setColor(getRenderFillColor(dc));
-                    dc.g.setColor(Color.blue);
-                    dc.g.draw(pureFan);
-
-                    dc.setAbsoluteStroke(2);
-                    dc.g.setColor(Color.red);
-                    dc.g.draw(fan);
-                    dc.g.draw(xaxis);
-                    dc.g.draw(yaxis);
-                    
-                }
-            }
-        }
-        
+        if (DEBUG.BOXES)
+            drawDebugInfo(dc, zeroTransform);
     }
+
+    private void drawDebugInfo(DrawContext dc, AffineTransform zeroTransform) {
+
+        if (this instanceof LWLink)
+            return;
+        
+        dc.g.setTransform(zeroTransform);
+                
+        dc.setAbsoluteStroke(1);
+                
+        //dc.g.setColor(Color.blue);
+        //dc.g.draw(debugZeroRect);
+                
+        // scaling testing -- draw an exactly 8x8 pixel (rendered) box
+        dc.g.setColor(Color.green);
+        dc.g.drawRect(0,0,7,7);
+
+        // show the center-point to corner intersect line (debug slide icon placement):
+        dc.g.setColor(Color.red);
+        //dc.setAbsoluteStroke(1);
+        dc.g.setStroke(STROKE_ONE);
+        dc.g.draw(new Line2D.Float(new Point2D.Float(getWidth()/2, getHeight()/2), getZeroCorner()));
+
+        if (DEBUG.LINK && isSelected() && getLinks().size() > 0) {
+            final Rectangle2D.Float pureFan = getFanBounds();
+            final Rectangle2D.Float fan = getCenteredFanBounds();
+            final float cx = getMapCenterX();
+            final float cy = getMapCenterY();
+            final Line2D xaxis = new Line2D.Float(fan.x, cy, fan.x + fan.width, cy);
+            final Line2D yaxis = new Line2D.Float(cx, fan.y, cx, fan.y + fan.height);
+            dc.setMapDrawing();
+            dc.setAbsoluteStroke(4);
+            //dc.g.setColor(getRenderFillColor(dc));
+            dc.g.setColor(Color.blue);
+            dc.g.draw(pureFan);
+
+            dc.setAbsoluteStroke(2);
+            dc.g.setColor(Color.red);
+            dc.g.draw(fan);
+            dc.g.draw(xaxis);
+            dc.g.draw(yaxis);
+        }
+    }
+    
 
     /**
      *
@@ -4352,9 +4785,7 @@ u                    getSlot(c).setFromString((String)value);
         if (dc.focal == this) {
             drawZero(dc);
         } else {
-            if (dc.drawPathways())
-                drawPathwayDecorations(dc);
-            drawZero(dc);
+            drawZeroDecorated(dc, false);
 //             if (isZoomedFocus()) {
 //                 // include any slide icons
 //                 drawDecorated(dc);
@@ -4366,11 +4797,208 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
     
-    public void drawZero(DrawContext dc) {
+    public void drawZero(DrawContext dc)
+    {
+        final AffineTransform zeroTransform = DEBUG.PDF ? dc.g.getTransform() : null;
+        
         dc.checkComposite(this);
         drawImpl(dc);
+        
+        if (DEBUG.PDF && this instanceof LWLink == false) {
+            dc = dc.create();
+            dc.g.setTransform(zeroTransform);
+            dc.g.setColor(Color.blue);
+            dc.g.setFont(VueConstants.FixedSmallFont);
+            dc.setAbsoluteScale(1);
+            final Color c1 = getFillColor();
+            final Color c2 = getRenderFillColor(dc);
+            dc.g.drawString(fmt(c1), 0, 10);
+            if (c1 == null || !c1.equals(c2))
+                dc.g.drawString(fmt(c2), 0, 20);
+        }
+        
+    }
+
+    /** fit and center us into the total clip bounds of the given dc -- border gap pixels will multiplied by final scale value */
+    public void drawFit(DrawContext dc, int borderGap) {
+        drawFit(dc, dc.getMasterClipRect(), borderGap);
+        //drawFit(dc, new Size(dc.getMasterClipRect()), borderGap);
+    }
+
+    /** fit and center us into the given frame */
+    //public void drawFit(DrawContext dc, Size size, int borderGap)
+    public void drawFit(DrawContext dc, Rectangle2D frame, int borderGap)
+    {
+        final Point2D.Float offset = new Point2D.Float();
+        final float totalBorder = getStrokeWidth()/2 + borderGap;
+        final Size size = new Size(frame);
+        final double zoom = ZoomTool.computeZoomFit(size, -totalBorder, getZeroBounds(), offset);
+        //final double zoom = ZoomTool.computeZoomFit(size, -totalBorder, getZeroBounds(), offset);
+        if (DEBUG.PRESENT) out("drawFit into " + fmt(frame) + " totalBorder " + totalBorder + " zoom " + zoom);
+        dc.g.translate(-offset.x + frame.getX(),
+                       -offset.y + frame.getY());
+        dc.g.scale(zoom, zoom);
+        dc.setClipOptimized(false);
+        drawZero(dc);
     }
     
+    
+    //private static final double PathwayOnTopZoomThreshold = 1.5;
+    public static final double PathwayOnTopZoomThreshold = 3;
+    
+    protected final void drawZeroDecorated(DrawContext dc, boolean drawSlides)
+    {
+        if (dc.drawPathways() && mPathways != null) {
+            LWPathway.decorateUnder(this, dc);
+            if (dc.zoom > PathwayOnTopZoomThreshold) {
+                // force the over decorations to be under
+                LWPathway.decorateOver(this, dc);
+                drawZero(dc);
+            } else {
+                drawZero(dc);
+                LWPathway.decorateOver(this, dc);
+            }
+        } else {
+            drawZero(dc);
+        }
+        
+        if (drawSlides && mEntries != null)
+            drawSlideIconStack(dc);
+    }
+
+//     /** If there's a pathway entry we want to be showing, return it, otherwise, null */
+//     LWPathway.Entry getEntryToDisplay()
+//     {
+//         LWPathway path = VUE.getActivePathway();
+
+//         if (!inPathway(path)) {
+//             if (mPathways != null && mPathways.size() > 0)
+//                 path = mPathways.get(0); // show the first pathway it's in if it's not in the active pathway
+//             else
+//                 path = null;
+//         }
+            
+//         if (path != null && path.isShowingSlides()) {
+//             final LWPathway.Entry entry = path.getCurrentEntry();
+//             // This is just in case the node is in the pathway more than once: if it is,
+//             // and the current entry is for this node, use that, otherwise, just
+//             // use the first entry for the the node.
+//             if (entry != null && entry.node == this)
+//                 return entry;
+//             else
+//                 return path.getEntry(path.firstIndexOf(this));
+//         }
+//         return null;
+//     }
+
+//     public boolean isDrawingSlideIcon() {
+//         final LWPathway.Entry entry = getEntryToDisplay();
+//         return entry != null && !entry.isMapView;
+//     }
+
+
+    
+    /** @return a slide to be drawn last, or null if none in particular */
+    private final void layoutSlideIcons(DrawContext dc) {
+        if (mEntries == null)
+            return;
+
+        final Point2D.Float corner = getSlideIconStackLocation();
+
+        float xoff = corner.x;
+        float yoff = corner.y;
+
+        if (false && dc.isPresenting()) {
+
+            // if presenting, let the position the active pathway slide as the last slide in the stack            
+
+            for (LWSlide slide : seenSlideIcons(dc)) {
+                slide.takeLocation(xoff, yoff);
+                yoff += slide.getLocalHeight() / 6;
+                xoff += slide.getLocalWidth() / 6;
+            }
+        } else {
+
+            // if NOT presenting, leave the slides arranged in the order
+            // of the pathway list (TODO: entries order isn't synced with this...)
+        
+            for (LWPathway.Entry e : mEntries) {
+                if (e.hasVisibleSlide()) {
+                    final LWSlide slide = e.getSlide();
+                    slide.takeLocation(xoff, yoff);
+                    yoff += slide.getLocalHeight() / 6;
+                    xoff += slide.getLocalWidth() / 6;
+                }
+            }
+
+            // Now just in case, layout all the non-visible ones after the visible, in case
+            // they get manually selected via the pathway panel and temporarily shown
+            // (only one can be shown at a time, so they can all occupy the last slot)
+
+            for (LWPathway.Entry e : mEntries) {
+                if (!e.pathway.isShowingSlides() && e.canProvideSlide()) {
+                    e.getSlide().takeLocation(xoff, yoff);
+                }
+            }
+            
+        }
+    }
+    
+    private void drawSlideIconStack(final DrawContext dc)
+    {
+        layoutSlideIcons(dc);
+
+        for (LWSlide slide : seenSlideIcons(dc)) {
+            drawSlideIcon(dc.push(), slide);
+            dc.pop();
+        }
+
+    }
+
+
+    private static final BasicStroke SlideIconPathwayStroke =
+        new BasicStroke((float) (LWPathway.PathBorderStrokeWidth / SlideIconScale),
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_ROUND);
+    
+
+    private void drawSlideIcon(final DrawContext dc, final LWSlide slide)
+    {
+        slide.transformDownG(dc.g);
+
+        final boolean drewBorder;
+        
+        //if (dc.isPresenting() || slide.isSelected()) {
+        if (dc.isPresenting() || slide.getEntry() == VUE.getActiveEntry()) {
+            // every slide icon should be a slide with an entry...
+            dc.g.setColor(slide.getEntry().pathway.getColor());
+            dc.g.setStroke(SlideIconPathwayStroke);
+            dc.g.draw(slide.getZeroShape());
+            drewBorder = true;
+        } else {
+            drewBorder = false;
+        }
+            
+        final AffineTransform zeroTransform = dc.g.getTransform();
+        slide.drawZero(dc);
+
+        if (!drewBorder && !dc.isAnimating()) {
+            // Generic non-presentation unselected slide icon: draw a gray border
+            //dc.g.setColor(slide.getRenderFillColor(dc).brighter());
+            dc.g.setTransform(zeroTransform);
+            dc.g.setColor(Color.darkGray);
+            dc.g.setStroke(STROKE_FIVE);
+            dc.g.draw(slide.getZeroShape());
+        }
+        
+        
+    }
+
+
+
+    
+
+    /*
     protected final void drawDecorated(DrawContext dc)
     {
         final LWPathway.Entry entry = getEntryToDisplay();
@@ -4443,7 +5071,9 @@ u                    getSlot(c).setFromString((String)value);
             drawZero(dc);
         }
     }
+    */      
 
+    /** default impl: does nothing -- meant to be overriden */
     protected void drawImpl(DrawContext dc) {}
 
     protected LWChangeSupport getChangeSupport() {
@@ -4693,15 +5323,15 @@ u                    getSlot(c).setFromString((String)value);
         this.selected = selected;
     }
     
-    public boolean isSelected() {
+    public final boolean isSelected() {
         return this.selected;
     }
 
-    protected boolean selectedOrParent() {
+    protected final boolean selectedOrParent() {
         return parent == null ? isSelected() : (parent.selectedOrParent() | isSelected());
     }
     
-    public boolean isAncestorSelected() {
+    public final boolean isAncestorSelected() {
         return parent == null ? false : parent.selectedOrParent();
     }
 
@@ -4843,11 +5473,77 @@ u                    getSlot(c).setFromString((String)value);
     public boolean handleDoubleClick(MapMouseEvent e)
     {
         if (hasResource()) {
+            out("Displaying content for: " + getResource());
             getResource().displayContent();
             return true;
-        } else
+        } else if (this instanceof LWSlide || this instanceof LWGroup || this instanceof LWPortal)
+            return doZoomingDoubleClick(e);
+        else
             return false;
     }
+
+    public static final boolean SwapFocalOnSlideZoom = true;
+    private static final boolean AnimateOnZoom = true;
+
+    protected boolean doZoomingDoubleClick(MapMouseEvent e)
+    {
+        final MapViewer viewer = e.getViewer();
+
+        if (viewer.getFocal() == this) {
+            viewer.popFocal(true, true);
+            return true;
+            //return false;
+        }
+
+        final Rectangle2D viewerBounds = viewer.getVisibleMapBounds();
+        final Rectangle2D mapBounds = getMapBounds();
+        final Rectangle2D overlap = viewerBounds.createIntersection(mapBounds);
+        final double overlapArea = overlap.getWidth() * overlap.getHeight();
+        //final double viewerArea = viewerBounds.getWidth() * viewerBounds.getHeight();
+        final double nodeArea = mapBounds.getWidth() * mapBounds.getHeight();
+        final boolean clipped = overlapArea < nodeArea;
+        
+        final double overlapWidth = mapBounds.getWidth() / viewerBounds.getWidth();
+        final double overlapHeight = mapBounds.getHeight() / viewerBounds.getHeight();
+
+        final boolean focusNode; // otherwise, re-focus map
+
+        outf(" overlapWidth %4.1f%%", overlapWidth * 100);
+        outf("overlapHeight %4.1f%%", overlapHeight * 100);
+        outf("clipped=" + clipped);
+        
+        if (clipped) {
+            focusNode = true;
+        } else if (overlapWidth > 0.8 || overlapHeight > 0.8) {
+            focusNode = false;
+        } else
+            focusNode = true;
+
+        if (focusNode) {
+            viewer.clearRollover();
+            
+            if (SwapFocalOnSlideZoom) {
+                // loadfocal animate only currently works when popping (to a parent focal)
+                //viewer.loadFocal(this, true, AnimateOnZoom);
+                ZoomTool.setZoomFitRegion(viewer,
+                                          mapBounds,
+                                          0,
+                                          AnimateOnZoom);
+                viewer.loadFocal(this);
+            } else {
+                ZoomTool.setZoomFitRegion(viewer,
+                                          mapBounds,
+                                          -LWPathway.PathBorderStrokeWidth / 2,
+                                          AnimateOnZoom);
+            }
+        } else {
+            // just re-fit to the map
+            viewer.fitToFocal(AnimateOnZoom);
+        }
+        
+        return true;
+    }
+    
 
     /** pesistance default */
     public void addObject(Object obj)
@@ -5148,6 +5844,7 @@ u                    getSlot(c).setFromString((String)value);
         final int height = fillSize.pixelHeight();
         
         final DrawContext dc = new DrawContext(g, this);
+        dc.setBackgroundFill(getRenderFillColor(null)); // sure we want null here?
         dc.setClipOptimized(false); // always draw all children -- don't bother to check bounds
         if (DEBUG.IMAGE) out(TERM_GREEN + "drawImage: " + dc + TERM_CLEAR);
 
