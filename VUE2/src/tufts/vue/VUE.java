@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.477 $ / $Date: 2007-08-22 15:00:46 $ / $Author: dan $ 
+ * @version $Revision: 1.478 $ / $Date: 2007-08-28 17:53:02 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -121,6 +121,7 @@ public class VUE
     }
 
    
+    /** active pathway handler -- will update active pathway-entry handler if needed */
     private static final ActiveInstance<LWPathway>
         ActivePathwayHandler = new ActiveInstance<LWPathway>(LWPathway.class) {
         protected void onChange(ActiveEvent<LWPathway> e) {
@@ -136,7 +137,57 @@ public class VUE
         }
     };
 
+    /**
+     * active LWComponent handler (the active single-selection, if there is one).
+     * Will guess at and update the active pathway entry if it can.
+     */
+    private static final ActiveInstance<LWComponent>
+        ActiveComponentHandler = new ActiveInstance<LWComponent>(LWComponent.class) {
+        protected void onChange(ActiveEvent<LWComponent> e)
+        {
+            final LWComponent node = e.active;
+            
+            if (node == null)
+                return;
 
+            if (node instanceof LWSlide && ((LWSlide)node).getEntry() != null) {
+                ActivePathwayEntryHandler.setActive(e, ((LWSlide)node).getEntry());
+                
+            } else if (false) {
+
+                // This code will auto-select the first pathway entry for a selected node.
+                
+                // There is a problem if we do this tho, in that changing the active
+                // entry also changes the active pathway, and doing that means
+                // that once a node is added to a given pathway, it makes it
+                // impossible to add it to any other pathways, because as soon
+                // as it's selected, it then makes active the pathway it's on!
+                // (and adding a node to a pathway always adds it to the active pathway).
+
+                LWPathway.Entry newActiveEntry = null;
+
+                if (node.numEntries() == 1) {
+                    newActiveEntry = node.mEntries.get(0);
+                } else {
+                    final LWPathway activePathway = ActivePathwayHandler.getActive();
+                    if (activePathway != null && node.inPathway(activePathway))
+                        newActiveEntry = activePathway.getEntry(activePathway.firstIndexOf(node));
+                }
+                        
+                if (newActiveEntry != null)
+                    ActivePathwayEntryHandler.setActive(e, newActiveEntry);
+                    
+            }
+        }
+    };
+    
+
+    /**
+     * The active pathway-entry handler -- will update the active pathway handler if needed.
+     * If there is an on-map node associated with the pathway entry, it will force a single-selection of the
+     * of that node (triggering an change to the active LWComponent), unless the LWSelection is
+     * is the middle of a notification of it's own.
+     */
     private static final ActiveInstance<LWPathway.Entry>
         ActivePathwayEntryHandler = new ActiveInstance<LWPathway.Entry>(LWPathway.Entry.class) {
         protected void onChange(ActiveEvent<LWPathway.Entry> e) {
@@ -149,12 +200,34 @@ public class VUE
             else
                 ActivePathwayHandler.setActive(e, null);
 
-            if (e.active != null && e.active.node != null) {
+            //if (e.active != null && e.active.getSelectable() != null && !e.active.isPathway()) {
+            if (e.active != null && e.active.getSelectable() != null) {
+
+                if (e.active.isPathway()) {
+                    final LWComponent activeNode = ActiveComponentHandler.getActive();
+                               
+                    // hack: only allow a pathway to become the active component (so we can see its
+                    // notes), if the current active component is NOT a slide owned by a pathway
+                    // (meaning really: not a pathway entry) So if you want to see pathway notes,
+                    // you have to select an entry first.  This is to support the workflow of
+                    // selecting a node, then selecting a pathway to add it to.  If we didn't
+                    // exclude this case, selecting a node, then selecting a pathway, would
+                    // DE-select the node, and you could never add it to the pathway!  The only
+                    // slides that currently WOULDN'T be pathway owned would be on-map slides,
+                    // which aren't offically supported at the moment, but just in case we check that.
+                    
+                    if (activeNode == null || activeNode instanceof LWSlide == false || !activeNode.isPathwayOwned()) {
+                        ; // allow pathway selection
+                    } else {
+                        return;
+                    }
+                }
+                
                 final LWSelection s = VUE.getSelection();
                 if (!s.inNotify()) {
                     synchronized (s) {
                         if (!s.inNotify())
-                            s.setTo(e.active.node);
+                            s.setTo(e.active.getSelectable());
                     }
                 }
             }
@@ -162,6 +235,10 @@ public class VUE
     };
 
 
+    /**
+     * The active map handler -- on changes, will update the active pathway handler, as well as
+     * the global undo action labels.
+     */
     private static final ActiveInstance<LWMap>
         ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
         protected void onChange(ActiveEvent<LWMap> e) {
@@ -180,9 +257,11 @@ public class VUE
      * the active map in the active viewer.
      * The active viewer can be null, which happens when we close the active viewer
      * and until another grabs the application focus (unles it was the last viewer).
+     *
+     * Will update the active map handler.
      */
-    private static final ActiveInstance<MapViewer> ActiveViewerHandler
-        = new ActiveInstance<MapViewer>(MapViewer.class) {
+    private static final ActiveInstance<MapViewer>
+        ActiveViewerHandler = new ActiveInstance<MapViewer>(MapViewer.class) {
         protected void notifyListeners(ActiveEvent<MapViewer> e) {
             if (!(e.active instanceof tufts.vue.ui.SlideViewer)) {
                 // SlideViewer not treated as application-level viewer: ignore when gets selected
@@ -202,6 +281,9 @@ public class VUE
     public static MapViewer getActiveViewer()   { return ActiveViewerHandler.getActive(); }
     
     public static void setActive(Class clazz, Object source, Object newActive) {
+        if (DEBUG.EVENTS && DEBUG.META) {
+            Util.printStackTrace("Generic setActive of " + clazz + " from " + source + ": " + newActive);
+        }
         if (newActive == null || clazz.isInstance(newActive))
             ActiveInstance.getHandler(clazz).setActive(source, newActive);
         else
@@ -2119,9 +2201,17 @@ public class VUE
         java.awt.EventQueue.invokeLater(runnable);
     }
 
+    /** @return true if in any full screen mode */
     public static boolean inFullScreen() {
         return FullScreen.inFullScreen();
     }
+    
+    /** @return true if in working full screen mode (menu still at top, DockWindow's can be seen at the same time) */
+    public static boolean inWorkingFullScreen() {
+        return FullScreen.inWorkingFullScreen();
+    }
+    
+    /** @return true if in total full screen mode (no menu, and on mac, if any window even tries to display, we hang...) */
     public static boolean inNativeFullScreen() {
         return FullScreen.inNativeFullScreen();
     }
@@ -2138,7 +2228,7 @@ public class VUE
     {
     	FullScreen.toggleFullScreen(goNative);
     	if (showFloatingToolbar)
-            floatingZoomDock.setVisible(FullScreen.inFullScreen());                	
+            floatingZoomDock.setVisible(inWorkingFullScreen());
     }
     
     static void installExampleNodes(LWMap map) {
