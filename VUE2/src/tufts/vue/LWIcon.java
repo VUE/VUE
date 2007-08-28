@@ -337,7 +337,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                         // Just stay way from the whole icon block:
                         avoidRegion = this;
                     }
-                    mLWC.transformZeroToMapRect(avoidRegion);
+                    mLWC.transformZeroToMapRect((Rectangle2D.Float)avoidRegion);
                 } else {
                     // So it works when zoomed focus, use the transform:
                     avoidRegion = mLWC.transformZeroToMapRect(mLWC.getZeroBounds());
