@@ -18,11 +18,13 @@
 
 package tufts.vue;
 
+import tufts.Util;
+import static tufts.Util.*;
 import java.awt.Dimension;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Rectangle2D;
 
-public class Size {
+public final class Size extends java.awt.geom.Dimension2D {
 
     public static final Size None = new Size();
     
@@ -52,17 +54,24 @@ public class Size {
     }
     public Size(Rectangle2D.Float r) {
 	this(r.width, r.height);
+//         if (r.x != 0 || r.y != 0) Util.printStackTrace("non-zero offset in " + fmt(r));
+//         // todo: handle adjustment and/or caller should be using Rectangle2D instead of Size
+    }
+    public Size(Rectangle2D r) {
+	this((float)r.getWidth(), (float)r.getHeight());
+//         if (r.getX() != 0 || r.getY() != 0) Util.printStackTrace("non-zero offset in " + fmt(r));
+//         // todo: handle adjustment and/or caller should be using Rectangle2D instead of Size
     }
 
     public Dimension dim() {
         return new Dimension((int)width, (int)height);
     }
 
-    public float getWidth() {
+    public double getWidth() {
 	return width;
     }
 
-    public float getHeight() {
+    public double getHeight() {
 	return height;
     }
 
