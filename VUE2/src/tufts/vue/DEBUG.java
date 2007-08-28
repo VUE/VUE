@@ -69,6 +69,7 @@ public class DEBUG
     public static boolean STYLE = false; // for Styles
     public static boolean HTML = false; // for Styles
     public static boolean WEBSHOTS = false; // for Styles
+    public static boolean PDF = false; // for PDF output
     //If you set LISTS to true you'll get the HTML code for the node in the Info Label
     //instead of the rendered HTML this should be useful for debugging, at least I hope so.
     //see my note in InspectorPane for more info. -MK
@@ -85,7 +86,7 @@ public class DEBUG
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
             CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=
-            PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=t;
+            PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -153,6 +154,7 @@ public class DEBUG
             else if (a.startsWith("link"))   DEBUG.LINK = true;
             else if (a.startsWith("style"))  DEBUG.STYLE = true;
             else if (a.startsWith("rdf")) DEBUG.RDF = true;
+            else if (a.startsWith("pdf"))  DEBUG.PDF = true;
         }
     }
 
