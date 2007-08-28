@@ -306,7 +306,7 @@ public class PresentationNotes {
                                                   
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
             	
-                LWSlide slide = entry.getSlide();
+                LWSlide slide = entry.produceSlide();
                 String notes = entry.getNotes();
                 String label = entry.getLabel();
                 BufferedImage i = slide.createImage(1.00, new Dimension(1000,1000));
@@ -361,7 +361,7 @@ public class PresentationNotes {
             table.getDefaultCell().setPaddingBottom(30.0f);
             for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
             	
-                LWSlide slide = entry.getSlide();                
+                LWSlide slide = entry.produceSlide();                
                 BufferedImage i = slide.createImage(1.00, new Dimension(600,600));   
                                                 
                                 
