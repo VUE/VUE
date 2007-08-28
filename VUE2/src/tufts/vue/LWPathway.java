@@ -34,9 +34,7 @@ import java.awt.AlphaComposite;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.geom.Line2D;
-import java.awt.geom.Point2D;
-import java.awt.geom.Ellipse2D;
+import java.awt.geom.*;
 
 /**
  * Provides for the managing of a list of LWComponents as elements in a "path" through
@@ -49,7 +47,7 @@ import java.awt.geom.Ellipse2D;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.174 $ / $Date: 2007-07-23 23:11:33 $ / $Author: sfraize $
+ * @version $Revision: 1.175 $ / $Date: 2007-08-28 18:56:06 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -98,9 +96,13 @@ public class LWPathway extends LWContainer
         /** notes for this pathway entry */
         String notes = "";
 
+        /** runtime-only cached MapSlide */
+        transient LWSlide mapSlide;
+
         private Entry(LWPathway pathway, LWComponent node) {
             this.pathway = pathway;
             this.node = node;
+            syncNodeEntryRef();
         }
         
         /** create a merge of multiple nodes */
@@ -110,8 +112,9 @@ public class LWPathway extends LWContainer
             String titleText = "Untitled Slide";
             this.slide = LWSlide.CreateForPathway(pathway, titleText, null, contents, true);
             this.slide.enableProperty(LWKey.Label);
-            this.slide.setEntry(this);
+            this.slide.setPathwayEntry(this);
             this.setLabel(titleText);
+            syncNodeEntryRef();
         }
 
         /** for our use during castor restores */
@@ -120,16 +123,31 @@ public class LWPathway extends LWContainer
             this.node = partial.node;
             this.slide = partial.slide;
             if (slide != null)
-                slide.setEntry(this);
+                slide.setPathwayEntry(this);
             this.isMapView = partial.isMapView;
             this.notes = partial.notes;
             if (isOffMapSlide() && slide != null)
                 slide.enableProperty(LWKey.Label);
+            syncNodeEntryRef();
+        }
+
+        private void syncNodeEntryRef() {
+            if (node != null && node instanceof LWPathway == false)
+                node.addEntryRef(this);
+        }
+
+        private void removeModelRefs() {
+            if (node != null) {
+                node.removeEntryRef(this);
+                pathway.removeMemberRefs(node);
+            }
         }
         
 
         /** for castor's use during restores */
-        public Entry() { pathway = null; }
+        public Entry() {
+            pathway = null;
+        }
 
         public String getLabel() {
             if (node != null)
@@ -146,7 +164,8 @@ public class LWPathway extends LWContainer
         }
 
         public LWComponent getFocal() {
-            return isMapView() ? node : getSlide();
+            return canProvideSlide() ? getSlide() : node;
+            //return isMapView() ? node : getSlide();
         }
 
         
@@ -157,17 +176,48 @@ public class LWPathway extends LWContainer
                 return getSlide().getRenderFillColor(dc);
         }
 
+        public boolean hasSlide() {
+            return canProvideSlide();
+            //return !isMapView();
+        }
+
         public LWSlide getSlide() {
-            if (slide == null)
+            if (isMapView()) {
+                if (node.supportsSlide()) {
+                    //if (slide == null || slide instanceof MapSlide == false)
+                    if (mapSlide == null)
+                        mapSlide = new MapSlide(this);
+                    return mapSlide;
+                } else
+                    return null;
+            }
+            
+            if (slide == null || slide instanceof MapSlide)
                 rebuildSlide();
+            if (node != null && slide.parent != node) {
+                if (node instanceof LWContainer)
+                    slide.setParent((LWContainer)node);
+                else
+                    Util.printStackTrace("Non-containers can't have slides: " + node + " can't own " + slide);
+            }
             return slide;
+        }
+
+        /** @return what should be selected for this entry: will be node for map-view, slide otherwise, which may
+         * currently be null if hasn't been created yet */
+        // This could return the node instead of the slide if the slide-icon's aren't
+        // currently visible, tho it would be better to force showing the hidden
+        // slide icon even if there off...
+        public LWComponent getSelectable() {
+            return canProvideSlide() ? getSlide() : node;
+            //return isMapView() ? node : slide;
         }
 
         public void rebuildSlide() {
             // TODO: check/test undo -- is it working / the mark happening at the right time?
             final LWSlide oldSlide = slide;
             slide = LWSlide.CreateForPathway(pathway, node);
-            slide.setEntry(this);
+            slide.setPathwayEntry(this);
             pathway.notify("slide.rebuild", new Undoable() { void undo() {
                 slide = oldSlide;
             }});
@@ -180,11 +230,16 @@ public class LWPathway extends LWContainer
         
         /** for castor: don't build a slide if we haven't got one */
         public LWSlide getPersistSlide() {
-            return slide;
+            return isMapView() ? null : slide;
         }
         /** for castor: don't build a slide if we haven't got one */
         public void setPersistSlide(LWSlide s) {
-            slide = s;
+            if (isMapView) {
+                if (DEBUG.Enabled)
+                    Util.printStackTrace("skipping restoring slide for an entry marked as map-view: " + this);
+                slide = null;
+            } else
+                slide = s;
         }
         
         public void setMapView(boolean asMapView) {
@@ -202,36 +257,68 @@ public class LWPathway extends LWContainer
 //             }
         }
 
-        public boolean isMapView() {
-            if (node instanceof LWPortal)
-                return true;
-            else
+        public final boolean isMapView() {
+            // todo: node.isMapViewOnly or node.supportsSlide
+            //if (node instanceof LWPortal || node instanceof LWSlide)
+            if (node.supportsSlide())
                 return isMapView;
+            else
+                return true;
         }
 
-        public boolean isPortal() {
+        public boolean canProvideSlide() {
+            if (isMapView())
+                return node.supportsSlide();
+            else
+                return true;
+        }
+
+        public final boolean hasVisibleSlide() {
+
+            return pathway.isShowingSlides() && canProvideSlide();
+                
+//             if (!pathway.isShowingSlides())
+//                 return false;
+
+//             if (isMapView())
+//                 return node.supportsSlide();
+//             else
+//                 return true;
+            
+            //return !isMapView() && pathway.isShowingSlides();
+            //return !isMapView && pathway.isShowingSlides();
+            
+        }
+
+        public final boolean isPortal() {
             return (node instanceof LWPortal)
                 || (node != null && node.isTranslucent());
         }
 
         /** @return false for now: merged slides are not super-special at the moment -- they always have a node behind on the map */
-        public boolean isOffMapSlide() {
+        public final boolean isOffMapSlide() {
             return false;
             //return node == null;
         }
 
         /** @return true if this entry can support more than one presentation display mode
-         * (e.g., a map view v.s. a slide view)
+         * (e.g., a map/"raw node" view and a slide view)
          */
-        public boolean hasVariableDisplayMode() {
-            return !isOffMapSlide();
+        public boolean allowsMultipleDisplayModes() {
+            return node.supportsSlide() && !isOffMapSlide();
             //return !isOffMapSlide() && !(node instanceof LWPortal);
         }
+
+        @Deprecated
+        public final boolean hasVariableDisplayMode() {
+            return allowsMultipleDisplayModes();
+        }
+        
 
         /** @return true if there is a map node associated with this entry, and it should only
          * be visible when the pathway is visible.
          */
-        public boolean hidesWithPathway() {
+        public final boolean hidesWithPathway() {
             return node instanceof LWPortal;
         }
 
@@ -260,10 +347,17 @@ public class LWPathway extends LWContainer
         public boolean isPathway() { return false; }
 
         public String toString() {
-            return "Entry["
+            String s = "Entry["
                 + (pathway == null ? "<null pathway>" : pathway.getLabel())
-                + "#" + (pathway == null ? -9 : index())
-                + "; " + node + " isMapView=" + isMapView + "]";
+                + "#" + (pathway == null ? -999 : index())
+                + "; " + node + " ";
+
+            if (isMapView())
+                s += "MAP-VIEW";
+            else
+                s += (slide == null ? "<null-LWSlide>" : slide.getLabel());
+
+            return s + ']';
         }
 
 		public Object getTransferData(java.awt.datatransfer.DataFlavor arg0) throws UnsupportedFlavorException, IOException {
@@ -293,14 +387,29 @@ public class LWPathway extends LWContainer
 		}
     }
 
-    /** This is a very handy hack that allows the PathwayTable / PathwayTableModel only deal with Entry objects */
+    /**
+     * This special pathway entry represents the pathway itself.
+     * This is a very handy hack that allows the PathwayTable / PathwayTableModel only deal with Entry objects.
+     */
     private final Entry mOurEntry =
         new Entry(LWPathway.this, LWPathway.this) {
-            public final boolean isPathway() { return true; }
-            public final String getNotes() { return pathway.getNotes(); }
-            public final void setNotes(String s) { pathway.setNotes(s); }
-            public final boolean hasNotes() { return pathway.hasNotes(); }
-            public boolean hasVariableDisplayMode() { return false; }
+            @Override
+            public boolean canProvideSlide() { return false; }
+            @Override
+            public LWComponent getSelectable() { return pathway; }
+            @Override
+            public boolean isPathway() { return true; }
+            @Override
+            public String getNotes() { return pathway.getNotes(); }
+            @Override
+            public void setNotes(String s) { pathway.setNotes(s); }
+            @Override
+            public boolean hasNotes() { return pathway.hasNotes(); }
+            @Override
+            public LWSlide getSlide() { return null; }
+            @Override
+            public boolean allowsMultipleDisplayModes() { return false; }
+            @Override
             public int index() { return -1; }
         };
     
@@ -314,12 +423,18 @@ public class LWPathway extends LWContainer
 
     /** Creates a new instance of LWPathway with the specified label */
     public LWPathway(LWMap map, String label) {
-        disablePropertyTypes(KeyType.STYLE);
+        initPathway();
         setMap(map);
         setLabel(label);
         setStrokeColor(getNextColor());
        
     }
+
+    private void initPathway() {
+        disablePropertyTypes(KeyType.STYLE);
+        mStrokeColor.setFixedAlpha(128);
+    }
+    
 
     /** @return false: pathways can't be selected with anything else */
     public boolean supportsMultiSelection() {
@@ -623,17 +738,34 @@ public class LWPathway extends LWContainer
     }
     
     /** Stop listening to the given LWComponent, and tell it it's no longer in this pathway */
+    // TODO: merge with entry.removeModelRefs
     private void removeMemberRefs(LWComponent c) {
         if (c == null)
             return;
         if (DEBUG.UNDO && DEBUG.META) out("removeMemberRefs " + c);
         c.removePathwayRef(this);
         c.removeLWCListener(this);
+        // TODO: do we still need to listen to each of our members?
+        // if slides stay as children of LWPathway, could handle
+        // via broadcastChildEvent
     }
     
     /** and an entry for the given component at the end of the pathway */
     public void add(LWComponent c) {
         add(new VueUtil.SingleIterator(c));
+    }
+
+    /** @return true if the given component can be added to a pathway */
+    public static boolean isPathwayAllowed(LWComponent c) {
+        if (c instanceof LWPathway ||
+            c.isPathwayOwned() || // e.g.: slides appearing as slide icons
+            !c.isMoveable() || // just in case, don't allow any non-moveables
+            c instanceof LWMap || // just in case
+            (c instanceof LWImage && ((LWImage)c).isNodeIcon()) ||
+            c.hasAncestorOfType(LWSlide.class))
+            return false;
+        else
+            return true;
     }
 
     /**
@@ -647,28 +779,32 @@ public class LWPathway extends LWContainer
         int addCount = 0;
         
         while (i.hasNext()) {
-            LWComponent c = i.next();
-            if (DEBUG.PATHWAY||DEBUG.PARENTING) out("adding " + c);
+            final LWComponent c = i.next();
 
-            if (c instanceof LWPathway) {
-                if (c == this)
-                    Util.printStackTrace(this + ": Can't add a pathway to itself");
-                else
-                    Util.printStackTrace(this + ": Can't add a pathway to another pathway: " + c);
+            if (!isPathwayAllowed(c)) {
+                if (DEBUG.PATHWAY||DEBUG.PARENTING) out("DENIED ADDING " + c);
                 continue;
             }
+                
+            if (DEBUG.PATHWAY||DEBUG.PARENTING) out("adding " + c);
+
+//             if (c instanceof LWPathway) {
+//                 if (c == this)
+//                     Util.printStackTrace(this + ": Can't add a pathway to itself");
+//                 else
+//                     Util.printStackTrace(this + ": Can't add a pathway to another pathway: " + c);
+//                 continue;
+//             }
             
-            Entry e = new Entry(this, c);
-            
-            if (c instanceof LWGroup ||
-                c instanceof LWPortal ||
-                c instanceof LWImage ||
-                c instanceof LWSlide ||
-                c.isTranslucent()) {
-                // these either require map view, or are likely to want to start that way
-                e.setMapView(true);
-            } else
-                e.setMapView(false);
+            final Entry e = new Entry(this, c);
+
+            // these either require map view, or are likely to want to start that way
+            e.setMapView(c.isTranslucent() ||
+                         c instanceof LWGroup ||
+                         c instanceof LWPortal ||
+                         c instanceof LWImage ||
+                         c instanceof LWSlide);
+
             newEntries.add(e);
             addCount++;
         }
@@ -799,7 +935,8 @@ public class LWPathway extends LWContainer
         
         for (Entry e : oldEntries)
             if (!newEntries.contains(e))
-                removeMemberRefs(e.node);
+                e.removeModelRefs();
+        //removeMemberRefs(e.node);
 
         for (Entry e : newEntries)
             ensureMemberRefs(e.node);
@@ -982,10 +1119,83 @@ public class LWPathway extends LWContainer
             //System.out.println("Style key: " + se.getKey() + ": " + se.getValue());
         }
 
-    }        
+    }
+
+
+    static final class MapSlide extends LWSlide {
+
+        MapSlide(Entry e) {
+            setPathwayEntry(e);
+            //Util.printStackTrace("new MapSlide " + this + " for entry " + e);
+            disableProperty(LWKey.FillColor); // we don't persist map slides, so don't allow this to change: won't be permanent
+            setParent((LWContainer)e.node);
+        }
+
+        @Override
+        protected void drawChildren(DrawContext dc)
+        {
+            // as we're drawing the source-node somewhere arbitrary, we must draw
+            // everything no matter what -- it or it's children can't check their
+            // bounds against the clip region
+            dc.setClipOptimized(false);
+            
+            //getSourceNode().drawFit(dc, new Size(getWidth(), getHeight()), 10);
+            getSourceNode().drawFit(dc, getZeroBounds(), 10);
+            
+//             final DrawContext dc = _dc.create();
+//             final Point2D.Float offset = new Point2D.Float();
+//             final LWComponent content = getSourceNode();
+//             //final double zoom = ZoomTool.computeZoomFit(new java.awt.Dimension((int)getWidth(), (int)getHeight()),
+//             final double zoom = ZoomTool.computeZoomFit(new Size(getWidth(), getHeight()),
+//                                                         -10,
+//                                                         content.getZeroBounds(),
+//                                                         offset);
+//             dc.g.translate(-offset.x, -offset.y);
+//             dc.g.scale(zoom, zoom);
+//             content.drawZero(dc);
+        }
+
+        /** @return true -- MapSlides always have content (even tho no children) */
+        public boolean hasContent() {
+            return true;
+        }
+
+        /** @return null */
+        @Override
+        public Object getTypeToken() {
+            return null;
+        }
+
+        /** @return false */
+        public boolean supportsChildren() {
+            return false;
+        }
+
+        @Override
+        public boolean hasPicks() { return false; }
+        @Override
+        public boolean hasChildren() { return false; }
+        @Override
+        public int numChildren() { return 0; }
+        @Override
+        public List<LWComponent> getPickList(PickContext pc, List<LWComponent> stored) { return stored; }
+        @Override
+        public java.util.List<LWComponent> getChildList() { return java.util.Collections.EMPTY_LIST; }
+        @Override
+        public Collection<LWComponent> getChildren() { return java.util.Collections.EMPTY_LIST; }
+        @Override
+        protected LWComponent pickChild(PickContext pc, LWComponent c) { return this; }
+
+        @Override
+        public LWComponent duplicate(CopyContext cc)
+        {
+            Util.printStackTrace("MapSlide: illegal duplicate " + this);
+            return null;
+        }
+
+    }
     
-    
-    public static class MasterSlide extends LWSlide
+    public static final class MasterSlide extends LWSlide
     {
         //final static String StyleLabel = "Sample Text";
         final static String TitleLabel = "Slide Title Style";
@@ -1000,15 +1210,39 @@ public class LWPathway extends LWContainer
         /** for castor persistance */
         public MasterSlide() {}
 
-        /* @return LWSlide.class -- don't create a special style type for master slides -- treat as an LWSlide */
         /** @return null -- don't create a style type for master slides */
         @Override
         public Object getTypeToken() {
             return null;
-            //return LWSlide.class;
+        }
+        
+        @Override
+        public final void setParent(LWContainer parent) {
+            if (parent instanceof LWPathway)
+                super.setParent(parent);
+            else
+                Util.printStackTrace(this + " master slide can't set parent to non pathway: " + parent);
         }
 
+        @Override
+        public final double getScale() { return 1.0; }
+
+        @Override
+        public final void takeScale(double s) {}
+
+        @Override
+        public final boolean isMoveable() { return false; }
+
         void completeXMLRestore() {
+
+            if (true) {
+                // just in case -- some save file versions could get these messed up
+                setX(0);
+                setY(0);
+                super.takeScale(1.0);
+                takeSize(LWSlide.SlideWidth, LWSlide.SlideHeight);
+            }
+            
             for (LWComponent c : getChildren()) {
                 // check the label is a temporary hack for now to get the styles back:
                 // we may want to make these special objects actually managed by the
@@ -1046,7 +1280,7 @@ public class LWPathway extends LWContainer
             urlStyle.setMoveable(false);
             urlStyle.setLocation(45,180);
 
-            mFillColor.setAllowTranslucence(false);
+            //mFillColor.setAllowAlpha(false);
         }
         
         private void createStyles() {
@@ -1089,44 +1323,42 @@ public class LWPathway extends LWContainer
             }
             
 
-            LWComponent header = NodeModeTool.buildTextNode("Header Text");
-            header.setFont(titleStyle.getFont().deriveFont(16f));
-            header.setTextColor(VueResources.makeColor("#b3bfe3"));
+//             LWComponent header = NodeModeTool.buildTextNode("Header Text");
+//             header.setFont(titleStyle.getFont().deriveFont(16f));
+//             header.setTextColor(VueResources.makeColor("#b3bfe3"));
 
-            LWComponent footer = header.duplicate();
-            footer.setLabel("Footer Text");
+//             LWComponent footer = header.duplicate();
+//             footer.setLabel("Footer Text");
 
             //tufts.Util.printStackTrace("inPath=" + owner + " pathMAP=" + owner.getMap());
 
             addChild(titleStyle);
             addChild(textStyle);
             addChild(urlStyle);
-            addChild(header);
-            addChild(footer);
             
-            // Now that the footer is parented, move it to lower right in it's parent
-            LWSelection s = new LWSelection(header);
+//             addChild(header);
+//             addChild(footer);
+            
+//             // Now that the footer is parented, move it to lower right in it's parent
+//             LWSelection s = new LWSelection(header);
+//             s.setTo(header);
+//             Actions.AlignRightEdges.act(s);
+//             Actions.AlignTopEdges.act(s);
+//             s.setTo(footer);
+//             Actions.AlignRightEdges.act(s);
+//             Actions.AlignBottomEdges.act(s);
 
-            s.setTo(header);
-            Actions.AlignRightEdges.act(s);
-            Actions.AlignTopEdges.act(s);
+//             final LWSelection s = new LWSelection(titleStyle);
+//             s.setTo(titleStyle);
+//             Actions.AlignCentersRow.act(s);
+//             Actions.AlignCentersColumn.act(s);
 
-            s.setTo(footer);
-            Actions.AlignRightEdges.act(s);
-            Actions.AlignBottomEdges.act(s);
-
-            /*
-            s.setTo(titleStyle);
-            Actions.AlignCentersRow.act(s);
-            Actions.AlignCentersColumn.act(s);
-
-            s.setTo(textStyle);
-            Actions.AlignCentersRow.act(s);
-            Actions.AlignCentersColumn.act(s);
+//             s.setTo(textStyle);
+//             Actions.AlignCentersRow.act(s);
+//             Actions.AlignCentersColumn.act(s);
             
             //titleStyle.translate(0, -100);
             //textStyle.translate(0, +50);
-            */
         }
 
         /*
@@ -1147,11 +1379,13 @@ public class LWPathway extends LWContainer
         }
 
         // override LWSlide impl that tries to draw master slide -- only draw children -- no fill
+        @Override
         protected void drawImpl(DrawContext dc) {
             drawChildren(dc);
         }
 
         // skip fancy LWComponent stuff, and draw background
+        @Override
         public void draw(DrawContext dc) {
             
             // TODO: this is now over-drawn when in presentation mode
@@ -1163,7 +1397,7 @@ public class LWPathway extends LWContainer
 
             out("DRAWING in " + dc);
             
-            if (!getFillColor().equals(dc.getFill())) {
+            if (!getFillColor().equals(dc.getBackgroundFill())) {
                 dc.g.setColor(getFillColor());
                 dc.g.fill(getZeroShape());
             }
@@ -1173,6 +1407,7 @@ public class LWPathway extends LWContainer
         // we could not have a special master slide object if we could handle
         // this draw-skipping in some other way (and arbitrary nodes can be style master's)
         // Tho having a special master-slide object isn't really that big a deal.
+        @Override
         protected void drawChild(LWComponent child, DrawContext dc) {
             if (!dc.isEditMode() && !child.isMoveable())
                 return;
@@ -1253,6 +1488,14 @@ public class LWPathway extends LWContainer
         throw new UnsupportedOperationException("pathways don't have proper children");
     }
 
+    @Override
+    protected final void addEntryRef(LWPathway.Entry e) {
+        Util.printStackTrace(this + " illegal addEntryRef " + e);
+    }
+    @Override
+    protected final void removeEntryRef(LWPathway.Entry e) {
+        Util.printStackTrace(this + " illegal removeEntryRef " + e);
+    }
 
 
 
@@ -1280,7 +1523,7 @@ public class LWPathway extends LWContainer
                 }
             }
             for (Entry e : mEntries) {
-                if (e.slide != null) {
+                if (!e.isMapView() && e.slide != null) {
                     if (order == Order.TREE) {
                         bag.add(e.slide);
                         e.slide.getAllDescendents(kind, bag, order);
@@ -1379,21 +1622,360 @@ public class LWPathway extends LWContainer
     }
     
     
-    private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
-    private static final AlphaComposite PathSelectedTranslucence = PathTranslucence;
-    //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.Src;
-    //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
-    private static final float[] SelectedDash = { 4, 4 };
-    private static final float[] MultiSelectedDash = { 8, 8 };
+    
+//     public static final float PathAlpha = 0.5f;
+//     public static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PathAlpha);
+//     private static final AlphaComposite PathSelectedTranslucence = PathTranslucence;
+    
+//     //private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
+//     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.Src;
+//     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
-    public static final int PathwayStrokeWidth = 8; // technically, this is half the stroke, but it's the visible stroke
+    //public static final int BorderStrokeWidth = PathwayAsDots ? 0 : 8; // technically, this is half the stroke, but it's the visible stroke
 
-    /** for drawing just before the component draw's itself -- this is a draw-under */
-    public void drawComponentDecorations(DrawContext dc, LWComponent c)
+    private static final boolean PathwayAsDots = true;
+    private static final int ConnectorStrokeWidth = 5;
+    public static final int PathBorderStrokeWidth = 9;
+    // forcing this up no matter what ensure our paint clipping will always work -- can optimize later
+    
+    
+    private static final float[] DashPattern = { 8, 6 };
+    //private static final float[] SelectedDash = { 4, 4 };
+    //private static final float[] MultiSelectedDash = { 8, 8 };
+
+    private static final float DotSize = 30;
+    private static final float DotRadius = DotSize / 2;
+    //public static final int PathwayStrokeWidth = 8; // technically, this is half the stroke, but it's the visible stroke
+
+    //private static final BasicStroke ConnectorStroke = new BasicStroke();
+    private static final BasicStroke ConnectorStroke
+        = new BasicStroke(ConnectorStrokeWidth,
+                          BasicStroke.CAP_ROUND,
+                          //PathwayAsDots ? BasicStroke.CAP_ROUND : BasicStroke.CAP_BUTT,
+                          BasicStroke.JOIN_BEVEL, // ignored: always straight (no bends)
+                          0f, // ignored (mitre-limit)
+                          DashPattern,
+                          0f // dash-phase
+                          );
+
+    private static final BasicStroke ConnectorStrokePlain
+        = new BasicStroke(ConnectorStrokeWidth,
+                          BasicStroke.CAP_ROUND,
+                          BasicStroke.JOIN_BEVEL);
+
+    
+    private static final BasicStroke ConnectorStrokeActive
+        = new BasicStroke(10,
+                          BasicStroke.CAP_ROUND,
+                          BasicStroke.JOIN_BEVEL, // ignored: always straight (no bends)
+                          0f, // ignored (mitre-limit)
+                          new float[] {8, 12},
+                          //null,
+                          0f // dash-phase
+                          );
+    
+    
+    private static final BasicStroke PathBorderStroke
+        = new BasicStroke(PathBorderStrokeWidth,
+                          BasicStroke.CAP_ROUND,
+                          BasicStroke.JOIN_ROUND);
+
+    private static final BasicStroke PathBorderStrokeDashed
+        = new BasicStroke(PathBorderStrokeWidth,
+                          BasicStroke.CAP_BUTT,
+                          BasicStroke.JOIN_ROUND,
+                          10f, // mitre-limit
+                          new float[] { 8, 8 },
+                          0f
+                          );
+    
+    private static final BasicStroke PathBorderStrokeDashed2
+        = new BasicStroke(PathBorderStrokeWidth,
+                          BasicStroke.CAP_BUTT,
+                          BasicStroke.JOIN_ROUND,
+                          10f, // mitre-limit
+                          new float[] { 8, 8 },
+                          8f
+                          );
+
+    
+    /** @return the color of the pathway (same as stroke-color) */
+    public Color getColor() {
+        return mStrokeColor.get();
+    }
+
+    public static void decorateOver(final LWComponent node, final DrawContext dc)
     {
-        int strokeWidth = PathwayStrokeWidth;
-        boolean selected = (getCurrentNode() == c && VUE.getActivePathway() == this);
+        if (PathwayAsDots || node instanceof LWLink)
+            drawPathwayDot(node, dc);
+
+    }
+
+    public static void decorateUnder(final LWComponent node, final DrawContext dc)
+    {
+        if (PathwayAsDots)
+            return;
+
+        if (node instanceof LWLink || node instanceof LWPortal || node instanceof LWGroup)
+            return; // do nothing: these decorate via fill and/or dot, not border
+
+        drawPathwayBorder(node, dc);
+        
+
+// Only draw ONE pathway border...
+//         if (true||node.isTransparent()) {
+//             for (LWPathway pathway : node.getPathways()) {
+//                 //if (!dc.isFocused && path.isDrawn()) {
+//                 if (pathway.isDrawn())
+//                     pathway.drawPathwayBorder(node, dc.create());
+//             }
+//         }
+    }
+
+    
+    /** for drawing just before the component draw's itself -- this is a draw-under,
+     * and we're already at the zero transform for the component
+     */
+    private static void drawPathwayBorder(LWComponent node, DrawContext dc)
+    {
+        // we're already transformed into the local GC -- just draw the raw shape
+
+        final Color c = node.getPriorityPathwayColor(dc);
+
+        if (c == null) {
+//             int count = 0;
+//             for (LWPathway p : node.getPathways()) {
+//                 if (p.isDrawn()) {
+//                     if (count > 0)
+//                         dc.g.setStroke(PathBorderStrokeDashed2);
+//                     else
+//                         dc.g.setStroke(PathBorderStrokeDashed);
+//                     dc.g.setColor(p.getColor());
+//                     dc.g.draw(node.getZeroShape());
+//                     count++;
+//                 }
+//             }
+            return;
+        }
+
+        //final Color c = node.getPriorityPathwayColor(dc);
+        
+        dc.g.setColor(c);
+        //dc.g.setColor(getColor());
+        
+        //final int strokeWidth = PathBorderStrokeWidth + node.getStrokeWidth();
+
+        //dc.g.setStroke(PathBorderStroke);
+        dc.g.setStroke(new BasicStroke(PathBorderStrokeWidth + node.getStrokeWidth(),
+                                       BasicStroke.CAP_ROUND,
+                                       BasicStroke.JOIN_ROUND));
+        
+        dc.g.draw(node.getZeroShape());
+    }
+
+    private static void drawPathwayDot(LWComponent node, DrawContext dc)
+    {
+        LWPathway onlyPathway = null;
+        int visiblePathMemberships = 0;
+        for (LWPathway p : node.getPathways()) {
+            if (p.isDrawn()) {
+                visiblePathMemberships++;
+                onlyPathway = p;
+            }
+        }
+
+        final float x = node.getZeroCenterX();
+        final float y = node.getZeroCenterY();
+        //final float x = 0;
+        //final float y = 0;
+        
+        //dc.g.setComposite(PathTranslucence);
+
+        boolean filledEntirely = false;
+
+//         // DRAW AN OVERLAY
+//         if (onlyPathway != null &&
+//             (node instanceof LWGroup || node instanceof LWImage)) {
+
+//             final Color fill = node.getPriorityPathwayColor(dc);
+
+//             if (fill != null) {
+                
+//                 final Rectangle2D.Float bounds = node.getZeroBounds();
+            
+//                 //if (!c.isTransparent())
+//                 grow(bounds, PathBorderStrokeWidth);
+                
+//                 //dc.g.setColor(onlyPathway.getStrokeColor());
+//                 //dc.g.setColor(onlyPathway.getColor());  // TODO: use same logic is LWPortal to get fill color...
+//                 //dc.g.setColor(node.getPriorityPathwayColor(dc));
+//                 dc.g.setColor(fill);
+//                 dc.g.fill(bounds);
+//             }
+//         }
+
+        if (visiblePathMemberships > 1) {
+            final Arc2D.Float arc = new Arc2D.Float(x - DotRadius,
+                                                    y - DotRadius,
+                                                    DotSize,
+                                                    DotSize,
+                                                    0, 0, Arc2D.PIE);
+                
+            final float pieSlice = 360 / visiblePathMemberships;
+                
+            int i = 0;
+            dc.g.setStroke(STROKE_HALF);
+            for (LWPathway p : node.getPathways()) {
+                if (!p.isDrawn())
+                    continue;
+                dc.g.setColor(p.getColor());
+                arc.setAngleStart(90 + i * pieSlice);
+                arc.setAngleExtent(pieSlice);
+                dc.g.fill(arc);
+                //dc.g.setColor(Color.gray);
+                //dc.g.draw(arc);
+                i++;
+            }
+
+        } else if (onlyPathway != null && !filledEntirely) {
+            dc.g.setColor(onlyPathway.getStrokeColor());
+            final RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, DotSize,DotSize);
+            dot.setFrameFromCenter(x, y, x+DotRadius, y+DotRadius);
+            dc.g.fill(dot);
+        }
+    }
+
+
+    public void drawPathway(DrawContext dc)
+    {
+        final Line2D.Float connector = new Line2D.Float();
+
+        if (dc.isPresenting()) {
+            if (VUE.getActivePathway() == this) {
+                dc.g.setStroke(ConnectorStrokeActive);
+                //dc.g.setColor(Util.alphaMix(getColor(), Color.gray));
+                dc.g.setColor(getColor());
+            } else {
+                dc.g.setStroke(ConnectorStrokePlain);
+                dc.g.setColor(getColor());
+            }
+        } else {
+            dc.g.setStroke(ConnectorStroke);
+            dc.g.setColor(getColor());
+        }
+        
+        //dc.g.setComposite(PathTranslucence);
+        
+        LWComponent last = null;
+        for (Entry e : mEntries) {
+            if (e.node == null)
+                continue;
+            final LWComponent next = e.node;
+            if (last != null && last.isDrawn() && next.isDrawn()) {
+                
+                //if (PathwayAsDots || c instanceof LWLink || last instanceof LWLink) {
+                if (PathwayAsDots) {
+                    connector.setLine(last.getMapCenterX(),
+                                      last.getMapCenterY(),
+                                      next.getMapCenterX(),
+                                      next.getMapCenterY());
+//                     connector.setLine(last.getMapX(),
+//                                       last.getMapY(),
+//                                       c.getMapX(),
+//                                       c.getMapY());
+                    // we need to scale the clip for the dot scale, tho this will under-clip
+                    // the non-scaled end...
+                    VueUtil.clipEnds(connector, DotRadius * Math.min(last.getMapScale(), next.getMapScale()));
+                } else {
+                    VueUtil.computeConnector(last, next, connector);
+                }
+                
+                dc.g.draw(connector);
+                    
+                if (DEBUG.BOXES) {
+                    Ellipse2D dot = new Ellipse2D.Float(0,0, 10,10);
+                    Point2D.Float corner = (Point2D.Float) connector.getP1();
+                    corner.x+=5; corner.y+=5;
+                    dot.setFrameFromCenter(connector.getP1(), corner);
+                    dc.g.setColor(Color.green);
+                    dc.g.fill(dot);
+                    corner = (Point2D.Float) connector.getP2();
+                    corner.x+=5; corner.y+=5;
+                    dot.setFrameFromCenter(connector.getP2(), corner);
+                    dc.g.setColor(Color.red);
+                    dc.g.fill(dot);
+                    dc.g.setColor(getStrokeColor());
+                }
+            }
+            last = next;
+        }
+    }
+    
+    
+        /*
+        if (DEBUG.PATHWAY) {
+        if (dc.getIndex() % 2 == 0)
+            dash_phase = 0;
+        else
+            dash_phase = 0.5f;
+        }
+        if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
+        */
+        
+
+    /*
+          public void drawComponentDecorations(DrawContext dc, LWComponent c)
+    {
+        //boolean selected = (getCurrentNode() == c && VUE.getActivePathway() == this);
+        final boolean selected = false; // turn off the "marching ants" -- don't show the current item on the pathway
+
+        if (selected)
+            dc.g.setComposite(PathSelectedTranslucence);
+        else
+            dc.g.setComposite(PathTranslucence);
+        
+        dc.g.setColor(getStrokeColor());
+        
+        if (PathwayAsDots || c instanceof LWLink) {
+            int visiblePathMemberships = 0;
+            for (LWPathway p : c.getPathways())
+                if (p.isVisible())
+                    visiblePathMemberships++;
+
+            final float x = c.getZeroCenterX();
+            final float y = c.getZeroCenterY();
+            
+            if (visiblePathMemberships > 1) {
+                final Arc2D.Float arc = new Arc2D.Float(x - DotRadius,
+                                                        y - DotRadius,
+                                                        DotSize,
+                                                        DotSize,
+                                                        0, 0, Arc2D.PIE);
+                
+                final float pieSlice = 360 / visiblePathMemberships;
+                
+                int i = 0;
+                for (LWPathway p : c.getPathways()) {
+                    if (!p.isVisible())
+                        continue;
+                    dc.g.setColor(p.getStrokeColor());
+                    arc.setAngleStart(90 + i * pieSlice);
+                    arc.setAngleExtent(pieSlice);
+                    dc.g.fill(arc);
+                    i++;
+                }
+
+            } else {
+                final RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, DotSize,DotSize);
+                dot.setFrameFromCenter(x, y, x+DotRadius, y+DotRadius);
+                dc.g.fill(dot);
+            }
+            if (!c.isTransparent())
+                return;
+        }
+        
+        int strokeWidth = BorderStrokeWidth;
 
         //dc = new DrawContext(dc);
 
@@ -1402,16 +1984,8 @@ public class LWPathway extends LWContainer
         // edge of the object, except for links, which are
         // one-dimensional, so we use a narrower stroke width for
         // them.
-        
-        if (c instanceof LWLink)
-            strokeWidth /= 2;
-        
-        if (selected)
-            dc.g.setComposite(PathSelectedTranslucence);
-        else
-            dc.g.setComposite(PathTranslucence);
-        
-        dc.g.setColor(getStrokeColor());
+        //if (c instanceof LWLink)
+        //    strokeWidth /= 2;
         
         strokeWidth += c.getStrokeWidth();
 
@@ -1440,64 +2014,8 @@ public class LWPathway extends LWContainer
         dc.g.draw(c.getZeroShape());
         dc.g.setComposite(AlphaComposite.Src);//TODO: restore old composite
     }
+    */
     
-    public void drawPathway(DrawContext dc)
-    {
-        /*
-        if (DEBUG.PATHWAY) {
-        if (dc.getIndex() % 2 == 0)
-            dash_phase = 0;
-        else
-            dash_phase = 0.5f;
-        }
-        */
-        //dc = new DrawContext(dc);
-
-        //if (DEBUG.PATHWAY&&DEBUG.BOXES) System.out.println("Drawing " + this + " index=" + dc.getIndex() + " phase=" + dash_phase);
-        Line2D.Float connector = new Line2D.Float();
-
-        /*
-        BasicStroke connectorStroke =
-            new BasicStroke(4,
-                            BasicStroke.CAP_BUTT
-                            , BasicStroke.JOIN_BEVEL
-                            , 0f
-                            , new float[] { dash_length, dash_length }
-                            , dash_phase);
-        */
-
-        BasicStroke connectorStroke = new BasicStroke(4, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL);
-
-        dc.g.setColor(getStrokeColor());
-        dc.g.setStroke(connectorStroke);
-        
-        LWComponent last = null;
-        for (Entry e : mEntries) {
-            if (e.node == null)
-                continue;
-            final LWComponent c = e.node;
-            if (last != null && last.isDrawn() && c.isDrawn()) {
-                dc.g.setComposite(PathTranslucence);
-                //connector.setLine(last.getCenterPoint(), c.getCenterPoint());
-                dc.g.draw(VueUtil.computeConnector(last, c, connector));
-                if (DEBUG.BOXES) {
-                    Ellipse2D dot = new Ellipse2D.Float(0,0, 10,10);
-                    Point2D.Float corner = (Point2D.Float) connector.getP1();
-                    corner.x+=5; corner.y+=5;
-                    dot.setFrameFromCenter(connector.getP1(), corner);
-                    dc.g.setColor(Color.green);
-                    dc.g.fill(dot);
-                    corner = (Point2D.Float) connector.getP2();
-                    corner.x+=5; corner.y+=5;
-                    dot.setFrameFromCenter(connector.getP2(), corner);
-                    dc.g.setColor(Color.red);
-                    dc.g.fill(dot);
-                    dc.g.setColor(getStrokeColor());
-                }
-            }
-            last = c;
-        }
-    }
     
     public String toString()
     {
@@ -1512,9 +2030,9 @@ public class LWPathway extends LWContainer
     }
 
     
-    /** @deprecated - default constructor used for marshalling ONLY */
+    /** constructor used for un-marshalling only */
     public LWPathway() {
-        disablePropertyTypes(KeyType.STYLE);
+        initPathway();
     }
 
 
