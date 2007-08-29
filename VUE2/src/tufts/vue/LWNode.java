@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.182 $ / $Date: 2007-08-28 18:54:08 $ / $Author: sfraize $
+ * @version $Revision: 1.183 $ / $Date: 2007-08-29 23:14:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -297,15 +297,15 @@ public class LWNode extends LWContainer
     }
 
     @Override
-    protected Point2D.Float getZeroCorner() {
+    protected Point2D getZeroSouthEastCorner() {
         if (isRectShape)
-            return super.getZeroCorner();
+            return super.getZeroSouthEastCorner();
 
         // find out where a line drawn from our local center to our
         // lower right bounding box intersects the lower right edge of
         // our local shape
         
-        float[] corner =
+        final float[] corner =
             VueUtil.computeIntersection(getWidth() / 2, getHeight() / 2,
                                         getWidth(), getHeight(),
                                         mShape,
@@ -313,6 +313,40 @@ public class LWNode extends LWContainer
 
         return new Point2D.Float(corner[0], corner[1]);
     }
+
+    /**
+     * This fixed value depends on the arc width/height specifications in our RoundRect2D, which
+     * are currently 20,20.
+     * If that ever changes, this will need to be recomputed (see commented out code in
+     * in getZeroNorthWestCorner) and updated.
+     * @see tufts.vue.shape.RoundRect2D
+     */
+    private static final Point2D RoundRectCorner = new Point2D.Double(2.928932, 2.928932);
+
+    @Override
+    protected Point2D getZeroNorthWestCorner()
+    {
+        if (mShape instanceof Rectangle2D) {
+            return super.getZeroNorthWestCorner();
+            
+        } else if (mShape instanceof RoundRectangle2D) {
+            return RoundRectCorner;
+            /* // comment this in to recompute RoundRectCorner:
+            corner = VueUtil.computeIntersection(10,10, 0, 0, mShape, null);
+            System.out.println("corner: " + new Point2D.Float(corner[0], corner[1]) + " " + this);
+            */
+        } else {
+            // project a line from our center to our 0,0 location, finding the intersection:
+            final float[] corner =
+                VueUtil.computeIntersection(getWidth() / 2, getHeight() / 2,
+                                            0, 0,
+                                            mShape,
+                                            null);
+            return new Point2D.Float(corner[0], corner[1]);
+        }
+
+    }
+    
 
     
     /** Duplicate this node.

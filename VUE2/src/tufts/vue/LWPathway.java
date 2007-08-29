@@ -47,7 +47,7 @@ import java.awt.geom.*;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.176 $ / $Date: 2007-08-28 20:39:31 $ / $Author: sfraize $
+ * @version $Revision: 1.177 $ / $Date: 2007-08-29 23:14:37 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -767,9 +767,10 @@ public class LWPathway extends LWContainer
     /** @return true if the given component can be added to a pathway */
     public static boolean isPathwayAllowed(LWComponent c) {
         if (c instanceof LWPathway ||
-            c.isPathwayOwned() || // e.g.: slides appearing as slide icons
-            !c.isMoveable() || // just in case, don't allow any non-moveables
-            c instanceof LWMap || // just in case
+            c instanceof LWMap ||       // just in case
+            c instanceof LWLink ||      // no longer allowed -- decided in staff 2007-08-29 -- SMF
+            c.isPathwayOwned() ||       // e.g.: slides appearing as slide icons
+            !c.isMoveable() ||          // just in case, don't allow any non-moveables
             (c instanceof LWImage && ((LWImage)c).isNodeIcon()) ||
             c.hasAncestorOfType(LWSlide.class))
             return false;
@@ -812,7 +813,9 @@ public class LWPathway extends LWContainer
                          c instanceof LWGroup ||
                          c instanceof LWPortal ||
                          c instanceof LWImage ||
-                         c instanceof LWSlide);
+                         c instanceof LWSlide ||
+                         c instanceof LWLink
+                         );
 
             newEntries.add(e);
             addCount++;
@@ -1797,11 +1800,27 @@ public class LWPathway extends LWContainer
             }
         }
 
-        final float x = node.getZeroCenterX();
-        final float y = node.getZeroCenterY();
-        //final float x = 0;
-        //final float y = 0;
-        
+        float x, y;
+
+        if (node instanceof LWLink) {
+            x = node.getZeroCenterX();
+            y = node.getZeroCenterY();
+        } else {
+            final Point2D corner = node.getZeroNorthWestCorner();
+            x = (float) corner.getX();
+            y = (float) corner.getY();
+
+// Enable this to move the dot internal to the node if it's inside another node: prevent dot from obscuring neighbors.
+// (Will need to update the conncetor code also: merge this into one routine and base the conncetor code on the zero result)
+//             if (node.getParent().getTypeToken() == LWNode.class) {
+//                 // a node inside an auto-layout node is messy: put the dot on top of it
+//                 // checking the type token ensures it's a real LWNode, not a subclass
+//                 x += DotRadius * node.getScaleF();
+//                 y += DotRadius * node.getScaleF();
+//             }
+
+        }
+
         //dc.g.setComposite(PathTranslucence);
 
         boolean filledEntirely = false;
@@ -1858,6 +1877,29 @@ public class LWPathway extends LWContainer
         }
     }
 
+    private static final boolean HEAD_END = true;
+    private static final boolean TAIL_END = false;
+    private static void setConnectionPoint(Line2D.Float line, boolean end, LWComponent c) {
+        final float x, y;
+
+        if (c instanceof LWLink) {
+            x = c.getMapCenterX();
+            y = c.getMapCenterY();
+        } else {
+            final Point2D corner = c.getZeroNorthWestCorner();
+            x = (float) (c.getMapXPrecise() + corner.getX() * c.getScale());
+            y = (float) (c.getMapYPrecise() + corner.getY() * c.getScale());
+        }
+        
+        if (end == HEAD_END) {
+            line.x1 = x;
+            line.y1 = y;
+        } else {
+            line.x2 = x;
+            line.y2 = y;
+        }
+                   
+    }
 
     public void drawPathway(DrawContext dc)
     {
@@ -1877,8 +1919,6 @@ public class LWPathway extends LWContainer
             dc.g.setColor(getColor());
         }
         
-        //dc.g.setComposite(PathTranslucence);
-        
         LWComponent last = null;
         for (Entry e : mEntries) {
             if (e.node == null)
@@ -1888,15 +1928,9 @@ public class LWPathway extends LWContainer
                 
                 //if (PathwayAsDots || c instanceof LWLink || last instanceof LWLink) {
                 if (PathwayAsDots) {
-                    connector.setLine(last.getMapCenterX(),
-                                      last.getMapCenterY(),
-                                      next.getMapCenterX(),
-                                      next.getMapCenterY());
-//                     connector.setLine(last.getMapX(),
-//                                       last.getMapY(),
-//                                       c.getMapX(),
-//                                       c.getMapY());
-                    // we need to scale the clip for the dot scale, tho this will under-clip
+                    setConnectionPoint(connector, HEAD_END, last);
+                    setConnectionPoint(connector, TAIL_END, next);
+                    // todo: we need to scale the clip for the dot scale, tho this will under-clip
                     // the non-scaled end...
                     VueUtil.clipEnds(connector, DotRadius * Math.min(last.getMapScale(), next.getMapScale()));
                 } else {

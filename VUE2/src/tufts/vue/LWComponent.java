@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.332 $ / $Date: 2007-08-29 17:18:02 $ / $Author: sfraize $
+ * @version $Revision: 1.333 $ / $Date: 2007-08-29 23:14:37 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4645,8 +4645,12 @@ u                    getSlot(c).setFromString((String)value);
 
     /** @return the local lower right hand corner of the component: for rectangular shapes, this is just [width,height]
      * Non-rectangular shapes can override to do something fancier. */
-    protected Point2D.Float getZeroCorner() {
+    protected Point2D getZeroSouthEastCorner() {
         return new Point2D.Float(getWidth(), getHeight());
+    }
+    private static final Point2D ZeroNorthWestCorner = new Point2D.Float();
+    protected Point2D getZeroNorthWestCorner() {
+        return ZeroNorthWestCorner;
     }
 
 //     protected Rectangle2D.Float computeSlideIconBounds(Rectangle2D.Float rect)
@@ -4682,10 +4686,10 @@ u                    getSlot(c).setFromString((String)value);
 
     private Point2D.Float getSlideIconStackLocation()
     {
-        final Point2D.Float corner = getZeroCorner();
+        final Point2D corner = getZeroSouthEastCorner();
         
-        float xoff = corner.x - 60;
-        float yoff = corner.y - 60;
+        float xoff = (float) corner.getX() - 60;
+        float yoff = (float) corner.getY() - 60;
 
         // If shape is small, try and keep it from overlapping too much (esp the label)
         if (xoff < getWidth() / 2f)
@@ -4743,7 +4747,7 @@ u                    getSlot(c).setFromString((String)value);
         dc.g.setColor(Color.red);
         //dc.setAbsoluteStroke(1);
         dc.g.setStroke(STROKE_ONE);
-        dc.g.draw(new Line2D.Float(new Point2D.Float(getWidth()/2, getHeight()/2), getZeroCorner()));
+        dc.g.draw(new Line2D.Float(new Point2D.Float(getWidth()/2, getHeight()/2), getZeroSouthEastCorner()));
 
         if (DEBUG.LINK && isSelected() && getLinks().size() > 0) {
             final Rectangle2D.Float pureFan = getFanBounds();
