@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.171 $ / $Date: 2007-08-29 22:53:31 $ / $Author: sfraize $
+ * @version $Revision: 1.172 $ / $Date: 2007-08-29 22:58:13 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -85,9 +85,9 @@ public class LWLink extends LWComponent
      * if need be.
      */
 
-    private static class End extends Point2D.Float { 
+    private static final class End extends Point2D.Float { 
         LWComponent node; // if null, not connected
-        boolean isPruned;
+        boolean pruned;
         double rotation; // normalizing rotation
         
         // maybe keep the parent of the endpoint node?
@@ -107,6 +107,11 @@ public class LWLink extends LWComponent
         boolean hasPrunedNode() {
             return node != null && node.isHidden(HideCause.PRUNE);
         }
+
+        boolean isPruned() {
+            return PruneControlsEnabled && pruned;
+        }
+
         
         boolean isConnected() {
             return node != null;
@@ -166,7 +171,7 @@ public class LWLink extends LWComponent
                 tx.rotate(rotation);
                 tx.translate(0, pruneCtrlOffset / onScreenScale);
                 tx.transform(this,this);
-                setColor(isPruned ? Color.red : Color.lightGray);
+                setColor(pruned ? Color.red : Color.lightGray);
                 ctrlRotation = rotation + Math.PI / 4; // rotate to square parallel on line, plus 45 degrees to get diamond display
             }
         
@@ -444,13 +449,13 @@ public class LWLink extends LWComponent
     }
 
     private void toggleHeadPrune() {
-        pruneToggle(!head.isPruned, getEndpointChain(head.node));
-        head.isPruned = !head.isPruned;
+        pruneToggle(!head.pruned, getEndpointChain(head.node));
+        head.pruned = !head.pruned;
     }
 
     private void toggleTailPrune() {
-        pruneToggle(!tail.isPruned, getEndpointChain(tail.node));
-        tail.isPruned = !tail.isPruned;
+        pruneToggle(!tail.pruned, getEndpointChain(tail.node));
+        tail.pruned = !tail.pruned;
     }
 
 
@@ -503,9 +508,9 @@ public class LWLink extends LWComponent
      *  directly to us (IS EFFECTED BY PRUNING)
      */
     public Collection<LWComponent> getLinked(Collection bag) {
-        if (head.hasNode() && !head.isPruned)
+        if (head.hasNode() && !head.isPruned())
             bag.add(head.node);
-        if (tail.hasNode() && !tail.isPruned)
+        if (tail.hasNode() && !tail.isPruned())
             bag.add(tail.node);
         return super.getLinked(bag);
     }
@@ -586,12 +591,12 @@ public class LWLink extends LWComponent
         // TODO: need to getLocalTransform().inverseTransform the x/y back down to local coords.
         // Would be better if the coords were already translated to local coords?
         
-        if (index == CHead && !head.isPruned) {
+        if (index == CHead && !head.isPruned()) {
             setHead(null); // disconnect from node (already so if e == null)
             setHeadPoint(local.x, local.y);
             if (e != null)
                 LinkTool.setMapIndicationIfOverValidTarget(tail.node, this, e);
-        } else if (index == CTail && !tail.isPruned) {
+        } else if (index == CTail && !tail.isPruned()) {
             setTail(null);  // disconnect from node (already so if e == null)
             setTailPoint(local.x, local.y); 
             if (e != null)
@@ -765,13 +770,13 @@ public class LWLink extends LWComponent
             mControlPoints[CPruneTail] = null;
         } else {
 
-            if (head.isPruned || getHead() != null) {
+            if (head.pruned || getHead() != null) {
                 head.pruneControl.update(onScreenScale);
                 mControlPoints[CPruneHead] = head.pruneControl;
             } else
                 mControlPoints[CPruneHead] = null;
             
-            if (tail.isPruned || getTail() != null) {
+            if (tail.pruned || getTail() != null) {
                 tail.pruneControl.update(onScreenScale);
                 mControlPoints[CPruneTail] = tail.pruneControl;
             } else
@@ -1052,9 +1057,9 @@ public class LWLink extends LWComponent
 
     protected void removeFromModel()
     {
-        if (head.isPruned)
+        if (head.pruned)
             toggleHeadPrune();
-        if (tail.isPruned)
+        if (tail.pruned)
             toggleTailPrune();
         
         super.removeFromModel();
@@ -2566,18 +2571,18 @@ public class LWLink extends LWComponent
         if (!isNestedLink())
             drawLinkDecorations(dc);
         
-        if (head.isPruned || tail.isPruned) {
+        if (head.isPruned() || tail.isPruned()) {
             float size = 7;
             //if (dc.zoom < 1) size /= dc.zoom;
             RectangularShape dot = new java.awt.geom.Ellipse2D.Float(0,0, size,size);
             //Composite composite = dc.g.getComposite();
             //dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f));
             dc.g.setColor(Color.red);
-            if (head.isPruned) {
+            if (head.isPruned()) {
                 dot.setFrameFromCenter(head.x, head.y, head.x+size/2, head.y+size/2);
                 dc.g.fill(dot);
             }
-            if (tail.isPruned) {
+            if (tail.isPruned()) {
                 dot.setFrameFromCenter(tail.x, tail.y, tail.x+size/2, tail.y+size/2);
                 dc.g.fill(dot);
             }
