@@ -25,7 +25,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-08-29 01:49:39 $ / $Author: mike $
+ * @version $Revision: 1.48 $ / $Date: 2007-08-29 16:22:44 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -63,7 +63,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
     }
 
-
+    private final JCheckBoxMenuItem viewFullScreen = new JCheckBoxMenuItem(Actions.ToggleFullScreen);
     //public VueMenuBar(Object[] toolWindows)
     public VueMenuBar()
     {
@@ -216,9 +216,23 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(Actions.ZoomFit);
         viewMenu.add(Actions.ZoomToSelection);
         viewMenu.addSeparator();        
-        viewMenu.add(Actions.ToggleFullScreen);
+        viewMenu.add(viewFullScreen);
         viewMenu.add(Actions.ToggleSplitScreen);
         
+        
+        
+        GUI.getFullScreenWindow().addWindowFocusListener(new WindowFocusListener()
+        {
+			public void windowGainedFocus(WindowEvent arg0) {
+				viewFullScreen.setSelected(true);
+				
+			}
+
+			public void windowLostFocus(WindowEvent arg0) {
+				viewFullScreen.setSelected(false);
+				
+			}
+		});
         
         if (VUE.getFormatDock() != null)
         {
