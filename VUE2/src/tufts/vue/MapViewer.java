@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.428 $ / $Date: 2007-08-28 20:16:36 $ / $Author: sfraize $ 
+ * @version $Revision: 1.429 $ / $Date: 2007-08-29 23:12:43 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2469,12 +2469,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     {
         activeTool.handlePreDraw(dc, this);
 
-        drawFocalRaw(dc);
+        drawFocalImpl(dc);
         
         activeTool.handlePostDraw(dc, this);
     }
 
-    protected void drawFocalRaw(DrawContext dc)
+    protected void drawFocalImpl(DrawContext dc)
     {
         if (dc.getBackgroundFill() == null) {
             // unless the active tool has already done some kind
