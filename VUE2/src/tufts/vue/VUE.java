@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.479 $ / $Date: 2007-08-29 17:18:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.480 $ / $Date: 2007-08-29 19:24:07 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -153,6 +153,13 @@ public class VUE
             if (node instanceof LWSlide && ((LWSlide)node).getEntry() != null) {
                 ActivePathwayEntryHandler.setActive(e, ((LWSlide)node).getEntry());
                 
+            } else if (node instanceof LWPortal && node.hasEntries()) {
+                final LWPathway knownUnique = node.getExclusiveVisiblePathway();
+                if (knownUnique != null)
+                    ActivePathwayEntryHandler.setActive(e, knownUnique.getFirstEntry(node));
+                else if (node.inPathway(VUE.getActivePathway()))
+                    ActivePathwayEntryHandler.setActive(e, VUE.getActivePathway().getFirstEntry(node));
+                         
             } else if (false) {
 
                 // This code will auto-select the first pathway entry for a selected node.
