@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.101 $ / $Date: 2007-08-28 19:02:30 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2007-08-29 23:01:41 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1187,7 +1187,10 @@ public class PathwayPanel extends JPanel
             // and there shouldn't be anything else.  We don't ever
             // want to be able to add the pathway to itself!
 
-            btnAddSlide.setEnabled(true);
+            if (selection.size() == 1)
+                btnAddSlide.setEnabled(path.isPathwayAllowed(selection.first()));
+            else
+                btnAddSlide.setEnabled(true);
             
             if (!removeDone) {
                 // if at least one element in selection is on current path,
