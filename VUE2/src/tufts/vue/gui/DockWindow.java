@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.104 $ / $Date: 2007-08-18 17:06:07 $ / $Author: mike $
+ * @version $Revision: 1.105 $ / $Date: 2007-08-29 17:09:22 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1458,12 +1458,18 @@ public class DockWindow extends javax.swing.JWindow
         if (isRolledUp == makeRolledUp || isToolbar)
             return;
 
-        if (!propertyChangeEvent && Widget.isWidget(getContent())) {
+        /*
+         * i can't find a case where removing this breaks something.  It would seem
+         * that maybe it wasn't considering that the Content could be a widgetstack, and
+         * so this bug was missed.  just calling widget.setExpanded here is not going to
+         * collapse the dockwindow when the content is a widgetstack -MK
+         */
+        /*if (!propertyChangeEvent && Widget.isWidget(getContent())) {
             // ensure the Widget property value is set.
             Widget.setExpanded(getContent(), !makeRolledUp);
             return;
         }
-
+		*/
         // need to mark us as rolled up now for forthcoming
         // size computations to work.
         isRolledUp = makeRolledUp;
