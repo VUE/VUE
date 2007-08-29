@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-08-28 20:15:07 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-08-29 17:18:39 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -79,7 +79,7 @@ public final class DrawContext
 
     public LWComponent skipDraw;
 
-    private boolean isClipOptimized = true;
+    private boolean isClipOptimized = true; // todo: rename isPaintOptimized, and make the default false
     private boolean isAnimating;
 
     // todo: consider including a Conatiner arg in here, for
