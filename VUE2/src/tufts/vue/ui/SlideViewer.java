@@ -463,11 +463,14 @@ if (true) return;
         //if (mLastLoad != null && mLastLoad.isMapView()) {
         if (mLastLoad != null && !mLastLoad.canProvideSlide()) {
             // have to fill first, or super.drawFocal will fill over us...
-            dc.fillBackground(getBackgroundFillColor(dc));
+            if (DEBUG.Enabled)
+                dc.fillBackground(Color.red);
+            else
+                dc.fillBackground(getBackgroundFillColor(dc));
             mLastLoad.pathway.getMasterSlide().drawFit(dc, 0);
             //mLastLoad.pathway.getMasterSlide().drawIntoFrame(dc);
         }
-        super.drawFocalRaw(dc);
+        super.drawFocalImpl(dc);
             
     }
 
