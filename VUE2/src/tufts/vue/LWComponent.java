@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.331 $ / $Date: 2007-08-28 20:16:36 $ / $Author: sfraize $
+ * @version $Revision: 1.332 $ / $Date: 2007-08-29 17:18:02 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4804,7 +4804,7 @@ u                    getSlot(c).setFromString((String)value);
         dc.checkComposite(this);
         drawImpl(dc);
         
-        if (DEBUG.PDF && this instanceof LWLink == false) {
+        if (DEBUG.PDF && DEBUG.META && this instanceof LWLink == false) {
             dc = dc.create();
             dc.g.setTransform(zeroTransform);
             dc.g.setColor(Color.blue);
@@ -4822,19 +4822,16 @@ u                    getSlot(c).setFromString((String)value);
     /** fit and center us into the total clip bounds of the given dc -- border gap pixels will multiplied by final scale value */
     public void drawFit(DrawContext dc, int borderGap) {
         drawFit(dc, dc.getMasterClipRect(), borderGap);
-        //drawFit(dc, new Size(dc.getMasterClipRect()), borderGap);
     }
 
     /** fit and center us into the given frame */
-    //public void drawFit(DrawContext dc, Size size, int borderGap)
     public void drawFit(DrawContext dc, Rectangle2D frame, int borderGap)
     {
         final Point2D.Float offset = new Point2D.Float();
         final float totalBorder = getStrokeWidth()/2 + borderGap;
         final Size size = new Size(frame);
         final double zoom = ZoomTool.computeZoomFit(size, -totalBorder, getZeroBounds(), offset);
-        //final double zoom = ZoomTool.computeZoomFit(size, -totalBorder, getZeroBounds(), offset);
-        if (DEBUG.PRESENT) out("drawFit into " + fmt(frame) + " totalBorder " + totalBorder + " zoom " + zoom);
+        if (DEBUG.PRESENT || DEBUG.PDF) out("drawFit into " + fmt(frame) + " totalBorder " + totalBorder + " zoom " + zoom);
         dc.g.translate(-offset.x + frame.getX(),
                        -offset.y + frame.getY());
         dc.g.scale(zoom, zoom);
