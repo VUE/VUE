@@ -422,6 +422,7 @@ public class PresentationTool extends VueTool
                 dc.g.translate(getWidth() - (SlideRoom+12),
                                (getHeight() - iconHeight)/2);
                 dc.g.scale(scale, scale);
+                dc.setBackgroundFill(null); // so if current slide is on screen, will still fill
                 slide.drawZero(dc);
                 //dc.g.setColor(Color.black);
                 //dc.g.drawString("HELLO", 0, 0);
