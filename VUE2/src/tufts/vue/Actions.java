@@ -138,14 +138,42 @@ public class Actions implements VueConstants
         	return null;
 		
     }
-
-    public static final VueAction PresentationNotes =
-    	new VueAction("Speaker Notes") {
+              
+    
+    public static final VueAction SpeakerNotes1 =
+    	new VueAction("Slides - speaker notes (1 per page)") {
 		public void act() 
 		{
 			File pdfFile = getFileForPresentation();
 			if (pdfFile != null)
-				tufts.vue.PresentationNotes.createPresentationNotes(pdfFile);
+				tufts.vue.PresentationNotes.createSpeakerNotes1PerPage(pdfFile);
+		}
+    };
+    public static final VueAction SpeakerNotes4 =
+    	new VueAction("Slides - speaker notes (up to 4 per page)") {
+		public void act() 
+		{
+			File pdfFile = getFileForPresentation();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createSpeakerNotes4PerPage(pdfFile);
+		}
+    };
+    public static final VueAction SpeakerNotesOutline =
+    	new VueAction("Speaker notes only (outline)") {
+		public void act() 
+		{
+			File pdfFile = getFileForPresentation();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createOutline(pdfFile);
+		}
+    };
+    public static final VueAction Slides8PerPage =
+    	new VueAction("Slides (8 per page)") {
+		public void act() 
+		{
+			File pdfFile = getFileForPresentation();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createPresentationNotes8PerPage(pdfFile);
 		}
     };
     
@@ -162,12 +190,12 @@ public class Actions implements VueConstants
     
 
     public static final VueAction FullPageSlideNotes =
-    	new VueAction("Slide Deck") {
+    	new VueAction("Slides (1 per page)") {
 		public void act() 
 		{			
 			File pdfFile = getFileForPresentation();
 			if (pdfFile != null)
-				tufts.vue.PresentationNotes.createPresentationSlidesNotes(pdfFile);
+				tufts.vue.PresentationNotes.createPresentationSlidesDeck(pdfFile);
 		}
     };
     
