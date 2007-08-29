@@ -139,7 +139,7 @@ class LWCInspector extends javax.swing.JPanel
 //     }
 
     public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
-        if (entry.isPathway() && VUE.getSelection().isEmpty())
+        if (entry != null && entry.isPathway() && VUE.getSelection().isEmpty())
             loadItem(entry.pathway.getMasterSlide());
     }
     
