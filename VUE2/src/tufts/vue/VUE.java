@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.478 $ / $Date: 2007-08-28 17:53:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.479 $ / $Date: 2007-08-29 17:18:26 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -203,7 +203,7 @@ public class VUE
             //if (e.active != null && e.active.getSelectable() != null && !e.active.isPathway()) {
             if (e.active != null && e.active.getSelectable() != null) {
 
-                if (e.active.isPathway()) {
+                if (false && e.active.isPathway()) {
                     final LWComponent activeNode = ActiveComponentHandler.getActive();
                                
                     // hack: only allow a pathway to become the active component (so we can see its
