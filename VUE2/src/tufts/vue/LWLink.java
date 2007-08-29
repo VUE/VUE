@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.170 $ / $Date: 2007-08-28 18:51:51 $ / $Author: sfraize $
+ * @version $Revision: 1.171 $ / $Date: 2007-08-29 22:53:31 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -760,7 +760,7 @@ public class LWLink extends LWComponent
         // Pruning control points
         //-------------------------------------------------------
 
-        if (DEBUG.Enabled || moveableOnly) {
+        if (moveableOnly || !PruneControlsEnabled) {
             mControlPoints[CPruneHead] = null;
             mControlPoints[CPruneTail] = null;
         } else {
@@ -780,6 +780,17 @@ public class LWLink extends LWComponent
             
         return mControlPoints;
     }
+
+    private static boolean PruneControlsEnabled = false;
+
+    public static void setPruningEnabled(boolean enabled) {
+        PruneControlsEnabled = enabled;
+    }
+    
+    public static boolean isPruningEnabled() {
+        return PruneControlsEnabled;
+    }
+    
     
     /** This cleaup task can run so often, we put it right on the LWLink to prevent
      * all the extra new object creation.  If the endpoints of the link have
