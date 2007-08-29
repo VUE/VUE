@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.155 $ / $Date: 2007-08-28 20:16:36 $ / $Author: sfraize $
+ * @version $Revision: 1.156 $ / $Date: 2007-08-29 19:08:26 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -802,7 +802,7 @@ public class LWMap extends LWContainer
                     
         if (mPathways != null && dc.drawPathways()) {
             
-            LWPathway active = VUE.getActivePathway();
+            LWPathway active = getActivePathway();
             
             for (LWPathway path : mPathways) {
                 if (path.isDrawn()) {
