@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.334 $ / $Date: 2007-08-30 18:36:07 $ / $Author: sfraize $
+ * @version $Revision: 1.335 $ / $Date: 2007-08-30 20:37:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -167,7 +167,8 @@ public class LWComponent
     private boolean isFiltered = false; // replace with hidebits
     
     private MetadataList metadataList = new MetadataList();
-    private NodeFilter nodeFilter = null; // don't know why we need this
+    private static final NodeFilter NEEDS_NODE_FILTER = new NodeFilter();
+    private NodeFilter nodeFilter = NEEDS_NODE_FILTER;
     private URI uri;
     protected float width = NEEDS_DEFAULT;
     protected float height = NEEDS_DEFAULT;
@@ -238,23 +239,19 @@ public class LWComponent
                 
             }
         };
-    
-    
 
-    /** for save/restore only & internal use only */
+    /** constructor */
     public LWComponent()
     {
         if (DEBUG.PARENTING)
             System.out.println("LWComponent construct of " + getClass().getName() + "." + Integer.toHexString(hashCode()));
-        // TODO: shouldn't have to create a node filter for every one of these constructed...
-        nodeFilter = new NodeFilter();
         mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
     }
     
-    /** for internal proxy instances only */
-    private LWComponent(String label) {
-        setLabel(label);
-    }
+//     /** for internal proxy instances only */
+//     private LWComponent(String label) {
+//         setLabel(label);
+//     }
 
     public long getSupportedPropertyBits() {
         return mSupportedPropertyKeys;
@@ -1036,6 +1033,7 @@ u                    getSlot(c).setFromString((String)value);
             return String.format("#%08X", c.getRGB());
     }
 
+    public enum Alignment { LEFT, CENTER, RIGHT }
     
     public static final Key KEY_FillColor   = new Key("fill.color", "background")       { final Property getSlot(LWComponent c) { return c.mFillColor; } };
     public static final Key KEY_TextColor   = new Key("text.color", "font-color")       { final Property getSlot(LWComponent c) { return c.mTextColor; } };
@@ -1044,6 +1042,8 @@ u                    getSlot(c).setFromString((String)value);
     public static final Key KEY_StrokeWidth = new Key("stroke.width", "stroke-width")   { final Property getSlot(LWComponent c) { return c.mStrokeWidth; } };
     public static final Key KEY_StrokeStyle = new Key<LWComponent,StrokeStyle>
         ("stroke.style", KeyType.STYLE)   { final Property getSlot(LWComponent c) { return c.mStrokeStyle; } };
+    public static final Key KEY_Alignment = new Key<LWComponent,Alignment>
+        ("alignment", KeyType.STYLE)   { final Property getSlot(LWComponent c) { return c.mAlignment; } };
 
 
     /* font.size: point size for font */
@@ -1066,6 +1066,8 @@ u                    getSlot(c).setFromString((String)value);
         };
     public final ColorProperty mStrokeColor = new ColorProperty(KEY_StrokeColor, java.awt.Color.darkGray);
     public final FloatProperty mStrokeWidth = new FloatProperty(KEY_StrokeWidth) { void onChange() { rebuildStroke(); }};
+    public final EnumProperty<Alignment> mAlignment = new EnumProperty(KEY_Alignment, Alignment.LEFT);
+
     public final EnumProperty<StrokeStyle> mStrokeStyle = new EnumProperty(KEY_StrokeStyle, StrokeStyle.SOLID) { void onChange() { rebuildStroke(); }};
 
     public enum StrokeStyle {
@@ -1765,16 +1767,6 @@ u                    getSlot(c).setFromString((String)value);
             return getComponentTypeLabel() + "[" + getLabel() + "]";
     }
     
-    /**
-     * left in for (possible future) backward file compatibility
-     * do nothing with this data anymore for now.
-     *
-     * @deprecated
-     *
-     **/
-    public void setNodeFilter(NodeFilter nodeFilter) {
-        this.nodeFilter = nodeFilter;
-    }
     
     /**
      *
@@ -1800,18 +1792,27 @@ u                    getSlot(c).setFromString((String)value);
     /**
      * left in for (possible future) backward file compatibility
      * do nothing with this data anymore for now.
-     *
-     * @deprecated
-     *
      **/
-    public NodeFilter getNodeFilter() {
-        //out(this + " getNodeFilter " + nodeFilter);
+    public synchronized NodeFilter getNodeFilter() {
+        // if the double-checked locking idiom was reliable in java, we'd use it here, but
+        // since it's not, we synchronize this whole method.
+        if (nodeFilter == NEEDS_NODE_FILTER) {
+            //Util.printStackTrace("lazy create of node filter for " + this);
+            nodeFilter = new NodeFilter();
+        }
         return nodeFilter;
     }
 
+    /**
+     * for persistance
+     **/
+    public void setNodeFilter(NodeFilter nodeFilter) {
+        this.nodeFilter = nodeFilter;
+    }
+    
     /** return null if the node filter is empty, so we don't bother with entry in the save file */
     public NodeFilter XMLnodeFilter() {
-        if (nodeFilter != null && nodeFilter.size() < 1)
+        if (nodeFilter == NEEDS_NODE_FILTER || (nodeFilter != null && nodeFilter.size() < 1))
             return null;
         else
             return nodeFilter;
