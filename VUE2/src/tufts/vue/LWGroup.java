@@ -44,7 +44,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.79 $ / $Date: 2007-08-28 18:50:18 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2007-08-30 18:33:03 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
@@ -744,9 +744,11 @@ public class LWGroup extends LWContainer
      */
     @Override
     protected boolean containsImpl(final float x, final float y, PickContext pc) {
-        if ((pc.isZoomRollover && pc.pickDepth < 1) || hasDecoratedFeatures())
+        if ((pc.isZoomRollover && pc.pickDepth < 1) || hasDecoratedFeatures() || pc.root == this) {
+            // added check for us being the pick root (focal) so double-click would work to
+            // get out of a zoomed focus
             return super.containsImpl(x, y, pc);
-        else
+        } else
             return false;
     }
 
