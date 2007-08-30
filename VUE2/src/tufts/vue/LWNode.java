@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.184 $ / $Date: 2007-08-30 21:08:48 $ / $Author: sfraize $
+ * @version $Revision: 1.185 $ / $Date: 2007-08-30 21:38:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -854,17 +854,34 @@ public class LWNode extends LWContainer
 
         final Size min;
 
+//         if (isRectShape) {
+//             isCenterLayout = false;
+//             min = layoutBoxed(request, curSize, triggerKey);
+//             if (request == null)
+//                 request = curSize;
+//         } else {
+//             isCenterLayout = true;
+//             if (request == null)
+//                 request = curSize;
+//             min = layoutCentered(request);
+//         }
+
         if (isRectShape) {
-            isCenterLayout = false;
-            min = layoutBoxed(request, curSize, triggerKey);
-            if (request == null)
-                request = curSize;
+            isCenterLayout = (mAlignment.get() == Alignment.CENTER);
         } else {
             isCenterLayout = true;
+        }
+
+        if (isCenterLayout) {
             if (request == null)
                 request = curSize;
             min = layoutCentered(request);
+        } else {
+            min = layoutBoxed(request, curSize, triggerKey);
+            if (request == null)
+                request = curSize;
         }
+        
 
         mMinSize = new Size(min);
 
