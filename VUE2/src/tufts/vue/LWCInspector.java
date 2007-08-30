@@ -34,6 +34,7 @@ class LWCInspector extends javax.swing.JPanel
                ActionListener
 {
     private JLabel idField = new JLabel();
+    private JLabel typeField = new JLabel();
     private JLabel locationField = new JLabel();
     private JLabel sizeField = new JLabel();
     private JLabel labelHex = new JLabel();
@@ -67,6 +68,7 @@ class LWCInspector extends javax.swing.JPanel
     //String[] labels = { "ID", "<html><font color=red>Label</font></html>", "Category", "Resource", "Notes" };
     private Object[] labelTextPairs = {
         "-ID",      idField,
+        "-Type",      typeField,
         "-Location",locationField,
         "-Size",    sizeField,
         "-ZeroTX",    transLocField,
@@ -420,6 +422,10 @@ class LWCInspector extends javax.swing.JPanel
         }
         
         idField.setText(id);
+        if (lwc.getTypeToken() != lwc.getClass())
+            typeField.setText(lwc.getClass().getName() + " [" + lwc.getTypeToken() + "]");
+        else
+            typeField.setText(lwc.getClass().getName());
         loadLabel(c);
         loadText(notesField, c.getNotes());
         
