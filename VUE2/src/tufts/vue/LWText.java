@@ -20,7 +20,8 @@ public class LWText extends LWComponent {
 
 	public LWText() {
 		super();
-		super.label = label; // make sure label initially set for debugging
+                super.label = label; // make sure label initially set for debugging
+                enableProperty(KEY_Alignment);
 		mShape = new java.awt.geom.Rectangle2D.Float();
 	}
 
@@ -29,6 +30,7 @@ public class LWText extends LWComponent {
 		super.label = label; // make sure label initially set for debugging
 		// super(label, 0, 0);
 		// setAsTextNode(true);
+                enableProperty(KEY_Alignment);
 		mShape = new java.awt.geom.Rectangle2D.Float();
 
 	}
@@ -37,6 +39,7 @@ public class LWText extends LWComponent {
 		// super(label, 0, 0, shape);
 		super.label = label; // make sure label initially set for debugging
 		// setAsTextNode(true);
+                enableProperty(KEY_Alignment);
 		mShape = new java.awt.geom.Rectangle2D.Float();
 
 	}
