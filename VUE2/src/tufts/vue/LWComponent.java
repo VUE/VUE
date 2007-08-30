@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.337 $ / $Date: 2007-08-30 20:43:13 $ / $Author: sfraize $
+ * @version $Revision: 1.338 $ / $Date: 2007-08-30 21:09:21 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -246,6 +246,14 @@ public class LWComponent
         if (DEBUG.PARENTING)
             System.out.println("LWComponent construct of " + getClass().getName() + "." + Integer.toHexString(hashCode()));
         mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
+        if (mSupportedPropertyKeys == 0) {
+            // this can happen during init before circular dependencies are resolved
+            if (DEBUG.INIT || DEBUG.STYLE) Util.printStackTrace("ZERO PROPERTY BITS IN " + Util.tag(this));
+        } else {
+            // not on by default:
+            disableProperty(KEY_Alignment);
+        }
+
     }
     
 //     /** for internal proxy instances only */
