@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.333 $ / $Date: 2007-08-29 23:14:37 $ / $Author: sfraize $
+ * @version $Revision: 1.334 $ / $Date: 2007-08-30 18:36:07 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4718,7 +4718,8 @@ u                    getSlot(c).setFromString((String)value);
 
         final AffineTransform zeroTransform = DEBUG.BOXES ? dc.g.getTransform() : null;
 
-        if (dc.focal == this || dc.isFocused())
+        //if (dc.focal == this || dc.isFocused()) // prevents slide icons from appearing in portals
+        if (dc.focal == this)
             drawZero(dc);
         else
             drawZeroDecorated(dc, true);
@@ -4945,14 +4946,14 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
     
-    private void drawSlideIconStack(final DrawContext _dc)
+    private void drawSlideIconStack(final DrawContext dc)
     {
-        layoutSlideIcons(_dc);
+        layoutSlideIcons(dc);
 
-        for (LWSlide slide : seenSlideIcons(_dc)) {
-            final DrawContext dc = _dc.create();
-            drawSlideIcon(dc, slide);
-            dc.dispose();
+        dc.setBackgroundFill(null); // always make sure the slide icons fill
+        for (LWSlide slide : seenSlideIcons(dc)) {
+            drawSlideIcon(dc.push(), slide);
+            dc.pop();
         }
 
     }
@@ -4969,6 +4970,7 @@ u                    getSlot(c).setFromString((String)value);
         slide.transformDownG(dc.g);
 
         final boolean drewBorder;
+
         
         //if (dc.isPresenting() || slide.isSelected()) {
         if (dc.isPresenting() || slide.getEntry() == VUE.getActiveEntry()) {
@@ -4982,9 +4984,12 @@ u                    getSlot(c).setFromString((String)value);
         }
             
         final AffineTransform zeroTransform = dc.g.getTransform();
+        final Shape curClip = dc.g.getClip();
+        dc.g.clip(slide.getZeroShape());
         slide.drawZero(dc);
 
         if (!drewBorder && !dc.isAnimating()) {
+            dc.g.setClip(curClip);
             // Generic non-presentation unselected slide icon: draw a gray border
             //dc.g.setColor(slide.getRenderFillColor(dc).brighter());
             dc.g.setTransform(zeroTransform);
@@ -5478,9 +5483,12 @@ u                    getSlot(c).setFromString((String)value);
             out("Displaying content for: " + getResource());
             getResource().displayContent();
             return true;
-        } else if (this instanceof LWSlide || this instanceof LWGroup || this instanceof LWPortal)
+        } else if (this instanceof LWSlide || this instanceof LWGroup) {
+            //} else if (this instanceof LWSlide || this instanceof LWGroup || this instanceof LWPortal)
+            // MapViewer "null remote focal" code would need fixing to enable selection if a portal is the focal
+            // (the selected objects are not children of the focal, so they don't look like we should be seeing them)
             return doZoomingDoubleClick(e);
-        else
+        } else
             return false;
     }
 
