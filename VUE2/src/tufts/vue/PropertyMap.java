@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.14 $ / $Date: 2006-11-30 16:45:36 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-08-30 20:23:21 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -33,7 +33,7 @@ public class PropertyMap extends java.util.HashMap
         void propertyMapChanged(PropertyMap p);
     }
 
-    private SortedMapModel mTableModel;
+    private volatile SortedMapModel mTableModel;
     private Object mTableModel_LOCK = new Object();
     private boolean mHoldingChanges = false;
     private int mChanges;
@@ -139,6 +139,8 @@ public class PropertyMap extends java.util.HashMap
      */
     
     public javax.swing.table.TableModel getTableModel() {
+        // TODO: "double-check locking idiom" is broken in java: this isn't 100% reliable! (esp multi-processor platforms)
+        // (even if declared volitile)
         if (mTableModel == null) {
             synchronized (mTableModel_LOCK) {
                 if (mTableModel == null)
