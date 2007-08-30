@@ -55,11 +55,13 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.57 $ / $Date: 2007-08-24 00:09:11 $ / $Author: mike $
+ * @version $Revision: 1.58 $ / $Date: 2007-08-30 21:50:34 $ / $Author: sfraize $
  *
  */
-public class FontEditorPanel extends JPanel implements ActiveListener, CaretListener
-                                     //implements LWEditor
+public class FontEditorPanel extends JPanel
+    implements CaretListener
+               //,ActiveListener
+               //implements LWEditor
 //    implements ActionListener, VueConstants//, PropertyChangeListener//implements PropertyChangeListener
 {
     private static String[] sFontSizes;
@@ -111,7 +113,8 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
     {
     	//super(BoxLayout.X_AXIS);
     	setLayout(new GridBagLayout());
-    	ActiveInstance.addAllActiveListener(this);
+    	//ActiveInstance.addAllActiveListener(this);
+    	VUE.addActiveListener(LWComponent.class, this);
         mPropertyKey = propertyKey;
 
         setFocusable(false);
@@ -258,6 +261,22 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
         mItalicButton = new VueButton.Toggle("font.button.italic", styleChangeHandler);
         mUnderlineButton = new VueButton.Toggle("font.button.underline", styleChangeHandler);
         alignmentButton = new AlignmentDropDown();
+
+        alignmentButton.getComboBox().addActionListener
+            (new LWPropertyHandler<LWComponent.Alignment>(LWKey.Alignment, alignmentButton.getComboBox()) {
+                public LWComponent.Alignment produceValue() {
+                    switch (alignmentButton.getComboBox().getSelectedIndex()) {
+                    case 0: return LWComponent.Alignment.LEFT;
+                    case 1: return LWComponent.Alignment.CENTER;
+                    case 2: return LWComponent.Alignment.RIGHT;
+                    }
+                    return LWComponent.Alignment.LEFT;
+                }
+                public void displayValue(LWComponent.Alignment align) {
+                    alignmentButton.getComboBox().setSelectedIndex(align.ordinal());
+                }
+            });
+
         
          Color[] textColors = VueResources.getColorArray("textColorValues");
         //String[] textColorNames = VueResources.getStringArray("textColorNames");
@@ -377,7 +396,7 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
         gbc.insets = new Insets(5,0,0,0);
         alignmentButton.setBorder(BorderFactory.createEmptyBorder());
         alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
-        alignmentButton.getComboBox().setEnabled(false);
+        //alignmentButton.getComboBox().setEnabled(false);
         add(alignmentButton,gbc);
  	
         //displayValue(VueConstants.FONT_DEFAULT);
@@ -422,47 +441,47 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
     	}
     	}
 
-    public void XpropertyChange(PropertyChangeEvent e)
-    {
-        System.out.println("FONTEDITORPANEL: " + e);
-        /*
-        if (e instanceof LWPropertyChangeEvent) {
+//     public void XpropertyChange(PropertyChangeEvent e)
+//     {
+//         System.out.println("FONTEDITORPANEL: " + e);
+//         /*
+//         if (e instanceof LWPropertyChangeEvent) {
 
-            final String propertyName = e.getPropertyName();
+//             final String propertyName = e.getPropertyName();
 
-            if (mIgnoreEvents) {
-                if (DEBUG.TOOL) out("propertyChange: skipping " + e + " name=" + propertyName);
-                return;
-            }
+//             if (mIgnoreEvents) {
+//                 if (DEBUG.TOOL) out("propertyChange: skipping " + e + " name=" + propertyName);
+//                 return;
+//             }
             
-            if (DEBUG.TOOL) out("propertyChange: [" + propertyName + "] " + e);
+//             if (DEBUG.TOOL) out("propertyChange: [" + propertyName + "] " + e);
 	  		
-            mIgnoreLWCEvents = true;
-            VueBeans.applyPropertyValueToSelection(VUE.getSelection(), propertyName, e.getNewValue());
-            mIgnoreLWCEvents = false;
+//             mIgnoreLWCEvents = true;
+//             VueBeans.applyPropertyValueToSelection(VUE.getSelection(), propertyName, e.getNewValue());
+//             mIgnoreLWCEvents = false;
             
-            if (VUE.getUndoManager() != null)
-                VUE.getUndoManager().markChangesAsUndo(propertyName);
+//             if (VUE.getUndoManager() != null)
+//                 VUE.getUndoManager().markChangesAsUndo(propertyName);
 
-            if (mState != null)
-                mState.setPropertyValue(propertyName, e.getNewValue());
-            else
-                out("mState is null");
+//             if (mState != null)
+//                 mState.setPropertyValue(propertyName, e.getNewValue());
+//             else
+//                 out("mState is null");
 
-            if (mDefaultState != null)
-                mDefaultState.setPropertyValue(propertyName, e.getNewValue());
-            else
-                out("mDefaultState is null");
+//             if (mDefaultState != null)
+//                 mDefaultState.setPropertyValue(propertyName, e.getNewValue());
+//             else
+//                 out("mDefaultState is null");
 
-            if (DEBUG.TOOL && DEBUG.META) out("new state " + mState);
+//             if (DEBUG.TOOL && DEBUG.META) out("new state " + mState);
 
-        } else {
-            // We're not interested in "ancestor" events, icon change events, etc.
-            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
-        }
-        */
+//         } else {
+//             // We're not interested in "ancestor" events, icon change events, etc.
+//             if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
+//         }
+//         */
 
-    }
+//     }
     
     
     private void initColors( Color pColor) {
@@ -506,41 +525,6 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
         super.addNotify();
     }
 
-    // as this can sometimes take a while, we can call this manually
-    // during startup to control when we take the delay.
-    private static Object sFontNamesLock = new Object();
-    static String[] getFontNames()
-    {
-        synchronized (sFontNamesLock) {
-            if (sFontNames == null){
-                if (DEBUG.INIT)
-                    new Throwable("FYI: loading system fonts...").printStackTrace();
-                sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
-            }
-        }
-        return sFontNames;
-    }
- 	
-
-    public Object getPropertyKey() {
-        return mPropertyKey;
-    }
- 	
-    public Object produceValue() {
-        tufts.Util.printStackTrace(this + " asked to produce aggregate value");
-        return null;
-    }
-    
-    public void displayValue(Object value) {
-        tufts.Util.printStackTrace(this + " asked to display aggregate value");
-        /*
-        final Font font = (Font) value;
-        mFontCombo.setSelectedItem(font.getFamily());
-        mItalicButton.setSelected(font.isItalic());
-        mBoldButton.setSelected(font.isBold());
-        mSizeField.setSelectedItem(""+font.getSize());
-        */
-    }
 
     /*
     private boolean mIgnoreActionEvents = false;
@@ -640,69 +624,52 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
         return -1;
     }
 
+//     public Object getPropertyKey() {
+//         return mPropertyKey;
+//     }
+ 	
+//     public Object produceValue() {
+//         tufts.Util.printStackTrace(this + " asked to produce aggregate value");
+//         return null;
+//     }
+    
+//     public void displayValue(Object value) {
+//         tufts.Util.printStackTrace(this + " asked to display aggregate value");
+//         /*
+//         final Font font = (Font) value;
+//         mFontCombo.setSelectedItem(font.getFamily());
+//         mItalicButton.setSelected(font.isItalic());
+//         mBoldButton.setSelected(font.isBold());
+//         mSizeField.setSelectedItem(""+font.getSize());
+//         */
+//     }
+
     public String toString() {
-        return "FontEditorPanel[" + getPropertyKey() + "]";
+        return "FontEditorPanel[" + mPropertyKey + "]";
+        //return "FontEditorPanel[" + getPropertyKey() + "]";
         //return "FontEditorPanel[" + getKey() + " " + makeFont() + "]";
     }
 
-    /*
-    public void propertyChange(PropertyChangeEvent e)
-    {
-
-        if (e instanceof LWPropertyChangeEvent == false) {
-            // We're not interested in "ancestor" events, icon change events, etc.
-            if (DEBUG.TOOL && DEBUG.META) out("ignored AWT/Swing: [" + e.getPropertyName() + "] from " + e.getSource().getClass());
-            return;
-        } else {
-            if (DEBUG.TOOL) out("propertyChange: " + e);
-        }
-            
-        ApplyPropertyChangeToSelection(VUE.getSelection(), ((LWPropertyChangeEvent)e).key, e.getNewValue(), e.getSource());
-    }
-
-    /** Will either modifiy the active selection, or if it's empty, modify the default state (creation state) for this tool panel 
-    public static void ApplyPropertyChangeToSelection(final LWSelection selection, final Object key, final Object newValue, Object source)
-    {
-        if (false) {
-            if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue + " (skipping)");
-            return;
-        }
-        
-        if (DEBUG.TOOL) System.out.println("APCTS: " + key + " " + newValue);
-        
-        if (selection.isEmpty()) {
-            /*
-            if (mDefaultState != null)
-                mDefaultState.setProperty(key, newValue);
-            else
-                System.out.println("mDefaultState is null");
-            *
-            //if (DEBUG.TOOL && DEBUG.META) out("new state " + mDefaultState); // need a style dumper
-        } else {
-            
-            // As setting these properties in the model will trigger notify events from the selected objects
-            // back up to the tools, we want to ignore those events while this is underway -- the tools
-            // already have their state set to this.
-            //mIgnoreLWCEvents = true;
-            try {
-                for (tufts.vue.LWComponent c : selection) {
-                    if (c.supportsProperty(key))
-                        c.setProperty(key, newValue);
-                }
-            } finally {
-                // mIgnoreLWCEvents = false;
-            }
-            
-            if (VUE.getUndoManager() != null)
-                VUE.getUndoManager().markChangesAsUndo(key.toString());
-        }
-    }
-*/
 
     protected void out(Object o) {
         System.out.println(this + ": " + (o==null?"null":o.toString()));
     }
     
+    // as this can sometimes take a while, we can call this manually
+    // during startup to control when we take the delay.
+    private static Object sFontNamesLock = new Object();
+    static String[] getFontNames()
+    {
+        synchronized (sFontNamesLock) {
+            if (sFontNames == null){
+                if (DEBUG.INIT)
+                    new Throwable("FYI: loading system fonts...").printStackTrace();
+                sFontNames = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames();
+            }
+        }
+        return sFontNames;
+    }
+ 	
     public static void main(String[] args) {
         System.out.println("FontEditorPanel:main");
         DEBUG.Enabled = DEBUG.INIT = true;
@@ -714,7 +681,7 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
     }
 
 
-	public void activeChanged(ActiveEvent e) {
+    public void activeChanged(ActiveEvent e, LWComponent active) {
 		//Object hasn't changed do nothing...
 		if (e.active == e.oldActive)
 			return;
@@ -737,7 +704,7 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
 			mUnderlineButton.setEnabled(true);
 			orderedListButton.setEnabled(true);
 			unorderedListButton.setEnabled(true);
-			alignmentButton.getComboBox().setEnabled(true);
+			//alignmentButton.getComboBox().setEnabled(true);
 			
 			mBoldButton.removeActionListener(styleChangeHandler);
 			mBoldButton.addActionListener(richBoldAction);			
@@ -786,7 +753,7 @@ public class FontEditorPanel extends JPanel implements ActiveListener, CaretList
 			mUnderlineButton.setEnabled(false);
 			orderedListButton.setEnabled(false);
 			unorderedListButton.setEnabled(false);
-			alignmentButton.setEnabled(false);
+			//alignmentButton.setEnabled(false);
 			
 			mBoldButton.removeActionListener(richBoldAction);
 			mBoldButton.addActionListener(styleChangeHandler);			
