@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.183 $ / $Date: 2007-08-29 23:14:37 $ / $Author: sfraize $
+ * @version $Revision: 1.184 $ / $Date: 2007-08-30 21:08:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -133,19 +133,13 @@ public class LWNode extends LWContainer
 
     
 
-    public LWNode(String label)
-    {
-        this(label, 0, 0);
+    private void initNode() {
+        enableProperty(KEY_Alignment);
     }
-
-    public LWNode(String label, RectangularShape shape)
-    {
-        this(label, 0, 0, shape);
-    }
-
-    /** internal convenience */
+    
     LWNode(String label, float x, float y, RectangularShape shape)
     {
+        initNode();
         super.label = label; // make sure label initially set for debugging
         setFillColor(DEFAULT_NODE_FILL);
         if (shape == null)
@@ -163,13 +157,15 @@ public class LWNode extends LWContainer
         
     }
     
-    /** internal convenience */
-    LWNode(String label, float x, float y)
-    {
+    LWNode(String label) {
+        this(label, 0, 0);
+    }
+    LWNode(String label, RectangularShape shape) {
+        this(label, 0, 0, shape);
+    }
+    LWNode(String label, float x, float y) {
         this(label, x, y, null);
     }
-
-    /** internal convenience */
     LWNode(String label, Resource resource)
     {
         this(label, 0, 0);
@@ -2262,6 +2258,7 @@ public class LWNode extends LWContainer
     /** for castor restore, internal default's and duplicate use only */
     public LWNode()
     {
+        initNode();
         isRectShape = true;
         isAutoSized = false;
         // I think we may only need this default shape setting for backward compat with old save files.
