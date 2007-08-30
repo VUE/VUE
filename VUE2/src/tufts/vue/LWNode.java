@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.185 $ / $Date: 2007-08-30 21:38:37 $ / $Author: sfraize $
+ * @version $Revision: 1.186 $ / $Date: 2007-08-30 22:16:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -157,7 +157,7 @@ public class LWNode extends LWContainer
         
     }
     
-    LWNode(String label) {
+    public LWNode(String label) {
         this(label, 0, 0);
     }
     LWNode(String label, RectangularShape shape) {
