@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.AlphaComposite;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -106,32 +107,38 @@ public class AlignmentDropDown extends JPanel {
     public int mArrowSize = 3;
     public int mArrowHOffset  = -13;
     public int mArrowVOffset = -7;
+
+    private static final AlphaComposite DisabledTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f);
+    
     public void paint(Graphics g)
     {
-    	super.paint(g);
+        if (!alignList.isEnabled())
+            ((java.awt.Graphics2D)g).setComposite(DisabledTransparency);
+        
+        super.paint(g);
     	
-    	        // draw popup arrow
-                Color saveColor = g.getColor();
-                g.setColor( Color.black);
-    			
-                int w = getWidth();
-                int h = getHeight();
-    			
-                int x1 = w + mArrowHOffset;
-                int y = h + mArrowVOffset;
-                int x2 = x1 + (mArrowSize * 2) -1;
-    			
-                //((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                //RenderingHints.VALUE_ANTIALIAS_ON);
-                
-                for(int i=0; i< mArrowSize; i++) { 
-                    g.drawLine(x1,y,x2,y);
-                    x1++;
-                    x2--;
-                    y++;
-                }
-                g.setColor( saveColor);
-          }
+        // draw popup arrow
+        Color saveColor = g.getColor();
+        g.setColor( Color.black);
+        
+        int w = getWidth();
+        int h = getHeight();
+        
+        int x1 = w + mArrowHOffset;
+        int y = h + mArrowVOffset;
+        int x2 = x1 + (mArrowSize * 2) -1;
+        
+        //((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+        //RenderingHints.VALUE_ANTIALIAS_ON);
+        
+        for(int i=0; i< mArrowSize; i++) { 
+            g.drawLine(x1,y,x2,y);
+            x1++;
+            x2--;
+            y++;
+        }
+        g.setColor( saveColor);
+    }
     
 }
 
