@@ -47,7 +47,7 @@ import java.awt.geom.*;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.177 $ / $Date: 2007-08-29 23:14:37 $ / $Author: sfraize $
+ * @version $Revision: 1.178 $ / $Date: 2007-08-30 18:37:00 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1659,7 +1659,7 @@ public class LWPathway extends LWContainer
     //private static final float[] SelectedDash = { 4, 4 };
     //private static final float[] MultiSelectedDash = { 8, 8 };
 
-    private static final float DotSize = 30;
+    private static final float DotSize = 20;
     private static final float DotRadius = DotSize / 2;
     //public static final int PathwayStrokeWidth = 8; // technically, this is half the stroke, but it's the visible stroke
 
