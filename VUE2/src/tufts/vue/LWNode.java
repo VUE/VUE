@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.186 $ / $Date: 2007-08-30 22:16:36 $ / $Author: sfraize $
+ * @version $Revision: 1.187 $ / $Date: 2007-08-30 22:18:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -125,7 +125,7 @@ public class LWNode extends LWContainer
 
     
 
-    private transient LWIcon.Block mIconBlock =
+    private final LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
                          IconWidth, IconHeight,
                          null,
