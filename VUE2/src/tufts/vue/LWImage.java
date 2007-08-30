@@ -628,7 +628,8 @@ public class LWImage extends
 //     }
 
     // REMOVE FOR LWNode IMPL:
-    protected void drawImpl(DrawContext dc) {
+    protected void drawImpl(DrawContext dc)
+    {
         drawWithoutShape(dc);
 //         if (dc.g.getComposite() instanceof AlphaComposite) {
 //             AlphaComposite a = (AlphaComposite) dc.g.getComposite();
@@ -639,14 +640,22 @@ public class LWImage extends
     
     public void drawWithoutShape(DrawContext dc)
     {
-        LWComponent c = getParent();
-        if (c != null && c.isFiltered()) {
-            // TODO: this is a hack because images are currently special cased as tied to their parent node
-            return;
+        if (isNodeIcon()) {
+            final LWComponent parent = getParent();
+            if (parent != null && parent.isFiltered()) {
+                // this is a hack because images are currently special cased as tied to their parent node
+                return;
+            }
         }
 
         final Shape shape = getClipShape();
 
+        if (isSelected() && dc.isInteractive() && dc.focal != this) {
+            dc.g.setColor(COLOR_HIGHLIGHT);
+            dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+            dc.g.draw(getZeroShape());
+        }
+        
         if (isNodeIcon && dc.focal != this) {
 
             drawImage(dc);
