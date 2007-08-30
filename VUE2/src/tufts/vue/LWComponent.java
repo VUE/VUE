@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.336 $ / $Date: 2007-08-30 20:41:08 $ / $Author: sfraize $
+ * @version $Revision: 1.337 $ / $Date: 2007-08-30 20:43:13 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1810,9 +1810,12 @@ u                    getSlot(c).setFromString((String)value);
     
     /** return null if the node filter is empty, so we don't bother with entry in the save file */
     public NodeFilter getXMLnodeFilter() {
-        if (nodeFilter == NEEDS_NODE_FILTER || (nodeFilter != null && nodeFilter.size() < 1))
+        if (mXMLRestoreUnderway) {
+            // in case validation is on:
+            return nodeFilter;
+        } else if (nodeFilter == NEEDS_NODE_FILTER || (nodeFilter != null && nodeFilter.size() < 1)) {
             return null;
-        else
+        } else
             return nodeFilter;
     }
 
