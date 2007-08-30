@@ -47,7 +47,7 @@ import java.awt.geom.*;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.178 $ / $Date: 2007-08-30 18:37:00 $ / $Author: sfraize $
+ * @version $Revision: 1.179 $ / $Date: 2007-08-30 18:53:12 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1638,30 +1638,18 @@ public class LWPathway extends LWContainer
     
     
 
-    
-//     public static final float PathAlpha = 0.5f;
-//     public static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, PathAlpha);
-//     private static final AlphaComposite PathSelectedTranslucence = PathTranslucence;
-    
-//     //private static final AlphaComposite PathTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
-//     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.Src;
-//     //private static final AlphaComposite PathSelectedTranslucence = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
-
-    //public static final int BorderStrokeWidth = PathwayAsDots ? 0 : 8; // technically, this is half the stroke, but it's the visible stroke
-
     private static final boolean PathwayAsDots = true;
     private static final int ConnectorStrokeWidth = 5;
     public static final int PathBorderStrokeWidth = 9;
     // forcing this up no matter what ensure our paint clipping will always work -- can optimize later
-    
+    //public static final int BorderStrokeWidth = PathwayAsDots ? 0 : 8; // technically, this is half the stroke, but it's the visible stroke
     
     private static final float[] DashPattern = { 8, 6 };
     //private static final float[] SelectedDash = { 4, 4 };
     //private static final float[] MultiSelectedDash = { 8, 8 };
 
-    private static final float DotSize = 20;
+    private static final float DotSize = VueResources.getInt("pathway.dotSize", 20);
     private static final float DotRadius = DotSize / 2;
-    //public static final int PathwayStrokeWidth = 8; // technically, this is half the stroke, but it's the visible stroke
 
     //private static final BasicStroke ConnectorStroke = new BasicStroke();
     private static final BasicStroke ConnectorStroke
