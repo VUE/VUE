@@ -22,7 +22,7 @@
  * Created on April 7, 2006 11:18 AM
  */
  
- package  edu.tufts.osidimpl.repository.fedora_2_0;
+ package  edu.tufts.osidimpl.repository.fedora_2_2;
 
 
 import org.osid.shared.Id;

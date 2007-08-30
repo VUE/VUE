@@ -15,7 +15,7 @@
  *
  * -----------------------------------------------------------------------------
  */
-
+package  edu.tufts.osidimpl.repository.fedora_2_2;
 public class PartStructure
 implements org.osid.repository.PartStructure
 {

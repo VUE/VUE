@@ -15,8 +15,7 @@
  *
  * -----------------------------------------------------------------------------
  */
-package  edu.tufts.osidimpl.repository.fedora_2_0;
-
+package  edu.tufts.osidimpl.repository.fedora_2_2;
 public class RepositoryIterator
 implements org.osid.repository.RepositoryIterator
 {

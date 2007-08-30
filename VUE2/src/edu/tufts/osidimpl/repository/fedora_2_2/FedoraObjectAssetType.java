@@ -21,7 +21,7 @@
  *
  * Created on April 7, 2006, 5:23 PM
  */
-package  edu.tufts.osidimpl.repository.fedora_2_0;
+package  edu.tufts.osidimpl.repository.fedora_2_2;
 
 import java.io.*;
 import java.util.*;
