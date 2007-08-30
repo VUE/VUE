@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.48 $ / $Date: 2007-08-29 17:18:39 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-08-30 18:32:19 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -130,6 +130,16 @@ public final class DrawContext
         this(g, 1.0);
     }
 
+    private DrawContext lastPush;
+    public DrawContext push() {
+        if (lastPush != null)
+            Util.printStackTrace("Unpopped DC: " + lastPush);
+        return lastPush = create();
+    }
+    public void pop() {
+        lastPush.dispose();
+        lastPush = null;
+    }
     public void dispose() {
         // in case we try to use it after this, this should ensure exceptions:
         isClipOptimized = true;
