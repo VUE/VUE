@@ -161,8 +161,9 @@
                 </field>
                 
                 <!-- temporarily(?) return to old node filter get method -->
-                <!-- <field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> -->
-                <field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field> 
+                <!-- field name="nodeFilter" get-method="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field -->
+                <!-- field name="nodeFilter">      <bind-xml name="nodeFilter" node="element"/></field --> 
+                <field name="XMLnodeFilter">      <bind-xml name="nodeFilter" node="element"/></field>
                 
                 <field name="metadataList"/>
                 <field name="URIString" />
