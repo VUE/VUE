@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.105 $ / $Date: 2007-08-29 17:09:22 $ / $Author: mike $
+ * @version $Revision: 1.106 $ / $Date: 2007-08-30 23:21:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -196,18 +196,23 @@ public class DockWindow extends javax.swing.JWindow
         showCloseBtn = showCloseButton;
         
         if (asToolbar) {
-            // even tho you can't have any tool-tips without window
+            // SMF: even tho you can't have any tool-tips without window
             // being enabled, combo box pop-ups dissapear way
             // to easily unless you do this (as soon as you mouse
             // into the toolbar, they dismiss)
-            //setFocusableWindowState(false);
+            
+            // MK: I'll have to check this against a mac but on windows
+            //this behaves better without this set to false.  you can
+            //actually bring the window forward in the z-order when 
+            //you click on its borderbar, maybe this was a problem in
+            //an old java verison since the dockwinow hadn't been used 
+            //in toolbar mode in a while? -MK
+            
+            if (VueUtil.isMacPlatform()) {
+                // SMF: seems better on mac -- re-enabled for mac 2007-08-30 
+                setFocusableWindowState(false); 
+            }
 
-        	//I'll have to check this against a mac but on windows
-        	//this behaves better without this set to false.  you can
-        	//actually bring the window forward in the z-order when 
-        	//you click on its borderbar, maybe this was a problem in
-        	//an old java verison since the dockwinow hadn't been used 
-        	//in toolbar mode in a while? -MK
         }
         mBaseTitle = title;
         setTitle(title);
