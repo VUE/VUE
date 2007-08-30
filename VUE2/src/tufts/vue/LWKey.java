@@ -47,6 +47,7 @@ public interface LWKey {
     public LWComponent.Key FontSize =  LWComponent.KEY_FontSize;
     public LWComponent.Key FontName =  LWComponent.KEY_FontName;
     public LWComponent.Key FontStyle =  LWComponent.KEY_FontStyle;
+    public LWComponent.Key Alignment =  LWComponent.KEY_Alignment;
     public LWComponent.Key Shape = LWNode.KEY_Shape;
 
     public LWComponent.Key Label = LWComponent.KEY_Label;
