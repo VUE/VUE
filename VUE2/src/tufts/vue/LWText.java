@@ -302,7 +302,12 @@ public class LWText extends LWComponent {
 
 	@Override
 	protected void layoutImpl(Object triggerKey) {
-		layout(triggerKey, new Size(getWidth(), getHeight()), null);
+            if (triggerKey == LWKey.Alignment) {
+                // LWText doesn't use the aligment property on a whole-component bases: ignore this
+                // layout request if we ever get it.
+                return;
+            }
+            layout(triggerKey, new Size(getWidth(), getHeight()), null);
 	}
 
 	@Override
