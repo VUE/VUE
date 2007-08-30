@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.480 $ / $Date: 2007-08-29 19:24:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.481 $ / $Date: 2007-08-30 21:08:31 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -590,6 +590,8 @@ public class VUE
         // probably isn't even required, but it's helping debugging
         // while implementing the new Key & Property LWComponent
         // code. -- SMF
+        
+        new LWComponent();
         new LWLink();
         new LWImage();
         new LWNode();
