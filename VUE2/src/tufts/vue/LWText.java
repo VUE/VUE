@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import tufts.Util;
@@ -10,19 +11,15 @@ import tufts.Util;
 public class LWText extends LWComponent {
 	public static final Object TYPE_RICHTEXT = "richTextNode";
 	protected transient RichTextBox labelBox = null;
-	protected RectangularShape mShape;
+    //protected RectangularShape mShape;
 	private boolean WrapText = false;
 
 	protected boolean isAutoSized = true; // compute size from label &
 											// children
-
-	// protected RectangularShape mShape;
-
 	public LWText() {
 		super();
                 super.label = label; // make sure label initially set for debugging
-                enableProperty(KEY_Alignment);
-		mShape = new java.awt.geom.Rectangle2D.Float();
+                initText();
 	}
 
 	public LWText(String label) {
@@ -30,8 +27,7 @@ public class LWText extends LWComponent {
 		super.label = label; // make sure label initially set for debugging
 		// super(label, 0, 0);
 		// setAsTextNode(true);
-                enableProperty(KEY_Alignment);
-		mShape = new java.awt.geom.Rectangle2D.Float();
+                initText();
 
 	}
 
@@ -39,10 +35,19 @@ public class LWText extends LWComponent {
 		// super(label, 0, 0, shape);
 		super.label = label; // make sure label initially set for debugging
 		// setAsTextNode(true);
-                enableProperty(KEY_Alignment);
-		mShape = new java.awt.geom.Rectangle2D.Float();
-
+                initText();
 	}
+
+    private void initText() {
+        //enableProperty(KEY_Alignment);
+        //disablePropertyTypes(KeyType.STYLE);
+        disableProperty(LWKey.Font);
+        disableProperty(LWKey.FontName);
+        disableProperty(LWKey.FontSize);
+        disableProperty(LWKey.FontStyle);
+        disableProperty(LWKey.TextColor);
+        //mShape = new java.awt.geom.Rectangle2D.Float();
+    }
 
 	
 	public Object getTypeToken() {
@@ -75,6 +80,8 @@ public class LWText extends LWComponent {
 		// Fill the shape (if it's not transparent)
 		// -------------------------------------------------------
 
+            getZeroShape(); // will load super.mZeroBounds
+
 		if (isSelected() && dc.isInteractive() && dc.focal != this) {
 			LWPathway p = VUE.getActivePathway();
 			if (p != null && p.isVisible() && p.getCurrentNode() == this) {
@@ -85,11 +92,12 @@ public class LWText extends LWComponent {
 				// do nothing here.
 			} else {
 				dc.g.setColor(COLOR_HIGHLIGHT);
-				dc.g.setStroke(new BasicStroke(getStrokeWidth()
-						+ SelectionStrokeWidth));
-				// g.setStroke(new BasicStroke(stroke.getLineWidth() +
-				// SelectionStrokeWidth));
-				dc.g.draw(mShape);
+                                if (isTransparent()) {
+                                    dc.g.fill(grow((Rectangle2D.Float) mZeroBounds.clone(), SelectionStrokeWidth/2f));
+                                } else {
+                                    dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+                                    dc.g.draw(getZeroShape());
+                                }
 			}
 		}
 
@@ -105,12 +113,12 @@ public class LWText extends LWComponent {
 			// wrappers"
 			; // do nothing: no fill
 		} else {
-			Color fillColor = getRenderFillColor(dc);
+                        final Color fillColor = getFillColor();
 			if (fillColor != null && fillColor.getAlpha() != 0) { // transparent
 				// if null
-				dc.g.setColor(fillColor);
+                                dc.g.setColor(fillColor);
 				// if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
-				dc.g.fill(mShape);
+				dc.g.fill(mZeroBounds);
 				// if (isZoomedFocus()) dc.g.setComposite(AlphaComposite.Src);
 			}
 		}
@@ -137,7 +145,7 @@ public class LWText extends LWComponent {
 			// else
 			dc.g.setColor(getStrokeColor());
 			dc.g.setStroke(this.stroke);
-			dc.g.draw(mShape);
+			dc.g.draw(mZeroBounds);
 		}
 
 		// -------------------------------------------------------
@@ -251,20 +259,38 @@ public class LWText extends LWComponent {
 		}
 	}
 
-	public float getWidth() {
-		if (labelBox == null)
-			return super.getWidth();
-		else
-			return labelBox.getWidth();
-	}
-
-	public float getHeight() {
+    @Override
+    public float getWidth() {
+        if (labelBox == null)
+            return super.getWidth();
+        else
+            return labelBox.getWidth();
+    }
+    
+    @Override
+    public float getHeight() {
     	//The line height is always off by a 1 line..
-		if (labelBox == null)
-			return super.getHeight();
-		else
-			return labelBox.getHeight();
-	}
+        if (labelBox == null)
+            return super.getHeight();
+        else
+            return labelBox.getHeight();
+    }
+
+    @Override
+    public float getLocalWidth()       { return (float) (getWidth() * getScale()); }
+    @Override
+    public float getLocalHeight()      { return (float) (getHeight() * getScale()); }
+    
+    @Override
+    public float getMapWidth()          { return (float) (getWidth() * getMapScale()); }
+    @Override
+    public float getMapHeight()         { return (float) (getHeight() * getMapScale()); }
+
+    @Override
+    public float getLocalBorderWidth() { return (float) ((getWidth() + mStrokeWidth.get()) * getScale()); }
+    @Override
+    public float getLocalBorderHeight() { return (float) ((getHeight() + mStrokeWidth.get()) * getScale()); }
+
 
 	private boolean inLayout = false;
 
@@ -447,7 +473,7 @@ public class LWText extends LWComponent {
 		if (DEBUG.LAYOUT)
 			out("*** setSizeNoLayout " + w + "x" + h);
 		setSize(w, h);
-		mShape.setFrame(0, 0, getWidth(), getHeight());
+		//mShape.setFrame(0, 0, getWidth(), getHeight());
 	}
 
 	private transient Point2D.Float mLabelPos = new Point2D.Float(); // for
