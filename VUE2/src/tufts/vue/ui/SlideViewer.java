@@ -448,7 +448,8 @@ if (true) return;
 
     @Override
     protected Color getBackgroundFillColor(DrawContext dc) {
-        return DefaultFillColor;
+        //return Color.white;
+        return Color.darkGray;
 // this code produces "filled" slide viewer look,
 // tho then we can't make out the edge of the slide:
 //         final LWPathway.Entry entry = VUE.getActiveEntry();
@@ -463,11 +464,12 @@ if (true) return;
         //if (mLastLoad != null && mLastLoad.isMapView()) {
         if (mLastLoad != null && !mLastLoad.canProvideSlide()) {
             // have to fill first, or super.drawFocal will fill over us...
-            if (DEBUG.Enabled)
-                dc.fillBackground(Color.red);
-            else
+//             if (DEBUG.Enabled)
+//                 dc.fillBackground(Color.red);
+//             else
                 dc.fillBackground(getBackgroundFillColor(dc));
-            mLastLoad.pathway.getMasterSlide().drawFit(dc, 0);
+                mLastLoad.pathway.getMasterSlide().drawFit(dc.push(), 0);
+                dc.pop();
             //mLastLoad.pathway.getMasterSlide().drawIntoFrame(dc);
         }
         super.drawFocalImpl(dc);
