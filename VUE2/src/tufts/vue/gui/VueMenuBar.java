@@ -10,6 +10,7 @@ import edu.tufts.vue.ontology.action.RDFSOntologyOpenAction;
 
 import java.io.File;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -17,6 +18,8 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 
 import edu.tufts.vue.preferences.VuePrefEvent;
@@ -25,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.48 $ / $Date: 2007-08-29 16:22:44 $ / $Author: mike $
+ * @version $Revision: 1.49 $ / $Date: 2007-08-31 18:06:22 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -67,39 +70,74 @@ public class VueMenuBar extends javax.swing.JMenuBar
     //public VueMenuBar(Object[] toolWindows)
     public VueMenuBar()
     {
-        //addFocusListener(this);
-    	
         final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
         
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Initialize Top Level Menus
+        ////////////////////////////////////////////////////////////////////////////////////
+
         final JMenu fileMenu = new VueMenu("File");
         final JMenu recentlyOpenedMenu = new VueMenu("Open recent");
-        JMenu editMenu = new VueMenu("Edit");
-        JMenu viewMenu = new VueMenu("View");
-        JMenu formatMenu = new VueMenu("Format");
-        JMenu transformMenu = new VueMenu("Font");
-        JMenu arrangeMenu = new VueMenu("Arrange");
-        JMenu windowMenu = new VueMenu("Windows");
-        JMenu alignMenu = new VueMenu("Align");        
-        JMenu toolsMenu = new VueMenu("Tools");
-        JMenu linkMenu = new VueMenu("Link");
-        //JMenu optionsMenu = menuBar.add(new VueMenu("Options"))l
-        JMenu helpMenu = add(new VueMenu("Help"));
-        
-        SaveAction saveAction = new SaveAction("Save", false);
-        SaveAction saveAsAction = new SaveAction("Save As...");
-        OpenAction openAction = new OpenAction("Open...");
-        ExitAction exitAction = new ExitAction("Quit");
-        Publish publishAction = new Publish("Export...");
-        
+        final JMenu editMenu = new VueMenu("Edit");
+        final JMenu viewMenu = new VueMenu("View");
+        final JMenu formatMenu = new VueMenu("Format");
+        final JMenu transformMenu = new VueMenu("Font");
+        final JMenu arrangeMenu = new VueMenu("Arrange");
+        final JMenu contentMenu = new VueMenu("Content");
+        final JMenu presentationMenu = new VueMenu("Presentation");
+        final JMenu analysisMenu = new VueMenu("Analysis");
+        final JMenu windowMenu = new VueMenu("Windows");
+        final JMenu alignMenu = new VueMenu("Align");         
+        final JMenu linkMenu = new VueMenu("Link");
+        final JMenu helpMenu = add(new VueMenu("Help"));
+        final JMenu slidePreviewMenu = new JMenu("Slide preview");
+        final JMenu notesMenu = new JMenu("Notes");
+        final JMenu playbackMenu = new JMenu("Playback Presentation");
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Initialize Actions
+        ////////////////////////////////////////////////////////////////////////////////////
+
+        final JCheckBoxMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
+        final JCheckBoxMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Initialize Actions
+        ////////////////////////////////////////////////////////////////////////////////////
+                
+        final SaveAction saveAction = new SaveAction("Save", false);
+        final SaveAction saveAsAction = new SaveAction("Save As...");
+        final SaveAction exportAction = new SaveAction("Export ...",true,true);
+        final OpenAction openAction = new OpenAction("Open...");
+        final ExitAction exitAction = new ExitAction("Quit");
+        final Publish publishAction = new Publish("Publish...");
+        final RDFOpenAction rdfOpen = new RDFOpenAction();
+        final CreateCM createCMAction = new CreateCM("Connectivity Analysis...");
+        final AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps...");
+        final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
+
         // Actions added by the power team
-        PrintAction printAction = PrintAction.getPrintAction();
-        PDFTransform pdfAction = new PDFTransform("PDF");
-        HTMLConversion htmlAction = new HTMLConversion("HTML");
-        ImageConversion imageAction = new ImageConversion("JPEG");
-        ImageMap imageMap = new ImageMap("IMAP");
-        SVGConversion svgAction = new SVGConversion("SVG");
-        XMLView xmlAction = new XMLView("XML View");
+        final PrintAction printAction = PrintAction.getPrintAction();
+        final PDFTransform pdfAction = new PDFTransform("PDF");
+        final HTMLConversion htmlAction = new HTMLConversion("HTML");
+        final ImageConversion imageAction = new ImageConversion("JPEG");
+        final ImageMap imageMap = new ImageMap("IMAP");
+        final SVGConversion svgAction = new SVGConversion("SVG");
+        final XMLView xmlAction = new XMLView("XML View");
+        final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
+
+        rofm.getPreference().addVuePrefListener(new VuePrefListener()
+        {
+			public void preferenceChanged(VuePrefEvent prefEvent) {
+				rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
+				
+			}
+        	
+        });
         
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Initializing DEBUG code
+        ////////////////////////////////////////////////////////////////////////////////////
+
         if (false && DEBUG.Enabled) {
             // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG:
             // we're hitting bug in java (1.4.2, 1.5) on Tiger (OSX 10.4.2) here
@@ -132,16 +170,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
             exportMenu.add(imageMap);
         }
         
-        final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
-
-        rofm.getPreference().addVuePrefListener(new VuePrefListener()
-        {
-			public void preferenceChanged(VuePrefEvent prefEvent) {
-				rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
-				
-			}
-        	
-        });
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build File Menu
+        ////////////////////////////////////////////////////////////////////////////////////
 
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
@@ -150,7 +181,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
         fileMenu.add(Actions.Revert);
-        fileMenu.addSeparator();
+        fileMenu.addSeparator();        
+        fileMenu.add(rdfOpen);
+        fileMenu.add(exportAction);
         fileMenu.add(publishAction);
         JMenu pdfExportMenu = new JMenu("Create PDF");
         pdfExportMenu.add(Actions.MapAsPDF);
@@ -159,15 +192,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         pdfExportMenu.add(Actions.SpeakerNotes1);
         pdfExportMenu.add(Actions.SpeakerNotes4);
         pdfExportMenu.add(Actions.AudienceNotes);
-        pdfExportMenu.add(Actions.SpeakerNotesOutline);
-        
-        
-        fileMenu.add(pdfExportMenu);
-               
+        pdfExportMenu.add(Actions.SpeakerNotesOutline);                                       
         fileMenu.addSeparator();
         fileMenu.add(printAction);
-        fileMenu.add(printAction).setText("Print Visible...");                
-        
+        fileMenu.add(printAction).setText("Print Visible...");
+        fileMenu.add(pdfExportMenu);        
         rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
       
         if (VUE.isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && GUI.isMacAqua())) {
@@ -179,6 +208,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
             fileMenu.add(exitAction);
         }
         
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build Edit Menu
+        ////////////////////////////////////////////////////////////////////////////////////
+        
         editMenu.add(Actions.Undo);
         editMenu.add(Actions.Redo);
         editMenu.addSeparator();
@@ -186,13 +219,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.Copy);
         editMenu.add(Actions.Paste);
         editMenu.add(Actions.Duplicate);
-        editMenu.add(Actions.Delete);
+        editMenu.add(Actions.Rename);
+        editMenu.add(Actions.Delete);                        
         editMenu.addSeparator();
-        GUI.addToMenu(editMenu, Actions.NEW_OBJECT_ACTIONS);
-        //this isn't in the new comp..but I'm adding it back 7/18
-        editMenu.add(Actions.Rename);                
-        editMenu.addSeparator();
-       // editMenu.addSeparator();
         editMenu.add(Actions.SelectAll);
         editMenu.add(Actions.SelectAllNodes);
         editMenu.add(Actions.SelectAllLinks);
@@ -202,24 +231,26 @@ public class VueMenuBar extends javax.swing.JMenuBar
         {   editMenu.addSeparator();
             editMenu.add(Actions.Preferences);
         }
-
-        //editMenu.addSeparator();
-        //editMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
         
         if (DEBUG.IMAGE)
             editMenu.add(Images.ClearCacheAction);
-        
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build View Menu
+        ////////////////////////////////////////////////////////////////////////////////////
+                
         viewMenu.add(Actions.ZoomIn);
         viewMenu.add(Actions.ZoomOut);
-        viewMenu.add(Actions.ZoomActual);
-        viewMenu.addSeparator();        
         viewMenu.add(Actions.ZoomFit);
+        viewMenu.add(Actions.ZoomActual);
         viewMenu.add(Actions.ZoomToSelection);
-        viewMenu.addSeparator();        
+        viewMenu.addSeparator();                        
         viewMenu.add(viewFullScreen);
-        viewMenu.add(Actions.ToggleSplitScreen);
+        viewMenu.add(splitScreenItem);
+        viewMenu.addSeparator();
+        viewMenu.add(togglePruningItem);
         
-        
+
         
         GUI.getFullScreenWindow().addWindowFocusListener(new WindowFocusListener()
         {
@@ -233,6 +264,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				
 			}
 		});
+
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build Format Menu
+        ////////////////////////////////////////////////////////////////////////////////////
         
         if (VUE.getFormatDock() != null)
         {
@@ -253,8 +288,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         transformMenu.add(Actions.FontSmaller);
         transformMenu.add(Actions.FontBigger);
         transformMenu.add(Actions.FontBold);
-        transformMenu.add(Actions.FontItalic);
-        
+        transformMenu.add(Actions.FontItalic);                
         formatMenu.add(transformMenu);        
         formatMenu.add(arrangeMenu);
         formatMenu.add(alignMenu);
@@ -264,101 +298,234 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.addSeparator();
         buildMenu(linkMenu, Actions.LINK_MENU_ACTIONS);
         formatMenu.add(linkMenu);
-        //formatMenu.add(new JMenuItem("Size"));
-        //formatMenu.add(new JMenuItem("Style"));
-        //formatMenu.add("Text Justify").setEnabled(false);
-        // TODO: ultimately better to break these out in to Node & Link submenus
         
         
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build Content Menu
+        ////////////////////////////////////////////////////////////////////////////////////
+        GUI.addToMenu(contentMenu, Actions.NEW_OBJECT_ACTIONS);
+        contentMenu.addSeparator();
+        contentMenu.add(Actions.AddResource);
+        contentMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
         
-//      optionsMenu.add(new UserDataAction());
-        //JMenu compareAction = new VueMenu("Connectivity Analysis");
-        //Connectivity Actions
-        CreateCM createCMAction = new CreateCM("Connectivity Analysis");
-        AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps");
-        //compareAction.add(createCMAction);
-        //compareAction.add(analyzeCMAction);
-        RDFOpenAction rdfOpen = new RDFOpenAction();
-        OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
-        //FedoraOntologyOpenAction fooa = new FedoraOntologyOpenAction("Fedora Ontology Types");
-        //toolsMenu.add(Actions.AddResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
-        toolsMenu.add(Actions.AddResource);
-        toolsMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
-        toolsMenu.addSeparator();
-        
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build Presentation Menu
+        ////////////////////////////////////////////////////////////////////////////////////
         if (VUE.getPresentationDock() != null)
         {
-        	toolsMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_6, null));        
-        	toolsMenu.addSeparator();
+        	presentationMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_6, null));        
+    
         }
         
-        toolsMenu.add(analyzeCMAction);
-        toolsMenu.add(createCMAction);        
-        toolsMenu.addSeparator();
-        toolsMenu.add(rdfOpen);
-        //toolsMenu.add(fooa);
-        toolsMenu.add(ontcontrls);
+        presentationMenu.add(Actions.NewSlide);
+        presentationMenu.add(Actions.MergeNodeSlide);
         
-        toolsMenu.addSeparator();
-        toolsMenu.add(Actions.SearchFilterAction);
+        presentationMenu.add(Actions.MasterSlide);
         
-        //toolsMenu.add(fooa);
-     //   windowMenu = add(new VueMenu("Window"));
-        windowMenu.add(Actions.KeywordAction);
         
-        if (VUE.getInfoDock() !=null)
-        	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
-        if (VUE.getMapInfoDock() !=null)
-        	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
+        slidePreviewMenu.add(Actions.PreviewOnMap);
+        slidePreviewMenu.add(Actions.PreviewInViewer);
+        presentationMenu.add(slidePreviewMenu);
+   
+        notesMenu.addMenuListener(new MenuListener()
+        {
+
+			public void menuCanceled(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void menuDeselected(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void menuSelected(MenuEvent e) {
+				notesMenu.removeAll();
+				final LWPathwayList pathways = VUE.getActiveMap().getPathwayList();
+				
+				//Iterator i = pathways.iterator();
+				final Collection coll = pathways.getElementList();
+				final Iterator i = coll.iterator();
+				while (i.hasNext())
+				{
+					final LWPathway path = (LWPathway) i.next();
+					final JMenu menuLevel1 = new JMenu(path.getDisplayLabel());
+					if (path.getEntries().isEmpty())
+						menuLevel1.setEnabled(false);
+					notesMenu.add(menuLevel1);
+									    
+					final JMenuItem item1 = new JMenuItem(Actions.FullPageSlideNotes.getActionName());
+			        item1.addActionListener(new ActionListener()
+			        {
+			        	public void actionPerformed(ActionEvent e)
+			        	{
+			        		VUE.setActive(LWPathway.class, this, path);
+			        		Actions.FullPageSlideNotes.act();
+			        	}
+			        });
+			        
+			        final JMenuItem item2 = new JMenuItem(Actions.Slides8PerPage.getActionName());
+			        item2.addActionListener(new ActionListener()
+			        {
+			        	public void actionPerformed(ActionEvent e)
+			        	{
+			        		VUE.setActive(LWPathway.class, this, path);
+			        		Actions.Slides8PerPage.act();
+			        	}
+			        });
+			        
+			        final JMenuItem item3 = new JMenuItem(Actions.SpeakerNotes1.getActionName());
+			        item3.addActionListener(new ActionListener()
+			        {
+			        	public void actionPerformed(ActionEvent e)
+			        	{
+			        		VUE.setActive(LWPathway.class, this, path);
+			        		Actions.SpeakerNotes1.act();
+			        	}
+			        });
+
+			        final JMenuItem item4 = new JMenuItem(Actions.SpeakerNotes4.getActionName());
+			        item4.addActionListener(new ActionListener()
+			        {
+			        	public void actionPerformed(ActionEvent e)
+			        	{
+			        		VUE.setActive(LWPathway.class, this, path);
+			        		Actions.SpeakerNotes4.act();
+			        	}
+			        });
+
+
+			        final JMenuItem item5 = new JMenuItem(Actions.AudienceNotes.getActionName());
+			        item5.addActionListener(new ActionListener()
+			        {
+			        	public void actionPerformed(ActionEvent e)
+			        	{
+			        		VUE.setActive(LWPathway.class, this, path);
+			        		Actions.AudienceNotes.act();
+			        	}
+			        });
+
+			        final JMenuItem item6 = new JMenuItem(Actions.SpeakerNotesOutline.getActionName());
+			        item6.addActionListener(new ActionListener()
+			        {
+			        	public void actionPerformed(ActionEvent e)
+			        	{
+			        		VUE.setActive(LWPathway.class, this, path);
+			        		Actions.SpeakerNotesOutline.act();
+			        	}
+			        });
+
+        			menuLevel1.add(item1);
+        			menuLevel1.add(item2);
+        			menuLevel1.add(item3);
+        			menuLevel1.add(item4);
+        			menuLevel1.add(item5);
+        			menuLevel1.add(item6);
+			    }
+				
+			}
+        	
+        });
+        playbackMenu.addMenuListener(new MenuListener()
+        {
+
+			public void menuCanceled(MenuEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void menuDeselected(MenuEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			public void menuSelected(MenuEvent arg0) {
+				playbackMenu.removeAll();
+				final LWPathwayList pathways = VUE.getActiveMap().getPathwayList();
+				
+				//Iterator i = pathways.iterator();
+				final Collection coll = pathways.getElementList();
+				final Iterator i = coll.iterator();
+				while (i.hasNext())
+				{
+					final LWPathway path = (LWPathway) i.next();
+					final JMenuItem menuItem = new JMenuItem(path.getDisplayLabel());
+					if (path.getEntries().isEmpty())
+						menuItem.setEnabled(false);
+
+					menuItem.addActionListener(new ActionListener()
+					{
+						public void actionPerformed(ActionEvent e)
+						{
+							VUE.setActive(LWPathway.class, this, path);
+								//VUE.getActiveMap().getPathwayList().setActivePathway(path);
+							    final PresentationTool presTool = PresentationTool.getTool();
+					            					            
+					            GUI.invokeAfterAWT(new Runnable() { public void run() {
+					                VUE.toggleFullScreen(true);
+					            }});
+					            GUI.invokeAfterAWT(new Runnable() { public void run() {
+					                //VueToolbarController.getController().setSelectedTool(presTool);
+					                VUE.setActive(VueTool.class, this, presTool);
+					            }});
+					            GUI.invokeAfterAWT(new Runnable() { public void run() {
+					                presTool.startPresentation();
+					            }});
+						}
+					});
+					playbackMenu.add(menuItem);
+				}
+				
+			}
+        	
+        });
+        presentationMenu.add(notesMenu);
+        presentationMenu.add(playbackMenu);
         
-        windowMenu.add(Actions.NotesAction);
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build Analysis Menu
+        ////////////////////////////////////////////////////////////////////////////////////
+        analysisMenu.add(createCMAction);
+        analysisMenu.add(analyzeCMAction);
+        
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Window Menu
+        ////////////////////////////////////////////////////////////////////////////////////
+
         if (VUE.getFormatDock() != null)        
         	windowMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_4,"Formatting Palette"));                
-        if (VUE.getOutlineDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_7, "Outline"));
-        if (VUE.getPannerDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_5, "Panner"));
-        if (VUE.getContentDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Resources"));    
+        windowMenu.addSeparator();                
+        if (VUE.getInfoDock() !=null)
+        	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
+        windowMenu.add(Actions.KeywordAction);
+        windowMenu.add(Actions.NotesAction);                    
+        windowMenu.addSeparator();
         if (VUE.getSlideDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getSlideDock(),KeyEvent.VK_8, "Slide Viewer"));
+        if (VUE.getMapInfoDock() !=null)
+        	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));        
+        if (VUE.getPannerDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_5, "Panner"));        
+        if (VUE.getOutlineDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_7, "Outline"));        
+        if (VUE.getContentDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Resources"));
+        windowMenu.addSeparator();
         if (VUE.getFloatingZoomDock()!=null)
         {
         	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_9, "FullScreen Toolbar");
         	fullScreenToolbarItem.setEnabled(false);
         	windowMenu.add(fullScreenToolbarItem);        	
-        }
-    /* 
-    	ObjectInspector,        	
-    
-    	MapInspector,
-    	outlineDock,
-    	pannerDock,        	
-    	DR_BROWSER_DOCK,
-    	slideDock, 
-    	*/
-        /*
-         * I have a feeling this may come back so I'm leaving it in.
-        int index = 0;
-        if (toolWindows != null) {
-
-            windowMenu = add(new VueMenu("Window"));
-                
-            for (int i = 0; i < toolWindows.length; i++) {
-                //System.out.println("adding " + toolWindows[i]);
-                Object toolWindow = toolWindows[i];
-                if (toolWindow == null)
-                    continue;
-                final WindowDisplayAction windowAction = new WindowDisplayAction(toolWindow);
-                final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_1 + index++, Actions.COMMAND);
-                windowAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
-                JCheckBoxMenuItem checkBox = new JCheckBoxMenuItem(windowAction);
-                windowAction.setLinkedButton(checkBox);
-                windowMenu.add(checkBox);
-            }
-        }
-        */
+        }        
+        windowMenu.addSeparator();
+        windowMenu.add(ontcontrls);                
+        windowMenu.add(Actions.SearchFilterAction);
         
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build Help Menu
+        ////////////////////////////////////////////////////////////////////////////////////
+
         if (tufts.Util.isMacPlatform() == false) {
             // already in standard MacOSX place
             helpMenu.add(new AboutAction());
@@ -367,10 +534,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.userGuide.label"), VueResources.getString("helpMenu.userGuide.url")));        
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.feedback.label"), VueResources.getString("helpMenu.feedback.url")));
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.vueWebsite.label"), VueResources.getString("helpMenu.vueWebsite.url")));
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.mymaps.label"), VueResources.getString("helpMenu.mymaps.url")));
-        
-
-        
+      
+      /*
+       * This feature was removed from the VUE website because of a security issue in the web-feature, it doesn't make 
+       * sense to have it here until we decided we're going to support it again on the website.
+       *  helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.mymaps.label"), VueResources.getString("helpMenu.mymaps.url"))); 
+       */                
         
         helpMenu.addSeparator();
         helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"),
@@ -383,17 +552,19 @@ public class VueMenuBar extends javax.swing.JMenuBar
         helpMenu.addSeparator();
         helpMenu.add(new ShowLogAction());
         
+        ////////////////////////////////////////////////////////////////////////////////////
+        // Build final main menu bar
+        ////////////////////////////////////////////////////////////////////////////////////
         
         //build out the main menus..
         add(fileMenu);
         add(editMenu);
         add(viewMenu);
         add(formatMenu);
-       // add(arrangeMenu);
-        add(toolsMenu);
-        //if (windowMenu != null)
-            add(windowMenu);
-        //add(toolsMenu);
+        add(contentMenu);
+        add(presentationMenu);
+        add(analysisMenu);        
+        add(windowMenu);
         add(helpMenu);
             
         if (RootMenuBar == null)
