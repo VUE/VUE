@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.339 $ / $Date: 2007-08-30 21:38:09 $ / $Author: sfraize $
+ * @version $Revision: 1.340 $ / $Date: 2007-08-31 01:12:25 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3801,14 +3801,14 @@ u                    getSlot(c).setFromString((String)value);
     }
 
 
-    private Rectangle2D.Float zeroBounds; // don't pre-allocate -- won't be used by overriding impl's
+    protected Rectangle2D.Float mZeroBounds; // don't pre-allocate -- won't be used by overriding impl's
     /** @return the raw, zero based, non-scaled shape; default impl returns same as getZeroBounds */
     public Shape getZeroShape() {
-        if (zeroBounds == null)
-            zeroBounds = new Rectangle2D.Float();
-        zeroBounds.width = getWidth();
-        zeroBounds.height = getHeight();
-        return zeroBounds;
+        if (mZeroBounds == null)
+            mZeroBounds = new Rectangle2D.Float();
+        mZeroBounds.width = getWidth();
+        mZeroBounds.height = getHeight();
+        return mZeroBounds;
     }
     
     /**
