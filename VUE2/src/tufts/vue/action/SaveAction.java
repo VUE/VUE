@@ -39,18 +39,24 @@ import tufts.vue.gui.VueFrame;
 public class SaveAction extends VueAction
 {
     private boolean saveAs = true;
-   
-    public SaveAction(String label, boolean saveType){
+    private boolean export = false;
+    
+    public SaveAction(String label, boolean saveType, boolean export){
         super(label, null, ":general/Save");
         setSaveAs(saveType);
+        this.export = export;
     }
     
+    public SaveAction(String label, boolean saveType)
+    {
+    	this(label,saveType,false);
+    }
     public SaveAction(String label) {
-        this(label, true);
+        this(label, true,false);
     }
     
     public SaveAction() {
-        this("Save", false);
+        this("Save", false,false);
     }
     
     public boolean isSaveAs() {
@@ -80,7 +86,7 @@ public class SaveAction extends VueAction
         try {
             inSave = true;
             tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] invoked...");
-            if (saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs()))
+            if (saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs(),export))
                 tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] completed.");
             else
                 tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] aborted.");
@@ -93,7 +99,7 @@ public class SaveAction extends VueAction
      * @return true if success, false if not
      */
       
-    public static boolean saveMap(LWMap map, boolean saveAs)
+    public static boolean saveMap(LWMap map, boolean saveAs, boolean export)
     {
         System.out.println("SaveAction.saveMap: " + map);
         
@@ -111,10 +117,11 @@ public class SaveAction extends VueAction
         }
         
         
-        if (saveAs || file == null)
+        if ((saveAs || file == null) && !export)
             //file = ActionUtil.selectFile("Save Map", "vue");
             file = ActionUtil.selectFile("Save Map", null);
-        
+        else
+        	file = ActionUtil.selectFile("Export Map", "export");
         if (file == null)
             return false;
         
@@ -300,7 +307,7 @@ public class SaveAction extends VueAction
     }
     
     public static boolean saveMap(LWMap map) {
-        return saveMap(map, false);
+        return saveMap(map, false,false);
     }
     
     public static void main(String args[])
