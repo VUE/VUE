@@ -37,7 +37,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.30 $ / $Date: 2007-05-06 20:14:17 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-08-31 04:42:49 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -88,11 +88,11 @@ public class PathwayTool extends VueSimpleTool
     // todo: need selection, but no drag, and click-to-deselect still working
     public boolean supportsDraggedSelector(MapMouseEvent e) { return true; }
 
-    public JPanel getContextualPanel() {
-        if (sControlPanel == null)
-            sControlPanel = new PathwayToolPanel();
-        return sControlPanel;
-    }
+//     public JPanel getContextualPanel() {
+//         if (sControlPanel == null)
+//             sControlPanel = new PathwayToolPanel();
+//         return sControlPanel;
+//     }
 
     private static class PathwayComboBoxModel extends DefaultComboBoxModel
         implements ActiveListener<LWMap>, LWComponent.Listener
@@ -180,43 +180,43 @@ public class PathwayTool extends VueSimpleTool
 
         
     }
-    private static class  PathwayToolPanel extends JPanel
-    {
-        public PathwayToolPanel() {
-            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-            setOpaque(false);
-            if (false) {
-                JLabel label = new JLabel("Pathway playback:  ");
-                label.setBorder(new EmptyBorder(3,0,0,0));
-                add(label);
-            }
-            JComboBox combo = new JComboBox(new PathwayComboBoxModel());
-            Font f = combo.getFont();
-            Font menuFont = new Font(f.getFontName(), f.getStyle(), f.getSize() - 2);
-            combo.setFont(menuFont);
-            GUI.applyToolbarColor(combo);
-            combo.setFocusable(false);
+//     private static class  PathwayToolPanel extends JPanel
+//     {
+//         public PathwayToolPanel() {
+//             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+//             setOpaque(false);
+//             if (false) {
+//                 JLabel label = new JLabel("Pathway playback:  ");
+//                 label.setBorder(new EmptyBorder(3,0,0,0));
+//                 add(label);
+//             }
+//             JComboBox combo = new JComboBox(new PathwayComboBoxModel());
+//             Font f = combo.getFont();
+//             Font menuFont = new Font(f.getFontName(), f.getStyle(), f.getSize() - 2);
+//             combo.setFont(menuFont);
+//             GUI.applyToolbarColor(combo);
+//             combo.setFocusable(false);
 
-            // A total hack so the visible height of the combo-box is squeezed down a bit
-            // Setting the size only appears to work for the width, not the height.
-            if (GUI.isMacAqua())
-                combo.setBorder(new EmptyBorder(2,0,2,0));
-            else
-                combo.setBorder(new MatteBorder(2,0,2,0, GUI.getToolbarColor()));
-            //combo.setBorder(new EmptyBorder(2,0,2,0)); // so height get's squeezed
-            //combo.setPreferredSize(new Dimension(150, 18));
-            //combo.setSize(new Dimension(150, 18));
+//             // A total hack so the visible height of the combo-box is squeezed down a bit
+//             // Setting the size only appears to work for the width, not the height.
+//             if (GUI.isMacAqua())
+//                 combo.setBorder(new EmptyBorder(2,0,2,0));
+//             else
+//                 combo.setBorder(new MatteBorder(2,0,2,0, GUI.getToolbarColor()));
+//             //combo.setBorder(new EmptyBorder(2,0,2,0)); // so height get's squeezed
+//             //combo.setPreferredSize(new Dimension(150, 18));
+//             //combo.setSize(new Dimension(150, 18));
             
-            add(combo);
-            add(Box.createHorizontalStrut(5));
-            JPanel controls = new PathwayPanel.PlaybackToolPanel();
-            //controls.setBackground(Color.red);
-            controls.setOpaque(false); // so we use parents background fill color
-            add(controls);
-            //add(Box.createHorizontalGlue());
-            add(Box.createHorizontalStrut(22));
-        }
-    };
+//             add(combo);
+//             add(Box.createHorizontalStrut(5));
+//             JPanel controls = new PathwayPanel.PlaybackToolPanel();
+//             //controls.setBackground(Color.red);
+//             controls.setOpaque(false); // so we use parents background fill color
+//             add(controls);
+//             //add(Box.createHorizontalGlue());
+//             add(Box.createHorizontalStrut(22));
+//         }
+//     };
 
     
     
