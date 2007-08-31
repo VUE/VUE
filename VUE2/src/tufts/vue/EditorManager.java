@@ -13,7 +13,7 @@ public class EditorManager
                PropertyChangeListener
 {
     private static final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
-    private static final HashMap<LWEditor,JLabel> mLabels = new HashMap();
+    private static final Map<LWEditor,JLabel> mLabels = new HashMap();
     private static EditorManager singleton;
     private static boolean EditorLoadingUnderway; // editors are loading values from the selection
     private static boolean PropertySettingUnderway; // editor values are being applied to the selection
