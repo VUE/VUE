@@ -431,9 +431,9 @@ class LWCInspector extends javax.swing.JPanel
         
         locationField.setText("x: " + c.getX() + "   y: " + c.getY());
         String sizeText = String.format("%.0fx%.0f", c.getWidth(), c.getHeight());
-        if (c.getScale() != 1f) {
-            sizeText += "  z=" + c.getScale();
-            sizeText += "  absZ=" + c.getMapScale();
+        if (true||c.getScale() != 1f) {
+            sizeText += " z=" + c.getScale();
+            sizeText += " mapZ=" + c.getMapScale();
         }
         if (!c.isAutoSized())
             sizeText += " userSize";
