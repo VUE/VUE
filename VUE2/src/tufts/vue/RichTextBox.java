@@ -92,7 +92,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.1 $ / $Date: 2007-08-24 00:09:11 $ / $Author: mike $
+ * @version $Revision: 1.2 $ / $Date: 2007-08-31 00:49:39 $ / $Author: sfraize $
  *
  */
 
@@ -712,9 +712,15 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
      */
     public void focusLost(FocusEvent e)
     {
-    	
-    	if (e.getOppositeComponent() != null && (e.getOppositeComponent().getClass() == FontEditorPanel.class || e.getOppositeComponent().getClass() == DockWindow.class))
+        final java.awt.Component opposite = e.getOppositeComponent();
+        
+    	if (opposite != null) {
+            if (opposite.getClass() == FontEditorPanel.class ||
+                opposite.getClass() == DockWindow.class ||
+                // todo: something more generic than this getName check: set a property on the JComponent tagging it as a tool/editor?
+                opposite.getName() == tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME) 
     		return;
+        }
     	
     	//System.out.println(e.getComponent().toString());
     	//System.out.println(e.getOppositeComponent().toString());
@@ -1056,7 +1062,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 
     public String toString()
     {
-        return "TextBox[" + lwc + "]";
+        return "RTB[" + lwc + "]";
     }
 
     private static class TestPanel extends javax.swing.JPanel {
@@ -1099,10 +1105,10 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
           startPosition = (returnMessage.toString()).indexOf("<"); // look for the next opening brace
           endPosition = (returnMessage.toString()).indexOf(">"); // look for the next closing brace
         }
-        return returnMessage.toString();
+        return returnMessage.toString().trim();
       }
     private void out(String s) {
-        System.out.println("TextBox@" + id() + " [" + getText() + "] " + s);
+        System.out.println("RTB@" + id() + " [" + getText() + "] " + s);
         //System.out.println("TextBox@" + id() + " " + s);
     }
     private void out(String s, Dimension d) {
