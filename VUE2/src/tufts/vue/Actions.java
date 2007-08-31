@@ -208,6 +208,7 @@ public class Actions implements VueConstants
 				tufts.vue.PresentationNotes.createMapAsPDF(pdfFile);
 		}
     };
+   
     //-------------------------------------------------------
     // Selection actions
     //-------------------------------------------------------
@@ -357,6 +358,90 @@ public class Actions implements VueConstants
     };
     
     /**End of Addition by Daisuke Fujiwara*/
+    
+    public static final Action PreviewInViewer =
+        new LWCAction("In Viewer") {
+            public void act(Iterator i) {
+                GUI.makeVisibleOnScreen(VUE.getActiveViewer(), tufts.vue.ui.SlideViewer.class);                
+            }
+            boolean enabledFor(LWSelection s) {
+                return s.size() == 1 && s.first() instanceof LWSlide;
+            }
+        };
+    
+     public static final Action MasterSlide = new VueAction("Master Slide")
+     {
+    	public void act()
+    	{
+    		VUE.getSlideDock().setVisible(true);
+    		VUE.getSlideViewer().showMasterSlideMode();
+    	}
+     };
+     public static final Action PreviewOnMap =
+            new LWCAction("On Map") {
+                public void act(LWComponent c) {
+                	
+                    final MapViewer viewer = VUE.getActiveViewer();
+
+                    if (viewer.getFocal() == c) {
+                        viewer.popFocal(true, true);
+                        return;
+                        //return false;
+                    }
+
+                    final Rectangle2D viewerBounds = viewer.getVisibleMapBounds();
+                    final Rectangle2D mapBounds = c.getMapBounds();
+                    final Rectangle2D overlap = viewerBounds.createIntersection(mapBounds);
+                    final double overlapArea = overlap.getWidth() * overlap.getHeight();
+                    //final double viewerArea = viewerBounds.getWidth() * viewerBounds.getHeight();
+                    final double nodeArea = mapBounds.getWidth() * mapBounds.getHeight();
+                    final boolean clipped = overlapArea < nodeArea;
+                    
+                    final double overlapWidth = mapBounds.getWidth() / viewerBounds.getWidth();
+                    final double overlapHeight = mapBounds.getHeight() / viewerBounds.getHeight();
+
+                    final boolean focusNode; // otherwise, re-focus map      
+                    
+                    if (clipped) {
+                        focusNode = true;
+                    } else if (overlapWidth > 0.8 || overlapHeight > 0.8) {
+                        focusNode = false;
+                    } else
+                        focusNode = true;
+                    
+                    boolean AnimateOnZoom=false;
+                    
+                    if (focusNode) {
+                        viewer.clearRollover();
+                        
+                        if (true) {
+                            // loadfocal animate only currently works when popping (to a parent focal)
+                            //viewer.loadFocal(this, true, AnimateOnZoom);
+                            ZoomTool.setZoomFitRegion(viewer,
+                                                      mapBounds,
+                                                      0,
+                                                      AnimateOnZoom);
+                            viewer.loadFocal(c);
+                        } else {
+                            ZoomTool.setZoomFitRegion(viewer,
+                                                      mapBounds,
+                                                      -LWPathway.PathBorderStrokeWidth / 2,
+                                                      AnimateOnZoom);
+                        }
+                    } else {
+                        // just re-fit to the map
+                        viewer.fitToFocal(AnimateOnZoom);
+                    }
+                    
+                	
+                	
+                }
+                boolean enabledFor(LWComponent s) {
+                    return s instanceof LWSlide;
+                }
+            };
+                
+    
     
     
     //-----------------------------------------------------------------------------
@@ -714,6 +799,26 @@ public class Actions implements VueConstants
                 image.setResource(new URLResource(fileName.getAbsolutePath()));
                 //node.addChild(image);
                 c.addChild(image);
+            }
+        	
+        }
+    };
+    
+    public static final LWCAction AddFileAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addFile.label")) {
+        public void act(LWComponent c) 
+        {
+        	JFileChooser chooser = new JFileChooser();
+    		File fileName = null;
+    		
+            int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
+            if (option == JFileChooser.APPROVE_OPTION) 
+            {
+                fileName = chooser.getSelectedFile();
+
+                if (fileName == null) 
+                	return;
+                
+                c.setResource(new URLResource(fileName.getAbsolutePath()));
             }
         	
         }
@@ -1356,13 +1461,13 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomFit =
-        new VueAction("Fit Window", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
+        new VueAction("Fit in Window", keyStroke(KeyEvent.VK_0, COMMAND+SHIFT), ":general/Zoom") {
         public void act() {
             ZoomTool.setZoomFit();
         }
     };
     public static final VueAction ZoomActual =
-    new VueAction("View at 100%", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
+    new VueAction("Actual Size", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         public void act() {
@@ -1406,6 +1511,15 @@ public class Actions implements VueConstants
         }*/    
     };
     
+    public static final Action TogglePruning =
+        new VueAction("Pruning") {
+        public void act() {
+            boolean enabled = LWLink.isPruningEnabled();
+            LWLink.setPruningEnabled(!enabled);
+                        
+        }
+    };
+    
     public static final Action ToggleSplitScreen =
         new VueAction("Split Screen") {
         public void act() {
@@ -1413,20 +1527,38 @@ public class Actions implements VueConstants
         }
     };
     
-    
-//     public static final VueAction NewSlide =
-//     new NewItemAction("New Slide", keyStroke(KeyEvent.VK_S, LEFT_OF_SPACE+CTRL)) {
-//         LWComponent createNewItem(MapViewer viewer, Point2D newLocation) {
-//             final LWComponent slide = LWSlide.CreateFromList(VUE.getSelection());
-//             slide.setLocation(newLocation);
-//             viewer.getFocal().addChild(slide);
-//             return slide;
-//         }
-//     };
+    public static final LWCAction NewSlide = new LWCAction("Add node to presentation") {        
+                public void act(Iterator i) {
+                    VUE.getActivePathway().add(i);
+                    GUI.makeVisibleOnScreen(VUE.getActiveViewer(), PathwayPanel.class);
+                    
+                }
+                boolean enabledFor(LWSelection s) {
+                    // items can be added to pathway as many times as you want
+                    return VUE.getActivePathway() != null && s.size() > 0;
+                }            
+     };
+     
+     public static final LWCAction MergeNodeSlide = new LWCAction("Copy nodes into new node and add to presentation") {        
+         public void act(Iterator i) {
+             final LWComponent node = VUE.getActivePathway().createMergedNode(VUE.getSelection());
+             node.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
+             VUE.getActiveViewer().getMap().add(node);
+             VUE.getActivePathway().add(node);
 
-    
+             
+             
+         }
+         boolean enabledFor(LWSelection s) {
+             // items can be added to pathway as many times as you want
+             return VUE.getActivePathway() != null && s.size() > 0;
+         }            
+};
+
+
+     
     public static final VueAction NewNode =
-    new NewItemAction("New Node", keyStroke(KeyEvent.VK_N, COMMAND)) {
+    new NewItemAction("Add Node", keyStroke(KeyEvent.VK_N, COMMAND)) {
         @Override
         LWComponent createNewItem() {
             return NodeModeTool.createNewNode();
@@ -1435,7 +1567,7 @@ public class Actions implements VueConstants
 
         
     public static final VueAction NewText =
-    new NewItemAction("New Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
+    new NewItemAction("Add Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
         @Override
         LWComponent createNewItem() {
             return NodeModeTool.createTextNode("new text");
@@ -1453,6 +1585,8 @@ public class Actions implements VueConstants
     public static final Action[] NEW_OBJECT_ACTIONS = {
         NewNode,
         NewText,
+        AddImageAction,
+        AddFileAction,
         //NewSlide
     };
     
