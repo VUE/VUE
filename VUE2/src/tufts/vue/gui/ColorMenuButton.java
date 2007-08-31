@@ -44,7 +44,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
-import com.sun.codemodel.JLabel;
+//import com.sun.codemodel.JLabel;
 
 /**
  * ColorMenuButton
@@ -52,7 +52,7 @@ import com.sun.codemodel.JLabel;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.14 $ / $Date: 2007-08-20 13:13:54 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2007-08-31 00:46:42 $ / $Author: sfraize $
  * @author csb
  * @author Scott Fraize
  */
@@ -60,6 +60,8 @@ import com.sun.codemodel.JLabel;
 public class ColorMenuButton extends JButton
 implements ActionListener, tufts.vue.LWEditor
 {
+    public static final String COLOR_POPUP_NAME = "ColorPopupMenu";
+    
     /** The currently selected Color item--if any **/
     //protected Color mCurColor = new Color(0,0,0);
     protected Color mCurColor = null;
@@ -89,6 +91,7 @@ implements ActionListener, tufts.vue.LWEditor
 
         // use frame
         popupWindow = new JFrame();
+        popupWindow.setName(COLOR_POPUP_NAME);
         popupWindow.setUndecorated(true);
 
         popupWindow.addWindowFocusListener(new WindowFocusListener() {
