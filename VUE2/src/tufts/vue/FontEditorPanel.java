@@ -55,7 +55,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.58 $ / $Date: 2007-08-30 21:50:34 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2007-08-31 01:15:23 $ / $Author: sfraize $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -114,7 +114,8 @@ public class FontEditorPanel extends JPanel
     	//super(BoxLayout.X_AXIS);
     	setLayout(new GridBagLayout());
     	//ActiveInstance.addAllActiveListener(this);
-    	VUE.addActiveListener(LWComponent.class, this);
+    	//VUE.addActiveListener(LWComponent.class, this);
+    	VUE.addActiveListener(RichTextBox.class, this);
         mPropertyKey = propertyKey;
 
         setFocusable(false);
@@ -259,8 +260,15 @@ public class FontEditorPanel extends JPanel
         mBoldButton = new VueButton.Toggle("font.button.bold",styleChangeHandler);
         
         mItalicButton = new VueButton.Toggle("font.button.italic", styleChangeHandler);
-        mUnderlineButton = new VueButton.Toggle("font.button.underline", styleChangeHandler);
+        mUnderlineButton = new VueButton.Toggle("font.button.underline"); // regular components don't support this style
+        //mUnderlineButton = new VueButton.Toggle("font.button.underline", styleChangeHandler);
         alignmentButton = new AlignmentDropDown();
+
+        // We can set these once -- they're not property based:
+        mUnderlineButton.addActionListener(richUnderlineAction);						
+        orderedListButton.addActionListener(toggleNumbersAction);
+        unorderedListButton.addActionListener(toggleBulletsAction);
+        
 
         alignmentButton.getComboBox().addActionListener
             (new LWPropertyHandler<LWComponent.Alignment>(LWKey.Alignment, alignmentButton.getComboBox()) {
@@ -284,7 +292,10 @@ public class FontEditorPanel extends JPanel
         mTextColorButton.setColor(Color.black);
         mTextColorButton.setPropertyKey(LWKey.TextColor);
         mTextColorButton.setToolTipText("Text Color");
-        //mTextColorButton.addPropertyChangeListener(this);
+        
+        mTextColorButton.addPropertyChangeListener(RichTextColorChangeListener);
+
+
         
         //Set up Labels...
         JLabel styleLabel = new JLabel("Style :");
@@ -680,7 +691,164 @@ public class FontEditorPanel extends JPanel
         VueUtil.displayComponent(new FontEditorPanel(LWKey.Font));
     }
 
+    private void enableSupportedEditors() {
+        setSpecialEditorsEnabled(true);
+        
+        mBoldButton.setEnabled(true);
+        mItalicButton.setEnabled(true);
+        mFontCombo.setEnabled(true);
+        mSizeField.setEnabled(true);
+        mTextColorButton.setEnabled(true);
+        alignmentButton.getComboBox().setEnabled(true);
+    }
 
+    private void disableSpecialEditors() {
+
+        // we only need to disable the editors not associated with
+        // a property (those special to LWText) -- the rest of
+        // the editors will set their enabled state based on what's
+        // next selected.
+        
+        setSpecialEditorsEnabled(false);
+    }
+
+    private void setSpecialEditorsEnabled(boolean enabled) {
+        mUnderlineButton.setEnabled(enabled);
+        orderedListButton.setEnabled(enabled);
+        unorderedListButton.setEnabled(enabled);
+    }
+
+
+//     private final ActionListener TextColorListener =
+//         new ActionListener() {
+//             public void actionPerformed(ActionEvent e)
+//             {
+//                 Color color =FontEditorPanel.getTextColorButton().getColor();
+//                 SimpleAttributeSet set = new SimpleAttributeSet();
+//                 String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
+//                 Util.styleSheet().addCSSAttribute(set,
+//                                                   CSS.Attribute.COLOR, colorString);
+                
+//                 set.addAttribute(HTML.Attribute.COLOR, colorString);
+                
+//                 //text.getRichLabelBox().applyAttributes(set, false);
+//                 ((RichTextBox)VUE.getActive(RichTextBox.class)).applyAttributes(set, false);
+//             }
+//         };
+
+    /**
+     * We need to use a property change listener instead of an action listener for the
+     * ColorMenuButton, as the action fires there to detect popping the menu, not
+     * a color set.  When a color is picked, it will fire off property change events
+     * to any listeners.  We set ourselves up to listen constantly here, and
+     * if there is an active RichTextBox editing, then we apply it, otherwise we
+     * just ignore it.
+     */
+    private final PropertyChangeListener RichTextColorChangeListener =
+        new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent e) {
+
+                if (e instanceof LWPropertyChangeEvent == false)
+                    return;
+                
+                final RichTextBox activeRTB = (RichTextBox) VUE.getActive(RichTextBox.class);
+
+                if (activeRTB == null) {
+                    // no problem: just ignore if there's no active edit
+                    //tufts.Util.printStackTrace("FEP propertyChange: no active RichTextBox: " + e);
+                    return;
+                }
+                
+                final Color color = (Color) e.getNewValue();
+                final SimpleAttributeSet set = new SimpleAttributeSet();
+                final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
+
+                Util.styleSheet().addCSSAttribute(set, CSS.Attribute.COLOR, colorString);
+                
+                set.addAttribute(HTML.Attribute.COLOR, colorString);
+
+                activeRTB.applyAttributes(set, false);
+            }
+        };
+
+
+
+
+    public void activeChanged(ActiveEvent e, RichTextBox activeText)
+    {
+        if (e.active == e.oldActive)
+            return;
+        
+        if (activeText != null) {
+            activeText.addCaretListener(this);
+            richBoldAction.setEditorPane(activeText);
+            richItalicAction.setEditorPane(activeText);
+            richUnderlineAction.setEditorPane(activeText);
+            toggleBulletsAction.setEditorPane(activeText);
+            toggleNumbersAction.setEditorPane(activeText);
+            paraAlignLeftAction.setEditorPane(activeText);
+            paraAlignCenterAction.setEditorPane(activeText);
+            paraAlignRightAction.setEditorPane(activeText);
+            fontFamilyAction.setEditorPane(activeText);
+            fontSizeAction.setEditorPane(activeText);
+            fontColorAction.setEditorPane(activeText);
+		    		
+            mBoldButton.removeActionListener(styleChangeHandler);
+            mBoldButton.addActionListener(richBoldAction);			
+			
+            mItalicButton.removeActionListener(styleChangeHandler);
+            mItalicButton.addActionListener(richItalicAction);			
+			
+            // as underline / ordered / unordered are special to LWText,
+            // (not property based -- no other components can use them),
+            // we probably don't need to change their action listeners
+            // here -- setting them once above should suffice.
+
+//             mUnderlineButton.removeActionListener(styleChangeHandler);			
+//             mUnderlineButton.addActionListener(richUnderlineAction);						
+//             orderedListButton.addActionListener(toggleNumbersAction);
+//             unorderedListButton.addActionListener(toggleBulletsAction);
+			
+            mFontCombo.addActionListener(fontFamilyAction);
+            mFontCombo.removeActionListener(fontPropertyHandler);
+			
+            mSizeField.removeActionListener(fontPropertyHandler);
+            mSizeField.addActionListener(fontSizeAction);
+			
+            //mTextColorButton.removeActionListener(mTextColorButton);
+            //mTextColorButton.addActionListener(TextColorListener);
+            
+            alignmentButton.getComboBox().addItemListener(alignmentListener);
+
+            enableSupportedEditors();
+			
+        } else {
+
+            disableSpecialEditors();
+            
+            mBoldButton.removeActionListener(richBoldAction);
+            mBoldButton.addActionListener(styleChangeHandler);			
+            
+            mItalicButton.removeActionListener(richItalicAction);
+            mItalicButton.addActionListener(styleChangeHandler);
+            
+            mUnderlineButton.removeActionListener(richUnderlineAction);			
+            //mUnderlineButton.addActionListener(styleChangeHandler);
+            
+            mFontCombo.removeActionListener(fontFamilyAction);
+            mFontCombo.addActionListener(fontPropertyHandler);
+
+            //mTextColorButton.addActionListener(mTextColorButton);
+            
+            
+            //orderedListButton.removeActionListener(toggleNumbersAction);
+            //unorderedListButton.removeActionListener(toggleBulletsAction);
+            
+        }
+				
+    }
+
+    /*
     public void activeChanged(ActiveEvent e, LWComponent active) {
 		//Object hasn't changed do nothing...
 		if (e.active == e.oldActive)
@@ -773,6 +941,7 @@ public class FontEditorPanel extends JPanel
 		}
 				
 	}
+    */      
 
 	private class AlignmentListener implements ItemListener
 	{
