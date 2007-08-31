@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.102 $ / $Date: 2007-08-29 23:01:41 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2007-08-31 04:43:21 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -118,10 +118,10 @@ public class PathwayPanel extends JPanel
  
     //MK - Despite these not being used on the presentation window anymore they are still
     //referenced by the pathway tool so they're sticking around for now.
-    private static final Action path_rewind = new PlayerAction("pathway.control.rewind");
-    private static final Action path_backward = new PlayerAction("pathway.control.backward");
-    private static final Action path_forward = new PlayerAction("pathway.control.forward");
-    private static final Action path_last = new PlayerAction("pathway.control.last");
+//     private static final Action path_rewind = new PlayerAction("pathway.control.rewind");
+//     private static final Action path_backward = new PlayerAction("pathway.control.backward");
+//     private static final Action path_forward = new PlayerAction("pathway.control.forward");
+//     private static final Action path_last = new PlayerAction("pathway.control.last");
 
   //  private final JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -857,50 +857,50 @@ public class PathwayPanel extends JPanel
         return VUE.getActivePathway();
     }
 
-    public static class PlaybackToolPanel extends JPanel
-    {
-        public PlaybackToolPanel() {
-            super(new GridLayout(1, 4, 1, 0));
+//     public static class PlaybackToolPanel extends JPanel
+//     {
+//         public PlaybackToolPanel() {
+//             super(new GridLayout(1, 4, 1, 0));
 
-            add(new VueButton(path_rewind));
-            add(new VueButton(path_backward));
-            add(new VueButton(path_forward));
-            add(new VueButton(path_last));
-        }
-    }
+//             add(new VueButton(path_rewind));
+//             add(new VueButton(path_backward));
+//             add(new VueButton(path_forward));
+//             add(new VueButton(path_last));
+//         }
+//     }
 
-    private static class PlayerAction extends AbstractAction
-    {
-        PlayerAction(String name) {
-            // as we're to be used by a VueButton, store the key
-            // as the action command, not the name, as we don't
-            // want it to show up as the button label
-            putValue(Action.ACTION_COMMAND_KEY, name);
-        }
+//     private static class PlayerAction extends AbstractAction
+//     {
+//         PlayerAction(String name) {
+//             // as we're to be used by a VueButton, store the key
+//             // as the action command, not the name, as we don't
+//             // want it to show up as the button label
+//             putValue(Action.ACTION_COMMAND_KEY, name);
+//         }
         
-        public void actionPerformed(ActionEvent e)
-        {
-            LWPathway pathway = VUE.getActivePathway();
-            if (pathway == null)
-                return;
-            String cmd = e.getActionCommand();
-                 if (cmd.endsWith("rewind"))    pathway.setFirst();
-            else if (cmd.endsWith("backward"))  pathway.setPrevious();
-            else if (cmd.endsWith("forward"))   pathway.setNext();
-            else if (cmd.endsWith("last"))      pathway.setLast();
-            else
-                throw new IllegalArgumentException(this + " " + e);
+//         public void actionPerformed(ActionEvent e)
+//         {
+//             LWPathway pathway = VUE.getActivePathway();
+//             if (pathway == null)
+//                 return;
+//             String cmd = e.getActionCommand();
+//                  if (cmd.endsWith("rewind"))    pathway.setFirst();
+//             else if (cmd.endsWith("backward"))  pathway.setPrevious();
+//             else if (cmd.endsWith("forward"))   pathway.setNext();
+//             else if (cmd.endsWith("last"))      pathway.setLast();
+//             else
+//                 throw new IllegalArgumentException(this + " " + e);
                  
-                 //VUE.getUndoManager().mark(); // the above stuff not worth having undoable
-        }
+//                  //VUE.getUndoManager().mark(); // the above stuff not worth having undoable
+//         }
 
-        private static void setAllEnabled(boolean t) {
-            path_rewind.setEnabled(t);
-            path_backward.setEnabled(t);
-            path_forward.setEnabled(t);
-            path_last.setEnabled(t);
-        }
-    }
+//         private static void setAllEnabled(boolean t) {
+//             path_rewind.setEnabled(t);
+//             path_backward.setEnabled(t);
+//             path_forward.setEnabled(t);
+//             path_last.setEnabled(t);
+//         }
+//     }
 
     public void actionPerformed(ActionEvent e)
     {
@@ -1223,25 +1223,25 @@ public class PathwayPanel extends JPanel
         
         LWPathway pathway = VUE.getActivePathway();
        
-        if (pathway != null && pathway.length() > 1) {
-            boolean atFirst = pathway.atFirst();
-            boolean atLast = pathway.atLast();
-             path_rewind.setEnabled(!atFirst);
-             path_backward.setEnabled(!atFirst);
-             path_forward.setEnabled(!atLast);
-             path_last.setEnabled(!atLast);
-//            if (pathway.isLocked()) {
-  //              btnElementUp.setEnabled(false);
-    //            btnElementDown.setEnabled(false);
-      //      } else {
-    //            btnElementUp.setEnabled(!atFirst);
-    //            btnElementDown.setEnabled(!atLast);
-           // }
-        } else {
-            PlayerAction.setAllEnabled(false);
-    //        btnElementUp.setEnabled(false);
-    //        btnElementDown.setEnabled(false);
-        }
+//         if (pathway != null && pathway.length() > 1) {
+//             boolean atFirst = pathway.atFirst();
+//             boolean atLast = pathway.atLast();
+//              path_rewind.setEnabled(!atFirst);
+//              path_backward.setEnabled(!atFirst);
+//              path_forward.setEnabled(!atLast);
+//              path_last.setEnabled(!atLast);
+// //            if (pathway.isLocked()) {
+// //                btnElementUp.setEnabled(false);
+// //                btnElementDown.setEnabled(false);
+// //            } else {
+// //                btnElementUp.setEnabled(!atFirst);
+// //                btnElementDown.setEnabled(!atLast);
+// //            }
+//         } else {
+//             PlayerAction.setAllEnabled(false);
+//     //        btnElementUp.setEnabled(false);
+//     //        btnElementDown.setEnabled(false);
+//         }
         btnPathwayOnly.setEnabled(pathway != null);
         
       //  btnLockPresentation.setEnabled(pathway != null);
