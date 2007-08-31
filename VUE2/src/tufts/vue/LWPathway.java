@@ -35,6 +35,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.geom.*;
+import javax.swing.Icon;
 
 /**
  * Provides for the managing of a list of LWComponents as elements in a "path" through
@@ -47,7 +48,7 @@ import java.awt.geom.*;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.179 $ / $Date: 2007-08-30 18:53:12 $ / $Author: sfraize $
+ * @version $Revision: 1.180 $ / $Date: 2007-08-31 05:02:26 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -395,6 +396,18 @@ public class LWPathway extends LWContainer
 				return false;
 		}
     }
+
+    public final Icon mSlideIcon = new Icon() {
+            public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+                g.setColor(getMasterSlide().getFillColor());
+                g.fillRect(x, y, getIconWidth(), getIconHeight());
+                g.setColor(Color.darkGray);
+                g.drawRect(x, y, getIconWidth(), getIconHeight());
+            }
+            public int getIconWidth() { return 14; }
+            public int getIconHeight() { return 10; }
+        };
+    
 
     /**
      * This special pathway entry represents the pathway itself.

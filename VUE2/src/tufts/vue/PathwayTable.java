@@ -61,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.81 $ / $Date: 2007-08-28 20:27:14 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2007-08-31 05:02:26 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -853,10 +853,11 @@ public class PathwayTable extends JTable
                     if (obj instanceof Boolean)
                         bool = ((Boolean)obj).booleanValue();
                     
-                    setBorder(iconBorder);
+                    //setBorder(iconBorder);
                     
                     if (entry.hasVariableDisplayMode())
-                        setIcon(bool ? mapViewIcon : slideViewIcon);
+                        setIcon(bool ? mapViewIcon : entry.pathway.mSlideIcon);
+                    //setIcon(bool ? mapViewIcon : slideViewIcon);
                     else
                         setIcon(null);
                     
