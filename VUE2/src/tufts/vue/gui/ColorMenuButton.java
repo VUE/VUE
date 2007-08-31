@@ -52,7 +52,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.15 $ / $Date: 2007-08-31 00:46:42 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2007-08-31 01:06:51 $ / $Author: sfraize $
  * @author csb
  * @author Scott Fraize
  */
@@ -280,11 +280,10 @@ implements ActionListener, tufts.vue.LWEditor
             Object oldValue = produceValue();
             displayValue(newPropertyValue);
             firePropertyChanged(oldValue, newPropertyValue);
-            
-          
         }
         repaint();
     }
+    
     /** fire a property change event even if old & new values are the same */
     // COULD USE Component.firePropertyChange!  all this is getting us is diagnostics!
     protected void firePropertyChanged(Object oldValue, Object newValue)
