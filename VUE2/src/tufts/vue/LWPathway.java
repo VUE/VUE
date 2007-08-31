@@ -48,7 +48,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.180 $ / $Date: 2007-08-31 05:02:26 $ / $Author: sfraize $
+ * @version $Revision: 1.181 $ / $Date: 2007-08-31 05:24:34 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -397,12 +397,20 @@ public class LWPathway extends LWContainer
 		}
     }
 
+    private static final Color AlphaWhite = new Color(255,255,255,128);
     public final Icon mSlideIcon = new Icon() {
             public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
-                g.setColor(getMasterSlide().getFillColor());
+                //g.setColor(getMasterSlide().getFillColor());
+                final Color color = Util.alphaMix(AlphaWhite, getMasterSlide().getFillColor());
+                g.setColor(color);
                 g.fillRect(x, y, getIconWidth(), getIconHeight());
-                g.setColor(Color.darkGray);
+                //g.setColor(Color.gray);
+                g.setColor(color.darker());
                 g.drawRect(x, y, getIconWidth(), getIconHeight());
+//                 g.translate(x + 2, y + 3);
+//                 g.drawLine(0, 0,  8, 0);
+//                 g.drawLine(0, 2, 10, 2);
+//                 g.drawLine(0, 4,  6, 4);
             }
             public int getIconWidth() { return 14; }
             public int getIconHeight() { return 10; }
