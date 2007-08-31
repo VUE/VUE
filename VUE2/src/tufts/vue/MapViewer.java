@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.429 $ / $Date: 2007-08-29 23:12:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.430 $ / $Date: 2007-08-31 01:11:13 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1594,7 +1594,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // the map as the pick root (instead of the portal which would be useless
             // because they're always empty), and ensuring the portal is invisible to
             // the the pick (excluded).
-            pc.root = mFocal.getMap();
+            pc.root = mFocal.getParent();
+            //pc.root = mFocal.getMap();
             pc.excluded = mFocal;
         }
 
@@ -2490,6 +2491,53 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.VIEWER && mRollover != null)
             mRollover.updateConnectedLinks(null);
         
+        if (false && mFocal instanceof LWPortal) {
+            final Shape curClip = dc.g.getClip();
+            final Shape focalClip = getFocalClip();
+            dc.g.clip(focalClip);
+            dc.setMasterClip(focalClip);
+
+            LWComponent parentSlide = mFocal.getParentOfType(LWSlide.class);
+            // don't need to re-draw the focal itself, it's being
+            // drawn in it's parent (slide or map)
+            if (parentSlide != null) {
+                parentSlide.draw(dc);
+            } else {
+                //dc.g.setColor(Color.blue);
+                //dc.g.fill(mFocal.getZeroShape());
+                //dc.g.fill(dc.getMasterClipRect());
+                mFocal.getMap().draw(dc);
+            }
+            if (curClip != null)
+                dc.setMasterClip(curClip);
+        } else {
+            // normally draw the map / focal
+            mFocal.draw(dc);
+        }
+
+        if (mRollover != null) {
+            drawZoomedFocus(mRollover, dc.create()).dispose();
+        }
+    }
+
+    // This code handled transparent anything (with map showing thru) + links as focals:
+    /*
+          protected void drawFocalImpl(DrawContext dc)
+    {
+        if (dc.getBackgroundFill() == null) {
+            // unless the active tool has already done some kind
+            // of special fill, fill the entire background
+            // before drawing anything else (must to do this
+            // to clear out the prior graphics context).
+            dc.fillBackground(getBackgroundFillColor(dc));
+        }
+        
+        if (mFocal == null)
+            return;
+
+        if (DEBUG.VIEWER && mRollover != null)
+            mRollover.updateConnectedLinks(null);
+        
         if (mFocal.isTranslucent() && mFocal != mMap) {
             // If our fill is in any way translucent, the underlying
             // map can show thru, thus we have to draw the whole map
@@ -2513,6 +2561,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (parentSlide != null) {
                 parentSlide.draw(dc);
             } else {
+                //dc.g.setColor(Color.blue);
+                //dc.g.fill(mFocal.getZeroShape());
+                //dc.g.fill(dc.getMasterClipRect());
                 mFocal.getMap().draw(dc);
             }
             if (curClip != null)
@@ -2526,6 +2577,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             drawZoomedFocus(mRollover, dc.create()).dispose();
         }
     }
+    */
 
     private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
     
@@ -2583,6 +2635,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else if (c == activeRichTextEdit) {
                 activeRichTextEdit = null;
                 removedEdit = true;
+                VUE.setActive(RichTextBox.class, this, null);
             }
             if (removedEdit) {
                 try {
@@ -2655,7 +2708,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	activeRichTextEdit = ((LWText)lwc).getRichLabelBox();
         	activeRichTextEdit.saveCurrentText();
         	if (activeRichTextEdit.getText().length() < 1)
-        		activeRichTextEdit.setText("label");
+                    activeRichTextEdit.setText("label");
         }
         else
         {
@@ -2711,10 +2764,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
       //  VUE.getFormattingPanel().getTextPropsPane().setActiveTextControl(activeTextEdit);
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from addNotify");
-        if (lwc instanceof LWText)
+        if (lwc instanceof LWText) {
             activeRichTextEdit.requestFocus();
-        else
+            VUE.setActive(RichTextBox.class, this, activeRichTextEdit);
+        } else {
             activeTextEdit.requestFocus();
+        }
         
         if (DEBUG.LAYOUT) System.out.println(activeTextEdit + " back from requestFocus");
     }
@@ -3839,7 +3894,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //if (s.only() instanceof LWSlide) s.clear(); // okay, this stopped us from picking up the slide, but too soon: can't change BG color
         if (isAnimating) {
             if (DEBUG.Enabled) Util.printStackTrace("drag not allowed: animating");
-        } if (s.size() > 0 && s.first().isMoveable() && activeTool.supportsSelection()) {
+        } if (s.size() > 0 && s.first().isMoveable() && activeTool.supportsSelection() && s.first() != mFocal) {
             if (DEBUG.WORK) out("set to drag " + s);
             draggedSelectionGroup.useSelection(s);
             setDragger(draggedSelectionGroup);
