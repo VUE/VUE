@@ -61,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.83 $ / $Date: 2007-08-31 05:23:51 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2007-08-31 05:34:33 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -1039,34 +1039,35 @@ public class PathwayTable extends JTable
 		// TODO Auto-generated method stub
 		
 	}
-	public void mousePressed(MouseEvent e) {
+    public void mousePressed(MouseEvent e) {
 		
-		  int row = getSelectedRow();
-		  PathwayTableModel tableModel = getTableModel();
-	      lastSelectedRow = row;
-	      int col = getSelectedColumn();
-	      //this.changeSelection(row,col,false,false);
-	      if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: selected row "+row+", col "+col);
+        int row = getSelectedRow();
+        PathwayTableModel tableModel = getTableModel();
+        lastSelectedRow = row;
+        int col = getSelectedColumn();
+        //this.changeSelection(row,col,false,false);
+        if (DEBUG.PATHWAY) System.out.println("PathwayTable: valueChanged: selected row "+row+", col "+col);
 	                    
 	                    
-	      final LWPathway.Entry entry = tableModel.getEntry(row);	
-	      if (entry.pathway.getEntries().isEmpty())
-	    	  return;
-	    if (entry.isPathway()) 
-	    {
+        final LWPathway.Entry entry = tableModel.getEntry(row);
+        
+        if (entry.pathway.getEntries().isEmpty())
+            return;
+        
+        if (entry.isPathway()) {
             if (col == PathwayTableModel.COL_VISIBLE ||
                 col == PathwayTableModel.COL_OPEN ||
-                col == PathwayTableModel.COL_LOCKEDnMAPVIEW) {
+                col == PathwayTableModel.COL_LOCKEDnMAPVIEW)
+                {
                 // setValue forces a value toggle in these cases
-                setValueAt(entry.pathway, row, col);
-        //        selectedEntry = false;
-            }
+                    setValueAt(entry.pathway, row, col);
+                    //        selectedEntry = false;
+                }
             //pathway.setCurrentIndex(-1);
-        } 
-	    else if (col == PathwayTableModel.COL_LOCKEDnMAPVIEW && entry.hasVariableDisplayMode()) 
-        {
+        } else if (col == PathwayTableModel.COL_LOCKEDnMAPVIEW && entry.hasVariableDisplayMode()) {
             setValueAt(entry.pathway, row,col);
-          //  selectedEntry = false;
+            PathwayPanel.updateMapViewDependentActions();
+            //  selectedEntry = false;
         }
 	    
     }

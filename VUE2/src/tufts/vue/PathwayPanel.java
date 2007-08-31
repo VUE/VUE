@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.104 $ / $Date: 2007-08-31 05:01:52 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2007-08-31 05:34:33 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1224,13 +1224,16 @@ public class PathwayPanel extends JPanel
         
         updateAddRemoveActions();
 
-        final LWPathway pathway = VUE.getActivePathway();
-
-        if (pathway != null && pathway.getCurrentEntry() != null) {
-            btnRefresh.setEnabled(!pathway.getCurrentEntry().isMapView());
-        } else {
-            btnRefresh.setEnabled(false);
-        }
+        doUpdateMapViewDependentActions();
+        
+        btnPathwayOnly.setEnabled(VUE.getActivePathway() != null);
+        
+//         final LWPathway pathway = VUE.getActivePathway();
+//         if (pathway != null && pathway.getCurrentEntry() != null) {
+//             btnRefresh.setEnabled(!pathway.getCurrentEntry().isMapView());
+//         } else {
+//             btnRefresh.setEnabled(false);
+//         }
 
 //         if (pathway != null && pathway.length() > 1) {
 //             boolean atFirst = pathway.atFirst();
@@ -1251,9 +1254,23 @@ public class PathwayPanel extends JPanel
 //     //        btnElementUp.setEnabled(false);
 //     //        btnElementDown.setEnabled(false);
 //         }
-        btnPathwayOnly.setEnabled(pathway != null);
+//        btnPathwayOnly.setEnabled(pathway != null);
         
       //  btnLockPresentation.setEnabled(pathway != null);
+    }
+
+    private void doUpdateMapViewDependentActions() {
+        final LWPathway pathway = VUE.getActivePathway();
+
+        if (pathway != null && pathway.getCurrentEntry() != null) {
+            btnRefresh.setEnabled(!pathway.getCurrentEntry().isMapView());
+        } else {
+            btnRefresh.setEnabled(false);
+        }
+    }
+
+    public static void updateMapViewDependentActions() {
+        Singleton.doUpdateMapViewDependentActions();
     }
     
     /** Delete's a pathway and all it's contents */
