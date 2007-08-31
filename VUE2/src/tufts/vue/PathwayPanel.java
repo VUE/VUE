@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.103 $ / $Date: 2007-08-31 04:43:21 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2007-08-31 05:01:52 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -938,7 +938,10 @@ public class PathwayPanel extends JPanel
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 presTool.startPresentation();
             }});
-                                  
+        }
+        else if (btn == btnRefresh)
+        {
+            System.out.println("REFRESH");
         }
    /*     else if (btn == btnMasterSlide)
         {
@@ -1220,9 +1223,15 @@ public class PathwayPanel extends JPanel
     {        if (DEBUG.PATHWAY&&DEBUG.META) System.out.println(this + " updateEnabledStates");
         
         updateAddRemoveActions();
-        
-        LWPathway pathway = VUE.getActivePathway();
-       
+
+        final LWPathway pathway = VUE.getActivePathway();
+
+        if (pathway != null && pathway.getCurrentEntry() != null) {
+            btnRefresh.setEnabled(!pathway.getCurrentEntry().isMapView());
+        } else {
+            btnRefresh.setEnabled(false);
+        }
+
 //         if (pathway != null && pathway.length() > 1) {
 //             boolean atFirst = pathway.atFirst();
 //             boolean atLast = pathway.atLast();
