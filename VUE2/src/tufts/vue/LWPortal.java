@@ -21,6 +21,8 @@ package tufts.vue;
 import tufts.Util;
 
 import java.awt.Color;
+import java.awt.AlphaComposite;
+import java.awt.geom.AffineTransform;
 
 
 /**
@@ -31,7 +33,7 @@ import java.awt.Color;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.12 $ / $Date: 2007-08-28 18:56:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.13 $ / $Date: 2007-08-31 01:11:42 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -104,7 +106,7 @@ public class LWPortal extends LWNode
     
     @Override
     public Color getRenderFillColor(DrawContext dc) {
-        if (dc != null && dc.focal != null)
+        if (false&&dc != null && dc.focal != null)
             return dc.focal.mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
         else
             return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
@@ -113,8 +115,47 @@ public class LWPortal extends LWNode
     @Override
     protected void drawImpl(DrawContext dc)
     {
+        if (dc.skipDraw == this)
+            return;
+
         //if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
-        if (dc.focal instanceof LWPortal) {
+        if (dc.focal == this) {
+
+            final AffineTransform zeroTransform = DEBUG.CONTAINMENT ? dc.g.getTransform() : null;
+
+//             dc.setAbsoluteStroke(5);
+//             dc.g.setColor(Color.red);
+//             dc.g.fill(getZeroShape());
+//             //dc.g.draw(getZeroShape());
+            
+            // Okay, I think this is really best handled in SlideViewer & PresentationTool, tho
+            // would be nice if that code could be merged...
+            //dc.g.setColor(getRenderFillColor(dc));
+            //dc.g.fill(getZeroShape());
+            dc.setMapDrawing();
+            dc.setDrawPathways(false);
+            dc.skipDraw = this;
+            if (DEBUG.CONTAINMENT) {
+                final DrawContext alphaDC = dc.create();
+                alphaDC.setAlpha(0.1, AlphaComposite.SRC);
+                getParent().draw(alphaDC);
+                alphaDC.dispose();
+
+                final DrawContext clipDC = dc.create();
+                clipDC.setMasterClip(getMapShape());
+                getParent().draw(clipDC);
+                clipDC.dispose();
+
+                dc.g.setTransform(zeroTransform);
+                dc.setAbsoluteStroke(1);
+                dc.g.setColor(Color.red);
+                dc.g.draw(getZeroShape());
+            } else {
+                dc.setMasterClip(getMapShape());
+                getParent().draw(dc);
+            }
+            
+        } else if (dc.focal instanceof LWPortal) {
             // no fill: don't show the portal fill if we, or any
             // other portal, is currently the focal
         } else if (hasEntries()) {
