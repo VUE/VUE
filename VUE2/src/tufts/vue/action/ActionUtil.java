@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.70 $ / $Date: 2007-08-16 01:36:55 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2007-08-31 18:06:07 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -96,28 +96,32 @@ public class ActionUtil {
         File picked = null;
         JFileChooser chooser = new JFileChooser();
         chooser.setDialogTitle(title);
-        chooser.setAcceptAllFileFilterUsed(false);
-        int compCount = chooser.getComponentCount();
-        Component jc = chooser.getComponent(2);
+        chooser.setAcceptAllFileFilterUsed(false);    
         
         
         
         
-        if (fileType != null)
+        if (fileType != null && !fileType.equals("export"))
          chooser.setFileFilter(new VueFileFilter(fileType)); 
-        
+        else if (fileType != null && fileType.equals("export"))
+        {
+        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));  
+        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
+        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
+        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
+        }
         else
         {
             VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
             
             chooser.addChoosableFileFilter(defaultFilter);  
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));  
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));
+////            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));  
+////            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));
             //chooser.addChoosableFileFilter(new VueFileFilter("pdf"));
             //chooser.addChoosableFileFilter(new VueFileFilter("html"));
             chooser.addChoosableFileFilter(new VueFileFilter("rdf"));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
+////            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
+////            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
             //chooser.addChoosableFileFilter(new VueFileFilter("HTML Outline", "htm"));
             
             chooser.setFileFilter(defaultFilter); 
