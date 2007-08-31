@@ -61,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.82 $ / $Date: 2007-08-31 05:02:26 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2007-08-31 05:23:51 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -749,7 +749,8 @@ public class PathwayTable extends JTable
             	 g.drawString(emptyString, 0, 33);
          }
     }
-    private Border iconBorder = new EmptyBorder(5,3,0,0);
+    private final Border iconBorder = new EmptyBorder(5,3,0,0);
+    private final Border NodeIconBorder = new EmptyBorder(1,0,0,0);
     private class ImageRenderer extends DefaultTableCellRenderer {
         
         public java.awt.Component getTableCellRendererComponent(
@@ -849,23 +850,27 @@ public class PathwayTable extends JTable
                 }
                 else if (col == PathwayTableModel.COL_LOCKEDnMAPVIEW) 
                 {
-                	boolean bool = false;
-                    if (obj instanceof Boolean)
-                        bool = ((Boolean)obj).booleanValue();
+                    if (entry.hasVariableDisplayMode()) {
+                        boolean isMapView = false;
+                        if (obj instanceof Boolean)
+                            isMapView = ((Boolean)obj).booleanValue();
                     
-                    //setBorder(iconBorder);
-                    
-                    if (entry.hasVariableDisplayMode())
-                        setIcon(bool ? mapViewIcon : entry.pathway.mSlideIcon);
-                    //setIcon(bool ? mapViewIcon : slideViewIcon);
-                    else
+                        if (isMapView) {
+                            setBorder(NodeIconBorder);
+                            setIcon(mapViewIcon);
+                        } else {
+                            setIcon(entry.pathway.mSlideIcon);
+                            //setIcon(slideViewIcon);
+                        }
+                    } else {
                         setIcon(null);
+                    }
                     
                     setToolTipText("Toggle map/slide node");
                     
                 } 
 
-        		return this;             
+                return this;             
             }                                             	                
         }
         
