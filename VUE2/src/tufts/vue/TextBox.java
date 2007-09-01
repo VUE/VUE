@@ -89,7 +89,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.56 $ / $Date: 2007-08-28 17:36:36 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2007-09-01 21:37:19 $ / $Author: sfraize $
  *
  */
 
@@ -940,7 +940,7 @@ public class TextBox extends JTextPane
 
     /** @return true if hue value of Color is black, ignoring any alpha */
     private boolean isBlack(Color c) {
-        return (c.getRGB() & 0xFFFFFF) == 0;
+        return c != null && (c.getRGB() & 0xFFFFFF) == 0;
     }
     
     public void draw(DrawContext dc)
@@ -965,15 +965,30 @@ public class TextBox extends JTextPane
             }
         }
 
-        boolean inverted;
-        if (dc.isBlackWhiteReversed() &&
-            (dc.isPresenting() || lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
-            isBlack(lwc.getTextColor())) {
-            //System.out.println("reversing color to white for " + this);
-            setDocumentColor(Color.white);
-            inverted = true;
-        } else
-            inverted = false;
+        boolean restoreTextColor = false;
+        
+//         if (dc.isBlackWhiteReversed() &&
+//             (dc.isPresenting() || lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
+//             isBlack(lwc.getTextColor())) {
+//             //System.out.println("reversing color to white for " + this);
+//             setDocumentColor(Color.white);
+//             inverted = true;
+//         } else
+//             inverted = false;
+
+        if (dc.isPresenting() && lwc.isTransparent()) {
+            // if the text color equals the background color when in a presentation
+            // (e.g. the master slide has a black background), and the text box
+            // has to fill of it's own for contrast, then temporarily swap
+            // the text color to white or black so it can be seen.
+            if (lwc.mTextColor.equals(dc.getBackgroundFill())) {
+                restoreTextColor = true;
+                if (lwc.mTextColor.brightness() > 0.5)
+                    setDocumentColor(Color.black);
+                else
+                    setDocumentColor(Color.white);
+            }
+        }
         
         //super.paintBorder(g);
         
@@ -993,8 +1008,10 @@ public class TextBox extends JTextPane
         super.paintComponent(dc.g);
         //super.paint(g);
 
-        if (inverted)
-            setDocumentColor(Color.black);
+        if (restoreTextColor) {
+            // return document color to black
+            setDocumentColor(lwc.mTextColor.get());
+        }
 
         // draw a border for links -- why?
         // and even if, better to handle in LWLink
