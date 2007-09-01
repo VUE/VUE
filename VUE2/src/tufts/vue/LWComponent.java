@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.340 $ / $Date: 2007-08-31 01:12:25 $ / $Author: sfraize $
+ * @version $Revision: 1.341 $ / $Date: 2007-09-01 16:59:52 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5530,9 +5530,11 @@ u                    getSlot(c).setFromString((String)value);
 
         final boolean focusNode; // otherwise, re-focus map
 
-        outf(" overlapWidth %4.1f%%", overlapWidth * 100);
-        outf("overlapHeight %4.1f%%", overlapHeight * 100);
-        outf("clipped=" + clipped);
+        if (DEBUG.Enabled) {
+            outf(" overlapWidth %4.1f%%", overlapWidth * 100);
+            outf("overlapHeight %4.1f%%", overlapHeight * 100);
+            outf("clipped=" + clipped);
+        }
         
         if (clipped) {
             focusNode = true;
