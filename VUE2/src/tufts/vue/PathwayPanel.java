@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.105 $ / $Date: 2007-08-31 05:34:33 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2007-09-01 16:16:58 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -343,7 +343,7 @@ public class PathwayPanel extends JPanel
         // Set up the listeners
         //-------------------------------------------------------                        
         VUE.addActiveListener(LWPathway.class, this);
-        //VUE.addActiveListener(LWPathway.Entry.class, this);
+        VUE.addActiveListener(LWPathway.Entry.class, this);
         
         VUE.getSelection().addListener(new LWSelection.Listener() {
                 public void selectionChanged(LWSelection s) {
@@ -823,10 +823,11 @@ public class PathwayPanel extends JPanel
     }
     
     
-//     public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
-//     	updateTextAreas(entry);
-//         updateEnabledStates();
-//     }
+    public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
+     	//updateTextAreas(entry);
+        // todo: don't need to always do this: can track if active entry has actually changed
+        updateEnabledStates();
+    }
     
     public void activeChanged(ActiveEvent e, LWPathway pathway) {
 
@@ -904,8 +905,8 @@ public class PathwayPanel extends JPanel
 
     public void actionPerformed(ActionEvent e)
     {
-        Object btn = e.getSource();
-        LWPathway pathway = getSelectedPathway();
+        final Object btn = e.getSource();
+        final LWPathway pathway = getSelectedPathway();
 
         if (DEBUG.PATHWAY) System.out.println(this + " " + e);
 
@@ -941,7 +942,7 @@ public class PathwayPanel extends JPanel
         }
         else if (btn == btnRefresh)
         {
-            System.out.println("REFRESH");
+            pathway.getCurrentEntry().getSlide().synchronizeResourcesWithNode();
         }
    /*     else if (btn == btnMasterSlide)
         {
