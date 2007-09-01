@@ -12,6 +12,7 @@
   <property name="lib.home"    value="../lib"/>
   <!-- this property needs to be changed for respective OS -->
   <property name="osid.home" value="C:\Library\OSID\"/>
+  <property name="osid.providers.home" value="C:\Library\OsidProviders\"/>
   
   <!--  ==================== Compilation Control Options ==================== -->
 <!--
@@ -47,7 +48,45 @@
     </delete>
     <mkdir dir="${dist}"/>
   </target>
+  
+    
+  <!--fedora_2_2 related tasks-->
+  <property name="fedora22.src" value="${src}/edu/tufts/osidimpl/repository/fedora_2_2"/>
+  <property name="fedora22.lib" value="${fedora22.src}/lib"/>
+  <property name="fedora22.jar" value="fedora-2.2.jar"/>
+  
+  <path id="fedora22.classpath">
+     <path refid="compile.classpath.common"/>
+    <pathelement path="${fedora22.lib}/axis.jar"/>
+    <pathelement path="${fedora22.lib}/fedora-client_2_2.jar"/>
+    </path>
+  
+  <target name="fedora22.compile" >
+     <javac srcdir="${src}"
+           destdir="${build.class}"
+             debug="${compile.debug}"
+        deprecation="${compile.deprecation}"
+           optimize="${compile.optimize}"
+           listfiles="yes">
+       <classpath refid="fedora22.classpath"/>  
+       <include name="edu/tufts/osidimpl/repository/fedora_2_2/*.java"/>
+    </javac>
+   </target>
+   <target name="fedora22.jar" depends="fedora22.compile">
    
+   <mkdir dir="${build.osid}"/>
+    <jar zipfile="${build.osid}/${fedora22.jar}" update="true" compress="false" index="true">
+      <fileset dir="${build.class}" includes="edu/tufts/osidimpl/repository/fedora_2_2/**"/>
+      <fileset dir="${src}" includes="edu/tufts/osidimpl/repository/fedora_2_2/*.xml"/>
+    </jar>
+   </target>
+   <target name="fedora22" depends="fedora22.jar">
+        <copy file="${build.osid}/${fedora22.jar}" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
+       <copy file="${fedora22.lib}/axis.jar" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
+        <copy file="${fedora22.lib}/fedora-client_2_2.jar" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
+         <copy file="${fedora22.src}/fedora_icon16x16.gif" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
+    </target>
+  <!--END fedora_2_2 related tasks-->
   
   <!--fedora_2_0 related tasks-->
   <property name="fedora20.src" value="${src}/edu/tufts/osidimpl/repository/fedora_2_0"/>
@@ -88,6 +127,7 @@
    <target name="fedora20" depends="fedora20.jar">
         <copy file="${build.osid}/${fedora20.jar}" todir="${osid.home}\fedora_2_0\"/>
     </target>
+    
   <!--END fedora_2_0 related tasks-->
   
   <!-- Favorites related tasks-->
