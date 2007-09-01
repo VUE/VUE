@@ -26,7 +26,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.11 $ / $Date: 2007-09-01 16:09:10 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2007-09-01 21:46:07 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -122,7 +122,7 @@ public class ActiveInstance<T>
         return handler;
     }
 
-    public void refreshListeners() {
+    public synchronized void refreshListeners() {
         notifyListeners(lastEvent);
     }
 
@@ -163,37 +163,42 @@ public class ActiveInstance<T>
             return;
 
         lock(this, "setActive");
-        setActiveImpl(source, newActive);
-        unlock(this, "setActive");
+        synchronized (this) {
+            // double-checked locking of volatile:
+            if (nowActive == newActive)
+                return;
+            final T oldActive = nowActive;
+            this.nowActive = newActive;
+            setActiveNotify(source, oldActive);
+            unlock(this, "setActive");
+        }
     }
 
 
-    private synchronized void setActiveImpl(final Object source, final T newActive)
+    private synchronized void setActiveNotify(final Object source, final T oldActive)
     {
         if (DEBUG.EVENTS) {
             System.out.println(TERM_GREEN
                                + this
-                               + "\n\tnewActive: " + newActive
-                               + "\n\toldActive: " + nowActive
+                               + "\n\toldActive: " + oldActive
+                               + "\n\tnewActive: " + nowActive
                                + "\n\t   source: " + sourceName(source)
                                + "\n\tlisteners: " + mListeners.size() + " in " + Thread.currentThread().getName()
                                + TERM_CLEAR
                                );
         }
-        final T oldActive = nowActive;
-        this.nowActive = newActive;
 
         if (itemsAreTracked) {
             if (allInstances == null)
                 allInstances = new HashSet();
-            allInstances.add(newActive);
+            allInstances.add(nowActive);
         }
             
         if (itemIsMarkable) {
             markActive( (Markable) oldActive, false);
-            markActive( (Markable) newActive, true);
+            markActive( (Markable) nowActive, true);
         }
-        final ActiveEvent e = new ActiveEvent(itemType, source, oldActive, newActive);
+        final ActiveEvent e = new ActiveEvent(itemType, source, oldActive, nowActive);
         notifyListeners(e);
         try {
             onChange(e);
@@ -274,8 +279,6 @@ public class ActiveInstance<T>
                 if (DEBUG.EVENTS) outf("    %2d notify %s -> %s\n", count, handler.itemTypeName, target);
             }
                 
-            //if (DEBUG.EVENTS) System.err.format("    %2d notify %s -> %s\n", ++count, handler.itemTypeName, target);
-            //if (DEBUG.EVENTS) outf("    %2d notify %s -> %s\n", ++count, handler.itemTypeName, target);
             try {
                 if (method != null)
                     method.invoke(target, e, e.active);
