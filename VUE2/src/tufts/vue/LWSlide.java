@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.60 $ / $Date: 2007-09-01 17:01:13 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2007-09-01 17:15:05 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -372,6 +372,8 @@ public class LWSlide extends LWContainer
 
         final LWComponent node = getSourceNode();
 
+        if (DEBUG.Enabled) outf("BI-DIRECTIONAL RESOURCE SYNCHRONIZATION---\n\t NODE: %s\n\tSLIDE: %s", node, this);
+        
         final Set<Resource> slideUnique = new HashSet();
         final Set<Resource> nodeUnique = new HashSet();
 
@@ -382,7 +384,7 @@ public class LWSlide extends LWContainer
 
         if (node.hasResource()) {
             nodeUnique.add(node.getResource());
-            if (DEBUG.Enabled) outf("%50s: %s", "ADDED NODE Resource", node.getResource());
+            if (DEBUG.Enabled) outf("%50s: %s", "ADDED NODE Resource", Util.tags(node.getResource()));
         }
         for (LWComponent c : node.getAllDescendents()) {
             if (c.hasResource()) {
@@ -410,10 +412,10 @@ public class LWSlide extends LWContainer
             }
         }
 
+        nodeUnique.removeAll(nodeDupes);
 
         if (DEBUG.Enabled) {
-            this.outf("  NODE DUPES: " + nodeDupes);
-            nodeUnique.removeAll(nodeDupes);
+            //this.outf("  NODE DUPES: " + nodeDupes + "\n");
             this.outf("SLIDE UNIQUE: " + slideUnique);
             node.outf(" NODE UNIQUE: " + nodeUnique);
         }
