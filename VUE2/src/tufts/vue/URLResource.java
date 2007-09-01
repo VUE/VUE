@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.24 $ / $Date: 2007-08-09 21:31:06 $ / $Author: mike $
+ * @version $Revision: 1.25 $ / $Date: 2007-09-01 16:18:10 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -347,6 +347,24 @@ public class URLResource implements Resource, XMLUnmarshalListener
         }
         return null;
     }
+
+    @Override
+    public int hashCode() {
+        return asURL().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (o instanceof Resource) {
+            return getSpec().equals(((Resource)o).getSpec());
+            // use URL?  Better URN eventually?
+            //o.asURL().equals(asURL());
+        }
+        return false;
+    }
+    
 
     
     /** If given string is a valid URL, make one and return it, otherwise, return null. */
