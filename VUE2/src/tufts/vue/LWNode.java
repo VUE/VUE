@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.187 $ / $Date: 2007-08-30 22:18:13 $ / $Author: sfraize $
+ * @version $Revision: 1.188 $ / $Date: 2007-09-01 16:10:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -175,10 +175,20 @@ public class LWNode extends LWContainer
     public void setResource(Resource r)
     {
         super.setResource(r);
+        if (r == null || mXMLRestoreUnderway)
+            return;
         if (getChild(0) instanceof LWImage) {
             LWImage image = (LWImage) getChild(0);
-            if (image.isNodeIcon())
+            if (image.isNodeIcon() && image.getResource() != null && !image.getResource().equals(getResource())) {
+                // above hack: image resource will be null while being created in MapDropTarget
                 image.setResource(r);
+            }
+        } else if (r.isImage()) {
+            final LWImage imageIcon = new LWImage();
+            addChild(imageIcon);
+            sendToBack(imageIcon);
+            // set resource last so picks update node-icon status reliably:
+            imageIcon.setResource(r);
         }
     }
     
