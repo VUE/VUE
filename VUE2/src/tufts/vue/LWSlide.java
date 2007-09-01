@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.61 $ / $Date: 2007-09-01 17:15:05 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2007-09-01 21:45:34 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -382,17 +382,15 @@ public class LWSlide extends LWContainer
         // anywhere inside the side, removing duplicates from nodeUnique, and adding the
         // remainder to slideUnique.
 
-        if (node.hasResource()) {
+        if (node.hasResource())
             nodeUnique.add(node.getResource());
-            if (DEBUG.Enabled) outf("%50s: %s", "ADDED NODE Resource", Util.tags(node.getResource()));
-        }
-        for (LWComponent c : node.getAllDescendents()) {
-            if (c.hasResource()) {
-                if (nodeUnique.add(c.getResource())) {
-                    if (DEBUG.Enabled) outf("%50s: %s", "ADDED NODE RESOURCE", Util.tags(c.getResource()));
-                }
-                    
-            }
+        for (LWComponent c : node.getAllDescendents())
+            if (c.hasResource())
+                nodeUnique.add(c.getResource());
+
+        if (DEBUG.Enabled) {
+            for (Resource r : nodeUnique)
+                outf("%50s: %s", "UNIQUE NODE RESOURCE", Util.tags(r));
         }
             
         final Set<Resource> nodeDupes = new HashSet();
@@ -402,7 +400,6 @@ public class LWSlide extends LWContainer
                 final Resource r = c.getResource();
                 if (nodeUnique.contains(r)) {
                     nodeDupes.add(r);
-                    //nodeUnique.remove(r);
                     if (DEBUG.Enabled) outf("%50s: %s", "ALREADY ON NODE, IGNORE FOR SLIDE", Util.tags(r));
                 } else {
                     if (slideUnique.add(r)) {
