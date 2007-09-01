@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.59 $ / $Date: 2007-09-01 16:11:56 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2007-09-01 17:01:13 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -380,24 +380,42 @@ public class LWSlide extends LWContainer
         // anywhere inside the side, removing duplicates from nodeUnique, and adding the
         // remainder to slideUnique.
 
-        if (node.hasResource())
+        if (node.hasResource()) {
             nodeUnique.add(node.getResource());
-        for (LWComponent c : node.getAllDescendents())
-            if (c.hasResource())
-                nodeUnique.add(c.getResource());
+            if (DEBUG.Enabled) outf("%50s: %s", "ADDED NODE Resource", node.getResource());
+        }
+        for (LWComponent c : node.getAllDescendents()) {
+            if (c.hasResource()) {
+                if (nodeUnique.add(c.getResource())) {
+                    if (DEBUG.Enabled) outf("%50s: %s", "ADDED NODE RESOURCE", Util.tags(c.getResource()));
+                }
+                    
+            }
+        }
             
+        final Set<Resource> nodeDupes = new HashSet();
+
         for (LWComponent c : this.getAllDescendents()) {
             if (c.hasResource()) {
-                if (nodeUnique.contains(c.getResource()))
-                    nodeUnique.remove(c.getResource());
-                else
-                    slideUnique.add(c.getResource());
+                final Resource r = c.getResource();
+                if (nodeUnique.contains(r)) {
+                    nodeDupes.add(r);
+                    //nodeUnique.remove(r);
+                    if (DEBUG.Enabled) outf("%50s: %s", "ALREADY ON NODE, IGNORE FOR SLIDE", Util.tags(r));
+                } else {
+                    if (slideUnique.add(r)) {
+                        if (DEBUG.Enabled) outf("%50s: %s", "ADDED UNIQUE SLIDE", Util.tags(r));
+                    }
+                }
             }
         }
 
+
         if (DEBUG.Enabled) {
-            this.out("SLIDE UNIQUE: " + slideUnique);
-            node.out("NODE UNIQUE: " + nodeUnique);
+            this.outf("  NODE DUPES: " + nodeDupes);
+            nodeUnique.removeAll(nodeDupes);
+            this.outf("SLIDE UNIQUE: " + slideUnique);
+            node.outf(" NODE UNIQUE: " + nodeUnique);
         }
 
         for (Resource r : slideUnique) {
