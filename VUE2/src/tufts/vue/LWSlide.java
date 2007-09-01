@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.58 $ / $Date: 2007-08-28 18:57:47 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2007-09-01 16:11:56 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -259,9 +259,10 @@ public class LWSlide extends LWContainer
         if (DEBUG.Enabled && mEntry != null && mSourceNode != null && mEntry.node != mSourceNode) {
             Util.printStackTrace("sourceNode != entry node! srcNode=" + mSourceNode + " entry=" + mEntry);
         }
-        if (mEntry == null)
+        if (mEntry == null) {
+            if (DEBUG.Enabled) Util.printStackTrace(this + " source node w/no entry: " + mSourceNode);
             return mSourceNode;
-        else
+        } else
             return mEntry.node;
     }
     protected void setSourceNode(LWComponent node) {
@@ -361,6 +362,62 @@ public class LWSlide extends LWContainer
         //slide.setLocked(true);
         
         return slide;
+    }
+
+    public void synchronizeResourcesWithNode() {
+        if (getSourceNode() == null) {
+            VUE.Log.warn("Can't synchronize a slide w/out a source node: " + this);
+            return;
+        }
+
+        final LWComponent node = getSourceNode();
+
+        final Set<Resource> slideUnique = new HashSet();
+        final Set<Resource> nodeUnique = new HashSet();
+
+        // First add all resources in any descendent of the node to nodeUnique (include
+        // the node's resource itself), then iterate through all the resources found
+        // anywhere inside the side, removing duplicates from nodeUnique, and adding the
+        // remainder to slideUnique.
+
+        if (node.hasResource())
+            nodeUnique.add(node.getResource());
+        for (LWComponent c : node.getAllDescendents())
+            if (c.hasResource())
+                nodeUnique.add(c.getResource());
+            
+        for (LWComponent c : this.getAllDescendents()) {
+            if (c.hasResource()) {
+                if (nodeUnique.contains(c.getResource()))
+                    nodeUnique.remove(c.getResource());
+                else
+                    slideUnique.add(c.getResource());
+            }
+        }
+
+        if (DEBUG.Enabled) {
+            this.out("SLIDE UNIQUE: " + slideUnique);
+            node.out("NODE UNIQUE: " + nodeUnique);
+        }
+
+        for (Resource r : slideUnique) {
+            // TODO: merge MapDropTarget & NodeModeTool node creation code into NodeTool, including resource handling
+            final LWNode newNode = new LWNode(r.getTitle(), r);
+            node.addChild(newNode);
+        }
+        for (Resource r : nodeUnique) {
+            final LWComponent newNode;
+            if (r.isImage())
+                newNode = new LWImage(r);
+            else
+                newNode = new LWNode(r.getTitle(), r);
+            this.addChild(newNode);
+        }
+
+        if (getMap().getUndoManager() != null)
+            getMap().getUndoManager().mark("Sync: Node<=>Slide");
+        
+            
     }
 
     /** slides never considered translucent: they're not on the map needing backfill when they're the focal */
