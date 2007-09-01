@@ -48,7 +48,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.181 $ / $Date: 2007-08-31 05:24:34 $ / $Author: sfraize $
+ * @version $Revision: 1.182 $ / $Date: 2007-09-01 16:11:37 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -84,6 +84,9 @@ public class LWPathway extends LWContainer
      * itself.
      */
     public static class Entry implements Transferable {
+
+        public static final String MAP_VIEW_CHANGED = "pathway.entry.mapView";
+        
         /** the pathway this entry is in */
         public final LWPathway pathway;
         /** can be null if slide is "pathway only" combination of other nodes
@@ -253,10 +256,32 @@ public class LWPathway extends LWContainer
         }
         
         public void setMapView(boolean asMapView) {
+
+            if (isMapView == asMapView)
+                return;
+            
+            final boolean wasMapView = isMapView;
             isMapView = asMapView;
 
-            if (pathway != null)
-                pathway.notify("entry.pathway.mapView");
+            if (pathway != null) {
+                // So the PathwayTableModel knows to update / PathwayTable knows to redraw
+                pathway.notify(this, MAP_VIEW_CHANGED);
+            }
+
+            // Anyone listening to the old focal (e.g., a MapViewer), can watch for the
+            // MAP_VIEW_CHANGED event on that old focal (e.g., the user slide, virtual
+            // slide, or node itself), to know it's entry type has changed, so they can
+            // change views if they want to change when the entry changes.
+
+            if (wasMapView) {
+                if (mapSlide != null)
+                    mapSlide.notify(this, MAP_VIEW_CHANGED);
+                else if (node != null)
+                    node.notify(this, MAP_VIEW_CHANGED);
+            } else {
+                // was regular slide view:
+                if (slide != null) slide.notify(this, MAP_VIEW_CHANGED);
+            }
             
 // During restores, until node is set, we always think we're a merged slide, and isMapView never gets restored!
 // This is just a redundancy check anyway for runtime testing.
@@ -356,6 +381,10 @@ public class LWPathway extends LWContainer
 
         public boolean isPathway() { return false; }
 
+        public boolean isVisibleOnMap() {
+            return pathway.isVisible() && node.isDrawn();
+        }
+
         public String toString() {
             String s = "Entry["
                 + (pathway == null ? "<null pathway>" : pathway.getLabel())
@@ -426,6 +455,8 @@ public class LWPathway extends LWContainer
             @Override
             public boolean canProvideSlide() { return false; }
             @Override
+            public LWComponent getFocal() { return getMasterSlide(); }
+            @Override
             public LWComponent getSelectable() { return pathway; }
             @Override
             public boolean isPathway() { return true; }
@@ -441,6 +472,8 @@ public class LWPathway extends LWContainer
             public boolean allowsMultipleDisplayModes() { return false; }
             @Override
             public int index() { return -1; }
+            @Override
+            public boolean isVisibleOnMap() { return false; }
         };
     
     public Entry asEntry() {
@@ -1208,6 +1241,11 @@ public class LWPathway extends LWContainer
         }
 
         @Override
+        public void synchronizeResourcesWithNode() {
+            Util.printStackTrace("Can't sync a MapSlide: " + this);
+        }
+
+        @Override
         public boolean hasPicks() { return false; }
         @Override
         public boolean hasChildren() { return false; }
@@ -1802,10 +1840,19 @@ public class LWPathway extends LWContainer
     {
         LWPathway onlyPathway = null;
         int visiblePathMemberships = 0;
+
+        final LWPathway activePathway = VUE.getActivePathway();
+
         for (LWPathway p : node.getPathways()) {
             if (p.isDrawn()) {
-                visiblePathMemberships++;
                 onlyPathway = p;
+                if (p == activePathway) {
+                    // override for active-pathway:
+                    visiblePathMemberships = 1;
+                    break;
+                } else {
+                    visiblePathMemberships++;
+                }
             }
         }
 
