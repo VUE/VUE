@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.431 $ / $Date: 2007-08-31 18:02:23 $ / $Author: mike $ 
+ * @version $Revision: 1.432 $ / $Date: 2007-09-01 16:15:59 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -115,6 +115,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected LWMap mMap;
     /** The focal we just unloaded if any */
     protected LWComponent mLastFocal;
+    /** If the current focal was from an entry, this is the entry */
+    protected LWPathway.Entry mFocalEntry;
     /** Current on-map text edit, null if no edit active */
     protected TextBox activeTextEdit;
     /** Current on-map text edit, null if no edit active */
@@ -149,7 +151,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     protected static LWComponent indication;   // current indication (drag rollover hilite -- ONLY ONE PER ALL MAPS)
     
-    private MapDropTarget mapDropTarget;
+    private final MapDropTarget mapDropTarget;
     private MapScrollPane mapScrollPane;
     
     //-------------------------------------------------------
@@ -171,9 +173,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private final VueTool HandTool = VueTool.getInstance(tufts.vue.HandTool.class);
     private final VueTool LinkTool = VueTool.getInstance(tufts.vue.LinkTool.class);
     private final VueTool TextTool = VueTool.getInstance(tufts.vue.TextTool.class);
-    private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
+    //private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
     private final VueTool NodeModeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
-    private final VueTool RichTextTool =null;// VueTool.getInstance(tufts.vue.RichTextTool.class);
+    private final VueTool RichTextTool = null;//VueTool.getInstance(tufts.vue.RichTextTool.class);
+    private final VueTool ToolPresentation = VueTool.getInstance(tufts.vue.PresentationTool.class);
     
     //-------------------------------------------------------
     // Scroll-pane support
@@ -189,6 +192,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //private InputHandler inputHandler = new InputHandler(this);
     private final MapViewer inputHandler; // == this
     private final MapViewer viewer;  // == this: for old InputHandler references
+
 
     //1 click node creation preference
     private final static BooleanPreference oneClickNodePref = BooleanPreference.create(
@@ -235,45 +239,55 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (!AutoZoomToMapOnLoad && map.getUserZoom() != 1.0)
                 setZoomFactor(getMap().getUserZoom(), false, null, false);
         }
-
-        // TODO: need to remove us as listeners for everything if this viewer is closed!
-        
-        VUE.ModelSelection.addListener(this);
-        VUE.addActiveListener(MapViewer.class, this);
-        //VUE.addActiveListener(LWMap.class, this);
-        VUE.addActiveListener(VueTool.class, this);
-        //VueToolbarController.getController().addToolSelectionListener(this);        
-        
         // draggedSelectionGroup is always a selected component as
         // it's only used when it IS the selection
         // There was some reason we need to have the set -- what was it?
         draggedSelectionGroup.setSelected(true);
-        
-        
-        addKeyListener(inputHandler);
-        addMouseListener(inputHandler);
-        addMouseMotionListener(inputHandler);
-        //this.add
-        edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().addVuePrefListener(new VuePrefListener(){
 
-    		public void preferenceChanged(VuePrefEvent prefEvent) {
-    						
-    			autoZoomEnabled = ((Boolean)prefEvent.getNewValue()).booleanValue();    			
-    		}
-        	   
-           });
+        addListeners();
         
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
 
-    boolean inScrollPane() {
-        return inScrollPane;
+    private void addListeners() {
+        VUE.ModelSelection.addListener(this);
+        VUE.addActiveListener(VueTool.class, this);
+        VUE.addActiveListener(MapViewer.class, this);
+        VUE.addActiveListener(LWPathway.Entry.class, this);
+        addKeyListener(inputHandler);
+        addMouseListener(inputHandler);
+        addMouseMotionListener(inputHandler);
+
+        edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().addVuePrefListener(new VuePrefListener(){
+    		public void preferenceChanged(VuePrefEvent prefEvent) {
+                    autoZoomEnabled = ((Boolean)prefEvent.getNewValue()).booleanValue();    			
+    		}
+            });
+        
     }
+
+    private void removeListeners() {
+        VUE.ModelSelection.removeListener(this);
+        ActiveInstance.removeListener(VueTool.class, this);
+        ActiveInstance.removeListener(MapViewer.class, this);
+        ActiveInstance.removeListener(LWPathway.Entry.class, this);
+        removeKeyListener(inputHandler);
+        removeMouseListener(inputHandler);
+        removeMouseMotionListener(inputHandler);
+    }
+
+    @Override
+    public void removeNotify() {
+        super.removeNotify();
+        removeListeners();
+    }
+    
 
     // TODO: rework this due to fact this get's added/removed again
     // during full-screen swaps: could the focus stuff have been
     // messing us up?
     
+    @Override
     public void addNotify()
     {
         //VUE.Log.debug("addNotify(pre): " + this);
@@ -315,6 +329,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         requestFocus();
         //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
+    }
+
+    boolean inScrollPane() {
+        return inScrollPane;
     }
 
     public LWSelection getSelection() {
@@ -1138,6 +1156,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
+        if (focal instanceof LWSlide) {
+            // hack for first load of a slide that has an entry to enter "pathway browse" mode
+            mFocalEntry = ((LWSlide)focal).getEntry();
+        }
+
         mLastFocal = mFocal;
 
         if (mFocal != null) {
@@ -1421,13 +1444,31 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         */
     }
     
+    public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
+        //if (instanceName.equals("*LEFT") && VUE.getActiveViewer() != this) Util.printStackTrace("***ACTIVE VIEWER: " + VUE.getActiveViewer());
+        if (activeTool != ToolPresentation && VUE.getActiveViewer() == this && mFocal instanceof LWMap == false) {
+            // if presentation tool is active, let it handle all this
+            mFocalEntry = entry;
+            //if (DEBUG.Enabled) Util.printStackTrace("LOAD FOCAL ENTRY " + this + " " + mFocalEntry);
+            //if (DEBUG.Enabled) out("LOAD FOCAL ENTRY: " + mFocalEntry);
+            loadFocal(entry.getFocal());
+        } else {
+            mFocalEntry = null;
+            //if (DEBUG.Enabled) Util.printStackTrace("NULL NULL ENTRY " + this + " " + mFocalEntry);
+            //if (DEBUG.Enabled) out("NULL FOCAL ENTRY: " + mFocalEntry);
+        }
+    }
+    
+    
     /**
      * Handle events coming off the LWMap we're displaying.
      * For most actions this repaints.  It tracks deletiions
      * for updating the current rollover zoom.
      */
     public void LWCChanged(LWCEvent e) {
-        if (DEBUG.EVENTS && DEBUG.META) out("LWCChanged: " + e);
+        if (DEBUG.EVENTS) {
+            if (DEBUG.META || VUE.getActiveViewer() == this) out(e);
+        }
         
         // If mFocal isn't a map, we must always update, as we'll never see the
         // user-action-completed off the map, as we're not listening to it.  (Actually,
@@ -1453,6 +1494,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (e.key == LWKey.RepaintAsync) {
             repaint();
+            return;
+        }
+
+        if (e.key == LWPathway.Entry.MAP_VIEW_CHANGED) {
+//             if (DEBUG.Enabled) {
+//                 out("MAP VIEW CHANGED: " + e);
+//                 out("    SOURCE: " + e.source);
+//                 out(" CUR ENTRY: " + mFocalEntry);
+//             }
+            if (e.source != null && e.source == mFocalEntry)  {
+                //out("NEW FOCAL: " + mFocalEntry.getFocal());
+                // slide v.s. map-view changed on the currently focused entry: swap to
+                // the new focal:
+                loadFocal(mFocalEntry.getFocal());
+            } else if (((LWPathway.Entry)e.source).isVisibleOnMap()) {
+                repaint(); // a slide icon may need repainting
+            }
             return;
         }
 
@@ -1511,7 +1569,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
     }
-    
+
     private java.util.List computeSelection(final Rectangle2D mapRect)
     {
         PickContext pc = getPickContext((Rectangle2D.Float) mapRect);
@@ -2932,6 +2990,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // TODO: don't draw unless all components are within mFocal...
     protected void drawSelection(DrawContext dc, final LWSelection selection)
     {
+        if (selection.only() == mFocal) {
+            // never draw a selection when the focal is the only selection
+            // todo: may want some kind of special indicator for this...
+            return;
+        }
+
+        
         dc.g.setColor(COLOR_SELECTION);
         dc.g.setStroke(STROKE_SELECTION);
         
@@ -2990,7 +3055,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // so don't draw the selection box here.
                     // TODO: crap: the slide itself (the focal) is in the selection:
                     // need to specal case remove that at start of selector box drag...
-                    out(c + " in selection doesn't have ancestor " + mFocalParent);
+                    if (c == mFocal) {
+                        // the focal itself normally doesn't have a selection drawn for it
+                    } else {
+                        if (DEBUG.Enabled) out(c + " in selection doesn't have ancestor " + mFocalParent);
+                    }
                     drawSelectorBoxInThisViewer = false;
                     break;
                 }
@@ -5837,7 +5906,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             grabVueApplicationFocus(e.toString(), null);
      }
 
-    
     /*
      * Make this viewer the active viewer (and thus our map the active map.
      * Does NOT call requestFocus to get the keyboard focus, as we don't
