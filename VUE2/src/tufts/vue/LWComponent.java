@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.341 $ / $Date: 2007-09-01 16:59:52 $ / $Author: sfraize $
+ * @version $Revision: 1.342 $ / $Date: 2007-09-01 21:45:12 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1008,6 +1008,10 @@ u                    getSlot(c).setFromString((String)value);
 //             return new Color(value.getRGB() + (((byte)(alpha*256)) << 6), true);
 //             //return new Color(value.getRGB() + 0x80000000, true);
 //         }
+
+        public boolean equals(Color c) {
+            return value == c || (c != null && c.equals(value));
+        }
 
 
         String asString() {
