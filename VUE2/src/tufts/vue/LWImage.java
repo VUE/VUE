@@ -97,6 +97,15 @@ public class LWImage extends
     	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
         setFillColor(null);
     }
+
+    public LWImage(Resource r) {
+        if (r == null || !r.isImage())
+            throw new IllegalArgumentException("resource is not image content: " + r);
+    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
+        setFillColor(null);
+        setResource(r);
+    }
+    
     
     // todo: not so great to have every single LWImage instance be a listener
     public void preferenceChanged(VuePrefEvent prefEvent)
