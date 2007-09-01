@@ -456,7 +456,7 @@ public class PathwayTableModel extends DefaultTableModel
             	{
                     if (!entry.isOffMapSlide()) {
                         entry.setMapView(!entry.isMapView());
-                        VUE.getSlideViewer().reload();
+                        //VUE.getSlideViewer().reload();
                     }
             
             	}
