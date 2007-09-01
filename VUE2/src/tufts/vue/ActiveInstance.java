@@ -3,6 +3,7 @@ package tufts.vue;
 import java.lang.reflect.Method;
 import java.util.*;
 import tufts.Util;
+import static tufts.Util.*;
 
 /**
  * This provides for tracking the single selection of a given typed
@@ -25,7 +26,7 @@ import tufts.Util;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.10 $ / $Date: 2007-08-28 17:31:50 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2007-09-01 16:09:10 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -36,7 +37,7 @@ public class ActiveInstance<T>
     private static final List<ActiveListener> ListenersForAllActiveEvents = new ArrayList();
     private static int depth = -1; // event delivery depth
     
-    private final List<ActiveListener> listenerList = new ArrayList();
+    private final Collection<ActiveListener> mListeners = new ArrayList();
     private Set<T> allInstances;
     
     protected final Class itemType;
@@ -44,7 +45,7 @@ public class ActiveInstance<T>
     protected final boolean itemIsMarkable;
     protected final boolean itemsAreTracked;
 
-    private T nowActive;
+    private volatile T nowActive;
     private ActiveEvent lastEvent;
     private boolean inNotify;
 
@@ -101,7 +102,7 @@ public class ActiveInstance<T>
                 // listener before a specialized side-effecting type-handler was initiated.
                 // We copy over the listeners from the old handler if there were any.
                 tufts.Util.printStackTrace("ignoring prior active change handler for " + getClass() + " and taking over listeners");
-                listenerList.addAll(getHandler(itemType).listenerList);
+                mListeners.addAll(getHandler(itemType).mListeners);
             }
             AllActiveHandlers.put(itemType, this);
         }
@@ -153,60 +154,55 @@ public class ActiveInstance<T>
     public void setActive(final Object source, final T newActive)
     {
         if (newActive != null && !itemType.isInstance(newActive)) {
-            tufts.Util.printStackTrace(this + ": setActive(" + newActive + ") by " + source + "; not an instance of " + itemType);
+            Util.printStackTrace(this + ": setActive(" + newActive + ") by " + source + "; not an instance of " + itemType);
             return;
         }
 
+        // nowActive is volatile: all threads guaranteed to see it's current value w/out a synchronization
         if (nowActive == newActive)
             return;
 
         lock(this, "setActive");
-        synchronized (this) {
-            if (nowActive == newActive) {
-                unlock(this, "setActive");
-                return;
-            }
-        
-            if (DEBUG.EVENTS) {
-//                 outf(Util.TERM_YELLOW + this + " == %s\n\tsource: %s\n\told: %s\n\tlisteners=%d in %s\n" + Util.TERM_CLEAR,
-//                      newActive,
-//                      sourceName(source),
-//                      nowActive,
-//                      listenerList.size(),
-//                      Thread.currentThread().getName());
-                System.out.println(Util.TERM_GREEN
-                                   + this
-                                   + "\n\tnewActive: " + newActive
-                                   + "\n\toldActive: " + nowActive
-                                   + "\n\t   source: " + sourceName(source)
-                                   + "\n\tlisteners: " + listenerList.size() + " in " + Thread.currentThread().getName()
-                                   + Util.TERM_CLEAR
-                                   );
-            }
-            final T oldActive = nowActive;
-            this.nowActive = newActive;
-
-            if (itemsAreTracked) {
-                if (allInstances == null)
-                    allInstances = new HashSet();
-                allInstances.add(newActive);
-            }
-            
-            if (itemIsMarkable) {
-                markActive( (Markable) oldActive, false);
-                markActive( (Markable) newActive, true);
-            }
-            final ActiveEvent e = new ActiveEvent(itemType, source, oldActive, newActive);
-            notifyListeners(e);
-            try {
-                onChange(e);
-            } catch (Throwable t) {
-                tufts.Util.printStackTrace(t, this + " onChange failed in implementation subclass: " + getClass());
-            }
-            this.lastEvent = e;
-        }
+        setActiveImpl(source, newActive);
         unlock(this, "setActive");
     }
+
+
+    private synchronized void setActiveImpl(final Object source, final T newActive)
+    {
+        if (DEBUG.EVENTS) {
+            System.out.println(TERM_GREEN
+                               + this
+                               + "\n\tnewActive: " + newActive
+                               + "\n\toldActive: " + nowActive
+                               + "\n\t   source: " + sourceName(source)
+                               + "\n\tlisteners: " + mListeners.size() + " in " + Thread.currentThread().getName()
+                               + TERM_CLEAR
+                               );
+        }
+        final T oldActive = nowActive;
+        this.nowActive = newActive;
+
+        if (itemsAreTracked) {
+            if (allInstances == null)
+                allInstances = new HashSet();
+            allInstances.add(newActive);
+        }
+            
+        if (itemIsMarkable) {
+            markActive( (Markable) oldActive, false);
+            markActive( (Markable) newActive, true);
+        }
+        final ActiveEvent e = new ActiveEvent(itemType, source, oldActive, newActive);
+        notifyListeners(e);
+        try {
+            onChange(e);
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, this + " onChange failed in implementation subclass: " + getClass());
+        }
+        this.lastEvent = e;
+    }
+
 
     private void markActive(Markable markableItem, boolean active) {
         try {
@@ -227,10 +223,10 @@ public class ActiveInstance<T>
         inNotify = true;
         try {
             depth++;
-            if (listenerList.size() > 0)
-                notifyListeners(this, e, listenerList);
+            if (mListeners.size() > 0)
+                notifyListenerList(this, e, mListeners);
             if (ListenersForAllActiveEvents.size() > 0)
-                notifyListeners(this, e, ListenersForAllActiveEvents);
+                notifyListenerList(this, e, ListenersForAllActiveEvents);
         } finally {
             depth--;
             inNotify = false;
@@ -238,7 +234,7 @@ public class ActiveInstance<T>
         
     }
             
-    protected static void notifyListeners(ActiveInstance handler, ActiveEvent e, java.util.List<ActiveListener> listenerList)
+    protected static void notifyListenerList(ActiveInstance handler, ActiveEvent e, Collection<ActiveListener> listenerList)
     {
         final ActiveListener[] listeners;
 
@@ -256,8 +252,9 @@ public class ActiveInstance<T>
         Method method;
         for (ActiveListener listener : listeners) {
             if (listener instanceof MethodProxy) {
-                target = ((MethodProxy)listener).target;
-                method = ((MethodProxy)listener).method;
+                final MethodProxy proxy = (MethodProxy) listener;
+                target = proxy.target;
+                method = proxy.method;
             } else {
                 target = listener;
                 method = null;
@@ -298,37 +295,51 @@ public class ActiveInstance<T>
 
     public void addListener(ActiveListener listener) {
         lock(this, "addListener");
-        synchronized (listenerList) {
-            listenerList.add(listener);
+        synchronized (mListeners) {
+            if (mListeners.contains(listener)) {
+                VUE.Log.warn(this + "; add: is already listening: " + listener);
+            } else {
+                mListeners.add(listener);
+                if (DEBUG.EVENTS) outf(TERM_YELLOW + "%-50s added listener %s\n" + TERM_CLEAR, this, listener);
+            }
         }
         unlock(this, "addListener");
     }
 
-    public void addListener(Object listener) {
+    public void addListener(Object reflectedListener) {
         Method method = null;
         try {
             // We could cache the method for the class of the given listener
             // so future instance's of the class don't have to do the method lookup,
             // but this type of listener is not frequently added.
-            method = listener.getClass().getMethod("activeChanged", ActiveEvent.class, itemType);
+            method = reflectedListener.getClass().getMethod("activeChanged", ActiveEvent.class, itemType);
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t, this + ": "
-                                       + listener.getClass()
+                                       + reflectedListener.getClass()
                                        + " must implement activeChanged(ActiveEvent, " + itemType + ")"
                                        + " to be a listener for the active instance of " + itemType);
             return;
         }
-        addListener(new MethodProxy(listener, method));
+        addListener(new MethodProxy(reflectedListener, method));
     }
     
 
     public void removeListener(ActiveListener listener) {
         lock(this, "removeListener");
-        synchronized (listenerList) {
-            listenerList.remove(listener);
+        synchronized (mListeners) {
+            if (!mListeners.remove(listener)) {
+                VUE.Log.warn(this + "; remove: didn't contain listener " + listener);
+            } else if (DEBUG.EVENTS) {
+                outf(TERM_YELLOW + "%-50s removed listener %s\n" + TERM_CLEAR, this, listener);
+            }
         }
         unlock(this, "removeListener");
     }
+
+    public void removeListener(Object reflectedListener) {
+        removeListener(new MethodProxy(reflectedListener, null));
+    }
+    
 
     private static void lock(ActiveInstance o, String msg) {
         if (DEBUG.THREAD) System.err.println((o == null ? "ActiveInstance" : o) + " " + msg + " LOCK");
@@ -337,10 +348,6 @@ public class ActiveInstance<T>
         if (DEBUG.THREAD) System.err.println((o == null ? "ActiveInstance" : o) + " " + msg + " UNLOCK");
     }
     
-    public void removeListener(Object listener) {
-        throw new UnsupportedOperationException("implement MethodProxy removal");
-    }
-
     private static void outf(String fmt, Object... args) {
         for (int x = 0; x < depth; x++) System.err.print("    ");
         //for (int x = 0; x < depth; x++) System.err.print("----");
@@ -355,13 +362,33 @@ public class ActiveInstance<T>
 
 
 
-    private static class MethodProxy implements ActiveListener {
+    private static final class MethodProxy implements ActiveListener {
         final Object target;
         final Method method;
         MethodProxy(Object t, Method m) {
             target = t;
             method = m;
         }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(target);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof MethodProxy)
+                return target == ((MethodProxy)o).target;
+            else
+                return false;
+        }
+
+        @Override
+        public String toString() {
+            return "MethodProxy[" + target + "]";
+        }
+
+
         public void activeChanged(ActiveEvent e) {
             /*
             try {
@@ -373,6 +400,8 @@ public class ActiveInstance<T>
             }
             */
         }
+        
+        
             
     }
     
