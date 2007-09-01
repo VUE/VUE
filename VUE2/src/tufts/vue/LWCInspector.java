@@ -47,6 +47,7 @@ class LWCInspector extends javax.swing.JPanel
     private JTextField bitsField = new JTextField();
     private JTextField zoomField = new JTextField();
     private JTextField categoryField = new JTextField();
+    private JTextField resourceTypeField = new JTextField();
     private JTextField resourceField = new JTextField();
     private JTextField notesField = new JTextField();
     //private JPanel extraPanel = new JPanel();
@@ -79,6 +80,7 @@ class LWCInspector extends javax.swing.JPanel
         "X",         xField,
         "Y",         yField,
         "Scale",    zoomField,
+        "-ResourceType", resourceTypeField,
         "Resource", resourceField,
         //"Category", categoryField,
         //"-Notes",    notesField,
@@ -405,10 +407,13 @@ class LWCInspector extends javax.swing.JPanel
         setAllEnabled(true);
         //System.out.println(this + " loading " + c);
 
-        if (c.getResource() != null)
+        if (c.getResource() != null) {
             loadText(resourceField, c.getResource().toString());
-        else
+            loadText(resourceTypeField, c.getResource().getClass().getName());
+        } else {
             loadText(resourceField, "");
+            loadText(resourceTypeField, "");
+        }
 
         String id = c.getID();
         if (c.getParent() == null)
