@@ -257,6 +257,7 @@ public class SlideViewer extends tufts.vue.MapViewer
 
     @Override
     public void LWCChanged(LWCEvent e) {
+        //Util.printStackTrace(e.toString());
         if (DEBUG.PRESENT) out("SLIDEVIEWER LWCChanged " + e);
 
         if (e.component instanceof LWPathway) {
@@ -335,7 +336,7 @@ public class SlideViewer extends tufts.vue.MapViewer
     }
 */
 
-    public void reload() {
+    private void reload() {
         // TODO: load nothing if active pathway from a different map
         //if (mLastLoad != null)
         if (mLastLoad == null) {
