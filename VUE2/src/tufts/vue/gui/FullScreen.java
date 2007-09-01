@@ -16,7 +16,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.6 $ / $Date: 2007-08-28 17:51:22 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-09-01 16:18:42 $ / $Author: sfraize $
  *
  */
 
@@ -162,6 +162,7 @@ public class FullScreen
     }
     public static boolean inNativeFullScreen() {
         return fullScreenNative;
+        //return fullScreenNative || (DEBUG.PRESENT && inWorkingFullScreen());
     }
 
     public static void toggleFullScreen() {
