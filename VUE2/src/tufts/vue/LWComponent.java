@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.342 $ / $Date: 2007-09-01 21:45:12 $ / $Author: sfraize $
+ * @version $Revision: 1.343 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5005,7 +5005,7 @@ u                    getSlot(c).setFromString((String)value);
         slide.drawZero(dc);
 
         if (!drewBorder && !dc.isAnimating()) {
-            dc.g.setClip(curClip);
+            dc.g.setClip(curClip); // TODO: this is clearing the underlying clip and allowing the border to draw over the scroll bars, etc!
             // Generic non-presentation unselected slide icon: draw a gray border
             //dc.g.setColor(slide.getRenderFillColor(dc).brighter());
             dc.g.setTransform(zeroTransform);

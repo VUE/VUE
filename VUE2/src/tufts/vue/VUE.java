@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.481 $ / $Date: 2007-08-30 21:08:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.482 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -282,10 +282,11 @@ public class VUE
     };
 
 
-    public static LWMap getActiveMap()          { return ActiveMapHandler.getActive(); }
-    public static LWPathway getActivePathway()  { return ActivePathwayHandler.getActive(); }
-    public static LWPathway.Entry getActiveEntry()  { return ActivePathwayEntryHandler.getActive(); }
-    public static MapViewer getActiveViewer()   { return ActiveViewerHandler.getActive(); }
+    public static LWMap getActiveMap() { return ActiveMapHandler.getActive(); }
+    public static LWPathway getActivePathway() { return ActivePathwayHandler.getActive(); }
+    public static LWPathway.Entry getActiveEntry() { return ActivePathwayEntryHandler.getActive(); }
+    public static MapViewer getActiveViewer() { return ActiveViewerHandler.getActive(); }
+    public static LWComponent getActiveComponent() { return ActiveComponentHandler.getActive(); }
     
     public static void setActive(Class clazz, Object source, Object newActive) {
         if (DEBUG.EVENTS && DEBUG.META) {

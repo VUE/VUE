@@ -61,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.84 $ / $Date: 2007-08-31 05:34:33 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -182,31 +182,78 @@ public class PathwayTable extends JTable
              });
   */      
 
-        addKeyListener(new KeyAdapter() {
-                public void keyPressed(KeyEvent e) {
-                    if (DEBUG.PATHWAY || DEBUG.KEYS) System.out.println(this + " " + e);
-                    final LWPathway pathway = VUE.getActivePathway();
-                    if (pathway == null)
-                        return;
-                    switch (e.getKeyCode()) {
-                    case KeyEvent.VK_UP:
-                    case KeyEvent.VK_LEFT:
-                        if (pathway.atFirst())
-                            pathway.setIndex(-1);
-                        else
-                            pathway.setPrevious();
-                        e.consume();
-                        break;
-                    case KeyEvent.VK_DOWN:
-                    case KeyEvent.VK_RIGHT:
-                        pathway.setNext();
-                        e.consume();
-                        break;
-                    }
-                }
-            });
+        addKeyListener(PathwayKeyHandler);
+//         addKeyListener(new KeyAdapter() {
+//                 public void keyPressed(KeyEvent e) {
+//                     if (DEBUG.PATHWAY || DEBUG.KEYS) System.out.println(this + " " + e);
+//                     final LWPathway pathway = VUE.getActivePathway();
+//                     if (pathway == null)
+//                         return;
+//                     switch (e.getKeyCode()) {
+//                     case KeyEvent.VK_UP:
+//                     case KeyEvent.VK_LEFT:
+//                         if (pathway.atFirst())
+//                             pathway.setIndex(-1);
+//                         else
+//                             pathway.setPrevious();
+//                         e.consume();
+//                         break;
+//                     case KeyEvent.VK_DOWN:
+//                     case KeyEvent.VK_RIGHT:
+//                         pathway.setNext();
+//                         e.consume();
+//                         break;
+//                     }
+//                 }
+//             });
         // end of PathwayTable constructor
     }
+
+    public static final KeyListener PathwayKeyHandler =
+        new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                if (DEBUG.PATHWAY || DEBUG.KEYS) System.out.println(this + " " + e);
+                final LWPathway pathway = VUE.getActivePathway();
+                if (pathway == null)
+                    return;
+
+                boolean handled = true;
+
+                switch (e.getKeyCode()) {
+                case KeyEvent.VK_PAGE_UP:
+                    // page-up will not go to master-slide: presentation slides only
+                    pathway.setPrevious();
+                    break;
+                case KeyEvent.VK_UP:
+                case KeyEvent.VK_LEFT:
+                    if (pathway.atFirst()) {
+                        // load master slide
+                        pathway.setIndex(-1);
+                    } else
+                        pathway.setPrevious();
+                    break;
+                case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_RIGHT:
+                case KeyEvent.VK_PAGE_DOWN:
+                    pathway.setNext();
+                    break;
+                case KeyEvent.VK_HOME:
+                    pathway.setFirst();
+                    break;
+                case KeyEvent.VK_END:
+                    pathway.setLast();
+                    break;
+                default:
+                    handled = false;
+                }
+
+                if (handled)
+                    e.consume();
+            }
+        };
+    
+
+    
 
     public void valueChanged(ListSelectionEvent e) {
         //System.out.println("JTABLE     VALUE     CHANGED " + e);

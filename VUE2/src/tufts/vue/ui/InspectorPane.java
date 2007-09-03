@@ -40,11 +40,11 @@ import edu.tufts.vue.metadata.ui.MetadataEditor;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.42 $ / $Date: 2007-08-28 17:38:05 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2007-09-03 20:49:10 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
-    implements VueConstants, LWSelection.Listener, ResourceSelection.Listener, SearchListener
+    implements VueConstants, ResourceSelection.Listener, SearchListener
 {
     
     public static int OLD = 0;
@@ -101,7 +101,8 @@ public class InspectorPane extends JPanel
         
         add(stack, BorderLayout.CENTER);
 
-        VUE.getSelection().addListener(this);
+        //VUE.getSelection().addListener(this);
+        VUE.addActiveListener(LWComponent.class, this);
         VUE.getResourceSelection().addListener(this);
         
         Widget.setHelpAction(mSummaryPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));;
@@ -122,18 +123,18 @@ public class InspectorPane extends JPanel
         loadResource(e.selected);
     }
 
-    public void selectionChanged(LWSelection selection) {  
+    public void activeChanged(final tufts.vue.ActiveEvent e, final LWComponent c)
+    {
         showNodePanes(true);
-        if (selection.isEmpty() || selection.size() > 1) {        	
+        if (c == null) {
             loadResource(null);
             this.setEnabled(false);
             this.getParent().setEnabled(false);
             showNodePanes(false);
             showResourcePanes(false);
         } else {
-        	this.setEnabled(true);
-        	this.getParent().setEnabled(true);
-            LWComponent c = selection.first();
+            this.setEnabled(true);
+            this.getParent().setEnabled(true);
             if (c.hasResource()) {
                 loadResource(c.getResource());
                 showResourcePanes(true);
@@ -147,6 +148,32 @@ public class InspectorPane extends JPanel
             //setTypeName(mNotePanel, c, "Notes");
         }
     }
+    
+//     public void selectionChanged(LWSelection selection) {  
+//         showNodePanes(true);
+//         if (selection.isEmpty() || selection.size() > 1) {        	
+//             loadResource(null);
+//             this.setEnabled(false);
+//             this.getParent().setEnabled(false);
+//             showNodePanes(false);
+//             showResourcePanes(false);
+//         } else {
+//         	this.setEnabled(true);
+//         	this.getParent().setEnabled(true);
+//             LWComponent c = selection.first();
+//             if (c.hasResource()) {
+//                 loadResource(c.getResource());
+//                 showResourcePanes(true);
+//             } else {
+//                 showResourcePanes(false);
+//             }
+//             mSummaryPane.load(c);
+//             mUserMetaData.load(c);
+//             //mNodeTree.load(c);
+
+//             //setTypeName(mNotePanel, c, "Notes");
+//         }
+//     }
 
     private static void setTypeName(JComponent component, LWComponent c, String suffix) {
         component.setName(c.getComponentTypeLabel() + " " + suffix);

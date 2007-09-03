@@ -48,7 +48,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.183 $ / $Date: 2007-09-03 19:30:43 $ / $Author: sfraize $
+ * @version $Revision: 1.184 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -274,13 +274,24 @@ public class LWPathway extends LWContainer
             // change views if they want to change when the entry changes.
 
             if (wasMapView) {
-                if (mapSlide != null)
+                if (mapSlide != null) {
                     mapSlide.notify(this, MAP_VIEW_CHANGED);
+                    if (VUE.getActiveComponent() == mapSlide) {
+                        // the MapView slide is no longer the slide for this
+                        // entry: select the new slide
+                        VUE.setActive(LWComponent.class, this, getSlide());
+                    }
+                }
                 else if (node != null)
                     node.notify(this, MAP_VIEW_CHANGED);
             } else {
                 // was regular slide view:
                 if (slide != null) slide.notify(this, MAP_VIEW_CHANGED);
+                if (VUE.getActiveComponent() == slide) {
+                    // the regular slide is no longer the slide for this
+                    // entry: select the MapView slide
+                    VUE.setActive(LWComponent.class, this, getSlide());
+                }
             }
             
 // During restores, until node is set, we always think we're a merged slide, and isMapView never gets restored!
@@ -457,7 +468,7 @@ public class LWPathway extends LWContainer
             @Override
             public LWComponent getFocal() { return getMasterSlide(); }
             @Override
-            public LWComponent getSelectable() { return pathway; }
+            public LWComponent getSelectable() { return getMasterSlide(); }
             @Override
             public boolean isPathway() { return true; }
             @Override
@@ -1187,6 +1198,7 @@ public class LWPathway extends LWContainer
             setPathwayEntry(e);
             //Util.printStackTrace("new MapSlide " + this + " for entry " + e);
             disableProperty(LWKey.FillColor); // we don't persist map slides, so don't allow this to change: won't be permanent
+            disableProperty(LWKey.Label);
             if (e.node instanceof LWContainer)
                 setParent((LWContainer)e.node);
             else
@@ -1239,6 +1251,16 @@ public class LWPathway extends LWContainer
         }
 
         @Override
+        public String getLabel() {
+            return "View of " + getEntry().node.getDisplayLabel() + " in " + getEntry().pathway.getDisplayLabel();
+        }
+        
+        @Override
+        public String getComponentTypeLabel() {
+            return "NodeView";
+        }
+
+        @Override
         public boolean hasPicks() { return false; }
         @Override
         public boolean hasChildren() { return false; }
@@ -1275,19 +1297,22 @@ public class LWPathway extends LWContainer
         //private List<LWComponent> mStyles = new ArrayList();
 
         /** for castor persistance */
-        public MasterSlide() {}
+        public MasterSlide() {
+            enableProperty(LWKey.Label);
+        }
 
         /** @return null -- don't create a style type for master slides */
         @Override
         public Object getTypeToken() {
             return null;
         }
-        
+
         @Override
         public final void setParent(LWContainer parent) {
-            if (parent instanceof LWPathway)
+            if (parent instanceof LWPathway) {
                 super.setParent(parent);
-            else
+                setPathwayEntry(((LWPathway)parent).asEntry());
+            } else
                 Util.printStackTrace(this + " master slide can't set parent to non pathway: " + parent);
         }
 
@@ -1373,11 +1398,12 @@ public class LWPathway extends LWContainer
         MasterSlide(final LWPathway owner)
         {
             //getMasterStyle();
-                
+            enableProperty(LWKey.Label);
             setStrokeWidth(0);
             //if (owner != null) setFillColor(owner.getStrokeColor()); // TODO: debugging for now: use the pathway stroke as slide color
             setFillColor(Color.black);
             setSize(SlideWidth, SlideHeight);
+            setPathwayEntry(owner.asEntry());
 
             // Create the default items for the master slide:
             
@@ -1491,11 +1517,41 @@ public class LWPathway extends LWContainer
         }
         */
         
+        @Override
         public String getLabel() {
-            return "Master Slide: " + (getParent() == null ?" <unowned>" : getParent().getDisplayLabel());
+            return getEntry().pathway.getLabel();
+        }
+
+        @Override
+        public void setLabel(String label) {
+            getEntry().pathway.setLabel(label);
         }
         
-        public String getComponentTypeLabel() { return "Slide<Master>"; }
+        @Override
+        public boolean hasLabel() { return true; }
+
+        // For backward compatability with old save files, we
+        // re-route notes to the notes stored for the pathway
+        // itself.  The notes for the MasterSlide object itself
+        // will remain unused.
+        
+        @Override
+        public String getNotes() {
+            return getEntry().pathway.getNotes();
+        }
+        @Override
+        public boolean hasNotes() {
+            return getEntry().pathway.hasNotes();
+        }
+        
+
+        
+//         public String getLabel() {
+//             return "Master Slide: " + (getParent() == null ?" <unowned>" : getParent().getDisplayLabel());
+//         }
+        
+        public String getComponentTypeLabel() { return "Pathway/Master"; }
+        //public String getComponentTypeLabel() { return "Slide<Master>"; }
 
     }
 

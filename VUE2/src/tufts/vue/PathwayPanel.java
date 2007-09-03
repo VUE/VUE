@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.106 $ / $Date: 2007-09-01 16:16:58 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1190,6 +1190,8 @@ public class PathwayPanel extends JPanel
             // only, so if it's in the selection, it should be first,
             // and there shouldn't be anything else.  We don't ever
             // want to be able to add the pathway to itself!
+            // 2007-09-03 -- LWPathway objects not selectable (only master slide),
+            // check should now be redundant.
 
             if (selection.size() == 1)
                 btnAddSlide.setEnabled(path.isPathwayAllowed(selection.first()));

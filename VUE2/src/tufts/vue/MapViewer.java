@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.432 $ / $Date: 2007-09-01 16:15:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.433 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -989,7 +989,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //return PoppingToTop || !inScrollPane();
         //return true;
     }
-    
+
     private void doFitToFocal(boolean animate)
     {
         if (DEBUG.PRESENT || DEBUG.VIEWER) out("fitToFocal", mFocal);
@@ -1143,6 +1143,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public void loadFocal(LWComponent focal) {
         loadFocal(focal, true, false);
     }
+
+    private static boolean focalAllowsScrollBars(LWComponent focal) {
+        return focal instanceof LWMap;
+    }
+        
     
     private static final boolean ScrollBarHiding = false;
 
@@ -1183,7 +1188,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             if (inScrollPane()) {
                 if (ScrollBarHiding) {
-                    if (mFocal instanceof LWMap) {
+                    if (focalAllowsScrollBars(mFocal)) {
                         mapScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
                         mapScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
                     } else {
@@ -1196,7 +1201,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     //mapScrollPane.revalidate(); 
                     //revalidate();
                 } else {
-                    final boolean enable = mFocal instanceof LWMap;
+                    final boolean enable = focalAllowsScrollBars(mFocal);
                     mapScrollPane.getHorizontalScrollBar().setEnabled(enable);
                     mapScrollPane.getVerticalScrollBar().setEnabled(enable);
                 }
@@ -1443,10 +1448,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             ;
         */
     }
+
+    private boolean isPathwayEntryMode() {
+        return mFocalEntry != null;
+        //return activeTool != ToolPresentation && VUE.getActiveViewer() == this && mFocal instanceof LWMap == false;
+    }
     
     public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
         //if (instanceName.equals("*LEFT") && VUE.getActiveViewer() != this) Util.printStackTrace("***ACTIVE VIEWER: " + VUE.getActiveViewer());
         if (activeTool != ToolPresentation && VUE.getActiveViewer() == this && mFocal instanceof LWMap == false) {
+            //if (isPathwayEntryMode()) {
             // if presentation tool is active, let it handle all this
             mFocalEntry = entry;
             //if (DEBUG.Enabled) Util.printStackTrace("LOAD FOCAL ENTRY " + this + " " + mFocalEntry);
@@ -2169,6 +2180,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     
+    @Override
     public void paint(Graphics g) {
 
         if (skipAllPainting())
@@ -2479,6 +2491,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //g.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
         g.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
         g.drawString("Focal " + this.mFocal, x, y+=15);
+        g.drawString("Entry " + this.mFocalEntry, x, y+=15);
         g.drawString("  MAP " + this.mMap, x, y+=15);
 
         Point2D center = getVisibleCenter();
@@ -4118,45 +4131,43 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             
             handled = true;
-            
-            switch (keyCode) {
-                
-            case KeyEvent.VK_UP:
-            case KeyEvent.VK_DOWN:
-            case KeyEvent.VK_LEFT:
-            case KeyEvent.VK_RIGHT:
 
-                if (VueSelection.isEmpty() || !Actions.NudgeAction.enabledOn(VueSelection)) {
-                    if (e.isShiftDown()) {
-                        // micro 1-pixel scroll adjustments (default in scroll-pane is bigger)
-            	
-                             if (keyCode == KeyEvent.VK_UP)    viewer.panScrollRegion( 0,-1);
-                        else if (keyCode == KeyEvent.VK_DOWN)  viewer.panScrollRegion( 0, 1);
-                        else if (keyCode == KeyEvent.VK_LEFT)  viewer.panScrollRegion(-1, 0);
-                        else if (keyCode == KeyEvent.VK_RIGHT) viewer.panScrollRegion( 1, 0);
+            if (isPathwayEntryMode() && (VueSelection.isEmpty() || VueSelection.first() == mFocal)) {
+
+                PathwayTable.PathwayKeyHandler.keyPressed(e);
+                handled = e.isConsumed();
+
+            } else {
+                
+                switch (keyCode) {
+                
+                case KeyEvent.VK_UP:
+                case KeyEvent.VK_DOWN:
+                case KeyEvent.VK_LEFT:
+                case KeyEvent.VK_RIGHT:
+                    
+                    if (!VueSelection.isEmpty() && !e.isAltDown() && !e.isMetaDown() && !e.isControlDown()) {
+                    
+                        // there's something in the selection, and only shift might be down: apply big or small nudge
+                        if (e.isShiftDown()) {
+                                 if (keyCode == KeyEvent.VK_UP)    Actions.BigNudgeUp.fire(this);
+                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.fire(this);
+                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.fire(this);
+                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.fire(this);
+                        } else {
+                                 if (keyCode == KeyEvent.VK_UP)    Actions.NudgeUp.fire(this);
+                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.NudgeDown.fire(this);
+                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.NudgeLeft.fire(this);
+                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.NudgeRight.fire(this);
+                        }
                     } else
                         handled = false;
-                    
-                } else if (!e.isAltDown() && !e.isMetaDown() && !e.isControlDown()) {
-                    
-                    // there's something in the selection, and only shift might be down: apply big or small nudge
-                    if (e.isShiftDown()) {
-                             if (keyCode == KeyEvent.VK_UP)    Actions.BigNudgeUp.fire(this);
-                        else if (keyCode == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.fire(this);
-                        else if (keyCode == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.fire(this);
-                        else if (keyCode == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.fire(this);
-                    } else {
-                             if (keyCode == KeyEvent.VK_UP)    Actions.NudgeUp.fire(this);
-                        else if (keyCode == KeyEvent.VK_DOWN)  Actions.NudgeDown.fire(this);
-                        else if (keyCode == KeyEvent.VK_LEFT)  Actions.NudgeLeft.fire(this);
-                        else if (keyCode == KeyEvent.VK_RIGHT) Actions.NudgeRight.fire(this);
-                    }
-                } else
-                      handled = false;
-                break;
+                    break;
                 
-            default:
-                handled = false;
+                default:
+                    handled = false;
+                }
+
             }
             
 
