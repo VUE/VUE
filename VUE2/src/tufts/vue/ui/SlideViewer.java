@@ -491,7 +491,7 @@ if (true) return;
     protected DrawContext getDrawContext(Graphics2D g) {
         DrawContext dc = super.getDrawContext(g);
         dc.setDrawPathways(false);        
-        dc.setEditMode(btnMaster.isSelected());
+        //dc.setEditMode(btnMaster.isSelected());
         /* dc.focal now handles this 
         if (isMapView) {
             dc.isFocused = true;// turns off pathway drawing
