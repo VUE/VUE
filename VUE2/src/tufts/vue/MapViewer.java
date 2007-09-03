@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.433 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $ 
+ * @version $Revision: 1.434 $ / $Date: 2007-09-03 21:00:46 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4132,7 +4132,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             handled = true;
 
-            if (isPathwayEntryMode() && (VueSelection.isEmpty() || VueSelection.first() == mFocal)) {
+            if (isPathwayEntryMode() && VueSelection != null && (VueSelection.isEmpty() || VueSelection.first() == mFocal)) {
 
                 PathwayTable.PathwayKeyHandler.keyPressed(e);
                 handled = e.isConsumed();
