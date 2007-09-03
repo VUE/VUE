@@ -48,7 +48,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.184 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
+ * @version $Revision: 1.185 $ / $Date: 2007-09-03 20:58:42 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -135,6 +135,15 @@ public class LWPathway extends LWContainer
             syncNodeEntryRef();
         }
 
+        /** for castor's use during restores */
+        public Entry() {
+            pathway = null;
+        }
+        
+        private final boolean restoreUnderway() {
+            return pathway == null;
+        }
+        
         private void syncNodeEntryRef() {
             if (node != null && node instanceof LWPathway == false)
                 node.addEntryRef(this);
@@ -147,12 +156,6 @@ public class LWPathway extends LWContainer
             }
         }
         
-
-        /** for castor's use during restores */
-        public Entry() {
-            pathway = null;
-        }
-
         public String getLabel() {
             if (node != null)
                 return node.getDisplayLabel();
@@ -254,7 +257,7 @@ public class LWPathway extends LWContainer
             } else
                 slide = s;
         }
-        
+
         public void setMapView(boolean asMapView) {
 
             if (isMapView == asMapView)
@@ -263,10 +266,11 @@ public class LWPathway extends LWContainer
             final boolean wasMapView = isMapView;
             isMapView = asMapView;
 
-            if (pathway != null) {
-                // So the PathwayTableModel knows to update / PathwayTable knows to redraw
-                pathway.notify(this, MAP_VIEW_CHANGED);
-            }
+            if (restoreUnderway())
+                return;
+
+            // So the PathwayTableModel knows to update / PathwayTable knows to redraw
+            pathway.notify(this, MAP_VIEW_CHANGED);
 
             // Anyone listening to the old focal (e.g., a MapViewer), can watch for the
             // MAP_VIEW_CHANGED event on that old focal (e.g., the user slide, virtual
@@ -1474,6 +1478,8 @@ public class LWPathway extends LWContainer
         // override LWSlide impl that tries to draw master slide -- only draw children -- no fill
         @Override
         protected void drawImpl(DrawContext dc) {
+            if (dc.focal == this)
+                dc.setEditMode(true);
             drawChildren(dc);
         }
 
