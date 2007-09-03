@@ -61,7 +61,7 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.85 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
+ * @version $Revision: 1.86 $ / $Date: 2007-09-03 21:24:48 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -105,6 +105,8 @@ public class PathwayTable extends JTable
     private final int[] colWidths = {30,20,200,30,30,20};
 
     private static Color SelectedColor;
+
+    private static PathwayTable Singleton;
 
     public void setUI(TableUI ui)
     {
@@ -206,6 +208,8 @@ public class PathwayTable extends JTable
 //                     }
 //                 }
 //             });
+
+        Singleton = this;
         // end of PathwayTable constructor
     }
 
@@ -243,6 +247,13 @@ public class PathwayTable extends JTable
                 case KeyEvent.VK_END:
                     pathway.setLast();
                     break;
+                case KeyEvent.VK_ENTER:
+                    if (e.getSource() == PathwayTable.Singleton) {
+                        if (VUE.getActiveViewer() != null)
+                            VUE.getActiveViewer().popFocal();
+                        break;
+                    } else
+                        handled = false;
                 default:
                     handled = false;
                 }
