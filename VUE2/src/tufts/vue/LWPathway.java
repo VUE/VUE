@@ -48,7 +48,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.185 $ / $Date: 2007-09-03 20:58:42 $ / $Author: sfraize $
+ * @version $Revision: 1.186 $ / $Date: 2007-09-03 21:32:09 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1305,6 +1305,12 @@ public class LWPathway extends LWContainer
             enableProperty(LWKey.Label);
         }
 
+//         /** @return false: prevents every drawing selection on map */
+//         @Override
+//         public boolean isMapVirtual() {
+//             return true;
+//         }
+        
         /** @return null -- don't create a style type for master slides */
         @Override
         public Object getTypeToken() {
