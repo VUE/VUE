@@ -48,7 +48,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.182 $ / $Date: 2007-09-01 16:11:37 $ / $Author: sfraize $
+ * @version $Revision: 1.183 $ / $Date: 2007-09-03 19:30:43 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1030,16 +1030,9 @@ public class LWPathway extends LWContainer
     private void broadcastCurrentEntry() {
         if (VUE.getActivePathway() == this) {
             if (mCurrentIndex < 0) {
-                //if (DEBUG.Enabled) Util.printStackTrace(this + " set self as active");
                 VUE.setActive(LWPathway.Entry.class, this, this.asEntry());
             } else {
                 VUE.setActive(LWPathway.Entry.class, this, getEntry(mCurrentIndex));
-                // TODO: if this node is in pathway more than once,
-                // this set-selection is re-triggering a pathway
-                // table selection of the FIRST instance of this node,
-                // preventing us from ever kbd-arrow navigating
-                // down the the second instance of the node in the pathway.
-                //VUE.getSelection().setTo(getNodeEntry(i));
             }
         }
         
