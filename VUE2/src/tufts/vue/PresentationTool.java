@@ -1704,17 +1704,17 @@ private static int OverviewMapSizeIndex = 5;
     
     private void makeNavNodes(Page page, Rectangle frame)
     {
-//         // always add the current pathway at the top
-//         //if (node.inPathway(mPathway))
-//         if (page.onPathway(mPathway))
-//             mNavNodes.add(createNavNode(page));
-// Having the order switch on the user sucks...
+        // always add the current pathway at the top
+        //if (node.inPathway(mPathway))
+        if (page.onPathway(mPathway))
+            mNavNodes.add(createNavNode(page));
+        // tho having the order switch on the user kind of sucks...
 
         final LWComponent mapNode = page.getOriginalMapNode();
         
         for (LWPathway otherPath : mapNode.getPathways()) {
             //if (otherPath != mPathway && !otherPath.isFiltered())
-            if (!otherPath.isFiltered())
+            if (!otherPath.isFiltered() && otherPath != mPathway)
                 mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
         }
 
