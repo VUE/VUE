@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.435 $ / $Date: 2007-09-03 21:31:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.436 $ / $Date: 2007-09-03 21:31:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3006,7 +3006,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (selection.only() == mFocal || selection.first() instanceof LWPathway.MasterSlide) {
             // never draw a selection when the focal is the only selection,
             // or if it's a master slide.
-            // todo: some kind of special indicator for this...
+            // todo: some kind of special indicator for this... (or check type token?)
             return;
         }
 
