@@ -416,7 +416,7 @@ public class Repository implements org.osid.repository.Repository {
         SearchCriteria searchCriteria = new SearchCriteria();
         searchCriteria.setConditions(condition);
         searchCriteria.setMaxReturns("1");
-        org.osid.repository.AssetIterator mAssetIterator = FedoraSoapFactory.advancedSearch(this,searchCriteria);
+        org.osid.repository.AssetIterator mAssetIterator = FedoraRESTSearchAdapter.advancedSearch(this,searchCriteria);
         if(mAssetIterator.hasNextAsset())
             return  mAssetIterator.nextAsset();
         else

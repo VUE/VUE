@@ -75,7 +75,7 @@ public class AssetIterator
                 lSearchCriteria.setSearchOperation(SearchCriteria.FIND_OBJECTS);
                 lSearchCriteria.setResults(0);
                 
-                org.osid.repository.AssetIterator ai = FedoraSoapFactory.advancedSearch(repository,lSearchCriteria);
+                org.osid.repository.AssetIterator ai = FedoraRESTSearchAdapter.advancedSearch(repository,lSearchCriteria);
                 java.util.Vector v = new java.util.Vector();
                 while (ai.hasNextAsset()) v.addElement(ai.nextAsset());
                 this.iterator = v.iterator();
