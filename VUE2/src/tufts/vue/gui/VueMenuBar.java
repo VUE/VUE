@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-08-31 18:06:22 $ / $Author: mike $
+ * @version $Revision: 1.50 $ / $Date: 2007-09-04 16:04:43 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -91,7 +91,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu linkMenu = new VueMenu("Link");
         final JMenu helpMenu = add(new VueMenu("Help"));
         final JMenu slidePreviewMenu = new JMenu("Slide preview");
-        final JMenu notesMenu = new JMenu("Notes");
+        final JMenu notesMenu = new JMenu("Notes, Slides & Handouts");
         final JMenu playbackMenu = new JMenu("Playback Presentation");
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Actions
@@ -351,8 +351,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				{
 					final LWPathway path = (LWPathway) i.next();
 					final JMenu menuLevel1 = new JMenu(path.getDisplayLabel());
-					if (path.getEntries().isEmpty())
-						menuLevel1.setEnabled(false);
+					
+					//	menuLevel1.setEnabled(false);
+						
+					
 					notesMenu.add(menuLevel1);
 									    
 					final JMenuItem item1 = new JMenuItem(Actions.FullPageSlideNotes.getActionName());
@@ -415,13 +417,21 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			        		Actions.SpeakerNotesOutline.act();
 			        	}
 			        });
-
-        			menuLevel1.add(item1);
-        			menuLevel1.add(item2);
-        			menuLevel1.add(item3);
-        			menuLevel1.add(item4);
-        			menuLevel1.add(item5);
-        			menuLevel1.add(item6);
+			        if (!path.getEntries().isEmpty())
+					{
+			        	menuLevel1.add(item1);
+			        	menuLevel1.add(item2);
+			        	menuLevel1.add(item3);
+			        	menuLevel1.add(item4);
+			        	menuLevel1.add(item5);
+			        	menuLevel1.add(item6);
+					}
+			        else
+			        {
+			        	final JMenuItem emptyItem = new JMenuItem("no presentation is available");
+			        	emptyItem.setEnabled(false);
+			        	menuLevel1.add(emptyItem);
+			        }
 			    }
 				
 			}
