@@ -128,7 +128,37 @@ public class RDFIndex extends ModelCom {
     }
     
     public List<URI> search(Query query) {
-        return search(query.createSPARQLQuery());
+        
+        long t0 = System.currentTimeMillis();
+        if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        List<URI> r = new ArrayList<URI>();
+        //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
+        String queryString = query.createSPARQLQuery();
+                //"PREFIX vue: <"+VUE_ONTOLOGY+">"+
+                //"SELECT ?resource ?keyword " +
+                //"WHERE{" +
+                //"      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
+        if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        this.query = QueryFactory.create(queryString);
+        qe = QueryExecutionFactory.create(this.query, this);
+        if(DEBUG.RDF) System.out.println("SEARCH- created query "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        ResultSet results = qe.execSelect();
+        if(DEBUG.RDF) System.out.println("SEARCH- executed query: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        while(results.hasNext())  {
+            QuerySolution qs = results.nextSolution();
+            try {
+                r.add(new URI(qs.getResource("resource").toString()));
+            }catch(Throwable t) {
+                t.printStackTrace();
+            }
+        }
+        qe.close();
+        return r;
+        
+        //return search(query.createSPARQLQuery());
     }
     
     public void save() {
@@ -159,7 +189,8 @@ public class RDFIndex extends ModelCom {
                 VueMetadataElement element = i.next();
                 if(DEBUG.RDF) System.out.println("Resouece: "+r+" Element:"+element+" class of element:"+element.getClass());
                 if(element.getObject() != null)
-                    statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
+                    statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getValue());
+                    //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
                 addStatement(statement);
             }
         } catch(Exception ex) {
@@ -224,7 +255,7 @@ public class RDFIndex extends ModelCom {
         if(words.length < 2){
             throw new Exception("createPropertyFromKey: The key format is wrong. key - "+key);
         }
-        return createProperty(words[0],words[1]);
+        return createProperty(words[0]+"#",words[1]);
     }
     
     private boolean compareStatements(com.hp.hpl.jena.rdf.model.Statement stmt1,com.hp.hpl.jena.rdf.model.Statement stmt2) {

@@ -115,8 +115,11 @@ public class SearchAction extends AbstractAction {
         while(criterias.hasNext())
         {
             VueMetadataElement criteria = criterias.next();
+            System.out.println("SearchAction adding criteria - getKey(), getValue() " + criteria.getKey() + "," + criteria.getValue());
             query.addCriteria(criteria.getKey(),criteria.getValue());
         }
+        
+        System.out.println("SearchAction: query - " + query.createSPARQLQuery());
         
     }
     
@@ -133,6 +136,7 @@ public class SearchAction extends AbstractAction {
         if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
         index.remove(index);
         index.index(VUE.getActiveMap());
+        System.out.println("SearchAction: index - " + index);
         if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
         }
         finds = new ArrayList<List<URI>>();
@@ -164,6 +168,7 @@ public class SearchAction extends AbstractAction {
                 Iterator<URI> foundIterator = found.iterator();
                 while(foundIterator.hasNext()) {
                     URI uri = foundIterator.next();
+                    System.out.println("SearchAction: uri found - " + uri);
                     LWComponent r = (LWComponent)edu.tufts.vue.rdf.VueIndexedObjectsMap.getObjectForID(uri);
                     if(r!=null && (r.getMap() != null) && r.getMap().equals(VUE.getActiveMap())) {
                         comps.add(r);
@@ -186,6 +191,7 @@ public class SearchAction extends AbstractAction {
           loadKeywords(searchInput.getText());
         }
         performSearch();
+        System.out.println("SearchAction: comps size after perform search - " + comps.size());
         VUE.getSelection().setTo(comps.iterator());
     }
 }

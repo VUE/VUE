@@ -19,6 +19,7 @@
 package edu.tufts.vue.metadata;
 
 import edu.tufts.vue.ontology.*;
+import edu.tufts.vue.rdf.RDFIndex;
 
 import java.net.*;
 
@@ -40,7 +41,9 @@ public class VueMetadataElement {
    public static final int CATEGORY = 1;
    public static final int ONTO_TYPE = 2;
    
-   public static final String VUE_ONT = "vue.tufts.edu/vue.rdfs";
+   public static final String ONT_SEPARATOR = "#";
+   
+   public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
    
    public Object getObject()
    {
@@ -60,7 +63,7 @@ public class VueMetadataElement {
        {
            type = CATEGORY;
            value = ((String[])obj)[1];
-           key = VUE_ONT + "#" + ((String[])obj)[0];
+           key = VUE_ONT  + "#" + ((String[])obj)[0];
        }
        else if(obj instanceof OntType)
        {
@@ -105,6 +108,7 @@ public class VueMetadataElement {
        if( (type == CATEGORY) && (obj == null) )
        {
            int len = (VUE_ONT + "#").length();
+           System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
            String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
            obj = pairedValue;
            System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);

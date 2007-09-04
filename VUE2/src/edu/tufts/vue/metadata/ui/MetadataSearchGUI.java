@@ -216,6 +216,8 @@ public class MetadataSearchGUI extends JPanel {
     public void findCategory(Object currValue,int row,int col,JComboBox categories)
     {
    
+        System.out.println("MetadataSearchGUI: find category");
+        
         int n = categories.getModel().getSize();
         for(int i=0;i<n;i++)
         {
@@ -230,6 +232,7 @@ public class MetadataSearchGUI extends JPanel {
                    
            if(item instanceof OntType && ((OntType)item).getLabel().equals(currLabel))
            {
+              System.out.println("MetadataSearchGUI: find category - found - " + i);
               categories.setSelectedIndex(i);
            }
                    
@@ -254,14 +257,22 @@ public class MetadataSearchGUI extends JPanel {
                     //Object searchTerm = searchTerms.get(row).getObject();
                     if(searchTerm.getObject() instanceof String[])
                     {
-                        VueMetadataElement newElement = new VueMetadataElement();
+                        //VueMetadataElement newElement = new VueMetadataElement();
+                        System.out.println("MetadataSearchGUI creating newTerm in focus lost - category: " + ((String[])searchTerms.get(row).getObject())[0] );
+                        System.out.println("MetadataSearchGUI creating newTerm in focus lost - value: " + field.getText() );
                         String[] newTerm = {((String[])searchTerms.get(row).getObject())[0],field.getText()};
                         searchTerm.setObject(newTerm);
-                        newElement.setType(VueMetadataElement.CATEGORY);
+                        //newElement.setObject(newTerm);
+                        //System.out.println("MetadataSearchGUI setObject to newTerm now look at key: " + newElement.getKey());
+                        //newElement.setType(VueMetadataElement.CATEGORY);
                     }
                 }
              });
-             field.setText(value.toString());
+             System.out.println("MetadatasearchGUI renderer component: about to set field value -  " + value.toString() +"," + ((String[])searchTerms.get(row).getObject())[1]);
+             //field.setText(value.toString());
+             
+             String val = ((String[])searchTerms.get(row).getObject())[1];
+             field.setText(val);
              comp.add(field);
            }
            else
@@ -283,8 +294,8 @@ public class MetadataSearchGUI extends JPanel {
                         //String[] pairedObject = {searchTerms.get(row).getValue(),categories.getModel().getElementAt(row).toString()};
                         String[] pairedObject = {((OntType)categories.getSelectedItem()).getLabel(),searchTerms.get(row).getValue()};
                         VueMetadataElement ele = new VueMetadataElement();
-                        ele.setType(VueMetadataElement.CATEGORY);
                         ele.setObject(pairedObject);
+                        ele.setType(VueMetadataElement.CATEGORY);
                         searchTerms.set(row,ele);
 
                     }

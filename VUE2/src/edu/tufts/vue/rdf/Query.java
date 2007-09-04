@@ -58,18 +58,20 @@ public class Query  {
         for(Criteria criteria: criteriaList) {
             switch(criteria.qualifier)  {
                 case CONTAINS:
-                    query +=  "?resource "+criteria.key+" ?keyword FILTER regex(?keyword,\""+criteria.value+ "\") .";
+                    //query +=  "?resource "+criteria.key+" ?keyword FILTER regex(?keyword,\""+criteria.value+ "\") .";
+                    query +=  "?resource <"+ criteria.key+"> ?keyword FILTER regex(?keyword,\""+criteria.value+ "\")";
                     break;
                 case MATCH_CASE:
                     query +=  "?resource "+criteria.key+" "+criteria.value+ "\") .";
                     break;
                 case STARTS_WITH:
-                    query +=  "?resource "+criteria.key+" ?keyword FILTER regex(?keyword,\"^"+criteria.value+ "\") .";
+                    //query +=  "?resource "+criteria.key+" ?keyword FILTER regex(?keyword,\"^"+criteria.value+ "\") .";
+                    query +=  "?resource "+criteria.key+" ?keyword FILTER regex(?keyword,\"^"+criteria.value+ "\")";
                     break;
                     
             }
         }
-        query  = "}";
+        query  += "}";
         return query;
     }
     

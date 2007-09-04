@@ -470,12 +470,23 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   
                   if(currentVME==null)
                   {
-                    vme.setObject(field.getText());   
+                               //VueMetadataElement vme = new VueMetadataElement();
+                     String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+                     vme.setObject(emptyEntry);
+                     vme.setType(VueMetadataElement.CATEGORY);  
+                      
+                      
+                    //vme.setObject(field.getText());   
                   }
                   else
                   if(!(currentVME.getObject() instanceof String[]))
                   {
-                    vme.setObject(field.getText());
+                    //vme.setObject(field.getText());
+                      
+                               //VueMetadataElement vme = new VueMetadataElement();
+                     String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+                     vme.setObject(emptyEntry);
+                     vme.setType(VueMetadataElement.CATEGORY);
                   }
                   else
                   {
