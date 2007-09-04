@@ -52,6 +52,9 @@ public class MetadataSearchGUI extends JPanel {
     
     public final static int BUTTON_COL_WIDTH = 35;
     
+    public final static int SHOW_OPTIONS = 1;
+    public final static int HIDE_OPTIONS = 0;
+    
     //ONE_LINE
     private JTextField searchField;
     private JTable searchTable;
@@ -62,7 +65,7 @@ public class MetadataSearchGUI extends JPanel {
     //TEXT FIELD BASED
     private JPanel optionsPanel;
     private JComboBox searchTypesChoice;
-    private String[] searchTypes = {"Basic","Categories","Advanced"};
+    private String[] searchTypes = {"Basic","Categories","Advanced","All"};
     
     private JPanel fieldsPanel;
     private JTable searchTermsTable;
@@ -70,6 +73,11 @@ public class MetadataSearchGUI extends JPanel {
     private int buttonColumn = 1;
     
     private List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
+    
+    private JButton advancedSearch;
+    private JLabel optionsLabel;
+    
+    private int optionsToggle;
     
     public MetadataSearchGUI() 
     {
@@ -120,8 +128,27 @@ public class MetadataSearchGUI extends JPanel {
                //((SearchTermsTableModel)searchTermsTable.getModel()).refresh();
         
         searchTypesChoice = new JComboBox(searchTypes);
-        final JLabel optionsLabel = new JLabel("show options");
-        final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
+        searchTypesChoice.addItemListener(new ItemListener()
+        {
+           public void itemStateChanged(ItemEvent ie)
+           {
+               if(ie.getStateChange() == ItemEvent.SELECTED)
+               {
+                   if(ie.getItem().equals("Basic"))
+                   {
+                       System.out.println("Basic search selected");
+                       setBasicSearch();
+                   }
+                   if(ie.getItem().equals("Categories"))
+                   {
+                       System.out.println("Category search selected");
+                       setCategorySearch();
+                   }
+               }
+           }
+        });
+        optionsLabel = new JLabel("show options");
+        advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
         advancedSearch.setBorder(BorderFactory.createEmptyBorder());
         advancedSearch.addActionListener(new ActionListener(){
            public void actionPerformed(ActionEvent e)
@@ -133,27 +160,12 @@ public class MetadataSearchGUI extends JPanel {
                  ((SearchTermsTableModel)searchTermsTable.getModel()).setColumns(3);
                }*/
                
-               SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
-               if(model.getColumnCount() == 2)
-               {
-                 buttonColumn = 2;
-                 model.setColumns(3);
-                 advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
-                 optionsLabel.setText("hide options");
-               }
-               else
-               {
-                 buttonColumn = 1;
-                 model.setColumns(2);
-                 advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
-                 optionsLabel.setText("show options");
-               }
-               
-               adjustColumnModel(); 
+               toggleCategorySearch();
            }
         });
         optionsPanel.add(advancedSearch);
         optionsPanel.add(optionsLabel);
+        optionsPanel.add(searchTypesChoice);
         
         
         searchTermsTable = new JTable(new SearchTermsTableModel());
@@ -190,6 +202,76 @@ public class MetadataSearchGUI extends JPanel {
         buttonPanel.add(BorderLayout.EAST,searchButton);
         //add(BorderLayout.NORTH,searchField);
         add(buttonPanel);
+        
+        searchTermsTable.addMouseListener(new java.awt.event.MouseAdapter()
+               {
+                   public void mouseReleased(java.awt.event.MouseEvent evt)
+                   {
+                       if(evt.getX()>searchTermsTable.getWidth()-BUTTON_COL_WIDTH)
+                       {
+                         //java.util.List<VueMetadataElement> searchTermsList = MetadataSearchGUI.this.searchTerms;
+                         int selectedRow = searchTermsTable.getSelectedRow();
+                         if(searchTermsTable.getSelectedColumn()==buttonColumn && searchTerms.size() > selectedRow)
+                         {
+                            searchTerms.remove(selectedRow);
+                            searchTermsTable.repaint();
+                            requestFocusInWindow();
+                         }
+                       }
+                   }
+        });
+        
+    }
+    
+    public void toggleOptionsView()
+    {
+        if(optionsToggle == SHOW_OPTIONS)
+        {
+           advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
+           optionsLabel.setText("hide options");
+        }
+        else if(optionsToggle == HIDE_OPTIONS)
+        {
+           advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
+           optionsLabel.setText("show options"); 
+        }
+    }
+
+    public void toggleCategorySearch()
+    {
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        if(model.getColumnCount() == 2)
+        {
+           buttonColumn = 2;
+           model.setColumns(3);
+           advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
+           optionsLabel.setText("hide options");
+        }
+        else
+        {
+           buttonColumn = 1;
+           model.setColumns(2);
+           advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
+           optionsLabel.setText("show options");
+        }
+               
+        adjustColumnModel(); 
+    }
+    
+    public void setCategorySearch()
+    {
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 2;
+        model.setColumns(3);
+        adjustColumnModel();
+    }
+    
+    public void setBasicSearch()
+    {
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 1;
+        model.setColumns(2);
+        adjustColumnModel();
     }
     
     public void adjustColumnModel()
