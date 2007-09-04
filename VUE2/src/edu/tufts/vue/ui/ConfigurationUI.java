@@ -1,7 +1,12 @@
 package edu.tufts.vue.ui;
 
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.ContainerOrderFocusTraversalPolicy;
+import java.awt.FocusTraversalPolicy;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -70,6 +75,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
     private String errorMessage = null;
     
     public ConfigurationUI(java.io.InputStream stream) {
+    	this.setFocusCycleRoot(true);
+    	
+    	
         getXML(stream);
         if (errorMessage != null) {
             System.out.println("Error: " + this.errorMessage);
@@ -263,7 +271,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
             ex.printStackTrace();
         }
     }
-    
+    Vector<Component> order = null;
     private void populatePanel() {
         try {
             // setup panel layout
@@ -275,6 +283,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
             setLayout(gbLayout);
             gbConstraints.gridx = 0;
             gbConstraints.gridy = 0;
+            order = new Vector<Component>(this.uiVector.size());
             
             for (int i = 0, size = this.uiVector.size(); i < size; i++) {
                 int uiCode = ((Integer)uiVector.elementAt(i)).intValue();
@@ -426,8 +435,13 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 String description = (String)descriptionVector.elementAt(i);
                 if (description != null) {
                     prompt.setToolTipText(description);
-                }
+                }                
             }
+            VectorFocusTraversalPolicy policy = new VectorFocusTraversalPolicy(order);
+            this.setFocusTraversalPolicy(policy);
+            
+            
+            
         } catch (Exception ex) {
             this.errorMessage = ex.getMessage();
             ex.printStackTrace();
@@ -446,6 +460,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
         gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gbConstraints.weightx = 1;
         add(component,gbConstraints);
+        order.add(component);
         gbConstraints.gridy++;
         
         fieldVector.addElement(component);
@@ -595,5 +610,44 @@ public class ConfigurationUI extends javax.swing.JPanel {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+    
+    public static class VectorFocusTraversalPolicy
+    extends FocusTraversalPolicy
+    {
+    	Vector<Component> order;
+
+    	public VectorFocusTraversalPolicy(Vector<Component> order) {
+    		this.order = new Vector<Component>(order.size());
+    		this.order.addAll(order);
+    	}
+    	public Component getComponentAfter(Container focusCycleRoot,
+                             Component aComponent)
+    	{
+    		int idx = (order.indexOf(aComponent) + 1) % order.size();
+    		return order.get(idx);
+    	}
+
+    	public Component getComponentBefore(Container focusCycleRoot,
+                              Component aComponent)
+    	{
+    		int idx = order.indexOf(aComponent) - 1;
+    		if (idx < 0) {
+    			idx = order.size() - 1;
+    		}
+    		return order.get(idx);
+    	}
+
+    	public Component getDefaultComponent(Container focusCycleRoot) {
+    		return order.get(0);
+    	}
+
+    	public Component getLastComponent(Container focusCycleRoot) {
+    		return order.lastElement();
+    	}
+
+    	public Component getFirstComponent(Container focusCycleRoot) {
+    		return order.get(0);
+    	}	
     }
 }
