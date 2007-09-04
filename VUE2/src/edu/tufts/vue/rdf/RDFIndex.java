@@ -96,17 +96,13 @@ public class RDFIndex extends ModelCom {
         if(DEBUG.RDF) System.out.println("Size of index:"+this.size());
     }
     
-    public List<URI> search(String keyword) {
+    public List<URI> search(String queryString)
+    {
         long t0 = System.currentTimeMillis();
         if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         
         List<URI> r = new ArrayList<URI>();
         //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
-        String queryString =
-                "PREFIX vue: <"+VUE_ONTOLOGY+">"+
-                "SELECT ?resource ?keyword " +
-                "WHERE{" +
-                "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
         if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         query = QueryFactory.create(queryString);
         qe = QueryExecutionFactory.create(query, this);
@@ -127,38 +123,19 @@ public class RDFIndex extends ModelCom {
         return r;
     }
     
-    public List<URI> search(Query query) {
-        
-        long t0 = System.currentTimeMillis();
-        if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        List<URI> r = new ArrayList<URI>();
-        //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
+    public List<URI> searchAllResources(String keyword) {
+        String queryString =
+                "PREFIX vue: <"+VUE_ONTOLOGY+">"+
+                "SELECT ?resource ?keyword " +
+                "WHERE{" +
+                "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
+        return search(queryString);
+    }
+    
+    public List<URI> search(Query query) 
+    {
         String queryString = query.createSPARQLQuery();
-                //"PREFIX vue: <"+VUE_ONTOLOGY+">"+
-                //"SELECT ?resource ?keyword " +
-                //"WHERE{" +
-                //"      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
-        if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        this.query = QueryFactory.create(queryString);
-        qe = QueryExecutionFactory.create(this.query, this);
-        if(DEBUG.RDF) System.out.println("SEARCH- created query "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        ResultSet results = qe.execSelect();
-        if(DEBUG.RDF) System.out.println("SEARCH- executed query: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
-        
-        while(results.hasNext())  {
-            QuerySolution qs = results.nextSolution();
-            try {
-                r.add(new URI(qs.getResource("resource").toString()));
-            }catch(Throwable t) {
-                t.printStackTrace();
-            }
-        }
-        qe.close();
-        return r;
-        
-        //return search(query.createSPARQLQuery());
+        return search(queryString);
     }
     
     public void save() {
