@@ -92,7 +92,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.3 $ / $Date: 2007-09-04 18:07:56 $ / $Author: mike $
+ * @version $Revision: 1.4 $ / $Date: 2007-09-04 19:16:06 $ / $Author: mike $
  *
  */
 
@@ -942,7 +942,10 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     public int getHeight()
     {
     	//The line height is always off by a 1 line..
-    	return super.getHeight()-15;
+    	if (this.isEditable())
+    		return super.getHeight()-15;
+    	else
+    		return super.getHeight();
     }
     public void Xpaint(Graphics g) {
         super.paint(g);
