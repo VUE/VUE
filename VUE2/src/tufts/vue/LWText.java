@@ -318,6 +318,7 @@ public class LWText extends LWComponent {
 		}
 
 		final LWText containerCopy = (LWText) super.duplicate(cc);
+		containerCopy.getRichLabelBox().setText(this.getRichLabelBox().getRichText());
 
 		if (isPatcherOwner)
 			cc.patcher.reconnectLinks();
