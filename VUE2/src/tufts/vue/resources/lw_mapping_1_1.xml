@@ -202,7 +202,12 @@
 		<map-to xml="slide"/>
 		<!-- field name="layer"><bind-xml name="layer" node="element"/></field> -->
 	</class>
-
+	<class name="tufts.vue.LWText" extends="tufts.vue.LWComponent">
+		<map-to xml="text"/>	
+		 <field name="richText"  node="attribute" type="string">
+        	<bind-xml name="richText" />
+    	</field>
+	</class>
 	<class name="tufts.vue.LWPathway$MasterSlide" extends="tufts.vue.LWSlide">
 		<map-to xml="masterSlide"/>
 	</class>
