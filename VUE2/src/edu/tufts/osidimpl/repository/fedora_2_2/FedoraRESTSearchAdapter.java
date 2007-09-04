@@ -40,14 +40,16 @@ import org.w3c.dom.Node;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
-
+// this is legacy need to remove it.
+import fedora.server.types.gen.*;
 
 public class FedoraRESTSearchAdapter {
     public static final String PID = "pid";
     public static final String TITLE ="title";
     public static final String CMODEL = "cModel";
-    public static final String SEARCH_STRING = "fedora/search?pid=true&title=true&xml=true&cModel=true&description=true&maxResults=100&terms=";
-    public static final String SEARCH_RESUME = "fedora/search?xml=true&sessionToken=";
+    public static final String SEARCH_STRING = "/fedora/search?pid=true&title=true&xml=true&cModel=true&description=true&maxResults=100&terms=";
+    public static final String SEARCH_ADVANCED = "/fedora/search?pid=true&title=true&xml=true&cModel=true&description=true&maxResults=100&query=";
+    public static final String SEARCH_RESUME = "/fedora/search?xml=true&sessionToken=";
     
     /** Creates a new instance of FedoraRESTSearchAdapter */
     public FedoraRESTSearchAdapter() {
@@ -57,7 +59,8 @@ public class FedoraRESTSearchAdapter {
         try {
             NodeList fieldNode = null;
             if(lSearchCriteria.getSearchOperation() == SearchCriteria.FIND_OBJECTS) {
-                URL url = new URL("http://dl.tufts.edu:8080/"+SEARCH_STRING+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
+                
+                URL url = new URL("http",repository.getAddress(),repository.getPort(),SEARCH_STRING+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
                 XPathFactory  factory=XPathFactory.newInstance();
                 XPath xPath=factory.newXPath();
                 xPath.setNamespaceContext(new FedoraNamespaceContext());
@@ -73,7 +76,7 @@ public class FedoraRESTSearchAdapter {
                 
             }else {
                 if(lSearchCriteria.getToken() != null) {
-                    URL url = new URL("http://dl.tufts.edu:8080/"+SEARCH_RESUME+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
+                    URL url = new URL("http",repository.getAddress(),repository.getPort(),SEARCH_RESUME+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
                     XPathFactory  factory=XPathFactory.newInstance();
                     XPath xPath=factory.newXPath();
                     xPath.setNamespaceContext(new FedoraNamespaceContext());
@@ -86,6 +89,47 @@ public class FedoraRESTSearchAdapter {
             return getAssetIterator(repository, fieldNode);
         }catch(Throwable t) {
             throw wrappedException("search", t);
+        }
+    }
+    
+    public static org.osid.repository.AssetIterator advancedSearch(Repository repository,SearchCriteria lSearchCriteria)  throws org.osid.repository.RepositoryException {
+        try {
+            String query =  getQueryFromConditions(lSearchCriteria.getConditions());
+            NodeList fieldNode = null;
+            URL url = new URL("http",repository.getAddress(),repository.getPort(),SEARCH_ADVANCED+query);
+            System.out.println("Advanced search url: "+url);
+            XPathFactory  factory=XPathFactory.newInstance();
+            XPath xPath=factory.newXPath();
+            xPath.setNamespaceContext(new FedoraNamespaceContext());
+            InputSource inputSource =  new InputSource(url.openStream());
+            fieldNode = (NodeList)xPath.evaluate( "/pre:result/pre:resultList/pre:objectFields"  ,inputSource,XPathConstants.NODESET);
+            // adding the search token to resume the search
+            if(fieldNode.getLength() > 0) {
+                inputSource =  new InputSource(url.openStream());
+                XPathExpression  xSession= xPath.compile("//pre:token/text()");
+                String token = xSession.evaluate(inputSource);
+                lSearchCriteria.setToken(token);
+            }
+            return getAssetIterator(repository, fieldNode);
+        }catch(Throwable t) {
+            throw wrappedException("search", t);
+        }
+    }
+    
+    public static String getQueryFromConditions(Condition[] conds) throws org.osid.repository.RepositoryException{
+        try {
+            String query = new String();
+            for(int i=0;i<conds.length;i++) {
+                query += conds[i].getProperty();
+//            query += conds[i].getOperator();
+                query += "%7E"; // temporary fix
+                query += URLEncoder.encode(conds[i].getValue(),"ISO-8859-1");
+                query += "%20";
+            }
+            query = query.substring(0,query.length()-3);
+            return query;
+        }catch(Throwable t) {
+            throw wrappedException("FedoraRESTSearchAdapter.getQueryFromConditions", t);
         }
     }
     private static org.osid.repository.AssetIterator getAssetIterator(Repository repository, NodeList fieldNode) throws org.osid.repository.RepositoryException  {
@@ -122,6 +166,8 @@ public class FedoraRESTSearchAdapter {
             throw wrappedException("getAssetIterator", t);
         }
     }
+    
+    
     
     private static org.osid.repository.RepositoryException wrappedException(String method, Throwable cause) {
         cause.printStackTrace();
