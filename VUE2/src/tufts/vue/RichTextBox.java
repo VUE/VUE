@@ -92,7 +92,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.2 $ / $Date: 2007-08-31 00:49:39 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2007-09-04 18:07:56 $ / $Author: mike $
  *
  */
 
@@ -718,9 +718,23 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             if (opposite.getClass() == FontEditorPanel.class ||
                 opposite.getClass() == DockWindow.class ||
                 // todo: something more generic than this getName check: set a property on the JComponent tagging it as a tool/editor?
-                opposite.getName() == tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME) 
-    		return;
+                opposite.getName() == tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME)
+            {
+            	//Earlier i was just returning here, but this creates a problem
+            	//because the component has already lost the focus...and so it doesn't 
+            	//get another focusLost the next time....so re-request the focus if you've lost
+            	//it so that we get the event again when we really want to get rid of the focus
+            	//so we can properly remove the edit control.
+            	requestFocus();
+            	return;
+            }
+    		
         }
+    	else if (opposite == null)
+    	{
+    		if (DEBUG.FOCUS)
+    			outc("Focus not lost because opposite component = null");
+    	}
     	
     	//System.out.println(e.getComponent().toString());
     	//System.out.println(e.getOppositeComponent().toString());
