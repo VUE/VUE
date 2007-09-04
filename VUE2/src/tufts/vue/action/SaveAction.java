@@ -120,7 +120,7 @@ public class SaveAction extends VueAction
         if ((saveAs || file == null) && !export)
             //file = ActionUtil.selectFile("Save Map", "vue");
             file = ActionUtil.selectFile("Save Map", null);
-        else
+        else if (export)
         	file = ActionUtil.selectFile("Export Map", "export");
         if (file == null)
             return false;
