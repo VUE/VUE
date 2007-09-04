@@ -689,6 +689,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   String[] emptyEntry = {"Tag",""};
                   vme.setObject(emptyEntry);
                   vme.setType(VueMetadataElement.CATEGORY);
+                  current.getMetadataList().getMetadata().add(vme);
                   return vme;
                 }
              }
@@ -731,7 +732,15 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                  //}
                }
                else
-                 return "";
+               {
+                  System.out.println("MetadataEditor - creating new empty tag in getValueAt() from text field column ");
+                  VueMetadataElement vme = new VueMetadataElement();
+                  String[] emptyEntry = {"Tag",""};
+                  vme.setObject(emptyEntry);
+                  vme.setType(VueMetadataElement.CATEGORY);
+                  current.getMetadataList().getMetadata().add(vme);
+                  return vme;
+               }
              }
              else
              {
