@@ -92,7 +92,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.4 $ / $Date: 2007-09-04 19:16:06 $ / $Author: mike $
+ * @version $Revision: 1.5 $ / $Date: 2007-09-04 20:20:38 $ / $Author: mike $
  *
  */
 
@@ -1109,6 +1109,10 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         return Integer.toHexString(System.identityHashCode(this));
     }
 
+    public String getRichText()
+    {
+    	return super.getText();
+    }
     public String getText()
     {
     	return stripHTMLTags(super.getText());
