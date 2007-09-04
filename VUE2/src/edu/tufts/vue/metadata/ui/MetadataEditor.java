@@ -20,6 +20,7 @@ package edu.tufts.vue.metadata.ui;
 
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.ontology.OntType;
+import edu.tufts.vue.rdf.RDFIndex;
 import java.awt.event.FocusAdapter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -72,7 +73,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                        {
                          //System.out.println("metadata: mouse pressed" + evt);
                          VueMetadataElement vme = new VueMetadataElement();
-                         String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+                         String[] emptyEntry = {"Tag",""};
                          vme.setObject(emptyEntry);
                          vme.setType(VueMetadataElement.CATEGORY);
                          //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
@@ -216,7 +217,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
          if(current !=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
          {
            VueMetadataElement vme = new VueMetadataElement();
-           String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+           String[] emptyEntry = {"Tag",""};
            vme.setObject(emptyEntry);
            vme.setType(VueMetadataElement.CATEGORY);
 
@@ -471,7 +472,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   if(currentVME==null)
                   {
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+                     String[] emptyEntry = {"Tag",""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);  
                       
@@ -484,7 +485,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                     //vme.setObject(field.getText());
                       
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {"vue.tufts.edu/vue.rdfs#TAG",""};
+                     String[] emptyEntry = {"Tag",""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);
                   }
@@ -666,7 +667,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   VueMetadataElement ele = list.get(row);
                   //$
                     if(!(ele.getObject() instanceof String[]))
-                      return "vue.tufts.edu/vue.rdfs#TAG";
+                    {
+                      System.out.println("MetadataEditor: returning non string[] element of type -- " + ele.getObject().getClass());
+                      return ele.getObject();
+                    }
                   //$
                   String[] obj = (String[])ele.getObject();
                   if(obj == null)
@@ -679,7 +683,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   }
                 }
                 else
-                  return "vue.tufts.edu/vue.rdfs#TAG";
+                {
+                  System.out.println("MetadataEditor - creating new empty tag in getValueAt() ");
+                  VueMetadataElement vme = new VueMetadataElement();
+                  String[] emptyEntry = {"Tag",""};
+                  vme.setObject(emptyEntry);
+                  vme.setType(VueMetadataElement.CATEGORY);
+                  return vme;
+                }
              }
              else
              if( (column == buttonColumn - 1) && current != null)
