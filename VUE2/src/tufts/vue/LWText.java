@@ -22,6 +22,15 @@ public class LWText extends LWComponent {
                 initText();
 	}
 
+	public String getRichText()
+	{
+		return labelBox.getRichText();
+	}
+	public void setRichText(String text)
+	{
+		super.label = text;
+		return;
+	}
 	public LWText(String label) {
 		super();
 		super.label = label; // make sure label initially set for debugging
