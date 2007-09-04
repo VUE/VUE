@@ -47,6 +47,7 @@ public class FedoraRESTSearchAdapter {
     public static final String TITLE ="title";
     public static final String CMODEL = "cModel";
     public static final String SEARCH_STRING = "fedora/search?pid=true&title=true&xml=true&cModel=true&description=true&maxResults=100&terms=";
+    public static final String SEARCH_RESUME = "fedora/search?xml=true&sessionToken=";
     
     /** Creates a new instance of FedoraRESTSearchAdapter */
     public FedoraRESTSearchAdapter() {
@@ -62,20 +63,26 @@ public class FedoraRESTSearchAdapter {
                 xPath.setNamespaceContext(new FedoraNamespaceContext());
                 InputSource inputSource =  new InputSource(url.openStream());
                 fieldNode = (NodeList)xPath.evaluate( "/pre:result/pre:resultList/pre:objectFields"  ,inputSource,XPathConstants.NODESET);
-                BufferedReader r = new BufferedReader(new InputStreamReader(url.openStream()));
-                while(r.ready()) {
-                    System.out.println(r.readLine());
+                // adding the search token to resume the search
+                if(fieldNode.getLength() > 0) {
+                    inputSource =  new InputSource(url.openStream());
+                    XPathExpression  xSession= xPath.compile("//pre:token/text()");
+                    String token = xSession.evaluate(inputSource);
+                    lSearchCriteria.setToken(token);
                 }
+                
             }else {
                 if(lSearchCriteria.getToken() != null) {
+                    URL url = new URL("http://dl.tufts.edu:8080/"+SEARCH_RESUME+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
+                    XPathFactory  factory=XPathFactory.newInstance();
+                    XPath xPath=factory.newXPath();
+                    xPath.setNamespaceContext(new FedoraNamespaceContext());
+                    InputSource inputSource =  new InputSource(url.openStream());
+                    fieldNode = (NodeList)xPath.evaluate( "/pre:result/pre:resultList/pre:objectFields"  ,inputSource,XPathConstants.NODESET);
                     
                 }
             }
-            // setting the token for continuing search
-            //  if(listSession != null)
-            //   lSearchCriteria.setToken(listSession.getToken());
-            // else
-            //    lSearchCriteria.setToken(null);
+            
             return getAssetIterator(repository, fieldNode);
         }catch(Throwable t) {
             throw wrappedException("search", t);
@@ -89,7 +96,6 @@ public class FedoraRESTSearchAdapter {
             }
             for(int i =0;i<fieldNode.getLength();i++) {
                 Node n =fieldNode.item(i);
-                System.out.println(i+"name:"+n.getNodeName()+"value: "+n.getNodeValue()+" Type: "+n.getNodeType());
                 String pid = "Not Defined";
                 String title = "No Title";
                 String cModel = "None";
@@ -105,8 +111,6 @@ public class FedoraRESTSearchAdapter {
                         if(e.getNodeName().toString().equals(CMODEL)) {
                             cModel= e.getFirstChild().getNodeValue();
                         }
-                        System.out.println("Name: "+e.getNodeName()+" value: "+e.getFirstChild().getNodeValue()+" Type: "+e.getNodeType());
-                        
                     }
                     
                 }
