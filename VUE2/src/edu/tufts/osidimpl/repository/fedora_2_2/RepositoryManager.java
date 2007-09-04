@@ -22,7 +22,7 @@ public class RepositoryManager
     private org.osid.OsidContext context = null;
     private java.util.Map configuration = null;
     private org.osid.repository.Repository repository = null;
-    private static final String REPOSITORY_ID_STRING = "69D5312C-B190-4E39-8A16-78FC47DDBE93-4296-00000865FC1F23E3";
+    private static final String REPOSITORY_ID_STRING = "6D6ABA4C-3B1F-4326-BBCD-A3417CCE4687-EC49D42B";
     
     public org.osid.OsidContext getOsidContext()
     throws org.osid.repository.RepositoryException {
@@ -40,11 +40,11 @@ public class RepositoryManager
         try {
 			//System.out.println("Fedora 2.0 local configuration is " + configuration);
 			
-			Object displayname = configuration.getProperty("fedora20DisplayName");
-			Object address = configuration.getProperty("fedora20Address");
-			Object port = configuration.getProperty("fedora20Port");
-			Object username = configuration.getProperty("fedora20UserName");
-			Object password = configuration.getProperty("fedora20Password");
+			Object displayname = configuration.getProperty("fedora22DisplayName");
+			Object address = configuration.getProperty("fedora22Address");
+			Object port = configuration.getProperty("fedora22Port");
+			Object username = configuration.getProperty("fedora22UserName");
+			Object password = configuration.getProperty("fedora22Password");
 			
 			if (displayname != null) {
 				String displaynameString = (String)displayname;
