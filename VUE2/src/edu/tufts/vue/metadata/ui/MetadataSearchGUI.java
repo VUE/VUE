@@ -184,6 +184,7 @@ public class MetadataSearchGUI extends JPanel {
         adjustColumnModel();
         searchTermsTable.setDefaultRenderer(java.lang.Object.class,new SearchTermsTableRenderer());
         searchTermsTable.setDefaultEditor(java.lang.Object.class,new SearchTermsTableEditor());
+        ((DefaultCellEditor)searchTermsTable.getDefaultEditor(java.lang.Object.class)).setClickCountToStart(1);
         searchTermsTable.setRowHeight(ROW_HEIGHT);
         searchTermsTable.getTableHeader().setReorderingAllowed(false);
         searchTermsTable.setGridColor(new java.awt.Color(getBackground().getRed(),getBackground().getBlue(),getBackground().getGreen(),0));
