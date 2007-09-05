@@ -174,8 +174,9 @@ public class MetadataSearchGUI extends JPanel {
                toggleCategorySearch();
            }
         });
-        optionsPanel.add(advancedSearch);
-        optionsPanel.add(optionsLabel);
+        //optionsPanel.add(advancedSearch);
+        //optionsPanel.add(optionsLabel);
+        optionsPanel.add(new JLabel("Search Type: "));
         optionsPanel.add(searchTypesChoice);
         
         
@@ -212,6 +213,17 @@ public class MetadataSearchGUI extends JPanel {
         //searchButton.setBackground(java.awt.Color.WHITE);
         buttonPanel.setOpaque(true);
         buttonPanel.setBackground(getBackground());
+        JButton resetButton = new JButton("Reset Map");
+        resetButton.addActionListener(new ActionListener()
+        {
+           public void actionPerformed(ActionEvent e)
+           {
+               termsAction.revertSelections();
+               allSearch.revertSelections();
+               VUE.getActiveViewer().repaint();
+           }
+        });
+        buttonPanel.add(resetButton);
         buttonPanel.add(BorderLayout.EAST,searchButton);
         //add(BorderLayout.NORTH,searchField);
         add(buttonPanel);
@@ -446,7 +458,7 @@ public class MetadataSearchGUI extends JPanel {
             JLabel comp = new JLabel();
             if(col == buttonColumn && singleLine == false)
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-            else if(singleLine == true)
+            else if(singleLine == true && (col != buttonColumn - 2))
             {
               comp.setText("");
             }
