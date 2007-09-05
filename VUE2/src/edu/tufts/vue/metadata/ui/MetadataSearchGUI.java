@@ -107,7 +107,8 @@ public class MetadataSearchGUI extends JPanel {
         JPanel buttonPanel = new JPanel(new BorderLayout());
         searchButton = new JButton(new SearchAction(searchField));
         searchButton.setBackground(java.awt.Color.WHITE);
-        buttonPanel.setBackground(java.awt.Color.WHITE);
+        buttonPanel.setOpaque(true);
+        buttonPanel.setBackground(getBackground());
         buttonPanel.add(BorderLayout.EAST,searchButton);
         add(BorderLayout.NORTH,searchField);
         add(buttonPanel);
@@ -198,7 +199,8 @@ public class MetadataSearchGUI extends JPanel {
         JPanel buttonPanel = new JPanel(new BorderLayout());
         searchButton = new JButton(new SearchAction(searchTerms));
         searchButton.setBackground(java.awt.Color.WHITE);
-        buttonPanel.setBackground(java.awt.Color.WHITE);
+        buttonPanel.setOpaque(true);
+        buttonPanel.setBackground(getBackground());
         buttonPanel.add(BorderLayout.EAST,searchButton);
         //add(BorderLayout.NORTH,searchField);
         add(buttonPanel);
@@ -468,7 +470,10 @@ public class MetadataSearchGUI extends JPanel {
         
         public int getRowCount()
         {
-            return searchTerms.size();
+            if(searchTerms.size() > 0)
+              return searchTerms.size();
+            else
+              return 1;
         }
         
         public int getColumnCount()
@@ -492,6 +497,13 @@ public class MetadataSearchGUI extends JPanel {
         
         public Object getValueAt(int row,int col)
         {
+            if(row == 0 && searchTerms.size() == 0)
+            {
+                VueMetadataElement vme = new VueMetadataElement();
+                String pairedValue[] = {"Tag",""};
+                vme.setObject(pairedValue);
+                searchTerms.add(vme);
+            }
             if(col == buttonColumn)
               return "delete button";
             else
