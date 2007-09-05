@@ -43,7 +43,10 @@ import javax.swing.JTextPane;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.*;
+import javax.swing.text.html.CSS;
+import javax.swing.text.html.HTML;
 
+import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.SHTMLEditorKit;
 
 //import java.awt.font.LineBreakMeasurer;
@@ -92,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.5 $ / $Date: 2007-09-04 20:20:38 $ / $Author: mike $
+ * @version $Revision: 1.6 $ / $Date: 2007-09-05 16:19:42 $ / $Author: mike $
  *
  */
 
@@ -266,7 +269,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
                     zoomedPointSize = MinEditSize;
                 preZoomFont = f;
                 final Font screenFont = f.deriveFont(f.getStyle(), zoomedPointSize);
-       //         setDocumentFont(screenFont);
+                setDocumentFont(screenFont);
                 if (TestDebug||DEBUG.TEXT) {
                     out("derived temporary screen font:"
                         + "\n\t   net zoom: " + zoom
@@ -286,10 +289,11 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
                 // (just calling repaint doesn't do it).
                 // When zoomed we must do this (see above), so
                 // in that case it's already handled.
-         //       setDocumentFont(lwc.getFont());
+                setDocumentFont(lwc.getFont());
             }
         }
-            
+              
+        
         wasOpaque = isOpaque();
         Color background = lwc.getRenderFillColor(null);
         //if (c == null && lwc.getParent() != null && lwc.getParent() instanceof LWNode)
@@ -335,7 +339,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (TestDebug||DEBUG.TEXT) out("addNotify end: insets="+getInsets());
         mFirstAfterAddNotify = true;
     }
-    
+   
     /*
      * Return to the regular transparent state.
      */
@@ -365,7 +369,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         
         setBorder(null);
         if (preZoomFont != null) {
-      //      setDocumentFont(preZoomFont);
+            setDocumentFont(preZoomFont);
             preZoomFont = null;
             if (WrapText) {
                 adjustSizeDynamically();
@@ -394,10 +398,10 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     @Override
     public void setText(String text)
     {
-/*        if (getDocument() == null) {
-            out("creating new document");
-            setStyledDocument(new DefaultStyledDocument());
-        }
+//        if (getDocument() == null) {
+ //           out("creating new document");
+  //          setStyledDocument(new DefaultStyledDocument());
+  //      }
         /*try {
             doc.insertString(0, text, null);
         } catch (Exception e) {
@@ -410,7 +414,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (WrapText) {
             ;
         } else {
-            //setSize(getPreferredSize());
+            setSize(getPreferredSize());
         }
     }
 
@@ -422,40 +426,41 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             return false;
     }
 
-/*
+
     private void setDocumentFont(Font f)
     {
-        if (DEBUG.TEXT) out("setDocumentFont " + f);
-        SimpleAttributeSet a = new SimpleAttributeSet();
-        setFontAttributes(a, f);
-        StyledDocument doc = getStyledDocument();
-        doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
-        computeMinimumWidth(f, lwc.getLabel());
-        mKeepHeight = true;
+     //   if (DEBUG.TEXT) out("setDocumentFont " + f);
+     //   SimpleAttributeSet a = new SimpleAttributeSet();
+     //   setFontAttributes(a, f);
+     //   SHTMLDocument doc = (SHTMLDocument)this.getDocument();
+     //   doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
+     //   computeMinimumWidth(f, lwc.getLabel());
+     //   mKeepHeight = true;
     }
 
     private void setDocumentColor(Color c)
     {
-        StyleConstants.setForeground(mAttributeSet, c);
-        StyledDocument doc = getStyledDocument();
-        doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), mAttributeSet, true);
+    //	System.out.println("Rich text set DOcument color to :" + c.toString());
+    //    StyleConstants.setForeground(mAttributeSet, c);
+    //    SHTMLDocument doc = (SHTMLDocument)this.getDocument();
+    //    doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), mAttributeSet, true);
     }
-*/
+
 
     private static void setFontAttributes(MutableAttributeSet a, Font f)
     {
-        StyleConstants.setFontFamily(a, f.getFamily());
-        StyleConstants.setFontSize(a, f.getSize());
-        StyleConstants.setItalic(a, f.isItalic());
-        StyleConstants.setBold(a, f.isBold());
+    //    StyleConstants.setFontFamily(a, f.getFamily());
+    //    StyleConstants.setFontSize(a, f.getSize());
+    //    StyleConstants.setItalic(a, f.isItalic());
+    //    StyleConstants.setBold(a, f.isBold());
     }
 
     
     // this called every time setText is called to ensure we get
     // the font style encoded in our owning LWComponent
-    /*void copyStyle(LWComponent c)
+    void copyStyle(LWComponent c)
     {
-        if (DEBUG.TEXT) out("copyStyle " + c);
+      /*  if (DEBUG.TEXT) out("copyStyle " + c);
         SimpleAttributeSet a = new SimpleAttributeSet();
         if (TestHarness || c instanceof LWNode && ((LWNode)c).isTextNode())
             StyleConstants.setAlignment(a, StyleConstants.ALIGN_LEFT);
@@ -465,7 +470,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         final Font font = c.getFont();
         setFontAttributes(a, font);
 
-        StyledDocument doc = getStyledDocument();
+        SHTMLDocument doc = (SHTMLDocument)this.getDocument();
         if (DEBUG.TEXT) getPreferredSize();
         doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
         if (DEBUG.TEXT) getPreferredSize();
@@ -480,8 +485,9 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             setSize(getPreferredSize());
             setSize(getPreferredSize());
         }
+        */
     }
-*/
+
 
     /** compute mMaxWordWidth and mMaxCharWidth */
     private void computeMinimumWidth(Font font, String text) {
@@ -1004,20 +1010,38 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             }
         }
 
-        boolean inverted;
-        if (dc.isBlackWhiteReversed() &&
-            (dc.isPresenting() || lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
-            isBlack(lwc.getTextColor())) {
+        //boolean inverted;
+        //if (dc.isBlackWhiteReversed() &&
+          //  (dc.isPresenting() || lwc.isTransparent() /*|| isBlack(lwc.getFillColor())*/) &&
+           // isBlack(lwc.getTextColor())) {
             //System.out.println("reversing color to white for " + this);
          //   setDocumentColor(Color.white);
-            inverted = true;
-        } else
-            inverted = false;
+           // inverted = true;
+       // } else
+         //   inverted = false;
+        
+        boolean restoreTextColor = false;
+        
+        if (dc.isPresenting() && lwc.isTransparent()) {
+            // if the text color equals the background color when in a presentation
+            // (e.g. the master slide has a black background), and the text box
+            // has to fill of it's own for contrast, then temporarily swap
+            // the text color to white or black so it can be seen.
+            if (lwc.mTextColor.equals(dc.getBackgroundFill())) {
+                restoreTextColor = true;
+                if (lwc.mTextColor.brightness() > 0.5)
+                    setDocumentColor(Color.black);
+                else
+                    setDocumentColor(Color.white);
+            }
+        }
         
         //super.paintBorder(g);
         super.paintComponent(dc.g);
         //super.paint(g);
-
+        if (restoreTextColor) 
+            // return document color to black
+            setDocumentColor(lwc.mTextColor.get());
       //  if (inverted)
      //       setDocumentColor(Color.black);
 
@@ -1061,6 +1085,17 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 
     }
 
+    public void overrideTextColor(Color c)
+    {
+    	SimpleAttributeSet set = new SimpleAttributeSet();
+   	        String colorString = "#" + Integer.toHexString(
+   	                c.getRGB()).substring(2);
+   	        com.lightdev.app.shtm.Util.styleSheet().addCSSAttribute(set,
+   	                CSS.Attribute.COLOR, colorString);
+   	        
+   	            set.addAttribute(HTML.Attribute.COLOR, colorString);
+   	            this.applyAttributesGlobally(set, true,true);
+    }
     private void handleChange() {
         // appears to be happening too late for dynamic size adjust -- current character isnt include
     }
