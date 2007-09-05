@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.6 $ / $Date: 2007-09-05 16:19:42 $ / $Author: mike $
+ * @version $Revision: 1.7 $ / $Date: 2007-09-05 20:35:33 $ / $Author: mike $
  *
  */
 
@@ -1094,7 +1094,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
    	                CSS.Attribute.COLOR, colorString);
    	        
    	            set.addAttribute(HTML.Attribute.COLOR, colorString);
-   	            this.applyAttributesGlobally(set, true,true);
+   	            this.applyAttributesGlobally(set, true,false);
     }
     private void handleChange() {
         // appears to be happening too late for dynamic size adjust -- current character isnt include
