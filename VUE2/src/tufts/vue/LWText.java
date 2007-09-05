@@ -336,6 +336,12 @@ public class LWText extends LWComponent {
 		return containerCopy;
 	}
 
+	public void setStyle(LWComponent parentStyle)
+	{
+		if (labelBox != null)
+		 labelBox.overrideTextColor(parentStyle.getTextColor());
+	}
+	
 	@Override
 	protected void layoutImpl(Object triggerKey) {
             if (triggerKey == LWKey.Alignment) {
