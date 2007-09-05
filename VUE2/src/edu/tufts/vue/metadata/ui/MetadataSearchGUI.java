@@ -79,6 +79,11 @@ public class MetadataSearchGUI extends JPanel {
     
     private int optionsToggle;
     
+    private SearchAction termsAction;
+    private boolean singleLine = false;
+    private JTextField allSearchField = new JTextField();
+    private SearchAction allSearch = new SearchAction(allSearchField);
+    
     public MetadataSearchGUI() 
     {
         setUpOneLineSearch();      
@@ -106,7 +111,7 @@ public class MetadataSearchGUI extends JPanel {
                               BorderFactory.createLineBorder(new java.awt.Color(200,200,200),1)));
         JPanel buttonPanel = new JPanel(new BorderLayout());
         searchButton = new JButton(new SearchAction(searchField));
-        searchButton.setBackground(java.awt.Color.WHITE);
+        //searchButton.setBackground(java.awt.Color.WHITE);
         buttonPanel.setOpaque(true);
         buttonPanel.setBackground(getBackground());
         buttonPanel.add(BorderLayout.EAST,searchButton);
@@ -144,6 +149,11 @@ public class MetadataSearchGUI extends JPanel {
                    {
                        System.out.println("Category search selected");
                        setCategorySearch();
+                   }
+                   if(ie.getItem().equals("All"))
+                   {
+                       System.out.println("All search selected");
+                       setAllSearch();
                    }
                }
            }
@@ -197,8 +207,9 @@ public class MetadataSearchGUI extends JPanel {
         add(fieldsPanel);
         
         JPanel buttonPanel = new JPanel(new BorderLayout());
-        searchButton = new JButton(new SearchAction(searchTerms));
-        searchButton.setBackground(java.awt.Color.WHITE);
+        termsAction = new SearchAction(searchTerms);
+        searchButton = new JButton(termsAction);
+        //searchButton.setBackground(java.awt.Color.WHITE);
         buttonPanel.setOpaque(true);
         buttonPanel.setBackground(getBackground());
         buttonPanel.add(BorderLayout.EAST,searchButton);
@@ -262,18 +273,35 @@ public class MetadataSearchGUI extends JPanel {
     
     public void setCategorySearch()
     {
+        singleLine = false;
         SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
         buttonColumn = 2;
         model.setColumns(3);
         adjustColumnModel();
+        searchButton.setAction(termsAction);
     }
     
     public void setBasicSearch()
+    {
+        singleLine = false;
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 1;
+        model.setColumns(2);
+        adjustColumnModel();
+        searchButton.setAction(termsAction);
+    }
+    
+    public void setAllSearch()
     {
         SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
         buttonColumn = 1;
         model.setColumns(2);
         adjustColumnModel();
+        
+        //allSearchField.setText("FF");
+        
+        searchButton.setAction(allSearch);
+        singleLine = true;
     }
     
     public void adjustColumnModel()
@@ -416,8 +444,12 @@ public class MetadataSearchGUI extends JPanel {
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
         {
             JLabel comp = new JLabel();
-            if(col == buttonColumn)
+            if(col == buttonColumn && singleLine == false)
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
+            else if(singleLine == true)
+            {
+              comp.setText("");
+            }
             else if(table.getModel().getColumnCount() == 2 || col == buttonColumn - 2)
               comp.setText("Keywords:");
             else
@@ -437,7 +469,18 @@ public class MetadataSearchGUI extends JPanel {
             //setText(value.toString());
             //setBackground(java.awt.Color.BLUE);
             //return this;
-            return createRendererComponent(value,row,col);
+            if(singleLine)
+               if(col == 0)
+               {
+                  JPanel comp = new JPanel(new BorderLayout());
+                  comp.add(allSearchField);
+                  comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
+                  return comp;
+                }
+                else
+                  return new JLabel();
+            else
+                return createRendererComponent(value,row,col);
         }
     }
     
@@ -453,7 +496,18 @@ public class MetadataSearchGUI extends JPanel {
             //JLabel label = new JLabel();
             //label.setBackground(java.awt.Color.GREEN);
             //return label;
-            return createRendererComponent(value,row,col);
+            if(singleLine)
+                if(col == 0)
+                {
+                  JPanel comp = new JPanel(new BorderLayout());
+                  comp.add(allSearchField);
+                  comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
+                  return comp;
+                }
+                else
+                  return new JLabel();
+            else
+                return createRendererComponent(value,row,col);
         }
     }
     
@@ -470,6 +524,8 @@ public class MetadataSearchGUI extends JPanel {
         
         public int getRowCount()
         {
+            if(singleLine)
+                return 1;
             if(searchTerms.size() > 0)
               return searchTerms.size();
             else

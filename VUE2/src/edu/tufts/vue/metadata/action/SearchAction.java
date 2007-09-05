@@ -148,7 +148,7 @@ public class SearchAction extends AbstractAction {
           for(int i=0;i<tags.size();i++) {
               //found = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().search(tags.get(i));
               if(DEBUG.RDF)System.out.println("Beginning search "+i+" at: "+(System.currentTimeMillis()-t0));
-              found = index.search(tags.get(i));
+              found = index.searchAllResources(tags.get(i));
               if(DEBUG.RDF)System.out.println("Ending search "+i+" at: "+(System.currentTimeMillis()-t0));
               finds.add(found);
           }
