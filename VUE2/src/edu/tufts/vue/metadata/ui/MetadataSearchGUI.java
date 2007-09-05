@@ -223,8 +223,13 @@ public class MetadataSearchGUI extends JPanel {
                VUE.getActiveViewer().repaint();
            }
         });
-        buttonPanel.add(resetButton);
-        buttonPanel.add(BorderLayout.EAST,searchButton);
+        JPanel searchPanel = new JPanel();
+        searchPanel.add(resetButton);
+        searchPanel.add(searchButton);
+        searchPanel.setOpaque(true);
+        searchPanel.setBackground(getBackground());
+        //buttonPanel.add(resetButton);
+        buttonPanel.add(BorderLayout.EAST,searchPanel);
         //add(BorderLayout.NORTH,searchField);
         add(buttonPanel);
         
@@ -456,12 +461,17 @@ public class MetadataSearchGUI extends JPanel {
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
         {
             JLabel comp = new JLabel();
-            if(col == buttonColumn && singleLine == false)
-              comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-            else if(singleLine == true && (col != buttonColumn - 2))
+            if(singleLine == true && (col == (buttonColumn - 1)))
+            {
+              comp.setText("Keywords:");
+            }
+            if(singleLine == true && (col == (buttonColumn)))
             {
               comp.setText("");
             }
+            else
+            if(col == buttonColumn && singleLine == false)
+              comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
             else if(table.getModel().getColumnCount() == 2 || col == buttonColumn - 2)
               comp.setText("Keywords:");
             else
