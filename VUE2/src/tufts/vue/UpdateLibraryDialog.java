@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.19 $ / $Date: 2006-09-14 03:04:22 $ / $Author: jeff $
+* @version $Revision: 1.20 $ / $Date: 2007-09-05 13:11:09 $ / $Author: jeff $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -219,9 +219,12 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
                 // place only providers that are already added to VUE
 				String idString = nextProvider.getId().getIdString();
 				if (installedProviderVector.contains(idString)) {
+					// futher check that we do not already have the update 
 					nextProvider = nextProvider.getNextVersion();
-					listModel.addElement(nextProvider);
-					checkedVector.addElement(nextProvider);
+					if (!(installedProviderVector.contains(nextProvider.getId().getIdString()))) {
+						listModel.addElement(nextProvider);
+						checkedVector.addElement(nextProvider);
+					}
 				}
             }
             // copy to an array
