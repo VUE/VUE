@@ -69,6 +69,7 @@ public class CategoryEditor extends JPanel
         customCategoryTable.setOpaque(false);
         customCategoryTable.setDefaultRenderer(java.lang.Object.class,new CustomCategoryTableRenderer());
         customCategoryTable.setDefaultEditor(java.lang.Object.class,new CustomCategoryTableEditor());
+        ((DefaultCellEditor)customCategoryTable.getDefaultEditor(java.lang.Object.class)).setClickCountToStart(1);
         customCategoryTable.getColumnModel().getColumn(0).setHeaderRenderer(new CustomCategoryTableHeaderRenderer());
         customCategoryTable.getColumnModel().getColumn(1).setHeaderRenderer(new CustomCategoryTableHeaderRenderer());
         int editorWidth = getWidth();
