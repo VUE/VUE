@@ -186,12 +186,34 @@ public class SearchAction extends AbstractAction {
     
     public void actionPerformed(ActionEvent e) {
         
+        VUE.getSelection().clear();
+        revertSelections();
         if(searchType == FIELD)
         {
           loadKeywords(searchInput.getText());
         }
         performSearch();
         System.out.println("SearchAction: comps size after perform search - " + comps.size());
-        VUE.getSelection().setTo(comps.iterator());
+       
+        // VUE.getSelection().setTo(comps.iterator());
+        Iterator<LWComponent> it = comps.iterator();
+        while(it.hasNext())
+        {
+            it.next().setSelected(true);
+        }
+        VUE.getActiveViewer().repaint();
     }
+    
+    public void revertSelections()
+    {
+        if(comps == null)
+            return;
+        Iterator<LWComponent> it = comps.iterator();
+        while(it.hasNext())
+        {
+            it.next().setSelected(false);
+        }
+    }
+    
+    
 }
