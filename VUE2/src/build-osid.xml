@@ -11,8 +11,12 @@
   <property name="release.home" value="${basedir}/release"/>
   <property name="lib.home"    value="../lib"/>
   <!-- this property needs to be changed for respective OS -->
+  <!-- Windows (XP) version follows -->
   <property name="osid.home" value="C:\Library\OSID\"/>
   <property name="osid.providers.home" value="C:\Library\OsidProviders\"/>
+  <!-- comment out preceeding two lines for Mac OSX and uncomment following two lines -->
+  <!--<property name="osid.home" value="/Library/OSID/"/>-->
+  <!--<property name="osid.providers.home" value="/Library/OsidProviders/"/>-->
   
   <!--  ==================== Compilation Control Options ==================== -->
 <!--
@@ -83,7 +87,6 @@
    <target name="fedora22" depends="fedora22.jar">
         <copy file="${build.osid}/${fedora22.jar}" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
        <copy file="${fedora22.lib}/axis.jar" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
-        <copy file="${fedora22.lib}/fedora-client_2_2.jar" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
          <copy file="${fedora22.src}/fedora_icon16x16.gif" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
     </target>
   <!--END fedora_2_2 related tasks-->
