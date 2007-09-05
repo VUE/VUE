@@ -52,19 +52,20 @@ public class Query  {
     
     public String createSPARQLQuery() {
         String query = new String();
-        query =  "PREFIX vue: <"+RDFIndex.VUE_ONTOLOGY+">"+
-                "SELECT ?resource ?keyword " +
+        query =  "PREFIX vue: <"+RDFIndex.VUE_ONTOLOGY+"> "+
+                "SELECT ?resource " +
                 "WHERE{";
+        int i =0;
+        String keyword = "keyword";
         for(Criteria criteria: criteriaList) {
+             i++;
+            keyword ="keyword"+i;
             switch(criteria.qualifier)  {
                 case CONTAINS:
-                    query +=  "?resource <"+criteria.key+"> ?keyword FILTER regex(?keyword,\""+criteria.value+ "\") . ";
-                    break;
-                case MATCH_CASE:
-                    query +=  "?resource "+criteria.key+" "+criteria.value+ "\") .";
+                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\""+criteria.value+ "\") . ";
                     break;
                 case STARTS_WITH:
-                    query +=  "?resource <"+criteria.key+"> ?keyword FILTER regex(?keyword,\"^"+criteria.value+ "\") . ";
+                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\"^"+criteria.value+ "\") . ";
                     break;                 
             }
         }
