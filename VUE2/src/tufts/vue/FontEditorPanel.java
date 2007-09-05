@@ -55,7 +55,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.59 $ / $Date: 2007-08-31 01:15:23 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2007-09-05 20:11:48 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -137,6 +137,11 @@ public class FontEditorPanel extends JPanel
         Font f = mFontCombo.getFont();
         Font menuFont = f.deriveFont((float) 9);        
         mFontCombo.setFont(menuFont);
+        Component[] c =mFontCombo.getComponents();
+        for (int i = 0 ; i < c.length; i++)
+        {
+        	c[i].setFocusable(false);
+        }
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
         if (false) {
             Dimension comboSize = mFontCombo.getPreferredSize();
@@ -177,6 +182,8 @@ public class FontEditorPanel extends JPanel
         mSizeField.setOpaque(false);
         mSizeField.setMaximumRowCount(30);
         mSizeField.setSelectedItem("13");
+        mSizeField.setFocusable(false);
+        
         /*
         if (GUI.isMacAqua()) {
             mFontCombo.setBackground(VueTheme.getToolbarColor());
@@ -780,6 +787,7 @@ public class FontEditorPanel extends JPanel
             return;
         
         if (activeText != null) {
+        	
             activeText.addCaretListener(this);
             richBoldAction.setEditorPane(activeText);
             richItalicAction.setEditorPane(activeText);
@@ -814,7 +822,8 @@ public class FontEditorPanel extends JPanel
 			
             mSizeField.removeActionListener(fontPropertyHandler);
             mSizeField.addActionListener(fontSizeAction);
-			
+			VUE.getFormatDock().setFocusable(false);
+			VUE.getFormatDock().setFocusableWindowState(false);
             //mTextColorButton.removeActionListener(mTextColorButton);
             //mTextColorButton.addActionListener(TextColorListener);
             
@@ -825,7 +834,8 @@ public class FontEditorPanel extends JPanel
         } else {
 
             disableSpecialEditors();
-            
+            VUE.getFormatDock().setFocusable(true);
+			VUE.getFormatDock().setFocusableWindowState(true);
             mBoldButton.removeActionListener(richBoldAction);
             mBoldButton.addActionListener(styleChangeHandler);			
             
