@@ -66,6 +66,7 @@ public class CategoryEditor extends JPanel
         setPanel.add(metadataSetTable);
         customPanel = new JPanel(new java.awt.BorderLayout());
         customCategoryTable = new JTable(new MetadataCategoryTableModel());
+        customCategoryTable.setOpaque(false);
         customCategoryTable.setDefaultRenderer(java.lang.Object.class,new CustomCategoryTableRenderer());
         customCategoryTable.setDefaultEditor(java.lang.Object.class,new CustomCategoryTableEditor());
         customCategoryTable.getColumnModel().getColumn(0).setHeaderRenderer(new CustomCategoryTableHeaderRenderer());
@@ -107,6 +108,27 @@ public class CategoryEditor extends JPanel
                        }
                    }
        });
+       
+       customCategoryTable.addMouseListener(new java.awt.event.MouseAdapter()
+               {
+                   public void mouseReleased(java.awt.event.MouseEvent evt)
+                   {
+                       if(evt.getX()>customCategoryTable.getWidth()-BUTTON_COL_WIDTH)
+                       {
+                         CategoryModel vueCategoryModel = tufts.vue.VUE.getCategoryModel();
+                         java.util.List<OntType> ontTypes = vueCategoryModel.getCustomOntology().getOntTypes();
+                         int selectedRow = customCategoryTable.getSelectedRow();
+                         if(customCategoryTable.getSelectedColumn()== 1 && ontTypes.size() > selectedRow)
+                         {
+                            ontTypes.remove(selectedRow);
+                            customCategoryTable.repaint();
+                            requestFocusInWindow();
+                            tufts.vue.VUE.getCategoryModel().saveCustomOntology();
+                         }
+                       }
+                   }
+        }); 
+
 
         
         customPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
