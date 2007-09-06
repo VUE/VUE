@@ -49,6 +49,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     public final static int BUTTON_COL_WIDTH = 35;
     
+    public final static boolean LIMITED_FOCUS = true;
+    
     private JTable metadataTable;
     private JScrollPane scroll;
     private tufts.vue.LWComponent current;
@@ -587,14 +589,17 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            comp.setOpaque(false);
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
            
-           /*field. metadataTable. getParent(). */ /*getRootPane().addMouseListener(new MouseAdapter() {
-               public void mouseExited(MouseEvent me)
-               {
-                   //System.out.println("MetadataEditor table cell - exited: " + me);
-                   System.out.println("MetadataEditor -  mouse exited table - " + me);
-                     stopCellEditing();
-               }
-           });*/
+           if(LIMITED_FOCUS)
+           {
+             field.addMouseListener(new MouseAdapter() {
+                 public void mouseExited(MouseEvent me)
+                 {
+                     //System.out.println("MetadataEditor table cell - exited: " + me);
+                     System.out.println("MetadataEditor -  mouse exited table - " + me);
+                       stopCellEditing();
+                 }
+             });
+           }
            
            //comp.setOpaque(true);
            //comp.setBackground(java.awt.Color.RED);
