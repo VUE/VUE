@@ -58,9 +58,18 @@ public class CategoryComboBoxRenderer extends DefaultListCellRenderer {
                 
             } else {
                 //System.out.println("RENDERER  - label:"+value.toString()+"class:"+ value.getClass()+" index: "+index+" selected:"+isSelected);
+                                
                 setText(value.toString());
                 setBackground(list.getBackground());
                 setForeground(list.getForeground());
+                
+                if(value instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
+                {
+                    if(tufts.vue.VUE.getCategoryModel().isLoaded() == false)
+                    {
+                        setText("loading...");
+                    }
+                }
             }
         }
         

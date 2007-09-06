@@ -57,6 +57,11 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
         loader.start();
     }
     
+    public boolean isLoaded()
+    {
+        return ontologiesLoaded;
+    }
+    
     public void loadDefaultVUEOntologies() {
         String[] ontologyUrls = tufts.vue.VueResources.getStringArray("metadata.load.files");
         for(int i =0;i<ontologyUrls.length;i++) {
