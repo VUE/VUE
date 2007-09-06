@@ -27,7 +27,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.19 $ / $Date: 2007-03-23 23:28:12 $ / $Author: sfraize $ *
+ * @version $Revision: 1.20 $ / $Date: 2007-09-06 17:49:55 $ / $Author: mike $ *
  * @author  Daisuke Fujiwara
  */
 
@@ -64,6 +64,12 @@ public class ImageConversion extends VueAction {
     public static void createActiveMapJpeg(File location)
     {
         convert(VUE.getActiveMap().getAsImage(2.0), location, "jpeg");
+    }
+    
+    /**A method which sets up for converting the active viewer to a Jpeg file*/
+    public static void createActiveMapPng(File location)
+    {
+        convert(VUE.getActiveMap().getAsImage(2.0), location, "png");
     }
     
     public void act() {
