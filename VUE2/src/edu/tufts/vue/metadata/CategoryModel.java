@@ -37,13 +37,24 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
     public static final String CUSTOM_METADATA_FILE = tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+tufts.vue.VueResources.getString("metadata.custom.file");
     public static final String ONT_SEPARATOR = "#";
     
+    private boolean ontologiesLoaded = false;
+    
     int ontTypesCount = 0;
     private static Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>();
     private edu.tufts.vue.ontology.Ontology customOntology;
     public CategoryModel() {
         System.out.println("Creating Category Model");
-        loadDefaultVUEOntologies();
-        loadCustomOntology(false);
+        Runnable ontologyLoader = new Runnable()
+        {
+          public void run()
+          {
+            loadDefaultVUEOntologies();
+            loadCustomOntology(false);
+            ontologiesLoaded = true;
+          }
+        };
+        Thread loader = new Thread(ontologyLoader);
+        loader.start();
     }
     
     public void loadDefaultVUEOntologies() {
