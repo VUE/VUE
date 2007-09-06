@@ -55,7 +55,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.60 $ / $Date: 2007-09-05 20:11:48 $ / $Author: mike $
+ * @version $Revision: 1.61 $ / $Date: 2007-09-06 16:41:30 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -800,7 +800,8 @@ public class FontEditorPanel extends JPanel
             fontFamilyAction.setEditorPane(activeText);
             fontSizeAction.setEditorPane(activeText);
             fontColorAction.setEditorPane(activeText);
-		    		
+            activeText.setToggleBulletList(toggleBulletsAction);
+            activeText.setNumberList(toggleNumbersAction);
             mBoldButton.removeActionListener(styleChangeHandler);
             mBoldButton.addActionListener(richBoldAction);			
 			
@@ -824,6 +825,7 @@ public class FontEditorPanel extends JPanel
             mSizeField.addActionListener(fontSizeAction);
 			VUE.getFormatDock().setFocusable(false);
 			VUE.getFormatDock().setFocusableWindowState(false);
+			
             //mTextColorButton.removeActionListener(mTextColorButton);
             //mTextColorButton.addActionListener(TextColorListener);
             
