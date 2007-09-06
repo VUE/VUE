@@ -658,7 +658,7 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Identifier");
 		advancedSearchFieldsText[index++] = null;
-		advancedSearchPromptsVector.addElement("Lanugage");
+		advancedSearchPromptsVector.addElement("Language");
 		advancedSearchFieldsText[index++] = null;
 		advancedSearchPromptsVector.addElement("Publisher");
 		advancedSearchFieldsText[index++] = null;
