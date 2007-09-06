@@ -49,7 +49,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     public final static int BUTTON_COL_WIDTH = 35;
     
-    public final static boolean LIMITED_FOCUS = true;
+    public final static boolean LIMITED_FOCUS = false;
     
     private JTable metadataTable;
     private JScrollPane scroll;
@@ -214,7 +214,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        {
          LWComponent active = (LWComponent)e.active;
          
+        // metadataTable.setDefaultEditor(Object.class, new MetadataTableEditor());
+         metadataTable.removeEditor();
+         
          current = active;
+
+         if(current != null)
+         System.out.println("metadataeditor -- active changed --  metadatalist size: " + 
+                 MetadataEditor.this.current.getMetadataList().getMetadata().size());
          
          if(current !=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
          {
@@ -392,6 +399,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        public java.awt.Component getTableCellEditorComponent(final JTable table,final Object value,boolean isSelected,final int row,final int col)
        {
            final JTextField field = new JTextField();
+           System.out.println("created new JTextField");
            categories = new JComboBox();//new JComboBox(dublinCoreTemp);
            categories.setModel(new CategoryComboBoxModel());
            categories.setRenderer(new CategoryComboBoxRenderer());
