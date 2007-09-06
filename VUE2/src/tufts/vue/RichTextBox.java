@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.7 $ / $Date: 2007-09-05 20:35:33 $ / $Author: mike $
+ * @version $Revision: 1.8 $ / $Date: 2007-09-06 16:58:02 $ / $Author: mike $
  *
  */
 
@@ -231,7 +231,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     /** called by MapViewer before we go active on the map */
     void saveCurrentState()
     {
-        mUnchangedText = getText();
+        mUnchangedText = getRichText();
         mUnchangedSize = getSize();
     }
     
