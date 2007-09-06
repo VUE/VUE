@@ -65,7 +65,8 @@ public class MetadataSearchGUI extends JPanel {
     //TEXT FIELD BASED
     private JPanel optionsPanel;
     private JComboBox searchTypesChoice;
-    private String[] searchTypes = {"Basic","Categories","Advanced","All"};
+    //private String[] searchTypes = {"Basic","Categories","Advanced","All"};
+    private String[] searchTypes = {"Basic","Categories","All"};
     
     private JPanel fieldsPanel;
     private JTable searchTermsTable;
@@ -192,12 +193,15 @@ public class MetadataSearchGUI extends JPanel {
         searchTermsTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter(){
            public void mousePressed(MouseEvent e)
            {
-               VueMetadataElement newElement = new VueMetadataElement();
-               String pairedObject[] = {"Tag",""};
-               newElement.setObject(pairedObject);
-               newElement.setType(VueMetadataElement.CATEGORY);
-               searchTerms.add(newElement);
-               ((SearchTermsTableModel)searchTermsTable.getModel()).refresh();
+               if(e.getX()>searchTermsTable.getWidth()-BUTTON_COL_WIDTH)
+               {
+                 VueMetadataElement newElement = new VueMetadataElement();
+                 String pairedObject[] = {"Tag",""};
+                 newElement.setObject(pairedObject);
+                 newElement.setType(VueMetadataElement.CATEGORY);
+                 searchTerms.add(newElement);
+                 ((SearchTermsTableModel)searchTermsTable.getModel()).refresh();
+               }
            }
         });
         JScrollPane scroll = new JScrollPane(searchTermsTable);
