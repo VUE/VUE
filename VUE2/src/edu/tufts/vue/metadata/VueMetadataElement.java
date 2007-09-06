@@ -91,15 +91,13 @@ public class VueMetadataElement {
    public void setKey(String key)
    {
        this.key = key;
-       // object does not currently get recreated from persistence, 
-       // gui handles this
+       // object gets reset from persistence in setType
    }
    
    public void setValue(String value)
    {
        this.value = value;
-       // object does not currently get recreated from persistence, 
-       // gui handles this
+       // object gets reset from persistence in setType
    }
    
    public void setType(int type)
