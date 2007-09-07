@@ -61,9 +61,7 @@
   
   <path id="fedora22.classpath">
      <path refid="compile.classpath.common"/>
-    <pathelement path="${fedora22.lib}/axis.jar"/>
-    <pathelement path="${fedora22.lib}/fedora-client_2_2.jar"/>
-    </path>
+   </path>
   
   <target name="fedora22.compile" >
      <javac srcdir="${src}"
@@ -86,8 +84,7 @@
    </target>
    <target name="fedora22" depends="fedora22.jar">
         <copy file="${build.osid}/${fedora22.jar}" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
-       <copy file="${fedora22.lib}/axis.jar" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
-         <copy file="${fedora22.src}/fedora_icon16x16.gif" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
+        <copy file="${fedora22.src}/fedora_icon16x16.gif" todir="${osid.providers.home}\Fedora-2.2\1.1.0\"/>
     </target>
   <!--END fedora_2_2 related tasks-->
   
