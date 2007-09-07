@@ -74,7 +74,9 @@ public class FedoraRESTSearchAdapter {
                     lSearchCriteria.setToken(token);
                 }
                 
-            }else {
+            }
+            /*
+            else {
                 if(lSearchCriteria.getToken() != null) {
                     URL url = new URL("http",repository.getAddress(),repository.getPort(),SEARCH_RESUME+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
                     XPathFactory  factory=XPathFactory.newInstance();
@@ -85,7 +87,7 @@ public class FedoraRESTSearchAdapter {
                     
                 }
             }
-            
+            */
             return getAssetIterator(repository, fieldNode);
         }catch(Throwable t) {
             throw wrappedException("search", t);
