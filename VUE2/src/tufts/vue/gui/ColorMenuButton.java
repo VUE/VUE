@@ -52,7 +52,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.16 $ / $Date: 2007-08-31 01:06:51 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2007-09-07 19:04:35 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -93,6 +93,7 @@ implements ActionListener, tufts.vue.LWEditor
         popupWindow = new JFrame();
         popupWindow.setName(COLOR_POPUP_NAME);
         popupWindow.setUndecorated(true);
+        popupWindow.setAlwaysOnTop(true);
 
         popupWindow.addWindowFocusListener(new WindowFocusListener() {
             public void windowGainedFocus(WindowEvent e) {
@@ -100,6 +101,12 @@ implements ActionListener, tufts.vue.LWEditor
             }
 
             public void windowLostFocus(WindowEvent e) {
+            	System.out.println("Opposite component" + e.getOppositeWindow().getClass().toString());
+            	if (e.getOppositeWindow().getClass() == VueFrame.class)
+            	{            		
+            		return;
+            	}
+            		
                 SwingUtilities.invokeLater(new Runnable() {
                     public void run() {
                         if (popupWindow.isVisible())
@@ -118,6 +125,11 @@ implements ActionListener, tufts.vue.LWEditor
         popupWindow.pack();
     }
     private JPanel colorPanel = new JPanel();
+    
+    public JFrame getPopupWindow()
+    {
+    	return popupWindow;
+    }
     public JPanel buildMenu(Color[] colors, boolean custom)
     {    	
     	// 4 x 15
@@ -129,6 +141,7 @@ implements ActionListener, tufts.vue.LWEditor
     	for (int i = 0; i < colors.length ; i++)
     	{
     		JButton colorButton = new JButton();
+    		colorButton.setFocusable(false);
     		colorButton.setBorderPainted(false);
     		colorButton.setContentAreaFilled(false);
     		 Icon icon = makeIcon(colors[i]);
@@ -138,8 +151,9 @@ implements ActionListener, tufts.vue.LWEditor
     		colorPanel.add(colorButton);
     	}
     	JButton item = new JButton("other...");
+    	item.setFocusable(false);
         item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { handleValueSelection(runCustomChooser()); }});
+            public void actionPerformed(ActionEvent e) { handleValueSelection(runCustomChooser()); doClick();}});
     	item.setBorderPainted(false);
 		item.setContentAreaFilled(false);		
 		parent.add(colorPanel,BorderLayout.CENTER);
@@ -349,6 +363,7 @@ implements ActionListener, tufts.vue.LWEditor
             	}
             }
         }
+        
 		
 	}
 

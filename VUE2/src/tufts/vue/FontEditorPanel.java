@@ -55,11 +55,11 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.61 $ / $Date: 2007-09-06 16:41:30 $ / $Author: mike $
+ * @version $Revision: 1.62 $ / $Date: 2007-09-07 19:04:35 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
-    implements CaretListener
+    implements CaretListener, ComponentListener
                //,ActiveListener
                //implements LWEditor
 //    implements ActionListener, VueConstants//, PropertyChangeListener//implements PropertyChangeListener
@@ -113,11 +113,12 @@ public class FontEditorPanel extends JPanel
     {
     	//super(BoxLayout.X_AXIS);
     	setLayout(new GridBagLayout());
+    	VUE.getFormatDock().addComponentListener(this);
     	//ActiveInstance.addAllActiveListener(this);
     	//VUE.addActiveListener(LWComponent.class, this);
     	VUE.addActiveListener(RichTextBox.class, this);
         mPropertyKey = propertyKey;
-
+        
         setFocusable(false);
         
         //Box box = Box.createHorizontalBox();
@@ -138,10 +139,7 @@ public class FontEditorPanel extends JPanel
         Font menuFont = f.deriveFont((float) 9);        
         mFontCombo.setFont(menuFont);
         Component[] c =mFontCombo.getComponents();
-        for (int i = 0 ; i < c.length; i++)
-        {
-        	c[i].setFocusable(false);
-        }
+       
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
         if (false) {
             Dimension comboSize = mFontCombo.getPreferredSize();
@@ -829,7 +827,7 @@ public class FontEditorPanel extends JPanel
             //mTextColorButton.removeActionListener(mTextColorButton);
             //mTextColorButton.addActionListener(TextColorListener);
             
-            alignmentButton.getComboBox().addItemListener(alignmentListener);
+            alignmentButton.getComboBox().addActionListener(alignmentListener);
 
             enableSupportedEditors();
 			
@@ -844,7 +842,7 @@ public class FontEditorPanel extends JPanel
             mItalicButton.removeActionListener(richItalicAction);
             mItalicButton.addActionListener(styleChangeHandler);
             
-            mUnderlineButton.removeActionListener(richUnderlineAction);			
+            //mUnderlineButton.removeActionListener(richUnderlineAction);			
             //mUnderlineButton.addActionListener(styleChangeHandler);
             
             mFontCombo.removeActionListener(fontFamilyAction);
@@ -860,105 +858,16 @@ public class FontEditorPanel extends JPanel
 				
     }
 
-    /*
-    public void activeChanged(ActiveEvent e, LWComponent active) {
-		//Object hasn't changed do nothing...
-		if (e.active == e.oldActive)
-			return;
-		else if (e.active instanceof LWText)
-		{
-			final LWText text = (LWText)e.active;
-			text.getRichLabelBox().addCaretListener(this);
-			richBoldAction.setEditorPane(text.getRichLabelBox());
-			richItalicAction.setEditorPane(text.getRichLabelBox());
-			richUnderlineAction.setEditorPane(text.getRichLabelBox());
-			toggleBulletsAction.setEditorPane(text.getRichLabelBox());
-			toggleNumbersAction.setEditorPane(text.getRichLabelBox());
-			paraAlignLeftAction.setEditorPane(text.getRichLabelBox());
-			paraAlignCenterAction.setEditorPane(text.getRichLabelBox());
-			paraAlignRightAction.setEditorPane(text.getRichLabelBox());
-			fontFamilyAction.setEditorPane(text.getRichLabelBox());
-		    fontSizeAction.setEditorPane(text.getRichLabelBox());
-		    fontColorAction.setEditorPane(text.getRichLabelBox());
-		    		
-			mUnderlineButton.setEnabled(true);
-			orderedListButton.setEnabled(true);
-			unorderedListButton.setEnabled(true);
-			//alignmentButton.getComboBox().setEnabled(true);
-			
-			mBoldButton.removeActionListener(styleChangeHandler);
-			mBoldButton.addActionListener(richBoldAction);			
-			
-			mItalicButton.removeActionListener(styleChangeHandler);
-			mItalicButton.addActionListener(richItalicAction);			
-			
-			mUnderlineButton.removeActionListener(styleChangeHandler);			
-			mUnderlineButton.addActionListener(richUnderlineAction);						
-			
-						
-			orderedListButton.addActionListener(toggleNumbersAction);
-			unorderedListButton.addActionListener(toggleBulletsAction);
-			
-			mFontCombo.addActionListener(fontFamilyAction);
-			mFontCombo.removeActionListener(fontPropertyHandler);
-			
-			mSizeField.removeActionListener(fontPropertyHandler);
-			mSizeField.addActionListener(fontSizeAction);
-			
-			//mTextColorButton.removeActionListener(fontPropertyHandler);
-			//
-			mTextColorButton.addActionListener(new ActionListener()
-			{
-				public void actionPerformed(ActionEvent e)
-				{
-				 	Color color =FontEditorPanel.getTextColorButton().getColor();
-				    SimpleAttributeSet set = new SimpleAttributeSet();
-				        String colorString = "#" + Integer.toHexString(
-				                color.getRGB()).substring(2);
-				        Util.styleSheet().addCSSAttribute(set,
-				                CSS.Attribute.COLOR, colorString);
-				        
-				            set.addAttribute(HTML.Attribute.COLOR, colorString);
-				        				        				 
-				            text.getRichLabelBox().applyAttributes(set, false);
-				}
-			});
-			
-			alignmentButton.getComboBox().addItemListener(alignmentListener);
-
-			
-		}
-		else
-		{			
-			mUnderlineButton.setEnabled(false);
-			orderedListButton.setEnabled(false);
-			unorderedListButton.setEnabled(false);
-			//alignmentButton.setEnabled(false);
-			
-			mBoldButton.removeActionListener(richBoldAction);
-			mBoldButton.addActionListener(styleChangeHandler);			
-			
-			mItalicButton.removeActionListener(richItalicAction);
-			mItalicButton.addActionListener(styleChangeHandler);
-			
-			mUnderlineButton.removeActionListener(richUnderlineAction);			
-			//mUnderlineButton.addActionListener(styleChangeHandler);
-			
-			mFontCombo.removeActionListener(fontFamilyAction);
-			mFontCombo.addActionListener(fontPropertyHandler);
-			
-			//orderedListButton.removeActionListener(toggleNumbersAction);
-			//unorderedListButton.removeActionListener(toggleBulletsAction);
-	
-		}
-				
-	}
-    */      
-
-	private class AlignmentListener implements ItemListener
+    private class AlignmentListener implements ActionListener    
 	{
-			public void itemStateChanged(ItemEvent arg0) 
+			/*public void itemStateChanged(ItemEvent arg0) 
 			{
+			      JComponent c = (JComponent) arg0.getSource();
+			      if (c.getVerifyInputWhenFocusTarget()) {
+			            c.requestFocusInWindow();
+			            if (!c.hasFocus())
+			                return;
+			      }
 				if (arg0.getStateChange() == ItemEvent.SELECTED)					
 				{						
 					int itemCase = ((Integer)arg0.getItem()).intValue();
@@ -979,6 +888,20 @@ public class FontEditorPanel extends JPanel
 							break;
 					}														
 				}
+			}*/
+
+			public void actionPerformed(ActionEvent arg0) {
+					if (arg0.getModifiers() == 0)
+						return;
+					else
+					{
+						if (alignmentButton.getComboBox().getSelectedIndex() == 0)
+							paraAlignLeftAction.actionPerformed(null);
+						else if (alignmentButton.getComboBox().getSelectedIndex() == 1)
+							paraAlignCenterAction.actionPerformed(null);
+						else if (alignmentButton.getComboBox().getSelectedIndex() == 2)
+							paraAlignRightAction.actionPerformed(null);
+					}
 			}			
 	}
 	
@@ -1008,77 +931,85 @@ public class FontEditorPanel extends JPanel
 
 	private final void updateFormatControls(CaretEvent e)
 	{
-			final RichTextBox text = (RichTextBox)e.getSource();
-		/*    SHTMLDocument doc = (SHTMLDocument)text.getDocument();
-	        Element element = doc.getParagraphElement(text.getCaretPosition()-1);
-	        AttributeSet set = element.getAttributes();
-	        Element charElem =doc.getCharacterElement(text.getCaretPosition()-1);
-	        AttributeSet charSet = charElem.getAttributes();
-	        
-	        Enumeration enume = charSet.getAttributeNames();
-	        */
-	    Component c;
-	    Action action;
-	    int count = getComponentCount();
-	    
-	    AttributeSet a = getMaxAttributes(text, null);
-	    for(int i = 0; i < count; i++) {
-	      c = this.getComponent(i);
-	      if(c instanceof AttributeComponent) {
-	      /*  if(c instanceof StyleSelector) {
-	          SetStyleAction ssa = (SetStyleAction) ((StyleSelector) c).getAction();
-	          final AttributeSet oldAttibuteSet = ((AttributeComponent) c).getValue();
-	          if(! a.isEqual(oldAttibuteSet)){
-	              ssa.setIgnoreActions(true);
-	              ((AttributeComponent) c).setValue(a);
-	              ssa.setIgnoreActions(false);
-	          }
-	        }*/
-	        //else {
-	          ((AttributeComponent) c).setValue(a);
-	       // }
-	      }
-	      else if(c instanceof AbstractButton) {
-	        action = ((AbstractButton) c).getAction();
-	        if((action != null) && (action instanceof AttributeComponent)) {
-	          ((AttributeComponent) action).setValue(a);
-	        }
-	      }
-	    }
-
-	        //while (enume.hasMoreElements())
-	       // {
-	       // 	Object o = enume.nextElement();
-	       // 	System.out.println("name : " + o.toString());
-	      //  	System.out.println("val : " + charSet.getAttribute(o));
-	       // }
-	        /*
-	        if (charSet.getAttribute("font-style") != null.equals("italic"))
-	        	mItalicButton.setSelected(true);
-	        else
-	        	mItalicButton.setSelected(false);
-	        */
-	        //String val = (String)set.getAttribute("text-align");
-	       // if (val == null)
-	       // 	val = "left";
-	        /*
-	        if (val.equals("left") && alignmentButton.getComboBox().getSelectedIndex() != 0)	        	
-	        	alignmentButton.getComboBox().setSelectedIndex(0);
-	       	else if (val.equals("center") && alignmentButton.getComboBox().getSelectedIndex() != 1)
+		final RichTextBox text = (RichTextBox)e.getSource();
+		SHTMLDocument doc = (SHTMLDocument)text.getDocument();
+	    Element element = doc.getParagraphElement(text.getCaretPosition());
+	    AttributeSet set = element.getAttributes();
+	    Element charElem =doc.getCharacterElement(text.getCaretPosition() > 0 ? text.getCaretPosition()-1 : 0);
+	    AttributeSet charSet = charElem.getAttributes();
+	    Enumeration enume = charSet.getAttributeNames();
+	    	    
+		alignmentButton.getComboBox().setSelectedIndex(0);
+	    Enumeration elementEnum = set.getAttributeNames();
+	    while (elementEnum.hasMoreElements())
+	    {
+	    	Object o = elementEnum.nextElement();
+	    	//if (o.toString().equals("text-align"))
+	    		//System.out.println(" P: " + o.toString() + "  ***  " + set.getAttribute(o).toString());
+	       	if (o.toString().equals("text-align") && set.getAttribute(o).toString().equals("left"))
+	       	{//	System.out.println("SET LEFT");
+	       		alignmentButton.getComboBox().setSelectedIndex(0);
+	       		alignmentButton.getComboBox().repaint();
+	       	}
+	       	else if (o.toString().equals("text-align") && set.getAttribute(o).toString().equals("center"))
+	       	{
+	       		//System.out.println("SET CENTER");
 	       		alignmentButton.getComboBox().setSelectedIndex(1);
-	        else if (val.equals("right") && alignmentButton.getComboBox().getSelectedIndex() != 2)
-	        	alignmentButton.getComboBox().setSelectedIndex(2);
-	        */
-	        //System.out.println(richItalicAction.getValue().getAttribute("font-style"));
-	        
-	        
-	        /*System.out.println(set.getAttribute(HTML.Attribute.FACE));
-	        System.out.println(set.getAttribute(HTML.Attribute.SIZE));
-	        System.out.println(set.getAttribute(HTML.Attribute.COLOR));
-	        System.out.println(set.getAttribute(HTML.Attribute.ALIGN));
-	       */
-	        
-	       // System.out.println(element.getAttributes());
+	       		alignmentButton.getComboBox().repaint();
+	       		
+	       	}
+	       	else if	(o.toString().equals("text-align") && set.getAttribute(o).toString().equals("right"))
+	       	{
+	       		//System.out.println("SET RIGHT");
+	       		alignmentButton.getComboBox().setSelectedIndex(2);
+	       		alignmentButton.getComboBox().repaint();
+	       	}
+	       	
+	       	
+	       	
+ 	        
+	    }
+	    mBoldButton.setSelected(false);
+		mItalicButton.setSelected(false);
+		mUnderlineButton.setSelected(false);
+		mSizeField.setSelectedItem("13");
+		mFontCombo.setSelectedItem("Arial");
+		mTextColorButton.setColor(Color.black);
+	        while (enume.hasMoreElements())
+	        {
+	        	
+	        	Object o = enume.nextElement();
+	//        	System.out.println(o.toString() + " **** " + charSet.getAttribute(o).toString());
+	        	if ((o.toString().equals("color")))
+	        		mTextColorButton.setColor(edu.tufts.vue.style.Style.hexToColor(charSet.getAttribute(o).toString()));
+	        	//if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+	        	//	System.out.println("C:"+charSet.getAttribute(o).toString());
+	        	
+	       // 	if ((o.toString().equals("font-face")) || (o.toString().equals("face")))
+	        //		System.out.println("B:"+charSet.getAttribute(o).toString());
+	        	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+	        		mSizeField.setSelectedItem(charSet.getAttribute(o).toString());	
+	        			
+	        	if ((o.toString().equals("font-face")) || (o.toString().equals("face")))
+	        		mFontCombo.setSelectedItem(charSet.getAttribute(o).toString());
+	        	if ((o.toString().equals("font-weight") && charSet.getAttribute(o).toString().equals("bold")) || o.toString().equals("b"))
+	        	{
+	        	//	System.out.println("SET BOLD");
+	        		mBoldButton.setSelected(true);
+	        	}
+	        		
+	        	if ((o.toString().equals("font-style") && charSet.getAttribute(o).toString().equals("italic")) || o.toString().equals("i"))
+	        	{
+	        		//System.out.println("SET ITALIC");
+	        		mItalicButton.setSelected(true);
+	        	}
+	        	
+	        	if ((o.toString().equals("text-decoration") && charSet.getAttribute(o).toString().equals("underline")) || o.toString().equals("u"))	        	
+	        	{
+	        	//	System.out.println("SET UNDERLINE");
+	        		mUnderlineButton.setSelected(true);
+	        	}	        		        			        		            	        	
+	        }	        	   	        	        	      
 	}
 	
 	  public void caretUpdate(final CaretEvent e) {
@@ -1086,9 +1017,30 @@ public class FontEditorPanel extends JPanel
 		      EventQueue.invokeLater(new Runnable(){
 
 		            public void run() {
-		                //updateFormatControls(e);
+		                updateFormatControls(e);
 		            }            
 		        });		  
 		  }
+
+	public void componentHidden(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void componentMoved(ComponentEvent arg0) {
+		if (mTextColorButton.getPopupWindow().isVisible())
+			mTextColorButton.getPopupWindow().setVisible(false);
+		
+	}
+
+	public void componentResized(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void componentShown(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }

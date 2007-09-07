@@ -26,6 +26,8 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.geom.RectangularShape;
@@ -50,10 +52,10 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.12 $ / $Date: 2007-08-16 21:05:12 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2007-09-07 19:04:35 $ / $Author: mike $
 < */
  
-public class FillToolPanel extends ToolPanel
+public class FillToolPanel extends ToolPanel implements ComponentListener
 {
     /** fill button **/
     //protected ColorMenuButton mFillColorButton;
@@ -82,7 +84,7 @@ public class FillToolPanel extends ToolPanel
 				VueResources.getColor("defaultStrokeColor"),
 				false);
     public FillToolPanel() {
-    
+
         //setBorder(BorderFactory.createLineBorder(Color.red));
     }
     
@@ -145,6 +147,8 @@ public class FillToolPanel extends ToolPanel
     		buildBoxMac();
     	else
     		buildBoxWin();
+ 		
+    	VUE.getFormatDock().addComponentListener(this);
     }
     public void buildBoxWin()
     {
@@ -408,4 +412,27 @@ public class FillToolPanel extends ToolPanel
         LWCToolPanel.debug = true;
         VueUtil.displayComponent(new NodeToolPanel());
     }
+
+	public void componentHidden(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void componentMoved(ComponentEvent arg0) {
+		   if ((mFillColorButton != null) && (mFillColorButton.getPopupWindow().isVisible()))
+			   mFillColorButton.getPopupWindow().setVisible(false);
+		   
+		   if ((mStrokeColorButton != null) && (mStrokeColorButton.getPopupWindow().isVisible()))
+			   mStrokeColorButton.getPopupWindow().setVisible(false);		    		    		    		
+	}
+
+	public void componentResized(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void componentShown(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 }
