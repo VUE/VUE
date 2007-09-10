@@ -73,10 +73,14 @@ public class PresentationNotes {
                       false); // todo: absolute links shouldn't be spec'd here
 
         //    dc.setAntiAlias(true);
-         //   dc.setMapDrawing();
-            dc.setClipOptimized(false);
-
-            VUE.getActiveMap().drawZero(dc);
+            dc.setMapDrawing();
+            dc.setPrioritizeQuality(true);
+          //  dc.setRawDrawing();
+            //dc.setClipOptimized(false);
+            
+            dc.setInteractive(false);
+            dc.setDrawPathways(true);
+            VUE.getActiveMap().draw(dc);
             g2d.dispose();
             
             cb.addTemplate(tp,35,35);
