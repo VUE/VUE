@@ -214,7 +214,7 @@ public class Actions implements VueConstants
     //-------------------------------------------------------
     
     public static final VueAction Preferences = 
-    	new VueAction("Preferences",keyStroke(VueUtil.isMacPlatform() ? KeyEvent.VK_COMMA : KeyEvent.VK_P, COMMAND)) {
+    	new VueAction("Preferences",keyStroke(KeyEvent.VK_COMMA, COMMAND)) {
     		public void act() {
     			PreferencesDialog dialog = new PreferencesDialog(null, "Vue Preferences",
     				      edu.tufts.vue.preferences.PreferencesManager.class, true, null, false);

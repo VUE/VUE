@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-09-04 16:04:43 $ / $Author: mike $
+ * @version $Revision: 1.51 $ / $Date: 2007-09-10 20:32:30 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -194,7 +194,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         pdfExportMenu.add(Actions.AudienceNotes);
         pdfExportMenu.add(Actions.SpeakerNotesOutline);                                       
         fileMenu.addSeparator();
-        fileMenu.add(printAction);
+        fileMenu.add(printAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, metaMask));
         fileMenu.add(printAction).setText("Print Visible...");
         fileMenu.add(pdfExportMenu);        
         rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
