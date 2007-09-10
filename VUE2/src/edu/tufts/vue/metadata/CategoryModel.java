@@ -110,7 +110,9 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
             for(OntType ontType: customOntology.getOntTypes()) {
                 m.createClass(customOntology.getBase()+ONT_SEPARATOR+ontType.getLabel());
             }
-            m.write(new BufferedWriter(new FileWriter(CUSTOM_METADATA_FILE)));
+            RDFWriter writer = m.getWriter();
+            writer.setProperty("allowBadURIs","true");
+            writer.write(m,new BufferedWriter(new FileWriter(CUSTOM_METADATA_FILE)),customOntology.getBase());
         }catch(Throwable t) {
             tufts.vue.VUE.Log.error("Problem saving custom metadata - Error:"+t.getMessage());
             t.printStackTrace();
@@ -129,10 +131,23 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
                 add(customOntology);
             }
         } catch(Throwable t) {
+            File test = new File(CUSTOM_METADATA_FILE);
+            URL url = null;
+            URI uri = null;
+            try
+            { 
+              uri = test.toURI();
+              //System.out.print("Category Model load -- uri " + uri);
+              url = uri.toURL();
+            }
+            catch(Exception e)
+            {
+                System.out.println("Category Model load -- inner exception: " + e);
+            }
             customOntology = new RDFSOntology();
-            customOntology.setBase(CUSTOM_METADATA_FILE);
+            customOntology.setBase(url.toString());
+            add(customOntology);
             tufts.vue.VUE.Log.error("Problem loading custom metadata, creating new one - Error:"+t.getMessage());
-           
         }
     }
 }
