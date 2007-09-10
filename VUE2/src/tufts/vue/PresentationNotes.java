@@ -10,6 +10,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import tufts.vue.gui.GUI;
+
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -37,6 +39,7 @@ public class PresentationNotes {
         Document document = new Document(PageSize.LETTER.rotate());
         
         try {
+        	GUI.activateWaitCursor();
             // step 2:
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file            
@@ -93,6 +96,10 @@ public class PresentationNotes {
         catch(IOException ioe) {
             System.err.println(ioe.getMessage());
         }
+        finally
+        {
+        	   GUI.clearWaitCursor();
+        }
         
         // step 5: we close the document
         document.close();
@@ -105,6 +112,7 @@ public class PresentationNotes {
         final Document document = new Document(PageSize.LETTER.rotate());
         
         try {
+        	GUI.activateWaitCursor();
             // step 2:
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file            
@@ -175,6 +183,10 @@ public class PresentationNotes {
         catch(IOException ioe) {
             System.err.println(ioe.getMessage());
         }
+        finally
+        {
+        	   GUI.clearWaitCursor();
+        }
         
         // step 5: we close the document
         document.close();
@@ -193,6 +205,7 @@ public class PresentationNotes {
         Document document = new Document(PageSize.LETTER);
         
         try {
+        	GUI.activateWaitCursor();
             // step 2:
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file            
@@ -303,6 +316,10 @@ public class PresentationNotes {
         catch(IOException ioe) {
             System.err.println(ioe.getMessage());
         }
+        finally
+        {
+        	 GUI.clearWaitCursor();
+        }
         
         // step 5: we close the document
         document.close();
@@ -360,6 +377,7 @@ public class PresentationNotes {
         Document document = new Document(PageSize.LETTER);
         
         try {
+        	   GUI.activateWaitCursor();
             // step 2:
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file            
@@ -457,6 +475,10 @@ public class PresentationNotes {
         catch(IOException ioe) {
             System.err.println(ioe.getMessage());
         }
+        finally
+        {
+        	   GUI.activateWaitCursor();
+        }
         
         // step 5: we close the document
         document.close();     
@@ -474,6 +496,7 @@ public class PresentationNotes {
         Document document = new Document();
         
         try {
+        	   GUI.activateWaitCursor();
             // step 2:
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file            
@@ -569,6 +592,10 @@ public class PresentationNotes {
         catch(IOException ioe) {
             System.err.println(ioe.getMessage());
         }
+        finally
+        {
+        	   GUI.activateWaitCursor();
+        }
         
         // step 5: we close the document
         document.close();
@@ -643,6 +670,7 @@ public class PresentationNotes {
         Document document = new Document(PageSize.LETTER);
         
         try {
+        	   GUI.activateWaitCursor();
             // step 2:
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file            
@@ -754,6 +782,10 @@ public class PresentationNotes {
         catch(IOException ioe) {
             System.err.println(ioe.getMessage());
         }
+        finally
+        {
+        	   GUI.activateWaitCursor();
+        }
         
         // step 5: we close the document
         document.close();
@@ -771,6 +803,7 @@ public class PresentationNotes {
         Document document = new Document(PageSize.LETTER);
         
         try {
+        	   GUI.activateWaitCursor();
             // step 2:
             // we create a writer that listens to the document
             // and directs a PDF-stream to a file            
@@ -818,7 +851,10 @@ public class PresentationNotes {
         catch(IOException ioe) {
             System.err.println(ioe.getMessage());
         }
-        
+        finally
+        {
+        	   GUI.activateWaitCursor();
+        }
         // step 5: we close the document
         document.close();
         
