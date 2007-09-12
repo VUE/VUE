@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.440 $ / $Date: 2007-09-12 22:42:26 $ / $Author: mike $ 
+ * @version $Revision: 1.441 $ / $Date: 2007-09-12 22:55:37 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3810,13 +3810,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         //Manage the delete/arrange section
         if (c instanceof LWSlide)
-        {        	
+        {   
         	//formatBox.setVisible(false);
         	sDuplicateItem.setVisible(false);
-            //sRenameItem.setVisible(false);
-            sDeleteItem.setVisible(false);
-            sDeselectItem.setVisible(false);
-            sArrangeItem.setVisible(false);
+        	//sRenameItem.setVisible(false);
+        	sDeleteItem.setVisible(false);
+        	sDeselectItem.setVisible(false);
+        	sArrangeItem.setVisible(false);
         }
         else if (c instanceof LWGroup)
         {
@@ -3839,15 +3839,29 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //Manage slide specific stuff
         if (c instanceof LWSlide)
         {
-        	sPreSlideSeparator.setVisible(true);
-            sEditMasterSlideItem.setVisible(true);
-            sSyncWithNodeItem.setVisible(true);
+        	if (((LWSlide)c).getMasterSlide().equals(c))
+        	{
+        		//this is a master slide
+        		sPreSlideSeparator.setVisible(false);
+                sEditMasterSlideItem.setVisible(true);
+                sSyncWithNodeItem.setVisible(false);
+                Actions.EditMasterSlide.setActionName("Exit");
+        		
+        	}
+        	else
+        	{
+        		sPreSlideSeparator.setVisible(true);
+        		sEditMasterSlideItem.setVisible(true);
+        		sSyncWithNodeItem.setVisible(true);
+        		Actions.EditMasterSlide.setActionName("Edit master slide");
+        	}
         }
         else
         {
         	sPreSlideSeparator.setVisible(false);
             sEditMasterSlideItem.setVisible(false);
             sSyncWithNodeItem.setVisible(false);
+            Actions.EditMasterSlide.setActionName("Edit master slide");
             
         }
         	
