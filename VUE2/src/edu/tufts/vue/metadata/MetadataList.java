@@ -18,7 +18,10 @@
 
 package edu.tufts.vue.metadata;
 
+import edu.tufts.vue.ontology.*;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /*
@@ -33,7 +36,7 @@ import java.util.List;
  */
 public class MetadataList {
     
-    private List<VueMetadataElement> metadataList = new ArrayList<VueMetadataElement>();
+    private List<VueMetadataElement> metadataList = new CategoryFirstList<VueMetadataElement>();
    
     public List<VueMetadataElement> getMetadata()
     {
@@ -47,7 +50,45 @@ public class MetadataList {
     
     public void setMetadata(List<VueMetadataElement> list)
     {
-        metadataList = list;
+      metadataList = list;
     }
     
+    public class CategoryFirstList<E> extends java.util.ArrayList<E>
+    {
+        
+      int categoryEndIndex = 0;
+      int ontologyEndIndex = 0;
+      int otherEndIndex = 0;
+      
+      public int getCategoryEndIndex()
+      {
+          return categoryEndIndex;
+      }
+        
+      public boolean add(E o)
+      {
+          VueMetadataElement vme = null;
+          if(!(o instanceof VueMetadataElement))
+              return false;
+          else
+              vme = (VueMetadataElement)o;
+          
+          if(vme.getObject() instanceof Ontology)
+          {
+              otherEndIndex++;
+              add(ontologyEndIndex++,(E)vme);
+          }
+          if(vme.getObject() instanceof String[])
+          {
+              ontologyEndIndex++;
+              otherEndIndex++;
+              add(categoryEndIndex++,(E)vme);
+          }
+          else
+              add(otherEndIndex++,(E)vme);
+              
+          return true;
+      }
+            
+    }
 }

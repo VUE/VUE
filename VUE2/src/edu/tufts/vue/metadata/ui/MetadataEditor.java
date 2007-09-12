@@ -18,6 +18,7 @@
 
 package edu.tufts.vue.metadata.ui;
 
+import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.ontology.OntType;
 import edu.tufts.vue.rdf.RDFIndex;
@@ -628,8 +629,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
              // awkward? -- current getMetadata in LWcomponent does something else
              // how about getMetadataBundle.getMetadataList()?
              if(current !=null)
-             {    
-               int size = current.getMetadataList().getMetadata().size();
+             {   
+               MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)current.getMetadataList().getMetadata();
+               int size = list.getCategoryEndIndex();
+               //int size = current.getMetadataList().getMetadata().size();
                if(size > 0)
                    return size;
                else
@@ -669,7 +672,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
              if(column == buttonColumn - 2)
              {
                 java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();  
-                if(row!=0 || list.size() > 0)  
+                MetadataList.CategoryFirstList cfList = (MetadataList.CategoryFirstList)list;
+                if(row!=0 || cfList.getCategoryEndIndex() > 0)  
                 {
                   VueMetadataElement ele = list.get(row);
                   //$
@@ -703,8 +707,9 @@ public class MetadataEditor extends JPanel implements ActiveListener {
              else
              if( (column == buttonColumn - 1) && current != null)
              {    
-               java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();  
-               if(row!=0 || list.size() > 0)  
+               java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();
+               MetadataList.CategoryFirstList cfList = (MetadataList.CategoryFirstList)list;
+               if(row!=0 || cfList.getCategoryEndIndex() > 0)  
                {
                  VueMetadataElement ele = list.get(row);
                  /*if(ele.getObject()!=null)
