@@ -15,8 +15,8 @@
  *
  * -----------------------------------------------------------------------------
  * 
- * $Revision: 1.140 $ / $Date: 2007/09/07 19:18:46 $ / $Author: dan $ 
- * $Header: /home/vue/cvsroot/VUE2/src/build.xml,v 1.140 2007/09/07 19:18:46 dan Exp $
+ * $Revision: 1.1 $ / $Date: 2007/09/11 12:45:38 $ / $Author: peter $ 
+ * $Header: /home/vue/cvsroot/VUE2/src/tufts/vue/UrlAuthentication.java,v 1.1 2007/09/11 12:45:38 peter Exp $
  */
 
 package tufts.vue;
@@ -27,23 +27,30 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URI;
 import java.rmi.RemoteException;
-import java.util.Enumeration;
+import java.util.Map;
 import java.util.Properties;
-import java.util.Vector;
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ServiceException;
 
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 
-import org.apache.axis.encoding.Base64;
-
-import edu.tufts.vue.dsm.DataSource;
-
+//TODO: Consider making this class a singleton and getSessionId() static.
+/**
+ * The purpose of this class is to resolve authentication on images stored in
+ * protected repositories.
+ * 
+ * The initial use case is Sakai.  We can authenticate access to images stored
+ * in Sakai by getting a session id through the Sakai web service, and passing that session id
+ * in the header of the http request.
+ * 
+ *  A goal is to generalize this class so that it is not Sakai specific.
+ *  
+ */
 public class UrlAuthentication {
 	URI _uri;
     edu.tufts.vue.dsm.impl.VueDataSourceManager dataSourceManager = null;
-
+    Map hostMap;
     
     public UrlAuthentication(String urlString) {
 		try{
@@ -67,19 +74,19 @@ public class UrlAuthentication {
 		_uri = uri ;
 	}
 	
-	public String getSessionId() {
+	public String getSessionId( URI uri ) {
 		edu.tufts.vue.dsm.DataSourceManager dsm;
 		edu.tufts.vue.dsm.DataSource dataSources[] = null;
-		DataSourceList dataSourceList;
 		String _sessionId = "none";
 		
 		try {
 			// load new data sources
-			dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager
-					.getInstance();
 			VUE.Log
 					.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
-			((edu.tufts.vue.dsm.impl.VueDataSourceManager)dsm).load();
+			edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
+			dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager
+					.getInstance();
+			
 			SakaiExport se = new SakaiExport(dsm);
 			dataSources = se.getSakaiDataSources();
 			
@@ -100,7 +107,15 @@ public class UrlAuthentication {
 		}
 		return _sessionId;
 	}
-	
+
+	/** 
+	 * Extract credentials from configuration of installed datasources
+	 * and use those credentials to generate a session id.  Note that 
+	 * though the configuration information supports the OSID search, 
+	 * this code doesn't use OSIDs to generate a session id.
+	 * @param configuration
+	 * @return 
+	 */
 	private String getSessionId(Properties configuration)
 	{
 		String username = configuration.getProperty("sakaiUsername");
