@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.437 $ / $Date: 2007-09-12 18:21:26 $ / $Author: mike $ 
+ * @version $Revision: 1.438 $ / $Date: 2007-09-12 19:30:55 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3840,11 +3840,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
         }
         //MANAGE THE INFO BOX
-        if (c instanceof LWLink)
+        if (c instanceof LWLink && infoCheckBox != null)
         	infoCheckBox.setLabel("Link Info");
-        else if (c instanceof LWSlide)
+        else if (c instanceof LWSlide && infoCheckBox != null)
         	infoCheckBox.setLabel("Slide Info");
-        else if (c instanceof LWNode)
+        else if (c instanceof LWNode && infoCheckBox != null)
         	infoCheckBox.setLabel("Node Info");
         
         //return popup
