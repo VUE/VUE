@@ -19,8 +19,11 @@
 package tufts.vue;
 
 import java.util.Iterator;
+
+import tufts.Util;
 import tufts.vue.NodeTool.NodeModeTool;
 import java.util.*;
+import java.awt.Component;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
@@ -30,6 +33,9 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import javax.swing.Action;
 import javax.swing.JFileChooser;
@@ -38,6 +44,7 @@ import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
+import tufts.vue.action.SaveAction;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.WindowDisplayAction;
 
@@ -762,7 +769,17 @@ public class Actions implements VueConstants
     //-----------------------
     // Context Menu Actions
     //-----------------------
-    public static final Action KeywordAction = new VueAction(VueResources.getString("mapViewer.componentMenu.keywords.label")) {
+    public static final Action KeywordAction = new KeywordActionClass(VueResources.getString("mapViewer.componentMenu.keywords.label"));
+    public static final Action ContextKeywordAction = new KeywordActionClass("Add Keywords");
+    
+    public static class KeywordActionClass extends VueAction
+    {
+    	
+    	public KeywordActionClass(String s)
+    	{
+    		super(s);
+    	}
+    	
         public void act() {
         	VUE.getInspectorPane().showKeywordView();
         	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
@@ -817,14 +834,159 @@ public class Actions implements VueConstants
 
                 if (fileName == null) 
                 	return;
-                
-                c.setResource(new URLResource(fileName.getAbsolutePath()));
-            }
-        	
+              Resource r = c.getResource();
+              if (r == null)
+              {
+            	  c.setResource(new URLResource(fileName.getAbsolutePath()));  
+              }
+              else            	  
+              {
+            	  final Object[] defaultOrderButtons = { "Replace","Add","Cancel"};
+                  int response = JOptionPane.showOptionDialog
+                  ((Component)VUE.getApplicationFrame(),
+                   new String("Do you want to replace the current resource or add this resource as a child node?"),
+                   "Replace Resource?",
+                   JOptionPane.YES_NO_CANCEL_OPTION,
+                   JOptionPane.PLAIN_MESSAGE,
+                   null,
+                   defaultOrderButtons,             
+                   "Add"
+                   );                  
+                  
+               
+                  if (response == JOptionPane.YES_OPTION) { // Save
+                	  c.setResource(new URLResource(fileName.getAbsolutePath()));
+                  } 
+                  else if (response == JOptionPane.NO_OPTION) { // Don't Save
+                	  {
+                		  //LWNode node = NodeModeTool.createNewNode();
+                          
+                          URLResource urlResource = new URLResource(fileName.getAbsolutePath());
+                          LWNode node= new LWNode(urlResource.getTitle());
+                          node.setResource(urlResource);
+                          //node.addChild(image);                         
+                          c.addChild(node);
+                	  }
+                  } else // anything else (Cancel or dialog window closed)
+                      return;
+              }                                                                  	
+        }
+        }
+    };
+    
+    public static final LWCAction AddURLAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addURL.label")) {
+        public void act(LWComponent c) 
+        {
+        	//JFileChooser chooser = new JFileChooser();
+    		File fileName = null;
+    		final Object[] defaultButtons = { "OK","Cancel"};
+    		String option = (String)JOptionPane.showInputDialog((Component)VUE.getApplicationFrame(), 
+    												"Enter the URL to add: ",
+    												"Add URL to Node",
+    												JOptionPane.PLAIN_MESSAGE	,
+    												null,
+    												null,
+    												null);
+    												
+            //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
+            if (option != null && option.length() > 0) 
+            {
+            	URI url = null;
+            	
+                try {
+				 url = new URI(option);
+				} catch (URISyntaxException e) {
+					JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+							"Malformed URL, resource could not be added.", 
+							"Malformed URL", 
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+             
+              Resource r = c.getResource();
+              if (r == null)
+              {
+            	  try {
+					c.setResource(new URLResource(url.toURL()));
+				} catch (MalformedURLException e) {
+					JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+							"Malformed URL, resource could not be added.", 
+							"Malformed URL", 
+							JOptionPane.ERROR_MESSAGE);
+				}  
+              }
+              else            	  
+              {
+            	  final Object[] defaultOrderButtons = { "Replace","Add","Cancel"};
+                  int response = JOptionPane.showOptionDialog
+                  ((Component)VUE.getApplicationFrame(),
+                   new String("Do you want to replace the current resource or add this resource as a child node?"),
+                   "Replace Resource?",
+                   JOptionPane.YES_NO_CANCEL_OPTION,
+                   JOptionPane.PLAIN_MESSAGE,
+                   null,
+                   defaultOrderButtons,             
+                   "Add"
+                   );                  
+                  
+               
+                  if (response == JOptionPane.YES_OPTION) { // Save
+                	  try {
+						c.setResource(new URLResource(url.toURL()));
+					} catch (MalformedURLException e) {
+						JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+								"Malformed URL, resource could not be added.", 
+								"Malformed URL", 
+								JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+                  } 
+                  else if (response == JOptionPane.NO_OPTION) { // Don't Save
+                	  {
+                		  //LWNode node = NodeModeTool.createNewNode();
+                          
+                          URLResource urlResource;
+						try {
+							urlResource = new URLResource(url.toURL());
+						} catch (MalformedURLException e) {
+							JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+														"Malformed URL, resource could not be added.", 
+														"Malformed URL", 
+														JOptionPane.ERROR_MESSAGE);
+							return;
+						}
+                          LWNode node= new LWNode(url.toString());
+                          node.setResource(urlResource);
+                          
+                          //node.addChild(image);                         
+                          c.addChild(node);
+                	  }
+                  } else // anything else (Cancel or dialog window closed)
+                      return;
+              }                                                                  	
+        }
+        }
+    };
+  
+    public static final LWCAction RemoveResourceAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.removeResource.label")) {
+        public void act(LWComponent c) 
+        {        	             
+        	URLResource nullResource = null;
+        	c.setResource(nullResource);                                    
         }
     };
 
-    public static final Action NotesAction = new VueAction(VueResources.getString("mapViewer.componentMenu.notes.label")) {
+    //m.add(Actions.AddURLAction);
+//    m.add(Actions.RemoveResourceAction);
+    public static final Action NotesAction = new NotesActionClass(VueResources.getString("mapViewer.componentMenu.notes.label"));
+    public static final Action ContextNotesAction = new NotesActionClass("Add Notes");
+    	
+    public static class NotesActionClass extends VueAction
+    {
+    	public NotesActionClass(String s)
+    	{
+    		super(s);
+    	}
         public void act() {        	
         	
         	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
@@ -834,6 +996,8 @@ public class Actions implements VueConstants
         	}
         //public void act() { VUE.ObjectInspector.setVisible(true); }
     };
+    
+    
     
     public static final Action InfoAction = new VueAction(VueResources.getString("mapViewer.componentMenu.info.label")) {
         public void act() { 
