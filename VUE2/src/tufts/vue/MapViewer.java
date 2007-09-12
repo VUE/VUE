@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.438 $ / $Date: 2007-09-12 19:30:55 $ / $Author: mike $ 
+ * @version $Revision: 1.439 $ / $Date: 2007-09-12 22:07:07 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3589,22 +3589,32 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
      */
     
-    
+    private Component multiPathway;
     private JPopupMenu buildMultiSelectionPopup() {
         JPopupMenu m = new JPopupMenu("Multi-Component Menu");
         
-        m.add(getNodeMenu("Nodes"));
-        m.add(getLinkMenu("Links"));
-        m.add(GUI.buildMenu("Arrange", Actions.ARRANGE_MENU_ACTIONS));
+        //m.add(getNodeMenu("Nodes"));
+        //m.add(getLinkMenu("Links"));
+        multiPathway = m.add(Actions.AddPathwayItem);
+        WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
+        JCheckBoxMenuItem formatBox = new JCheckBoxMenuItem(formatAction);
+        if (VUE.getFormatDock().isShowing())
+        	formatBox.setSelected(true);
+        formatAction.setTitle("Format");      
+        m.add(formatBox);
+    
+        m.add(GUI.buildMenu("Align", Actions.ARRANGE_MENU_ACTIONS));
+        
+        JMenu arrangeMenu = new JMenu("Arrange");
+        arrangeMenu.add(Actions.BringToFront);
+        arrangeMenu.add(Actions.BringForward);
+        arrangeMenu.add(Actions.SendToBack);
+        arrangeMenu.add(Actions.SendBackward);
+        m.add(arrangeMenu);        
         m.addSeparator();
         m.add(Actions.Duplicate);
         m.add(Actions.Group);
         m.add(Actions.Ungroup);
-        m.addSeparator();
-        m.add(Actions.BringToFront);
-        m.add(Actions.BringForward);
-        m.add(Actions.SendToBack);
-        m.add(Actions.SendBackward);
         m.addSeparator();
         m.add(Actions.DeselectAll);
         m.add(Actions.Delete);
@@ -3629,7 +3639,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static Component sPostPathwaySeparator = new JSeparator(JSeparator.HORIZONTAL);
     private static Component sPostResourceSeparator = new JSeparator(JSeparator.HORIZONTAL);
     private static Component sDuplicateItem;
-    private static Component sRenameItem;
+  //  private static Component sRenameItem;
     private static Component sDeleteItem;
     private static Component sDeselectItem;     
     private static Component sArrangeItem;        
@@ -3685,7 +3695,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         m.add(formatBox);
         
         sDuplicateItem = m.add(Actions.Duplicate);
-        sRenameItem = m.add(Actions.Rename);
+//        sRenameItem = m.add(Actions.Rename);
         sDeleteItem = m.add(Actions.Delete);
         sDeselectItem = m.add(Actions.DeselectAll);
         JMenu arrangeMenu = new JMenu("Arrange");
@@ -3798,7 +3808,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         {        	
         	//formatBox.setVisible(false);
         	sDuplicateItem.setVisible(false);
-            sRenameItem.setVisible(false);
+            //sRenameItem.setVisible(false);
             sDeleteItem.setVisible(false);
             sDeselectItem.setVisible(false);
             sArrangeItem.setVisible(false);
@@ -3807,7 +3817,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         {
         	//formatBox.setVisible(true);
         	sDuplicateItem.setVisible(true);
-            sRenameItem.setVisible(false); // hide rename
+           // sRenameItem.setVisible(false); // hide rename
             sDeleteItem.setVisible(true);
             sDeselectItem.setVisible(true);
             sArrangeItem.setVisible(true);
@@ -3816,7 +3826,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         {
         	//formatBox.setVisible(true);
         	sDuplicateItem.setVisible(true);
-            sRenameItem.setVisible(true);
+            //sRenameItem.setVisible(true);
             sDeleteItem.setVisible(true);
             sDeselectItem.setVisible(true);
             sArrangeItem.setVisible(true);
@@ -3898,7 +3908,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private JPopupMenu getMultiSelectionPopup() {
         if (sMultiPopup == null)
             sMultiPopup = buildMultiSelectionPopup();
-        
+     
+        //Manage pathway list
+        if (getMap().getPathwayList().getActivePathway() == null) {
+            multiPathway.setVisible(false);
+        } else {
+        	multiPathway.setVisible(true);
+        }
+     
         /*
         if (VueSelection.allOfType(LWLink.class))
             multiPopup.add(getLinkMenu());

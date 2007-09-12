@@ -257,7 +257,7 @@ public class Actions implements VueConstants
         };
                 
     public static final Action DeselectAll =
-    new LWCAction("Deselect", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
+    new LWCAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
         public void act() {
             VUE.getSelection().clear();
