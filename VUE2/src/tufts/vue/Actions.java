@@ -30,6 +30,7 @@ import java.awt.Font;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -967,7 +968,31 @@ public class Actions implements VueConstants
         }
         }
     };
-  
+    
+    public static final LWCAction EditMasterSlide = new LWCAction("Edit Master Slide")
+    {
+    	public void act(LWComponent c)
+    	{
+    		long now = System.currentTimeMillis();
+    		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
+    															MouseEvent.MOUSE_CLICKED,
+    															now,
+    															5,5,5,5,
+    															false));
+    		
+    		((LWSlide)c).getPathwayEntry().pathway.getMasterSlide().doZoomingDoubleClick(mme);
+    	}
+    };
+    
+    public static final LWCAction SyncWithNode = new LWCAction("Sync Slide with Node") 
+    {
+    	public void act(LWComponent c)
+    	{    		
+    		((LWSlide)c).synchronizeResourcesWithNode();
+    		//System.out((LWSlide)c).getPathwayEntry().pathway.toName()
+    	}
+    };
+    
     public static final LWCAction RemoveResourceAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.removeResource.label")) {
         public void act(LWComponent c) 
         {        	             

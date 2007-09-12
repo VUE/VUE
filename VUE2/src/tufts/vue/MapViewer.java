@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.439 $ / $Date: 2007-09-12 22:07:07 $ / $Author: mike $ 
+ * @version $Revision: 1.440 $ / $Date: 2007-09-12 22:42:26 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3638,6 +3638,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static JCheckBoxMenuItem formatBox; 
     private static Component sPostPathwaySeparator = new JSeparator(JSeparator.HORIZONTAL);
     private static Component sPostResourceSeparator = new JSeparator(JSeparator.HORIZONTAL);
+    private static Component sPreSlideSeparator = new JSeparator(JSeparator.HORIZONTAL);
     private static Component sDuplicateItem;
   //  private static Component sRenameItem;
     private static Component sDeleteItem;
@@ -3647,6 +3648,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static Component contextNotesItem;
     private static JMenuItem slideNotesItem;
     private static JMenuItem slideKeywordsItem;
+    private static Component sEditMasterSlideItem;
+    private static Component sSyncWithNodeItem;
     
     //  private static Component sPathSeparator;
     private JPopupMenu buildSingleSelectionPopup() {
@@ -3704,7 +3707,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         arrangeMenu.add(Actions.SendToBack);
         arrangeMenu.add(Actions.SendBackward);
         sArrangeItem = m.add(arrangeMenu);        
-                       
+        m.add(sPreSlideSeparator);
+        sEditMasterSlideItem =m.add(Actions.EditMasterSlide);
+        sSyncWithNodeItem = m.add(Actions.SyncWithNode);
         sAssetMenu = new JMenu("Disseminators");
         // todo: special add-to selection action that adds
         // hitComponent to selection so have way other
@@ -3831,7 +3836,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sDeselectItem.setVisible(true);
             sArrangeItem.setVisible(true);
         }
-        
+        //Manage slide specific stuff
+        if (c instanceof LWSlide)
+        {
+        	sPreSlideSeparator.setVisible(true);
+            sEditMasterSlideItem.setVisible(true);
+            sSyncWithNodeItem.setVisible(true);
+        }
+        else
+        {
+        	sPreSlideSeparator.setVisible(false);
+            sEditMasterSlideItem.setVisible(false);
+            sSyncWithNodeItem.setVisible(false);
+            
+        }
+        	
         //Manage Keywords/NOtes
         if (c instanceof LWSlide)
         { 
