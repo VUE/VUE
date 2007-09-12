@@ -969,7 +969,7 @@ public class Actions implements VueConstants
         }
     };
     
-    public static final LWCAction EditMasterSlide = new LWCAction("Edit Master Slide")
+    public static final LWCAction EditMasterSlide = new LWCAction("Edit master slide")
     {
     	public void act(LWComponent c)
     	{
@@ -984,7 +984,7 @@ public class Actions implements VueConstants
     	}
     };
     
-    public static final LWCAction SyncWithNode = new LWCAction("Sync Slide with Node") 
+    public static final LWCAction SyncWithNode = new LWCAction("Sync slide with node") 
     {
     	public void act(LWComponent c)
     	{    		
