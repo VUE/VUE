@@ -48,6 +48,8 @@ import javax.swing.table.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
+import osid.dr.Asset;
+
 /**
  * A JTable that displays all of the pathways that exists in a given map,
  * and provides user interaction with the list of pathways.  Relies
@@ -61,14 +63,15 @@ import javax.swing.event.*;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.86 $ / $Date: 2007-09-03 21:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2007-09-13 01:57:48 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
     implements DropTargetListener,
                DragSourceListener,
                DragGestureListener,
-               MouseListener
+               MouseListener,
+               ActionListener
 {
 	
 	private DropTarget dropTarget = null;
@@ -423,9 +426,10 @@ public class PathwayTable extends JTable
         }
 
 		public void mouseClicked(MouseEvent arg0) {
-			
+		
 		}
 
+		
 		public void mouseEntered(MouseEvent e) {
 			// TODO Auto-generated method stub
 			
@@ -1086,8 +1090,127 @@ public class PathwayTable extends JTable
 	//	System.out.println("dropactionchanged");
 	}
 	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 		
+    	if ((arg0.getModifiers() & MouseEvent.BUTTON3_MASK )!=0)
+				displayContextMenu(arg0);
+		
+		
+	}
+	private void displayContextMenu(MouseEvent e) {
+        getPopup(e).show(e.getComponent(), e.getX(), e.getY());
+	}
+	JPopupMenu m = null;
+	private static final JMenuItem renamePresentation = new JMenuItem("Rename");
+	private static final JMenuItem playbackPresentation = new JMenuItem("Playback");
+	private static final JMenuItem masterSlidePresentation = new JMenuItem("Masterslide");
+	private static final JMenuItem deletePresentation = new JMenuItem("Delete");
+	private static final JMenuItem editEntry = new JMenuItem("Edit");
+	private static final JMenuItem addNoteEntry = new JMenuItem("Add note");
+	private static final JMenuItem deleteEntry = new JMenuItem("Delete");
+	
+	public void actionPerformed(ActionEvent e)
+	{
+		if (e.getSource().equals(renamePresentation))
+		{
+			boolean a = this.editCellAt(selectedY,selectedX);			
+		}
+		else if (e.getSource().equals(playbackPresentation))
+		{
+          	final PresentationTool presTool = PresentationTool.getTool();
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                VUE.toggleFullScreen(true);
+            }});
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                //VueToolbarController.getController().setSelectedTool(presTool);
+                VUE.setActive(VueTool.class, this, presTool);
+            }});
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                presTool.startPresentation();
+            }});
+		}
+		else if (e.getSource().equals(masterSlidePresentation))
+		{
+			long now = System.currentTimeMillis();
+    		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
+    															MouseEvent.MOUSE_CLICKED,
+    															now,
+    															5,5,5,5,
+    															false));
+    		
+    		selectedEntry.pathway.getMasterSlide().doZoomingDoubleClick(mme);
+		}
+		else if (e.getSource().equals(deletePresentation))
+		{
+			VUE.getPathwayPanel().deletePathway(selectedEntry.pathway);
+		}
+		else if (e.getSource().equals(addNoteEntry))
+		{
+			Actions.NotesAction.actionPerformed(e);
+		}
+		else if (e.getSource().equals(editEntry))
+		{
+			long now = System.currentTimeMillis();
+    		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
+    															MouseEvent.MOUSE_CLICKED,
+    															now,
+    															5,5,5,5,
+    															false));
+    		
+    		selectedEntry.getSlide().doZoomingDoubleClick(mme);
+		}
+		else if (e.getSource().equals(deleteEntry))
+		{
+		    GUI.invokeAfterAWT(new Runnable() { public void run() {
+		    	VUE.getActivePathway().remove(VUE.getActivePathway().getCurrentIndex());
+		    	
+            }});
+			   
+		}
+	}
+	LWPathway.Entry selectedEntry = null;
+	int selectedX = 0;
+	int selectedY = 0;
+	private JPopupMenu getPopup(MouseEvent e) 
+	{
+		m = new JPopupMenu("Pathway Menu");
+		int row = this.rowAtPoint(e.getPoint());
+		
+        PathwayTableModel tableModel = getTableModel();
+		int col = this.getColumnModel().getColumnIndexAtX(e.getX());
+	    final LWPathway.Entry entry = tableModel.getEntry(row);
+	    
+	    
+	    VUE.setActive(LWPathway.Entry.class, this, entry);
+	    
+        if (row >= 0)
+            changeSelection(row, -1, false, false);
+	    selectedEntry = VUE.getActiveEntry();
+	    selectedX = col;
+	    selectedY = row;
+	    if (entry.isPathway())
+	    {
+	    	m.add(renamePresentation);
+	    	m.add(playbackPresentation);
+	    	m.add(masterSlidePresentation);
+	    	m.add(deletePresentation);
+	    	playbackPresentation.setVisible(false);
+	    	renamePresentation.addActionListener(this);
+	    	playbackPresentation.addActionListener(this);
+	    	masterSlidePresentation.addActionListener(this);
+	    	deletePresentation.addActionListener(this);
+	    }
+	    else
+	    {
+	    	m.add(editEntry);
+	    	m.add(addNoteEntry);
+	    	m.add(deleteEntry);
+	    	editEntry.addActionListener(this);
+	    	addNoteEntry.addActionListener(this);
+	    	deleteEntry.addActionListener(this);
+	    	deleteEntry.setVisible(false);
+	    }
+
+		return m;
 	}
 	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
@@ -1099,6 +1222,8 @@ public class PathwayTable extends JTable
 	}
     public void mousePressed(MouseEvent e) {
 		
+    	if ((e.getModifiers() & MouseEvent.BUTTON3_MASK )!=0)
+    		return;
         int row = getSelectedRow();
         PathwayTableModel tableModel = getTableModel();
         lastSelectedRow = row;

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.107 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2007-09-13 01:57:48 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -1277,7 +1277,7 @@ public class PathwayPanel extends JPanel
     }
     
     /** Delete's a pathway and all it's contents */
-    private void deletePathway(LWPathway p) {
+    public void deletePathway(LWPathway p) {
         // We only ever delete the current pathway, and if's
         // exclusively displayed, make sure to undo the filter.
         // TODO: handle for undo: is critical for undo of the pathway create!
