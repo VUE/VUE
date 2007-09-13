@@ -89,6 +89,25 @@ public class MetadataList {
               
           return true;
       }
+      
+      public E remove(int i)
+      {
+          if(i < categoryEndIndex)
+          {
+              categoryEndIndex--;
+          }
+          else if(i >= categoryEndIndex && i < ontologyEndIndex)
+          {
+              categoryEndIndex--;
+              ontologyEndIndex--;
+          }
+          else
+          {
+              categoryEndIndex--;
+              ontologyEndIndex--;
+          }
+          return super.remove(i);
+      }
             
     }
 }
