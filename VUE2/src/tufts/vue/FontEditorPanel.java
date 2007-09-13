@@ -55,7 +55,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.62 $ / $Date: 2007-09-07 19:04:35 $ / $Author: mike $
+ * @version $Revision: 1.63 $ / $Date: 2007-09-13 21:02:51 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -972,16 +972,36 @@ public class FontEditorPanel extends JPanel
 	    mBoldButton.setSelected(false);
 		mItalicButton.setSelected(false);
 		mUnderlineButton.setSelected(false);
-		mSizeField.setSelectedItem("13");
-		mFontCombo.setSelectedItem("Arial");
-		mTextColorButton.setColor(Color.black);
+		if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
+		{
+			Font f = ((LWSlide)VUE.getActiveViewer().getFocal()).getMasterSlide().getFont();
+			mSizeField.setSelectedItem(Integer.toString(f.getSize()));
+			mFontCombo.setSelectedItem(f.getFontName());
+			System.out.println("SLIDE FONT DEFAULTS");			
+		}
+		else
+		{
+			mSizeField.setSelectedItem("13");
+			mFontCombo.setSelectedItem("Arial");
+		}
+		
+		if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
+		{
+			Color c= ((LWSlide)VUE.getActiveViewer().getFocal()).getMasterSlide().getTextColor();									
+			mTextColorButton.setColor(c);
+		}
+		else
+			mTextColorButton.setColor(Color.black);
 	        while (enume.hasMoreElements())
 	        {
 	        	
 	        	Object o = enume.nextElement();
 	//        	System.out.println(o.toString() + " **** " + charSet.getAttribute(o).toString());
 	        	if ((o.toString().equals("color")))
+	        	{
 	        		mTextColorButton.setColor(edu.tufts.vue.style.Style.hexToColor(charSet.getAttribute(o).toString()));
+	        		System.out.println("COLOR : " + charSet.getAttribute(o).toString());
+	        	}
 	        	//if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
 	        	//	System.out.println("C:"+charSet.getAttribute(o).toString());
 	        	
