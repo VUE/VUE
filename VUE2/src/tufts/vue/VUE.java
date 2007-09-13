@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.483 $ / $Date: 2007-09-13 03:00:33 $ / $Author: mike $ 
+ * @version $Revision: 1.484 $ / $Date: 2007-09-13 21:31:35 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1766,7 +1766,60 @@ public class VUE
    //          return true;
              
     }
-    
+    private static boolean askIfRevertOK(LWMap map)
+    {
+    	final Object[] defaultOrderButtons = { "Yes","Cancel"};
+    	
+    	 if (!map.isModified())
+             return true;
+    	 
+    	   // todo: won't need this if full screen is child of root frame
+         if (inNativeFullScreen())
+             toggleFullScreen();
+         
+         Component c = VUE.getDialogParent();
+         
+         if (VUE.getDialogParent() != null)
+         {
+         	//Get the screen size
+         	Toolkit toolkit = Toolkit.getDefaultToolkit();
+         	Dimension screenSize = toolkit.getScreenSize();
+         	
+         	
+         	
+         	Point p = c.getLocationOnScreen();
+         	
+         	if ((p.x + c.getWidth() > screenSize.width) ||
+         			(p.y + c.getHeight() > screenSize.height))
+         	{
+         		c = null;
+         	}
+         }
+         int response = JOptionPane.showOptionDialog
+             (c,
+         
+              "Are you sure you want to revert to the last saved version?",         
+              "Revert to last saved version",
+              JOptionPane.YES_NO_OPTION,
+              JOptionPane.PLAIN_MESSAGE,
+              null,
+              defaultOrderButtons,             
+              "Cancel"
+              );
+         
+               
+         // If they change focus to another button, then hit "return"
+         // (v.s. "space" for kbd button press), do action of button
+         // that had focus instead of always save?
+         
+         if (response == JOptionPane.YES_OPTION) { // Save
+             return true;
+         } else if (response == JOptionPane.NO_OPTION) { // Don't Save
+             // don't save -- just close
+             return false;
+         } else // anything else (Cancel or dialog window closed)
+             return false;
+    }
     /*
      * Returns true if either they save it or say go ahead and close w/out saving.
      */
@@ -1847,10 +1900,24 @@ public class VUE
     }
     
     public static void closeMap(LWMap map) {
-        if (askSaveIfModified(map)) {
-            mMapTabsLeft.closeMap(map);
-            mMapTabsRight.closeMap(map);
-        }
+        closeMap(map,false);
+    }
+    
+    public static void closeMap(LWMap map, boolean reverting) {
+    	if (!reverting)
+    	{
+    		if (askSaveIfModified(map)) {
+    			mMapTabsLeft.closeMap(map);
+    			mMapTabsRight.closeMap(map);
+    		}
+    	}
+    	else
+    	{
+    		if (askIfRevertOK(map)) {
+    			mMapTabsLeft.closeMap(map);
+    			mMapTabsRight.closeMap(map);
+    		}	
+    	}
     }
     
     

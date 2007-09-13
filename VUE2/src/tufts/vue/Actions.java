@@ -1648,23 +1648,19 @@ public class Actions implements VueConstants
         //new VueAction("Revert", keyStroke(KeyEvent.VK_R, COMMAND+SHIFT), ":general/Revert") { // conflicts w/align centers in row
         new VueAction("Revert", null, ":general/Revert") {            
             boolean undoable() { return false; }
-            boolean enabled() { return true; }
+            boolean enabled() 
+            { 
+            	if (tufts.vue.VUE.getActiveMap().getFile() == null)
+            		return false;
+            	else 
+            		return true;
+            }
             public void act() {
-                if (tufts.vue.VUE.getActiveMap().getFile() == null)
-                {
+                
                 	LWMap map = tufts.vue.VUE.getActiveMap();
-                	VUE.closeMap(map);
-                	VUE.displayMap(new LWMap(map.getDisplayLabel()));
-                	map = null;
-                }
-                else
-                {
-                	LWMap map = tufts.vue.VUE.getActiveMap();
-                	VUE.closeMap(map);
-                	tufts.vue.action.OpenAction.reloadMap(map);
-                	map=null;
-                }
-                //VueUtil.alert("This feature is not yet implemented.", "Feature unavailable");
+                	VUE.closeMap(map,true);
+                	tufts.vue.action.OpenAction.reloadMap(map);                	
+                                
             }
         };
     public static final Action CloseMap =
