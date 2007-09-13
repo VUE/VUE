@@ -60,6 +60,7 @@ import tufts.vue.gui.WindowDisplayAction;
  * @author Scott Fraize
  * @version March 2004
  */
+
 public class Actions implements VueConstants
 {
     public static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
@@ -971,24 +972,31 @@ public class Actions implements VueConstants
     
     public static final LWCAction EditMasterSlide = new LWCAction("Edit master slide")
     {
-    	public void act(LWComponent c)
+    	public void act(LWSlide slide)
     	{
-    		long now = System.currentTimeMillis();
-    		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
-    															MouseEvent.MOUSE_CLICKED,
-    															now,
-    															5,5,5,5,
-    															false));
-    		
-    		((LWSlide)c).getPathwayEntry().pathway.getMasterSlide().doZoomingDoubleClick(mme);
+            final LWSlide masterSlide = slide.getPathwayEntry().pathway.getMasterSlide();
+            if (VUE.getActiveViewer() != null)
+                VUE.getActiveViewer().loadFocal(masterSlide);
+            // update inspectors (optional -- may not actually want to do this, but
+            // currently required if you want up/down arrows to subsequently navigate
+            // the pathway)
+            VUE.setActive(LWPathway.Entry.class, this, masterSlide.getEntry());
+            
+//     		long now = System.currentTimeMillis();
+//     		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
+//                                                                      MouseEvent.MOUSE_CLICKED,
+//                                                                      now,
+//                                                                      5,5,5,5,
+//                                                                      false));
+//     		((LWSlide)c).getPathwayEntry().pathway.getMasterSlide().doZoomingDoubleClick(mme);
     	}
     };
     
     public static final LWCAction SyncWithNode = new LWCAction("Sync slide with node") 
     {
-    	public void act(LWComponent c)
+    	public void act(LWSlide slide)
     	{    		
-    		((LWSlide)c).synchronizeResourcesWithNode();
+    		slide.synchronizeResourcesWithNode();
     		//System.out((LWSlide)c).getPathwayEntry().pathway.toName()
     	}
     };
@@ -1855,6 +1863,12 @@ public class Actions implements VueConstants
      * Provides a number of convenience methods to allow code in
      * each action to be tight & focused.
      */
+
+    // TODO: set an activeViewer member in VueAction, so we don't have to fetch it again
+    // in any of the actions, and more importantly we can know for certian it can never
+    // change from null to non-null between the time we check for nulls and fetch it
+    // again, tho this should in fact be "impossible"...
+    
     public static class LWCAction extends VueAction
         implements LWSelection.Listener
     {
@@ -1998,16 +2012,28 @@ public class Actions implements VueConstants
                 act((LWLink)c);
             else if (c instanceof LWNode)
                 act((LWNode)c);
+            else if (c instanceof LWSlide)
+                act((LWSlide)c);
             else
                 if (DEBUG.SELECTION) System.out.println("LWCAction: ignoring " + getActionName() + " on " + c);
             
         }
+        
         void act(LWLink c) {
-            if (DEBUG.SELECTION) System.out.println("LWCAction(link): ignoring " + getActionName() + " on " + c);
+            ignoredDebug(c);
         }
         void act(LWNode c) {
-            if (DEBUG.SELECTION) System.out.println("LWCAction(node): ignoring " + getActionName() + " on " + c);
+            ignoredDebug(c);
         }
+        void act(LWSlide c) {
+            ignoredDebug(c);
+        }
+
+        private void ignoredDebug(LWComponent c) {
+            if (DEBUG.Enabled) System.out.println("LWCAction: ignoring " + getActionName() + " on " + c);
+            //if (DEBUG.SELECTION) System.out.println("LWCAction: ignoring " + getActionName() + " on " + c);
+        }
+        
         void actOn(LWComponent c) { act(c); } // for manual init calls from internal code
         
         //public String toString() { return "LWCAction[" + getActionName() + "]"; }
