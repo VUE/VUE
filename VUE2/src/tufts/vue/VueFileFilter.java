@@ -30,6 +30,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
 	public static final String IMS_DESCRIPTION=VueResources.getString("vueFileFilter.ims.text");
 	public static final String VUE_DESCRIPTION=VueResources.getString("vueFileFilter.vue.text");
 	public static final String XML_DESCRIPTION=VueResources.getString("vueFileFilter.vue.text");
+	public static final String ZIP_DESCRIPTION=VueResources.getString("vueFileFilter.zip.text");
 
 	private String[]
         jpeg = {"jpeg", "jpg"},
@@ -73,7 +74,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         
         else if (description.equals("rdf"))
             extensions = rdf;
-        
+        else if (description.equals(ZIP_DESCRIPTION))
+        	extensions=zip;
         else if (description.equals(IMAGEMAP_DESCRIPTION))
         {
           //extensions = imap;

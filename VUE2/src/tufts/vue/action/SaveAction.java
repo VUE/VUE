@@ -27,6 +27,9 @@ package tufts.vue.action;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
+import java.util.Iterator;
+import java.util.Vector;
+
 import tufts.vue.*;
 import tufts.vue.gui.VueFrame;
 
@@ -145,7 +148,55 @@ public class SaveAction extends VueAction
             
             else if (name.endsWith(".pdf"))
                 new PDFTransform().convert(file);
-            
+            else if (name.endsWith(".zip"))
+            {   Vector resourceVector = new Vector();
+            	Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+            	while(i.hasNext()) {	
+            		LWComponent component = (LWComponent) i.next();
+            		System.out.println("Component:"+component+" has resource:"+component.hasResource());
+            		if(component.hasResource() && (component.getResource() instanceof URLResource)){
+                    
+            			URLResource resource = (URLResource) component.getResource();                    
+                
+            			//   	if(resource.getType() == Resource.URL) {
+            			try {
+                        // File file = new File(new URL(resource.getSpec()).getFile());
+                        if(resource.isLocalFile()) {
+                        	String spec = resource.getSpec();                        	                        
+                        	System.out.println(resource.getSpec());
+                            Vector row = new Vector();
+                            row.add(new Boolean(true));
+                            row.add(resource);
+                            row.add(new Long(file.length()));
+                            row.add("Ready");
+                            resourceVector.add(row);
+                        }
+            			}catch (Exception ex) {
+            				System.out.println("Publisher.setLocalResourceVector: Resource "+resource.getSpec()+ ex);
+            				ex.printStackTrace();
+            			}                    
+            		}                
+            	}
+            	File savedCMap =PublishUtil.createZip(map, resourceVector);
+            	 InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
+                OutputStream ostream = new BufferedOutputStream(new FileOutputStream(file));
+                int fileLength = (int)savedCMap.length();
+                byte bytes[] = new  byte[fileLength];
+                try
+                {
+                	while (istream.read(bytes,0,fileLength) != -1)
+                		ostream.write(bytes,0,fileLength);
+                }
+                catch(Exception e)
+                {
+                	e.printStackTrace();
+                }
+                finally
+                {
+                	istream.close();
+                	ostream.close();
+                }
+            }
             //else if (name.endsWith(".html"))
               //  new HTMLConversion().convert(file);
             
