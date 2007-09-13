@@ -31,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.77 $ / $Date: 2007-08-28 17:34:11 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2007-09-13 21:39:35 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -232,7 +232,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
             if (size() == 1)
                 VUE.setActive(LWComponent.class, this, first());
-            else
+            else if (size() > 0)
                 VUE.setActive(LWComponent.class, this, null);
             
         } finally {
