@@ -976,11 +976,65 @@ public class Actions implements VueConstants
     	{
             final LWSlide masterSlide = slide.getPathwayEntry().pathway.getMasterSlide();
             if (VUE.getActiveViewer() != null)
-                VUE.getActiveViewer().loadFocal(masterSlide);
+            {
+            	if (VUE.getActiveViewer().getFocal().equals(masterSlide))
+            	{
+            		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
+            		VUE.setActive(LWMap.class, this, VUE.getActiveMap());
+            	}
+            	else
+            	{
+            		VUE.getActiveViewer().loadFocal(masterSlide);
+            		 // update inspectors (optional -- may not actually want to do this, but
+                    // currently required if you want up/down arrows to subsequently navigate
+                    // the pathway)
+                    VUE.setActive(LWPathway.Entry.class, this, masterSlide.getEntry());
+            	}
+                
+            
+           
+            }
+//     		long now = System.currentTimeMillis();
+//     		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
+//                                                                      MouseEvent.MOUSE_CLICKED,
+//                                                                      now,
+//                                                                      5,5,5,5,
+//                                                                      false));
+//     		((LWSlide)c).getPathwayEntry().pathway.getMasterSlide().doZoomingDoubleClick(mme);
+    	}
+    };
+    
+    public static final LWCAction EditSlide = new LWCAction("Edit slide")
+    {
+    	public void act(LWSlide slide)
+    	{
+            //final LWSlide masterSlide = slide.getPathwayEntry().pathway.getMasterSlide();
+    		if (VUE.getActiveViewer() != null)
+            {
+            	if (VUE.getActiveViewer().getFocal().equals(slide))
+            	{
+            		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
+            		VUE.setActive(LWMap.class, this, VUE.getActiveMap());
+            	}
+            	else
+            	{
+            		VUE.getActiveViewer().loadFocal(slide);
+            		
+            		 // update inspectors (optional -- may not actually want to do this, but
+                    // currently required if you want up/down arrows to subsequently navigate
+                    // the pathway)
+            		VUE.setActive(LWPathway.Entry.class, this, slide);
+            	}
+                
+            
+           
+            }
+            
+             
             // update inspectors (optional -- may not actually want to do this, but
             // currently required if you want up/down arrows to subsequently navigate
             // the pathway)
-            VUE.setActive(LWPathway.Entry.class, this, masterSlide.getEntry());
+            
             
 //     		long now = System.currentTimeMillis();
 //     		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
