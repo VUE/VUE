@@ -888,7 +888,7 @@ public class Actions implements VueConstants
     												JOptionPane.PLAIN_MESSAGE	,
     												null,
     												null,
-    												null);
+    												"http://");
     												
             //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
             if (option != null && option.length() > 0) 
