@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.441 $ / $Date: 2007-09-12 22:55:37 $ / $Author: mike $ 
+ * @version $Revision: 1.442 $ / $Date: 2007-09-13 18:59:34 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3636,9 +3636,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static Component sAddURLItem;
     JCheckBoxMenuItem infoCheckBox;
     private static JCheckBoxMenuItem formatBox; 
-    private static Component sPostPathwaySeparator = new JSeparator(JSeparator.HORIZONTAL);
-    private static Component sPostResourceSeparator = new JSeparator(JSeparator.HORIZONTAL);
-    private static Component sPreSlideSeparator = new JSeparator(JSeparator.HORIZONTAL);
+    private static Component sPostPathwaySeparator = new JPopupMenu.Separator();
+    private static Component sPostResourceSeparator = new JPopupMenu.Separator();
+    private static Component sPreSlideSeparator = new JPopupMenu.Separator();
     private static Component sDuplicateItem;
   //  private static Component sRenameItem;
     private static Component sDeleteItem;
@@ -3650,6 +3650,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static JMenuItem slideKeywordsItem;
     private static Component sEditMasterSlideItem;
     private static Component sSyncWithNodeItem;
+    private static Component sEditSlideItem;
     
     //  private static Component sPathSeparator;
     private JPopupMenu buildSingleSelectionPopup() {
@@ -3709,6 +3710,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sArrangeItem = m.add(arrangeMenu);        
         m.add(sPreSlideSeparator);
         sEditMasterSlideItem =m.add(Actions.EditMasterSlide);
+        sEditSlideItem =m.add(Actions.EditSlide);
         sSyncWithNodeItem = m.add(Actions.SyncWithNode);
         sAssetMenu = new JMenu("Disseminators");
         // todo: special add-to selection action that adds
@@ -3762,7 +3764,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }        
         
         //Manage pathway list
-        if (getMap().getPathwayList().getActivePathway() == null || (c instanceof LWSlide)) {
+        if (getMap().getPathwayList().getActivePathway() == null || (c instanceof LWSlide) || (c instanceof LWLink)) {
             sPathAddItem.setVisible(false);
             sPathRemoveItem.setVisible(false);
             sPostPathwaySeparator.setVisible(false);
@@ -3844,24 +3846,33 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         		//this is a master slide
         		sPreSlideSeparator.setVisible(false);
                 sEditMasterSlideItem.setVisible(true);
+                sEditSlideItem.setVisible(false);
                 sSyncWithNodeItem.setVisible(false);
-                Actions.EditMasterSlide.setActionName("Exit");
+                Actions.EditMasterSlide.setActionName("Exit master slide");
+                Actions.EditSlide.setActionName("Edit slide");
         		
         	}
         	else
         	{
         		sPreSlideSeparator.setVisible(true);
         		sEditMasterSlideItem.setVisible(true);
+        		sEditSlideItem.setVisible(true);
         		sSyncWithNodeItem.setVisible(true);
         		Actions.EditMasterSlide.setActionName("Edit master slide");
+        		if (VUE.getActiveViewer().getFocal().equals(c))
+        			Actions.EditSlide.setActionName("Exit slide");
+        		else
+        			Actions.EditSlide.setActionName("Edit slide");
         	}
         }
         else
         {
         	sPreSlideSeparator.setVisible(false);
             sEditMasterSlideItem.setVisible(false);
+            sEditSlideItem.setVisible(false);
             sSyncWithNodeItem.setVisible(false);
             Actions.EditMasterSlide.setActionName("Edit master slide");
+            Actions.EditSlide.setActionName("Edit slide");
             
         }
         	
