@@ -65,13 +65,16 @@ public class MetadataSearchGUI extends JPanel {
     //TEXT FIELD BASED
     private JPanel optionsPanel;
     private JComboBox searchTypesChoice;
-    //private String[] searchTypes = {"Basic","Categories","Advanced","All"};
-    private String[] searchTypes = {"Basic","Categories","All"};
+    private String[] searchTypes = {"Basic","Categories","Advanced","All"};
+    //private String[] searchTypes = {"Basic","Categories","All"};
     
     private JPanel fieldsPanel;
     private JTable searchTermsTable;
 
     private int buttonColumn = 1;
+    private int categoryColumn = -1;
+    private int valueColumn = 0;
+    private int conditionColumn = -1;
     
     private List<VueMetadataElement> searchTerms = new ArrayList<VueMetadataElement>();
     
@@ -143,17 +146,22 @@ public class MetadataSearchGUI extends JPanel {
                {
                    if(ie.getItem().equals("Basic"))
                    {
-                       System.out.println("Basic search selected");
+                       //System.out.println("Basic search selected");
                        setBasicSearch();
                    }
                    if(ie.getItem().equals("Categories"))
                    {
-                       System.out.println("Category search selected");
+                       //System.out.println("Category search selected");
                        setCategorySearch();
+                   }
+                   if(ie.getItem().equals("Advanced"))
+                   {
+                       //System.out.println("Category search selected");
+                       setConditionSearch();
                    }
                    if(ie.getItem().equals("All"))
                    {
-                       System.out.println("All search selected");
+                       //System.out.println("All search selected");
                        setAllSearch();
                    }
                }
@@ -164,14 +172,7 @@ public class MetadataSearchGUI extends JPanel {
         advancedSearch.setBorder(BorderFactory.createEmptyBorder());
         advancedSearch.addActionListener(new ActionListener(){
            public void actionPerformed(ActionEvent e)
-           {
-              /*System.out.println("advanced search button in search gui");
-               if(searchTermsTable!=null)
-               {
-                 System.out.println("advanced search button in search gui - changing columns");
-                 ((SearchTermsTableModel)searchTermsTable.getModel()).setColumns(3);
-               }*/
-               
+           {   
                toggleCategorySearch();
            }
         });
@@ -196,9 +197,9 @@ public class MetadataSearchGUI extends JPanel {
                if(e.getX()>searchTermsTable.getWidth()-BUTTON_COL_WIDTH)
                {
                  VueMetadataElement newElement = new VueMetadataElement();
-                 String pairedObject[] = {"Tag",""};
-                 newElement.setObject(pairedObject);
-                 newElement.setType(VueMetadataElement.CATEGORY);
+                 String statementObject[] = {"Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                 newElement.setObject(statementObject);
+                 newElement.setType(VueMetadataElement.SEARCH_STATEMENT);
                  searchTerms.add(newElement);
                  ((SearchTermsTableModel)searchTermsTable.getModel()).refresh();
                }
@@ -278,6 +279,9 @@ public class MetadataSearchGUI extends JPanel {
         if(model.getColumnCount() == 2)
         {
            buttonColumn = 2;
+           valueColumn = 1;
+           categoryColumn = 0;
+           conditionColumn = -1;
            model.setColumns(3);
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
            optionsLabel.setText("hide options");
@@ -285,6 +289,9 @@ public class MetadataSearchGUI extends JPanel {
         else
         {
            buttonColumn = 1;
+           valueColumn = 0;
+           categoryColumn = -1;
+           conditionColumn = -1;
            model.setColumns(2);
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
            optionsLabel.setText("show options");
@@ -298,6 +305,9 @@ public class MetadataSearchGUI extends JPanel {
         singleLine = false;
         SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
         buttonColumn = 2;
+        valueColumn = 1;
+        categoryColumn = 0;
+        conditionColumn = -1;
         model.setColumns(3);
         adjustColumnModel();
         searchButton.setAction(termsAction);
@@ -308,7 +318,23 @@ public class MetadataSearchGUI extends JPanel {
         singleLine = false;
         SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
         buttonColumn = 1;
+        valueColumn = 0;
+        categoryColumn = -1;
+        conditionColumn = -1;
         model.setColumns(2);
+        adjustColumnModel();
+        searchButton.setAction(termsAction);
+    }
+    
+    public void setConditionSearch()
+    {
+        singleLine = false;
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 3;
+        valueColumn = 2;
+        categoryColumn = 0;
+        conditionColumn = 1;
+        model.setColumns(4);
         adjustColumnModel();
         searchButton.setAction(termsAction);
     }
@@ -317,6 +343,9 @@ public class MetadataSearchGUI extends JPanel {
     {
         SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
         buttonColumn = 1;
+        valueColumn = 0;
+        categoryColumn = -1;
+        conditionColumn = -1;
         model.setColumns(2);
         adjustColumnModel();
         
@@ -336,7 +365,7 @@ public class MetadataSearchGUI extends JPanel {
           searchTermsTable.getColumnModel().getColumn(0).setMinWidth(editorWidth-BUTTON_COL_WIDTH);
           searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH);   
         }
-        else
+        else if(searchTermsTable.getModel().getColumnCount() == 3)
         {
           searchTermsTable.getColumnModel().getColumn(0).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
           searchTermsTable.getColumnModel().getColumn(1).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
@@ -345,12 +374,23 @@ public class MetadataSearchGUI extends JPanel {
           searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
           searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(BUTTON_COL_WIDTH); 
         }
+        else
+        {
+          searchTermsTable.getColumnModel().getColumn(0).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
+          searchTermsTable.getColumnModel().getColumn(1).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
+          searchTermsTable.getColumnModel().getColumn(2).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
+          searchTermsTable.getColumnModel().getColumn(3).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
+          searchTermsTable.getColumnModel().getColumn(0).setMaxWidth(editorWidth/3-BUTTON_COL_WIDTH/3);
+          searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(editorWidth/3-BUTTON_COL_WIDTH/3);
+          searchTermsTable.getColumnModel().getColumn(2).setMaxWidth(editorWidth/3-BUTTON_COL_WIDTH/3);
+          searchTermsTable.getColumnModel().getColumn(3).setMaxWidth(BUTTON_COL_WIDTH); 
+        }
     }
     
     public void findCategory(Object currValue,int row,int col,JComboBox categories)
     {
    
-        System.out.println("MetadataSearchGUI: find category");
+        //System.out.println("MetadataSearchGUI: find category");
         
         int n = categories.getModel().getSize();
         for(int i=0;i<n;i++)
@@ -366,7 +406,7 @@ public class MetadataSearchGUI extends JPanel {
                    
            if(item instanceof OntType && ((OntType)item).getLabel().equals(currLabel))
            {
-              System.out.println("MetadataSearchGUI: find category - found - " + i);
+              //System.out.println("MetadataSearchGUI: find category - found - " + i);
               categories.setSelectedIndex(i);
            }
                    
@@ -381,7 +421,7 @@ public class MetadataSearchGUI extends JPanel {
            
            comp.setLayout(new java.awt.BorderLayout()); 
            
-           if(col == (buttonColumn - 1))
+           if(col == (valueColumn))
            {
              final JTextField field = new JTextField();
              field.addFocusListener(new FocusAdapter(){
@@ -392,17 +432,17 @@ public class MetadataSearchGUI extends JPanel {
                     if(searchTerm.getObject() instanceof String[])
                     {
                         //VueMetadataElement newElement = new VueMetadataElement();
-                        System.out.println("MetadataSearchGUI creating newTerm in focus lost - category: " + ((String[])searchTerms.get(row).getObject())[0] );
-                        System.out.println("MetadataSearchGUI creating newTerm in focus lost - value: " + field.getText() );
-                        String[] newTerm = {((String[])searchTerms.get(row).getObject())[0],field.getText()};
-                        searchTerm.setObject(newTerm);
+                        //System.out.println("MetadataSearchGUI creating newTerm in focus lost - category: " + ((String[])searchTerms.get(row).getObject())[0] );
+                        //System.out.println("MetadataSearchGUI creating newTerm in focus lost - value: " + field.getText() );
+                        String[] newStatement = {((String[])searchTerms.get(row).getObject())[0],field.getText(),((String[])searchTerms.get(row).getObject())[2]};
+                        searchTerm.setObject(newStatement);
                         //newElement.setObject(newTerm);
                         //System.out.println("MetadataSearchGUI setObject to newTerm now look at key: " + newElement.getKey());
                         //newElement.setType(VueMetadataElement.CATEGORY);
                     }
                 }
              });
-             System.out.println("MetadatasearchGUI renderer component: about to set field value -  " + value.toString() +"," + ((String[])searchTerms.get(row).getObject())[1]);
+             //System.out.println("MetadatasearchGUI renderer component: about to set field value -  " + value.toString() +"," + ((String[])searchTerms.get(row).getObject())[1]);
              //field.setText(value.toString());
              
              String val = ((String[])searchTerms.get(row).getObject())[1];
@@ -410,7 +450,7 @@ public class MetadataSearchGUI extends JPanel {
              comp.add(field);
            }
            else
-           if(col == (buttonColumn - 2))
+           if(col == (categoryColumn))
            {           
              final JComboBox categories = new JComboBox();
              categories.setModel(new CategoryComboBoxModel());
@@ -426,10 +466,10 @@ public class MetadataSearchGUI extends JPanel {
                             return;
                         
                         //String[] pairedObject = {searchTerms.get(row).getValue(),categories.getModel().getElementAt(row).toString()};
-                        String[] pairedObject = {((OntType)categories.getSelectedItem()).getLabel(),searchTerms.get(row).getValue()};
+                        String[] statement = {((OntType)categories.getSelectedItem()).getLabel(),searchTerms.get(row).getValue(),((String[])(searchTerms.get(row).getObject()))[2]};
                         VueMetadataElement ele = new VueMetadataElement();
-                        ele.setObject(pairedObject);
-                        ele.setType(VueMetadataElement.CATEGORY);
+                        ele.setObject(statement);
+                        ele.setType(VueMetadataElement.SEARCH_STATEMENT);
                         searchTerms.set(row,ele);
 
                     }
@@ -452,6 +492,30 @@ public class MetadataSearchGUI extends JPanel {
                comp.add(buttonLabel);
            }
            else
+           if(col == conditionColumn)
+           {
+               String [] conditions = {"STARTS","CONTAINS"};
+               final JComboBox conditionCombo = new JComboBox(conditions);
+               conditionCombo.addItemListener(new ItemListener()
+               {
+                  public void itemStateChanged(ItemEvent ie)
+                  {
+                      if(ie.getStateChange() == ItemEvent.SELECTED)
+                      {
+                          String[] statement = {((String[])(searchTerms.get(row).getObject()))[0],searchTerms.get(row).getValue(),conditionCombo.getSelectedItem().toString()};
+                          VueMetadataElement ele = new VueMetadataElement();
+                          ele.setObject(statement);
+                          ele.setType(VueMetadataElement.SEARCH_STATEMENT);
+                          searchTerms.set(row,ele);
+                      }
+                  }
+               });
+               String currentCondition = ((String[])(searchTerms.get(row).getObject()))[2];
+               if(currentCondition.equals("CONTAINS"))
+                   conditionCombo.setSelectedIndex(1);
+               comp.add(conditionCombo);
+           }
+           else
            {
              comp.add(new JLabel(value.toString()));
            }
@@ -466,7 +530,7 @@ public class MetadataSearchGUI extends JPanel {
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
         {
             JLabel comp = new JLabel();
-            if(singleLine == true && (col == (buttonColumn - 1)))
+            if(singleLine == true && (col == (valueColumn)))
             {
               comp.setText("Keywords:");
             }
@@ -477,7 +541,7 @@ public class MetadataSearchGUI extends JPanel {
             else
             if(col == buttonColumn && singleLine == false)
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-            else if(table.getModel().getColumnCount() == 2 || col == buttonColumn - 2)
+            else if(table.getModel().getColumnCount() == 2 || col == categoryColumn)
               comp.setText("Keywords:");
             else
               comp.setText("");
@@ -572,7 +636,7 @@ public class MetadataSearchGUI extends JPanel {
         
         public boolean isCellEditable(int row,int col)
         {
-            if( (col == buttonColumn - 1) || (col == buttonColumn - 2) )
+            if( (col == valueColumn) || (col == categoryColumn) || (col == conditionColumn) )
                 return true;
             else
                 return false;
@@ -583,15 +647,29 @@ public class MetadataSearchGUI extends JPanel {
             if(row == 0 && searchTerms.size() == 0)
             {
                 VueMetadataElement vme = new VueMetadataElement();
-                String pairedValue[] = {"Tag",""};
-                vme.setObject(pairedValue);
+                //String pairedValue[] = {"Tag","STARTS_WITH",""};
+                //vme.setObject(pairedValue);
+                
+                String statementObject[] = {"Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                vme.setObject(statementObject);
+                vme.setType(VueMetadataElement.SEARCH_STATEMENT);
+                
                 searchTerms.add(vme);
             }
             if(col == buttonColumn)
               return "delete button";
             else
-            if(col == buttonColumn - 1)
+            if(col == valueColumn)
               return searchTerms.get(row).getValue();
+            else
+            if(col == conditionColumn)
+            {
+              String[] statement = (String[])searchTerms.get(row).getObject();
+              if(statement.length > 2)
+                return ((String[])(searchTerms.get(row)).getObject())[2]; 
+              else
+                return "";
+            }
             else
               return searchTerms.get(row).getKey();
         }

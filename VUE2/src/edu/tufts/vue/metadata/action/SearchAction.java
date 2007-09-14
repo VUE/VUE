@@ -116,7 +116,9 @@ public class SearchAction extends AbstractAction {
         {
             VueMetadataElement criteria = criterias.next();
             System.out.println("SearchAction adding criteria - getKey(), getValue() " + criteria.getKey() + "," + criteria.getValue());
-            query.addCriteria(criteria.getKey(),criteria.getValue());
+           // query.addCriteria(criteria.getKey(),criteria.getValue());
+            String[] statement = (String[])(criteria.getObject());
+            query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
         }
         
         System.out.println("SearchAction: query - " + query.createSPARQLQuery());

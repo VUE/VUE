@@ -46,8 +46,9 @@ public class Query  {
         criteriaList.add(criteria);
     }
     
-    public void addCriteria(){
-        
+    public void addCriteria(String key,String value,String condition){
+        Criteria criteria = new Criteria(key,value,Qualifier.valueOf(condition));
+        criteriaList.add(criteria);
     }
     
     public String createSPARQLQuery() {
