@@ -494,7 +494,7 @@ public class MetadataSearchGUI extends JPanel {
            else
            if(col == conditionColumn)
            {
-               String [] conditions = {"STARTS","CONTAINS"};
+               String [] conditions = {"STARTS_WITH","CONTAINS"};
                final JComboBox conditionCombo = new JComboBox(conditions);
                conditionCombo.addItemListener(new ItemListener()
                {
