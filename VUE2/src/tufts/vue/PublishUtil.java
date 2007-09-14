@@ -65,6 +65,10 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
         System.out.println("Creating a zip file");
         IMSCP imscp = new IMSCP();
           try {
+              if(map.getFile() == null) {
+                  VueUtil.alert("The map is not yet saved. Please save it and then export it as zip", "Export Error");
+                  return null;
+              }
         String saveEntry = VueUtil.getDefaultUserFolder()+File.separator+map.getFile().getName();
         File saveMapFile = new File(saveEntry);
         
