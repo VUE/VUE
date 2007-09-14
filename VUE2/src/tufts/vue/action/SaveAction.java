@@ -229,10 +229,10 @@ public class SaveAction extends VueAction
             if (t.getCause() != null)
                 e = t.getCause();
             if (e instanceof java.io.FileNotFoundException) {
-                VueUtil.alert(e.getMessage(), "Save Failed");
+                VUE.Log.error("Save Failed"+e.getMessage());
             } else {
                 e.printStackTrace();
-                VueUtil.alert("Save failed for \"" + file + "\"", e);
+                VUE.Log.error("Save failed for \"" + file + "\""+ e);
             }
             if (e != t)
                 VUE.Log.error("Exception attempting to save file " + file + ": " + e);
