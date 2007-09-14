@@ -87,7 +87,8 @@ public class IMSCP {
         try {
         ZipEntry ze = new ZipEntry(entryName);
         zos.putNextEntry(ze);
-        BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file.getAbsolutePath().replaceAll("%20"," ")));
+        //BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file.getAbsolutePath().replaceAll("%20"," ")));
+        BufferedInputStream fis = new BufferedInputStream(new FileInputStream(file));
         while ((len = fis.read(buf)) > 0) {
            zos.write(buf, 0, len);
         }
