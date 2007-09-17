@@ -15,18 +15,16 @@
  *
  * -----------------------------------------------------------------------------
  * 
- * $Revision: 1.1 $ / $Date: 2007/09/11 12:45:38 $ / $Author: peter $ 
- * $Header: /home/vue/cvsroot/VUE2/src/tufts/vue/UrlAuthentication.java,v 1.1 2007/09/11 12:45:38 peter Exp $
+ * $Revision: 1.2 $ / $Date: 2007/09/12 21:28:10 $ / $Author: peter $ 
+ * $Header: /home/vue/cvsroot/VUE2/src/tufts/vue/UrlAuthentication.java,v 1.2 2007/09/12 21:28:10 peter Exp $
  */
 
 package tufts.vue;
 
-
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URI;
 import java.rmi.RemoteException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import javax.xml.namespace.QName;
@@ -34,8 +32,8 @@ import javax.xml.rpc.ServiceException;
 
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
+import org.osid.OsidException;
 
-//TODO: Consider making this class a singleton and getSessionId() static.
 /**
  * The purpose of this class is to resolve authentication on images stored in
  * protected repositories.
@@ -44,68 +42,70 @@ import org.apache.axis.client.Service;
  * in Sakai by getting a session id through the Sakai web service, and passing that session id
  * in the header of the http request.
  * 
+ * Since getSessionId() is called for every(?) image resource, most of which are not stored 
+ * in Sakai, the default behavior of this method should be as lightweight as possible.
+ * 
  *  A goal is to generalize this class so that it is not Sakai specific.
  *  
  */
-public class UrlAuthentication {
-	URI _uri;
-    edu.tufts.vue.dsm.impl.VueDataSourceManager dataSourceManager = null;
-    Map hostMap;
+public class UrlAuthentication 
+{
+    private static UrlAuthentication ua = new UrlAuthentication();
+    private static Map<String, String> hostMap = new HashMap<String, String>();
+    public static UrlAuthentication getInstance() 
+    {
+        return ua;
+    }
     
-    public UrlAuthentication(String urlString) {
-		try{
-			_uri = new URI(urlString);
-		}
-		catch(URISyntaxException e) {
-			e.printStackTrace();
-		}
-	}
- 
-    public UrlAuthentication(URL url) {
-		try{
-			_uri = url.toURI();
-		}
-		catch(URISyntaxException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public UrlAuthentication(URI uri) {
-		_uri = uri ;
-	}
-	
-	public String getSessionId( URI uri ) {
+	URL _url;
+    edu.tufts.vue.dsm.impl.VueDataSourceManager dataSourceManager = null;
+    
+    /**
+     * Currently stores only Sakai hosts
+     */
+	private UrlAuthentication() 
+	{
 		edu.tufts.vue.dsm.DataSourceManager dsm;
 		edu.tufts.vue.dsm.DataSource dataSources[] = null;
-		String _sessionId = "none";
-		
+				
 		try {
 			// load new data sources
 			VUE.Log
 					.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
-			edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
 			dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager
 					.getInstance();
 			
+			// Sakai specific code begins
 			SakaiExport se = new SakaiExport(dsm);
 			dataSources = se.getSakaiDataSources();
 			
-			for (int i = 0; i < dataSources.length; i++) {
+			for (int i = 0; i < dataSources.length; i++) 
+			{
 				VUE.Log
 						.info("DataSourceViewer; adding data source to sakai data source list: "
 								+ dataSources[i]);
-				if (dataSources[i].hasConfiguration()) {
+				if (dataSources[i].hasConfiguration()) 
+				{
 					Properties configuration = dataSources[i]
 							.getConfiguration();
-					_sessionId = getSessionId(configuration);
-					VUE.Log .info("Sakai session id = " + _sessionId);
+					loadHostMap(configuration);
+					//VUE.Log .info("Sakai session id = " + _sessionId);
 				}
 			}
-		} catch (Throwable t) {
-			t.printStackTrace();
+		} catch (OsidException e) {
+			e.printStackTrace();
 			// VueUtil.alert("Error loading Resource", "Error");
 		}
-		return _sessionId;
+	}
+	
+	/** 
+	 * 
+	 * @param url The URL of map resource 
+	 * @return the session id of the host, as a string, or null, if the host is unknown.
+	 */
+	public String getSessionId( URL url ) 
+	{
+		return hostMap.get(url);
 	}
 
 	/** 
@@ -116,14 +116,14 @@ public class UrlAuthentication {
 	 * @param configuration
 	 * @return 
 	 */
-	private String getSessionId(Properties configuration)
+	private void loadHostMap(Properties configuration)
 	{
 		String username = configuration.getProperty("sakaiUsername");
 		String password = configuration.getProperty("sakaiPassword");
 		String host     = configuration.getProperty("sakaiHost");
 		String port     = configuration.getProperty("sakaiPort");
 
-		String sessionId = "none";
+		String sessionId;
 		boolean debug = false;
 
 		// show web services errors?
@@ -150,6 +150,7 @@ public class UrlAuthentication {
 			call.setOperationName(new QName(host + port + "/", "login"));
 			
 			sessionId = (String) call.invoke( new Object[] { username, password } );
+			hostMap.put(host, sessionId);
 			// System.out.println("Session id " + this.sessionId);
 		}
 		catch( MalformedURLException e ) {
@@ -161,6 +162,5 @@ public class UrlAuthentication {
 		catch( ServiceException e ) {
 			
 		}
-		return sessionId;
 	}
 }
