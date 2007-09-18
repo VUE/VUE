@@ -70,7 +70,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.443 $ / $Date: 2007-09-13 20:45:53 $ / $Author: mike $ 
+ * @version $Revision: 1.444 $ / $Date: 2007-09-18 22:05:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -244,7 +244,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // There was some reason we need to have the set -- what was it?
         draggedSelectionGroup.setSelected(true);
 
-        addListeners();
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             // for fully thread-safe construction, do not add listeners till after we're constructed.
+//             addListeners();
+//         }});
         
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
@@ -257,12 +260,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         addKeyListener(inputHandler);
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
-
-        edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().addVuePrefListener(new VuePrefListener(){
-    		public void preferenceChanged(VuePrefEvent prefEvent) {
-                    autoZoomEnabled = ((Boolean)prefEvent.getNewValue()).booleanValue();    			
-    		}
-            });
+        addFocusListener(this);
+        
+        edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().addVuePrefListener
+            (new VuePrefListener(){
+                    public void preferenceChanged(VuePrefEvent prefEvent) {
+                        autoZoomEnabled = ((Boolean)prefEvent.getNewValue()).booleanValue();    			
+                    }
+                });
         
     }
 
@@ -274,6 +279,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         removeKeyListener(inputHandler);
         removeMouseListener(inputHandler);
         removeMouseMotionListener(inputHandler);
+        removeFocusListener(this);
     }
 
     @Override
@@ -281,11 +287,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         super.removeNotify();
         removeListeners();
     }
-    
-
-    // TODO: rework this due to fact this get's added/removed again
-    // during full-screen swaps: could the focus stuff have been
-    // messing us up?
     
     @Override
     public void addNotify()
@@ -319,8 +320,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // normaly any events we don't consume.
             addMouseWheelListener(getMouseWheelListener());
         }
+
         
-        addFocusListener(this);
+        addListeners();
+        //addFocusListener(this);
         
         if (mMap != null && mMap == mFocal) {
             Point2D p = mMap.getUserOrigin();
@@ -329,6 +332,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         requestFocus();
         //VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
+
     }
 
     boolean inScrollPane() {
@@ -3003,7 +3007,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // TODO: don't draw unless all components are within mFocal...
     protected void drawSelection(DrawContext dc, final LWSelection selection)
     {
-        if (selection.only() == mFocal || selection.first() instanceof LWPathway.MasterSlide) {
+        if (selection.only() == mFocal || selection.first() instanceof MasterSlide) {
             // never draw a selection when the focal is the only selection,
             // or if it's a master slide.
             // todo: some kind of special indicator for this... (or check type token?)
