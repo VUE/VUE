@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.32 $ / $Date: 2007-08-28 18:58:23 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-09-18 22:04:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -56,6 +56,8 @@ public class LWTraversal {
     protected int depth = 0;
     
     protected final PickContext pc;
+    
+    private final List<LWComponent> pickList = new ArrayList();
     
     /** Note: if preOrder is true, a node can be visited if accept(node) is true, even if acceptTraversal(node) is false */
     LWTraversal(boolean preOrder, PickContext pc) {
@@ -77,8 +79,6 @@ public class LWTraversal {
             if (done) return;
         }
             
-        final List<LWComponent> pickList = new ArrayList();
-        
         if (acceptTraversal(c)) {
             if (DEBUG.PICK) eoutln("Travers0: " + c);
             if (acceptChildren(c)) {
@@ -90,12 +90,13 @@ public class LWTraversal {
                     done = true;
                     return;
                 }
-                if (true || c.isManagingChildLocations())
-                    traverseChildrenZoomFocusIsUnderSiblings(c.getPickList(pc, pickList));
-                //traverseChildrenZoomUnderSiblings(c.getChildList());
-                else
-                    traverseChildren(c.getPickList(pc, pickList));
-                //traverseChildren(c.getChildList());
+                traverseChildrenZoomFocusIsUnderSiblings(c.getPickList(pc, pickList));
+//                 if (true || c.isManagingChildLocations())
+//                     traverseChildrenZoomFocusIsUnderSiblings(c.getPickList(pc, pickList));
+//                 //traverseChildrenZoomUnderSiblings(c.getChildList());
+//                 else
+//                     traverseChildren(c.getPickList(pc, pickList));
+//                 //traverseChildren(c.getChildList());
                 depth--;
             }
             if (done) return;
