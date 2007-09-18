@@ -447,6 +447,19 @@ if (true) return;
             return null;
     }
 
+    /** @return false -- a no-op -- don't allow focal popping in slide viewer */
+    @Override
+    protected boolean popFocal(boolean toTopLevel, boolean animate) { return false; }
+    
+//     @Override
+//     public void loadFocal(LWComponent focal, boolean fitToFocal, boolean animate) {
+//         if (focal instanceof LWMap) {
+//             // never load the map in the slide viewer
+//         } else {
+//             super.loadFocal(focal, fitToFocal, animate);
+//         }
+//     }
+
     @Override
     protected Color getBackgroundFillColor(DrawContext dc) {
         //return Color.white;
