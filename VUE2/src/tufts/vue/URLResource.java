@@ -20,6 +20,8 @@ package tufts.vue;
 
 import java.util.*;
 
+import tufts.Util;
+
 import java.net.*;
 import java.io.*;
 import java.util.regex.*;
@@ -55,7 +57,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.25 $ / $Date: 2007-09-01 16:18:10 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2007-09-18 22:06:07 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -92,7 +94,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
     private URL mURL_Image;
     
     /** the metadata property map **/
-    private PropertyMap mProperties = new PropertyMap();
+    final private PropertyMap mProperties = new PropertyMap();
     
     /** property name cache **/
     private String [] mPropertyNames = null;
@@ -342,15 +344,22 @@ public class URLResource implements Resource, XMLUnmarshalListener
         try {
             return toURL();
         } catch (java.net.MalformedURLException e) {
-            if (DEBUG.Enabled && DEBUG.META)
-                tufts.Util.printStackTrace(e, "FYI: URLResource.asURL[" + this + "]");
+            //if (DEBUG.Enabled && DEBUG.META)
+            if (DEBUG.Enabled)
+                Util.printStackTrace(e, "FYI: URLResource.asURL[" + this + "]");
         }
         return null;
     }
 
     @Override
     public int hashCode() {
-        return asURL().hashCode();
+        // TODO: this not safe long-term
+        if (mURL_Browse == null)
+            asURL();
+        if (mURL_Browse == null)
+            return super.hashCode();
+        else
+            return mURL_Browse.hashCode();
     }
 
     @Override
