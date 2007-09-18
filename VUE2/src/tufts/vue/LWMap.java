@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.156 $ / $Date: 2007-08-29 19:08:26 $ / $Author: sfraize $
+ * @version $Revision: 1.157 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -165,7 +165,7 @@ public class LWMap extends LWContainer
     @Override
     protected void drawChild(LWComponent child, DrawContext dc)
     {
-        child.drawInParent(dc);
+        child.drawLocal(dc);
     }
 
 
@@ -455,7 +455,7 @@ public class LWMap extends LWContainer
     }
     
     private int nextID = 1;
-    protected String getNextUniqueID() {
+    protected synchronized String getNextUniqueID() {
         return Integer.toString(nextID++, 10);
     }
 

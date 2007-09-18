@@ -677,7 +677,12 @@ public class Actions implements VueConstants
         // children in selection who's parent is also in selection)
         boolean hierarchicalAction() { return true; }
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) { return canEdit(s); }
+        boolean enabledFor(LWSelection s) {
+            if (s.size() == 1 && s.first().hasFlag(LWComponent.Flag.NO_DELETE))
+                return false;
+            else
+                return canEdit(s);
+        }
         
         void act(Iterator i) {
             super.act(i);

@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.63 $ / $Date: 2007-09-05 16:17:20 $ / $Author: mike $
+ * @version $Revision: 1.64 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -331,12 +331,12 @@ public class LWSlide extends LWContainer
     {
         final LWSlide slide = CreatePathwaySlide();
         final LWNode title = NodeModeTool.buildTextNode(titleText);
-        final LWPathway.MasterSlide master = pathway.getMasterSlide();
+        final MasterSlide master = pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
         final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
 
         slide.setSourceNode(mapNode);
-        title.setStyle(master.titleStyle);
+        title.setStyle(master.getTitleStyle());
         // if (syncTitle) title.setSyncSource(slide); doesn't seem to work in this direction (reverse is okay, but not what we want)
         if (mapNode != null) {
             if (mapNode.isImageNode())
@@ -595,7 +595,7 @@ public class LWSlide extends LWContainer
     {
         // TODO: need to apply proper style w/generic code
         
-        if (this instanceof LWPathway.MasterSlide) {
+        if (this instanceof MasterSlide) {
             super.addChildImpl(c);
             return;
         }
@@ -649,21 +649,21 @@ public class LWSlide extends LWContainer
         applyMasterStyle(getMasterSlide(), c);
     }
             
-    private static void applyMasterStyle(LWPathway.MasterSlide master, LWComponent c) {
+    private static void applyMasterStyle(MasterSlide master, LWComponent c) {
         if (master == null) {
             VUE.Log.error("null master slide applying master style to " + c);
             return;
         }
         if (c.hasResource())
-            c.setStyle(master.urlStyle);
+            c.setStyle(master.getLinkStyle());
         //else if (c instanceof LWNode && ((LWNode)c).isTextNode())
         else if (c instanceof LWNode)
-            c.setStyle(master.textStyle);
+            c.setStyle(master.getTextStyle());
         else if (c instanceof LWText)
-        	c.setStyle(master.textStyle);
+            c.setStyle(master.getTextStyle());
     }
 
-    public LWPathway.MasterSlide getMasterSlide() {
+    public MasterSlide getMasterSlide() {
 
         if (mEntry == null)
             return null;
@@ -718,7 +718,7 @@ public class LWSlide extends LWContainer
         int y = SlideMargin;
         // Give them crude positioning so that arrange action can figure out
         // the crude ordering based on x/y values.
-        for (LWComponent c : getChildList())
+        for (LWComponent c : getChildren())
             c.takeLocation(x++,y++);
 
         // TODO: need to know master slide at this point, or at least

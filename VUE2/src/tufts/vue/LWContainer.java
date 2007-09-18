@@ -33,7 +33,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.131 $ / $Date: 2007-08-28 20:16:36 $ / $Author: sfraize $
+ * @version $Revision: 1.132 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -524,8 +524,7 @@ public abstract class LWContainer extends LWComponent
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (DEBUG.PARENTING) out("REMOVING " + c);
         if (mChildren == null) {
-            // this should never be possible now
-            new Throwable(this + " CHILD LIST IS NULL TRYING TO REMOVE " + c).printStackTrace();
+            Util.printStackTrace(this + "; null child list is null trying to remove: " + c);
             return;
         }
         if (isDeleted()) {
@@ -534,7 +533,7 @@ public abstract class LWContainer extends LWComponent
             return;
         }
         if (!mChildren.remove(c)) {
-            tufts.Util.printStackTrace(this + " didn't contain child for removal: " + c);
+            Util.printStackTrace(this + "; didn't contain child for removal: " + c);
             /*
             if (DEBUG.PARENTING) {
                 System.out.println(this + " FYI: didn't contain child for removal: " + c);
@@ -553,6 +552,11 @@ public abstract class LWContainer extends LWComponent
      */
     public void deleteChildPermanently(LWComponent c)
     {
+        if (c.hasFlag(Flag.NO_DELETE)) {
+            if (DEBUG.Enabled) out("Doesn't permit deletion: " + c);
+            return;
+        }
+        
         if (DEBUG.UNDO || DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
 
         // We did the "deleting" notification first, so anybody listening can still see
@@ -802,7 +806,7 @@ public abstract class LWContainer extends LWComponent
             throw new IllegalStateException("*** Attempting to get index of a child of a deleted component!"
                                             + "\n\tdeleted parent=" + this
                                             + "\n\tseeking index of child=" + c);
-        return mChildren == null ? -128 : mChildren.indexOf(c);
+        return mChildren == null ? -1 : mChildren.indexOf(c);
     }
         
     /* To preseve the relative display order of a group of elements
@@ -1079,9 +1083,9 @@ public abstract class LWContainer extends LWComponent
 
     private void drawChildSafely(DrawContext _dc, LWComponent c)
     {
-        // todo opt: don't create all these GC's?
-        // todo: if selection going to draw in map, consolodate it here!
-        // todo: same goes for pathway decorations!
+        // todo opt: potentially use dc.push/pop that instead of creating & disposing
+        // GC's, records/resets the transform.
+
         final DrawContext dc = _dc.create();
         try {
             drawChild(c, dc);
@@ -1090,8 +1094,10 @@ public abstract class LWContainer extends LWComponent
                 tufts.Util.printStackTrace(t);
                 System.err.println("*** Exception drawing: " + c);
                 System.err.println("***         In parent: " + this);
-                System.err.println("***    Graphics-start: " + _dc.g);
-                System.err.println("***      Graphics-end: " + dc.g);
+                System.err.println("***         DC parent: " + _dc);
+                System.err.println("***          DC child: " + dc);
+                System.err.println("***   Graphics parent: " + _dc.g);
+                System.err.println("***    Graphics child: " + dc.g);
                 System.err.println("***   Transform-start: " + _dc.g.getTransform());
                 System.err.println("***     Transform-end: " + dc.g.getTransform());
                 System.err.println("***              clip: " + dc.g.getClip());
@@ -1107,7 +1113,7 @@ public abstract class LWContainer extends LWComponent
 
     protected void drawChild(LWComponent child, DrawContext dc)
     {
-        child.drawInParent(dc);
+        child.drawLocal(dc);
     }
 
     /**

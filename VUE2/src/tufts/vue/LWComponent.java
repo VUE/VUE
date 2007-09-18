@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.343 $ / $Date: 2007-09-03 20:49:09 $ / $Author: sfraize $
+ * @version $Revision: 1.344 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -124,6 +124,19 @@ public class LWComponent
         HideCause(boolean isPathCause) { isPathwayCause = isPathCause; }
         HideCause() { isPathwayCause = false; }
     }
+
+    public enum Flag {
+        IS_STYLE,
+            /** can't be moved */
+            FIXED_LOCATION,
+            NO_DELETE,
+            NO_LINKS;
+
+        // TODO: general LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link
+            
+        final int bit = 1 << ordinal();
+    }
+    
     
 
     //Static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
@@ -185,13 +198,13 @@ public class LWComponent
     protected transient boolean selected = false;
     //protected transient boolean rollover = false;
     protected transient boolean isZoomedFocus = false;
-    protected transient int mHideBits = 0x0; // any bit set means we're hidden
+    protected int mHideBits = 0x0; // any bit set means we're hidden
+    protected int mFlags = 0x0;
 
     protected transient LWContainer parent;
     protected transient LWComponent mParentStyle;
     protected transient LWComponent mSyncSource; // "semantic source" for nodes on slide to refer back to the concept map
     protected transient Collection<LWComponent> mSyncClients; // set of sync sources that point back to us
-    protected transient boolean isStyle;
 
     /** list of links that contain us as an endpoint */
     private transient List<LWLink> mLinks;
@@ -199,16 +212,13 @@ public class LWComponent
     protected transient List<LWPathway> mPathways;
     /** list of all pathway entries that refer to us (one for each time we appear on an individual pathway) */
     protected transient List<LWPathway.Entry> mEntries;
-    //private transient boolean hasVisibleSlideIcons;
     
     // todo memory perf: mEntries should subclass ArrayList and implement this iter
     // so they can be allocated together, instead of leaving this slot here unused
     // for ever node w/out pathway entries.
     private SlideIconIter mVisibleSlideIconIterator;
-
     
     private transient long mSupportedPropertyKeys;
-    private transient boolean isMoveable = true;
 
     private transient double scale = 1.0;
 
@@ -627,10 +637,10 @@ u                    getSlot(c).setFromString((String)value);
                 // handle a few special cases for standard java types, even if there's no slot (Property object) to parse the string
                 // FYI, this won't work if getValue returns null, as we'll have no class object to check for type information.
                      if (curValue instanceof String)    setValue(c, (TValue) stringValue);
-                else if (curValue instanceof Integer)   setValue(c, (TValue) new Integer(stringValue));
-                else if (curValue instanceof Long)      setValue(c, (TValue) new Long(stringValue));
-                else if (curValue instanceof Float)     setValue(c, (TValue) new Float(stringValue));
-                else if (curValue instanceof Double)    setValue(c, (TValue) new Double(stringValue));
+                else if (curValue instanceof Integer)   setValue(c, (TValue) Integer.valueOf(stringValue));
+                else if (curValue instanceof Long)      setValue(c, (TValue) Long.valueOf(stringValue));
+                else if (curValue instanceof Float)     setValue(c, (TValue) Float.valueOf(stringValue));
+                else if (curValue instanceof Double)    setValue(c, (TValue) Double.valueOf(stringValue));
                 else
                     tufts.Util.printStackTrace(this + ":setValue(" + stringValue + "); no slot provided for parsing string value");
             }
@@ -1383,7 +1393,7 @@ u                    getSlot(c).setFromString((String)value);
             return null;
         }
 
-        c.isMoveable = this.isMoveable;
+        //c.isMoveable = this.isMoveable;
         c.mSupportedPropertyKeys = this.mSupportedPropertyKeys;
         //c.mParentStyle = this.mParentStyle;
         
@@ -1577,6 +1587,11 @@ u                    getSlot(c).setFromString((String)value);
                         removeFromModel();
                 }} );
     }
+
+//     /** set the ID string, no questions asked */
+//     protected void takeID(String ID) {
+//         this.ID = ID;
+//     }
     
     public void setLabel(String label)
     {
@@ -1708,6 +1723,11 @@ u                    getSlot(c).setFromString((String)value);
     /** for use during restore */
     protected final int idStringToInt(String idStr)
     {
+//         if (idStr != null && idStr.charAt(0) == '<') {
+//             // special case for internal use objects, marked with '<' as initial character
+//             return -1;
+//         }
+        
         int id = -1;
         try {
             id = Integer.parseInt(idStr);
@@ -1882,7 +1902,7 @@ u                    getSlot(c).setFromString((String)value);
     
     /** @return true -- subclass impl's can override */
     protected boolean canLinkToImpl(LWComponent target) {
-        return true;
+        return hasFlag(Flag.NO_LINKS) == false;
     }
     
     public boolean hasLabel() {
@@ -2337,7 +2357,8 @@ u                    getSlot(c).setFromString((String)value);
     public void setStyle(LWComponent parentStyle)
     {
         mParentStyle = parentStyle;
-        parentStyle.isStyle = true;
+        //parentStyle.isStyle = true;
+        parentStyle.setFlag(Flag.IS_STYLE);
         if (!mXMLRestoreUnderway)       // we can skip the copy during restore
             copyStyle(parentStyle);
     }
@@ -2348,15 +2369,16 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean isStyle() {
-        return isStyle;
+        return hasFlag(Flag.IS_STYLE);
+        //return isStyle;
     }
     
     public Boolean getPersistIsStyle() {
-        return isStyle ? Boolean.TRUE : null;
+        return isStyle() ? Boolean.TRUE : null;
     }
     
     public void setPersistIsStyle(Boolean b) {
-        isStyle = b.booleanValue();
+        setFlag(Flag.IS_STYLE, b.booleanValue());
     }
 
     /** @deprecated: tmp back compat only */ public void setParentStyle(LWComponent c) { setStyle(c); }
@@ -2636,12 +2658,12 @@ u                    getSlot(c).setFromString((String)value);
             // load up a new list.
             // also: might actually just get rid of SlideIter/seenSlides, and use getPickList
             // down in draw...
-            synchronized (stored) {            
+            //synchronized (stored) {            
                 stored.clear();
                 stored.addAll(getChildren());
                 for (LWSlide s : seenSlideIcons(pc.dc))
                     stored.add(s);
-            }
+            //}
             return stored;
         } else
             return (List) getChildren();
@@ -3159,13 +3181,13 @@ u                    getSlot(c).setFromString((String)value);
         userSetFrame(x, y, w, h);
     }
 
-    // todo: handle via disabling a location property
+    // todo: handle via disabling a location property?
     public void setMoveable(boolean moveable) {
-        isMoveable = moveable;
+        setFlag(Flag.FIXED_LOCATION, !moveable);
     }
         
     public boolean isMoveable() {
-        return isMoveable;
+        return hasFlag(Flag.FIXED_LOCATION) == false;
     }
 
     /** @return true if this component is "owned" by the pathway -- e.g., a slide that only appears as an icon */
@@ -3726,33 +3748,42 @@ u                    getSlot(c).setFromString((String)value);
      * At present uris will be created through rdf index
      */
     public URI getURI() {
-        if(uri == null) {
+        //if (isStyle) return null;
+        if (uri == null) {
             try {
-                    uri = new URI(edu.tufts.vue.rdf.RDFIndex.getUniqueId());
-                    edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri,this);
-                } catch (Throwable t) {
-                    tufts.Util.printStackTrace(t, "Failed to create an uri for  "+label);
-                }
-           
+                uri = new URI(edu.tufts.vue.rdf.RDFIndex.getUniqueId());
+                edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri, this);
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, "Failed to create an uri for  "+label);
+            }
         }
         return uri;
     }
     
     public void setURI(URI uri) {
-       this.uri = uri; 
+//         if (isStyle) {
+//             VUE.Log.warn("attempt to set URI on a style: " + this + "; uri=" + uri);
+//             return;
+//         }
+        this.uri = uri; 
     }
+    
      /* Methods to persist url through castor
      * We don't want to save URI object
      *
     */
     public void setURIString(String URIString) {
+//         if (isStyle) {
+//             VUE.Log.warn("attempt to set URIString on a style: " + this + "; uriString=" + uri);
+//             return;
+//         }
         try {
-                    uri = new URI(URIString);
-                    edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri,this);
-                } catch (Throwable t) {
-                    tufts.Util.printStackTrace(t, "Failed to set an uri for  "+label);
-                }
-           
+            uri = new URI(URIString);
+            edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri,this);
+        } catch (Throwable t) {
+            tufts.Util.printStackTrace(t, "Failed to set an uri for  "+label);
+        }
+        
     }
     
     public String getURIString() {
@@ -4722,12 +4753,12 @@ u                    getSlot(c).setFromString((String)value);
 
     
     /**
-     * For every component, draw any needed pathway decorations and related slide icons,
-     * and then invoke drawImpl for the sub-component.  Intended for use in LWContainer,
-     * where the parent has already been drawn, and already transformed the DrawContext
-     * to it's local region.
+     * Intended for use in an LWContainer where the parent has already
+     * been drawn, and the DrawContext is currently transformed to the
+     * parent.  This performs the final transform for this child and
+     * transforms it.
      */
-    public void drawInParent(DrawContext dc)
+    public void drawLocal(DrawContext dc)
     {
         // this will cascade to all children when they draw, combining with their calls to transformDown
         transformDownG(dc.g);
@@ -4864,6 +4895,10 @@ u                    getSlot(c).setFromString((String)value);
     //private static final double PathwayOnTopZoomThreshold = 1.5;
     public static final double PathwayOnTopZoomThreshold = 3;
     
+    /**
+     * Draw any needed pathway decorations and related slide icons,
+     * before/after calling drawZero, depending on desired impl.
+     */
     protected final void drawZeroDecorated(DrawContext dc, boolean drawSlides)
     {
         if (dc.drawPathways() && mPathways != null) {
@@ -5149,7 +5184,7 @@ u                    getSlot(c).setFromString((String)value);
             // if parent is null, we're still initializing
             final Key key = (Key) e.key;
 
-            if (isStyle && key.isStyleProperty)
+            if (isStyle() && key.isStyleProperty)
                 updateStyleWatchers(key, e);
             
             if (key.type == KeyType.DATA)
@@ -5199,7 +5234,7 @@ u                    getSlot(c).setFromString((String)value);
         LWComponents that refer to us as their style parent */
     protected void updateStyleWatchers(Key key, LWCEvent e)
     {
-        if (!key.isStyleProperty) {
+        if (!key.isStyleProperty || mXMLRestoreUnderway) {
             // nothing to do if this isn't a style property that's changing
             return;
         }
@@ -5209,7 +5244,7 @@ u                    getSlot(c).setFromString((String)value);
         // components "listening" to this style (pointing to it), and copy over
         // the value that just changed on the style object.
         
-        out("STYLE OBJECT UPDATING STYLED CHILDREN with " + key);
+        if (DEBUG.Enabled) out("STYLE OBJECT UPDATING STYLED CHILDREN with " + key);
         //final LWPathway path = ((MasterSlide)getParent()).mOwner;
         
         // We can traverse all objects in the system, looking for folks who
@@ -5358,6 +5393,27 @@ u                    getSlot(c).setFromString((String)value);
         return parent == null ? false : parent.selectedOrParent();
     }
 
+    protected void setFlag(Flag flag) {
+        mFlags |= flag.bit;
+    }
+
+    protected void setFlag(Flag flag, boolean set) {
+        if (set)
+            setFlag(flag);
+        else
+            clearFlag(flag);
+    }
+    
+
+    protected void clearFlag(Flag flag) {
+        mFlags &= ~flag.bit;
+    }
+
+    protected boolean hasFlag(Flag flag) {
+        return (mFlags & flag.bit) != 0;
+    }
+    
+    
     private void setHideBits(int bits) {
         final boolean wasHidden = isHidden();
         mHideBits = bits;
@@ -5365,18 +5421,49 @@ u                    getSlot(c).setFromString((String)value);
             notify(LWKey.Hidden);
     }
 
-    /** debug -- names of set HideBits */
+//     /** debug -- names of set HideBits */
+//     String getDescriptionOfSetBits() {
+//         StringBuffer buf = new StringBuffer();
+//         for (HideCause reason : HideCause.values()) {
+//             if (isHidden(reason)) {
+//                 if (buf.length() > 0)
+//                     buf.append(',');
+//                 buf.append(reason);
+//             }
+//         }
+//         return buf.toString();
+//     }
+    
     String getDescriptionOfSetBits() {
-        StringBuffer buf = new StringBuffer();
-        for (HideCause reason : HideCause.values()) {
-            if (isHidden(reason)) {
-                if (buf.length() > 0)
+        String s = "";
+        if (mHideBits != 0)
+            s += getDescriptionOfSetBits(HideCause.class, mHideBits);
+        if (mFlags != 0) {
+            if (s.length() > 0)
+                s += "; ";
+            s += getDescriptionOfSetBits(Flag.class, mFlags);
+        }
+        return s;
+    }
+    
+    String getDescriptionOfSetBits(Class enumType, long bits) {
+        final StringBuffer buf = new StringBuffer();
+        buf.append(enumType.getSimpleName() + "(");
+        boolean first = true;
+        for (Object eValue : enumType.getEnumConstants()) {
+            final Enum e = (Enum) eValue;
+            if ((bits & (1<<e.ordinal())) != 0) {
+                if (!first)
                     buf.append(',');
-                buf.append(reason);
+                buf.append(eValue);
+                //buf.append(':');buf.append(e.ordinal());
+                first = false;
             }
         }
+        buf.append(')');
         return buf.toString();
     }
+    
     
     public void setVisible(boolean visible) {
         setHidden(HideCause.DEFAULT, !visible);
@@ -5982,8 +6069,8 @@ u                    getSlot(c).setFromString((String)value);
         //if (this.scale != 1f) s += "z" + this.scale + " ";
         if (getScale() != 1f) s += String.format("z%.2f ", getScale());
         s += paramString();
-        if (mHideBits != 0)
-            s += " " + getDescriptionOfSetBits();
+        if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
+        if (mFlags != 0) s += " " + getDescriptionOfSetBits(Flag.class, mFlags);
         if (getResource() != null)
             s += " " + getResource();
         //s += " <" + getResource() + ">";

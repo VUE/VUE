@@ -743,6 +743,7 @@ public class LWImage extends
 
     private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
     //private static final Color ErrorColor = new Color(255,128,128, 64);
+    private static final Color LoadingColor = new Color(0,0,0,128);
     private static final Color ErrorColor = Color.red;
 
     protected void drawImage(DrawContext dc)
@@ -753,16 +754,16 @@ public class LWImage extends
             if (mImageError)
                 dc.g.setColor(ErrorColor);
             else
-                dc.g.setColor(Color.darkGray);
+                dc.g.setColor(LoadingColor);
             dc.g.fillRect(0, 0, w, h);
-            dc.g.setColor(Color.lightGray);
+            //dc.g.setColor(Color.lightGray);
             //dc.g.setStroke(STROKE_ONE);
             //dc.g.drawRect(0, 0, w, h); // can't see this line at small scales
             return;
         }
         
         //AffineTransform transform = AffineTransform.getTranslateInstance(mOffset.x, mOffset.y);
-        AffineTransform transform = new AffineTransform();
+        final AffineTransform transform = new AffineTransform();
         
 
 // Todo: when/if put this back in, see if we can handle it in the ImageTool so we don't need active tool in the DrawContext

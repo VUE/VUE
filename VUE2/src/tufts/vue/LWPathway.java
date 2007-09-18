@@ -21,6 +21,7 @@ package tufts.vue;
 import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.NodeTool.NodeModeTool;
+
 import java.io.IOException;
 
 import java.util.*;
@@ -28,9 +29,7 @@ import java.util.*;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Shape;
 import java.awt.BasicStroke;
-import java.awt.AlphaComposite;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -48,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.186 $ / $Date: 2007-09-03 21:32:09 $ / $Author: sfraize $
+ * @version $Revision: 1.187 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -252,7 +251,8 @@ public class LWPathway extends LWContainer
         public void setPersistSlide(LWSlide s) {
             if (isMapView) {
                 if (DEBUG.Enabled)
-                    Util.printStackTrace("skipping restoring slide for an entry marked as map-view: " + this);
+                    VUE.Log.info("skipping restoring slide for an entry marked as map-view: " + this);
+                //Util.printStackTrace("skipping restoring slide for an entry marked as map-view: " + this);
                 slide = null;
             } else
                 slide = s;
@@ -1288,284 +1288,6 @@ public class LWPathway extends LWContainer
 
     }
     
-    public static final class MasterSlide extends LWSlide
-    {
-        //final static String StyleLabel = "Sample Text";
-        final static String TitleLabel = "Slide Title Style";
-        final static String TextLabel = "Slide Text Style";
-        // TODO: need to figure out how to make these non-deletable
-        LWComponent titleStyle;
-        LWComponent textStyle;
-        LWComponent urlStyle;
-
-        //private List<LWComponent> mStyles = new ArrayList();
-
-        /** for castor persistance */
-        public MasterSlide() {
-            enableProperty(LWKey.Label);
-        }
-
-//         /** @return false: prevents every drawing selection on map */
-//         @Override
-//         public boolean isMapVirtual() {
-//             return true;
-//         }
-        
-        /** @return null -- don't create a style type for master slides */
-        @Override
-        public Object getTypeToken() {
-            return null;
-        }
-
-        @Override
-        public final void setParent(LWContainer parent) {
-            if (parent instanceof LWPathway) {
-                super.setParent(parent);
-                setPathwayEntry(((LWPathway)parent).asEntry());
-            } else
-                Util.printStackTrace(this + " master slide can't set parent to non pathway: " + parent);
-        }
-
-        @Override
-        public final double getScale() { return 1.0; }
-
-        @Override
-        public final void takeScale(double s) {}
-
-        @Override
-        public final boolean isMoveable() { return false; }
-
-        void completeXMLRestore() {
-
-            if (true) {
-                // just in case -- some save file versions could get these messed up
-                setX(0);
-                setY(0);
-                super.takeScale(1.0);
-                takeSize(LWSlide.SlideWidth, LWSlide.SlideHeight);
-            }
-            
-            for (LWComponent c : getChildren()) {
-                // check the label is a temporary hack for now to get the styles back:
-                // we may want to make these special objects actually managed by the
-                // master slide
-                if ("Sample Text".equals(c.getLabel()) || TextLabel.startsWith(c.getLabel())) {
-                    textStyle = c;
-                    if (DEBUG.PRESENT) out("FOUND TEXT STYLE " + c);
-                } else if (TitleLabel.startsWith(c.getLabel())) {
-                    if (DEBUG.PRESENT) out("FOUND TITLE STYLE " + c);
-                    titleStyle = c;
-                } else if (c.hasLabel() && c.getLabel().startsWith("http:")) {
-                    if (DEBUG.PRESENT) out("FOUND URL STYLE " + c);
-                    urlStyle = c;
-                }
-            }
-
-            createStyles();
-            initStyles();
-            // todo for recent back compat: if styles not on master slide, add them
-        }
-
-        private void initStyles() {
-            titleStyle.setPersistIsStyle(Boolean.TRUE);
-            titleStyle.disableProperty(LWKey.Label);
-            titleStyle.setMoveable(false);
-            titleStyle.setLocation(40,30);
-            
-            textStyle.setPersistIsStyle(Boolean.TRUE);
-            textStyle.disableProperty(LWKey.Label);
-            textStyle.setMoveable(false);
-            textStyle.setLocation(45,110);
-            
-            urlStyle.setPersistIsStyle(Boolean.TRUE);
-            urlStyle.disableProperty(LWKey.Label);
-            urlStyle.setMoveable(false);
-            urlStyle.setLocation(45,180);
-
-            //mFillColor.setAllowAlpha(false);
-        }
-        
-        private void createStyles() {
-            if (titleStyle == null) {
-                titleStyle = NodeModeTool.buildTextNode(TitleLabel);
-                titleStyle.setFont(new Font("Gill Sans", Font.PLAIN, 36));
-                titleStyle.setTextColor(Color.white);
-            }
-            if (textStyle == null) {
-                textStyle = titleStyle.duplicate();
-                textStyle.setLabel(TextLabel);
-                textStyle.setFont(titleStyle.getFont().deriveFont(22f));
-            }
-            if (urlStyle == null) {
-                urlStyle = titleStyle.duplicate();
-                urlStyle.setLabel("http://www.google.com/");
-                urlStyle.setFont(titleStyle.getFont().deriveFont(18f));
-                urlStyle.setTextColor(VueResources.makeColor("#b3bfe3"));
-            }
-        }
-
-        
-        MasterSlide(final LWPathway owner)
-        {
-            //getMasterStyle();
-            enableProperty(LWKey.Label);
-            setStrokeWidth(0);
-            //if (owner != null) setFillColor(owner.getStrokeColor()); // TODO: debugging for now: use the pathway stroke as slide color
-            setFillColor(Color.black);
-            setSize(SlideWidth, SlideHeight);
-            setPathwayEntry(owner.asEntry());
-
-            // Create the default items for the master slide:
-            
-            createStyles();
-            initStyles();
-            
-            if (owner != null) {
-                setParent(owner);
-                ensureID(this);
-            }
-            
-
-//             LWComponent header = NodeModeTool.buildTextNode("Header Text");
-//             header.setFont(titleStyle.getFont().deriveFont(16f));
-//             header.setTextColor(VueResources.makeColor("#b3bfe3"));
-
-//             LWComponent footer = header.duplicate();
-//             footer.setLabel("Footer Text");
-
-            //tufts.Util.printStackTrace("inPath=" + owner + " pathMAP=" + owner.getMap());
-
-            addChild(titleStyle);
-            addChild(textStyle);
-            addChild(urlStyle);
-            
-//             addChild(header);
-//             addChild(footer);
-            
-//             // Now that the footer is parented, move it to lower right in it's parent
-//             LWSelection s = new LWSelection(header);
-//             s.setTo(header);
-//             Actions.AlignRightEdges.act(s);
-//             Actions.AlignTopEdges.act(s);
-//             s.setTo(footer);
-//             Actions.AlignRightEdges.act(s);
-//             Actions.AlignBottomEdges.act(s);
-
-//             final LWSelection s = new LWSelection(titleStyle);
-//             s.setTo(titleStyle);
-//             Actions.AlignCentersRow.act(s);
-//             Actions.AlignCentersColumn.act(s);
-
-//             s.setTo(textStyle);
-//             Actions.AlignCentersRow.act(s);
-//             Actions.AlignCentersColumn.act(s);
-            
-            //titleStyle.translate(0, -100);
-            //textStyle.translate(0, +50);
-        }
-
-        /*
-        public void setProperty(final Object key, Object val)
-        {
-            if (key == LWKey.FillColor && VueUtil.isTranslucent((Color)val))
-                throw new PropertyValueVeto("master slide can't have fill color with translucence: "
-                                            + val
-                                            + " alpha=" + ((Color)val).getAlpha());
-            super.setProperty(key, val);
-        }
-        */
-        
-
-        @Override
-        public Color getRenderFillColor(DrawContext dc) {
-            return getFillColor();
-        }
-
-        // override LWSlide impl that tries to draw master slide -- only draw children -- no fill
-        @Override
-        protected void drawImpl(DrawContext dc) {
-            if (dc.focal == this)
-                dc.setEditMode(true);
-            drawChildren(dc);
-        }
-
-        // skip fancy LWComponent stuff, and draw background
-        @Override
-        public void draw(DrawContext dc) {
-            
-            // TODO: this is now over-drawn when in presentation mode
-            // and even for node icons I think...  (because the master
-            // slide is never the focal, and because we can't just check
-            // the focal for being a slide or portal, as it could be
-            // a map-view node)
-            // Actually, totally recheck this.  Good enough for now tho.
-
-            out("DRAWING in " + dc);
-            
-            if (!getFillColor().equals(dc.getBackgroundFill())) {
-                dc.g.setColor(getFillColor());
-                dc.g.fill(getZeroShape());
-            }
-            drawImpl(dc);
-        }
-        
-        // we could not have a special master slide object if we could handle
-        // this draw-skipping in some other way (and arbitrary nodes can be style master's)
-        // Tho having a special master-slide object isn't really that big a deal.
-        @Override
-        protected void drawChild(LWComponent child, DrawContext dc) {
-            if (!dc.isEditMode() && !child.isMoveable())
-                return;
-            else
-                super.drawChild(child, dc);
-        }
-
-        /*
-        void broadcastChildEvent(LWCEvent e) {
-            super.broadcastChildEvent(e);
-            // could handle style broadcasts here, tho
-            // that would mean that styles could only be style master's
-            // when on master slides.
-        }
-        */
-        
-        @Override
-        public String getLabel() {
-            return getEntry().pathway.getLabel();
-        }
-
-        @Override
-        public void setLabel(String label) {
-            getEntry().pathway.setLabel(label);
-        }
-        
-        @Override
-        public boolean hasLabel() { return true; }
-
-        // For backward compatability with old save files, we
-        // re-route notes to the notes stored for the pathway
-        // itself.  The notes for the MasterSlide object itself
-        // will remain unused.
-        
-        @Override
-        public String getNotes() {
-            return getEntry().pathway.getNotes();
-        }
-        @Override
-        public boolean hasNotes() {
-            return getEntry().pathway.hasNotes();
-        }
-        
-
-        
-//         public String getLabel() {
-//             return "Master Slide: " + (getParent() == null ?" <unowned>" : getParent().getDisplayLabel());
-//         }
-        
-        public String getComponentTypeLabel() { return "Pathway/Master"; }
-        //public String getComponentTypeLabel() { return "Slide<Master>"; }
-
-    }
 
     
     // we don't support standard children: we shouldn't be calling any of these
