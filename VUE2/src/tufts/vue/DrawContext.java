@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-08-30 18:32:19 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-09-18 22:09:31 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -58,7 +58,6 @@ public final class DrawContext
     private boolean isDraftQuality;
     private boolean isBlackWhiteReversed;
     private boolean isPresenting;
-    private boolean isEditMode;
     private boolean isDrawingPathways = true;
     public final Rectangle frame; // if we have the pixel dimensions of the surface we're drawing on, they go here
 
@@ -394,15 +393,6 @@ public final class DrawContext
         return isPresenting;
     }
 
-    /** an extra flag to specify a special kind of "editing" mode, that may draw extra items */
-    public void setEditMode(boolean t) {
-        isEditMode = t;
-    }
-
-    public final boolean isEditMode() {
-        return isEditMode;
-    }
-
     public final boolean drawPathways() {
         return isDrawingPathways;
         //return !isPresenting() && focal instanceof LWMap;
@@ -593,7 +583,6 @@ public final class DrawContext
         this.alpha = dc.alpha;
         //this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
         this.maxLayer = dc.maxLayer;
-        this.isEditMode = dc.isEditMode;
         this.rawClip = dc.rawClip;
         this.rawTransform = dc.rawTransform;
         this.masterClipRect = dc.masterClipRect;
