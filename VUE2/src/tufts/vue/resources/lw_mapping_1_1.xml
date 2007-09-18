@@ -208,8 +208,17 @@
         	<bind-xml name="richText" />
     	</field>
 	</class>
-	<class name="tufts.vue.LWPathway$MasterSlide" extends="tufts.vue.LWSlide">
+	<class name="tufts.vue.MasterSlide" extends="tufts.vue.LWSlide">
 		<map-to xml="masterSlide"/>
+                <field name="titleStyle" type="tufts.vue.LWComponent">
+                  <bind-xml name="titleStyle"/>
+                </field>
+                <field name="textStyle" type="tufts.vue.LWComponent">
+                  <bind-xml name="textStyle"/>
+                </field>
+                <field name="linkStyle" type="tufts.vue.LWComponent">
+                  <bind-xml name="linkStyle"/>
+                </field>
 	</class>
 
         
@@ -373,7 +382,7 @@
 		  <bind-xml name="open" node="attribute"/>
 		</field>
                 
-		<field name="masterSlide" type="tufts.vue.LWPathway$MasterSlide">
+		<field name="masterSlide" type="tufts.vue.MasterSlide">
 		  <bind-xml name="masterSlide" node="element"/>
                 </field>
 
