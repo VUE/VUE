@@ -2,6 +2,7 @@ package tufts.vue;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.*;
 import tufts.Util;
 import static tufts.Util.*;
 
@@ -26,7 +27,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.12 $ / $Date: 2007-09-01 21:46:07 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2007-09-18 22:01:30 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -34,11 +35,11 @@ import static tufts.Util.*;
 public class ActiveInstance<T>
 {
     private static final Map<Class,ActiveInstance> AllActiveHandlers = new HashMap();
-    private static final List<ActiveListener> ListenersForAllActiveEvents = new ArrayList();
+    private static final List<ActiveListener> ListenersForAllActiveEvents = new CopyOnWriteArrayList();
     private static int depth = -1; // event delivery depth
     
-    private final Collection<ActiveListener> mListeners = new ArrayList();
-    private Set<T> allInstances;
+    private final CopyOnWriteArrayList<ActiveListener> mListeners = new CopyOnWriteArrayList();
+    private final Set<T> allInstances = Collections.synchronizedSet(new HashSet());
     
     protected final Class itemType;
     protected final String itemTypeName; // for debug
@@ -62,6 +63,9 @@ public class ActiveInstance<T>
         ListenersForAllActiveEvents.add(l);
     }
 
+    public static void remoteAllActiveListener(ActiveListener l) {
+        ListenersForAllActiveEvents.remove(l);
+    }
 
     public static void addListener(Class clazz, ActiveListener listener) {
         getHandler(clazz).addListener(listener);
@@ -94,7 +98,7 @@ public class ActiveInstance<T>
         itemTypeName = "<" + itemType.getName() + ">";
         itemIsMarkable = clazz.isInstance(Markable.class);
         itemsAreTracked = trackInstances;
-        lock(null, "INIT");
+        lock(clazz, "INIT");
         synchronized (AllActiveHandlers) {
             if (AllActiveHandlers.containsKey(itemType)) {
                 // tho this is not ideal, the safest thing to do is blow away the old one,
@@ -106,7 +110,7 @@ public class ActiveInstance<T>
             }
             AllActiveHandlers.put(itemType, this);
         }
-        unlock(null, "INIT");
+        unlock(clazz, "INIT");
         if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created " + this);
     }
 
@@ -127,14 +131,11 @@ public class ActiveInstance<T>
     }
 
     public int instanceCount() {
-        return allInstances == null ? -1 : allInstances.size();
+        return allInstances.size();
     }
     
     public Set<T> getAllInstances() {
-        if (allInstances == null)
-            return null; // Collections.EMPTY_SET; // actually, an NPE would be better to know they're not tracked
-        else
-            return Collections.unmodifiableSet(allInstances);
+        return Collections.unmodifiableSet(allInstances);
     }
 
     /** @return true if the item was being tracked */
@@ -169,13 +170,13 @@ public class ActiveInstance<T>
                 return;
             final T oldActive = nowActive;
             this.nowActive = newActive;
-            setActiveNotify(source, oldActive);
+            setActiveAndNotify(source, oldActive);
             unlock(this, "setActive");
         }
     }
 
 
-    private synchronized void setActiveNotify(final Object source, final T oldActive)
+    private synchronized void setActiveAndNotify(final Object source, final T oldActive)
     {
         if (DEBUG.EVENTS) {
             System.out.println(TERM_GREEN
@@ -189,8 +190,6 @@ public class ActiveInstance<T>
         }
 
         if (itemsAreTracked) {
-            if (allInstances == null)
-                allInstances = new HashSet();
             allInstances.add(nowActive);
         }
             
@@ -241,21 +240,20 @@ public class ActiveInstance<T>
             
     protected static void notifyListenerList(ActiveInstance handler, ActiveEvent e, Collection<ActiveListener> listenerList)
     {
-        final ActiveListener[] listeners;
+//         final ActiveListener[] listeners;
+//         if (DEBUG.Enabled) lock(handler, "NOTIFY " + listenerList.size());
+//         synchronized (listenerList) {
+//             // Allow concurrent modifiation w/out synchronization:
+//             // (todo performance: keep an array in the handler to write this into instead
+//             // of having to construct if every time).
+//             listeners = listenerList.toArray(new ActiveListener[listenerList.size()]);
+//         }
+//         if (DEBUG.Enabled) unlock(handler, "NOTIFY " + listenerList.size());
 
         int count = 0;
-        if (DEBUG.Enabled) lock(handler, "NOTIFY " + listenerList.size());
-        synchronized (listenerList) {
-            // Allow concurrent modifiation w/out synchronization:
-            // (todo performance: keep an array in the handler to write this into instead
-            // of having to construct if every time).
-            listeners = listenerList.toArray(new ActiveListener[listenerList.size()]);
-        }
-        if (DEBUG.Enabled) unlock(handler, "NOTIFY " + listenerList.size());
-
         Object target;
         Method method;
-        for (ActiveListener listener : listeners) {
+        for (ActiveListener listener : listenerList) {
             if (listener instanceof MethodProxy) {
                 final MethodProxy proxy = (MethodProxy) listener;
                 target = proxy.target;
@@ -297,16 +295,11 @@ public class ActiveInstance<T>
     }
 
     public void addListener(ActiveListener listener) {
-        lock(this, "addListener");
-        synchronized (mListeners) {
-            if (mListeners.contains(listener)) {
-                VUE.Log.warn(this + "; add: is already listening: " + listener);
-            } else {
-                mListeners.add(listener);
-                if (DEBUG.EVENTS) outf(TERM_YELLOW + "%-50s added listener %s\n" + TERM_CLEAR, this, listener);
-            }
+        if (mListeners.addIfAbsent(listener)) {
+            if (DEBUG.EVENTS) outf(TERM_YELLOW + "%-50s added listener %s\n" + TERM_CLEAR, this, listener);
+        } else {
+            VUE.Log.warn(this + "; add: is already listening: " + listener);
         }
-        unlock(this, "addListener");
     }
 
     public void addListener(Object reflectedListener) {
@@ -328,15 +321,11 @@ public class ActiveInstance<T>
     
 
     public void removeListener(ActiveListener listener) {
-        lock(this, "removeListener");
-        synchronized (mListeners) {
-            if (!mListeners.remove(listener)) {
-                VUE.Log.warn(this + "; remove: didn't contain listener " + listener);
-            } else if (DEBUG.EVENTS) {
-                outf(TERM_YELLOW + "%-50s removed listener %s\n" + TERM_CLEAR, this, listener);
-            }
+        if (mListeners.remove(listener)) {
+            outf(TERM_YELLOW + "%-50s removed listener %s\n" + TERM_CLEAR, this, listener);
+        } else if (DEBUG.EVENTS) {
+            VUE.Log.warn(this + "; remove: didn't contain listener " + listener);
         }
-        unlock(this, "removeListener");
     }
 
     public void removeListener(Object reflectedListener) {
@@ -344,10 +333,10 @@ public class ActiveInstance<T>
     }
     
 
-    private static void lock(ActiveInstance o, String msg) {
+    private static void lock(Object o, String msg) {
         if (DEBUG.THREAD) System.err.println((o == null ? "ActiveInstance" : o) + " " + msg + " LOCK");
     }
-    private static void unlock(ActiveInstance o, String msg) {
+    private static void unlock(Object o, String msg) {
         if (DEBUG.THREAD) System.err.println((o == null ? "ActiveInstance" : o) + " " + msg + " UNLOCK");
     }
     
