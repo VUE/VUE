@@ -73,7 +73,7 @@ class LWCInspector extends javax.swing.JPanel
         "-Location",locationField,
         "-Size",    sizeField,
         "-ZeroTX",    transLocField,
-        "-HideBits",    bitsField,
+        "-Bits",    bitsField,
         "Label",    labelField,
         "Width",    widthField,
         "Height",    heightField,
