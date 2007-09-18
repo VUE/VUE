@@ -31,7 +31,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.1 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2007-09-18 22:27:11 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -364,9 +364,11 @@ public final class MasterSlide extends LWSlide
     @Override
     protected void drawImpl(DrawContext dc) {
         drawChildren(dc);
-        headerStyle.drawLocal(dc.push()); dc.pop();
-          textStyle.drawLocal(dc.push()); dc.pop();
-          linkStyle.drawLocal(dc.push()); dc.pop();
+        if (dc.focal == this) {
+            headerStyle.drawLocal(dc.push()); dc.pop();
+              textStyle.drawLocal(dc.push()); dc.pop();
+              linkStyle.drawLocal(dc.push()); dc.pop();
+        }
     }
     
     @Override
