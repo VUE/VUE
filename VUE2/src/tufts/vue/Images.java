@@ -24,6 +24,7 @@ import java.util.*;
 import java.lang.ref.*;
 import java.net.URL;
 import java.net.URI;
+import java.net.URLConnection;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
@@ -41,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.24 $ / $Date: 2006-10-18 17:30:41 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2007-09-18 22:08:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -957,6 +958,8 @@ public class Images
 
         InputStream urlStream = null; // if we create one, we need to keep this ref to close it later
         File tmpCacheFile = null; // if we create a tmp cache file, it will be put here
+
+        int dataSize = -1;
         
         if (imageSRC.cacheFile != null) {
             // just point us at the cache file: ImageIO will create the input stream
@@ -981,10 +984,12 @@ public class Images
             boolean success = false;
             
             do {
-                if (DEBUG.IMAGE) out("opening URL connection...");
-                java.net.URLConnection uc = url.openConnection();
+                if (DEBUG.IMAGE) out("opening URLConnection...");
+                final URLConnection uc = url.openConnection();
+                if (DEBUG.IMAGE) out("got URLConnection: " + uc);
                 //uc.setAllowUserInteraction(true);
                 if (imageSRC.resource != null) {
+                    dataSize = uc.getContentLength();
                     try {
                         setResourceMetaData(imageSRC.resource, uc);
                     } catch (Throwable t) {
@@ -1462,8 +1467,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         while (len > 0) {
             // Copy a buffer's worth of data from the source to the cache
             // BUFFER_LENGTH will always fit into an int so this is safe
-            int nbytes =
-                stream.read(streamBuf, 0, (int)Math.min(len, (long)BUFFER_LENGTH));
+            final int nbytes = stream.read(streamBuf, 0, (int)Math.min(len, (long)BUFFER_LENGTH));
             if (nbytes == -1) {
                 if (DEBUG.IMAGE && DEBUG.IO) System.err.println("<EOF @ " + length + ">");
                 foundEOF = true;
@@ -1474,6 +1478,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             cache.write(streamBuf, 0, nbytes);
             len -= nbytes;
             length += nbytes;
+            //System.out.println("READ TO " + length);
         }
 
         return pos;
