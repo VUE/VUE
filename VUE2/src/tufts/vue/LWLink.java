@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.172 $ / $Date: 2007-08-29 22:58:13 $ / $Author: sfraize $
+ * @version $Revision: 1.173 $ / $Date: 2007-09-18 22:02:48 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1888,7 +1888,7 @@ public class LWLink extends LWComponent
             return;
         }
 
-        if (super.isStyle && getParent() == null) {
+        if (isStyle() && getParent() == null) {
             // Don't recompute w/out a parent -- e.g., link style holders never need to recompute.
             // Will this break cut/copy/paste/duplicate?
             // No, it doesn't, but it DOES break creating at runtime a network of links & nodes
