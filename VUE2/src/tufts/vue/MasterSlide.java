@@ -31,19 +31,17 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.2 $ / $Date: 2007-09-18 22:27:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.3 $ / $Date: 2007-09-18 22:32:31 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
-    //final static String StyleLabel = "Sample Text";
     final static String TitleLabel = "Slide Title Style";
     final static String TextLabel = "Slide Text Style";
-    // TODO: need to figure out how to make these non-deletable
+    final static String URLLabel = "Link";
     private LWComponent headerStyle;
     private LWComponent textStyle;
     private LWComponent linkStyle;
 
-    //private List<LWComponent> mStyles = new ArrayList();
 
     /** for castor persistance */
     public MasterSlide() {
@@ -171,7 +169,7 @@ public final class MasterSlide extends LWSlide
             textStyle.setTextColor(Color.white);
         }
         if (linkStyle == null) {
-            linkStyle = NodeModeTool.buildTextNode("Links");
+            linkStyle = NodeModeTool.buildTextNode(URLLabel);
             linkStyle.setFont(new Font("Gill Sans", Font.PLAIN, 18));
             linkStyle.setTextColor(new Color(179, 191, 227));
         }
@@ -194,11 +192,6 @@ public final class MasterSlide extends LWSlide
         linkStyle.setLabel("Links");
         initStyle(linkStyle);
 
-//         if (!hasChild(headerStyle)) addChild(headerStyle);
-//         if (!hasChild(textStyle))   addChild(textStyle);
-//         if (!hasChild(linkStyle))   addChild(linkStyle);
-
-        
         //mFillColor.setAllowAlpha(false);
 
         final LWSelection s = new LWSelection(headerStyle);
@@ -224,7 +217,6 @@ public final class MasterSlide extends LWSlide
         style.setFlag(Flag.NO_LINKS);
         style.disableProperty(LWKey.Label);
         style.setMoveable(false);
-        style.layout();
         style.setParent(this); // styles are "viritual children" -- not in parent child list
         this.ensureID(style);
     }
