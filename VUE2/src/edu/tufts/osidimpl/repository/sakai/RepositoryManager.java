@@ -17,6 +17,10 @@
  */
 package edu.tufts.osidimpl.repository.sakai;
 
+import org.apache.axis.client.Call;
+import org.apache.axis.client.Service;
+import javax.xml.namespace.QName;
+
 public class RepositoryManager
 implements org.osid.repository.RepositoryManager
 {
@@ -30,6 +34,7 @@ implements org.osid.repository.RepositoryManager
     private java.util.Vector repositoryVector = new java.util.Vector();
     private java.util.Vector searchTypeVector = new java.util.Vector();
 	private String displayName = null;
+	private String key = null;
 
     public void osidVersion_2_0()
 		throws org.osid.repository.RepositoryException
@@ -100,7 +105,7 @@ implements org.osid.repository.RepositoryManager
 					throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
 				}
 				
-				String key = (String)context.getContext("org.sakaiproject.instanceKey");
+				this.key = (String)context.getContext("org.sakaiproject.instanceKey");
 				//System.out.println("assigned key is " + key);
 				String sessionId = (String)context.getContext("org.sakaiproject.sessionId." + key);
 				if (sessionId == null) {
@@ -128,7 +133,7 @@ implements org.osid.repository.RepositoryManager
 				
 				Utilities.setRepositoryId(h.substring(7) + ".Virtual-Root-Identifier");
 				this.repositoryVector.removeAllElements();
-				this.repositoryVector.addElement(new Repository(displayName,key));
+				this.repositoryVector.addElement(new Repository(displayName,key,this));
 			}
 		} catch (Throwable t) {
 			Utilities.log(t);
@@ -337,4 +342,61 @@ implements org.osid.repository.RepositoryManager
             throw new org.osid.repository.RepositoryException(org.osid.OsidException.OPERATION_FAILED);
         }
     }
+
+	protected String pingForValidSession()
+	{
+		try {
+			System.out.println("Trying connection");
+			String sessionId = Utilities.getSessionId(key);
+			String endpoint = Utilities.getEndpoint();
+			//System.out.println("Endpoint " + endpoint);
+			String address = Utilities.getAddress();
+			//System.out.println("Address " + address);
+			
+			Service  service = new Service();
+			
+			System.out.println("Session " + sessionId);
+			System.out.println("Key " + key);
+
+			//	Get the virtual root.
+			Call call = (Call) service.createCall();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			call.setOperationName(new QName(address, "getVirtualRoot"));
+			String virtualRootId = (String) call.invoke( new Object[] {sessionId} );
+		} catch (Throwable t) {
+			try {
+				System.out.println("Connection failed, session may have timed out.  Retrying once.");
+				org.osid.shared.Type authenticationType = new Type("sakaiproject.org","authentication","sakai");
+				this.authenticationManager.authenticateUser(authenticationType);
+				if (!this.authenticationManager.isUserAuthenticated(authenticationType)) {
+					throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+				}
+				
+				key = (String)context.getContext("org.sakaiproject.instanceKey");
+				//System.out.println("assigned key is " + key);
+				String sessionId = (String)context.getContext("org.sakaiproject.sessionId." + key);
+				if (sessionId == null) {
+					throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
+				}
+				Utilities.setSessionId(sessionId,key);
+				
+				System.out.println("Session " + sessionId);
+				System.out.println("Key " + key);
+
+				// Setup Web Service SOAP call parameters
+				String h = configuration.getProperty("sakaiHost");
+				// add http if it is not present
+				if (!(h.startsWith("http://"))) {
+					h = "http://" + h;
+				}
+				
+				String address = h + ":" + configuration.getProperty("sakaiPort") + "/";
+				Utilities.setEndpoint(address + "sakai-axis/ContentHosting.jws");		
+				Utilities.setAddress(address);			
+			} catch (Throwable t1) {
+				
+			}
+		}
+		return key;
+	}		
 }

@@ -35,8 +35,9 @@ implements org.osid.repository.Repository
 	private String displayName = null;
 	private String key = null;
 	private String sessionId = null;
+	private RepositoryManager manager = null;
  
-    protected Repository(String displayName, String key)
+    protected Repository(String displayName, String key, RepositoryManager manager)
 		    throws org.osid.repository.RepositoryException
     {
 		this.key = key;
@@ -47,6 +48,7 @@ implements org.osid.repository.Repository
 		this.assetTypeVector.addElement(Utilities.getCollectionAssetType());
 		this.assetTypeVector.addElement(Utilities.getResourceAssetType());
 		this.repositoryId = Utilities.getRepositoryId();
+		this.manager = manager;
 /*		try {
 			System.out.println("Repository id is " + this.repositoryId.getIdString());
 		} catch (Throwable t) {
@@ -124,6 +126,8 @@ implements org.osid.repository.Repository
     throws org.osid.repository.RepositoryException
     {
 		java.util.Vector result = new java.util.Vector();
+		this.key = this.manager.pingForValidSession();
+		this.sessionId = Utilities.getSessionId(this.key);
 		
 		try {
 			String endpoint = Utilities.getEndpoint();
