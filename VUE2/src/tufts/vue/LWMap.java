@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.158 $ / $Date: 2007-09-19 04:14:53 $ / $Author: sfraize $
+ * @version $Revision: 1.159 $ / $Date: 2007-09-19 04:15:42 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -549,7 +549,7 @@ public class LWMap extends LWContainer
 
     private final class NoNullsArrayList extends ArrayList<LWComponent> {
         NoNullsArrayList() {
-            super(Math.min(numChildren(),10));
+            super(Math.max(numChildren(),10));
         }
 
         @Override
@@ -581,7 +581,7 @@ public class LWMap extends LWContainer
         // componenets may otherwise not yet be ready to return everything (e.g. MasterSlide)
         final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY,
                                                                       new NoNullsArrayList(),
-                                                                      //new ArrayList(Math.min(numChildren(),10)),
+                                                                      //new ArrayList(Math.max(numChildren(),10)),
                                                                       Order.DEPTH);
 
         //resolvePersistedLinks(allRestored);
