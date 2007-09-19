@@ -57,7 +57,7 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.157 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
+ * @version $Revision: 1.158 $ / $Date: 2007-09-19 04:14:53 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -547,13 +547,27 @@ public class LWMap extends LWContainer
         }
     }
 
+    private final class NoNullsArrayList extends ArrayList<LWComponent> {
+        NoNullsArrayList() {
+            super(Math.min(numChildren(),10));
+        }
+
+        @Override
+        public boolean add(LWComponent c) {
+            if (c == null) {
+                Util.printStackTrace("null not allowed in map descendents");
+            } else {
+                super.add(c);
+            }
+            return true;
+        }
+    }
+
 
     public void completeXMLRestore()
     {
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             System.out.println(getLabel() + ": completing restore...");
-
-        final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY, new ArrayList(), Order.DEPTH);
 
         if (mPathways != null) {
             try {
@@ -562,6 +576,13 @@ public class LWMap extends LWContainer
                 tufts.Util.printStackTrace(new Throwable(t), "PATHWAYS RESTORE");
             }
         }
+
+        // Need to do this after complete XML restore, as getAllDescendents for special
+        // componenets may otherwise not yet be ready to return everything (e.g. MasterSlide)
+        final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY,
+                                                                      new NoNullsArrayList(),
+                                                                      //new ArrayList(Math.min(numChildren(),10)),
+                                                                      Order.DEPTH);
 
         //resolvePersistedLinks(allRestored);
         
