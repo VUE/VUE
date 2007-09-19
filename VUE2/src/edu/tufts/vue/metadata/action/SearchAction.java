@@ -45,6 +45,7 @@ public class SearchAction extends AbstractAction {
     private List<String> tags;
     private Query query;
     private List<LWComponent> comps;
+    private static List<LWComponent> globalResults;
     
     private JTextField searchInput;
     private edu.tufts.vue.rdf.RDFIndex index;
@@ -198,24 +199,42 @@ public class SearchAction extends AbstractAction {
         System.out.println("SearchAction: comps size after perform search - " + comps.size());
        
         // VUE.getSelection().setTo(comps.iterator());
+        revertGlobalSearchSelection();
         Iterator<LWComponent> it = comps.iterator();
         while(it.hasNext())
         {
             it.next().setSelected(true);
         }
+        globalResults = comps;
         VUE.getActiveViewer().repaint();
     }
     
     public void revertSelections()
     {
-        if(comps == null)
+        /*if(comps == null)
             return;
         Iterator<LWComponent> it = comps.iterator();
         while(it.hasNext())
         {
             it.next().setSelected(false);
-        }
+        }*/
+        revertSelections(comps);
     }
     
+    public static void revertSelections(List<LWComponent> toBeReverted)
+    {
+        if(toBeReverted == null)
+            return;
+        Iterator<LWComponent> it = toBeReverted.iterator();
+        while(it.hasNext())
+        {
+            it.next().setSelected(false);
+        } 
+    }
+    
+    public static void revertGlobalSearchSelection()
+    {
+        revertSelections(globalResults);
+    }
     
 }

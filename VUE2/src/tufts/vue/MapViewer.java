@@ -21,6 +21,7 @@ package tufts.vue;
 import tufts.Util;
 import static tufts.Util.*;
 
+import edu.tufts.vue.metadata.action.SearchAction;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
@@ -70,7 +71,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.444 $ / $Date: 2007-09-18 22:05:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.445 $ / $Date: 2007-09-19 22:15:51 $ / $Author: dan $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4720,6 +4721,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     "\tparent " + hitComponent.getParent());
                 // if a LWSlide picked, animate zoom into it, and then load as focal
                 mme.setPicked(hitComponent);
+                
+                SearchAction.revertGlobalSearchSelection();
                 
 //                 // this is a hack:
 //                 if (hitComponent instanceof LWSlide && mFocal instanceof LWMap) {
