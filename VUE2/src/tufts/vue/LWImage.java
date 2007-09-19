@@ -23,6 +23,7 @@ import tufts.Util;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Shape;
 import java.awt.BasicStroke;
 import java.awt.geom.*;
@@ -81,6 +82,9 @@ public class LWImage extends
     private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
     private Object mUndoMarkForThread;
     private boolean mImageError = false;
+
+    private volatile long mDataSize = -1;
+    private volatile long mDataSoFar = 0;
     
 
     /** is this image currently serving as an icon for an LWNode? */
@@ -107,12 +111,12 @@ public class LWImage extends
     }
     
     
-    // todo: not so great to have every single LWImage instance be a listener
+    // TODO: not so great to have every single LWImage instance be a listener...
     public void preferenceChanged(VuePrefEvent prefEvent)
     {        
         if (DEBUG.IMAGE) out("new pref value is " + ((Integer)ImageSizePreference.getInstance().getValue()).intValue());
         MaxRenderSize = ((Integer)prefEvent.getNewValue()).intValue();
-        System.out.println("MaxRenderSize : " + MaxRenderSize);
+        if (DEBUG.Enabled) System.out.println("New MaxRenderSize : " + MaxRenderSize + " in " + this);
         if (mImage != null && isNodeIcon)
             setMaxSizeDimension(MaxRenderSize);
     }
@@ -360,9 +364,11 @@ public class LWImage extends
     }
 
     /** @see Images.Listener */
-    public synchronized void gotImageSize(Object imageSrc, int width, int height)
+    public synchronized void gotImageSize(Object imageSrc, int width, int height, long byteSize)
     {
-        if (DEBUG.IMAGE) out("gotImageSize " + width + "x" + height);
+        if (true||DEBUG.IMAGE) out("gotImageSize " + width + "x" + height + " bytes=" + byteSize);
+        mDataSize = byteSize;
+        mImageError = false;
         setImageSize(width, height);
 
         if (mUndoMarkForThread == null) {
@@ -388,6 +394,34 @@ public class LWImage extends
         notify(LWKey.RepaintAsync);
     }
     
+    
+    private float  mLastPct = 0;
+    private int mLastPctEven = 0;
+    private String mStatusMsg;
+
+    public synchronized void gotBytes(Object imageSrc, long bytesSoFar) {
+        mDataSoFar = bytesSoFar;
+        
+        //out("BYTES SO FAR: " + bytesSoFar);
+        if (mDataSize > 0 && mDataSoFar > 0) { // don't bother if we don't know the whole size yet...
+            //final String statusMsg = Long.toString(mDataSoFar);
+            final float pct = (float)mDataSoFar / (float)mDataSize;
+            final int pctEven = Math.round(pct*100);
+                //out("PCT: " + pct);
+            if (pctEven > mLastPctEven) {
+                // todo: if last update was more than, say 100ms ago (10fps) (statically: for ANY image),
+                // also force an update
+                mStatusMsg = Integer.toString(pctEven) + '%';
+                //out("notify on " + mStatusMsg);
+                //mStatusMsg = String.format("%.1f%%", pct * 100);
+                notify(LWKey.RepaintAsync);
+            }
+            mLastPct = pct;
+            mLastPctEven = pctEven;
+        }
+        
+    }
+    
     /** @see Images.Listener */
     public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
         // Be sure to set the image before detaching from the thread,
@@ -397,6 +431,9 @@ public class LWImage extends
         //mImageWidth = w;
         //mImageHeight = h;
         mImage = image;
+
+        mLastPct = mLastPctEven = 0;
+        mStatusMsg = "(Load)";
 
         //if (isRawImage && isCropped() == false)
         //if (isCropped() == false)
@@ -667,8 +704,10 @@ public class LWImage extends
         
         if (isNodeIcon && dc.focal != this) {
 
-            drawImage(dc);
-            if (dc.isInteractive() && !getParent().isTransparent()) {
+            drawImageBox(dc);
+            
+            // Forced border for node-icon's:
+            if (mImage != null && dc.isInteractive() && !getParent().isTransparent()) {
                 // this is somehow making itext PDF generation through a GC worse... (probably just a bad tickle)
                 dc.g.setStroke(STROKE_TWO);
                 //dc.g.setColor(IconBorderColor);
@@ -688,7 +727,7 @@ public class LWImage extends
                 }
             }
 
-            drawImage(dc);
+            drawImageBox(dc);
             
             if (getStrokeWidth() > 0) {
                 dc.g.setStroke(this.stroke);
@@ -741,31 +780,19 @@ public class LWImage extends
     }
 */
 
-    private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
-    //private static final Color ErrorColor = new Color(255,128,128, 64);
-    private static final Color LoadingColor = new Color(0,0,0,128);
-    private static final Color ErrorColor = Color.red;
-
-    protected void drawImage(DrawContext dc)
+    private void drawImageBox(DrawContext dc)
     {    	    	
-        if (mImage == null) {
-            int w = (int) getWidth();
-            int h = (int) getHeight();
-            if (mImageError)
-                dc.g.setColor(ErrorColor);
-            else
-                dc.g.setColor(LoadingColor);
-            dc.g.fillRect(0, 0, w, h);
-            //dc.g.setColor(Color.lightGray);
-            //dc.g.setStroke(STROKE_ONE);
-            //dc.g.drawRect(0, 0, w, h); // can't see this line at small scales
-            return;
-        }
-        
-        //AffineTransform transform = AffineTransform.getTranslateInstance(mOffset.x, mOffset.y);
+        if (mImage == null) 
+            drawImageStatus(dc);
+        else
+            drawImage(dc);
+    }
+
+    private void drawImage(DrawContext dc)
+    {
         final AffineTransform transform = new AffineTransform();
         
-
+//    private static final AlphaComposite MatteTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.5f);
 // Todo: when/if put this back in, see if we can handle it in the ImageTool so we don't need active tool in the DrawContext
 //         if (isSelected() && dc.isInteractive() && dc.getActiveTool() instanceof ImageTool) {
 //             dc.g.setComposite(MatteTransparency);
@@ -786,6 +813,79 @@ public class LWImage extends
             //dc.g.drawImage(mImage, 0, 0, mImageWidth, mImageHeight, null);
         }
    }
+
+    //private static final Color ErrorColor = new Color(255,128,128, 64);
+    //private static final Color ErrorColor = Color.red;
+    private static final Color LoadingColor = new Color(0,0,0,128);
+    private static final Color LoadedColor = new Color(0,0,0,160);
+    //private static final Color LoadingColor = Color.red;
+    //private static final Color LoadedColor = Color.blue;
+
+    private static final int StatusHeight = 4;
+    private static final Font StatusFont = new Font("Gill Sans", Font.PLAIN, 10);
+    //private static final String LoadingText = "Loading...";
+    //private static final float LoadingWidth = (float) tufts.vue.gui.GUI.stringWidth(StatusFont, LoadingText);
+
+    private void drawImageStatus(DrawContext dc)
+    {
+        String status1 = "Loading...";
+        String status2 = null;
+
+        float pct = 0;
+        
+        synchronized (this) {
+            if (mImageError) {
+                status1 = "Missing";
+                status2 = "Image";
+            } else if (mDataSoFar > 0 && mStatusMsg != null) {
+                status1 = mStatusMsg;
+                pct = mLastPct;
+            }
+        }
+        
+        //             if (mDataSoFar > 0 && mStatusMsg != null) {
+        // //                 //final String statusMsg = Long.toString(mDataSoFar);
+        // //                 final float pct = (float)mDataSoFar / (float)mDataSize;
+        // //                 //out("PCT: " + pct);
+        // //                 final String statusMsg = String.format("%.1f%%", pct * 100);
+        //                 final float statusWidth = (float) tufts.vue.gui.GUI.stringWidth(StatusFont, mStatusMsg);
+        //                 dc.g.drawString(mStatusMsg, (width-statusWidth)/2, (height+StatusHeight)/2);
+        //                 //dc.g.drawString(""+mDataSize, 0, height-20);
+        //                 //dc.g.drawString(""+mDataSoFar, 0, height);
+        //             } else {
+        //                 dc.g.drawString("Loading...", (width-LoadingWidth)/2, (height+StatusHeight)/2);
+        //             }
+        
+        final int width = (int) getWidth();
+        final int height = (int) getHeight();
+
+        if (pct > 0) {
+            final int split = (int) (width * pct);
+            dc.g.setColor(LoadedColor);
+            dc.g.fillRect(0, 0, split, height);
+            dc.g.setColor(LoadingColor);
+            dc.g.fillRect(split, 0, width - split, height);
+        } else {
+            dc.g.setColor(LoadingColor);
+            dc.g.fillRect(0, 0, width, height);
+        }
+
+        dc.g.setColor(Color.lightGray);
+        dc.g.setFont(StatusFont);
+        
+        if (status2 != null) {
+            drawStatusLine(dc, status1, -5);
+            drawStatusLine(dc, status2, +5);
+        } else
+            drawStatusLine(dc, status1, 0);
+            
+    }
+
+    private void drawStatusLine(DrawContext dc, String text, int yoff) {
+        final float textWidth = (float) tufts.vue.gui.GUI.stringWidth(StatusFont, text);
+        dc.g.drawString(text, (getWidth()-textWidth)/2, (getHeight()+StatusHeight)/2 + yoff);
+    }
+
 
     /*
     protected void drawImage(DrawContext dc)

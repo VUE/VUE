@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.25 $ / $Date: 2007-09-18 22:08:38 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2007-09-19 03:26:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -61,7 +61,9 @@ public class Images
      */
     public interface Listener {
         /** If image is already cached, this will NOT be called -- is only called from an image loading thread. */
-        void gotImageSize(Object imageSrc, int w, int h);
+        void gotImageSize(Object imageSrc, int w, int h, long byteSize);
+        /** If byte-tracking is enabled on the input source, this will be called periodically during loading */
+        void gotBytes(Object imageSrc, long bytesSoFar);
         /** Will be called immediately in same thread if image cached, later in different thread if not. */
         void gotImage(Object imageSrc, Image image, int w, int h);
         /** If there is an exception or problem loading the image, this will be called */
@@ -365,12 +367,20 @@ public class Images
             this(l0, null);
         }
 
-        public void gotImageSize(Object imageSrc, int w, int h) {
+        public void gotImageSize(Object imageSrc, int w, int h, long byteSize) {
             if (DEBUG.IMAGE) out("relay SIZE to head " + tag(head) + " " + imageSrc);
-            head.gotImageSize(imageSrc, w, h);
+            head.gotImageSize(imageSrc, w, h, byteSize);
             if (tail != null) {
                 if (DEBUG.IMAGE) out("relay SIZE to tail " + tag(tail) + " " + imageSrc);
-                tail.gotImageSize(imageSrc, w, h);
+                tail.gotImageSize(imageSrc, w, h, byteSize);
+            }
+        }
+        public void gotBytes(Object imageSrc, long bytesSoFar) {
+            if (DEBUG.IMAGE) out("relay BYTES to head " + tag(head) + " " + imageSrc);
+            head.gotBytes(imageSrc, bytesSoFar);
+            if (tail != null) {
+                if (DEBUG.IMAGE) out("relay BYTES to tail " + tag(tail) + " " + imageSrc);
+                tail.gotBytes(imageSrc, bytesSoFar);
             }
         }
         public void gotImage(Object imageSrc, Image image, int w, int h) {
@@ -412,6 +422,8 @@ public class Images
         private Image image = null;
         private int width = -1;
         private int height = -1;
+        private long byteSize;
+        private long bytesSoFar;
         private String errorMsg = null;
         
         
@@ -420,17 +432,28 @@ public class Images
             imageSRC = is;
         }
 
-        public synchronized void gotImageSize(Object imageSrc, int w, int h) {
+        @Override
+        public synchronized void gotImageSize(Object imageSrc, int w, int h, long byteSize) {
             this.width = w;
             this.height = h;
-            super.gotImageSize(imageSrc, w, h);
-
+            this.byteSize = byteSize;
+            super.gotImageSize(imageSrc, w, h, byteSize);
         }
+
+        @Override
+        public synchronized void gotBytes(Object imageSrc, long bytesSoFar) {
+            this.bytesSoFar = bytesSoFar;
+            super.gotBytes(imageSrc, bytesSoFar);
+        }
+        
+        @Override
         public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
             this.image = image;
             super.gotImage(imageSrc, image, w, h);
 
         }
+        
+        @Override
         public synchronized void gotImageError(Object imageSrc, String msg) {
             this.errorMsg = msg;
             super.gotImageError(imageSrc, msg);
@@ -464,7 +487,10 @@ public class Images
             if (DEBUG.IMAGE) out("DELIVERING PARTIAL RESULTS TO: " + tag(l));
             
             if (width > 0)
-                l.gotImageSize(imageSRC.original, width, height);
+                l.gotImageSize(imageSRC.original, width, height, byteSize);
+
+            if (bytesSoFar > 0)
+                l.gotBytes(imageSRC.original, bytesSoFar);
 
             if (image != null)
                 l.gotImage(imageSRC.original, image, width, height);
@@ -1008,7 +1034,7 @@ public class Images
 
                 if (imageSRC.cacheFile != null) {
                     try {
-                        imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile);
+                        imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile, listener);
                         success = true;
                     } catch (Images.DataException e) {
                         VUE.Log.error(imageSRC + ": " + e);
@@ -1023,6 +1049,7 @@ public class Images
                     }
                 } else {
                     // unable to create cache file: read directly from the stream
+                    VUE.Log.warn("Failed to create cache file " + tmpCacheFile);
                     imageSRC.readable = urlStream;
                     success = true;
                 }
@@ -1101,7 +1128,7 @@ public class Images
         
         if (listener != null) {
             if (DEBUG.IMAGE) out("Sending size to " + tag(listener));
-            listener.gotImageSize(imageSRC.original, w, h);
+            listener.gotImageSize(imageSRC.original, w, h, dataSize);
         }
 
         // FYI, if fetch meta-data, will need to trap exceptions here, as if there are
@@ -1387,12 +1414,16 @@ public class Images
  */
 class FileBackedImageInputStream extends ImageInputStreamImpl
 {
-    private InputStream stream;
-    private final RandomAccessFile cache;
     private static final int BUFFER_LENGTH = 2048;
+
+    private final RandomAccessFile cache;
     private final byte[] streamBuf = new byte[BUFFER_LENGTH];
+    private final InputStream stream;
+    
     private long length = 0L;
     private boolean foundEOF = false;
+
+    private final Images.Listener listener;
 
     private final File file;
 
@@ -1401,7 +1432,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
      * @param stream - image data stream -- will be closed when reading is done
      * @param file - file to write incoming data to to use as cache
      */
-    public FileBackedImageInputStream(InputStream stream, File file)
+    public FileBackedImageInputStream(InputStream stream, File file, Images.Listener listener)
         throws IOException, Images.ImageException
     {
         if (stream == null || file == null)
@@ -1410,6 +1441,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         this.stream = stream;
         this.cache = new RandomAccessFile(file, "rw");
         this.file = file;
+        this.listener = listener;
 
         this.cache.setLength(0); // in case already there
 
@@ -1479,6 +1511,8 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             len -= nbytes;
             length += nbytes;
             //System.out.println("READ TO " + length);
+            if (listener != null)
+                listener.gotBytes(stream, length);
         }
 
         return pos;
@@ -1531,7 +1565,6 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         super.close();
         cache.close();
         stream.close();
-        stream = null;
     }
 
     public String toString() {

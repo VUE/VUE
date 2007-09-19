@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.16 $ / $Date: 2007-08-21 19:20:43 $ / $Author: mike $
+ * @version $Revision: 1.17 $ / $Date: 2007-09-19 03:26:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -187,7 +187,7 @@ public class PreviewPane extends JPanel
 
 
     /** @see Images.Listener */
-    public synchronized void gotImageSize(Object imageSrc, int width, int height) {
+    public synchronized void gotImageSize(Object imageSrc, int width, int height, long byteSize) {
 
         if (imageSrc != mPreviewData)
             return;
@@ -195,6 +195,10 @@ public class PreviewPane extends JPanel
         mImageWidth = width;
         mImageHeight = height;
     }
+
+    /** @see Images.Listener */
+    public synchronized void gotBytes(Object imageSrc, long bytesSoFar) {}
+    
     
     /** @see Images.Listener */
     public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
