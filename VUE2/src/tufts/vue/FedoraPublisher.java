@@ -48,6 +48,8 @@ public class FedoraPublisher {
     public static final String UPLOAD_KEY ="%UPLOAD%";
     public static final String OWNER_KEY  = "%OWNER%";
     public static final String TITLE_KEY = "%TITLE%";
+    public static final String FORMAT = "foxml1.0";
+    public static final String COMMENT = "Automatic Publish From VUE";
     public static final String RESULT_FIELDS[] = {"pid"};
     /** Creates a new instance of FedoraExporter */
     public FedoraPublisher() {
@@ -83,7 +85,7 @@ public class FedoraPublisher {
                 
                 
                 
-                fc.getAPIM().modifyDatastreamByReference(mapPid, "map.vue",  null,"VUE Map", "application/vue", "http://vue.tufts.edu/docs/vueformat/", uploadId, null,null,  "Testing from VUE",true);
+                fc.getAPIM().modifyDatastreamByReference(mapPid, "map.vue",  null,"VUE Map", "application/vue", "http://vue.tufts.edu/docs/vueformat/", uploadId, null,null,  COMMENT,true);
                 
             } else {
                 BufferedReader r = new BufferedReader(new FileReader(VueResources.getFile("fedora.cm.vue")));
@@ -100,7 +102,7 @@ public class FedoraPublisher {
                 foxml = foxml.replace("%UPLOAD%",uploadId);
                 System.out.println("FOXML:"+foxml+"UPLOAD ID:"+uploadId);
                 StringBufferInputStream s = new StringBufferInputStream(foxml);
-                AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,"foxml1.0", "Testing Ingest");
+                AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,FORMAT, COMMENT);
             }
         } catch(Exception ex) {
             ex.printStackTrace();
