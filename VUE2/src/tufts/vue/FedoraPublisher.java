@@ -29,12 +29,16 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
-//required for publishing to Fedora 
+//required for publishing to Fedora
 import fedora.client.FedoraClient;
 import fedora.client.utility.ingest.AutoIngestor;
 import fedora.client.utility.AutoFinder;
 import fedora.server.types.gen.Datastream;
+import fedora.server.types.gen.FieldSearchResult;
+import fedora.server.types.gen.FieldSearchQuery;
 import fedora.client.Uploader;
+import fedora.server.types.gen.Condition;
+import fedora.server.types.gen.ComparisonOperator;
 
 public class FedoraPublisher {
     public static final String PID_KEY = "%PID";
@@ -44,20 +48,33 @@ public class FedoraPublisher {
     public static final String UPLOAD_KEY ="%UPLOAD%";
     public static final String OWNER_KEY  = "%OWNER%";
     public static final String TITLE_KEY = "%TITLE%";
-    public static final String MAP_CM = "edu/tufts/osidimpl/repository/fedora_2_2/VUEMapContentModel.xml";
+    public static final String RESULT_FIELDS[] = {"pid"};
     /** Creates a new instance of FedoraExporter */
     public FedoraPublisher() {
     }
     
     public static void uploadMap(String protocol, String host, int port, String userName, String password,LWMap map) {
         try {
+            String mapPid = "vue:"+map.getURIString().substring(map.getURIString().lastIndexOf("/")+1);
             System.setProperty("javax.net.ssl.trustStore", VueUtil.getDefaultUserFolder()+"\\truststore");
             System.setProperty("javax.net.ssl.trustStorePassword","tomcat");
             FedoraClient fc = new FedoraClient(protocol+"://"+host+":"+port+"/fedora/", userName, password);
-            String pids[] = AutoFinder.getPIDs("http", host, 8080, map.getURIString());
-            if(pids.length >0 ) {
-                Uploader uploader = new Uploader(protocol, host, port, userName, password);
-                String uploadId = uploader.upload(new File("C:\\anoop\\vue\\maps\\ab.vue"));
+            AutoFinder af = new AutoFinder(fc.getAPIA());
+            FieldSearchQuery query =  new FieldSearchQuery();
+            Condition conds[] = new Condition[1];
+             conds[0] = new  Condition(); //"pid",ComparisonOperator.eq,mapPid);
+            conds[0].setProperty("pid");
+            conds[0].setOperator(ComparisonOperator.eq);
+            conds[0].setValue(mapPid);
+            query.setConditions(conds);
+            FieldSearchResult result = af.findObjects(RESULT_FIELDS,1,query);
+             Uploader uploader = new Uploader(protocol, host, port, userName, password);
+             String uploadId = uploader.upload(map.getFile());
+               
+            
+            if(result.getResultList().length  >0 ) {
+                //String pids[] = AutoFinder.getPIDs("http", host, 8080, mapPid);
+                
                 System.out.println("PID already exists in repository. Will update datastream: "+uploadId);
                 // Datastream datastreams[] = fc.getAPIM().getDatastreams(pids[0],null,null);
                 // for(int i=0;i<datastreams.length;i++) {
@@ -66,26 +83,28 @@ public class FedoraPublisher {
                 
                 
                 
-                fc.getAPIM().modifyDatastreamByReference(pids[0], "MyMap.vue",  null,"VUE Map", "text/xml", "http://vue.tufts.edu/docs/vueformat/", uploadId, null,null,  "Testing from VUE",true);
+                fc.getAPIM().modifyDatastreamByReference(mapPid, "map.vue",  null,"VUE Map", "application/vue", "http://vue.tufts.edu/docs/vueformat/", uploadId, null,null,  "Testing from VUE",true);
                 
             } else {
-                BufferedReader r = new BufferedReader(new FileReader(VueResources.getFile(MAP_CM)));
+                BufferedReader r = new BufferedReader(new FileReader(VueResources.getFile("fedora.cm.vue")));
                 String line = new String();
                 String foxml = new String();
                 while((line = r.readLine())!=null) {
                     foxml += line+"\n";
                 }
-                foxml.replace("%OWNER%","fedoraAdmin");
-                foxml.replaceAll("%CREATE_DATE%","2007-08-30T18:38:56.638Z");
-                foxml.replace("%PID",map.getURIString());
-                foxml.replace("%TITLE",map.getLabel());
-                foxml.replace("%UPLOAD%","uploaded://1");
-                foxml.replace("%CONTENT_MODEL","tufts/vue/map/generic");
-                AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), new FileInputStream(VueResources.getFile(MAP_CM)),"foxml1.0", "Testing Ingest");
+                foxml = foxml.replace("%OWNER%","fedoraAdmin");
+                foxml = foxml.replaceAll("%CREATE_DATE%","2007-08-30T18:38:56.638Z");
+                foxml = foxml.replace("%PID%",mapPid);
+                foxml = foxml.replace("%TITLE%",map.getLabel());
+                foxml = foxml.replace("%CONTENT_MODEL%","tufts/vue/map/generic");
+                foxml = foxml.replace("%UPLOAD%",uploadId);
+                System.out.println("FOXML:"+foxml+"UPLOAD ID:"+uploadId);
+                StringBufferInputStream s = new StringBufferInputStream(foxml);
+                AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,"foxml1.0", "Testing Ingest");
             }
         } catch(Exception ex) {
             ex.printStackTrace();
         }
-     
+        
     }
 }
