@@ -42,7 +42,7 @@ import fedora.server.utilities.StreamUtility;
  * @author  akumar03
  */
 public class Publish extends VueAction  {
-    
+    public static final String LABEL = "Publish";
     /** Creates a new instance of Publish */
  
    
@@ -66,10 +66,11 @@ public class Publish extends VueAction  {
     */
     public void act() {
         try {
-            Publisher publisher = new Publisher(VUE.getDialogParentAsFrame(), label);
+            Publisher publisher = new Publisher(VUE.getDialogParentAsFrame(), LABEL);
             //Publisher publisher = new Publisher(owner,label);
         } catch (Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
+            ex.printStackTrace();
             throw new RuntimeException(ex);
         }
     }
