@@ -26,7 +26,6 @@ package edu.tufts.vue.compare.ui;
  * @author dhelle01
  */
 
-import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;

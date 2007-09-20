@@ -35,7 +35,6 @@
 
 package edu.tufts.vue.compare;
 
-import com.sun.org.apache.xpath.internal.axes.ChildIterator;
 import java.util.*;
 import java.io.*;
 import tufts.vue.*;
