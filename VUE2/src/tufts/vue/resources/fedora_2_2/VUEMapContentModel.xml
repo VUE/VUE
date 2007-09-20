@@ -25,7 +25,7 @@
   </foxml:datastream>
   <foxml:datastream CONTROL_GROUP="M" ID="map.vue" STATE="A" VERSIONABLE="true">
     <foxml:datastreamVersion CREATED="2007-08-30T18:42:37.027Z" FORMAT_URI="http://vue.tufts.edu/docs/vueformat/"
-      ID="map.vue.0" LABEL="%TITLE%" MIMETYPE="text/xml">
+      ID="map.vue.0" LABEL="%TITLE%" MIMETYPE="application/vue">
       <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
       <foxml:contentLocation
         REF="%UPLOAD%" TYPE="INTERNAL_ID"/>
