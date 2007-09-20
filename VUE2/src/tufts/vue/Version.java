@@ -4,10 +4,10 @@ package tufts.vue;
 public final class Version {
 public static final String
         Date = "September 20 2007",
-        Time = "1014",
+        Time = "1106",
         User = "akumar03",
         Platform = "Windows XP 5.1 x86",
         JVM = "1.5.0_07-b03",
-        AllInfo = "September 20 2007 at 1014 by akumar03 on " + Platform + " JVM " + JVM,
+        AllInfo = "September 20 2007 at 1106 by akumar03 on " + Platform + " JVM " + JVM,
         WhatString = "@(#)VUE: built " + AllInfo;
 }
