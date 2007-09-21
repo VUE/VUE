@@ -91,6 +91,13 @@ public class Osid2AssetResource extends MapResource
         }
     }
 
+    private static String quoteF(Object o) {
+        if (o == null)
+            return "null";
+        else
+            return quoteF(o.toString());
+    }
+    
     private static String quoteF(String s) {
         if (s == null || s.length() == 0)
             return "";
@@ -124,11 +131,17 @@ public class Osid2AssetResource extends MapResource
             org.osid.repository.PartIterator partIterator = record.getParts();
             String recordDesc = null;
             if (DEBUG.DR) {
-                recordDesc = quoteF(record.getDisplayName()) + record
-                    + "\nID= " + quoteF(record.getId().getIdString()) + record.getId()
-                    + "\nRecordStruct=" + quoteF(record.getRecordStructure().getDisplayName())
-                    + " RSid=" + quoteF(record.getRecordStructure().getId().getIdString())
-                    + " " + record.getRecordStructure();
+                if (record == null)
+                    recordDesc = "<NULL-RECORD>";
+                else
+                    recordDesc = record
+                        + "\nID= " + record.getId()
+                        + "\nRecordStruct=" + quoteF(record.getRecordStructure());
+//                     recordDesc = quoteF(record.getDisplayName()) + record
+//                         + "\nID= " + quoteF(record.getId().getIdString()) + record.getId()
+//                         + "\nRecordStruct=" + quoteF(record.getRecordStructure().getDisplayName())
+//                         + " RSid=" + quoteF(record.getRecordStructure().getId().getIdString())
+//                         + " " + record.getRecordStructure();
             }
             
             int partIndex = 0; // for debug
