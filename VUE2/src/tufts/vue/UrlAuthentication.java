@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import javax.xml.namespace.QName;
@@ -50,14 +51,14 @@ import org.osid.OsidException;
  */
 public class UrlAuthentication 
 {
-    private static UrlAuthentication ua = new UrlAuthentication();
-    private static Map<String, String> hostMap = new HashMap<String, String>();
-    public static UrlAuthentication getInstance() 
-    {
+    private static final Map<String, Map<String,String>> HostMap = new HashMap();
+    private static final UrlAuthentication ua = new UrlAuthentication();
+    
+    public static UrlAuthentication getInstance() {
         return ua;
     }
     
-	URL _url;
+    URL _url;
     edu.tufts.vue.dsm.impl.VueDataSourceManager dataSourceManager = null;
     
     /**
@@ -98,15 +99,30 @@ public class UrlAuthentication
 		}
 	}
 	
-	/** 
-	 * 
-	 * @param url The URL of map resource 
-	 * @return the session id of the host, as a string, or null, if the host is unknown.
-	 */
-	public String getSessionId( URL url ) 
-	{
-		return hostMap.get(url);
-	}
+    /** 
+     * @param url The URL of map resource 
+     * @return a Map of key/value pairs to delivered to a remote HTTP server with
+     * a content request.  The set of key/value pairs should ensure that
+     * the remote server will accept the incoming  URLConnection when
+     * used with URLConnection.addRequestProperty.
+     * E.g., key "Cookie", value "JSESSIONID=someAuthenticatedSessionID"
+     */
+    public static Map<String,String> getRequestProperties( URL url ) 
+    {
+        if (!url.getProtocol().equals("http"))
+            return null;
+
+        final String key;
+
+        if (url.getPort() > 0)
+            key = url.getHost() + ":" + url.getPort();
+        else
+            key = url.getHost();
+
+        //System.out.println("Checking for host/port key [" + key + "] in " + HostMap);
+            
+        return HostMap.get(key);
+    }
 
 	/** 
 	 * Extract credentials from configuration of installed datasources
@@ -136,22 +152,57 @@ public class UrlAuthentication
 		// System.out.println("password " + this.password);
 		// System.out.println("host " + this.host);
 		// System.out.println("port " + this.port);
-		
-		// add http if it is not present
-		if (!host.startsWith("http://")) {
-			host = "http://" + host;
-		}	
+
+                final String hostname;
+
+                if (host.startsWith("http://")) {
+                    hostname = host.substring(7);
+                } else {
+                    hostname = host;
+                    // add http if it is not present
+                    host = "http://" + host;
+                }
+                
 		try {
-			String endpoint = host + ":" + port + "/sakai-axis/SakaiLogin.jws";
-			Service  service = new Service();
-			Call call = (Call) service.createCall();
-			
-			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
-			call.setOperationName(new QName(host + port + "/", "login"));
-			
-			sessionId = (String) call.invoke( new Object[] { username, password } );
-			hostMap.put(host, sessionId);
-			// System.out.println("Session id " + this.sessionId);
+                    String endpoint = host + ":" + port + "/sakai-axis/SakaiLogin.jws";
+                    Service  service = new Service();
+                    Call call = (Call) service.createCall();
+                    
+                    call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+                    call.setOperationName(new QName(host + port + "/", "login"));
+                    
+                    sessionId = (String) call.invoke( new Object[] { username, password } );
+
+                    // todo: the ".vue-sakai" should presumably come from the web service,
+                    // or at least from some internal config.
+                    sessionId = "JSESSIONID=" + sessionId + ".vue-sakai";
+
+                    final String hostPortKey;
+
+                    if ("80".equals(port)) {
+                        // 80 is the default port -- not encoded
+                        hostPortKey = hostname;
+                    } else {
+                        hostPortKey = hostname + ":" + port;
+                    }
+                    
+
+                    Map<String,String> httpRequestProperties;
+
+                    if ("vue-dl.tccs.tufts.edu".equals(hostname) && "8180".equals(port)) {
+                        httpRequestProperties = new HashMap();
+                        httpRequestProperties.put("Cookie", sessionId);
+                        // Special case for tufts Sakai server? Do all Sakai servers
+                        // need this?
+                        httpRequestProperties.put("Host", "vue-dl.tccs.tufts.edu:8180");
+                        httpRequestProperties = Collections.unmodifiableMap(httpRequestProperties);
+                    } else {
+                        httpRequestProperties = Collections.singletonMap("Cookie", sessionId);
+                    }
+                    HostMap.put(hostPortKey, httpRequestProperties);
+                    if (DEBUG.Enabled)
+                        System.out.println("URLAuthentication: cached auth keys for [" + hostPortKey + "]; "
+                                           + httpRequestProperties);
 		}
 		catch( MalformedURLException e ) {
 			
