@@ -395,7 +395,7 @@ public class LWImage extends
     }
     
     
-    private float  mLastPct = 0;
+    private float mLastPct = 0;
     private int mLastPctEven = 0;
     private String mStatusMsg;
 
@@ -411,7 +411,7 @@ public class LWImage extends
             if (pctEven > mLastPctEven) {
                 // todo: if last update was more than, say 100ms ago (10fps) (statically: for ANY image),
                 // also force an update
-                mStatusMsg = Integer.toString(pctEven) + '%';
+                mStatusMsg = Integer.toString(pctEven) + '%'; // todo: do in paint (no need do every time here)
                 //out("notify on " + mStatusMsg);
                 //mStatusMsg = String.format("%.1f%%", pct * 100);
                 notify(LWKey.RepaintAsync);
