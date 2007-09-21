@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.26 $ / $Date: 2007-09-19 03:26:58 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2007-09-21 03:08:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1004,30 +1004,79 @@ public class Images
             }
         
         } else if (imageSRC.readable instanceof java.net.URL) {
-            URL url = (URL) imageSRC.readable;
+            final URL url = (URL) imageSRC.readable;
+            final String asText = url.toString();
+            URL cleanURL = url;
+
+            if (asText.indexOf(' ') > 0) {
+                // Added 2007-09-20 SMF -- Sakai HTTP server is rejecting spaces in the URL path.
+                try {
+                    cleanURL = new URL(asText.replaceAll(" ", "%20"));
+                } catch (Throwable t) {
+                    Util.printStackTrace(t, asText);
+                    return null;
+                }
+            }
 
             int tries = 0;
             boolean success = false;
+
+            final boolean debug = DEBUG.IMAGE || DEBUG.IO;
+
+            final Map<String,String> sessionKeys = UrlAuthentication.getRequestProperties(url);
             
             do {
-                if (DEBUG.IMAGE) out("opening URLConnection...");
-                final URLConnection uc = url.openConnection();
-                if (DEBUG.IMAGE) out("got URLConnection: " + uc);
-                //uc.setAllowUserInteraction(true);
+                if (debug) out("opening URLConnection... (sessionKeys " + sessionKeys + ")");
+                final URLConnection conn = cleanURL.openConnection();
+
+                if (sessionKeys != null) {
+                    for (Map.Entry<String,String> e : sessionKeys.entrySet()) {
+                        if (debug) System.out.println("\tHTTP request[" + e.getKey() + ": " + e.getValue() + "]");
+                        conn.setRequestProperty(e.getKey(), e.getValue());
+                    }
+                }
+
+                if (debug) {
+                    out("got URLConnection: " + conn);
+                    final Map<String,List<String>> rp = conn.getRequestProperties();
+                    for (Map.Entry<String,List<String>> e : rp.entrySet()) {
+                        System.out.println("\toutbound HTTP header[" +e.getKey() + ": " + e.getValue() + "]");
+                    }
+                }
+                
                 if (imageSRC.resource != null) {
-                    dataSize = uc.getContentLength();
+                    dataSize = conn.getContentLength();
                     try {
-                        setResourceMetaData(imageSRC.resource, uc);
+                        setResourceMetaData(imageSRC.resource, conn);
                     } catch (Throwable t) {
                         // Don't fail if a problem with meta data: still give
                         // a chance for the content to work...
-                        tufts.Util.printStackTrace(t, "URLConnection Meta Data Failure");
+                        Util.printStackTrace(t, "URLConnection Meta Data Failure");
                         //imageSRC.resource.setProperty("MetaDataFailure", t.toString());
                     }
                 }
-                if (DEBUG.IMAGE) out("opening URL stream...");
-                urlStream = uc.getInputStream();
-                if (DEBUG.IMAGE) out("got URL stream");
+                
+                if (debug) out("opening URL stream...");
+                urlStream = conn.getInputStream();
+                if (debug) out("got URL stream");
+
+                if (debug) {
+                    out("Connected. Headers---");
+                    final Map<String,List<String>> headers = conn.getHeaderFields();
+                    for (Map.Entry<String,List<String>> e : headers.entrySet()) {
+                        System.out.println(e.getKey() + ": " + e.getValue());
+                    }
+                }
+                
+
+                if (debug) {
+                    out("Connected. Headers---");
+                    final Map<String,List<String>> headers = conn.getHeaderFields();
+                    for (Map.Entry<String,List<String>> e : headers.entrySet()) {
+                        System.out.println(e.getKey() + ": " + e.getValue());
+                    }
+                }
+                
 
                 tmpCacheFile = makeTmpCacheFile(imageSRC.key);
                 imageSRC.cacheFile = tmpCacheFile;  // will be made permanent if no errors
