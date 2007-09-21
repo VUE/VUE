@@ -57,7 +57,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.26 $ / $Date: 2007-09-18 22:06:07 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2007-09-21 03:05:53 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -222,6 +222,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
     {
         if (false) throw new java.net.MalformedURLException();
         if (mURL_Browse == null) {
+            if (spec == SPEC_UNSET)
+                return null;
             mURL_Browse = new java.net.URL(toURLString());
             if ("file".equals(mURL_Browse.getProtocol())) {
                 this.type = Resource.FILE;
