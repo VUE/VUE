@@ -109,7 +109,7 @@ public class UrlAuthentication
      */
     public static Map<String,String> getRequestProperties( URL url ) 
     {
-        if (!url.getProtocol().equals("http"))
+        if (! "http".equals(url.getProtocol()))
             return null;
 
         final String key;
