@@ -188,13 +188,12 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         
         JPanel ontologicalMembershipPane = new JPanel();
         ontologicalMembershipPane.setLayout(new BoxLayout(ontologicalMembershipPane,BoxLayout.Y_AXIS));
-        ontologicalMembershipPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createEtchedBorder()));
+        ontologicalMembershipPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
         ontologyTypeList = new JList(new OntologyTypeListModel());
         JScrollPane ontologyListScroll = new JScrollPane(ontologyTypeList);
         //ontologyListScroll.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
         ontologyListScroll.getViewport().setOpaque(false);
-        ontologicalMembershipPane.add(new JLabel("Ontological Membership: ",SwingConstants.LEFT));
-        //ontologicalMembershipPane.add(ontologyListScroll);
+        ontologicalMembershipPane.add(new JLabel("Ontological Membership: "));
         ontologicalMembershipPane.add(ontologyListScroll);
         add(ontologicalMembershipPane);
         
