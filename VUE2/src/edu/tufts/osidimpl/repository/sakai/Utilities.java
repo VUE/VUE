@@ -124,25 +124,7 @@ public class Utilities
 		throws org.osid.repository.RepositoryException
 	{
 		try {
-			boolean isSessionIdStillActive = true;
-			// actually test if it is active
-			if (isSessionIdStillActive) {
-				return (String)(sessionIdMap.get(key));
-			} else {
-				authenticationManager.authenticateUser(authenticationType);
-				if (authenticationManager.isUserAuthenticated(authenticationType)) {
-					String sessionId = (String)context.getContext("org.sakaiproject.sessionId." + key);
-					if (sessionId == null) {
-						throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
-					}
-					setSessionId(sessionId,key);
-					return sessionId;
-				} else {
-					throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
-				}
-			}
-		} catch (org.osid.authentication.AuthenticationException aex) {
-			throw new org.osid.repository.RepositoryException(org.osid.OsidException.PERMISSION_DENIED);
+			return (String)(sessionIdMap.get(key));
 		} catch (Throwable t) {
 			throw new org.osid.repository.RepositoryException(t.getMessage());
 		}

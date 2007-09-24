@@ -346,7 +346,7 @@ implements org.osid.repository.RepositoryManager
 	protected String pingForValidSession()
 	{
 		try {
-			System.out.println("Trying connection");
+			//System.out.println("Trying connection");
 			String sessionId = Utilities.getSessionId(key);
 			String endpoint = Utilities.getEndpoint();
 			//System.out.println("Endpoint " + endpoint);
@@ -355,8 +355,8 @@ implements org.osid.repository.RepositoryManager
 			
 			Service  service = new Service();
 			
-			System.out.println("Session " + sessionId);
-			System.out.println("Key " + key);
+			//System.out.println("Session " + sessionId);
+			//System.out.println("Key " + key);
 
 			//	Get the virtual root.
 			Call call = (Call) service.createCall();
@@ -380,8 +380,8 @@ implements org.osid.repository.RepositoryManager
 				}
 				Utilities.setSessionId(sessionId,key);
 				
-				System.out.println("Session " + sessionId);
-				System.out.println("Key " + key);
+				//System.out.println("Session " + sessionId);
+				//System.out.println("Key " + key);
 
 				// Setup Web Service SOAP call parameters
 				String h = configuration.getProperty("sakaiHost");
