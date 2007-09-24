@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.73 $ / $Date: 2007-09-01 16:12:32 $ / $Author: sfraize $  
+ * @version $Revision: 1.74 $ / $Date: 2007-09-24 17:25:26 $ / $Author: dan $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -58,6 +58,7 @@ class MapDropTarget
     private static final int DROP_NODE_LIST = 2;
     private static final int DROP_RESOURCE_LIST = 3;
     private static final int DROP_TEXT = 4;
+    private static final int DROP_ONTOLOGY_TYPE = 5;
 
     
     public static final int ACCEPTABLE_DROP_TYPES =
@@ -364,6 +365,12 @@ class MapDropTarget
             // to make sure the data type we got is what we expected.
             // (Can be a problem if somebody creates a bad Transferable)
             
+            if (transfer.isDataFlavorSupported(edu.tufts.vue.ontology.ui.TypeList.DataFlavor)
+            && (dropAction == DnDConstants.ACTION_LINK))
+            {
+                dropType = DROP_ONTOLOGY_TYPE;
+                foundData = extractData(transfer, edu.tufts.vue.ontology.ui.TypeList.DataFlavor);
+            } else
             if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
                 
                 foundFlavor = LWComponent.DataFlavor;
@@ -473,6 +480,9 @@ class MapDropTarget
                 break;
             case DROP_TEXT:
                 success = processDroppedText(drop);
+                break;
+            case DROP_ONTOLOGY_TYPE:
+                success = processDroppedOntologyType(drop,foundData);
                 break;
 
             default:
@@ -613,6 +623,17 @@ class MapDropTarget
                 }
             }
         }
+        return true;
+    }
+    
+    private boolean processDroppedOntologyType(DropContext drop,Object foundData)
+    {
+        if (DEBUG.DND) out("processDroppedType");
+        
+        edu.tufts.vue.metadata.VueMetadataElement ele = new edu.tufts.vue.metadata.VueMetadataElement();
+        ele.setObject(foundData);
+        drop.hit.getMetadataList().getMetadata().add(ele);
+        
         return true;
     }
 

@@ -21,7 +21,7 @@ package tufts.vue;
 import tufts.Util;
 import static tufts.Util.*;
 
-import edu.tufts.vue.metadata.action.SearchAction;
+
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
@@ -44,6 +44,8 @@ import java.util.*;
 
 import javax.swing.*;
 
+import edu.tufts.vue.metadata.action.SearchAction;
+import edu.tufts.vue.ontology.ui.TypeList;
 import edu.tufts.vue.preferences.implementations.BooleanPreference;
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.VuePrefEvent;
@@ -71,7 +73,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.445 $ / $Date: 2007-09-19 22:15:51 $ / $Author: dan $ 
+ * @version $Revision: 1.446 $ / $Date: 2007-09-24 17:25:26 $ / $Author: dan $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4044,6 +4046,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             DataFlavor.stringFlavor,
             DataFlavor.imageFlavor,
             MapResource.DataFlavor,
+            TypeList.DataFlavor
             //URLFlavor, // try text/uri-list
         };
 
@@ -4091,6 +4094,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
                 Object data = null;
         
+                
+                if(TypeList.DataFlavor.equals(flavor)){
+                   data = LWC.getMetadataList().getMetadata().get(0).getObject();
+                } else
                 if (DataFlavor.stringFlavor.equals(flavor)) {
                     
                     String s = null;

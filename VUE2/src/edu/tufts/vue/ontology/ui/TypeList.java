@@ -56,7 +56,10 @@ import tufts.vue.gui.*;
  *
  * @author dhelle01
  */
-public class TypeList extends JList {
+public class TypeList extends JList { 
+    
+    public static final java.awt.datatransfer.DataFlavor DataFlavor =
+        tufts.vue.gui.GUI.makeDataFlavor(TypeList.class);
     
     public static int count = 0;
     

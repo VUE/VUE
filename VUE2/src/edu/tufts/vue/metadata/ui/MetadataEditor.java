@@ -56,6 +56,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     private JScrollPane scroll;
     private tufts.vue.LWComponent current;
     
+    private JList ontologyTypeList;
+    
     private int buttonColumn = 1;
     
     public MetadataEditor(tufts.vue.LWComponent current)
@@ -183,6 +185,12 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         optionsPanel.add(advancedSearch);
         optionsPanel.add(optionsLabel);
         add(optionsPanel);
+        
+        
+        ontologyTypeList = new JList(new OntologyTypeListModel());
+        add(new JScrollPane(ontologyTypeList));
+        //add(ontologyTypeList);
+        
         tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
         
         validate();
@@ -230,6 +238,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
          }
          
          ((MetadataTableModel)metadataTable.getModel()).refresh();
+         ((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
        }
     }
     
@@ -598,7 +607,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                  public void mouseExited(MouseEvent me)
                  {
                      //System.out.println("MetadataEditor table cell - exited: " + me);
-                     System.out.println("MetadataEditor -  mouse exited table - " + me);
+                     //System.out.println("MetadataEditor -  mouse exited table - " + me);
                        stopCellEditing();
                  }
              });
@@ -679,7 +688,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   //$
                     if(!(ele.getObject() instanceof String[]))
                     {
-                      System.out.println("MetadataEditor: returning non string[] element of type -- " + ele.getObject().getClass());
+                      //System.out.println("MetadataEditor: returning non string[] element of type -- " + ele.getObject().getClass());
                       return ele.getObject();
                     }
                   //$
@@ -695,7 +704,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                 }
                 else
                 {
-                  System.out.println("MetadataEditor - creating new empty tag in getValueAt() ");
+                  //System.out.println("MetadataEditor - creating new empty tag in getValueAt() ");
                   VueMetadataElement vme = new VueMetadataElement();
                   String[] emptyEntry = {"Tag",""};
                   vme.setObject(emptyEntry);
@@ -745,7 +754,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                }
                else
                {
-                  System.out.println("MetadataEditor - creating new empty tag in getValueAt() from text field column ");
+                  //System.out.println("MetadataEditor - creating new empty tag in getValueAt() from text field column ");
                   VueMetadataElement vme = new VueMetadataElement();
                   String[] emptyEntry = {"Tag",""};
                   vme.setObject(emptyEntry);
@@ -801,6 +810,43 @@ public class MetadataEditor extends JPanel implements ActiveListener {
              fireTableDataChanged();
          }
          
+    }
+    
+    class OntologyTypeListModel extends DefaultListModel
+    {
+        /*public void removeListDataListener(ListDataListener l)
+        {
+            
+        }
+        
+        public void addListDataListener(ListDataListener l)
+        {
+            
+        }*/
+        
+        public Object getElementAt(int i)
+        {
+            Object ele = current.getMetadataList().getOntologyListElement(i).getObject();
+            if(ele != null && ele instanceof OntType)
+                return ((OntType)ele).getLabel();
+            else if(ele != null)
+                return ele.toString();
+            else
+                return "";
+        }
+        
+        public int getSize()
+        {
+            if(current !=null)
+              return current.getMetadataList().getOntologyListSize();
+            else
+              return 0;
+        }
+        
+        public void refresh()
+        {
+             fireContentsChanged(this,0,getSize());
+        }
     }
     
 }

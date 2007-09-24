@@ -24,7 +24,7 @@
  */
 package edu.tufts.vue.style;
 
-public class NodeStyle extends Style {
+public class NodeStyle extends Style implements java.io.Serializable {
     public static final Style DEFAULT_NODE_STYLE = new NodeStyle(new String("Default"));
    
     public static final String[] DEFAULT_KEYS = {"background"};

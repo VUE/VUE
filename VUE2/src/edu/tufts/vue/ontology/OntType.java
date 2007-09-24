@@ -27,7 +27,7 @@ package edu.tufts.vue.ontology;
 import edu.tufts.vue.style.*;
 
 
-public class OntType {
+public class OntType implements java.io.Serializable {
     private String id;
     private String label;
     private String base;
