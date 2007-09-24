@@ -186,10 +186,17 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         optionsPanel.add(optionsLabel);
         add(optionsPanel);
         
-        
+        JPanel ontologicalMembershipPane = new JPanel();
+        ontologicalMembershipPane.setLayout(new BoxLayout(ontologicalMembershipPane,BoxLayout.Y_AXIS));
+        ontologicalMembershipPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createEtchedBorder()));
         ontologyTypeList = new JList(new OntologyTypeListModel());
-        add(new JScrollPane(ontologyTypeList));
-        //add(ontologyTypeList);
+        JScrollPane ontologyListScroll = new JScrollPane(ontologyTypeList);
+        //ontologyListScroll.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+        ontologyListScroll.getViewport().setOpaque(false);
+        ontologicalMembershipPane.add(new JLabel("Ontological Membership: ",SwingConstants.LEFT));
+        //ontologicalMembershipPane.add(ontologyListScroll);
+        ontologicalMembershipPane.add(ontologyListScroll);
+        add(ontologicalMembershipPane);
         
         tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
         
