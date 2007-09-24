@@ -46,6 +46,7 @@ public class AssetMetadataTest extends TestCase
 			org.osid.shared.Id id = nextAsset.getId();
 			try {
 				String idString = id.getIdString();
+				System.out.println("asset's id is " + idString);
 				assertEquals("seeking identifier " + expected,expected,idString);
 				System.out.println("PASSED: Asset's Id " + index + " " + expected);
 			} catch (org.osid.shared.SharedException iex) {

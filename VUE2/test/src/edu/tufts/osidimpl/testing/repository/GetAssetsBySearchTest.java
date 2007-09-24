@@ -45,6 +45,8 @@ public class GetAssetsBySearchTest extends TestCase
 			try {
 				repository = repositoryManager.getRepository(repositoryId);
 			} catch (Throwable t) {
+				System.out.println("RepositoryManager " + repositoryManager);
+				try { System.out.println("Repository Id " + repositoryId.getIdString()); } catch (Throwable t1) {}
 				fail("No repositoryid attribute or no Repository found");
 			}
 				
