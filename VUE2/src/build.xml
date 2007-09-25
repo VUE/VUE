@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.141 $ / $Date: 2007-09-20 12:48:57 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.141 2007-09-20 12:48:57 anoop Exp $ -->
+<!-- $Revision: 1.142 $ / $Date: 2007-09-25 14:16:08 $ / $Author: jeff $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.142 2007-09-25 14:16:08 jeff Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -134,7 +134,7 @@
                                    commons-httpclient-3.1-beta1.jar 
                    okiOSID-2.0a.jar
 				   HiveAuthentication-1.0.jar
-				   HiveRepositoryRegistry-1.0.jar
+				   HiveRepositoryRegistry-1.0a.jar
 				   HiveSupport-1.0.jar
 				   OSIDLoggingPlain-1.0.jar
                    xercesImpl-2.7.1.jar
@@ -342,7 +342,7 @@
     <pathelement path="${lib.home}/OsidRegistry.jar" />
     <pathelement path="${lib.home}/MIT-OTS.jar" />
     <pathelement path="${lib.home}/HiveAuthentication-1.0.jar" />
-    <pathelement path="${lib.home}/HiveRepositoryRegistry-1.0.jar" />
+    <pathelement path="${lib.home}/HiveRepositoryRegistry-1.0a.jar" />
     <pathelement path="${lib.home}/HiveSupport-1.0.jar" />
 
     <pathelement path="${lib.home}/jaxb-api.jar" />
@@ -724,11 +724,11 @@
           description="Create SakaiRepository-1.0.jar containing all supporting files">
 
     <mkdir dir="dist/lib/osid"/>    
-    <delete file="dist/lib/osid/SakaiRepository-1.0.jar"/>
-    <jar jarfile="dist/lib/osid/SakaiRepository-1.0.jar"
+    <delete file="dist/lib/osid/SakaiRepository-1.0a.jar"/>
+    <jar jarfile="dist/lib/osid/SakaiRepository-1.0a.jar"
          basedir="${build.class}" 
          includes="edu/tufts/osidimpl/repository/sakai/*.class"/>
-    <jar jarfile="dist/lib/osid/SakaiRepository-1.0.jar"
+    <jar jarfile="dist/lib/osid/SakaiRepository-1.0a.jar"
          basedir="${build.class}" 
 		 update="true"
          includes="edu/tufts/osidimpl/authentication/sakai/*.class"/>
