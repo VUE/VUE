@@ -1,5 +1,9 @@
 package edu.tufts.vue.util;
 
+import tufts.Util;
+import tufts.vue.VUE;
+import tufts.vue.DEBUG;
+
 /*
  * -----------------------------------------------------------------------------
  *
@@ -23,17 +27,35 @@ package edu.tufts.vue.util;
   */
 public class Logger
 {
-	public static void log(Throwable t,
-					  String message) {
+    // just to mark stuff coming from this logger
+    private static final String Tag = "[ETVUL] ";
+    
+	public static void log(Throwable t, String message) {
+
+            if (DEBUG.Enabled) {
+                Util.printStackTrace(t, message);
+            } else {
+                VUE.Log.info(Tag + t + "; " + message);
+                //t.printStackTrace();
+            }
+            
 		//System.out.println(message);
 		//t.printStackTrace();
 	}
 
 	public static void log(String message) {
-		//System.out.println(message);
+            VUE.Log.info(Tag + message);
+            //if (DEBUG.Enabled) VUE.Log.info(message);
+            //System.out.println(message);
 	}
 
 	public static void log(Throwable t) {
+            if (DEBUG.Enabled) {
+                Util.printStackTrace(t);
+            } else {
+                VUE.Log.info(Tag + t);
+                t.printStackTrace();
+            }
 		//t.printStackTrace();
 		//System.out.println(t.getMessage());
 	}
