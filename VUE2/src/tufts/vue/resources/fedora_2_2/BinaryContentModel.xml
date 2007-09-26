@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject PID="demo:VUEImage"
+  fedoraxsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-0.xsd"
+  xmlns:audit="info:fedora/fedora-system:def/audit#" xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:foxml="info:fedora/fedora-system:def/foxml#">
+  <foxml:objectProperties>
+    <foxml:property NAME="http://www.w3.org/1999/02/22-rdf-syntax-ns#type" VALUE="FedoraObject"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+   <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="%TITLE%"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="%OWNER%"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="%CREATE_DATE%"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="%CREATE_DATE%"/>
+    <foxml:property NAME="info:fedora/fedora-system:def/model#contentModel" VALUE="%CONTENT_MODEL%"/>
+  </foxml:objectProperties>
+  <foxml:datastream CONTROL_GROUP="X" ID="DC" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion CREATED="2007-08-30T18:38:56.638Z" ID="DC1.0" LABEL="Dublin Core Metadata"
+      MIMETYPE="text/xml">
+      <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
+      <foxml:xmlContent>
+        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
+          <dc:title>VUE Image Content Model - Demo Object</dc:title>
+          <dc:identifier>demo:VUEImage</dc:identifier>
+        </oai_dc:dc>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream CONTROL_GROUP="X" ID="RELS-EXT" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion CREATED="2007-08-17T23:08:38.024Z" ID="RELS-EXT.0" LABEL="Relationships to other objects" MIMETYPE="text/xml">
+      <foxml:xmlContent>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rel="info:fedora/fedora-system:def/relations-external#">
+          <rdf:Description rdf:about="info:fedora/demo:VUEImage">
+            <rel:isInVUEMap rdf:resource="info:fedora/demo:VUEMap2"/>
+            <rel:isPartOf rdf:resource="info:fedora/demo:obj1"/>
+            <rel:isPartOf rdf:resource="info:fedora/demo:obj2"/>
+            <rel:isRelatedTo rdf:resource="info:fedora/demo:obj3"/>
+          </rdf:Description>
+        </rdf:RDF>
+      </foxml:xmlContent>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+  <foxml:datastream CONTROL_GROUP="M" ID="RESOURCE" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion CREATED="%CREATE_DATE%" ID="RESOURCE.0" LABEL="VUE Resource" MIMETYPE="%MIME_TYPE%">
+      <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
+      <foxml:contentLocation
+        REF="%UPLOAD%" TYPE="INTERNAL_ID"/>
+    </foxml:datastreamVersion>
+  </foxml:datastream>
+</foxml:digitalObject>
