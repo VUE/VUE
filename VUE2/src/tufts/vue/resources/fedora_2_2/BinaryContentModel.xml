@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<foxml:digitalObject PID="demo:VUEImage"
+<foxml:digitalObject PID="%PID%"
   fedoraxsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-0.xsd"
   xmlns:audit="info:fedora/fedora-system:def/audit#" xmlns:fedoraxsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:foxml="info:fedora/fedora-system:def/foxml#">
   <foxml:objectProperties>
@@ -17,8 +17,7 @@
       <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
       <foxml:xmlContent>
         <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-          <dc:title>VUE Image Content Model - Demo Object</dc:title>
-          <dc:identifier>demo:VUEImage</dc:identifier>
+          %DC
         </oai_dc:dc>
       </foxml:xmlContent>
     </foxml:datastreamVersion>

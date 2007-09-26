@@ -17,8 +17,7 @@
       <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
       <foxml:xmlContent>
         <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-          <dc:title>VUE Content Model 1 - Demo Object</dc:title>
-          <dc:identifier>demo:VUEMap</dc:identifier>
+         %DC%
         </oai_dc:dc>
       </foxml:xmlContent>
     </foxml:datastreamVersion>
