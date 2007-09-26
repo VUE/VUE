@@ -94,6 +94,20 @@ public class AssetMetadataTest extends TestCase
 					String partValue = null;
 					if (ser instanceof String) {
 						partValue = (String)ser;
+					} else if (ser instanceof Integer) {
+						partValue = ((Integer)ser).toString();
+					} else if (ser instanceof String[]) {
+						// create a string that is the concatenation of
+						// string values in the array; use semicolon as delimiter
+						String s[] = (String[])ser;
+						StringBuffer sb = new StringBuffer();
+						int len = s.length-1;
+						for (int x=0; x < len; x++) {
+							sb.append(s[x]);
+							sb.append(";");
+						}
+						if (len >= 0) sb.append(s[len]);
+						partValue = sb.toString();
 					}
 					typeVector.addElement(partStructureTypeString);
 					partVector.addElement(partValue);
