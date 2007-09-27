@@ -37,14 +37,13 @@ import java.net.*;
 import org.apache.commons.net.ftp.*;
 import java.util.*;
 
-
 import fedora.server.management.FedoraAPIM;
 import fedora.server.utilities.StreamUtility;
 //import fedora.client.ingest.AutoIngestor;
 
 import tufts.vue.action.*;
 
-//required for publishing to Fedora 
+//required for publishing to Fedora
 
 import fedora.client.FedoraClient;
 import fedora.client.utility.ingest.AutoIngestor;
@@ -54,9 +53,9 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.48 $ / $Date: 2007-09-20 13:52:50 $ / $Author: anoop $
+ * @version $Revision: 1.49 $ / $Date: 2007-09-27 17:37:52 $ / $Author: anoop $
  */
-public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants {
+public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
     /** Creates a new instance of Publisher */
     //todo: Create an interface for datasources and have separate implementations for each type of datasource.
@@ -71,10 +70,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int PUB_WIDTH = 500;
     public static final int PUB_HEIGHT = 250;
     public static final String[] PUBLISH_INFORMATION = {"The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
-    "“Export Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
-    "“Export IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
-    "“Export All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
-    "“Export IMSCP Map to Sakai” saves concept map in Sakai content hosting system.","Zips map with local resources."
+    "“Publish Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
+    "“Publish IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
+    "“Publish All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
+    "“Publish IMSCP Map to Sakai” saves concept map in Sakai content hosting system.","Zips map with local resources."
     };
     
     public static final String[] MODE_LABELS = {"Map only","Map and resources","Zip bundle"};
@@ -96,16 +95,24 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private static final String IMSCP_MANIFEST_RESOURCES = "%resources%";
     
     
+    private org.osid.shared.Type sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
+    private org.osid.shared.Type fedoraRepositoryType = new edu.tufts.vue.util.Type("tufts.edu","repository","fedora_2_2");
+    
+    
+    int count = 0;
     
     JPanel modeSelectionPanel;
     JPanel resourceSelectionPanel;
     
     JButton backButton;
     JButton finishButton;
-    JRadioButton publishMapRButton;
+    JRadioButton publishMapRButton ;
+    JRadioButton    publishMapAllRButton ;
+    JRadioButton    publishZipRButton ;
+    
     // JRadioButton publishCMapRButton;
     JRadioButton publishSakaiRButton;
-    JRadioButton publishZipRButton;
+    
     // JRadioButton publishAllRButton;
     JTextArea informationArea;
     JPanel buttonPanel;
@@ -115,7 +122,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JButton nextButton = new JButton(NEXT);
     JButton cancelButton = new JButton(CANCEL);
     JButton publishButton = new JButton(PUBLISH);
-    JButton modeNext = new JButton("Next");
+    //JButton modeNext = new JButton("Next");
     JButton modeCancel = new JButton("Cancel");
     public static Vector resourceVector;
     File activeMapFile;
@@ -123,7 +130,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static JTable resourceTable;
     JComboBox dataSourceComboBox;
     
-    ButtonGroup modeButtons;
+    ButtonGroup modeButtons = new ButtonGroup();
+    java.util.List<JRadioButton> modeRadioButtons;
+    JList repList;
     public Publisher(Frame owner,String title) {
         //testing
         super(owner,title,true);
@@ -131,15 +140,14 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     private void initialize() {
         
-        finishButton = new JButton("Finish");   
+        finishButton = new JButton("Finish");
         backButton = new JButton("< Back");
         cancelButton.addActionListener(this);
         finishButton.addActionListener(this);
         nextButton.addActionListener(this);
         backButton.addActionListener(this);
-        nextButton.addActionListener(this);
         cancelButton.addActionListener(this);
-        modeNext.addActionListener(this);
+        //modeNext.addActionListener(this);
         publishButton.addActionListener(this);
         //setUpModeSelectionPanel();
         setUpRepositorySelectionPanel();
@@ -166,8 +174,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         rPanel.add(repositoryLabel,BorderLayout.NORTH);
         //adding the repository list
         //TODO: Populate this with actual repositories
-        String[] data = {"Repository 1", "Repository 2", "Repository 3"};
-        JList repList = new JList(data);
+        repList = new JList();
+        repList.setModel(new DatasourceListModel());
+        repList.setCellRenderer(new DatasourceListCellRenderer());
         JScrollPane repPane = new JScrollPane(repList);
         JPanel scrollPanel = new JPanel(new BorderLayout());
         scrollPanel.add(repPane);
@@ -176,24 +185,42 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     
     private void setUpModeSelectionPanel() {
+        //System.out.println("Counter: "+count);
+        //count++;
         SpringLayout layout = new SpringLayout();
         
         // adding the modes
         JPanel mainPanel = new JPanel();
+        
         //mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.X_AXIS));
         mainPanel.setLayout(layout);
         JLabel publishLabel = new JLabel("Publish as");
         publishLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         mainPanel.add(publishLabel);
+        
         //adding the option Panel
-        JPanel optionPanel = new JPanel();
-        optionPanel.setLayout(new BoxLayout(optionPanel,BoxLayout.Y_AXIS));
-        java.util.List<JRadioButton> radioButtons = createRadioButtons();
-        for(JRadioButton b: radioButtons) {
-            optionPanel.add(b);
-             
-        }
+        JPanel optionPanel = new JPanel(new GridLayout(0, 1));
+        //optionPanel.setLayout(new BoxLayout(optionPanel,BoxLayout.Y_AXIS));
+        publishMapRButton = new JRadioButton(MODE_LABELS[0]);
+        publishMapAllRButton = new JRadioButton(MODE_LABELS[1]);
+        publishZipRButton = new JRadioButton(MODE_LABELS[2]);
+        publishZipRButton.setEnabled(false);
+        
+        modeButtons.add(publishMapRButton);
+        modeButtons.add(publishMapAllRButton);
+        modeButtons.add(publishZipRButton);
+        optionPanel.add(publishMapRButton);
+        
+        
+        optionPanel.add(publishMapAllRButton);
+        optionPanel.add(publishZipRButton);
+        
+        publishMapRButton.addActionListener(this);
+        publishMapAllRButton.addActionListener(this);
+        
+        //   modeButtons.setSelected(radioButtons.get(0).getModel(),true);
         optionPanel.setBorder(BorderFactory.createEmptyBorder(10,5,0,0));
+        optionPanel.validate();
         mainPanel.add(optionPanel);
         
         // addding modeInfo
@@ -207,7 +234,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         //modeInfo.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         modeInfo.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.DARK_GRAY),BorderFactory.createEmptyBorder(5,5,5,5)));
         mainPanel.add(modeInfo);
-        
+        mainPanel.validate();
         
         // setting up cnstraints
         layout.putConstraint(SpringLayout.WEST, publishLabel,10,SpringLayout.WEST, mainPanel);
@@ -224,128 +251,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         buttonPanel.add(publishButton,BorderLayout.EAST);
     }
     
-    private  java.util.List<JRadioButton> createRadioButtons() {
-        java.util.List<JRadioButton> radioList = new ArrayList<JRadioButton>();
-        modeButtons = new ButtonGroup();
-        for(int i=0;i < MODE_LABELS.length;i++) {
-            JRadioButton button = new JRadioButton(MODE_LABELS[i]);
-            radioList.add(button);
-            modeButtons.add(button);
-        }
-        return radioList;
-        
-    }
-    private void old_setUpModeSelectionPanel() {
-        
-        modeSelectionPanel = new JPanel();
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-        modeSelectionPanel.setLayout(gridbag);
-        Insets defaultInsets = new Insets(2,0,2,2);
-        
-        ButtonGroup modeSelectionGroup = new ButtonGroup();
-        JLabel topLabel = new JLabel("Location");
-        JLabel modeLabel = new JLabel("Mode");
-        
-        PolygonIcon lineIcon = new PolygonIcon(Color.DARK_GRAY);
-        lineIcon.setIconWidth(PUB_WIDTH-40);
-        lineIcon.setIconHeight(1);
-        JLabel lineLabel = new JLabel(lineIcon);
-        //area for displaying information about publishing mode
-        informationArea = new JTextArea(" The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.");
-        informationArea.setEditable(false);
-        informationArea.setLineWrap(true);
-        informationArea.setWrapStyleWord(true);
-        informationArea.setRows(4);
-        informationArea.setBorder(new LineBorder(Color.BLACK));
-        //informationArea.setBackground(Color.WHITE);
-        informationArea.setSize(PUB_WIDTH-50, PUB_HEIGHT/3);
-        JLabel dsLabel = new JLabel("Where would you like to save the map:");
-        dataSourceComboBox = new JComboBox(DataSourceViewer.getPublishableDataSources(Publishable.PUBLISH_ALL_MODES));
-        dataSourceComboBox.setToolTipText("Select export location.");
-        dataSourceComboBox.addActionListener(this);
-        JPanel buttonPanel = new JPanel();
-        BoxLayout buttonLayout = new BoxLayout(buttonPanel, BoxLayout.Y_AXIS);
-        buttonPanel.setLayout(buttonLayout);
-        publishMapRButton = new JRadioButton("Export Map");
-        publishZipRButton = new JRadioButton("Export to Zip File");
-        //publishCMapRButton = new JRadioButton("Export IMSCP Map");
-        publishSakaiRButton = new JRadioButton("Export IMSCP Map to Sakai");
-        //       publishAllRButton = new JRadioButton("Export All");
-        publishMapRButton.setToolTipText("Export map only without local resource files.");
-        publishZipRButton.setToolTipText("Export map and local resources to a zip file");
-        //    publishCMapRButton.setToolTipText("Export IMS content package that include local resource files.");
-        publishSakaiRButton.setToolTipText("Export alreday saved IMS content package to Sakai content hosting.");
-//        publishAllRButton.setToolTipText("Export map and local resources as separate files.");
-        publishMapRButton.addActionListener(this);
-        publishZipRButton.addActionListener(this);
-        // publishCMapRButton.addActionListener(this);
-        publishSakaiRButton.addActionListener(this);
-        //   publishAllRButton.addActionListener(this);
-        modeSelectionGroup.add(publishMapRButton);
-        modeSelectionGroup.add(publishZipRButton);
-        // modeSelectionGroup.add(publishCMapRButton);
-        modeSelectionGroup.add(publishSakaiRButton);
-        //  modeSelectionGroup.add(publishAllRButton);
-        //buttonPanel.add(modeLabel);
-        buttonPanel.add(publishMapRButton);
-        buttonPanel.add(publishZipRButton);
-        // buttonPanel.add(publishCMapRButton);
-        buttonPanel.add(publishSakaiRButton);
-        //   buttonPanel.add(publishAllRButton);
-        JPanel bottomPanel = new JPanel();
-        // bottomPanel.setBorder(new LineBorder(Color.BLACK));
-        
-        bottomPanel.add(nextButton);
-        bottomPanel.add(finishButton);
-        bottomPanel.add(cancelButton);
-        //bottomPanel.setSize(PUB_WIDTH/3, PUB_HEIGHT/10);
-        
-        
-        nextButton.setEnabled(false);
-        finishButton.setEnabled(false);
-        
-        c.weightx = 0;
-        c.gridwidth = GridBagConstraints.RELATIVE;
-        c.anchor = GridBagConstraints.WEST;
-        c.insets = new Insets(20,5,5, 2);;
-        gridbag.setConstraints(topLabel, c);
-        modeSelectionPanel.add(topLabel);
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        gridbag.setConstraints(dataSourceComboBox,c);
-        modeSelectionPanel.add(dataSourceComboBox);
-        
-        
-        c.gridwidth = GridBagConstraints.RELATIVE;
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.insets = new Insets(5,5,5, 2);
-        gridbag.setConstraints(modeLabel,c);
-        modeSelectionPanel.add(modeLabel,c);
-        
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        //c.insets = new Insets(10,0,10, 2);
-        //c.fill = GridBagConstraints.HORIZONTAL;
-        gridbag.setConstraints(buttonPanel, c);
-        modeSelectionPanel.add(buttonPanel);
-        
-        c.weightx = 1;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        c.insets = new Insets(20,0,0, 2);
-        c.fill = GridBagConstraints.HORIZONTAL;
-        gridbag.setConstraints(lineLabel, c);
-        modeSelectionPanel.add(lineLabel);
-        
-        
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        c.fill = GridBagConstraints.NONE;
-        c.anchor = GridBagConstraints.EAST;
-        c.insets = new Insets(10,0,10, 2);
-        gridbag.setConstraints(bottomPanel, c);
-        modeSelectionPanel.add(bottomPanel);
-        
-    }
+    
+    
+    
     
     private void  setUpResourceSelectionPanel() {
         resourceSelectionPanel = new JPanel();
@@ -453,62 +361,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
     }
     
-    public void publishMap(LWMap map) {
-        
-        try {
-            ((Publishable)dataSourceComboBox.getSelectedItem()).publish(Publishable.PUBLISH_MAP,tufts.vue.VUE.getActiveMap());
-            this.dispose();
-        } catch (Exception ex) {
-            alert(VUE.getDialogParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
-            ex.printStackTrace();
-        }
-    }
-    
-    public void publishZip() {
-        try {
-            ((Publishable)dataSourceComboBox.getSelectedItem()).publish(Publishable.PUBLISH_ZIP,tufts.vue.VUE.getActiveMap());
-            this.dispose();
-        } catch (Exception ex) {
-            alert(VUE.getDialogParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
-            ex.printStackTrace();
-        }
-    }
-    public void publishMap() {
-        try {
-            publishMap((LWMap)VUE.getActiveMap().clone());
-        } catch (Exception ex) {
-            alert(VUE.getDialogParent(), "Export Not Supported:"+ex.getMessage(), "Export Error");
-            ex.printStackTrace();
-        }
-        
-    }
-    
-    public void publishCMap() {
-        try {
-            
-            ((Publishable)dataSourceComboBox.getSelectedItem()).publish(Publishable.PUBLISH_CMAP,tufts.vue.VUE.getActiveMap());
-            
-            this.dispose();
-        } catch (Exception ex) {
-            VueUtil.alert(null, "Export Not Supported:"+ex.getMessage(), "Export Error");
-            ex.printStackTrace();
-        }
-        
-    }
-    
-    public  void publishAll() {
-        try {
-            ((Publishable)dataSourceComboBox.getSelectedItem()).publish(Publishable.PUBLISH_ALL,tufts.vue.VUE.getActiveMap());
-            
-            this.dispose();
-            
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            VueUtil.alert(null, ex.getMessage(), "Export Error");
-        }
-    }
-    
-    
     
     
     public void actionPerformed(ActionEvent e) {
@@ -516,122 +368,40 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             this.dispose();
         }else if(e.getActionCommand().equals(NEXT)) {
             getContentPane().remove(rPanel);
-            validateTree();
+            //validateTree();
             setUpModeSelectionPanel();
             getContentPane().add(mPanel, BorderLayout.CENTER);
             getContentPane().validate();
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
+            
             System.out.println("Publishing Map to Default Fedora Repository");
             publishActiveMapToVUEDL();
         }
+        if(e.getActionCommand().equals(MODE_LABELS[0])){
+            modeInfo.setText(PUBLISH_INFORMATION[1]);
+        }
+        if(e.getActionCommand().equals(MODE_LABELS[1])){
+            modeInfo.setText(PUBLISH_INFORMATION[3]);
+        }
+        
     }
-   private void   publishActiveMapToVUEDL() {
-       FedoraPublisher.uploadMap("https", "vue-dl.tccs.tufts.edu", 8443, "fedoraAdmin", "vuefedora",VUE.getActiveMap());
-      
-   }
-    public void old_actionPerformed(ActionEvent e) {
-        if(e.getSource() == cancelButton) {
-            this.dispose();
-        }
+    private void   publishActiveMapToVUEDL() {
+        //      System.out.println("Button: "+ publishMapRButton.getActionCommand()+"class:"+publishMapRButton+" is selected: "+publishMapRButton.isSelected()+" Mode:"+modeButtons.getSelection());
+        //        System.out.println("Button: "+ publishMapAllRButton.getActionCommand()+"class:"+publishMapAllRButton+" is selected: "+publishMapAllRButton.isSelected());
+        //System.out.println("Button: "+ publishZipRButton.getActionCommand()+"class:"+publishZipRButton+" is selected: "+publishZipRButton.isSelected());
         
-        if(e.getSource() == finishButton) {
-            this.dispose();
-            if(stage == 1) {
-                if(publishMapRButton.isSelected())
-                    publishMap();
-            }else {
-                if(publishZipRButton.isSelected())
-                    publishZip();
-            }
-            
-        }
-        if(e.getSource() == nextButton) {
-            this.getContentPane().remove(modeSelectionPanel);
-            this.getContentPane().validate();
-            this.validateTree();
-            if(stage == 1) {
-                setUpResourceSelectionPanel();
-                this.getContentPane().add(resourceSelectionPanel);
-                this.getContentPane().validate();
-            }
-            stage++;
-            
-        }
-        if(e.getSource() == backButton) {
-            this.getContentPane().remove(resourceSelectionPanel);
-            setUpModeSelectionPanel();
-            modeSelectionPanel.validate();
-            this.getContentPane().add(modeSelectionPanel);
-            this.getContentPane().validate();
-            this.validateTree();
-            stage--;
-        }
+        if(publishMapRButton.isSelected())
+            FedoraPublisher.uploadMap("https", "vue-dl.tccs.tufts.edu", 8443, "fedoraAdmin", "vuefedora",VUE.getActiveMap());
+        else if(publishMapAllRButton.isSelected())
+            FedoraPublisher.uploadMapAll("https", "vue-dl.tccs.tufts.edu", 8443, "fedoraAdmin", "vuefedora",VUE.getActiveMap());
+        else
+            alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
         
-        if(e.getSource() == publishMapRButton) {
-            finishButton.setEnabled(true);
-            nextButton.setEnabled(false);
-            publishMode = Publishable.PUBLISH_MAP;
-            updatePublishPanel();
-        }
-        if(e.getSource() == publishZipRButton) {
-            finishButton.setEnabled(false);
-            nextButton.setEnabled(true);
-            publishMode = Publishable.PUBLISH_ZIP;
-            updatePublishPanel();
-        }
-        /*
-        if(e.getSource() == publishCMapRButton ) {
-            finishButton.setEnabled(false);
-            nextButton.setEnabled(true);
-            publishMode = PUBLISH_CMAP;
-            updatePublishPanel();
-        }
-         */
-        if(e.getSource() == publishSakaiRButton) {
-            finishButton.setEnabled(false);
-            nextButton.setEnabled(true);
-            publishMode = Publishable.PUBLISH_SAKAI;
-            //updatePublishPanel();
-            System.out.println("Sakai Data Sources:");
-            try {
-                SakaiExport sakaiExport = new SakaiExport(DataSourceViewer.dataSourceManager);
-                SakaiCollectionDialog scd = new SakaiCollectionDialog(sakaiExport.getSakaiDataSources());
-            } catch (Throwable t) {
-                
-            }
-            this.dispose();
-        }
-                /*   if(e.getSource() == publishAllRButton) {
-            finishButton.setEnabled(false);
-            nextButton.setEnabled(true);
-            publishMode = PUBLISH_ALL;
-            updatePublishPanel();
-        }*/
-        if(e.getSource() == dataSourceComboBox) {
-            Publishable p = (Publishable)dataSourceComboBox.getSelectedItem();
-            if(p.supportsMode(Publishable.PUBLISH_MAP))
-                publishMapRButton.setEnabled(true);
-            else
-                publishMapRButton.setEnabled(false);
-            //  if(p.supportsMode(Publishable.PUBLISH_CMAP))
-            //      publishCMapRButton.setEnabled(true);
-            //  else
-            //     publishCMapRButton.setEnabled(false);
-           /* if(p.supportsMode(Publishable.PUBLISH_ALL))
-                publishAllRButton.setEnabled(true);
-            else
-                publishAllRButton.setEnabled(false);
-            */
-        }
+        System.out.println("Selected"+ repList.getSelectedValue()+ " Class of selected:"+repList.getSelectedValue().getClass());
         
     }
     
-    
-    private void updatePublishPanel() {
-        informationArea.setText(PUBLISH_INFORMATION[publishMode]);
-        //this.dataSourceComboBox.setModel(new DefaultComboBoxModel(DataSourceViewer.getPublishableDataSources(publishMode)));
-    }
     
     
     private void alert(Component parentComponent,String message,String title) {
@@ -640,7 +410,70 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     
     
-    
+    class DatasourceListCellRenderer extends   DefaultListCellRenderer  {
+        
+        private JPanel composite = new JPanel(new BorderLayout());
+        private JRadioButton radioButton;
+        
+        public Component getListCellRendererComponent(
+                JList list, Object value, int index,
+                boolean isSelected, boolean cellHasFocus) {
+            JLabel label = (JLabel)super.getListCellRendererComponent(
+                    list, (value instanceof edu.tufts.vue.dsm.DataSource? ((edu.tufts.vue.dsm.DataSource)value).getRepositoryDisplayName():value) , index, isSelected, cellHasFocus);
+            //label.setOpaque(false);
+            label.setBackground(Color.WHITE);
+            label.setBorder(null);
+            if(isSelected) {
+                label.setForeground(Color.BLACK);
+            } else {
+                label.setForeground(Color.DARK_GRAY);
+            }
+            if (composite.getComponentCount() == 0) {
+                radioButton = new JRadioButton();
+                radioButton.setBackground(Color.WHITE);
+                composite.add(label, BorderLayout.CENTER);
+                composite.add(radioButton, BorderLayout.WEST);
+            }
+            radioButton.setSelected(isSelected);
+            return composite;
+        }
+    }
+    class DatasourceListModel extends DefaultListModel {
+        
+        edu.tufts.vue.dsm.DataSource[] datasources;
+        public DatasourceListModel() {
+            datasources = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
+            // check for fedora
+        }
+        public Object getElementAt(int index) {
+            try {
+                
+                System.out.println("Datesource Name:"+datasources[index].getRepository().getDisplayName()+" Type:"+datasources[index].getRepository().getType().getAuthority()+" keyword:"+datasources[index].getRepository().getType().getKeyword());
+            } catch(org.osid.repository.RepositoryException ex) {
+                ex.printStackTrace();
+            }
+            return(getResources(fedoraRepositoryType).get(index));
+        }
+        
+        public int getSize() {
+            return getResources(fedoraRepositoryType).size();
+             
+        }
+        
+        private java.util.List<edu.tufts.vue.dsm.DataSource> getResources(org.osid.shared.Type type) {
+            java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
+            for(int i=0;i<datasources.length;i++) {
+                try {
+                    if (datasources[i].getRepository().getType().isEqual(type)) {
+                        resourceList.add(datasources[i]);
+                    }
+                } catch(org.osid.repository.RepositoryException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            return resourceList;
+        }
+    }
     public class ResourceTableModel  extends AbstractTableModel {
         
         public final String[] longValues = {"Selection", "12345678901234567890123456789012345678901234567890","12356789","Processing...."};
@@ -701,188 +534,5 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
     }
     
-}
-
-class SpringUtilities {
-    /**
-     * A debugging utility that prints to stdout the component's
-     * minimum, preferred, and maximum sizes.
-     */
-    public static void printSizes(Component c) {
-        System.out.println("minimumSize = " + c.getMinimumSize());
-        System.out.println("preferredSize = " + c.getPreferredSize());
-        System.out.println("maximumSize = " + c.getMaximumSize());
-    }
-    
-    /**
-     * Aligns the first <code>rows</code> * <code>cols</code>
-     * components of <code>parent</code> in
-     * a grid. Each component is as big as the maximum
-     * preferred width and height of the components.
-     * The parent is made just big enough to fit them all.
-     *
-     * @param rows number of rows
-     * @param cols number of columns
-     * @param initialX x location to start the grid at
-     * @param initialY y location to start the grid at
-     * @param xPad x padding between cells
-     * @param yPad y padding between cells
-     */
-    public static void makeGrid(Container parent,
-            int rows, int cols,
-            int initialX, int initialY,
-            int xPad, int yPad) {
-        SpringLayout layout;
-        try {
-            layout = (SpringLayout)parent.getLayout();
-        } catch (ClassCastException exc) {
-            System.err.println("The first argument to makeGrid must use SpringLayout.");
-            return;
-        }
-        
-        Spring xPadSpring = Spring.constant(xPad);
-        Spring yPadSpring = Spring.constant(yPad);
-        Spring initialXSpring = Spring.constant(initialX);
-        Spring initialYSpring = Spring.constant(initialY);
-        int max = rows * cols;
-        
-        //Calculate Springs that are the max of the width/height so that all
-        //cells have the same size.
-        Spring maxWidthSpring = layout.getConstraints(parent.getComponent(0)).
-                getWidth();
-        Spring maxHeightSpring = layout.getConstraints(parent.getComponent(0)).
-                getWidth();
-        for (int i = 1; i < max; i++) {
-            SpringLayout.Constraints cons = layout.getConstraints(
-                    parent.getComponent(i));
-            
-            maxWidthSpring = Spring.max(maxWidthSpring, cons.getWidth());
-            maxHeightSpring = Spring.max(maxHeightSpring, cons.getHeight());
-        }
-        
-        //Apply the new width/height Spring. This forces all the
-        //components to have the same size.
-        for (int i = 0; i < max; i++) {
-            SpringLayout.Constraints cons = layout.getConstraints(
-                    parent.getComponent(i));
-            
-            cons.setWidth(maxWidthSpring);
-            cons.setHeight(maxHeightSpring);
-        }
-        
-        //Then adjust the x/y constraints of all the cells so that they
-        //are aligned in a grid.
-        SpringLayout.Constraints lastCons = null;
-        SpringLayout.Constraints lastRowCons = null;
-        for (int i = 0; i < max; i++) {
-            SpringLayout.Constraints cons = layout.getConstraints(
-                    parent.getComponent(i));
-            if (i % cols == 0) { //start of new row
-                lastRowCons = lastCons;
-                cons.setX(initialXSpring);
-            } else { //x position depends on previous component
-                cons.setX(Spring.sum(lastCons.getConstraint(SpringLayout.EAST),
-                        xPadSpring));
-            }
-            
-            if (i / cols == 0) { //first row
-                cons.setY(initialYSpring);
-            } else { //y position depends on previous row
-                cons.setY(Spring.sum(lastRowCons.getConstraint(SpringLayout.SOUTH),
-                        yPadSpring));
-            }
-            lastCons = cons;
-        }
-        
-        //Set the parent's size.
-        SpringLayout.Constraints pCons = layout.getConstraints(parent);
-        pCons.setConstraint(SpringLayout.SOUTH,
-                Spring.sum(
-                Spring.constant(yPad),
-                lastCons.getConstraint(SpringLayout.SOUTH)));
-        pCons.setConstraint(SpringLayout.EAST,
-                Spring.sum(
-                Spring.constant(xPad),
-                lastCons.getConstraint(SpringLayout.EAST)));
-    }
-    
-    /* Used by makeCompactGrid. */
-    private static SpringLayout.Constraints getConstraintsForCell(
-            int row, int col,
-            Container parent,
-            int cols) {
-        SpringLayout layout = (SpringLayout) parent.getLayout();
-        Component c = parent.getComponent(row * cols + col);
-        return layout.getConstraints(c);
-    }
-    
-    /**
-     * Aligns the first <code>rows</code> * <code>cols</code>
-     * components of <code>parent</code> in
-     * a grid. Each component in a column is as wide as the maximum
-     * preferred width of the components in that column;
-     * height is similarly determined for each row.
-     * The parent is made just big enough to fit them all.
-     *
-     * @param rows number of rows
-     * @param cols number of columns
-     * @param initialX x location to start the grid at
-     * @param initialY y location to start the grid at
-     * @param xPad x padding between cells
-     * @param yPad y padding between cells
-     */
-    public static void makeCompactGrid(Container parent,
-            int rows, int cols,
-            int initialX, int initialY,
-            int xPad, int yPad) {
-        SpringLayout layout;
-        try {
-            layout = (SpringLayout)parent.getLayout();
-        } catch (ClassCastException exc) {
-            System.err.println("The first argument to makeCompactGrid must use SpringLayout.");
-            return;
-        }
-        
-        //Align all cells in each column and make them the same width.
-        Spring x = Spring.constant(initialX);
-        for (int c = 0; c < cols; c++) {
-            Spring width = Spring.constant(0);
-            for (int r = 0; r < rows; r++) {
-                width = Spring.max(width,
-                        getConstraintsForCell(r, c, parent, cols).
-                        getWidth());
-            }
-            for (int r = 0; r < rows; r++) {
-                SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent, cols);
-                constraints.setX(x);
-                constraints.setWidth(width);
-            }
-            x = Spring.sum(x, Spring.sum(width, Spring.constant(xPad)));
-        }
-        
-        //Align all cells in each row and make them the same height.
-        Spring y = Spring.constant(initialY);
-        for (int r = 0; r < rows; r++) {
-            Spring height = Spring.constant(0);
-            for (int c = 0; c < cols; c++) {
-                height = Spring.max(height,
-                        getConstraintsForCell(r, c, parent, cols).
-                        getHeight());
-            }
-            for (int c = 0; c < cols; c++) {
-                SpringLayout.Constraints constraints =
-                        getConstraintsForCell(r, c, parent, cols);
-                constraints.setY(y);
-                constraints.setHeight(height);
-            }
-            y = Spring.sum(y, Spring.sum(height, Spring.constant(yPad)));
-        }
-        
-        //Set the parent's size.
-        SpringLayout.Constraints pCons = layout.getConstraints(parent);
-        pCons.setConstraint(SpringLayout.SOUTH, y);
-        pCons.setConstraint(SpringLayout.EAST, x);
-    }
 }
 
