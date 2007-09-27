@@ -22,20 +22,6 @@
       </foxml:xmlContent>
     </foxml:datastreamVersion>
   </foxml:datastream>
-  <foxml:datastream CONTROL_GROUP="X" ID="RELS-EXT" STATE="A" VERSIONABLE="true">
-    <foxml:datastreamVersion CREATED="2007-08-17T23:08:38.024Z" ID="RELS-EXT.0" LABEL="Relationships to other objects" MIMETYPE="text/xml">
-      <foxml:xmlContent>
-        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rel="info:fedora/fedora-system:def/relations-external#">
-          <rdf:Description rdf:about="info:fedora/demo:VUEImage">
-            <rel:isInVUEMap rdf:resource="info:fedora/demo:VUEMap2"/>
-            <rel:isPartOf rdf:resource="info:fedora/demo:obj1"/>
-            <rel:isPartOf rdf:resource="info:fedora/demo:obj2"/>
-            <rel:isRelatedTo rdf:resource="info:fedora/demo:obj3"/>
-          </rdf:Description>
-        </rdf:RDF>
-      </foxml:xmlContent>
-    </foxml:datastreamVersion>
-  </foxml:datastream>
   <foxml:datastream CONTROL_GROUP="M" ID="RESOURCE" STATE="A" VERSIONABLE="true">
     <foxml:datastreamVersion CREATED="%CREATE_DATE%" ID="RESOURCE.0" LABEL="VUE Resource" MIMETYPE="%MIME_TYPE%">
       <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
