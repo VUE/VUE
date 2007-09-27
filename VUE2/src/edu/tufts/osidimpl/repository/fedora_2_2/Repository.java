@@ -91,7 +91,8 @@ public class Repository implements org.osid.repository.Repository {
     private org.osid.shared.Id id = null;
     // private URL configuration = null;
 	private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
-	private org.osid.shared.Type multiFieldSearchType = new Type("mit.edu","search","multiField");
+	private org.osid.shared.Type multiFieldSearchType = new Type("mit.edu","search","multiField");      
+    private org.osid.shared.Type repositoryType = new Type("tufts.edu","repository","fedora_2_2");
     
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
@@ -454,7 +455,7 @@ public class Repository implements org.osid.repository.Repository {
     }
     
     public org.osid.shared.Type getType() throws org.osid.repository.RepositoryException {
-        return new Type("tufts.edu","repository","fedoraImage");
+        return  repositoryType;
     }
     
     public org.osid.repository.Asset getAssetByDate(org.osid.shared.Id id, long date) throws org.osid.repository.RepositoryException {
