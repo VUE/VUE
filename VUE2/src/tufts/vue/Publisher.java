@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.49 $ / $Date: 2007-09-27 17:37:52 $ / $Author: anoop $
+ * @version $Revision: 1.50 $ / $Date: 2007-09-28 19:03:42 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -175,7 +175,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         //adding the repository list
         //TODO: Populate this with actual repositories
         repList = new JList();
-        repList.setModel(new DatasourceListModel());
+        repList.setModel(new DatasourceListModel(fedoraRepositoryType));
         repList.setCellRenderer(new DatasourceListCellRenderer());
         JScrollPane repPane = new JScrollPane(repList);
         JPanel scrollPanel = new JPanel(new BorderLayout());
@@ -439,28 +439,22 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
     }
     class DatasourceListModel extends DefaultListModel {
-        
+        org.osid.shared.Type type;
         edu.tufts.vue.dsm.DataSource[] datasources;
-        public DatasourceListModel() {
+        public DatasourceListModel(org.osid.shared.Type type) {
             datasources = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
-            // check for fedora
+            this.type = type;
         }
         public Object getElementAt(int index) {
-            try {
-                
-                System.out.println("Datesource Name:"+datasources[index].getRepository().getDisplayName()+" Type:"+datasources[index].getRepository().getType().getAuthority()+" keyword:"+datasources[index].getRepository().getType().getKeyword());
-            } catch(org.osid.repository.RepositoryException ex) {
-                ex.printStackTrace();
-            }
-            return(getResources(fedoraRepositoryType).get(index));
+            return(getResources().get(index));
         }
         
         public int getSize() {
-            return getResources(fedoraRepositoryType).size();
-             
+            return getResources().size();
+            
         }
         
-        private java.util.List<edu.tufts.vue.dsm.DataSource> getResources(org.osid.shared.Type type) {
+        private java.util.List<edu.tufts.vue.dsm.DataSource> getResources() {
             java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
             for(int i=0;i<datasources.length;i++) {
                 try {
