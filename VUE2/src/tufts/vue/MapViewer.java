@@ -73,7 +73,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.446 $ / $Date: 2007-09-24 17:25:26 $ / $Author: dan $ 
+ * @version $Revision: 1.447 $ / $Date: 2007-09-30 21:30:09 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -435,15 +435,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         adjustCanvasSize(true, false, false);
     }
     
-    private void adjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast)
+    private void adjustCanvasSize(final boolean expand, final boolean trimNorthWest, final boolean trimSouthEast)
     {
         if (inScrollPane && mFocal instanceof LWMap) {
             // 2007-08-21 added check for map focal: never mess w/cavas if focal isn't a map (we now disable scroll bars entirely in that case)
-            if (mFocal.hasContent())
-                mViewport.adjustSize(expand, trimNorthWest, trimSouthEast);
-            else
-                mViewport.adjustSize(false, true, true);
+            if (SwingUtilities.isEventDispatchThread()) {
+                doAdjustCanvasSize(expand, trimNorthWest, trimSouthEast);
+            } else {
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    doAdjustCanvasSize(expand, trimNorthWest, trimSouthEast);
+                }});
+            }
         }
+    }
+
+    private void doAdjustCanvasSize(boolean expand, boolean trimNorthWest, boolean trimSouthEast) {
+        if (mFocal.hasContent())
+            mViewport.adjustSize(expand, trimNorthWest, trimSouthEast);
+        else
+            mViewport.adjustSize(false, true, true);
     }
     
     /**
@@ -5032,8 +5042,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //lastRotationTime = System.currentTimeMillis();
         }
 
-        private Timer mTipTimer = new Timer();
-        private boolean mMouseHasEnteredToolTip = false;
+    private Timer mTipTimer = new Timer() {
+            @Override
+            public void schedule(TimerTask task, long delay) {
+                if (DEBUG.THREAD) out("TipTime: scheduling " + task + " in " + delay + "ms");
+                super.schedule(task, delay);
+            }
+        };
+    private boolean mMouseHasEnteredToolTip = false;
         
         private class ClearTipTask extends TimerTask {
             final Object tipWhenTimerStarted;
@@ -5042,7 +5058,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // note: we should be synchronized on sTipLock when this is constructed
                 tipWhenTimerStarted = sTipComponent;
                 tipDisplayInstance = sTipDisplayInstance;
-                if (DEBUG.FOCUS)
+                if (DEBUG.FOCUS || DEBUG.THREAD)
                     out("ClearTipTask: scheduled for " + GUI.name(tipWhenTimerStarted) + " #" + tipDisplayInstance);
             }
             public void run() {
@@ -5077,8 +5093,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             to a tip region that activates the tip again */
         private void clearTipSoon() {
             synchronized (sTipLock) {
-                if (sTipComponent != null)
+                if (sTipComponent != null) {
                     mTipTimer.schedule(new ClearTipTask(), 500);
+                }
             }
         }
 
