@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.77 $ / $Date: 2007-08-28 17:51:04 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2007-09-30 22:27:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -610,46 +610,37 @@ public class GUI
         
     }
 
+    // TODO: cache results based on extension -- SMF
     public static Image getSystemIconForExtension(String ext)
     {
     	if (Util.isMacPlatform())
-    		return tufts.macosx.MacOSX.getIconForExtension(ext);
-    	else
-    	{
-    		java.io.File file = null;
-    		java.io.File root = null;
-    		Image image = null;
-    		try
-    		{
-    			if (ext.equals("dir"))
-    			{
-    			   root = new java.io.File(VUE.getSystemProperty("java.home"));
-    			   sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(root);
-       		       image = shellFolder.getIcon(true);
-    			}
-    			else
-    			{
-    		     //Create a temporary file with the specified extension
-    		     file = java.io.File.createTempFile("icon", "." + ext);
-    		 
-    		     sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(file);
-    		     image = shellFolder.getIcon(true);
-    			}
-    		}
-    		catch (Exception e)
-    		{
-    			tufts.vue.VUE.Log.debug("Could not generate Icon for filetype : " + ext);
-    		}
-    		finally
-    		{
-    			if (!ext.equals("dir"))
-    				file.delete();
-    		}
+            return tufts.macosx.MacOSX.getIconForExtension(ext);
+        
+        java.io.File file = null;
+        java.io.File root = null;
+        Image image = null;
+        try {
+            if ("dir.".equals(ext)) {
+                root = new java.io.File(VUE.getSystemProperty("java.home"));
+                sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(root);
+                image = shellFolder.getIcon(true);
+            } else {
+                //Create a temporary file with the specified extension
+                file = java.io.File.createTempFile("icon", "." + ext);
+                sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(file);
+                image = shellFolder.getIcon(true);
+            }
+        } catch (Throwable t) {
+            tufts.vue.VUE.Log.debug("Could not generate Icon for filetype : " + ext + "; " + t);
+        }
+        finally {
+            if (file != null)
+                file.delete();
+        }
     		
-    		return image;
-    	}
-    		
+        return image;
     }
+    
     /** these may change at any time, so we must fetch them newly each time */
     public static Insets getScreenInsets() {
         refreshGraphicsInfo();
