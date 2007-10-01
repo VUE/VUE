@@ -40,6 +40,14 @@ import java.util.Stack;
 public class LWMergeMap extends LWMap {
     
     public static final int THRESHOLD_DEFAULT = 20;
+    
+    // recording source nodes code currently does not compile
+    // (its commented out below) - needs adjustment to 
+    // LWComponent from LWNode (for both LWImage and LWNode)
+    // a relatively minor fix and probably
+    // also needs to be stored in special metadata of a new type...
+    // (since otherwise this info always appears in the notes and possibly
+    // out of sight)
     public static final boolean RECORD_SOURCE_NODES = false;
     
     private static int numberOfMaps = 0;
@@ -319,17 +327,17 @@ public class LWMergeMap extends LWMap {
         }
     }
     
-    
     public void addMergeNodesFromSourceMap(LWMap map,VoteAggregate voteAggregate,HashMap<String,LWNode> nodes)
     {
-           Iterator children = map.getNodeIterator();    
+           Iterator<LWComponent> children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();//map.getNodeIterator();    
            while(children.hasNext()) {
-             LWNode comp = (LWNode)children.next();
+             //LWNode comp = (LWNode)children.next();
+             LWComponent comp = children.next();
              boolean repeat = false;
              if(nodeAlreadyPresent(comp))
              {
                repeat = true;
-               if(RECORD_SOURCE_NODES)
+               /*if(RECORD_SOURCE_NODES)
                {
                  LWNode node = nodes.get(Util.getMergeProperty(comp));
                  if(node.getNotes() !=null)
@@ -340,14 +348,15 @@ public class LWMergeMap extends LWMap {
                  {
                    node.setNotes(map.getLabel());
                  }
-               }
+               }*/
              }
              
              if(voteAggregate.isNodeVoteAboveThreshold(Util.getMergeProperty(comp)) ){
-                   LWNode node = (LWNode)comp.duplicate();
+                   //LWNode node = (LWNode)comp.duplicate();
+                   LWComponent node = comp.duplicate();
                    if(!repeat)
                    {
-                     if(RECORD_SOURCE_NODES)
+                     /*if(RECORD_SOURCE_NODES)
                      {
                        if(node.getNotes() !=null)
                        {
@@ -358,8 +367,9 @@ public class LWMergeMap extends LWMap {
                          node.setNotes(map.getLabel());
                        }
                        nodes.put(Util.getMergeProperty(comp),node);
-                     }
-                     addNode(node);
+                     }*/
+                     //addNode(node);
+                     add(node);
                    }
              }         
              
@@ -419,12 +429,19 @@ public class LWMergeMap extends LWMap {
         }
 
         //compute and create links in Merge Map
-        Iterator children1 = getNodeIterator();
+        Iterator<LWComponent> children1 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator(); //getNodeIterator();
         while(children1.hasNext()) {
-           LWNode node1 = (LWNode)children1.next();
-           Iterator children2 = getNodeIterator();
+           /*LWNode*/ LWComponent node1 = /*(LWNode)*/children1.next();
+           Iterator<LWComponent> children2 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator(); //getNodeIterator();
            while(children2.hasNext()) {
-               LWNode node2 = (LWNode)children2.next();
+
+               /*LWNode*/ LWComponent node2 = /*(LWNode)*/children2.next();
+               
+               if( ! ((node1 instanceof LWNode || node1 instanceof LWImage) && (node2 instanceof LWNode || node2 instanceof LWImage)) )
+               {
+                   continue;
+               }
+               
                if(node2 != node1) {
                   boolean addLink = voteAggregate.isLinkVoteAboveThreshold(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
                   if(addLink) {
@@ -457,7 +474,7 @@ public class LWMergeMap extends LWMap {
     
     
     
-    public boolean nodeAlreadyPresent(LWNode node)
+    public boolean nodeAlreadyPresent(/*LWNode*/LWComponent node)
     {
         
         if(getFilterOnBaseMap())
@@ -475,6 +492,8 @@ public class LWMergeMap extends LWMap {
               {    
                 if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
                 {
+                  System.out.println("LWMergeMap - returning true in nodeAlreadyPresent - for (node,c) (" +
+                          Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
                   return true;
                 }
               }
@@ -520,22 +539,40 @@ public class LWMergeMap extends LWMap {
     public void addMergeNodesForMap(LWMap map,WeightAggregate weightAggregate,List<Style> styles)
     {       
          
-           Iterator children = map.getNodeIterator();
+           Iterator<LWComponent> children = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator(); //map.getNodeIterator();
            
            while(children.hasNext()) {
-             LWNode comp = (LWNode)children.next();
-             boolean repeat = false;
-             if(nodeAlreadyPresent(comp))
+               
+             LWComponent component = children.next();  
+             
+             LWNode comp = null;
+             LWImage image = null;
+             
+            /* if(component instanceof LWImage)
              {
-               repeat = true;
+               image = (LWImage)(component.duplicate());
+               add(image);
+             } */
+             
+             if(component instanceof LWNode || component instanceof LWImage)
+             {
+               //comp=(LWNode)component;   
+              
+               //LWNode comp = (LWNode)children.next();
+               //component = children.next();
+               boolean repeat = false;
+               if(nodeAlreadyPresent(component))
+               {
+                 repeat = true;
+               }
+               LWComponent node = component.duplicate();
+             
+               if(!repeat)
+               {    
+                 //addNode(node);
+                 add(node);
+               }     
              }
-             LWNode node = (LWNode)comp.duplicate();
-             
-             
-             if(!repeat)
-             {    
-               addNode(node);
-             }     
              
            }
     }
@@ -564,7 +601,8 @@ public class LWMergeMap extends LWMap {
           }
           else
           {
-            System.out.println("LWMergeMap, computing matrix array not adding: " + m.getLabel());
+            System.out.println("LWMergeMap, computing matrix array not adding due to check box or base map (already added):" +
+                               " (label, m == getBaseMap()) (" + m.getLabel() + "," + (m==getBaseMap()) +")");
           }
         }
         
@@ -641,17 +679,25 @@ public class LWMergeMap extends LWMap {
         Iterator<LWComponent> children1 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(children1.hasNext()) {
            LWComponent comp1 = children1.next();
-           if(comp1 instanceof LWImage)
-               continue;
-           LWNode node1 = (LWNode)comp1;
-           Iterator children2 = getNodeIterator();
-           while(children2.hasNext()) {
-               LWNode node2 = (LWNode)children2.next();
+           //if(comp1 instanceof LWImage)
+           //    continue;
+           //LWNode node1 = (LWNode)comp1;
+           LWComponent node1 = comp1;
+           Iterator<LWComponent> children2 = getAllDescendents(LWComponent.ChildKind.PROPER).iterator();//getNodeIterator();
+           LWComponent node2 = null;
+           while(children2.hasNext() ) {
+               /*LWComponent*/ node2 = /*(LWNode)*/children2.next();
+               if(!((node2 instanceof LWNode) || (node2 instanceof LWImage)) )
+               {
+                   continue;
+               }
                if(node2 != node1) {
                   int c = weightAggregate.getConnection(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
                   int c2 = weightAggregate.getConnection(Util.getMergeProperty(node2),Util.getMergeProperty(node1));
                   if(c > 0) {
                     double score = 100*c/weightAggregate.getCount();
+                    
+                    // are either of these ever happenning? If so, why?
                     if(score > 100)
                     {
                         score = 100;
@@ -660,6 +706,7 @@ public class LWMergeMap extends LWMap {
                     {
                         score = 0;
                     }
+                    
                     Style currLinkStyle = linkStyles.get(getInterval(score)-1);
                     LWLink link = new LWLink(node1,node2);
                     if(c2>0 && !getFilterOnBaseMap())

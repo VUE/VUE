@@ -65,7 +65,30 @@ public class Util {
         return null;
     }
     
-    public static String getMergeProperty(LWComponent node) {
-        return  node.getLabel();
+    public static String getMergeProperty(LWComponent comp) {
+        //if(comp instanceof LWImage)
+        //{
+        //  System.out.println("Util - getMergeProperty for LWImage: " + ((LWImage)comp).getResource().toString());  
+        //  return ((LWImage)comp).getResource().toString();   
+        //}
+        //else
+        //{
+        //  System.out.println("Util - getMergeProperty for non LWImage: " + comp.getLabel());   
+        String mergeType = tufts.vue.VueResources.getString("merge.ontologyType");
+        
+        if(mergeType.equals("NONE"))
+          return  comp.getLabel();
+        else
+        {
+          if(comp.getMetadataList().containsOntologicalType(mergeType))
+          {
+              return mergeType;
+          }
+          else
+          {
+              return comp.getLabel();
+          }
+        }
+        //}
     }
 }

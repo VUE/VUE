@@ -66,9 +66,9 @@ public class ConnectivityMatrix {
         Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()){
             Object o = i.next();
-            if(o instanceof LWNode) {
-                LWNode node = (LWNode) o;
-                labels.add(getMergeProperty(node));
+            if(o instanceof LWNode || o instanceof LWImage) {
+                //LWNode node = (LWNode) o;
+                labels.add(getMergeProperty((LWComponent)o));
                 size++;
             }
         }
@@ -83,7 +83,7 @@ public class ConnectivityMatrix {
             LWComponent n1 = link.getHead();
             LWComponent n2 = link.getTail();
             int arrowState = link.getArrowState();
-            if(n1  instanceof LWNode && n2 instanceof LWNode) {
+            if( (n1  instanceof LWNode || n1 instanceof LWImage) && ( n2 instanceof LWNode || n2 instanceof LWImage) ) {
                 try {
                     if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
                         c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
@@ -194,6 +194,9 @@ public class ConnectivityMatrix {
     }
     
     private String getMergeProperty(LWComponent node) {
+        
+        System.out.println("Connectivity Matrix - getMergeProperty: " + Util.getMergeProperty(node));
+        
         return  Util.getMergeProperty(node);
     }
 }

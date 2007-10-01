@@ -167,6 +167,11 @@ public class TypeList extends JList {
             
             if(isNode(ontType))  
             {
+                
+              System.out.println("TypeList createLWComponent - node with ontology string: "  + ontType.toString());  
+              System.out.println("TypeList createLWComponent - node with ontology id: "  + ontType.getId());
+              //System.out.println("TypeList createLWComponent - node with ontology url: "  + ontType.getOntology().getURL() +"#" + ontType.getLabel() );
+                
               String image = style.getAttribute("background-image");
               if(image != null)
               {
@@ -196,6 +201,8 @@ public class TypeList extends JList {
                    java.util.ArrayList cl = new java.util.ArrayList();
                    cl.add(im);
                    ((LWNode)compFor).addChildren(cl);
+                   
+                   compFor = im;
                    
                  }
                  else
@@ -452,7 +459,14 @@ public class TypeList extends JList {
           browser.getViewer().getList().setSelectedValue(ontology,true);
           //clearSelection();
           //setSelectedIndex(-1);
-          browser.getViewer().getList().updateUI();
+          try
+          {
+            browser.getViewer().getList().updateUI();
+          }
+          catch(Exception e)
+          {
+            System.out.println("TypeList: exception while updating ontology browser list ui -- " + e);
+          }
           //browser.getViewer().repaint();
           //browser.revalidate();
          // browser.repaint();

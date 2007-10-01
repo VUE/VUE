@@ -53,6 +53,18 @@ public class MetadataList {
       metadataList = list;
     }
     
+    public boolean containsOntologicalType(String ontType)
+    {
+        for(int i=0;i<getOntologyListSize();i++)
+        {
+            VueMetadataElement vme = getOntologyListElement(i);
+            OntType type = (OntType)vme.getObject();
+            if(ontType.equals(type.getBase() + "#" + type.getLabel()))
+                return true;
+        }
+        return false;
+    }
+    
     public VueMetadataElement getOntologyListElement(int i)
     {
         int index = i+((CategoryFirstList)metadataList).getCategoryEndIndex();
