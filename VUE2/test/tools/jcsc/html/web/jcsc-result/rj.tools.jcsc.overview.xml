@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.jcsc</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.jcsc</name>
+    <classcount>15</classcount>
+    <methodscount>173</methodscount>
+    <violationscount>2</violationscount>
+    <linecount>2334</linecount>
+    <ncsscount>600</ncsscount>
+    <functionpointscount>11.320754716981131</functionpointscount>
+    <unittestclasscount>8</unittestclasscount>
+    <unittestscount>86</unittestscount>
+    <severitylevel>3</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.jcsc.Return</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.Violation</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.BatchSummary</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.MethodMetric</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ResultsFormatter</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.TriStateBoolean</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ViolationsSorter</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscAdditionalTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscFieldTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscGeneralTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscJDK15Test</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscJavaDocTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscMethodTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscMetricsTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.JcscUnitTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

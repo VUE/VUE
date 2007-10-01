@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc</package>
+  <class>JcscJDK15Test</class>
+  <methods>4</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>17</ncss>
+  <lines>76</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>2</unittests>
+  <metric>
+    <method>>
+      <name>JcscJDK15Test.suite()</name>
+      <line>37</line>
+      <column>29</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscJDK15Test.constructor()</name>
+      <line>51</line>
+      <column>11</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscJDK15Test.testEnum1()</name>
+      <line>56</line>
+      <column>26</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscJDK15Test.testEnum2()</name>
+      <line>66</line>
+      <column>26</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

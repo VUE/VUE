@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.skimdeep.ui</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.skimdeep.ui</name>
+    <classcount>1</classcount>
+    <methodscount>42</methodscount>
+    <violationscount>6</violationscount>
+    <linecount>636</linecount>
+    <ncsscount>318</ncsscount>
+    <functionpointscount>6.0</functionpointscount>
+    <unittestclasscount>0</unittestclasscount>
+    <unittestscount>0</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.skimdeep.ui.SkimDeepFrame</class>
+        <count>6</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

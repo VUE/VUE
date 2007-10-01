@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>General</category>
+  <rule>EmptyCatchBlockAllowed</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>EmptyCatchBlockAllowed</name>
+        <severity>5</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>49</line>
+      <column>9</column>
+      <message><![CDATA[empty catch block, this is normally an error]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>EmptyCatchBlockAllowed</name>
+        <severity>5</severity>
+        <category>General</category>
+      </rule>
+      <classname>StreamPumper</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>51</line>
+      <column>9</column>
+      <message><![CDATA[empty catch block, this is normally an error]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\StreamPumper.java</source>
+    </violation>
+  </violations>
+</jcsc>

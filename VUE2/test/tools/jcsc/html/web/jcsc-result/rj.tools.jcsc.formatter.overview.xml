@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.jcsc.formatter</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.jcsc.formatter</name>
+    <classcount>3</classcount>
+    <methodscount>40</methodscount>
+    <violationscount>3</violationscount>
+    <linecount>1049</linecount>
+    <ncsscount>426</ncsscount>
+    <functionpointscount>8.037735849056604</functionpointscount>
+    <unittestclasscount>0</unittestclasscount>
+    <unittestscount>0</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.jcsc.formatter.XMLResultsFormatter</class>
+        <count>3</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.formatter.AbstractResultsFormatter</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.formatter.ConsoleResultsFormatter</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

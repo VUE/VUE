@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ant</package>
+  <class>WorstElement</class>
+  <methods>4</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>15</ncss>
+  <lines>78</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>WorstElement.constructor()</name>
+      <line>42</line>
+      <column>11</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstElement.getClassName()</name>
+      <line>54</line>
+      <column>31</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstElement.getAuthors()</name>
+      <line>64</line>
+      <column>29</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstElement.getViolationsCount()</name>
+      <line>74</line>
+      <column>34</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc</package>
+  <class>JcscAdditionalTest</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>55</ncss>
+  <lines>156</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>3</unittests>
+  <metric>
+    <method>>
+      <name>JcscAdditionalTest.suite()</name>
+      <line>45</line>
+      <column>29</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscAdditionalTest.constructor()</name>
+      <line>59</line>
+      <column>11</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscAdditionalTest.testXdotSuperdotA()</name>
+      <line>64</line>
+      <column>34</column>
+      <ncss>26</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscAdditionalTest.testRecursion()</name>
+      <line>108</line>
+      <column>30</column>
+      <ncss>8</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscAdditionalTest.testNumberOfNewLinesInDoc()</name>
+      <line>130</line>
+      <column>42</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

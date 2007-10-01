@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc</package>
+  <class>JcscMetricsTest</class>
+  <methods>6</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>19</ncss>
+  <lines>81</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>2</unittests>
+  <metric>
+    <method>>
+      <name>JcscMetricsTest.suite()</name>
+      <line>36</line>
+      <column>29</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscMetricsTest.constructor()</name>
+      <line>50</line>
+      <column>11</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscMetricsTest.setUp()</name>
+      <line>55</line>
+      <column>25</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscMetricsTest.tearDown()</name>
+      <line>59</line>
+      <column>28</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscMetricsTest.testNCSSCount()</name>
+      <line>63</line>
+      <column>30</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>JcscMetricsTest.testCCNCount()</name>
+      <line>72</line>
+      <column>29</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

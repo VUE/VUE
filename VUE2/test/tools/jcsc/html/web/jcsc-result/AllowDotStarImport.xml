@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>General</category>
+  <rule>AllowDotStarImport</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>AllowDotStarImport</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>CheckAction</classname>
+      <package>rj.tools.jcsc.plugins.netbeans</package>
+      <line>28</line>
+      <column>21</column>
+      <message><![CDATA[Not allowed general import statement (import org.openide.*)]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\CheckAction.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>AllowDotStarImport</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>CheckAction</classname>
+      <package>rj.tools.jcsc.plugins.netbeans</package>
+      <line>37</line>
+      <column>26</column>
+      <message><![CDATA[Not allowed general import statement (import org.openide.util.*)]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\CheckAction.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>AllowDotStarImport</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>CheckAction</classname>
+      <package>rj.tools.jcsc.plugins.netbeans</package>
+      <line>42</line>
+      <column>23</column>
+      <message><![CDATA[Not allowed general import statement (import rj.tools.jcsc.*)]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\CheckAction.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>AllowDotStarImport</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>NetBeansOutputStream</classname>
+      <package>rj.tools.jcsc.plugins.netbeans</package>
+      <line>19</line>
+      <column>29</column>
+      <message><![CDATA[Not allowed general import statement (import org.openide.windows.*)]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\NetBeansOutputStream.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>AllowDotStarImport</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>RulesAction</classname>
+      <package>rj.tools.jcsc.plugins.netbeans</package>
+      <line>19</line>
+      <column>21</column>
+      <message><![CDATA[Not allowed general import statement (import org.openide.*)]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\RulesAction.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>AllowDotStarImport</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>RulesAction</classname>
+      <package>rj.tools.jcsc.plugins.netbeans</package>
+      <line>23</line>
+      <column>26</column>
+      <message><![CDATA[Not allowed general import statement (import rj.tools.jcsc.ui.*)]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\RulesAction.java</source>
+    </violation>
+  </violations>
+</jcsc>

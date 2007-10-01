@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ui</package>
+  <class>MetricsTab</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>1</count>
+  <ncss>24</ncss>
+  <lines>95</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <violation>
+    <rule>
+      <name>CheckArrayAtType</name>
+      <severity>3</severity>
+      <category>Field</category>
+    </rule>
+    <classname>MetricsTab</classname>
+    <package>rj.tools.jcsc.ui</package>
+    <line>73</line>
+    <column>18</column>
+    <message><![CDATA['[]' on array declarations should be grouped  with the type rather than the variable name,  e.g. 'int[] x' rather than 'int x[]']]></message>
+    <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\MetricsTab.java</source>
+  </violation>
+  <metric>
+    <method>>
+      <name>MetricsTab.constructor()</name>
+      <line>42</line>
+      <column>12</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MetricsTab.initUI()</name>
+      <line>49</line>
+      <column>25</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MetricsTab.getName()</name>
+      <line>59</line>
+      <column>27</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MetricsTab.setRules()</name>
+      <line>70</line>
+      <column>32</column>
+      <ncss>8</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>MetricsTab.getExamplePane()</name>
+      <line>90</line>
+      <column>39</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

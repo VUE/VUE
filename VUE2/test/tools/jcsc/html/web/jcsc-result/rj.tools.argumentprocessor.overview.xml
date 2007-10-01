@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.argumentprocessor</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.argumentprocessor</name>
+    <classcount>1</classcount>
+    <methodscount>8</methodscount>
+    <violationscount>0</violationscount>
+    <linecount>244</linecount>
+    <ncsscount>53</ncsscount>
+    <functionpointscount>1.0</functionpointscount>
+    <unittestclasscount>0</unittestclasscount>
+    <unittestscount>0</unittestscount>
+    <severitylevel>0</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.argumentprocessor.ArgProcessor</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

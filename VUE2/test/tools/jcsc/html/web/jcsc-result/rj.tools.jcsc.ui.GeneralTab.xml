@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ui</package>
+  <class>GeneralTab</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>1</count>
+  <ncss>48</ncss>
+  <lines>116</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <violation>
+    <rule>
+      <name>MaxNumberOfNCSSPerMethod</name>
+      <severity>4</severity>
+      <category>Metrics</category>
+    </rule>
+    <classname>GeneralTab</classname>
+    <package>rj.tools.jcsc.ui</package>
+    <line>68</line>
+    <column>32</column>
+    <message><![CDATA[method declaration 'setRules' has too many NCSS (32) - 25 are allowed]]></message>
+    <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\GeneralTab.java</source>
+  </violation>
+  <metric>
+    <method>>
+      <name>GeneralTab.constructor()</name>
+      <line>42</line>
+      <column>11</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>GeneralTab.initUI()</name>
+      <line>49</line>
+      <column>24</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>GeneralTab.getName()</name>
+      <line>57</line>
+      <column>26</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>GeneralTab.setRules()</name>
+      <line>68</line>
+      <column>32</column>
+      <ncss>32</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>GeneralTab.getExamplePane()</name>
+      <line>112</line>
+      <column>39</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

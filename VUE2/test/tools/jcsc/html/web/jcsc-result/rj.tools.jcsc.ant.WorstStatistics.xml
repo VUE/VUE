@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ant</package>
+  <class>WorstStatistics</class>
+  <methods>6</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>49</ncss>
+  <lines>155</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>WorstStatistics.addCandidate()</name>
+      <line>47</line>
+      <column>43</column>
+      <ncss>10</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstStatistics.getFirstCount()</name>
+      <line>73</line>
+      <column>39</column>
+      <ncss>7</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstStatistics.getFirstCountFromPackage()</name>
+      <line>98</line>
+      <column>74</column>
+      <ncss>10</ncss>
+      <ccn>4</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstStatistics.getFirstCountFromList()</name>
+      <line>123</line>
+      <column>59</column>
+      <ncss>7</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstStatistics.Comparator.compare()</name>
+      <line>146</line>
+      <column>52</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WorstStatistics.getCandidatesSorted()</name>
+      <line>140</line>
+      <column>42</column>
+      <ncss>6</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

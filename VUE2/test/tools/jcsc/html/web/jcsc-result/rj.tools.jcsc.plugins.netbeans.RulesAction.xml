@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.plugins.netbeans</package>
+  <class>RulesAction</class>
+  <methods>4</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>2</count>
+  <ncss>18</ncss>
+  <lines>79</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <violation>
+    <rule>
+      <name>AllowDotStarImport</name>
+      <severity>3</severity>
+      <category>General</category>
+    </rule>
+    <classname>RulesAction</classname>
+    <package>rj.tools.jcsc.plugins.netbeans</package>
+    <line>19</line>
+    <column>21</column>
+    <message><![CDATA[Not allowed general import statement (import org.openide.*)]]></message>
+    <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\RulesAction.java</source>
+  </violation>
+  <violation>
+    <rule>
+      <name>AllowDotStarImport</name>
+      <severity>3</severity>
+      <category>General</category>
+    </rule>
+    <classname>RulesAction</classname>
+    <package>rj.tools.jcsc.plugins.netbeans</package>
+    <line>23</line>
+    <column>26</column>
+    <message><![CDATA[Not allowed general import statement (import rj.tools.jcsc.ui.*)]]></message>
+    <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\RulesAction.java</source>
+  </violation>
+  <metric>
+    <method>>
+      <name>RulesAction.performAction()</name>
+      <line>36</line>
+      <column>31</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RulesAction.getName()</name>
+      <line>53</line>
+      <column>27</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RulesAction.iconResource()</name>
+      <line>63</line>
+      <column>35</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>RulesAction.getHelpCtx()</name>
+      <line>73</line>
+      <column>31</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

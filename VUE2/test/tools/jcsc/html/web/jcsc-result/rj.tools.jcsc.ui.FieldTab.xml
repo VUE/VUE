@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ui</package>
+  <class>FieldTab</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>41</ncss>
+  <lines>111</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>FieldTab.constructor()</name>
+      <line>42</line>
+      <column>11</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FieldTab.initUI()</name>
+      <line>49</line>
+      <column>24</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FieldTab.getName()</name>
+      <line>59</line>
+      <column>26</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FieldTab.setRules()</name>
+      <line>70</line>
+      <column>32</column>
+      <ncss>25</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FieldTab.getExamplePane()</name>
+      <line>107</line>
+      <column>39</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

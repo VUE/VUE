@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.jcsc.sorter</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.jcsc.sorter</name>
+    <classcount>5</classcount>
+    <methodscount>14</methodscount>
+    <violationscount>0</violationscount>
+    <linecount>359</linecount>
+    <ncsscount>93</ncsscount>
+    <functionpointscount>1.7547169811320755</functionpointscount>
+    <unittestclasscount>2</unittestclasscount>
+    <unittestscount>2</unittestscount>
+    <severitylevel>0</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.jcsc.sorter.OccurenceSorter</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.sorter.RulekeySorter</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.sorter.SeveritySorter</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.sorter.PrioritySorterTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.sorter.RulekeySorterTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

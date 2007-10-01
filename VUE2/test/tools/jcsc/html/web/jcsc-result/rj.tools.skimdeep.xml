@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.skimdeep</package>
+    <classes>
+      <class>rj.tools.skimdeep.ParsedJarFile</class>
+      <class>rj.tools.skimdeep.ParsedJarFileTest</class>
+      <class>rj.tools.skimdeep.SkimDeep</class>
+      <class>rj.tools.skimdeep.SkimDeepTest</class>
+    </classes>
+  </classlist>
+</jcsc>

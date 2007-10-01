@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.ccscrape.ui</package>
+  <class>ScrapePanelTest</class>
+  <methods>1</methods>
+  <author><![CDATA[jochamrm]]></author>
+  <count>0</count>
+  <ncss>27</ncss>
+  <lines>55</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>1</unittests>
+  <metric>
+    <method>>
+      <name>ScrapePanelTest.testSetGetProperties()</name>
+      <line>18</line>
+      <column>37</column>
+      <ncss>23</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

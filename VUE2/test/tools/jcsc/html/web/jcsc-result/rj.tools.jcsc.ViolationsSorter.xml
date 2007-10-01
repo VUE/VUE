@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc</package>
+  <class>ViolationsSorter</class>
+  <methods>2</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>5</ncss>
+  <lines>39</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>ViolationsSorter.sort()</name>
+      <line>32</line>
+      <column>21</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>ViolationsSorter.setViolations()</name>
+      <line>38</line>
+      <column>45</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

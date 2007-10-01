@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/category.xsl" type="text/xsl"?>
+<jcsc>
+  <rulelist>
+    <category>Metrics</category>
+    <rules>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <rule>
+        <name>MaxNumberOfNCSSPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+    </rules>
+  </rulelist>
+</jcsc>

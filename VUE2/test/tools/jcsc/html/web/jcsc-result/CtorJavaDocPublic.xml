@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>JavaDoc</category>
+  <rule>CtorJavaDocPublic</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>ScrapePanel</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>96</line>
+      <column>11</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>URLPanel</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>275</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>TimePanel</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>370</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>X10Panel</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>468</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>RunPanel</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>591</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>LogDialog</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>762</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>ParsedJarFile</classname>
+      <package>rj.tools.skimdeep</package>
+      <line>23</line>
+      <column>11</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\skimdeep\ParsedJarFile.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>SkimDeep</classname>
+      <package>rj.tools.skimdeep</package>
+      <line>37</line>
+      <column>11</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\skimdeep\SkimDeep.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>TopPanel</classname>
+      <package>rj.tools.skimdeep.ui</package>
+      <line>231</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\skimdeep\ui\SkimDeepFrame.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>BottomPanel</classname>
+      <package>rj.tools.skimdeep.ui</package>
+      <line>384</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\skimdeep\ui\SkimDeepFrame.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>JarListPanel</classname>
+      <package>rj.tools.skimdeep.ui</package>
+      <line>515</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\skimdeep\ui\SkimDeepFrame.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>CtorJavaDocPublic</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>ClassListPanel</classname>
+      <package>rj.tools.skimdeep.ui</package>
+      <line>598</line>
+      <column>14</column>
+      <message><![CDATA[public constructor declaration does not provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\skimdeep\ui\SkimDeepFrame.java</source>
+    </violation>
+  </violations>
+</jcsc>

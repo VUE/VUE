@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.rules</package>
+  <class>Properties2XmlTest</class>
+  <methods>5</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>25</ncss>
+  <lines>87</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>1</unittests>
+  <metric>
+    <method>>
+      <name>Properties2XmlTest.suite()</name>
+      <line>40</line>
+      <column>29</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>Properties2XmlTest.constructor()</name>
+      <line>54</line>
+      <column>11</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>Properties2XmlTest.setUp()</name>
+      <line>59</line>
+      <column>25</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>Properties2XmlTest.tearDown()</name>
+      <line>63</line>
+      <column>28</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>Properties2XmlTest.testTransform()</name>
+      <line>67</line>
+      <column>30</column>
+      <ncss>9</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+</jcsc>

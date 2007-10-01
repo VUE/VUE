@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.util</package>
+  <class>FileFinder</class>
+  <methods>6</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>47</ncss>
+  <lines>149</lines>
+  <unittestclasses>0</unittestclasses>
+  <unittests>0</unittests>
+  <metric>
+    <method>>
+      <name>FileFinder.FileFilter.accept()</name>
+      <line>57</line>
+      <column>51</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinder.constructor()</name>
+      <line>51</line>
+      <column>11</column>
+      <ncss>8</ncss>
+      <ccn>3</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinder.constructor()</name>
+      <line>76</line>
+      <column>11</column>
+      <ncss>3</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinder.doSearch()</name>
+      <line>83</line>
+      <column>26</column>
+      <ncss>13</ncss>
+      <ccn>5</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinder.getFiles()</name>
+      <line>121</line>
+      <column>31</column>
+      <ncss>5</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>FileFinder.getDirectories()</name>
+      <line>139</line>
+      <column>37</column>
+      <ncss>5</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+</jcsc>

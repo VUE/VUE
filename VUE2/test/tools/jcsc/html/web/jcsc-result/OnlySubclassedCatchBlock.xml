@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>General</category>
+  <rule>OnlySubclassedCatchBlock</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>Monitor</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>123</line>
+      <column>24</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\Monitor.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>Monitor</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>164</line>
+      <column>27</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\Monitor.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>Monitor</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>185</line>
+      <column>24</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\Monitor.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>Monitor</classname>
+      <package>rj.tools.ccscrape</package>
+      <line>264</line>
+      <column>27</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\Monitor.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>URLPanel</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>361</line>
+      <column>27</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>Thread</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>704</line>
+      <column>39</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>ActionListener</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>729</line>
+      <column>33</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>ActionListener</classname>
+      <package>rj.tools.ccscrape.ui</package>
+      <line>754</line>
+      <column>33</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\ccscrape\ui\ScrapePanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>JCSCTask</classname>
+      <package>rj.tools.jcsc.ant</package>
+      <line>807</line>
+      <column>24</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ant\JCSCTask.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>JCSCTask</classname>
+      <package>rj.tools.jcsc.ant</package>
+      <line>827</line>
+      <column>24</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ant\JCSCTask.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>JCSCOptions</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>145</line>
+      <column>24</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\JCSCOptions.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>JCSCOptions</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>194</line>
+      <column>24</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\JCSCOptions.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>RulesDialog</classname>
+      <package>rj.tools.jcsc.ui</package>
+      <line>102</line>
+      <column>24</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\RulesDialog.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>OnlySubclassedCatchBlock</name>
+        <severity>3</severity>
+        <category>General</category>
+      </rule>
+      <classname>Thread</classname>
+      <package>rj.tools.skimdeep.ui</package>
+      <line>362</line>
+      <column>39</column>
+      <message><![CDATA[catching of java.lang.(Throwable|Exception) is to generic - catch a subclass]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\skimdeep\ui\SkimDeepFrame.java</source>
+    </violation>
+  </violations>
+</jcsc>

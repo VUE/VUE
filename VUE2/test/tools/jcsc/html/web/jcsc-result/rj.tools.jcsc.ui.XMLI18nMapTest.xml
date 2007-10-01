@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.jcsc.ui</package>
+  <class>XMLI18nMapTest</class>
+  <methods>6</methods>
+  <author><![CDATA[ Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>42</ncss>
+  <lines>123</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>2</unittests>
+  <metric>
+    <method>>
+      <name>XMLI18nMapTest.suite()</name>
+      <line>44</line>
+      <column>29</column>
+      <ncss>4</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>XMLI18nMapTest.constructor()</name>
+      <line>58</line>
+      <column>11</column>
+      <ncss>2</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>XMLI18nMapTest.setUp()</name>
+      <line>63</line>
+      <column>25</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>XMLI18nMapTest.tearDown()</name>
+      <line>67</line>
+      <column>28</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>XMLI18nMapTest.testFindElement()</name>
+      <line>71</line>
+      <column>32</column>
+      <ncss>10</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>XMLI18nMapTest.testLanguages()</name>
+      <line>92</line>
+      <column>30</column>
+      <ncss>13</ncss>
+      <ccn>2</ccn>
+    </method>
+  </metric>
+</jcsc>

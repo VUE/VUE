@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.util.ui</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.util.ui</name>
+    <classcount>11</classcount>
+    <methodscount>121</methodscount>
+    <violationscount>34</violationscount>
+    <linecount>2502</linecount>
+    <ncsscount>890</ncsscount>
+    <functionpointscount>16.79245283018868</functionpointscount>
+    <unittestclasscount>3</unittestclasscount>
+    <unittestscount>9</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.util.ui.SelectDialog</class>
+        <count>29</count>
+        <author><![CDATA[Ralph Jocham (jochamrm)]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.AboutPanel</class>
+        <count>2</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.AboutDialog</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.AnimatedLabel</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.RegexpDialog</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.RegexpDialogTextComponent</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.TextFieldButton</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.WidgetSizer</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.AboutDialogTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.AnimatedLabelTest</class>
+        <count>0</count>
+        <author><![CDATA[jochamrm]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.util.ui.WidgetSizerTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

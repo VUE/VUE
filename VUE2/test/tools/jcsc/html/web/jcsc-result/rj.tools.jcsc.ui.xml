@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.jcsc.ui</package>
+    <classes>
+      <class>rj.tools.jcsc.ui.AbstractJcscTab</class>
+      <class>rj.tools.jcsc.ui.ExamplePanel</class>
+      <class>rj.tools.jcsc.ui.FieldTab</class>
+      <class>rj.tools.jcsc.ui.GeneralTab</class>
+      <class>rj.tools.jcsc.ui.JavaDocTab</class>
+      <class>rj.tools.jcsc.ui.JcscTab</class>
+      <class>rj.tools.jcsc.ui.MethodTab</class>
+      <class>rj.tools.jcsc.ui.MetricsTab</class>
+      <class>rj.tools.jcsc.ui.RegexpActionListener</class>
+      <class>rj.tools.jcsc.ui.RulesDialog</class>
+      <class>rj.tools.jcsc.ui.RulesPanel</class>
+      <class>rj.tools.jcsc.ui.UIString</class>
+      <class>rj.tools.jcsc.ui.UnitTestTab</class>
+      <class>rj.tools.jcsc.ui.XMLI18nMap</class>
+      <class>rj.tools.jcsc.ui.XMLI18nMapTest</class>
+    </classes>
+  </classlist>
+</jcsc>

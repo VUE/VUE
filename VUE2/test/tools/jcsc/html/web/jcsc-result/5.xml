@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/severity.xsl" type="text/xsl"?>
+<jcsc>
+  <rulelist>
+    <severity>5</severity>
+    <rules>
+      <rule>
+        <name>AllowPublicField</name>
+        <severity>5</severity>
+        <category>Field</category>
+      </rule>
+    </rules>
+  </rulelist>
+</jcsc>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.ccscrape</package>
+  <class>StatusTest</class>
+  <methods>4</methods>
+  <author><![CDATA[jochamrm]]></author>
+  <count>0</count>
+  <ncss>25</ncss>
+  <lines>54</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>4</unittests>
+  <metric>
+    <method>>
+      <name>StatusTest.testOK()</name>
+      <line>16</line>
+      <column>23</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>StatusTest.testBROKEN()</name>
+      <line>25</line>
+      <column>27</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>StatusTest.testUNINITIALIZED()</name>
+      <line>35</line>
+      <column>34</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>StatusTest.testCreate()</name>
+      <line>44</line>
+      <column>27</column>
+      <ncss>7</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>

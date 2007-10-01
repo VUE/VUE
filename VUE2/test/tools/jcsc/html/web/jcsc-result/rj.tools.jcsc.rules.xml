@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.jcsc.rules</package>
+    <classes>
+      <class>rj.tools.jcsc.rules.Properties2Xml</class>
+      <class>rj.tools.jcsc.rules.Properties2XmlTest</class>
+      <class>rj.tools.jcsc.rules.Rule</class>
+      <class>rj.tools.jcsc.rules.RuleConstants</class>
+      <class>rj.tools.jcsc.rules.RulesHandler</class>
+      <class>rj.tools.jcsc.rules.RulesHandlerTest</class>
+      <class>rj.tools.jcsc.rules.XMLRulesMap</class>
+      <class>rj.tools.jcsc.rules.XMLRulesMapTest</class>
+    </classes>
+  </classlist>
+</jcsc>

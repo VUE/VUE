@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/overview.xsl" type="text/xsl"?>
+<jcsc>
+  <overview>
+    <packagename>rj.tools.jcsc.ant</packagename>
+    <packagecount>0</packagecount>
+    <name>rj.tools.jcsc.ant</name>
+    <classcount>8</classcount>
+    <methodscount>151</methodscount>
+    <violationscount>7</violationscount>
+    <linecount>2904</linecount>
+    <ncsscount>965</ncsscount>
+    <functionpointscount>18.20754716981132</functionpointscount>
+    <unittestclasscount>1</unittestclasscount>
+    <unittestscount>12</unittestscount>
+    <severitylevel>4</severitylevel>
+    <worstclasses>
+      <worst>
+        <class>rj.tools.jcsc.ant.JCSCTask</class>
+        <count>5</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.BatchResult</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.OverviewStatistics</class>
+        <count>1</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.PackageStatistics</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.ParseFile</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.WorstElement</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.WorstStatistics</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+      <worst>
+        <class>rj.tools.jcsc.ant.JCSCTaskTest</class>
+        <count>0</count>
+        <author><![CDATA[Ralph Jocham]]></author>
+      </worst>
+    </worstclasses>
+  </overview>
+</jcsc>

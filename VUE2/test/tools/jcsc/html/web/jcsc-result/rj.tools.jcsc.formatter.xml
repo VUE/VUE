@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.jcsc.formatter</package>
+    <classes>
+      <class>rj.tools.jcsc.formatter.AbstractResultsFormatter</class>
+      <class>rj.tools.jcsc.formatter.ConsoleResultsFormatter</class>
+      <class>rj.tools.jcsc.formatter.XMLResultsFormatter</class>
+    </classes>
+  </classlist>
+</jcsc>

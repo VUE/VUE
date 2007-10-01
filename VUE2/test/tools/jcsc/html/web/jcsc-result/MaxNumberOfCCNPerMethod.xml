@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>Metrics</category>
+  <rule>MaxNumberOfCCNPerMethod</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>JCSCTask</classname>
+      <package>rj.tools.jcsc.ant</package>
+      <line>388</line>
+      <column>32</column>
+      <message><![CDATA[method declaration 'parameterCheck' has a too high CCN (14) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ant\JCSCTask.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>JCSCTask</classname>
+      <package>rj.tools.jcsc.ant</package>
+      <line>504</line>
+      <column>37</column>
+      <message><![CDATA[method declaration 'batchParameterCheck' has a too high CCN (7) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ant\JCSCTask.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>JCSCRunTableModel</classname>
+      <package>rj.tools.jcsc.plugins.intellij</package>
+      <line>275</line>
+      <column>51</column>
+      <message><![CDATA[method declaration 'getValueAt' has a too high CCN (13) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\intellij\JCSCResultPanel.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>Properties2Xml</classname>
+      <package>rj.tools.jcsc.rules</package>
+      <line>321</line>
+      <column>46</column>
+      <message><![CDATA[method declaration 'shallMove2XML' has a too high CCN (10) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\rules\Properties2Xml.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>Properties2Xml</classname>
+      <package>rj.tools.jcsc.rules</package>
+      <line>361</line>
+      <column>52</column>
+      <message><![CDATA[method declaration 'getType' has a too high CCN (8) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\rules\Properties2Xml.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>RulesHandler</classname>
+      <package>rj.tools.jcsc.rules</package>
+      <line>259</line>
+      <column>47</column>
+      <message><![CDATA[method declaration 'readZipRulesFile' has a too high CCN (6) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\rules\RulesHandler.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>RulesHandler</classname>
+      <package>rj.tools.jcsc.rules</package>
+      <line>297</line>
+      <column>44</column>
+      <message><![CDATA[method declaration 'readRulesFile' has a too high CCN (7) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\rules\RulesHandler.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>XMLRulesMap</classname>
+      <package>rj.tools.jcsc.rules</package>
+      <line>92</line>
+      <column>56</column>
+      <message><![CDATA[method declaration 'findRule' has a too high CCN (6) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\rules\XMLRulesMap.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>XMLRulesMap</classname>
+      <package>rj.tools.jcsc.rules</package>
+      <line>134</line>
+      <column>50</column>
+      <message><![CDATA[method declaration 'getValue' has a too high CCN (7) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\rules\XMLRulesMap.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>XMLRulesMap</classname>
+      <package>rj.tools.jcsc.rules</package>
+      <line>161</line>
+      <column>67</column>
+      <message><![CDATA[method declaration 'getValues' has a too high CCN (8) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\rules\XMLRulesMap.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>XMLI18nMap</classname>
+      <package>rj.tools.jcsc.ui</package>
+      <line>107</line>
+      <column>60</column>
+      <message><![CDATA[method declaration 'findText' has a too high CCN (6) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\XMLI18nMap.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>XMLI18nMap</classname>
+      <package>rj.tools.jcsc.ui</package>
+      <line>144</line>
+      <column>50</column>
+      <message><![CDATA[method declaration 'getValue' has a too high CCN (7) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\ui\XMLI18nMap.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>JavaDocParser</classname>
+      <package>rj.tools.util</package>
+      <line>449</line>
+      <column>35</column>
+      <message><![CDATA[method declaration 'isOrderCorrect' has a too high CCN (6) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\JavaDocParser.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>AboutDialog</classname>
+      <package>rj.tools.util.ui</package>
+      <line>146</line>
+      <column>42</column>
+      <message><![CDATA[method declaration 'getJarsLabel' has a too high CCN (6) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\AboutDialog.java</source>
+    </violation>
+    <violation>
+      <rule>
+        <name>MaxNumberOfCCNPerMethod</name>
+        <severity>4</severity>
+        <category>Metrics</category>
+      </rule>
+      <classname>AnimatedLabel</classname>
+      <package>rj.tools.util.ui</package>
+      <line>217</line>
+      <column>20</column>
+      <message><![CDATA[method declaration 'go' has a too high CCN (7) - 5 are allowed]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\util\ui\AnimatedLabel.java</source>
+    </violation>
+  </violations>
+</jcsc>

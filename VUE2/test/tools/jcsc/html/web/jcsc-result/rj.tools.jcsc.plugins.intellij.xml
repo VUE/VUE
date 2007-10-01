@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/package.xsl" type="text/xsl"?>
+<jcsc>
+  <classlist>
+    <package>rj.tools.jcsc.plugins.intellij</package>
+    <classes>
+      <class>rj.tools.jcsc.plugins.intellij.IntellijJCSC</class>
+      <class>rj.tools.jcsc.plugins.intellij.IntellijJCSCImpl</class>
+      <class>rj.tools.jcsc.plugins.intellij.JCSCAction</class>
+      <class>rj.tools.jcsc.plugins.intellij.JCSCOptions</class>
+      <class>rj.tools.jcsc.plugins.intellij.JCSCResultPanel</class>
+      <class>rj.tools.jcsc.plugins.intellij.OptionsPanel</class>
+      <class>rj.tools.jcsc.plugins.intellij.OverviewPanel</class>
+      <class>rj.tools.jcsc.plugins.intellij.SourceLineSelector</class>
+    </classes>
+  </classlist>
+</jcsc>

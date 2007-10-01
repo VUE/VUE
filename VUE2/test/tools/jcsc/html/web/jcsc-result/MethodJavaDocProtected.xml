@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/rule.xsl" type="text/xsl"?>
+<jcsc>
+  <category>JavaDoc</category>
+  <rule>MethodJavaDocProtected</rule>
+  <violations>
+    <violation>
+      <rule>
+        <name>MethodJavaDocProtected</name>
+        <severity>4</severity>
+        <category>JavaDoc</category>
+      </rule>
+      <classname>CheckAction</classname>
+      <package>rj.tools.jcsc.plugins.netbeans</package>
+      <line>142</line>
+      <column>35</column>
+      <message><![CDATA[protected method doesn't provide any JavaDoc]]></message>
+      <source>C:\cygwin\home\jcsc\src\rj\tools\jcsc\plugins\netbeans\CheckAction.java</source>
+    </violation>
+  </violations>
+</jcsc>

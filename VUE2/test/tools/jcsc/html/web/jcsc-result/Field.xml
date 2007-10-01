@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/category.xsl" type="text/xsl"?>
+<jcsc>
+  <rulelist>
+    <category>Field</category>
+    <rules>
+      <rule>
+        <name>CheckArrayAtType</name>
+        <severity>3</severity>
+        <category>Field</category>
+      </rule>
+      <rule>
+        <name>FieldDeclarationModifierOrder</name>
+        <severity>3</severity>
+        <category>Field</category>
+      </rule>
+      <rule>
+        <name>IFPriRegExp</name>
+        <severity>3</severity>
+        <category>Field</category>
+      </rule>
+    </rules>
+  </rulelist>
+</jcsc>

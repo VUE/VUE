@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/category.xsl" type="text/xsl"?>
+<jcsc>
+  <rulelist>
+    <category>Method</category>
+    <rules>
+      <rule>
+        <name>MaxNumberOfArgumentsPerMethod</name>
+        <severity>3</severity>
+        <category>Method</category>
+      </rule>
+      <rule>
+        <name>RegExpPrefixForMethodReturingBoolean</name>
+        <severity>3</severity>
+        <category>Method</category>
+      </rule>
+    </rules>
+  </rulelist>
+</jcsc>

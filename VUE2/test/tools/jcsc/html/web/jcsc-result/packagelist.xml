@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet href="xsl/packagelist.xsl" type="text/xsl"?>
+<jcsc>
+  <packagelist>
+    <package>rj.tools.argumentprocessor</package>
+    <package>rj.tools.ccscrape</package>
+    <package>rj.tools.ccscrape.ui</package>
+    <package>rj.tools.jcsc</package>
+    <package>rj.tools.jcsc.ant</package>
+    <package>rj.tools.jcsc.formatter</package>
+    <package>rj.tools.jcsc.plugins.intellij</package>
+    <package>rj.tools.jcsc.rules</package>
+    <package>rj.tools.jcsc.sorter</package>
+    <package>rj.tools.jcsc.ui</package>
+    <package>rj.tools.skimdeep</package>
+    <package>rj.tools.skimdeep.ui</package>
+    <package>rj.tools.util</package>
+    <package>rj.tools.util.ui</package>
+  </packagelist>
+  <categories>
+    <category>Metrics</category>
+    <category>General</category>
+    <category>Method</category>
+    <category>JavaDoc</category>
+    <category>Field</category>
+  </categories>
+  <severities>
+    <severity>4</severity>
+    <severity>3</severity>
+  </severities>
+</jcsc>

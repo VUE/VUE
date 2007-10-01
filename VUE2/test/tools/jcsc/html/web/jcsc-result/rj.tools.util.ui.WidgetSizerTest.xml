@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet href="xsl/class.xsl" type="text/xsl"?>
+<jcsc>
+  <package>rj.tools.util.ui</package>
+  <class>WidgetSizerTest</class>
+  <methods>4</methods>
+  <author><![CDATA[Ralph Jocham]]></author>
+  <count>0</count>
+  <ncss>21</ncss>
+  <lines>68</lines>
+  <unittestclasses>1</unittestclasses>
+  <unittests>2</unittests>
+  <metric>
+    <method>>
+      <name>WidgetSizerTest.setUp()</name>
+      <line>35</line>
+      <column>25</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WidgetSizerTest.tearDown()</name>
+      <line>42</line>
+      <column>28</column>
+      <ncss>1</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WidgetSizerTest.testButtonWidgetMaxSize()</name>
+      <line>46</line>
+      <column>40</column>
+      <ncss>8</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+  <metric>
+    <method>>
+      <name>WidgetSizerTest.testMixedWidgetMaxSize()</name>
+      <line>59</line>
+      <column>39</column>
+      <ncss>5</ncss>
+      <ccn>1</ccn>
+    </method>
+  </metric>
+</jcsc>
