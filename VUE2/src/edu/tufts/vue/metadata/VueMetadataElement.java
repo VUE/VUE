@@ -101,19 +101,21 @@ public class VueMetadataElement {
        // object gets reset from persistence in setType
    }
    
+    private static final boolean DEBUG = false;
+   
    public void setType(int type)
    {
        this.type = type;
        if( (type == CATEGORY) && (obj == null) )
        {
            int len = (VUE_ONT + "#").length();
-           System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
+           if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
            String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
            obj = pairedValue;
-           System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
+           if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
        }
    }
-   
+
    public int getType()
    {
        return type;
