@@ -59,7 +59,9 @@ public class MetadataList {
         {
             VueMetadataElement vme = getOntologyListElement(i);
             OntType type = (OntType)vme.getObject();
-            if(ontType.equals(type.getBase() + "#" + type.getLabel()))
+            System.out.println("MetadataList - containsOntologicalType - vme.getValue() " +
+                               vme.getValue() + " --- ontType from properties " + ontType);
+            if(ontType.equals(vme.getValue()));
                 return true;
         }
         return false;

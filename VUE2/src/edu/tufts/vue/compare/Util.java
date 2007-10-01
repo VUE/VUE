@@ -75,6 +75,7 @@ public class Util {
         //{
         //  System.out.println("Util - getMergeProperty for non LWImage: " + comp.getLabel());   
         String mergeType = tufts.vue.VueResources.getString("merge.ontologyType");
+        System.out.println("edu.tufts.vue.compare.Util merge.ontologyType: " + mergeType);
         
         if(mergeType.equals("NONE"))
           return  comp.getLabel();
@@ -82,7 +83,7 @@ public class Util {
         {
           if(comp.getMetadataList().containsOntologicalType(mergeType))
           {
-              return mergeType;
+              return mergeType + "-" + comp.getLabel();
           }
           else
           {
