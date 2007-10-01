@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.50 $ / $Date: 2007-09-28 19:03:42 $ / $Author: anoop $
+ * @version $Revision: 1.51 $ / $Date: 2007-10-01 18:28:21 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -75,7 +75,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     "“Publish All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
     "“Publish IMSCP Map to Sakai” saves concept map in Sakai content hosting system.","Zips map with local resources."
     };
-    
     public static final String[] MODE_LABELS = {"Map only","Map and resources","Zip bundle"};
     
     
@@ -374,9 +373,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().validate();
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
+            publishMapToDL();
             
-            System.out.println("Publishing Map to Default Fedora Repository");
-            publishActiveMapToVUEDL();
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
@@ -386,7 +384,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
         
     }
-    private void   publishActiveMapToVUEDL() {
+    private void   testPublishActiveMapToVUEDL() {
         //      System.out.println("Button: "+ publishMapRButton.getActionCommand()+"class:"+publishMapRButton+" is selected: "+publishMapRButton.isSelected()+" Mode:"+modeButtons.getSelection());
         //        System.out.println("Button: "+ publishMapAllRButton.getActionCommand()+"class:"+publishMapAllRButton+" is selected: "+publishMapAllRButton.isSelected());
         //System.out.println("Button: "+ publishZipRButton.getActionCommand()+"class:"+publishZipRButton+" is selected: "+publishZipRButton.isSelected());
@@ -402,6 +400,24 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         
     }
     
+    private void publishMapToDL() {
+        try{
+            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
+            if(ds.getRepository().getType().isEqual(fedoraRepositoryType)) {
+                Properties properties = ds.getConfiguration();
+                if(publishMapRButton.isSelected())
+                    FedoraPublisher.uploadMap("https",  properties.getProperty("fedora22Address"), 8443, properties.getProperty("fedora22UserName"),  properties.getProperty("fedora22Password"),VUE.getActiveMap());
+                else if(publishMapAllRButton.isSelected())
+                    FedoraPublisher.uploadMapAll("https",   properties.getProperty("fedora22Address"), 8443,  properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"),VUE.getActiveMap());
+                else
+                    alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
+                
+                
+            }
+        } catch(org.osid.repository.RepositoryException ex) {
+            ex.printStackTrace();
+        }
+    }
     
     
     private void alert(Component parentComponent,String message,String title) {
