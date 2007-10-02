@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.54 $ / $Date: 2007-10-02 13:09:20 $ / $Author: anoop $
+ * @version $Revision: 1.55 $ / $Date: 2007-10-02 13:27:44 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -81,9 +81,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
-    
-    
-    
     
     
     private org.osid.shared.Type sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
@@ -242,13 +239,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         buttonPanel.add(publishButton,BorderLayout.EAST);
     }
     
-    
-    
-    
-    
+  
     
     private void  setUpPublishPanel() {
         JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
+        pLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         pPanel.add(pLabel);
         buttonPanel.remove(publishButton);
         
@@ -267,13 +262,14 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
             getContentPane().remove(mPanel);
+              getContentPane().validate();
+            validateTree();
             setUpPublishPanel();
-            getContentPane().setLayout(new FlowLayout());
-            getContentPane().add(rPanel);
+             getContentPane().add(pPanel,BorderLayout.WEST);
             getContentPane().validate();
             validateTree();
             publishMapToDL();
-            
+            this.dispose();
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
@@ -335,7 +331,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 boolean isSelected, boolean cellHasFocus) {
             JLabel label = (JLabel)super.getListCellRendererComponent(
                     list, (value instanceof edu.tufts.vue.dsm.DataSource? ((edu.tufts.vue.dsm.DataSource)value).getRepositoryDisplayName():value) , index, isSelected, cellHasFocus);
-            //label.setOpaque(false);
             label.setBackground(Color.WHITE);
             label.setBorder(null);
             if(isSelected) {
