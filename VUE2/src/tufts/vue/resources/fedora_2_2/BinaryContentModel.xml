@@ -16,9 +16,7 @@
       MIMETYPE="text/xml">
       <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
       <foxml:xmlContent>
-        <oai_dc:dc xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/">
-          %DC%
-        </oai_dc:dc>
+         %DC%
       </foxml:xmlContent>
     </foxml:datastreamVersion>
   </foxml:datastream>
