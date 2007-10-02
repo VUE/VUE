@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.56 $ / $Date: 2007-10-02 17:44:35 $ / $Author: anoop $
+ * @version $Revision: 1.57 $ / $Date: 2007-10-02 17:45:12 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -270,7 +270,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             validate();
             repaint();
             publishMapToDL();
-            dispose();
+     
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
