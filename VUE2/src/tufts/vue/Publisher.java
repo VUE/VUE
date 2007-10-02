@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.53 $ / $Date: 2007-10-02 13:01:40 $ / $Author: anoop $
+ * @version $Revision: 1.54 $ / $Date: 2007-10-02 13:09:20 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -61,9 +61,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     //todo: Create an interface for datasources and have separate implementations for each type of datasource.
     
     public static final String FILE_PREFIX = "file://";
+    public static final int PUB_WIDTH = 500;
+    public static final int PUB_HEIGHT = 250;
+    
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
-     public static final String[] PUBLISH_INFORMATION = {"The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
+    public static final String[] PUBLISH_INFORMATION = {"The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
     "“Publish Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
     "“Publish IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
     "“Publish All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
@@ -78,9 +81,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
-   
     
-     
+    
+    
     
     
     private org.osid.shared.Type sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
@@ -115,7 +118,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JButton modeCancel = new JButton("Cancel");
     public static Vector resourceVector;
     File activeMapFile;
-     public static JTable resourceTable;
+    public static JTable resourceTable;
     JComboBox dataSourceComboBox;
     
     ButtonGroup modeButtons = new ButtonGroup();
@@ -243,17 +246,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     
     
-   
-     private void  setUpPublishPanel() {
-         JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
-         pPanel.add(pLabel);
-         buttonPanel.remove(publishButton);
-         
-     }
-   
     
-    
-    
+    private void  setUpPublishPanel() {
+        JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
+        pPanel.add(pLabel);
+        buttonPanel.remove(publishButton);
+        
+    }
     
     
     public void actionPerformed(ActionEvent e) {
@@ -267,13 +266,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().validate();
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
-              getContentPane().remove(mPanel);
-              setUpPublishPanel();
-              getContentPane().add(pPanel, BorderLayout.CENTER);
+            getContentPane().remove(mPanel);
+            setUpPublishPanel();
+            getContentPane().setLayout(new FlowLayout());
+            getContentPane().add(rPanel);
             getContentPane().validate();
             validateTree();
             publishMapToDL();
-            
             
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
