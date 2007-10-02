@@ -1,0 +1,229 @@
+2005-07-06 rjocham <rjocham72@netscape.net>
+	Changes from JCSC 0.98 to 0.98.1
+
+	Fixed bugs:
+	- Rules Editor did not save changes made to boolean values. (Thanks to Bruce Eckel)
+	- Line length checking for comment lines or blocks was off by 1 (Thanks to Bruce Eckel)
+
+	Feature Requests:
+
+	Other changes:
+
+	Issues:
+	n/a
+
+2005-07-03 rjocham <rjocham72@netscape.net>
+	Changes from JCSC 0.97 to 0.98
+
+	Fixed bugs:
+	- 953685 NullPointerException in Ant task (Thanks to Hugo Pragt)
+	
+	Feature Requests:
+		
+	Other changes:
+	- JDK 1.5 (Java 5) supported
+	- fixed problem in which abstract class name regexp was applied for interfaces (Thanks to Nelio Pereira)
+	- removed SpaceAroundBinary rule (it was never properly working)
+	- removed SpaceAfterMethodName rule (it was never properly working)
+	- added rule to apply JavaDoc rules on inner classes
+	- empty statements (only ';' on one line) now increment the NCSS count
+	- if a rule is not found the default rule is being used if the name is correct
+	This is useful when new rules are added so that no manual change is required.
+	
+	Issues:
+	n/a
+
+2004-05-10 rjocham <rjocham72@netscape.net>
+	Changes from JCSC 0.97 to 0.96
+
+	Fixed bugs:
+	- elements in the left hand side of the HTML view are now correct sorted
+	
+	Feature Requests:
+	- 755237 '-verbose' should list name of file being processed
+		
+	Other changes:
+	- fixed NullPointerException problem when rules files was not exisiting in JCSC command 
+	line tool (Thanks to Steve Umfleet)
+	- number of lines per class/package/project is now being displayed
+	- <failvalue> now causes buld error if the value is equal or higher (used to be only higher)
+	alligned with <failseverity>
+	- JCSC Ant task now features a <ignoretestseverity> property.
+	- JCSC Ant task now features a <failproperty> property.
+	- generated HTML now has a link to the used rules
+	- Fixed a bug with method javadoc checking
+	- Fixed issue having ClassCastException when using the DOMParser
+	- IntelliJ 4.0 plugin available
+	
+	Issues:
+	see 0.95
+
+2003-10-19 rjocham <rjocham72@netscape.net>
+	Changes from JCSC 0.95 to 0.96
+
+	Fixed bugs:
+	- 755236 Empty JavaDoc comment causes JCSC to throw exception
+	
+	Feature Requests:
+	- Removed the need to provide the startpackage. Now all folders from the specified fileset
+	are being parsed. (Thanks to Morten Sabroe Mortensen)
+	
+	Other changes:
+	- extended HTML in browser now features a link to the rule description (Thanks to Keith Thomas)
+	- HTML in browser now only shows the class name and not the fully qualified
+	name in non 'All Classes' view. This is more like JavaDoc (Thanks to Keith Thomas)
+	- Changed priority to severity (please read the documenation for how to update). Now a build 
+	can fail when a violation of a specific severity has been found
+	- Added new view for severity in the JCSC HTML browser view
+	- Added new view for category of rule in the JCSC HTML browser view
+	
+	Issues:
+	see 0.95
+
+2003-06-25 rjocham <rjocham72@netscape.net>
+	Changes from JCSC 0.94 to 0.95
+
+	Fixed bugs:
+	- 731586 Save Rules Access Denied (Thanks to Felipe Ortiz) 
+	
+	Feature Requests:
+	- 636827 Show which violation is set with which Rule (Thanks to Bruce Eckel)
+	- 748463 Encoding type in the XML files (Thanks to Paulo Camara)
+
+	Other changes:
+	- JCSC has been completely refactored; it now
+	- uses XML for rules definition (provides transition tool)
+	- UI has been improved
+	- violoations can be sorted by priority, key (rulename) and occurence on HTML 
+	site (Thanks to Keith Thomas)	  
+	- each violation shows the key of the rule. The key is the rule name
+	in the XML file and also shown on the ruleseditor UI.
+	- X.super.Y statement which is correct 1.2 Java is now handled
+
+	Issues:
+	see 0.94
+
+2003-02-10 rjocham <rjocham72@netscape.net>
+	Changes from JCSC 0.93 to 0.94
+
+	Fixed bugs:
+	- 660205 JCSC Rules Editor (Thanks to Felipe Ortiz, Greg Ernst)
+	- 655441, 655456 '{' Braces following Method Declarations (Thanks to Cody)
+
+	Feature Requests:
+	- 660533 Catch specific exception instead of Throwable or Exception
+
+	Other changes:
+	- JCSC Ant task now featurs a <startdate> property.
+	- JCSC Ant task now featurs a <failvalue> property.
+	- UI has been improved (now suits smaller screens)
+	- checks for the correct JVM version (>=1.3)
+	- fix some spell checking errors (Thanks to Darryl Winters)
+	- file chooser now remembers last position
+	- enhanced the JCSC Ant task error handling
+	- various improvements and not logged bug fixes
+
+	Issues:
+	see 0.93
+
+2002-11-26 rjocham <rjocham72@netscape.net>
+	Changes from JCSC 0.92 to 0.93
+
+	Fixed bugs:
+	- 633010 Ctr-C required to leave Rules Editor (Thanks to Bruce Eckel)
+	- 633012 Ant task package name confusion (Thanks to Andreas Bieri, Jim Freeman)
+	- 636824 Complex Loop Error (Anonymous)
+	
+	Feature requests:
+	- 566325 Handling of {} braces (Thanks to Sebastion Vauclair)
+	- 636608 Allow file param for rules editor (Thanks to Keith Spainhour)
+
+	Other changes:
+	- added calculating of CCN count of methods in parsed class
+	- CCN count being shown in XML/XSL html view
+	- added count of unit test classes
+	- added check of unit tests
+	- unit test count being shown in XML/XSL html view
+
+	Issues:
+	- the space around binary expression is taken out; it was working wrong and I am
+	looking for a proper fix.
+	- Mozilla doesn't do correct XSLT division. If the result is smaller then '0' the
+	leading 0. are not shown. Works OK with IE.
+
+2002-10-24  rjocham  <rjocham72@netscape.net>
+	Changes from JCSC 0.91 to 0.92
+	
+	Fixed bugs:
+	- 615933, 617149 (Thanks to drudherr and Maximilian Stoerzer)
+	- 617642 (Thanks to Felipe Ortiz)
+	- 615934 (Thanks to Maximilian Stoerzer)
+
+	Other changes:
+	- the default.jcsc now complies to the Sun standard where it is applicable
+	- added calculating of NCSS count of parsed class
+	- NCSS count being used in XML/XSL html view
+	- added check for NCSS count for method/ctor
+	- added check for argument count for ctor
+	
+2002-09-23  rjocham  <rjocham72@netscape.net>
+	Changes from JCSC 0.9 to 0.91
+	
+	Fixed bugs:
+	- Minor and smaller bugs fixed.
+
+	Other changes:
+	- Added check for JavaDoc
+	- Added check for conditional expression	
+	- Changes keywords in property files
+	- Added value of @author tag to be displayed on web site generated by the Ant task
+	- Website enhanced
+	
+2002-09-10  rjocham  <rjocham72@netscape.net>
+	Changes from JCSC 0.83 to 0.9
+	
+	Fixed bugs:
+	- Interface fields name was wrong checked - didn't consider that static final was implicit
+	- Field Declaration Modifier order was wrongly checked.
+	- Method Declaration Modifier order was wrongly checked.
+	- Fixed issue with anonymous inner clases. Didn't get own state class on stack
+	- handling of local variables was not invoked
+	- Other minor and smaller bug fixed.
+
+	Other changes:
+	- Added UI for Rules editing/creation
+	- Added ANT task for single class and package tree check. Output can be either normal text
+	  or XML. XML output can be viewed with a XSLT compliant browser. (IE6+, Mozilla1+)
+	- Plugin for CruiseControl (cruiseontrol.sourceforge.net)
+	- Added check for complex loop expression
+	- Website enhanced
+
+2002-07-16  rjocham  <rjocham72@netscape.net>
+	Changes from JCSC 0.82 to 0.83
+
+	Fixed bugs:
+	The .jar files was broken
+
+	Other chages:
+	n/a	
+
+2002-07-13  rjocham  <rjocham72@netscape.net>
+	Changes from JCSC 0.81 to 0.82
+
+	Fixed bugs:
+	- public static final are now allowed - they showed a vioaltion when public fields were not allowed
+
+	Other changes:
+	- now supports JDK 1.4 syntax (assert statement)
+	- added check for number of parameters; this often indicated procedural programming
+
+
+2002-06-02  rjocham  <rjocham72@netscape.net>
+	Changes from JCSC 0.8 to 0.81
+	
+	Fixed bugs:
+	- n/a
+
+	Other changes:
+	- changed the behavior for reading  the default .jcsc - it is now read from the jar itself.
+	- reworked some other areas but no functional change
