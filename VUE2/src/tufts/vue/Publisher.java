@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.52 $ / $Date: 2007-10-02 01:05:19 $ / $Author: anoop $
+ * @version $Revision: 1.53 $ / $Date: 2007-10-02 13:01:40 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -61,15 +61,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     //todo: Create an interface for datasources and have separate implementations for each type of datasource.
     
     public static final String FILE_PREFIX = "file://";
-    public static final int SELECTION_COL = 0; // boolean selection column in resource table
-    public static final int RESOURCE_COL = 1; // column that displays the name of resource
-    public static final int SIZE_COL = 2; // the column that displays size of files.
-    public static final int STATUS_COL = 3;// the column that displays the status of objects that will be ingested.
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
-    public static final int PUB_WIDTH = 500;
-    public static final int PUB_HEIGHT = 250;
-    public static final String[] PUBLISH_INFORMATION = {"The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
+     public static final String[] PUBLISH_INFORMATION = {"The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
     "“Publish Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
     "“Publish IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
     "“Publish All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
@@ -84,14 +78,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
-    private String IMSManifest; // the string is written to manifest file;
-    private static final  String VUE_MIME_TYPE = VueResources.getString("vue.type");
-    private static final  String BINARY_MIME_TYPE = "application/binary";
-    private static final  String ZIP_MIME_TYPE = "application/zip";
+   
     
-    private static final String IMSCP_MANIFEST_ORGANIZATION = "%organization%";
-    private static final String IMSCP_MANIFEST_METADATA = "%metadata%";
-    private static final String IMSCP_MANIFEST_RESOURCES = "%resources%";
+     
     
     
     private org.osid.shared.Type sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
@@ -126,8 +115,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JButton modeCancel = new JButton("Cancel");
     public static Vector resourceVector;
     File activeMapFile;
-    public static ResourceTableModel resourceTableModel;
-    public static JTable resourceTable;
+     public static JTable resourceTable;
     JComboBox dataSourceComboBox;
     
     ButtonGroup modeButtons = new ButtonGroup();
@@ -255,116 +243,16 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     
     
-    private void  setUpResourceSelectionPanel() {
-        resourceSelectionPanel = new JPanel();
-        GridBagLayout gridbag = new GridBagLayout();
-        GridBagConstraints c = new GridBagConstraints();
-        resourceSelectionPanel.setLayout(gridbag);
-        Insets defaultInsets = new Insets(2,2,2,2);
-        
-        
-        JPanel bottomPanel = new JPanel();
-        // bottomPanel.setBorder(new LineBorder(Color.BLACK));
-        bottomPanel.add(backButton);
-        bottomPanel.add(finishButton);
-        bottomPanel.add(cancelButton);
-        finishButton.setEnabled(true);
-        
-        
-        c.gridx = 0;
-        c.gridy = 0;
-        c.gridwidth = 6;
-        c.insets = defaultInsets;
-        c.anchor = GridBagConstraints.WEST;
-        JLabel topLabel = new JLabel("The following objects will be published with the map:");
-        gridbag.setConstraints(topLabel,c);
-        resourceSelectionPanel.add(topLabel);
-        
-        c.gridx =0;
-        c.gridy =1;
-        c.gridheight = 2;
-        JPanel resourceListPanel = new JPanel();
-        JComponent resourceListPane = getResourceListPane();
-        resourceListPanel.add(resourceListPane);
-        gridbag.setConstraints(resourceListPanel,c);
-        resourceSelectionPanel.add(resourceListPanel);
-        
-        c.gridy = 3;
-        c.anchor = GridBagConstraints.EAST;
-        gridbag.setConstraints(bottomPanel, c);
-        resourceSelectionPanel.add(bottomPanel);
-        
-        // c.insets = new Insets(2, 60,2, 2);
-        
-    }
+   
      private void  setUpPublishPanel() {
          JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
          pPanel.add(pLabel);
          buttonPanel.remove(publishButton);
          
      }
-    private JComponent getResourceListPane() {
-        Vector columnNamesVector = new Vector();
-        columnNamesVector.add("Selection");
-        columnNamesVector.add("Display Name");
-        columnNamesVector.add("Size ");
-        columnNamesVector.add("Status");
-        resourceVector = new Vector();
-        setLocalResourceVector(resourceVector,VUE.getActiveMap());
-        resourceTableModel = new ResourceTableModel(resourceVector, columnNamesVector);
-        resourceTable = new JTable(resourceTableModel);
-        
-        // setting the cell sizes
-        TableColumn column = null;
-        Component comp = null;
-        int headerWidth;
-        int cellWidth;
-        TableCellRenderer headerRenderer = resourceTable.getTableHeader().getDefaultRenderer();
-        resourceTable.getColumnModel().getColumn(0).setPreferredWidth(12);
-        for (int i = 0; i < 4; i++) {
-            column = resourceTable.getColumnModel().getColumn(i);
-            comp = headerRenderer.getTableCellRendererComponent(null, column.getHeaderValue(),false, false, 0, 0);
-            headerWidth = comp.getPreferredSize().width;
-            cellWidth = resourceTableModel.longValues[i].length();
-            column.setPreferredWidth(Math.max(headerWidth, cellWidth));
-        }
-        resourceTable.setPreferredScrollableViewportSize(new Dimension(450,110));
-        return new JScrollPane(resourceTable);
-    }
+   
     
     
-    private void setLocalResourceVector(Vector vector,LWContainer map) {
-        Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        while(i.hasNext()) {
-            LWComponent component = (LWComponent) i.next();
-            System.out.println("Component:"+component+" has resource:"+component.hasResource());
-            if(component.hasResource() && (component.getResource() instanceof URLResource)){
-                
-                URLResource resource = (URLResource) component.getResource();
-                System.out.println("Component:"+component+"file:" +resource.getSpec()+" has file:"+resource.getSpec().startsWith(FILE_PREFIX));
-                
-                //   if(resource.getType() == Resource.URL) {
-                try {
-                    // File file = new File(new URL(resource.getSpec()).getFile());
-                    if(resource.isLocalFile()) {
-                        File file = new File(resource.getSpec());
-                        System.out.println("LWComponent:"+component.getLabel() + "Resource: "+resource.getSpec()+"File:"+file+" exists:"+file.exists());
-                        Vector row = new Vector();
-                        row.add(new Boolean(true));
-                        row.add(resource);
-                        row.add(new Long(file.length()));
-                        row.add("Ready");
-                        vector.add(row);
-                    }
-                }catch (Exception ex) {
-                    System.out.println("Publisher.setLocalResourceVector: Resource "+resource.getSpec()+ ex);
-                    ex.printStackTrace();
-                }
-                
-            }
-            
-        }
-    }
     
     
     
@@ -496,65 +384,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             return resourceList;
         }
     }
-    public class ResourceTableModel  extends AbstractTableModel {
-        
-        public final String[] longValues = {"Selection", "12345678901234567890123456789012345678901234567890","12356789","Processing...."};
-        Vector data;
-        Vector columnNames;
-        
-        public ResourceTableModel(Vector data,Vector columnNames) {
-            super();
-            
-            this.data = data;
-            this.columnNames = columnNames;
-        }
-        
-        
-        public int getColumnCount() {
-            return columnNames.size();
-        }
-        
-        public int getRowCount() {
-            return data.size();
-        }
-        
-        public String getColumnName(int col) {
-            return (String)columnNames.elementAt(col);
-        }
-        
-        
-        public Object getValueAt(int row, int col) {
-            return ((Vector)data.elementAt(row)).elementAt(col);
-        }
-        
-        public Class getColumnClass(int c) {
-            return getValueAt(0, c).getClass();
-        }
-        
-        /*
-         * Don't need to implement this method unless your table's
-         * editable.
-         */
-        public boolean isCellEditable(int row, int col) {
-            //Note that the data/cell address is constant,
-            //no matter where the cell appears onscreen.
-            if (col > 1) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-        
-        /*
-         * Don't need to implement this method unless your table's
-         * data can change.
-         */
-        
-        public void setValueAt(Object value, int row, int col) {
-            ((Vector)data.elementAt(row)).setElementAt(value,col);
-            fireTableCellUpdated(row, col);
-        }
-    }
+    
     
 }
 
