@@ -47,7 +47,8 @@ public class ConnectivityMatrix {
     protected int c[][] = new int[SIZE][SIZE];
     protected int size;
     private LWMap map;
-    /** Creates a new instance of ConnectivityMatrix */
+    private static final boolean DEBUG = false;
+    
     public ConnectivityMatrix() {
     }
     
@@ -195,7 +196,10 @@ public class ConnectivityMatrix {
     
     private String getMergeProperty(LWComponent node) {
         
-        System.out.println("Connectivity Matrix - getMergeProperty: " + Util.getMergeProperty(node));
+        if(DEBUG)
+        {
+          System.out.println("Connectivity Matrix - getMergeProperty: " + Util.getMergeProperty(node));
+        }
         
         return  Util.getMergeProperty(node);
     }

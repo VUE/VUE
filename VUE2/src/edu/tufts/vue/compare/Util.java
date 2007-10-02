@@ -31,6 +31,9 @@ public class Util {
     public static final String[] CITIES = {"Boston","Miami", "Denver","London","Mumbai","Tokyo"};
     public static final String MAP_NAME= "Cities";
     public static final int MAP_SIZE = 200; // creates a map in a square of 200*200 approx
+    
+    private static final boolean DEBUG = false;
+    
     public static LWMap getMap() {
         LWMap map = new LWMap("Cities");
         LWNode n1 = new LWNode("Boston");
@@ -75,7 +78,11 @@ public class Util {
         //{
         //  System.out.println("Util - getMergeProperty for non LWImage: " + comp.getLabel());   
         String mergeType = tufts.vue.VueResources.getString("merge.ontologyType");
-        System.out.println("edu.tufts.vue.compare.Util merge.ontologyType: " + mergeType);
+        
+        if(DEBUG)
+        {
+          System.out.println("edu.tufts.vue.compare.Util merge.ontologyType: " + mergeType);
+        }
         
         if(mergeType.equals("NONE"))
           return  comp.getLabel();
