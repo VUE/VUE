@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.55 $ / $Date: 2007-10-02 13:27:44 $ / $Author: anoop $
+ * @version $Revision: 1.56 $ / $Date: 2007-10-02 17:44:35 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -239,10 +239,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         buttonPanel.add(publishButton,BorderLayout.EAST);
     }
     
-  
+    
     
     private void  setUpPublishPanel() {
-        JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
+        JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName(),VueResources.getImageIcon("dsv.statuspanel.waitIcon"),JLabel.CENTER);
         pLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         pPanel.add(pLabel);
         buttonPanel.remove(publishButton);
@@ -262,14 +262,15 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
             getContentPane().remove(mPanel);
-              getContentPane().validate();
-            validateTree();
+            mPanel.remove(modeInfo);
+            getContentPane().remove(buttonPanel);
             setUpPublishPanel();
-             getContentPane().add(pPanel,BorderLayout.WEST);
-            getContentPane().validate();
-            validateTree();
+            getContentPane().add(pPanel,BorderLayout.WEST);
+            getContentPane().add(buttonPanel,BorderLayout.SOUTH);
+            validate();
+            repaint();
             publishMapToDL();
-            this.dispose();
+            dispose();
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
