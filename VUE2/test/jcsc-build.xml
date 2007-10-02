@@ -1,6 +1,6 @@
 <project name="TestForStringLiterals" default="jcsc" basedir=".">
 
-<!-- $Revision: 1.1 $ / $Date: 2007-06-21 15:37:20 $ -->
+<!-- $Revision: 1.2 $ / $Date: 2007-10-02 00:42:10 $ -->
 
 <!-- 
 This ant build file:
@@ -42,6 +42,7 @@ This ant build file:
   <property name="build.lib"   value="${build.home}/lib" />
   <property name="dist.src"    value="${dist.home}/src"/>
   <property name="home.src"    value="${basedir}/src"/>
+  <property name="jcsc.home"   value="${basedir}/tools/jcsc"/>
 
 
 
@@ -52,7 +53,7 @@ This ant build file:
 -->
  
   <taskdef name="jcsc" classname="rj.tools.jcsc.ant.JCSCTask"
-    classpath="${basedir}/lib/JCSC.jar" />
+    classpath="${jcsc.home}/lib/JCSC.jar" />
 
 
 <!-- ==================== External Dependencies =========================== -->

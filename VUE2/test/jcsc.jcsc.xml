@@ -17,7 +17,7 @@
          <value>false</value>
          <severity>4</severity>
       </rule>
-      <rule name="AllowedComplexLoopExpression" category="General" enabled="true">
+      <rule name="AllowedComplexLoopExpression" category="General" enabled="false">
          <type>regexp</type>
          <value>has(Next|More(Elements|Tokens))</value>
          <severity>3</severity>
@@ -47,7 +47,7 @@
          <value>[a-z][\w\d]*</value>
          <severity>3</severity>
       </rule>
-      <rule name="ClassNameRegExp" category="General" enabled="true">
+      <rule name="ClassNameRegExp" category="General" enabled="false">
          <type>regexp</type>
          <value>[A-Z][\w\d]*</value>
          <severity>3</severity>
@@ -82,7 +82,7 @@
          <value>false</value>
          <severity>5</severity>
       </rule>
-      <rule name="LVRegExp" category="Field" enabled="true">
+      <rule name="LVRegExp" category="Field" enabled="false">
          <type>regexp</type>
          <value>[a-z][\w\d]*</value>
          <severity>3</severity>
@@ -92,7 +92,7 @@
          <value>5</value>
          <severity>4</severity>
       </rule>
-      <rule name="NestedTypeBlockPlaceRule" category="General" enabled="true">
+      <rule name="NestedTypeBlockPlaceRule" category="General" enabled="false">
          <type>multichoice</type>
          <choices>
             <choice>Beginning of Class</choice>
@@ -116,7 +116,7 @@
          <value>false</value>
          <severity>4</severity>
       </rule>
-      <rule name="TypeHeaderExpression" category="General" enabled="true">
+      <rule name="TypeHeaderExpression" category="General" enabled="false">
          <type>regexp-multiline</type>
          <value>/\*
  \* Copyright \(C\) 1999-2005 Ralph Jocham
@@ -161,7 +161,7 @@
          <value>true</value>
          <severity>4</severity>
       </rule>
-      <rule name="ConditionalExpression" category="General" enabled="true">
+      <rule name="ConditionalExpression" category="General" enabled="false">
          <type>boolean</type>
          <value>true</value>
          <severity>3</severity>
@@ -171,7 +171,7 @@
          <value>[A-Z][A-Z0-9_]*</value>
          <severity>3</severity>
       </rule>
-      <rule name="SwitchRequiresDefault" category="General" enabled="true">
+      <rule name="SwitchRequiresDefault" category="General" enabled="false">
          <type>boolean</type>
          <value>true</value>
          <severity>3</severity>
@@ -210,7 +210,7 @@
          <value>Method Block After Field Block</value>
          <severity>3</severity>
       </rule>
-      <rule name="OnlyThrowSubclassedException" category="Method" enabled="true">
+      <rule name="OnlyThrowSubclassedException" category="Method" enabled="false">
          <type>boolean</type>
          <value>true</value>
          <severity>3</severity>
@@ -361,7 +361,7 @@
          <value>test[\w\d]+</value>
          <severity>3</severity>
       </rule>
-      <rule name="OnlyOneFieldDeclarationPerLine" category="Field" enabled="true">
+      <rule name="OnlyOneFieldDeclarationPerLine" category="Field" enabled="false">
          <type>boolean</type>
          <value>true</value>
          <severity>3</severity>
@@ -404,7 +404,7 @@
          <value>true</value>
          <severity>4</severity>
       </rule>
-      <rule name="OnlySubclassedCatchBlock" category="General" enabled="true">
+      <rule name="OnlySubclassedCatchBlock" category="General" enabled="false">
          <type>boolean</type>
          <value>true</value>
          <severity>3</severity>
@@ -414,7 +414,7 @@
          <value>[a-z][\w\d]*</value>
          <severity>3</severity>
       </rule>
-      <rule name="InterfaceCheckAbstract" category="General" enabled="true">
+      <rule name="InterfaceCheckAbstract" category="General" enabled="false">
          <type>boolean</type>
          <value>true</value>
          <severity>3</severity>
