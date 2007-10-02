@@ -24,6 +24,7 @@
  */
 package edu.tufts.vue.ontology;
 
+import tufts.vue.VueResources;
 import edu.tufts.vue.style.*;
 
 
@@ -60,6 +61,8 @@ public class OntType implements java.io.Serializable {
     }
     
     public String getBase() {
+        if(this.base.indexOf("/edu/tufts/vue/metadata/dces_1_1.rdf") != -1)
+            return VueResources.getString("metadata.dublincore.url");
         return this.base;
     }
     

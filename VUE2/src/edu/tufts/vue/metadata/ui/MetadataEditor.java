@@ -295,7 +295,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    else
                        currLabel = currValue.toString();
                    
-                   System.out.println("MetadataTable currLabel:" + currLabel);
+                   //System.out.println("MetadataTable currLabel:" + currLabel);
                    
                    //if(item instanceof OntType)
                     // System.out.println("MetadataTable looking at category model OntType element at " + i + " " +
