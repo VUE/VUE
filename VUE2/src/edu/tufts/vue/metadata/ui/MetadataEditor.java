@@ -295,7 +295,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    else
                        currLabel = currValue.toString();
                    
-                   //System.out.println("MetadataTable currLabel:" + currLabel);
+                   System.out.println("MetadataTable currLabel:" + currLabel);
                    
                    //if(item instanceof OntType)
                     // System.out.println("MetadataTable looking at category model OntType element at " + i + " " +
@@ -304,7 +304,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    //System.out.println("MetadataTable ------------------- " + i );
                    
                    if(item instanceof OntType &&
-                           ((OntType)item).getLabel().equals(currLabel))
+                           (((OntType)item).getBase()+"#"+((OntType)item).getLabel()).equals(currLabel))
                    {
                        //System.out.println("found category");
                        categories.setSelectedIndex(i);
@@ -457,7 +457,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                     
                     //System.out.println(categories.getSelectedItem().getClass());
                     
-                    String[] keyValuePair = {((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
+                    String[] keyValuePair = {((OntType)categories.getSelectedItem()).getBase()+"#"+((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
                     vme.setObject(keyValuePair);
                     vme.setType(VueMetadataElement.CATEGORY);
                     //table.getModel().setValueAt(vme,row,col);
@@ -555,7 +555,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[1]);
                findCategory(currValue,row,col,n,categories); 
                
-               findCategory(currValue,row,col,n,categories);
+               //findCategory(currValue,row,col,n,categories);
                
                /*
                //System.out.println("Editor -- currValue: " + currValue);

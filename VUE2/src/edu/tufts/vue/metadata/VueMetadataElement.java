@@ -64,7 +64,7 @@ public class VueMetadataElement {
        {
            type = CATEGORY;
            value = ((String[])obj)[1];
-           key = VUE_ONT  + "#" + ((String[])obj)[0];
+           key = /*VUE_ONT  + "#" + */ ((String[])obj)[0];
        }
        else if(obj instanceof OntType)
        {
