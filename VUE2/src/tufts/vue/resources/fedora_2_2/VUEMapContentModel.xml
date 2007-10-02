@@ -11,9 +11,8 @@
     <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="%CREATE_DATE%"/>
     <foxml:property NAME="info:fedora/fedora-system:def/model#contentModel" VALUE="%CONTENT_MODEL%"/>
   </foxml:objectProperties>
-  <foxml:datastream CONTROL_GROUP="X" ID="DC" STATE="A" VERSIONABLE="true">
-    <foxml:datastreamVersion CREATED="%CREATE_DATE%" ID="DC1.0" LABEL="Dublin Core Metadata"
-      MIMETYPE="text/xml">
+ <foxml:datastream CONTROL_GROUP="X" ID="%DC_ID%" STATE="A" VERSIONABLE="true">
+    <foxml:datastreamVersion CREATED="%CREATE_DATE%" ID="DC1.0" LABEL="%DC_LABEL%" MIMETYPE="%DC_MIME_TYPE%">
       <foxml:contentDigest DIGEST="none" TYPE="DISABLED"/>
       <foxml:xmlContent>
          %DC%
