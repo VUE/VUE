@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.51 $ / $Date: 2007-10-01 18:28:21 $ / $Author: anoop $
+ * @version $Revision: 1.52 $ / $Date: 2007-10-02 01:05:19 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -116,8 +116,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JTextArea informationArea;
     JPanel buttonPanel;
     JTextArea modeInfo  = new JTextArea(PUBLISH_INFORMATION[0]);
-    JPanel rPanel  = new JPanel();
-    JPanel mPanel  = new JPanel();
+    JPanel rPanel  = new JPanel(); // repository panel
+    JPanel mPanel  = new JPanel(); // Mode Selection Panel
+    JPanel pPanel = new JPanel(); // publish panel
     JButton nextButton = new JButton(NEXT);
     JButton cancelButton = new JButton(CANCEL);
     JButton publishButton = new JButton(PUBLISH);
@@ -296,7 +297,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         // c.insets = new Insets(2, 60,2, 2);
         
     }
-    
+     private void  setUpPublishPanel() {
+         JLabel pLabel = new JLabel("publising to: "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
+         pPanel.add(pLabel);
+         buttonPanel.remove(publishButton);
+         
+     }
     private JComponent getResourceListPane() {
         Vector columnNamesVector = new Vector();
         columnNamesVector.add("Selection");
@@ -373,7 +379,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().validate();
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
+              getContentPane().remove(mPanel);
+              setUpPublishPanel();
+              getContentPane().add(pPanel, BorderLayout.CENTER);
+            getContentPane().validate();
+            validateTree();
             publishMapToDL();
+            
             
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
