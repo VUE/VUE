@@ -50,7 +50,9 @@ import org.xml.sax.InputSource;
 import tufts.vue.gui.*;
 
 public class DataSourceViewer extends JPanel
-        implements KeyListener, edu.tufts.vue.fsm.event.SearchListener {
+    implements KeyListener, edu.tufts.vue.fsm.event.SearchListener
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceViewer.class);
     private static final boolean UseFederatedSearchManager = false;
     
     private static DRBrowser DRB;
@@ -112,29 +114,32 @@ public class DataSourceViewer extends JPanel
         dataSourceList = new DataSourceList(this);
         Widget.setExpanded(DRB.browsePane, false);
         edu.tufts.vue.dsm.DataSource dataSources[] = null;
+        org.apache.log4j.NDC.push(getClass().getSimpleName() + ";");
         try {
             // load old-style data sources
-            VUE.Log.info("DataSourceViewer; Loading old style data sources...");
+            Log.info("Loading old style data sources...");
             loadDataSources();
-            VUE.Log.info("DataSourceViewer; Loaded old style data sources.");
+            Log.info("Loaded old style data sources.");
         } catch (Throwable t) {
             VueUtil.alert("Error loading old Resource","Error");
         }
         try {
             // load new data sources
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-            VUE.Log.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
+            Log.info("loading Installed data sources via Data Source Manager");
             edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
             dataSources = dataSourceManager.getDataSources();
-            VUE.Log.info("DataSourceViewer; finished loading data sources.");
+            Log.info("finished loading data sources.");
             for (int i=0; i < dataSources.length; i++) {
-                VUE.Log.info("DataSourceViewer; adding data source to data source list UI: " + dataSources[i]);
+                Log.info("adding data source to data source list UI: " + dataSources[i]);
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
             t.printStackTrace();
             VueUtil.alert("Error loading Resource","Error");
         }
+        org.apache.log4j.NDC.pop();
+        
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
         queryEditor = federatedSearchManager.getQueryEditorForType(searchType);
@@ -778,6 +783,9 @@ public class DataSourceViewer extends JPanel
                 return;
             
             if (DEBUG.DR) out("RUN KICKED OFF");
+
+            // TODO: all the swing access should be happening on the EDT for
+            // absolute thread safety.  Refactor using SwingWorker.
             
             try {
                 adjustQuery();
