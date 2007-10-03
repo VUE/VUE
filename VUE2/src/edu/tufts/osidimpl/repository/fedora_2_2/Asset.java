@@ -78,16 +78,15 @@ public class Asset implements org.osid.repository.Asset{
         this.pid = new PID(id);
         // inforecords are not added to BDEFs and BMECHs
         if(!(assetType.getKeyword().equals(Repository.BDEF) || assetType.getKeyword().equals(Repository.BMECH))) {
-//            recordVector = FedoraSoapFactory.getDisseminationRecords(id,((FedoraObjectAssetType) assetType).getDissemiationRecordStructure(),repository);
-//            recordVector.add(VUERecordStructure.createVUERecord(id,(VUERecordStructure)((FedoraObjectAssetType) assetType).getVUERecordStructure(), repository,pid,(FedoraObjectAssetType) assetType));
-            if(assetType.getKeyword().equals(repository.getFedoraProperties().getProperty("type.image")))
-                recordVector.add(ImageRecordStructure.createImageRecord(id,
-																		(ImageRecordStructure)((FedoraObjectAssetType) assetType).getImageRecordStructure(),
-																		repository,
-																		pid,
-																		(FedoraObjectAssetType) assetType,
-																		getDisplayName(),
-																		getId().getIdString()));
+            if(assetType.getKeyword().equals(repository.getFedoraProperties().getProperty("type.image"))){
+                recordVector.add(ImageRecordStructure.createImageRecord(id,(ImageRecordStructure)((FedoraObjectAssetType) assetType).getImageRecordStructure(),																		repository,
+                        pid,
+                        (FedoraObjectAssetType) assetType,
+                        getDisplayName(),
+                        getId().getIdString()));
+            } else {
+                recordVector.add(DefaultRecordStructure.createDefaultRecord(id,(DefaultRecordStructure)((FedoraObjectAssetType)assetType).getDefaultRecordStructure(),repository,pid,(FedoraObjectAssetType) assetType,getDisplayName(),getId().getIdString()));
+            }
         }
     }
     
