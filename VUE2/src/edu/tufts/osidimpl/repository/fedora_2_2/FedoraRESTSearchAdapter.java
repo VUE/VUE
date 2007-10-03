@@ -50,6 +50,7 @@ public class FedoraRESTSearchAdapter {
     public static final String SEARCH_STRING = "/fedora/search?pid=true&title=true&xml=true&cModel=true&description=true&maxResults=100&terms=";
     public static final String SEARCH_ADVANCED = "/fedora/search?pid=true&title=true&xml=true&cModel=true&description=true&maxResults=100&query=";
     public static final String SEARCH_RESUME = "/fedora/search?xml=true&sessionToken=";
+    public static final String DS_ID_ATTRIBUTE = "dsid";
     
     /** Creates a new instance of FedoraRESTSearchAdapter */
     public FedoraRESTSearchAdapter() {
@@ -75,19 +76,6 @@ public class FedoraRESTSearchAdapter {
                 }
                 
             }
-            /*
-            else {
-                if(lSearchCriteria.getToken() != null) {
-                    URL url = new URL("http",repository.getAddress(),repository.getPort(),SEARCH_RESUME+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
-                    XPathFactory  factory=XPathFactory.newInstance();
-                    XPath xPath=factory.newXPath();
-                    xPath.setNamespaceContext(new FedoraNamespaceContext());
-                    InputSource inputSource =  new InputSource(url.openStream());
-                    fieldNode = (NodeList)xPath.evaluate( "/pre:result/pre:resultList/pre:objectFields"  ,inputSource,XPathConstants.NODESET);
-                    
-                }
-            }
-            */
             return getAssetIterator(repository, fieldNode);
         }catch(Throwable t) {
             throw wrappedException("search", t);
@@ -169,6 +157,25 @@ public class FedoraRESTSearchAdapter {
         }
     }
     
+    
+    public static List<String> getDataStreams(String dSUrl) throws org.osid.repository.RepositoryException {
+        List<String> dataStreams = new ArrayList<String>();
+        try {
+            URL url = new  URL(dSUrl);
+            XPathFactory  factory=XPathFactory.newInstance();
+            XPath xPath=factory.newXPath();
+            InputSource inputSource =  new InputSource(url.openStream());
+            NodeList dSNodes = (NodeList)xPath.evaluate( "/objectDatastreams/datastream"  ,inputSource,XPathConstants.NODESET);
+            for(int i =0;i<dSNodes.getLength();i++) {
+                Node n =dSNodes.item(i);
+                dataStreams.add(n.getAttributes().getNamedItem(DS_ID_ATTRIBUTE).getNodeValue());
+            }
+        } catch (Throwable t) {
+            throw wrappedException("getDataStreams", t);
+        }
+        
+        return dataStreams;
+    }
     
     
     private static org.osid.repository.RepositoryException wrappedException(String method, Throwable cause) {
