@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.173 $ / $Date: 2007-09-18 22:02:48 $ / $Author: sfraize $
+ * @version $Revision: 1.174 $ / $Date: 2007-10-03 22:46:49 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -391,6 +391,18 @@ public class LWLink extends LWComponent
         return mIconBlock.handleDoubleClick(e);
     }
 
+// castor-1.1.2.1-xml.jar debugging for validated marshalling, which is suddenly failing for links:
+//     public LWComponent getHead() {
+//         LWComponent c = _getHead();
+//         out("RETURNING GET-HEAD " + c + " id=" + (c==null?"<none>":c.getID()));
+//         return c;
+//     }
+//     public LWComponent getTail() {
+//         LWComponent c = _getTail();
+//         out("RETURNING GET-TAIL " + c + " id=" + (c==null?"<none>":c.getID()));
+//         return c;
+//     }
+    
     /** @return the component connected at the head end, or null if none or if it's pruned */
     public LWComponent getHead() {
         if (head.node == null || head.node.isHidden(HideCause.PRUNE))
@@ -410,33 +422,10 @@ public class LWLink extends LWComponent
 
     public void setHeadPoint(float x, float y) {
         head.setPoint(this, x, y, KEY_LinkHeadPoint);
-        
-//         if (head.isConnected()) {
-//             //VUE.Log.debug(this + "; setting pixel head point for connected link: " + x + "," + y);
-//             if (DEBUG.Enabled) Util.printClassTrace("tufts.vue", this + "; setting pixel head point for connected link: " + x + "," + y);
-//         }
-//         Object old = new Point2D.Float(head.x, head.y);
-//         head.x = x;
-//         head.y = y;
-//         mRecompute = true;
-//         notify(KEY_LinkHeadPoint, old);
     }
 
     public void setTailPoint(float x, float y) {
         tail.setPoint(this, x, y, KEY_LinkTailPoint);
-        
-//         if (tail.isConnected()) {
-//             //VUE.Log.debug(this + "; setting pixel tail point for connected link: " + x + "," + y);
-//             final UndoManager um = getUndoManager();
-//             if (um != null && !um.isUndoing()) {
-//                 if (DEBUG.Enabled) Util.printClassTrace("tufts.vue", this + "; setting pixel tail point for connected link: " + x + "," + y);
-//             }
-//         }
-//         Object old = new Point2D.Float(tail.x, tail.y);
-//         tail.x = x;
-//         tail.y = y;
-//         mRecompute = true;
-//         notify(KEY_LinkTailPoint, old);
     }
     
     /** interface ControlListener handler */
