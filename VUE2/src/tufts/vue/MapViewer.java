@@ -43,6 +43,7 @@ import java.awt.geom.*;
 import java.util.*;
 
 import javax.swing.*;
+import javax.swing.border.*;
 
 import edu.tufts.vue.metadata.action.SearchAction;
 import edu.tufts.vue.ontology.ui.TypeList;
@@ -73,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.448 $ / $Date: 2007-09-30 21:35:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.449 $ / $Date: 2007-10-03 22:47:54 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1997,6 +1998,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      * and this makes it easy to reliably clear the tip on the old map when rolling to the new map.
      */
     private static Object sTipLock = new Object();
+
+    private static final Border ToolTipBorder
+        = new CompoundBorder(BorderFactory.createLineBorder(Color.darkGray, 1),
+                             BorderFactory.createEmptyBorder(1,1,0,2));
     
     /**
      * Pop a tool-tip near the given LWComponent.
@@ -2026,7 +2031,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // factory, we have to set these properties ourselves:
         pJComponent.setOpaque(true);
         pJComponent.setBackground(COLOR_TOOLTIP);
-        pJComponent.setBorder(javax.swing.border.LineBorder.createBlackLineBorder());
+        pJComponent.setBorder(ToolTipBorder);
+
+        // The cursor often automatically reverts to the default cursor when a
+        // tooltip appears. Lightweight and heavyweight both have the problem,
+        // tho they seem to trigger things a bit differently, tho maybe not even
+        // consisdently.
+        // This is on MacOSX anyway....  In any case, what we want is not to have
+        // the cursor change at all because of tooltips... this is a current bug.
+        // Note that of course we'll need the tool-tips focusable if we ever put interactive
+        // content in them.  It's actually okay if the mouse changes when going over
+        // the tip, but it should always go back when it's dismissed, and in the
+        // cursor revert on APPEARANCE case, we may never get a mouse-exited...
+        pJComponent.setFocusable(false);
             
         //c.setIcon(new LineIcon(10,10, Color.red, null));//test -- icons w/tex work
         //System.out.println("    size="+c.getSize());
