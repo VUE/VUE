@@ -199,10 +199,11 @@ public class TypeList extends JList {
                    //((LWImage)compFor).setToNaturalSize();
                    im.setToNaturalSize();
                    java.util.ArrayList cl = new java.util.ArrayList();
-                   cl.add(im);
+                  // cl.add(im);
                    ((LWNode)compFor).addChildren(cl);
                    
-                   compFor = im;
+                   //enable for LWImage only as Component
+                   //compFor = im;
                    
                  }
                  else
