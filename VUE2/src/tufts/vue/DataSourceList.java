@@ -18,15 +18,15 @@
 
 package tufts.vue;
 
+import tufts.Util;
 import tufts.vue.gui.*;
+
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 import osid.dr.*;
 
-import java.util.List;
-import java.util.Vector;
-import java.util.Iterator;
+import java.util.*;
 
 import java.io.*;
 import java.io.IOException;
@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.46 $ / $Date: 2006-08-03 05:33:36 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-10-03 22:41:26 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -183,10 +183,18 @@ public class DataSourceList extends JList implements DropTargetListener {
             if (DEBUG.DND) System.out.println("RESOURCE TRANSFER FOUND: " + transfer);
             try {
                 if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
-                    resourceList = (java.util.List) transfer.getTransferData(Resource.DataFlavor);
-                    java.util.Iterator iter = resourceList.iterator();
-                    while(iter.hasNext()) {
-                        Resource resource = (Resource) iter.next();
+                    final Object data = transfer.getTransferData(Resource.DataFlavor);
+                    Collection<Resource> droppedResources = null;
+                    if (data instanceof Resource) {
+                        droppedResources = (Collection) Collections.singletonList(data);
+                    } else if (data instanceof Collection) {
+                        droppedResources = (Collection) data;
+                    } else {
+                        Util.printStackTrace("Unhandled drop type: " + Util.tag(data) + "; " + data);
+                        return;
+                    }
+                    
+                    for (Resource resource : droppedResources) {
                         if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getType()+ " resource class:"+resource.getClass());  
                         ResourceNode newNode;
                         if(resource.getType() == Resource.FILE){
