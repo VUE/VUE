@@ -108,9 +108,12 @@ public class VueMetadataElement {
        this.type = type;
        if( (type == CATEGORY) && (obj == null) )
        {
-           int len = (VUE_ONT + "#").length();
+           //int len = (VUE_ONT + "#").length();
+           //int len = getKey().lastIndexOf("#");
            if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
-           String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+           
+           //String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+           String[] pairedValue = {getKey(),getValue()};
            obj = pairedValue;
            if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
        }
