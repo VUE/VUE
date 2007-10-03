@@ -60,7 +60,9 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     private int buttonColumn = 1;
     
-    public MetadataEditor(tufts.vue.LWComponent current)
+    private boolean showOntologicalMembership;
+    
+    public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership)
     {
         this.current = current;
         
@@ -187,15 +189,23 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         add(optionsPanel);
         
         JPanel ontologicalMembershipPane = new JPanel();
+        ontologicalMembershipPane.setAlignmentX(0.5f);
         ontologicalMembershipPane.setLayout(new BoxLayout(ontologicalMembershipPane,BoxLayout.Y_AXIS));
         ontologicalMembershipPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
         ontologyTypeList = new JList(new OntologyTypeListModel());
         JScrollPane ontologyListScroll = new JScrollPane(ontologyTypeList);
         //ontologyListScroll.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
         ontologyListScroll.getViewport().setOpaque(false);
-        ontologicalMembershipPane.add(new JLabel("Ontological Membership: "));
+        JLabel membershipLabel = new JLabel("Ontological Membership: ");
+        ontologicalMembershipPane.add(membershipLabel);
         ontologicalMembershipPane.add(ontologyListScroll);
-        add(ontologicalMembershipPane);
+        ontologyListScroll.setAlignmentX(0.0f);
+        membershipLabel.setAlignmentX(0.0f);
+        
+        if(showOntologicalMembership)
+        {
+          add(ontologicalMembershipPane);
+        }
         
         tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
         
@@ -492,7 +502,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   if(currentVME==null)
                   {
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {"Tag",""};
+                     String[] emptyEntry = {"http://vue.uit.tufts.edu#Tag",""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);  
                       
@@ -505,7 +515,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                     //vme.setObject(field.getText());
                       
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {"Tag",""};
+                     String[] emptyEntry = {"http://vue.uit.tufts.edu#Tag",""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);
                   }
@@ -524,12 +534,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   {
                     current.getMetadataList().getMetadata().add(vme); 
                   }
-                  //System.out.println("MetadataEditor -- value at position where text field focus lost - after set: " +  table.getModel().getValueAt(row,col));
-                  if(buttonColumn == 2)
-                  {
-                      //System.out.println("MetadataEditor -- drop down value :" + table.getModel().getValueAt(row,buttonColumn-2));
-                  }
-                  //stopCellEditing();
+
+
               }
            });
            final JPanel comp = new JPanel();
