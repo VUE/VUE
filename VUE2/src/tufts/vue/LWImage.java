@@ -72,19 +72,33 @@ public class LWImage extends
     
     private final static int MinWidth = 32;
     private final static int MinHeight = 32;
+
+    enum Status { UNLOADED, LOADING, LOADED, ERROR };
+
+    // May want move most of this code to be done generically in URLResource, (e.g.,
+    // bytes size, byte progress & status are somewhat generic for all content), and
+    // either just auto-handle the special case of width/height for everything, or add
+    // generic properties based on content type for the URLResource (we sort of already
+    // have this with stuff that comes from MapDropTarget).  Tho we only need this for
+    // content that has a needed/useful in-memory representation that's different than
+    // it's on-disk content.  Currently, this only applies to images.  If we were to
+    // support, say, dynamically generating icons (or even a document model) for HTML or
+    // PDF content, the problem would then become a truly generic one.
     
     private Image mImage;
     private int mImageWidth = -1; // pixel width of raw image
     private int mImageHeight = -1; // pixel height of raw image
+    private volatile Status mImageStatus = Status.UNLOADED;
     private float mImageAspect = NEEDS_DEFAULT; // image width / height
+    private long mDataSize = -1;
+    private volatile long mDataSoFar = 0;
+    private Object mUndoMarkForThread;
+    
     //private double mImageScale = 1; // scale to the fixed size
     private double mRotation = 0;
     private Point2D.Float mOffset = new Point2D.Float(); // x & y always <= 0
-    private Object mUndoMarkForThread;
-    private boolean mImageError = false;
 
-    private volatile long mDataSize = -1;
-    private volatile long mDataSoFar = 0;
+
     
 
     /** is this image currently serving as an icon for an LWNode? */
@@ -132,7 +146,7 @@ public class LWImage extends
         i.mImageHeight = mImageHeight;
         i.mImageAspect = mImageAspect;
         i.isNodeIcon = isNodeIcon;
-        i.mImageError = mImageError;
+        i.mImageStatus = mImageStatus;
         i.setOffset(this.mOffset);
         i.setRotation(this.mRotation);
         return i;
@@ -297,7 +311,7 @@ public class LWImage extends
     public void setSelected(boolean selected) {
         boolean wasSelected = this.selected;
         super.setSelected(selected);
-        if (selected && !wasSelected && mImageError && hasResource()) {
+        if (selected && !wasSelected && mImageStatus == Status.ERROR && hasResource()) {
             //Util.printStackTrace("ADD SELCTED IMAGE CLEANUP " + this);
             // don't know if this really needs to be a cleanup task,
             // or just an after-AWT task, but safer to do one of them:
@@ -315,6 +329,9 @@ public class LWImage extends
             mImage = null;
             mImageWidth = -1;
             mImageHeight = -1;
+            mImageStatus = Status.UNLOADED;
+            super.setResource(r);
+        } else if (mXMLRestoreUnderway) {
             super.setResource(r);
         } else {
             setResourceAndLoad(r, null);
@@ -324,8 +341,10 @@ public class LWImage extends
     // todo: find a better way to do this than passing in an undo manager, which is dead ugly
     public void setResourceAndLoad(Resource r, UndoManager undoManager) {
         super.setResource(r);
-        setLabel(MapDropTarget.makeNodeTitle(r));
-        loadResourceImage(r, undoManager);
+        if (r != null) {
+            setLabel(MapDropTarget.makeNodeTitle(r));
+            loadResourceImage(r, undoManager);
+        }
     }
 
 
@@ -366,9 +385,9 @@ public class LWImage extends
     /** @see Images.Listener */
     public synchronized void gotImageSize(Object imageSrc, int width, int height, long byteSize)
     {
-        if (true||DEBUG.IMAGE) out("gotImageSize " + width + "x" + height + " bytes=" + byteSize);
+        if (DEBUG.IMAGE) out("gotImageSize " + width + "x" + height + " bytes=" + byteSize);
         mDataSize = byteSize;
-        mImageError = false;
+        mImageStatus = Status.LOADING;
         setImageSize(width, height);
 
         if (mUndoMarkForThread == null) {
@@ -397,12 +416,13 @@ public class LWImage extends
     
     private float mLastPct = 0;
     private int mLastPctEven = 0;
-    private String mStatusMsg;
+    private volatile String mStatusMsg;
 
-    public synchronized void gotBytes(Object imageSrc, long bytesSoFar) {
+    public void gotBytes(Object imageSrc, long bytesSoFar) {
         mDataSoFar = bytesSoFar;
         
         //out("BYTES SO FAR: " + bytesSoFar);
+        // TODO: move this down to be recompute just before we actually draw
         if (mDataSize > 0 && mDataSoFar > 0) { // don't bother if we don't know the whole size yet...
             //final String statusMsg = Long.toString(mDataSoFar);
             final float pct = (float)mDataSoFar / (float)mDataSize;
@@ -426,7 +446,7 @@ public class LWImage extends
     public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
         // Be sure to set the image before detaching from the thread,
         // or when the detach issues repaint events, we won't see the image.
-        mImageError = false;
+        mImageStatus = Status.LOADED;
         setImageSize(w, h);
         //mImageWidth = w;
         //mImageHeight = h;
@@ -457,7 +477,7 @@ public class LWImage extends
     /** @see Images.Listener */
     public synchronized void gotImageError(Object imageSrc, String msg) {
         // set image dimensions so if we resize w/out image it works
-        mImageError = true;
+        mImageStatus = Status.ERROR;
         mImageWidth = (int) getWidth();
         mImageHeight = (int) getHeight();
         if (mImageWidth < 1) {
@@ -781,11 +801,22 @@ public class LWImage extends
 */
 
     private void drawImageBox(DrawContext dc)
-    {    	    	
+    {
         if (mImage == null) 
             drawImageStatus(dc);
         else
             drawImage(dc);
+        
+        if (mImageStatus == Status.UNLOADED && getResource() != null) {
+            synchronized (this) {
+                if (mImageStatus == Status.UNLOADED) {
+                    mImageStatus = Status.LOADING;
+                    tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() { public void run() {
+                        loadResourceImage(getResource(), null);
+                    }});
+                }
+            }
+        }
     }
 
     private void drawImage(DrawContext dc)
@@ -834,7 +865,7 @@ public class LWImage extends
         float pct = 0;
         
         synchronized (this) {
-            if (mImageError) {
+            if (mImageStatus == Status.ERROR) {
                 status1 = "Missing";
                 status2 = "Image";
             } else if (mDataSoFar > 0 && mStatusMsg != null) {
@@ -959,7 +990,7 @@ public class LWImage extends
     {
         if (index == 0) {
 
-            if (mImageError) // don't let user play with offset if no image visible
+            if (mImageStatus == Status.ERROR) // don't let user play with offset if no image visible
                 return;
             
             float deltaX = dragStart.x - e.getMapX();
@@ -1073,8 +1104,9 @@ public class LWImage extends
 //         return controlPoints;
 //     }
 
+    @Override
     public String paramString() {
-        return super.paramString() + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
+        return super.paramString() + " " + mImageStatus + " raw=" + mImageWidth + "x" + mImageHeight + (isNodeIcon ? " <NodeIcon>" : "");
     }
 
 
