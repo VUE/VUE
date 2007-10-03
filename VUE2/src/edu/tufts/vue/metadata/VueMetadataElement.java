@@ -108,14 +108,15 @@ public class VueMetadataElement {
        this.type = type;
        if( (type == CATEGORY) && (obj == null) )
        {
-           //int len = (VUE_ONT + "#").length();
-           //int len = getKey().lastIndexOf("#");
+           int len = (VUE_ONT + "#").length();
            if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
-           
-           //String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
-           String[] pairedValue = {getKey(),getValue()};
-           obj = pairedValue;
-           if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
+           try {
+               String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+               obj = pairedValue;
+               if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
+           } catch (Throwable t) {
+               tufts.Util.printStackTrace(t, this+":setType(" + type + ") key["+getKey() + "] value=[" + getValue() + "]");
+           }
        }
    }
 
