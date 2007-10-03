@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.74 $ / $Date: 2007-09-24 17:25:26 $ / $Author: dan $  
+ * @version $Revision: 1.75 $ / $Date: 2007-10-03 23:16:50 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -189,7 +189,7 @@ class MapDropTarget
         final Transferable transfer;
         final Point2D.Float location;   // map location of the drop
         final Collection items;         // bag of Objects in the drop
-        final List<LWComponent> list;   // convience reference to items if it is a List
+        final List list;   // convience reference to items if it is a List
         final String text;              // only one of items+list or text
         final LWComponent hit;          // we dropped into this component
         final LWContainer hitParent;    // we dropped into this component, and it can take children
