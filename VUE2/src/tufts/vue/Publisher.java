@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.57 $ / $Date: 2007-10-02 17:45:12 $ / $Author: anoop $
+ * @version $Revision: 1.58 $ / $Date: 2007-10-03 14:27:57 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -125,6 +125,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         //testing
         super(owner,title,true);
         initialize();
+    }
+    
+    public Publisher(Frame owner,String title,edu.tufts.vue.dsm.DataSource ds) {
+        this(owner,title);
+        repList.setSelectedValue(ds,false);
+        setUpModeSelectionPanel();
     }
     private void initialize() {
         
@@ -270,7 +276,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             validate();
             repaint();
             publishMapToDL();
-     
+            dispose();
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
@@ -351,10 +357,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     class DatasourceListModel extends DefaultListModel {
         org.osid.shared.Type type;
-        edu.tufts.vue.dsm.DataSource[] datasources;
-        public DatasourceListModel(org.osid.shared.Type type) {
-            datasources = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
-            this.type = type;
+         public DatasourceListModel(org.osid.shared.Type type) {
+             this.type = type;
         }
         public Object getElementAt(int index) {
             return(getResources().get(index));
@@ -366,7 +370,15 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
         
         private java.util.List<edu.tufts.vue.dsm.DataSource> getResources() {
-            java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
+            return Publisher.getPublishableDatasources(type);
+            
+        }
+    }
+    
+    
+    public  static java.util.List<edu.tufts.vue.dsm.DataSource> getPublishableDatasources(org.osid.shared.Type type) {
+        edu.tufts.vue.dsm.DataSource[] datasources = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
+         java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
             for(int i=0;i<datasources.length;i++) {
                 try {
                     if (datasources[i].getRepository().getType().isEqual(type)) {
@@ -377,9 +389,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 }
             }
             return resourceList;
-        }
     }
-    
     
 }
 
