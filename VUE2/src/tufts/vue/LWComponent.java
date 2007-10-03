@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.344 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
+ * @version $Revision: 1.345 $ / $Date: 2007-10-03 22:42:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5959,6 +5959,7 @@ u                    getSlot(c).setFromString((String)value);
         final int height = fillSize.pixelHeight();
         
         final DrawContext dc = new DrawContext(g, this);
+        dc.setInteractive(false);
         dc.setBackgroundFill(getRenderFillColor(null)); // sure we want null here?
         dc.setClipOptimized(false); // always draw all children -- don't bother to check bounds
         if (DEBUG.IMAGE) out(TERM_GREEN + "drawImage: " + dc + TERM_CLEAR);
