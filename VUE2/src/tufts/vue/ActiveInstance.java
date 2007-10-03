@@ -27,7 +27,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.13 $ / $Date: 2007-09-18 22:01:30 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2007-10-03 22:40:44 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -299,6 +299,8 @@ public class ActiveInstance<T>
             if (DEBUG.EVENTS) outf(TERM_YELLOW + "%-50s added listener %s\n" + TERM_CLEAR, this, listener);
         } else {
             VUE.Log.warn(this + "; add: is already listening: " + listener);
+            if (DEBUG.Enabled)
+                Util.printStackTrace(this + "; already listening: " + listener);
         }
     }
 
