@@ -41,6 +41,8 @@ import tufts.vue.*;
  */
 public class MetadataEditor extends JPanel implements ActiveListener {
     
+    private static final boolean DEBUG = true;
+    
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
     public final static int ROW_HEIGHT = 39;
@@ -52,9 +54,12 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     public final static boolean LIMITED_FOCUS = false;
     
+    public final static String TAG_ONT = "http://vue.tufts.edu/tag.rdfs";
+    
     private JTable metadataTable;
     private JScrollPane scroll;
     private tufts.vue.LWComponent current;
+    private tufts.vue.LWComponent previousCurrent;
     
     private JList ontologyTypeList;
     
@@ -80,7 +85,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                        {
                          //System.out.println("metadata: mouse pressed" + evt);
                          VueMetadataElement vme = new VueMetadataElement();
-                         String[] emptyEntry = {"Tag",""};
+                         String[] emptyEntry = {TAG_ONT,""};
                          vme.setObject(emptyEntry);
                          vme.setType(VueMetadataElement.CATEGORY);
                          //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
@@ -241,12 +246,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
          
          metadataTable.removeEditor();
          
+         previousCurrent = current;
+         
          current = active;
          
          if(current !=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
          {
            VueMetadataElement vme = new VueMetadataElement();
-           String[] emptyEntry = {"Tag",""};
+           String[] emptyEntry = {TAG_ONT,""};
            vme.setObject(emptyEntry);
            vme.setType(VueMetadataElement.CATEGORY);
 
@@ -290,6 +297,11 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     public void findCategory(Object currValue,int row,int col,int n,JComboBox categories)
     {
     
+               if(DEBUG)
+               {
+                   System.out.println("MetadataEditor findCategory - " + currValue);
+               }
+        
                //Object currValue = table.getModel().getValueAt(row,col); //.toString();
                //System.out.println("Editor -- currValue: " + currValue);
                for(int i=0;i<n;i++)
@@ -314,7 +326,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    //System.out.println("MetadataTable ------------------- " + i );
                    
                    if(item instanceof OntType &&
+                           // was temporarily rolled back for search bug
                            (((OntType)item).getBase()+"#"+((OntType)item).getLabel()).equals(currLabel))
+                           //old version:
+                           //((OntType)item).getLabel().equals(currLabel))
                    {
                        //System.out.println("found category");
                        categories.setSelectedIndex(i);
@@ -416,6 +431,16 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            //categories.firePopupMenuWillBecomeVisible();
            categories.showPopup();
        }
+       
+       public boolean stopCellEditing()
+       {
+           if(DEBUG)
+           {
+               System.out.println("MetadataEditor MetadataTableEditor - stop cell editing - set previousCurrent to current");
+           }
+           previousCurrent = current;
+           return true;
+       }
         
        public java.awt.Component getTableCellEditorComponent(final JTable table,final Object value,boolean isSelected,final int row,final int col)
        {
@@ -455,19 +480,42 @@ public class MetadataEditor extends JPanel implements ActiveListener {
            categories.addItemListener(new java.awt.event.ItemListener(){
               public void itemStateChanged(java.awt.event.ItemEvent ie)
               {
+                  
+                  if(DEBUG)
+                  {
+                      System.out.println("Categories - item listener - item state changed - " + ie);
+                  }    
+                  
                   if(ie.getStateChange()==java.awt.event.ItemEvent.SELECTED)
                   {
                       
-                    if(!(categories.getSelectedItem() instanceof OntType))
+                    if(!(categories.getSelectedItem() instanceof OntType) || !(ie.getItem() instanceof OntType))
+                    {
+                        if(DEBUG)
+                        {
+                            System.out.println("MetadataEditor -- non ontology category type selected " + categories.getSelectedItem().getClass());
+                        }
                         return;
+                    }
+                    
+                    if(DEBUG)
+                    {
+                      OntType item = (OntType)(ie.getItem());//categories.getSelectedItem();  
+                        
+                      System.out.println("MetadataEditor - categories item state changed: " + ie);
+                      System.out.println("MetadataEditor - category item base - " + item.getBase());
+                      System.out.println("MetadataEditor - category item label - " + item.getLabel());
                       
-                    //System.out.println("MetadataEditor - categories item state changed: " + ie);
-                    //System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
+                      //System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
+                    }
                     VueMetadataElement vme = new VueMetadataElement();
                     
-                    //System.out.println(categories.getSelectedItem().getClass());
-                    
+                    // was temporarily rolled back for search bug
                     String[] keyValuePair = {((OntType)categories.getSelectedItem()).getBase()+"#"+((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
+                    //old version:
+                    //String[] keyValuePair = {((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
+                    
+                    
                     vme.setObject(keyValuePair);
                     vme.setType(VueMetadataElement.CATEGORY);
                     //table.getModel().setValueAt(vme,row,col);
@@ -487,9 +535,38 @@ public class MetadataEditor extends JPanel implements ActiveListener {
               public void focusLost(java.awt.event.FocusEvent fe)
               {  
                   
-                  //System.out.println("MetadataEditor focuslost row -- " + row);
+                  if(DEBUG)
+                  {
+                    System.out.println("MetadataEditor focuslost row -- " + row);
+                    System.out.println("MetadataEditor focuslost current -- " + current);
+                    System.out.println("MetadataEditor focuslost opposite component " + fe.getOppositeComponent().getClass() );
+                  }
                   
-                  java.util.List<VueMetadataElement> metadata = current.getMetadataList().getMetadata();
+                  if(fe.getOppositeComponent() == categories)
+                  {
+                      return;
+                  }
+                  
+                  java.util.List<VueMetadataElement> metadata = null;
+                  
+                  if(previousCurrent == null && current == null)
+                  {
+                      if(DEBUG)
+                      {
+                          System.out.println("MetadataEditor - there was no previous current or current");
+                          System.out.println("exiting focusLost");
+                      }
+                      return;
+                  }
+                  else
+                  if(previousCurrent != null)
+                  {
+                     metadata = previousCurrent.getMetadataList().getMetadata();
+                  }    
+                  else 
+                  {
+                     metadata = current.getMetadataList().getMetadata();
+                  }
                   
                   VueMetadataElement currentVME = null;
                   
@@ -502,7 +579,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   if(currentVME==null)
                   {
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {"http://vue.uit.tufts.edu#Tag",""};
+                     String[] emptyEntry = {TAG_ONT,""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);  
                       
@@ -515,7 +592,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                     //vme.setObject(field.getText());
                       
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {"http://vue.uit.tufts.edu#Tag",""};
+                     String[] emptyEntry = {TAG_ONT,""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);
                   }
@@ -526,13 +603,13 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                     vme.setObject(pairedValue);
                   }
                   //table.getModel().setValueAt(vme,row,col);
-                  if(current.getMetadataList().getMetadata().size() > (row))
+                  if(metadata.size() > (row))
                   {
-                    current.getMetadataList().getMetadata().set(row,vme);
+                    metadata.set(row,vme);
                   }
                   else
                   {
-                    current.getMetadataList().getMetadata().add(vme); 
+                    metadata.add(vme); 
                   }
 
 
@@ -558,10 +635,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    comp.add(categories);
                    return comp;
                }
-               Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[1]);
+               Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[0]);
                findCategory(currValue,row,col,n,categories); 
-               
-               //findCategory(currValue,row,col,n,categories);
                
                /*
                //System.out.println("Editor -- currValue: " + currValue);
@@ -718,7 +793,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                 {
                   //System.out.println("MetadataEditor - creating new empty tag in getValueAt() ");
                   VueMetadataElement vme = new VueMetadataElement();
-                  String[] emptyEntry = {"Tag",""};
+                  String[] emptyEntry = {TAG_ONT,""};
                   vme.setObject(emptyEntry);
                   vme.setType(VueMetadataElement.CATEGORY);
                   current.getMetadataList().getMetadata().add(vme);
@@ -768,7 +843,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                {
                   //System.out.println("MetadataEditor - creating new empty tag in getValueAt() from text field column ");
                   VueMetadataElement vme = new VueMetadataElement();
-                  String[] emptyEntry = {"Tag",""};
+                  String[] emptyEntry = {TAG_ONT,""};
                   vme.setObject(emptyEntry);
                   vme.setType(VueMetadataElement.CATEGORY);
                   current.getMetadataList().getMetadata().add(vme);

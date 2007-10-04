@@ -111,7 +111,9 @@ public class VueMetadataElement {
            int len = (VUE_ONT + "#").length();
            if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());
            try {
-               String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+               //old version before getBase modifications in OntType
+               //String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+               String[] pairedValue = {getKey(),getValue()};
                obj = pairedValue;
                if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
            } catch (Throwable t) {
