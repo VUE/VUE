@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.449 $ / $Date: 2007-10-03 22:47:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.450 $ / $Date: 2007-10-04 14:21:37 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -176,10 +176,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // todo: we should get rid of hard references to all the tools and handle functionality via tool API's
     private final VueTool HandTool = VueTool.getInstance(tufts.vue.HandTool.class);
     private final VueTool LinkTool = VueTool.getInstance(tufts.vue.LinkTool.class);
-    private final VueTool TextTool = VueTool.getInstance(tufts.vue.TextTool.class);
+    private final VueTool TextTool = null;//VueTool.getInstance(tufts.vue.TextTool.class);
     //private final NodeTool NodeTool = (NodeTool) VueTool.getInstance(tufts.vue.NodeTool.class);
     private final VueTool NodeModeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
-    private final VueTool RichTextTool =null;// VueTool.getInstance(tufts.vue.RichTextTool.class);
+    private final VueTool RichTextTool =VueTool.getInstance(tufts.vue.RichTextTool.class);
     private final VueTool ToolPresentation = VueTool.getInstance(tufts.vue.PresentationTool.class);
     
     //-------------------------------------------------------
