@@ -36,9 +36,15 @@ import tufts.vue.*;
  * @author dhelle01
  */
 public class SearchAction extends AbstractAction {
+   
+    private final static boolean DEBUG_LOCAL = true; 
     
     public static final int FIELD = 0;
     public static final int QUERY = 1;
+    
+    public static final int SHOW_ACTION = 0;
+    public static final int HIDE_ACTION = 1;
+    public static final int SELECT_ACTION = 2;
     
     private List<List<URI>> finds = null;
     
@@ -46,13 +52,18 @@ public class SearchAction extends AbstractAction {
     private Query query;
     private List<LWComponent> comps;
     private static List<LWComponent> globalResults;
+    private static List<LWComponent> globalHides;
     
     private JTextField searchInput;
     private edu.tufts.vue.rdf.RDFIndex index;
-    //public final String name = "Search";
     
     private int searchType = FIELD;
     private List<VueMetadataElement> searchTerms;
+    
+    //enable for hide (for now until GUI arrives)
+    // private int resultsType = HIDE_ACTION;
+    private int resultsType = SELECT_ACTION;
+    private static int globalResultsType = SELECT_ACTION;
     
     public SearchAction(JTextField searchInput) {
         super("Search");
@@ -92,7 +103,8 @@ public class SearchAction extends AbstractAction {
      * could help for easy creation/synch of text field in toolbar 
      * from multiple field based version of search window
      * preferably: use previous method instead
-     *
+     * .. this actually would now use VueMetadataElements most likely..
+     * (since even simple search uses those elements now)
      **/
     /*public SearchAction(String[] searchTerms)
     {
@@ -196,28 +208,53 @@ public class SearchAction extends AbstractAction {
           loadKeywords(searchInput.getText());
         }
         performSearch();
-        System.out.println("SearchAction: comps size after perform search - " + comps.size());
+        
+        if(DEBUG_LOCAL)
+        {
+          System.out.println("SearchAction: comps size after perform search - " + comps.size());
+        }
        
+        // this was the marquee approach -- may well be worth creating a new choice for this in future
+        // (it was the way select search worked with the old keyword system)
         // VUE.getSelection().setTo(comps.iterator());
+        
         revertGlobalSearchSelection();
         Iterator<LWComponent> it = comps.iterator();
-        while(it.hasNext())
-        {
-            it.next().setSelected(true);
+        
+        if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION)
+        {    
+          while(it.hasNext())
+          {
+             if(resultsType == SELECT_ACTION)
+             {
+               it.next().setSelected(true);
+             }
+             if(resultsType == HIDE_ACTION)
+             {
+               it.next().setHidden(LWComponent.HideCause.DEFAULT);  
+             }
+          }
         }
+        
         globalResults = comps;
+        
+        if(resultsType == SHOW_ACTION)
+        {    
+          //globalHides = // opposite of found 
+        }
+        else if(resultsType == HIDE_ACTION)
+        {
+          globalHides = comps; 
+        }    
+        
+        // also need to save last results type...
+        globalResultsType = resultsType;
+        
         VUE.getActiveViewer().repaint();
     }
     
     public void revertSelections()
     {
-        /*if(comps == null)
-            return;
-        Iterator<LWComponent> it = comps.iterator();
-        while(it.hasNext())
-        {
-            it.next().setSelected(false);
-        }*/
         revertSelections(comps);
     }
     
@@ -234,6 +271,7 @@ public class SearchAction extends AbstractAction {
     
     public static void revertGlobalSearchSelection()
     {
+        //if(globalResultType == SELECT_ACTION)
         revertSelections(globalResults);
     }
     
