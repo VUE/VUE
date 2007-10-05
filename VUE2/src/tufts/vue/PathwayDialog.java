@@ -46,6 +46,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         setSize(250, 100);
         this.setFocusable(true);
         setLocation(location);
+        setAlwaysOnTop(true);
         setUpUI();
     }
 
