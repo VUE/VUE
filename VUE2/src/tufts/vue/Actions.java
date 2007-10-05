@@ -1655,13 +1655,20 @@ public class Actions implements VueConstants
             boolean undoable() { return false; }
             boolean enabled() 
             { 
-            	if (tufts.vue.VUE.getActiveMap().getFile() == null)
-            		return false;
-            	else 
+            	 
             		return true;
             }
             public void act() {
                 
+            	if (tufts.vue.VUE.getActiveMap().getFile() == null)
+            	{
+            		JOptionPane.showMessageDialog(VUE.getApplicationFrame(),
+            				"There is no saved version of this map to revert to.",
+            				"Can Not Revert",
+            				JOptionPane.PLAIN_MESSAGE);
+              
+            		return;
+            	}
                 	LWMap map = tufts.vue.VUE.getActiveMap();
                 	VUE.closeMap(map,true);
                 	tufts.vue.action.OpenAction.reloadMap(map);                	
