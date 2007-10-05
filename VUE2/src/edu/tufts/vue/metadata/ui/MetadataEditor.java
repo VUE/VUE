@@ -67,7 +67,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     private boolean showOntologicalMembership;
     
-    public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership)
+    public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followActive)
     {
         this.current = current;
         
@@ -212,7 +212,10 @@ public class MetadataEditor extends JPanel implements ActiveListener {
           add(ontologicalMembershipPane);
         }
         
-        tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
+        if(followActive)
+        {
+          tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
+        }
         
         validate();
     }
