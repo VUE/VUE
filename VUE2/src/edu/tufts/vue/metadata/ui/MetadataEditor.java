@@ -67,9 +67,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     
     private boolean showOntologicalMembership;
     
-    public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followActive)
+    public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
         this.current = current;
+        
+        if(DEBUG)
+        {
+            System.out.println("MetadataEditor - just created new instance for (current,followActive) (" + current +"," + followAllActive + ")");
+        }
         
         metadataTable = new JTable(new MetadataTableModel());
        // metadataTable.setGridColor(new java.awt.Color(255,255,255,0));
@@ -83,7 +88,11 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    {
                        if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {
-                         //System.out.println("metadata: mouse pressed" + evt);
+                         if(DEBUG) 
+                         {
+                           System.out.println("metadata table header: mouse pressed" + evt);
+                           System.out.println("current at table header mouse press: " + MetadataEditor.this.current);
+                         }
                          VueMetadataElement vme = new VueMetadataElement();
                          String[] emptyEntry = {TAG_ONT,""};
                          vme.setObject(emptyEntry);
@@ -91,13 +100,17 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                          //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
                          MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
                          ((MetadataTableModel)metadataTable.getModel()).refresh();
-                       
+                         
                          SwingUtilities.invokeLater(new Runnable(){
                             public void run()
                             {
                               scroll.getVerticalScrollBar().setValue(scroll.getVerticalScrollBar().getMaximum());                              
                             }
                          });
+                         
+                         //MetadataEditor.this.getRootPane().repaint();
+                         //MetadataEditor.this.validateTree();
+                         //MetadataEditor.this.repaint();
                        }
                    }
        });
@@ -212,10 +225,16 @@ public class MetadataEditor extends JPanel implements ActiveListener {
           add(ontologicalMembershipPane);
         }
         
-        if(followActive)
+        if(followAllActive)
         {
           tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
         }
+        else
+        {
+          tufts.vue.VUE.addActiveListener(tufts.vue.LWMap.class,this); 
+        }
+        
+        setMinimumSize(new java.awt.Dimension(getWidth(),200));
         
         validate();
     }
@@ -223,6 +242,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     public void adjustColumnModel()
     {
         int editorWidth = MetadataEditor.this.getWidth();
+        //if(MetadataEditor.this.getTopLevelAncestor() != null)
+        //  editorWidth = MetadataEditor.this.getTopLevelAncestor().getWidth();
         if(metadataTable.getModel().getColumnCount() == 2)
         {
           metadataTable.getColumnModel().getColumn(0).setHeaderRenderer(new MetadataTableHeaderRenderer());
@@ -245,6 +266,12 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     {
        if(e!=null)
        {
+          
+         if(DEBUG)
+         {
+             System.out.println("MetadataEditor: active changed - " + e + "," + this);
+         }
+           
          LWComponent active = (LWComponent)e.active;
          
          metadataTable.removeEditor();
@@ -265,6 +292,8 @@ public class MetadataEditor extends JPanel implements ActiveListener {
          
          ((MetadataTableModel)metadataTable.getModel()).refresh();
          ((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
+         
+         //adjustColumnModel();
        }
     }
     
