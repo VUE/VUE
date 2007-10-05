@@ -19,13 +19,14 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.16 $ / $Date: 2007-06-08 18:24:43 $ / $Author: mike $
+ * @version $Revision: 1.17 $ / $Date: 2007-10-05 20:36:09 $ / $Author: mike $
  */
 
 package tufts.vue;
 
 import tufts.vue.gui.VueTextPane;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import java.awt.*;
@@ -61,12 +62,19 @@ public class NotePanel extends JPanel
     public void activeChanged(ActiveEvent e, LWComponent c) {
         load(c);
     }
-    
+    private static void setTypeName(JComponent component, LWComponent c, String suffix) {
+        component.setName(c.getComponentTypeLabel() + " " + suffix);
+    }
     private void load(LWComponent c) {
-        if (c == null)
+    
+    	
+        
+    	if (c == null)
             mTextPane.detachProperty();
         else
+        {	setTypeName(this, c, "Notes");
             mTextPane.attachProperty(c, LWKey.Notes);
+        }
     }
 
     public String toString()
