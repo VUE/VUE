@@ -52,7 +52,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.17 $ / $Date: 2007-09-07 19:04:35 $ / $Author: mike $
+ * @version $Revision: 1.18 $ / $Date: 2007-10-05 18:25:44 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -169,8 +169,10 @@ implements ActionListener, tufts.vue.LWEditor
     /**
      * Sets a the current color.
      */
-    public void setColor(Color c) {
+    public void setColor(Color c) {    	
         if (DEBUG.TOOL) System.out.println(this + " setColor " + c);
+        if (c == null && mPropertyKey == null)
+        	return;
         if (c == null || c.getAlpha() == 0)
             setToolTipText("No Fill");
         else if (c.getAlpha() == 255)
@@ -260,8 +262,8 @@ implements ActionListener, tufts.vue.LWEditor
         return mCurColor;
     }
 
-    public void displayValue(Object o) {
-        setColor((Color)o);
+    public void displayValue(Object o) {    	
+    		setColor((Color)o);
     }
 	 
     public Object produceValue() {
