@@ -23,8 +23,11 @@ import java.util.*;
 import java.awt.*;
 import java.beans.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
+import edu.tufts.vue.metadata.ui.MetadataEditor;
 
 import tufts.vue.filter.*;
 import tufts.vue.gui.*;
@@ -33,7 +36,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-08-22 15:00:46 $ / $Author: dan $ 
+ * @version $Revision: 1.53 $ / $Date: 2007-10-05 18:26:19 $ / $Author: mike $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -45,7 +48,7 @@ public class MapInspectorPanel extends JPanel
     static public final int NONE_MODE = 3;
     
     /** The tabbed panel **/
-    private JTabbedPane mTabbedPane = null;
+    //private JTabbedPane mTabbedPane = null;
     
     /** The map we are inspecting **/
     private LWMap mMap = null;
@@ -56,39 +59,45 @@ public class MapInspectorPanel extends JPanel
     //private PathwayPane mPathPanel = null;
     
     /** filter panel **/
-    private FilterApplyPanel mFilterApplyPanel = null;
+    //private FilterApplyPanel mFilterApplyPanel = null;
     
     /** Filter Create Panel **/
-    private FilterCreatePanel mFilterCreatePanel = null;
+    //private FilterCreatePanel mFilterCreatePanel = null;
     /** Metadata Panel **/
     //MetadataPanel metadataPanel = null; // metadata added to infoPanel
-    
-    public MapInspectorPanel() {
+    MetadataEditor metadataPanel = null;
+    public MapInspectorPanel(DockWindow w) {
         super();
+        WidgetStack mapInfoStack = new WidgetStack("Map Info");
         VUE.addActiveListener(LWMap.class, this);
         setMinimumSize( new Dimension( 180,200) );
         setLayout( new BorderLayout() );
         //setBorder( new EmptyBorder( 5,5,5,5) );
-        mTabbedPane = new JTabbedPane();
-        VueResources.initComponent( mTabbedPane, "tabPane");
+        //mTabbedPane = new JTabbedPane();
+       // VueResources.initComponent( mTabbedPane, "tabPane");
         
         mInfoPanel = new InfoPanel();
+        mInfoPanel.setName("Map Info");
         //mPathPanel = new PathwayPane();
-        mFilterApplyPanel = new FilterApplyPanel();
-        mFilterCreatePanel = new FilterCreatePanel();
+        //mFilterApplyPanel = new FilterApplyPanel();
+        //mFilterCreatePanel = new FilterCreatePanel();
         //metadataPanel = new MetadataPanel();
-        
-        mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
+        metadataPanel = new MetadataEditor(VUE.getActiveMap(),false,false);
+        metadataPanel.setName("Keywords");
+        //mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         //mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
-        if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
-        {
-          mTabbedPane.addTab( mFilterApplyPanel.getName(), mFilterApplyPanel);
-          mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
-        }
+        //if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
+       // {
+       //   mTabbedPane.addTab( mFilterApplyPanel.getName(), mFilterApplyPanel);
+       //   mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
+       // }
         
-        // mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
-        
-        add( BorderLayout.CENTER, mTabbedPane );
+        //mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
+        mapInfoStack.addPane(mInfoPanel,0f);
+        mapInfoStack.addPane(metadataPanel,0f);
+        w.setContent(mapInfoStack);
+      //  add( BorderLayout.CENTER, mTabbedPane );
+      //  add(BorderLayout.SOUTH,metadataPanel);
         setMap(VUE.getActiveMap());
         validate();
         setVisible(true);
@@ -121,12 +130,15 @@ public class MapInspectorPanel extends JPanel
     public void updatePanels() {
         if( mMap == null) {
             //clear it
+        	metadataPanel.setVisible(false);
         }
         else {
+        	metadataPanel.setVisible(true);
             mInfoPanel.updatePanel( mMap);
+            
             //mPathPanel.updatePanel( mMap);
-            mFilterApplyPanel.updatePanel(mMap);
-            mFilterCreatePanel.updatePanel(mMap);
+      //      mFilterApplyPanel.updatePanel(mMap);
+        //    mFilterCreatePanel.updatePanel(mMap);
             //   metadataPanel.updatePanel(mMap);
         }
     }
@@ -150,11 +162,11 @@ public class MapInspectorPanel extends JPanel
     }
     
     public void activateInfoTab() {
-        mTabbedPane.setSelectedComponent( mInfoPanel);
+      //  mTabbedPane.setSelectedComponent( mInfoPanel);
     }
     
     public void activateFilterTab() {
-        mTabbedPane.setSelectedComponent( mFilterApplyPanel);
+        //mTabbedPane.setSelectedComponent( mFilterApplyPanel);
     }
     /**
      * public void activateMetadataTab() {
@@ -164,6 +176,7 @@ public class MapInspectorPanel extends JPanel
      **/
     public void activeChanged(ActiveEvent<LWMap> e) {
         //tufts.Util.printStackTrace("AMC START");
+    	
         setMap(e.active);
         //tufts.Util.printStackTrace("AMC END");
     }
@@ -192,8 +205,36 @@ public class MapInspectorPanel extends JPanel
         VueTextPane mDescriptionEditor = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
-        
+        ColorMenuButton mMapColor = new ColorMenuButton(VueResources.getColorArray("fillColorValues"),true);
         public InfoPanel() {
+             
+             mMapColor.setToolTipText("Map Color");
+  
+             mMapColor.setPropertyKey(null);
+             mMapColor.getPopupWindow().addFocusListener(new FocusListener()
+             {
+
+				public void focusGained(FocusEvent arg0) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				public void focusLost(FocusEvent arg0) {
+					if (VUE.getActiveMap() != null)
+						VUE.getActiveMap().setFillColor(mMapColor.getColor());						
+				}
+            	 
+             });
+             
+             /*{
+
+				public void propertyChange(PropertyChangeEvent arg0) {
+					if (VUE.getActiveMap() != null)
+						VUE.getActiveMap().setFillColor(mMapColor.getColor());				
+				}
+            	 
+             });*/
+           
             JPanel innerPanel = new JPanel();
             GridBagLayout gridbag = new GridBagLayout();
             GridBagConstraints c = new GridBagConstraints();
@@ -210,7 +251,7 @@ public class MapInspectorPanel extends JPanel
             descriptionScroller.setPreferredSize(new Dimension(180,100));
             descriptionScroller.setOpaque(false);
             
-            descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(3,0,0,0), descriptionScroller.getBorder()));
+            //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(3,0,0,0), descriptionScroller.getBorder()));
             
             //descriptionScroller.setBorder(new CompoundBorder(new EmptyBorder(9,0,0,0), BorderFactory.createLineBorder(Color.DARK_GRAY)));
             //descriptionScroller.setBorder(new EmptyBorder(9,0,0,0));
@@ -243,8 +284,9 @@ public class MapInspectorPanel extends JPanel
             mPropPanel  = new PropertyPanel();
             //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
             //mPropPanel.addProperty("Author:", mAuthorEditor); //added through metadata
-            mPropPanel.addProperty("Location:",mLocation);
+            mPropPanel.addProperty("Background:",mMapColor);
             mPropPanel.addProperty("Created:", mDate);
+            mPropPanel.addProperty("Location:",mLocation);            
             //mPropPanel.addProperty("Background:", mapFill);
             mPropPanel.addProperty("Description:", descriptionScroller);
             //mPropPanel.addProperty("Description:", descriptionScroller);
@@ -272,11 +314,11 @@ public class MapInspectorPanel extends JPanel
                 }
             };
             
-            c.gridwidth = GridBagConstraints.REMAINDER;
-            c.fill = GridBagConstraints.HORIZONTAL;
-            gridbag.setConstraints(linePanel,c);
-            innerPanel.add(linePanel);
-            linePanel.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
+            //c.gridwidth = GridBagConstraints.REMAINDER;
+            //c.fill = GridBagConstraints.HORIZONTAL;
+            //gridbag.setConstraints(linePanel,c);
+            //innerPanel.add(linePanel);
+            //linePanel.setBorder(BorderFactory.createEmptyBorder(10,0,0,0));
             propertiesEditor = new PropertiesEditor(true);
             JPanel metadataPanel = new JPanel(new BorderLayout());
             if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
@@ -329,6 +371,8 @@ public class MapInspectorPanel extends JPanel
             mLocation.setText(path);
             mLocation.setToolTipText(path);
             propertiesEditor.setProperties(pMap.getMetadata(),true);
+            System.out.println(VUE.getActiveMap().getFillColor());
+            mMapColor.setColor(VUE.getActiveMap().getFillColor());
         }
         
         private void saveInfo() {
@@ -790,7 +834,7 @@ public class MapInspectorPanel extends JPanel
         DEBUG.Enabled = DEBUG.EVENTS = true;
         LWMap map = new LWMap("test_map");
         map.setFile(new java.io.File("/tmp/test.vue"));
-        MapInspectorPanel inspector = new MapInspectorPanel();
+        MapInspectorPanel inspector = new MapInspectorPanel(null);
         //VUE.setActiveMap(map);
         inspector.setMap(map);
         DockWindow w = GUI.createDockWindow("Map Inspector", inspector);
