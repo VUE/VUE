@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-09-13 19:24:56 $ / $Author: mike $
+ * @version $Revision: 1.53 $ / $Date: 2007-10-05 19:15:30 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -304,9 +304,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Build Content Menu
         ////////////////////////////////////////////////////////////////////////////////////
         GUI.addToMenu(contentMenu, Actions.NEW_OBJECT_ACTIONS);
-        contentMenu.addSeparator();
-        contentMenu.add(Actions.AddResource);
-        contentMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
+  //      contentMenu.addSeparator();
+  //      contentMenu.add(Actions.AddResource);
+  //      contentMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
         
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Presentation Menu
