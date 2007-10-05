@@ -23,6 +23,9 @@ import java.util.*;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.border.*;
+
+import tufts.vue.gui.ColorMenuButton;
+
 import java.beans.*;
 
 public class PropertyPanel extends JPanel {
@@ -84,41 +87,77 @@ public class PropertyPanel extends JPanel {
         JLabel label = createLabel( pDisplayName);
         addProperty( label, pEditor);
     }
+    
+    int gridy=0;
     public void addProperty( JComponent pLabel, JComponent pEditor ){
-        
+    	    
         GridBagConstraints c = new GridBagConstraints();
-        //c.anchor = GridBagConstraints.WEST;
-        c.anchor = GridBagConstraints.NORTHWEST;
+        c.anchor = GridBagConstraints.EAST;
         
         // add the property's label string
         //
         c.gridwidth = GridBagConstraints.RELATIVE; //next-to-last
         c.fill = GridBagConstraints.NONE;      //reset to default
-        c.weightx = 0.0;                       //reset to default
+       // c.weightx = 0.0;                       //reset to default
+        c.weighty=1.0;
         c.ipadx=4;
-        c.ipady=2;
-        
-        mGridBag.setConstraints(pLabel, c);
+        c.ipady=10;
+        c.gridx=0;
+        c.gridy=gridy;
+        if (pEditor instanceof ColorMenuButton)
+        {
+        	c.insets = new Insets(2,0,2,0);
+        }
+        if (pEditor instanceof JScrollPane)
+        {
+        	c.anchor = GridBagConstraints.NORTHWEST;
+        	
+        	c.gridwidth=2;
+        }
+        mGridBag.setConstraints(pLabel, c);        
         innerPanel.add( pLabel);
-        
-        
+                
         // add the value renderer or editor/display
         //
         c.gridwidth = GridBagConstraints.REMAINDER;     //end row
-        c.fill = GridBagConstraints.HORIZONTAL;
+        c.fill = GridBagConstraints.BOTH;
         c.weightx = 1.0;
         c.ipadx=4;
         c.ipady=2;
+        c.gridx=1;
+        c.gridy=gridy;
         
         if( pEditor == null) {
             JTextField field = new JTextField();
             field.setText( "n/a" );
             pEditor = field;
+            
+        }        
+        
+        
+        if (pEditor instanceof ColorMenuButton)
+        {
+        	c.fill = GridBagConstraints.NONE;        	
+        	c.ipadx=0;
+        	c.ipady=0;
+        }
+        else
+        {
+        	c.insets = new Insets(5,0,5,0);
         }
         
+        if (pEditor instanceof JScrollPane)
+        {
+        	c.gridy=gridy++;    
+        	c.gridx=0;
+        	c.insets = new Insets(30,1,10,1);
+        	c.ipadx=0;
+        }
+        c.anchor = GridBagConstraints.WEST;
         mGridBag.setConstraints( pEditor, c);
         innerPanel.add( pEditor);
         
+        gridy++;
     }
     
     
