@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.75 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-10-06 04:04:47 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -558,7 +558,7 @@ public class ActionUtil
         return unmarshallMap(url, mapping, DEFAULT_INPUT_ENCODING);
     }
     */
-    
+
     public static LWMap unmarshallMap(java.net.URL url)
         throws IOException
     {
@@ -578,8 +578,17 @@ public class ActionUtil
         // right-quote).
         
         if (DEBUG.CASTOR || DEBUG.IO) System.out.println("\nSCANNING: " + url);
+
+        final BufferedReader reader;
         
-        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+        if ("file".equals(url.getProtocol())) {
+            File file = new File(url.getPath());
+            if (file.isDirectory())
+                throw new MapException("is directory");
+            reader = new BufferedReader(new FileReader(file));
+        } else {
+            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+        }
         
         String firstNonCommentLine;
         String versionID = null;
@@ -843,6 +852,15 @@ public class ActionUtil
     }
 
 }
+
+class MapException extends IOException {
+    public MapException(String s) {
+        super(s);
+    }
+}
+    
+    
+
 
 class PaddedCellRenderer extends DefaultListCellRenderer
 {	  
