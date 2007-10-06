@@ -117,7 +117,8 @@ public class VueMetadataElement {
                obj = pairedValue;
                if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
            } catch (Throwable t) {
-               tufts.Util.printStackTrace(t, this+":setType(" + type + ") key["+getKey() + "] value=[" + getValue() + "]");
+               //tufts.Util.printStackTrace(t, this+":setType(" + type + ") key["+getKey() + "] value=[" + getValue() + "]");
+               System.err.println(this+": " + t + "; setType(" + type + ") key["+getKey() + "] value=[" + getValue() + "]");
            }
        }
    }

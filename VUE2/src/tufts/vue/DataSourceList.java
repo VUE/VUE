@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-10-03 22:41:26 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -195,9 +195,9 @@ public class DataSourceList extends JList implements DropTargetListener {
                     }
                     
                     for (Resource resource : droppedResources) {
-                        if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getType()+ " resource class:"+resource.getClass());  
+                        if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getClientType()+ " resource class:"+resource.getClass());  
                         ResourceNode newNode;
-                        if(resource.getType() == Resource.FILE){
+                        if(resource.getClientType() == Resource.FILE){
                          //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
                             newNode = new CabinetNode(resource,CabinetNode.LOCAL);
                             CabinetResource cr = (CabinetResource)newNode.getResource();
@@ -219,7 +219,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
                                 LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
-                                CabinetResource res = new CabinetResource(cab);
+                                CabinetResource res = CabinetResource.create(cab);
                                 CabinetEntry entry = res.getEntry();
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
                                     String url = convertWindowsURLShortCutToURL(file);
@@ -248,7 +248,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
                                 LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
-                                CabinetResource res = new CabinetResource(cab);
+                                CabinetResource res = CabinetResource.create(cab);
                                 //res.setTitle(file.getAbsolutePath());
                                 CabinetEntry oldentry = res.getEntry();
                                 res.setEntry(null);
@@ -282,7 +282,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                 
                 else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)){
                     String dataString = (String)transfer.getTransferData(DataFlavor.stringFlavor);
-                    Resource resource = new MapResource(dataString);
+                    Resource resource = URLResource.create(dataString);
                     ResourceNode newNode =new  ResourceNode(resource);
                     model.insertNodeInto(newNode, rootNode, 0);
                     favoritesTree.expandPath(new TreePath(rootNode.getPath()));

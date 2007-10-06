@@ -200,9 +200,9 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
             GoogleSearchResultElement elements[] = searchResult.getResultElements();
             Vector resourceVector = new Vector();
             for(int i =0; i< elements.length; i++) {
-                MapResource resource = new MapResource();
+                Resource resource = Resource.getFactory().get(elements[i].getURL());
                 resource.setTitle(elements[i].getTitle().replaceAll("</*[a-zA-Z]>",""));
-                resource.setSpec(elements[i].getURL());
+                //resource.setSpec(elements[i].getURL());
                 resourceVector.add(resource);
             }
             

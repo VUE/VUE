@@ -34,14 +34,15 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.11 $ / $Date: 2007-09-19 03:26:59 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2007-10-06 03:06:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class ResourceIcon
     implements javax.swing.Icon, Images.Listener, Runnable
 {
-    private final Image NoImage = VueResources.getImage("/icon_noimage32.gif");
+    //private final Image NoImage = VueResources.getImage("/icon_noimage32.gif");
+    private static final Image NoImage = GUI.NoImage32;
     
     private Resource mResource;
     private Object mPreviewData;
@@ -71,6 +72,12 @@ public class ResourceIcon
      * they're asked to paint.
      *
      **/
+
+    // above could be handled w/out having to pass the painter around by requiring that
+    // any cell renderer that wants to display a ResourceIcon to do a putClientProperty
+    // of a key (e.g., ResourceIcon.PAINTER) with a reference to the  parent repainter,
+    // which we could grab the first time we repaint here.
+    
     public ResourceIcon(Resource r, int width, int height, Component painter) {
         setSize(width, height);
         //StatusLabel.setVisible(false);

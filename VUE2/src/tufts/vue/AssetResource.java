@@ -46,7 +46,7 @@ import javax.swing.*;
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  */
 
-public class AssetResource extends MapResource{
+public class AssetResource extends URLResource {
     
     /** Creates a new instance of AssetResource */
     public static final int DC_NAMESPACE_LENGTH = 3 ;// (dc:) the namespacepresent in metadata fields. Beginning is chopped off for clean rendering
@@ -62,7 +62,7 @@ public class AssetResource extends MapResource{
     private CastorFedoraObject castorFedoraObject;  // stripped version of fedora object for saving and restoring in castor will work only with this implementation of DR API.
     public AssetResource() {
         super();
-        setType(Resource.ASSET_FEDORA);
+        setClientType(Resource.ASSET_FEDORA);
     }
     public AssetResource(Asset asset) throws osid.dr.DigitalRepositoryException,osid.OsidException {
         this();
@@ -73,7 +73,7 @@ public class AssetResource extends MapResource{
         this.asset = asset;
         setPropertiesByAsset();
         setSpec(asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString());
-        setType(Resource.ASSET_FEDORA);
+        setClientType(Resource.ASSET_FEDORA);
         setTitle(asset.getDisplayName());
         this.castorFedoraObject = new CastorFedoraObject((FedoraObject)asset);
     }
@@ -126,7 +126,7 @@ public class AssetResource extends MapResource{
         this.castorFedoraObject = castorFedoraObject;
         this.asset = this.castorFedoraObject.getFedoraObject();
         setSpec(asset.getInfoField(new tufts.oki.dr.fedora.PID(VUE_DEFAULT_VIEW_ID)).getValue().toString());
-        setType(Resource.ASSET_FEDORA);
+        setClientType(Resource.ASSET_FEDORA);
         setPropertiesByAsset();
     }
     

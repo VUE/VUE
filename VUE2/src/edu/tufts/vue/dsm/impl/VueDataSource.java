@@ -439,8 +439,8 @@ public class VueDataSource
                 setRelatedValues();
             } catch (org.osid.repository.RepositoryException rex) {
                 edu.tufts.vue.util.Logger.log(rex);
-				throw new org.osid.repository.RepositoryException(rex.getMessage());
-			} catch (Throwable t) {
+                throw new org.osid.repository.RepositoryException(rex.getMessage());
+            } catch (Throwable t) {
                 edu.tufts.vue.util.Logger.log(t);
             }
         }

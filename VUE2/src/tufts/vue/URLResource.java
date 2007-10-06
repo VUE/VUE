@@ -21,6 +21,8 @@ package tufts.vue;
 import java.util.*;
 
 import tufts.Util;
+import static tufts.Util.*;
+import tufts.vue.gui.GUI;
 
 import java.net.*;
 import java.io.*;
@@ -34,6 +36,24 @@ import javax.swing.text.*;
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
+
+// TODO: tempting to split out a separate FileResource subclass of Resource to handle
+// stuff that is just the local file system (and enforce factory resource creation,
+// which is a good idea in any case), where code digging up local filesystem icons could
+// reside, and we'd only need a single spec / file object (not all this crazy URL
+// stuff).  Tho the icon-type stuff is actually generic to network resources: e.g., an
+// .xls file on a remote server would still be nice if it showed the Excel icon...  Tho
+// that code can probably stay residing in GUI, and doing this would still simplify lots
+// of stuff.  E.g., the C:\Program stuff when it shows up on mac, the handling of ':' ->
+// '/' for mac file names.  Oh, and of course, all of the local file resolution could
+// be handled just in FileResource, tho technically, that could also be useful
+// if the content was residing on a server, and it's location changed...
+
+// Since FTP Resources are handled by CabinetResource, maybe we can also get away
+// with making this an HttpResource... is there anything else this needs to do?
+// What about FTP urls dragged from web browsers?  Well, they ought to be going
+// thru a factory for creation anyway so we can do what we want -- they're
+// probably creating URLResources right now tho...
 
 
 /**
@@ -57,47 +77,47 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.27 $ / $Date: 2007-09-21 03:05:53 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
 
-public class URLResource implements Resource, XMLUnmarshalListener
+public class URLResource extends Resource implements XMLUnmarshalListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(URLResource.class);
+    
     public static final String SPEC_UNSET = "<spec-unset>";
 
     private static final String BROWSE_KEY = "@Browse";
     private static final String IMAGE_KEY = "@Image";
     private static final String THUMB_KEY = "@Thumb";
 
-    static final long SIZE_UNKNOWN = -1;
+    //static final long SIZE_UNKNOWN = -1;
     
     private long referenceCreated; // this currently meaningless -- gets set every time -- is there anything meaningful here?
     private long accessAttempted;
     private long accessSuccessful;
-    private long size = SIZE_UNKNOWN;
+    //private long size = SIZE_UNKNOWN;
     //protected transient boolean selected = false;
     private String spec = SPEC_UNSET;
     private int type = Resource.NONE;
-    private JComponent viewer;
     //private JComponent preview;
-    private tufts.vue.ui.ResourceIcon mIcon;
+    //private tufts.vue.ui.ResourceIcon mIcon;
     //private Object mPreview;
-    private boolean isCached;
     private boolean isImage;
 
-    //private URL mURL = null;
-    // TODO performance: store as strings and only do conversion when
-    // we ask for them.
+    private URI mURI; // right now, I think this only used if it's RELATIVE -- kind of a marker for a short-name
+    
+    // TODO performance: store as strings or URI's and only do conversion when we ask for them.
     protected URL mURL_Browse;
     private URL mURL_Thumb;
     private URL mURL_Image;
     
-    /** the metadata property map **/
-    final private PropertyMap mProperties = new PropertyMap();
+//     /** the metadata property map **/
+//     final private PropertyMap mProperties = new PropertyMap();
     
-    /** property name cache **/
-    private String [] mPropertyNames = null;
+//     /** property name cache **/
+//     private String [] mPropertyNames = null;
     
     /** an optional resource title */
     protected String mTitle;
@@ -113,17 +133,35 @@ public class URLResource implements Resource, XMLUnmarshalListener
     public URLResource() {
         init();
     }
+
+    static URLResource create(String spec) {
+        return new URLResource(spec);
+    }
+    static URLResource create(URL url) {
+        return new URLResource(url);
+    }
+    static URLResource create(URI uri) {
+        return new URLResource(uri);
+    }
+    static URLResource create(File file) {
+        return new URLResource(file.toString()); // toURL / toURI probably better
+    }
     
-    public URLResource(String spec) {
+    private URLResource(String spec) {
         init();
         setSpec(spec);
     }
     
-    public URLResource(URL url) {
+    private URLResource(URL url) {
         init();
         setSpec(url.toString());
     }
 
+    private  URLResource(URI uri) {
+        init();
+        setSpec(uri.toString());
+    }
+    
     private void init() {
         if (DEBUG.RESOURCE || DEBUG.DR) {
             //out("init");
@@ -132,11 +170,179 @@ public class URLResource implements Resource, XMLUnmarshalListener
             setProperty("@ instance", iname);
         }
     }
-    
-    
-    public Object toDigitalRepositoryReference() {
-        return null;
+
+    private static String deco(String s) {
+        return "<i><b>"+s+"</b></i>";
     }
+
+    // todo: rename relativeName, and add a "shortName", for what CabinetResource provides
+    // (which will also translate ':' to '/' on the mac)
+    public String getPrettyString() {
+        String pretty = "";
+
+//         if (mURI != null) {
+//             if (mURI.isAbsolute()) {
+//                 pretty = deco(mURI.toString());
+//                 if (DEBUG.Enabled) pretty += " (URI-FULL)";
+//             } else {
+//                 pretty = deco(mURI.getPath());
+//                 if (DEBUG.Enabled) pretty += " (URIpath)";
+//             }
+//         } else {
+        pretty = VueUtil.decodeURL(getSpec());
+        if (pretty.startsWith("file://") && pretty.length() > 7)
+            pretty = pretty.substring(7);
+        if (DEBUG.Enabled) {
+            if (pretty.equals(getSpec()))
+                pretty += " (spec)";
+            else
+                pretty += " (decoded spec)";
+        }
+        pretty = deco(pretty);
+            
+            //}
+
+        if (DEBUG.Enabled) {
+            //final String nl = "<br>&nbsp;";
+            final String nl = "<br>";
+
+            pretty += nl + spec + " (spec)";
+            if (mURI != null) 
+                pretty += nl + "URI-RELATIVE: " + mURI;
+            pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
+                + " impl=" + getClass().getName();
+            if (isLocalFile())
+                pretty += " (isLocal)";
+            //pretty += nl + "localFile=" + isLocalFile();
+        }
+        return pretty;
+        
+    }
+    
+    /**
+     * If this resource can be made relative to the current map (is in a directory
+     * below the current map), make sure we record it's relative location.
+     * If oldRoot and newRoot are different (the map has moved), re-write
+     * the resource to point to the new location if something is there.
+     *
+     * @param oldRoot - the root (parent directory) of the map the last time it was saved
+     * @param newRoot - null if the same as oldRoot, otherwise, the newRoot
+     */
+    @Override
+    public void updateRootLocation(URI oldRoot, URI newRoot) {
+        final URL url = asURL();
+        if (url == null)
+            return;
+
+        System.out.println("=======================================================");
+        
+        final URI absURI = makeURI(url.toString());
+        // absURI should always be absolute -- the way we persist them
+
+        if (!absURI.isAbsolute())
+            Log.warn("Non absolute URI: " + absURI + "; from URL " + url);
+
+        if (absURI == null) {
+            System.out.println("URL INVALID FOR URI: " + url + "; in " + this);
+            return;
+        }
+
+        Util.dumpURI(absURI, "ORIGINAL");
+        final URI relativeURI = oldRoot.relativize(absURI);
+
+        if (relativeURI == absURI) {
+            // oldRoot was unable to relativize absURI -- this resource
+            // was not relative to it's map in it's previous incarnation.
+
+            // However, if newRoot is different from oldRoot,
+            // it may be relative to the new map location (newRoot).
+
+            if (newRoot == null) // was same as oldRoot
+                return;
+        }
+        
+        if (relativeURI != absURI)
+            Util.dumpURI(relativeURI, "RELATIVE");
+        //System.out.println(" RELATIVE URI: " + relativeURI);
+        //System.out.println("RELATIVE PATH: " + relativeURI.getPath());
+        
+
+        if (newRoot != null) {
+
+            if (relativeURI.isAbsolute()) { // meaning relativeURI == absURI
+                //-------------------------------------------------------
+                // was absolute: attempt to relativize against newRoot 
+                //-------------------------------------------------------
+                if (relativeURI != absURI) Log.warn("URLResource assertion failure: " + relativeURI + "; " + absURI);
+                
+                System.out.println("ATTEMPTING TO RELATIVIZE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
+                final URI newRelativeURI = newRoot.relativize(relativeURI);
+
+                if (newRelativeURI != relativeURI) {
+                    System.out.println(TERM_GREEN+"NOTICED NEW RELATIVE: " + newRelativeURI + TERM_CLEAR);
+                    mURI = newRelativeURI;
+                }
+                
+            } else {
+                //-------------------------------------------------------
+                // was relative: attempt to resolve against newRoot
+                //-------------------------------------------------------
+                System.out.println("ATTEMPTING RESOLVE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
+                final URI newAbsoluteURI = newRoot.resolve(relativeURI);
+                final File newFile = new File(newAbsoluteURI.getPath());
+                if (newFile.exists()) {
+                    System.out.println(TERM_GREEN+"  FOUND NEW LOCATION: " + newFile + TERM_CLEAR);
+                    spec = newAbsoluteURI.getRawPath();
+                    // File was found at same relative location:
+                    mURI = relativeURI;
+                    mURL_Browse = null; // reset
+                } else {
+                    // File was NOT found same relative location --
+                    // leave this Resource as it's old absolute value.
+                    mURI = null;
+                }
+            }
+
+        } else if (relativeURI != absURI) {
+            mURI = relativeURI;
+        }
+
+    }
+
+    private static String encodeForURI(String s) {
+        return s.replaceAll(" ", "%20");
+    }
+
+    public static URI makeURI(File f) {
+        URI uri = f.toURI();
+        Util.dumpURI(uri, "NEW FILE URI FROM " + f);
+        if (uri.getPath().startsWith("/C:"))
+            return makeURI(uri.getPath().substring(3));
+        else
+            return uri;
+        //return makeURI(f.toString());
+    }
+    
+    public static URI makeURI(String s)
+    {
+        URI uri = null;
+        final String encoded = encodeForURI(s);
+        try {
+            uri = new java.net.URI(encoded);
+        } catch (java.net.URISyntaxException e) {
+            Util.printStackTrace(e, s);
+        }
+        if (uri != null && uri.toString().equals(s))
+            System.err.println("            MADE URI: " + uri);
+        else
+            System.err.println("            MADE URI: " + uri + " src=[" + s + "]");
+        
+        return uri;
+    }
+    
+//     public Object toDigitalRepositoryReference() {
+//         return null;
+//     }
     
     private String toURLString() {
 
@@ -346,8 +552,8 @@ public class URLResource implements Resource, XMLUnmarshalListener
         try {
             return toURL();
         } catch (java.net.MalformedURLException e) {
-            //if (DEBUG.Enabled && DEBUG.META)
-            if (DEBUG.Enabled)
+            if (DEBUG.Enabled && DEBUG.META)
+            //if (DEBUG.Enabled)
                 Util.printStackTrace(e, "FYI: URLResource.asURL[" + this + "]");
         }
         return null;
@@ -407,7 +613,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
             this.accessSuccessful = System.currentTimeMillis();
         } catch (Exception e) {
             //System.err.println(e);
-            VUE.Log.error(systemSpec + "; " + e);
+            Log.error(systemSpec + "; " + e);
         }
     }
 
@@ -435,13 +641,6 @@ public class URLResource implements Resource, XMLUnmarshalListener
     public void setAccessSuccessful(long accessSuccessful) {
         this.accessSuccessful = accessSuccessful;
     }
-    public long getSize() {
-        return this.size;
-    }
-    
-    public void setSize(long size) {
-        this.size = size;
-    }
     
     public void setTitle(String title) {
         if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) out("setTitle " + title);
@@ -452,60 +651,29 @@ public class URLResource implements Resource, XMLUnmarshalListener
         return mTitle;
     }
     
-    /*
-      
-    public static Image load(URL url)
-    {
-        if (url == null)
-            return null;
+//     // Preserved for comments: "Windows" here may be referring to Windows2000
+    
+//         String s = mr.getSpec();
+//         if (s.startsWith("file://")) {
 
-        Image image = null;
-        
-        try {
-            image = ImageIO.read(url);
-        } catch (Throwable t) {
-            if (DEBUG.Enabled) Util.printStackTrace(t);
-            VUE.Log.info(url + ": " + t);
-        }
+//             // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
+//             // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
+//             // out if can even force a URL to have an extra slash in it!  Report
+//             // this as a java bug.
 
-        if (image != null)
-            return image;
-
-        // If the host isn't responding, Toolkit.getImage will block for a while.  It
-        // will apparently ALWAYS eventually get an Image object, but if it failed, we
-        // eventually get callback to imageUpdate (once prepareImage is called) with an
-        // error code.  In any case, if you don't want to block, this has to be done in
-        // a thread.
-        
-        String s = mr.getSpec();
-
+//             // TODO: Our Cup>>Chevron unicode char example is failing
+//             // here on Windows (tho it works for windows openURL).
+//             // (The image load fails)
+//             // Try ensuring the URL is UTF-8 first.
             
-        if (s.startsWith("file://")) {
+//             s = s.substring(7);
+//             if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
+//             image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
+//         } else {
+//             if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
+//             image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
+//         }
 
-            // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
-            // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
-            // out if can even force a URL to have an extra slash in it!  Report
-            // this as a java bug.
-
-            // TODO: Our Cup>>Chevron unicode char example is failing
-            // here on Windows (tho it works for windows openURL).
-            // (The image load fails)
-            // Try ensuring the URL is UTF-8 first.
-            
-            s = s.substring(7);
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
-        } else {
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
-        }
-
-        if (image == null) Util.printStackTrace("image is null");
-
-
-        return image;
-    }
-    */
 
     private void setAsImage(boolean asImage) {
         isImage = asImage;
@@ -514,12 +682,23 @@ public class URLResource implements Resource, XMLUnmarshalListener
 
     
     // TODO TODO TODO: resource's should be atomic: don't allow post construction setSpec,
-    // or at least protected
+    // or at least protected -- will need a dispatching factory to handle this properly,
+    // as well as castor factories / creators
+    
     /** @deprecated -- or perhaps, change to setLocalResource? setRawURL? setRawResource? */
+    // Want this to be protected, but must be public for castor.
+    // TODO: MAKE THIS JUST A PERSISTANCE RESTORE: record the spec and move on -- don't
+    // process unless asked for something later...
     public void setSpec(final String spec) {
+
+        if (mURI != null) {
+            Util.printStackTrace(this + " setSpec w/URI set: " + mURI + " spec denied: " + spec);
+            return;
+        }
+        
         if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
             out("setSpec " + spec);
-            //tufts.Util.printStackTrace("setSpec " + spec);
+            //Util.printStackTrace("setSpec " + spec);
         }
         
         // TODO: will want generic ability to set the reference created
@@ -654,7 +833,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
         try {
             _scanForMetaData(_url);
         } catch (Throwable t) {
-            VUE.Log.info(_url + ": meta-data extraction failed: " + t);
+            Log.info(_url + ": meta-data extraction failed: " + t);
             if (DEBUG.Enabled) tufts.Util.printStackTrace(t, _url.toString());
         }
 
@@ -685,7 +864,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
             setTitle(title);
         }
         try {
-            setSize(Integer.parseInt((String) getProperty("contentLength")));
+            setByteSize(Integer.parseInt((String) getProperty("contentLength")));
         } catch (Exception e) {}
     }
 
@@ -918,8 +1097,13 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
      */
-
-   public boolean isLocalFile() {
+    
+    /** this is only meaninful if this resource points to a local file */
+    protected Image getFileIconImage() {
+        return GUI.getSystemIconForExtension(getExtension(), 128);
+    }
+    
+    public boolean isLocalFile() {
         asURL();
         return mURL_Browse == null || mURL_Browse.getProtocol().equals("file");
         //String s = spec.toLowerCase();
@@ -949,105 +1133,43 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     
     
-    /**
-     * getPropertyNames
-     * This returns an array of property names
-     * @return String [] the list of property names
-     **/
-    public String [] getPropertyNames() {
+//     /**
+//      * getPropertyNames
+//      * This returns an array of property names
+//      * @return String [] the list of property names
+//      **/
+//     public String [] getPropertyNames() {
         
-        if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
-            Set keys = mProperties.keySet();
-            if( ! keys.isEmpty() ) {
-                mPropertyNames = new String[ keys.size() ];
-                Iterator it = keys.iterator();
-                int i=0;
-                while( it.hasNext()) {
-                    mPropertyNames[i] = (String) it.next();
-                    i++;
-                }
-            }
-        }
-        return mPropertyNames;
-    }
+//         if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
+//             Set keys = mProperties.keySet();
+//             if( ! keys.isEmpty() ) {
+//                 mPropertyNames = new String[ keys.size() ];
+//                 Iterator it = keys.iterator();
+//                 int i=0;
+//                 while( it.hasNext()) {
+//                     mPropertyNames[i] = (String) it.next();
+//                     i++;
+//                 }
+//             }
+//         }
+//         return mPropertyNames;
+//     }
     
-    /**
-     * Set the given property value.
-     * Does nothing if either key or value is null, or value is an empty String.
-     */
-    public void setProperty(String key, Object value) {
-        if (DEBUG.DATA) out("setProperty " + key + " [" + value + "]");
-        if (key != null && value != null) {
-            if (!(value instanceof String && ((String)value).length() < 1))
-                mProperties.put(key, value);
-        }
-    }
-
-    /**
-     * Add a property with the given key.  If a key already exists
-     * with this name, the key will be modified with an index.
-     */
-    public String addProperty(String desiredKey, Object value) {
-        return mProperties.addProperty(desiredKey, value);
-    }
-    
-
-    public void setProperty(String key, long value) {
-        if (key.endsWith(".contentLength") || key.endsWith(".size")) {
-            // this kind of a hack
-            setSize(value);
-        }
-        setProperty(key, Long.toString(value));
-    }
-    
-    /**
-     * This method returns a value for the given property name.
-     * @param pName the property name.
-     * @return Object the value
-     **/
-    public String getProperty(String key) {
-        final Object value = mProperties.get(key);
-        if (DEBUG.RESOURCE) out("getProperty[" + key + "]=" + value);
-        return value == null ? null : value.toString();
-    }
-
-    public int getProperty(String key, int notFoundValue) {
-        final Object value = mProperties.get(key);
-
-        int intValue = notFoundValue;
-        
-        if (value != null) {
-            if (value instanceof Number) {
-                intValue = ((Number)value).intValue();
-            } else if (value instanceof String) {
-                try {
-                    intValue = Integer.parseInt((String)value);
-                } catch (NumberFormatException e) {
-                    if (DEBUG.DATA) tufts.Util.printStackTrace(e);
-                }
-            }
-        }
-        
-        return intValue;
-    }
-    
-    public boolean hasProperty(String key) {
-        return mProperties.containsKey(key);
-    }
-    
-    public PropertyMap getProperties() {
-        return mProperties;
-    }
     
     /** @deprecated */
     public void setProperties(Properties p) {
         tufts.Util.printStackTrace("URLResource.setProperties: deprecated " + p);
     }
     
-    public int getType() {
+    @Override
+    public int getClientType() {
         return type;
     }
-    public void setType(int type) {
+    
+    /** TODO:  need to remove this -- if we keep any type at all, it should at least be inferred
+     * -- probably replace with a setClientType(Object) -- a general marker that clients / UI components can use
+     */
+    protected void setClientType(int type) {
         this.type = type;
     }
     public String getToolTipInformation() {
@@ -1290,12 +1412,14 @@ public class URLResource implements Resource, XMLUnmarshalListener
             setAsImage(true);
     }
 
+
     /** Return this object if cached (can use the full, raw content for preview),
      * otherwise thumbnail if there is one.  TODO: don't make this decision
      * for the UI... just always return thumbnail URL if there is one (null if none).
      */
-    public Object getPreview() {
-
+    private Image mThumbShot;
+    public Object getPreview()
+    {
         if (isCached)
             return this;
         else if (mURL_Thumb != null)
@@ -1305,45 +1429,22 @@ public class URLResource implements Resource, XMLUnmarshalListener
         else if (isImage)
             // TODO: this not a good idea... only doing it so Images can put meta-data back into it
             return this;
-        else if (mURL_Browse != null)
-        {
-        	//attempt to get a thumbshot of it.        	
-        	String s = mURL_Browse.toString();
-        	String thumbShotURL = "http://open.thumbshots.org/image.pxf?url="+ s;
-        	URL thumbShot = null;
-        	Image i = null;
-        	try {
-				thumbShot = new URL(thumbShotURL);
-				i = ImageIO.read(thumbShot);				
-	        	
-				if ((i.getHeight(null) <= 1) ||
-						(i.getWidth(null) <=1))
-				{
-					if (DEBUG.WEBSHOTS)
-						out("This was a valid URL but there is no webshot available : " + thumbShotURL);
-					return null;
-				}
-				else if (i == null)
-				{
-					if (DEBUG.WEBSHOTS)
-						out("Didn't get a valid return from webshots : " + thumbShotURL);
-					return null;
-				}
-							
-	        	
-			} catch (Throwable e) {
-				// TODO Auto-generated catch block
-			}	
-        	
-			if (DEBUG.WEBSHOTS)
-				out("Returning webshot image");
+        else if (isLocalFile()) {
+            return getFileIconImage();
+        }
+        else if (mURL_Browse != null && !isLocalFile()) {
+            if (mThumbShot == null) {
+                mThumbShot = fetchThumbshot(mURL_Browse);
 
-			return i;
+                // If we don't assign this, it will keep trying, which
+                // is bad, yet if we go from offline to online, we'd
+                // like to start finding these, so we just keep trying for now...
+                //if (mThumbShot == null) mThumbShot = GUI.NoImage32;
+            }
+            return mThumbShot;
         }
         else 
-        	return null;
-            
-
+            return null;
         
         /*
         if (mPreview == null) {
@@ -1367,9 +1468,42 @@ public class URLResource implements Resource, XMLUnmarshalListener
         
     }
 
-    public boolean isCached() {
-        return isCached;
+    private Image fetchThumbshot(URL url)
+    {
+        if (url == null || !"http".equals(url.getProtocol()))
+            return null;
+        
+        final String thumbShotURL = "http://open.thumbshots.org/image.pxf?url=" + url;
+        final URL thumbShot = makeURL(thumbShotURL);
+
+        if (thumbShot == null)
+            return null;
+
+         Image image = null;
+         try {
+             image = ImageIO.read(thumbShot);
+         } catch (Throwable t) {
+             if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
+         }
+         
+         if (image == null) {
+             if (DEBUG.WEBSHOTS) out("Didn't get a valid return from webshots : " + thumbShot);
+         } else if (image.getHeight(null) <= 1 || image.getWidth(null) <= 1) {
+             if (DEBUG.WEBSHOTS) out("This was a valid URL but there is no webshot available : " + thumbShot);
+             return null;
+         }
+        	
+        if (DEBUG.WEBSHOTS) out("Returning webshot image " + image);
+
+        return image;
     }
+
+        
+
+    private boolean isCached;
+//     public boolean isCached() {
+//         return isCached;
+//     }
 
     // todo: this should be computed internally (move code out of Images.java)
     public void setCached(boolean cached) {
@@ -1384,28 +1518,6 @@ public class URLResource implements Resource, XMLUnmarshalListener
     }
     */
     
-    public Icon getIcon() {
-        return getIcon(null);
-    }
-    
-    /* should deprecate: ResourceIcon could discover painter the first time it paints */
-    public synchronized Icon getIcon(java.awt.Component painter) {
-
-        //if (!isImage())
-        //  return null;
-        
-        if (mIcon == null) {
-            //tufts.Util.printStackTrace("getIcon " + this); System.exit(-1);
-            // TODO: cannot cache this icon if there is a freakin painter,
-            // (because we'd only remember the last painter, and prior
-            // users of this icon would stop getting updates)
-            // -- this is why putting a client property in the cell renderer
-            // is key, tho it's annoying it will have to be fetched
-            // every time -- or could create an interface: Repaintable
-            mIcon = new tufts.vue.ui.ResourceIcon(this, 32, 32, painter);
-        }
-        return mIcon;
-    }
         
     // TODO: calling with a different width/height only changes the size of
     // the existing icon, thus all who have reference to this will change!
@@ -1453,6 +1565,7 @@ public class URLResource implements Resource, XMLUnmarshalListener
         this.selected = selected;
     }
 
+    private JComponent viewer;
     public JComponent getAssetViewer(){
         return null;   
     }
@@ -1550,9 +1663,9 @@ public class URLResource implements Resource, XMLUnmarshalListener
     */
 
 
-    protected void out(String s) {
-        System.err.println(getClass().getName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
-    }
+//     protected void out(String s) {
+//         System.err.println(getClass().getName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
+//     }
 
     public static void main(String args[]) {
         String rs = args.length > 0 ? args[0] : "/";

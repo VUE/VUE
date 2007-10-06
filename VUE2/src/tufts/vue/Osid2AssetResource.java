@@ -29,7 +29,7 @@ package tufts.vue;
 *  object in a DefaultMutableTreeNode.  It implements the Resource interface specification.
 */
 
-public class Osid2AssetResource extends MapResource
+public class Osid2AssetResource extends URLResource
 {
     private static final org.osid.shared.Type BrowsePartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
     private static final org.osid.shared.Type ThumbnailPartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
@@ -121,7 +121,7 @@ public class Osid2AssetResource extends MapResource
     {
         //java.util.Properties osid_registry_properties = new java.util.Properties();
 			
-        setType(Resource.ASSET_OKIREPOSITORY);
+        setClientType(Resource.ASSET_OKIREPOSITORY);
         String displayName = asset.getDisplayName();
         setTitle(displayName);
         setProperty("title", displayName);

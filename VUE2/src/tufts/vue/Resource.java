@@ -19,16 +19,22 @@
 
 package tufts.vue;
 
+//import tufts.vue.DEBUG;
+import java.util.Properties;
+import java.net.URI;
+import java.awt.Image;
+import javax.swing.JComponent;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
 /**
  *  The Resource interface defines a set of methods which all vue resource objects must
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.46 $ / $Date: 2006-07-26 18:46:51 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  * @author  akumar03
  */
-import java.util.Properties;
-import javax.swing.JComponent;
 
 // todo: consider adding an optional icon that can be set for the resource
 // todo fix: type isn't always being set in VUE code (e.g., VueDragTree),
@@ -115,12 +121,66 @@ import javax.swing.JComponent;
 // If we eventually want write-back, this could be provided via the DataSource.
 // Let's get rid of this?
 
-public interface Resource 
+public abstract class Resource 
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Resource.class);
+
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(Resource.class);
+
+    /** interface for Resource factories.  All methods are "get" based as opposed to "create"
+     * as the implementation may optionally provide resources on an atomic basis (e.g., all equivalent URI's / URL's
+     * may return the very same object */
+    public static interface Factory {
+        Resource get(String spec);
+        Resource get(java.net.URL url);
+        Resource get(java.net.URI uri);
+        Resource get(java.io.File file);
+        Resource get(osid.filing.CabinetEntry entry);
+    }
+
+    /** A default resource factory: does basic delgation by type, but only handle's absolute resources (e.g., does no relativization) */
+    public static class DefaultFactory implements Factory {
+        public Resource get(String spec) {
+            return postProcess(URLResource.create(spec), spec);
+        }
+        public Resource get(java.net.URL url) {
+            return postProcess(URLResource.create(url), url);
+        }
+        public Resource get(java.net.URI uri) {
+            return postProcess(URLResource.create(uri), uri);
+        }
+        public Resource get(java.io.File file) {
+            // someday this may return something like a FileResource (which could make
+            // use of a LocalCabinetResource, if we upgraded that API to be useful
+            // and handle things like fetch file typed icon images, etc).
+            return postProcess(URLResource.create(file), file);
+        }
+        public Resource get(osid.filing.CabinetEntry entry) {
+            return postProcess(CabinetResource.create(entry), entry);
+        }
+
+        protected Resource postProcess(Resource r, Object source) {
+            Log.debug("Created " + r + " from " + tufts.Util.tag(source) + ";" + source);
+            return r;
+        }
+    }
+
+    private static final Factory AbsoluteResourceFactory = new DefaultFactory();
+
+    /** @return the default resource factory */
+    // could allow installation of a new default factory (be sure to make installation threadsafe if do so)
+    public static Factory getFactory() {
+        return AbsoluteResourceFactory;
+    }
+
         
-    /*  The follow type codes are defined for resources.
+    /*  Some client type codes defined for resources.  */
+
+    /*
+     * Todo: the set of types should ideally be defined / used by clients and subclass impl's,
+     * not enumerated in the Resource class, but we're keeping this around as is
+     * for old code and given that this info is actually persisted in save files.
      */
 
     static final int NONE = 0;              //  Unknown type.
@@ -132,14 +192,106 @@ public interface Resource
     static final int ASSET_FEDORA = 11;     //  Resource is a Fedora Asset.
     static final int ASSET_OKIREPOSITORY  = 12;     //  Resource is an OKI Repository OSID Asset.
 
-    // preview preference keys: use 
-    public static final Object SMALL = "small";
-    public static final Object MEDIUM = "medium";
-    public static final Object LARGE = "large";
+    protected static final String[] TYPE_NAMES = {
+        "NONE", "FILE", "URL", "DIRECTORY", "FAVORITES",
+        "unused5", "unused6", "unused7", "unused8", "unused9", 
+        "ASSET_OKIDR", "ASSET_FEDORA", "ASSET_OKIREPOSITORY"
+    };
+
+//     // preview preference keys: use 
+//     public static final Object SMALL = "small";
+//     public static final Object MEDIUM = "medium";
+//     public static final Object LARGE = "large";
 
 
+    /** the metadata property map **/
+    final protected PropertyMap mProperties = new PropertyMap();
+
+    static final long SIZE_UNKNOWN = -1;
+    private long mByteSize = SIZE_UNKNOWN;
+
+
+    public long getByteSize() {
+        return mByteSize;
+    }
+    
+    protected void setByteSize(long size) {
+        mByteSize = size;
+    }
+    
+    
+    /**
+     * Set the given property value.
+     * Does nothing if either key or value is null, or value is an empty String.
+     */
+    public void setProperty(String key, Object value) {
+        if (DEBUG.DATA) out("setProperty " + key + " [" + value + "]");
+        if (key != null && value != null) {
+            if (!(value instanceof String && ((String)value).length() < 1))
+                mProperties.put(key, value);
+        }
+    }
+
+    /**
+     * Add a property with the given key.  If a key already exists
+     * with this name, the key will be modified with an index.
+     */
+    public String addProperty(String desiredKey, Object value) {
+        return mProperties.addProperty(desiredKey, value);
+    }
+    
+
+    public void setProperty(String key, long value) {
+        if (key.endsWith(".contentLength") || key.endsWith(".size")) {
+            // this kind of a hack
+            setByteSize(value);
+        }
+        setProperty(key, Long.toString(value));
+    }
+
+    
+    /**
+     * This method returns a value for the given property name.
+     * @param pName the property name.
+     * @return Object the value
+     **/
+    public String getProperty(String key) {
+        final Object value = mProperties.get(key);
+        if (DEBUG.RESOURCE) out("getProperty[" + key + "]=" + value);
+        return value == null ? null : value.toString();
+    }
+
+    public int getProperty(String key, int notFoundValue) {
+        final Object value = mProperties.get(key);
+
+        int intValue = notFoundValue;
+        
+        if (value != null) {
+            if (value instanceof Number) {
+                intValue = ((Number)value).intValue();
+            } else if (value instanceof String) {
+                try {
+                    intValue = Integer.parseInt((String)value);
+                } catch (NumberFormatException e) {
+                    if (DEBUG.DATA) tufts.Util.printStackTrace(e);
+                }
+            }
+        }
+        
+        return intValue;
+    }
+    
+    public boolean hasProperty(String key) {
+        return mProperties.containsKey(key);
+    }
+    
+    public PropertyMap getProperties() {
+        return mProperties;
+    }
+
+    
     /** @return true if this resource contains displayable image data */
-    public boolean isImage();
+    public abstract boolean isImage();
 
     /**
      * @return an object suitable to be handed to the Java ImageIO API that can
@@ -149,118 +301,191 @@ public interface Resource
      * the VUE Images code can use that to cache the result on disk.
      * May return null if no image is available.
      */
-    public Object getImageSource();
+    public abstract Object getImageSource();
     
     /**  
      *  Return the title or display name associated with the resource.
      *  (any length restrictions?)
      */
-    public String getTitle();
+    public abstract String getTitle();
+
+    public abstract void setTitle(String title);    
     
-    //public java.net.URL asURL();
+    //public abstract java.net.URL asURL();
     
-    public long getSize();
+    //public abstract long getSize();
 
     /**
      *  Return a resource reference specification.  This could be a filename or URL.
      */
-    public String getSpec();
+    public abstract String getSpec();
     
     /**
      *  Return the filename extension of this resource (if any).
      *  (What if it doesn't have an extension?  Unix files are not required to have one)
      */
     // get rid of this, and perhaps add a getType?  needs to encompass file/directory/URL/DR 
-    public String getExtension();
+    public abstract String getExtension();
     
     /**
      *  Return tooltip information or none.
      *  (should null be returned if no tool tip info?)
      */
-    public String getToolTipInformation();
+    public abstract String getToolTipInformation();
     
-    /**
-     *  Return any metadata associated with this resource as a collection of Java
-     *  properties.  Dublin core metadata has defined keywords (where defined?)
-     */
-    //public Properties getProperties();
-    public PropertyMap getProperties();
-    
-
-    /**
-     * @return the value for the given property key, or null if no such property.
-     */
-    public String getProperty(String key);
-    public int getProperty(String key, int notFoundValue);
-    /**
-     * Set the property named by the given key to value.
-     */
-    public void setProperty(String key, Object value);
-    public void setProperty(String key, long value);
-
-    /**
-     * Add a property with the given key.  If a key already exists
-     * with this name, the key will be modified with an index.
-     * @return - the key actually used.  Returned value will == desiredKey
-     * if it did not have to be modified.
-     */
-    public String addProperty(String desiredKey, Object value);
     
     /** 
      *  Return true if the resource is selected.  Initialize select flag to false.
      */
-    //public boolean isSelected();
+    //public abstract boolean isSelected();
     
     /**
      *  Set the selected flag to the value given.
      */
-    //public void setSelected(boolean selected);
+    //public abstract void setSelected(boolean selected);
     
     /** 
-     *  Return the resource type.  This should be one of the types defined above.
+     * Return the resource type.  This should be one of the types defined above.
      */
-    public int getType();
+    public abstract int getClientType();
     
     /**
      *  Display the content associated with the resource.  For example, call
      *  VueUtil.open() using the spec information.
      */
-    public void displayContent();
+    public abstract void displayContent();
 
 
+    private ImageIcon mTinyIcon;
+    /** @return a 16x16 icon */
+    public Icon getTinyIcon() {
+        if (mTinyIcon != null)
+            return mTinyIcon;
+        
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getExtension(), 16);
+        if (image != null) {
+            if (image.getWidth(null) > 16) {
+                // see http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
+                // on how to do this better/faster -- happens very rarely on the Mac tho, but need to test PC.
+                image = image.getScaledInstance(16, 16, 0); //Image.SCALE_SMOOTH);
+            }
+            mTinyIcon = new javax.swing.ImageIcon(image);
+        }
+        return mTinyIcon;
+    }
+
+    public Image getTinyIconImage() {
+        if (mTinyIcon == null)
+            getTinyIcon();
+        if (mTinyIcon != null)
+            return mTinyIcon.getImage();
+        else
+            return null;
+    }
+
+    private ImageIcon mLargeIcon;
+    /** @return up to a 128x128 icon */
+    public Icon getLargeIcon() {
+        if (mLargeIcon != null)
+            return mLargeIcon;
+        
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getExtension(), 128);
+        if (image != null) {
+            if (image.getWidth(null) > 128) {
+                image = image.getScaledInstance(128, 128, 0); //Image.SCALE_SMOOTH);
+            }
+            mLargeIcon = new javax.swing.ImageIcon(image);
+        }
+        return mLargeIcon;
+    }
+
+    public Image getLargeIconImage() {
+        if (mLargeIcon == null)
+            getLargeIcon();
+        if (mLargeIcon != null)
+            return mLargeIcon.getImage();
+        else
+            return null;
+    }
+    
+    
+
+
+//     /**
+//      * Get preview of the object, e.g., a thummbnail.  Currently, this should be 32x32 pixels.
+//      */
+//     public javax.swing.Icon getIcon() {
+//         return getIcon(null);
+//     }
+    
+    private tufts.vue.ui.ResourceIcon mIcon;
     /**
-     * Get preview of the object, e.g., a thummbnail.  Currently, this should be 32x32 pixels.
+     * @param repainter -- the component to request repainting on when
+     * the icons loads if it's not immediately available.  This is required
+     * to support cell rendererers -- e.g., the component the icon paints
+     * on does not forward repaint requests.  May be null if cell renderers not in use.
      */
-    public javax.swing.Icon getIcon();
-    public javax.swing.Icon getIcon(java.awt.Component painter);
-    //public javax.swing.Icon getIcon(int width, int height);
+    public synchronized javax.swing.Icon getContentIcon(java.awt.Component repainter) {
+
+        //if (!isImage())
+        //  return null;
+        
+        if (mIcon == null) {
+            //tufts.Util.printStackTrace("getIcon " + this); System.exit(-1);
+            // TODO: cannot cache this icon if there is a freakin painter,
+            // (because we'd only remember the last painter, and prior
+            // users of this icon would stop getting updates)
+            // -- this is why putting a client property in the cell renderer
+            // is key, tho it's annoying it will have to be fetched
+            // every time -- or could create an interface: Repaintable
+            mIcon = new tufts.vue.ui.ResourceIcon(this, 32, 32, repainter);
+        }
+        return mIcon;
+    }
+
+    public javax.swing.Icon getContentIcon() {
+        return getContentIcon(null);
+    }
+    
+    //public abstract javax.swing.Icon getIcon();
+    //public abstract javax.swing.Icon getIcon(java.awt.Component painter);
+    //public abstract javax.swing.Icon getIcon(int width, int height);
 
     /**
      * Get preview of the object such as thummbnail / small sized image. Suggested return
      * types are something that can be converted to image data, or a java GUI component,
      * such as a java.awt.Component, javax.swing.JComponent, or javax.swing.Icon.
      */
-    public Object getPreview();
+    public abstract Object getPreview();
 
     /**
      * @param preferredSize: either SMALL, MEDIUM, or LARGE. This is a general hint only and may
      * not be respected.  If the Resource is image content, 
      */
-    //public Object getPreview(Object preferredSize);
+    //public abstract Object getPreview(Object preferredSize);
 
 
-    public boolean isCached();
+    //public abstract boolean isCached();
 
     // todo: should be protected or not have it
-    public void setCached(boolean cached);
+    public abstract void setCached(boolean cached);
 
-    //public void setPreview(Object preview);
+    public abstract void updateRootLocation(URI oldRoot, URI newRoot);
+    public abstract String getPrettyString();
+
+    //public abstract void setPreview(Object preview);
       
     
     /**
      *Associate a asset viewer with a resource. 
      *
      */
-    //public JComponent getAssetViewer();
+    //public abstract JComponent getAssetViewer();
+
+
+    protected void out(String s) {
+        Log.info(getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
+    }
+    
     
 }

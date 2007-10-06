@@ -67,8 +67,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         load();
         if (!fileOpen){
             System.out.println("Creating new favorites");
-            MapResource favResource = new MapResource(displayName);
-            favResource.setType(FAVORITES);
+            URLResource favResource = (URLResource) Resource.getFactory().get(displayName);
+            favResource.setClientType(FAVORITES);
             favoritesTree = new VueDandDTree(new FavoritesNode(favResource));
             favoritesTree.setRootVisible(false);
         }
@@ -171,9 +171,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     private void addFavorites(DefaultTreeModel model, ResourceNode resNode){
         TreePath tp = new TreePath(resNode.getPath());
         FavoritesNode favresNode = (FavoritesNode)tp.getLastPathComponent();
-        MapResource favResource = new MapResource(NEW_FAVORITES);
+        URLResource favResource = (URLResource) Resource.getFactory().get(NEW_FAVORITES);
         favResource.setTitle(NEW_FAVORITES);
-        favResource.setType(FAVORITES);
+        favResource.setClientType(FAVORITES);
         FavoritesNode favNode = new FavoritesNode(favResource);
         model.insertNodeInto(favNode,favresNode, (favresNode.getChildCount()));
         if ((favresNode.isLeaf())){

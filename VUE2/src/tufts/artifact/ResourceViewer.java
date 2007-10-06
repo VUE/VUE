@@ -432,7 +432,6 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
             Iterator i  = results.iterator();
             while(i.hasNext()){
                 hit = (Hit)i.next();
-                MapResource resource = new MapResource();
                 
                 /**
                     private String thumb = hit.thumb;
@@ -447,22 +446,23 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
                     
                 };
                  */
-                Properties properties = new Properties();
+                Resource resource = Resource.getFactory().get(hit.artifact);
+                //Properties properties = new Properties();
                 String displayTitle = hit.title;
                 if(hit.artist.length() > 0)
                     displayTitle += " - " +hit.artist;
                 resource.setTitle(displayTitle);
-                resource.setSpec(hit.artifact);
-                properties.setProperty("Title", hit.title);
-                properties.setProperty("Artist", hit.artist);
-                properties.setProperty("Culture" ,hit.culture);
-                properties.setProperty("Current Location",hit.currentLocation);
-                properties.setProperty("Material",hit.material);
-                properties.setProperty("Origin", hit.origin);
-                properties.setProperty("Period", hit.period);
-                properties.setProperty("Subject",hit.subject);
-                properties.setProperty("View",hit.view);
-                resource.setProperties(properties);
+                //resource.setSpec(hit.artifact);
+                resource.setProperty("Title", hit.title);
+                resource.setProperty("Artist", hit.artist);
+                resource.setProperty("Culture" ,hit.culture);
+                resource.setProperty("Current Location",hit.currentLocation);
+                resource.setProperty("Material",hit.material);
+                resource.setProperty("Origin", hit.origin);
+                resource.setProperty("Period", hit.period);
+                resource.setProperty("Subject",hit.subject);
+                resource.setProperty("View",hit.view);
+                //resource.setProperties(properties);
                 resourceVector.add(resource);
             }
             VueDragTree tree = new VueDragTree(resourceVector.iterator(),"Artifact Results");

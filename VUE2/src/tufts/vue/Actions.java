@@ -818,9 +818,8 @@ public class Actions implements VueConstants
                  //                         
                 //}
                 //LWNode node = NodeModeTool.createNewNode();
-                LWImage image= new LWImage();
-                
-                image.setResource(new URLResource(fileName.getAbsolutePath()));
+                final LWImage image = new LWImage();
+                image.setResource(fileName);
                 //node.addChild(image);
                 c.addChild(image);
             }
@@ -844,7 +843,8 @@ public class Actions implements VueConstants
               Resource r = c.getResource();
               if (r == null)
               {
-            	  c.setResource(new URLResource(fileName.getAbsolutePath()));  
+            	  //c.setResource(new URLResource(fileName.getAbsolutePath()));  
+            	  c.setResource(fileName);
               }
               else            	  
               {
@@ -862,18 +862,19 @@ public class Actions implements VueConstants
                   
                
                   if (response == JOptionPane.YES_OPTION) { // Save
-                	  c.setResource(new URLResource(fileName.getAbsolutePath()));
+                      //c.setResource(new URLResource(fileName.getAbsolutePath()));
+                      c.setResource(fileName);
                   } 
                   else if (response == JOptionPane.NO_OPTION) { // Don't Save
-                	  {
-                		  //LWNode node = NodeModeTool.createNewNode();
+                      {
+                          //LWNode node = NodeModeTool.createNewNode();
                           
-                          URLResource urlResource = new URLResource(fileName.getAbsolutePath());
-                          LWNode node= new LWNode(urlResource.getTitle());
-                          node.setResource(urlResource);
+                          Resource resource = c.getResourceFactory().get(fileName);
+                          LWNode node= new LWNode(resource.getTitle());
+                          node.setResource(resource);
                           //node.addChild(image);                         
                           c.addChild(node);
-                	  }
+                      }
                   } else // anything else (Cancel or dialog window closed)
                       return;
               }                                                                  	
@@ -882,99 +883,126 @@ public class Actions implements VueConstants
     };
     
     public static final LWCAction AddURLAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addURL.label")) {
-        public void act(LWComponent c) 
-        {
+            public void act(LWComponent c) 
+            {
         	//JFileChooser chooser = new JFileChooser();
     		File fileName = null;
     		final Object[] defaultButtons = { "OK","Cancel"};
     		String option = (String)JOptionPane.showInputDialog((Component)VUE.getApplicationFrame(), 
-    												"Enter the URL to add: ",
-    												"Add URL to Node",
-    												JOptionPane.PLAIN_MESSAGE	,
-    												null,
-    												null,
-    												"http://");
+                                                                    "Enter the URL to add: ",
+                                                                    "Add URL to Node",
+                                                                    JOptionPane.PLAIN_MESSAGE	,
+                                                                    null,
+                                                                    null,
+                                                                    "http://");
+                
+                if (option == null || option.length() <= 0)
+                    return;
+                
     												
-            //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
-            if (option != null && option.length() > 0) 
-            {
-            	URI url = null;
+                //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
+                //if (option != null && option.length() > 0) {
+
+            	URI uri = null;
             	
                 try {
-				 url = new URI(option);
-				} catch (URISyntaxException e) {
-					JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-							"Malformed URL, resource could not be added.", 
-							"Malformed URL", 
-							JOptionPane.ERROR_MESSAGE);
-					return;
-				}
+                    uri = new URI(option);
+                } catch (URISyntaxException e) {
+                    JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                                                  "Malformed URL, resource could not be added.", 
+                                                  "Malformed URL", 
+                                                  JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
              
-              Resource r = c.getResource();
-              if (r == null)
-              {
-            	  try {
-					c.setResource(new URLResource(url.toURL()));
-				} catch (MalformedURLException e) {
-					JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-							"Malformed URL, resource could not be added.", 
-							"Malformed URL", 
-							JOptionPane.ERROR_MESSAGE);
-				}  
-              }
-              else            	  
-              {
-            	  final Object[] defaultOrderButtons = { "Replace","Add","Cancel"};
-                  int response = JOptionPane.showOptionDialog
-                  ((Component)VUE.getApplicationFrame(),
-                   new String("Do you want to replace the current resource or add this resource as a child node?"),
-                   "Replace Resource?",
-                   JOptionPane.YES_NO_CANCEL_OPTION,
-                   JOptionPane.PLAIN_MESSAGE,
-                   null,
-                   defaultOrderButtons,             
-                   "Add"
-                   );                  
+                Resource r = c.getResource();
+                if (r == null) {
+                    r = c.getResourceFactory().get(uri);
+                    if (r == null) {
+                        JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                                                      "Malformed URL, resource could not be added.", 
+                                                      "Malformed URL", 
+                                                      JOptionPane.ERROR_MESSAGE);
+                    } else
+                        c.setResource(r);
+                    
+//                     try {
+//                         c.setResource(new URLResource(url.toURL()));
+//                     } catch (MalformedURLException e) {
+//                         JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+//                                                       "Malformed URL, resource could not be added.", 
+//                                                       "Malformed URL", 
+//                                                       JOptionPane.ERROR_MESSAGE);
+//                     }  
+                }
+                else {
+                    final Object[] defaultOrderButtons = { "Replace","Add","Cancel"};
+                    int response = JOptionPane.showOptionDialog
+                        ((Component)VUE.getApplicationFrame(),
+                         new String("Do you want to replace the current resource or add this resource as a child node?"),
+                         "Replace Resource?",
+                         JOptionPane.YES_NO_CANCEL_OPTION,
+                         JOptionPane.PLAIN_MESSAGE,
+                         null,
+                         defaultOrderButtons,             
+                         "Add"
+                         );                  
                   
                
-                  if (response == JOptionPane.YES_OPTION) { // Save
-                	  try {
-						c.setResource(new URLResource(url.toURL()));
-					} catch (MalformedURLException e) {
-						JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-								"Malformed URL, resource could not be added.", 
-								"Malformed URL", 
-								JOptionPane.ERROR_MESSAGE);
-						return;
-					}
-                  } 
-                  else if (response == JOptionPane.NO_OPTION) { // Don't Save
-                	  {
-                		  //LWNode node = NodeModeTool.createNewNode();
-                          
-                          URLResource urlResource;
-						try {
-							urlResource = new URLResource(url.toURL());
-						} catch (MalformedURLException e) {
-							JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
-														"Malformed URL, resource could not be added.", 
-														"Malformed URL", 
-														JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-                          LWNode node= new LWNode(url.toString());
-                          node.setResource(urlResource);
-                          
-                          //node.addChild(image);                         
-                          c.addChild(node);
-                	  }
-                  } else // anything else (Cancel or dialog window closed)
-                      return;
-              }                                                                  	
-        }
-        }
-    };
-    
+                    if (response == JOptionPane.YES_OPTION) { // Save
+                        r = c.getResourceFactory().get(uri);
+                        if (r == null) {
+                            JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                                                          "Malformed URL, resource could not be added.", 
+                                                          "Malformed URL", 
+                                                          JOptionPane.ERROR_MESSAGE);
+                        } else
+                            c.setResource(r);
+                        
+//                         try {
+//                             c.setResource(new URLResource(url.toURL()));
+//                         } catch (MalformedURLException e) {
+//                             JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+//                                                           "Malformed URL, resource could not be added.", 
+//                                                           "Malformed URL", 
+//                                                           JOptionPane.ERROR_MESSAGE);
+//                             return;
+//                         }
+                        
+                    } 
+                    else if (response == JOptionPane.NO_OPTION) { // Don't Save
+                        //LWNode node = NodeModeTool.createNewNode();
+                        
+//                             URLResource urlResource;
+//                             try {
+//                                 urlResource = new URLResource(url.toURL());
+//                             } catch (MalformedURLException e) {
+//                                 JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+//                                                               "Malformed URL, resource could not be added.", 
+//                                                               "Malformed URL", 
+//                                                               JOptionPane.ERROR_MESSAGE);
+//                                 return;
+//                             }
+//                             URLResource urlResource;
+
+                        r = c.getResourceFactory().get(uri);
+                        if (r == null) {
+                            JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
+                                                          "Malformed URL, resource could not be added.", 
+                                                          "Malformed URL", 
+                                                          JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            final LWNode node = new LWNode(uri.toString());
+                            node.setResource(r);
+                            //node.addChild(image);                         
+                            c.addChild(node);
+                        }
+                    } // else // anything else (Cancel or dialog window closed)
+                }                                                                  	
+            }
+        };
+
+
     public static final LWCAction EditMasterSlide = new LWCAction("Edit master slide")
     {
     	public void act(LWSlide slide)

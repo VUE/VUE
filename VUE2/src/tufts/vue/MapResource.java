@@ -22,16 +22,16 @@ package tufts.vue;
 
 /**
  *
- * @version $Revision: 1.44 $ / $Date: 2006-03-29 04:30:40 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  *
  * This class currently for backward compatability save files referencing "MapResource",
  * as well as old references in the codebase.
  */
 public class MapResource extends URLResource
 {
-    public MapResource(String urlOrFile) {
-        super(urlOrFile);
-    }
+//     public MapResource(String urlOrFile) {
+//         super(urlOrFile);
+//     }
 
 
     /** @deprecated - for persistance only */

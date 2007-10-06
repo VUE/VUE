@@ -161,14 +161,14 @@ implements org.osid.repository.Repository
 				}
 			}
 			if (added == 0 || tufts.Util.isWindowsPlatform() == false) {
-				CabinetResource r = new CabinetResource(new LocalCabinet(home.getPath(), agent, null));
-				String title = "Home";
-				String user = VUE.getSystemProperty("user.name");
-				if (user != null)
-					title += " (" + user + ")";
-				r.setTitle(title);
-				//				cabVector.add(r);
-				cabVector.add(new LocalCabinet(home.getPath(), agent, null));
+                            Resource r = Resource.getFactory().get(new LocalCabinet(home.getPath(), agent, null));
+                            String title = "Home";
+                            String user = VUE.getSystemProperty("user.name");
+                            if (user != null)
+                                title += " (" + user + ")";
+                            r.setTitle(title);
+                            //				cabVector.add(r);
+                            cabVector.add(new LocalCabinet(home.getPath(), agent, null));
 			}
 		}
 		boolean gotSlash = false;
@@ -184,8 +184,7 @@ implements org.osid.repository.Repository
 				File v = vols[i];
 				if (!v.canRead() || v.getName().startsWith("."))
 					continue;
-				CabinetResource r =
-					new CabinetResource(new LocalCabinet(v.getPath(), agent, null));
+				Resource r = Resource.getFactory().get(new LocalCabinet(v.getPath(), agent, null));
 				r.setTitle(v.getName());
 				try {
 					//r.setTitle(v.getName() + " (" + v.getCanonicalPath() + ")");
@@ -206,7 +205,7 @@ implements org.osid.repository.Repository
 			LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots();
 			while(rootCabs.hasNext()){
 				LocalCabinetEntry rootNode = (LocalCabinetEntry)rootCabs.next();
-				CabinetResource res = new CabinetResource(rootNode);
+				Resource res = Resource.getFactory().get(rootNode);
 				if (rootNode instanceof LocalCabinet) {
 					File f = ((LocalCabinet)rootNode).getFile();
 					try {

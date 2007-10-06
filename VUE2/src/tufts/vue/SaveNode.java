@@ -46,7 +46,7 @@ public class SaveNode{
         Enumeration e = resourceNode.children();
         this.setResource(resourceNode.getResource());
         System.out.println("Resource Node" + resourceNode.getResource());
-        if(resource.getType() != Resource.FILE) {
+        if(resource.getClientType() != Resource.FILE) {
             Vector v = new Vector();
             while (e.hasMoreElements()) {
                 ResourceNode newResNode =(ResourceNode)e.nextElement();

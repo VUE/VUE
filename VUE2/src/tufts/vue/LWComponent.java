@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.345 $ / $Date: 2007-10-03 22:42:49 $ / $Author: sfraize $
+ * @version $Revision: 1.346 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -61,7 +61,8 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 public class LWComponent
     implements VueConstants, XMLUnmarshalListener
 {
-
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWComponent.class);
+    
     public enum ChildKind {
         /** the default, conceptually significant chilren */
         PROPER,
@@ -546,7 +547,7 @@ public class LWComponent
                 if (DEBUG.META)
                     tufts.Util.printStackTrace(new Throwable(t), this + ": property slot get() failed " + propertySlot);
                 else
-                    VUE.Log.warn(this + ": property slot get() failed " + propertySlot + " " + t);
+                    Log.warn(this + ": property slot get() failed " + propertySlot + " " + t);
                 return DEBUG.Enabled ? (TValue) "<unsupported for this object>" : null;
                 //return null;
             }
@@ -1680,6 +1681,7 @@ u                    getSlot(c).setFromString((String)value);
         return this.category;
     }
     */
+    
     public void setResource(Resource resource)
     {
         if (DEBUG.CASTOR) out("SETTING RESOURCE TO " + (resource==null?"":resource.getClass()) + " [" + resource + "]");
@@ -1691,26 +1693,51 @@ u                    getSlot(c).setFromString((String)value);
         
         /*
         try {
-            layout();
-        } catch (Exception e) {
+            layout();u
+        } catch (Exception e) {u
             e.printStackTrace();
             if (DEBUG.CASTOR) System.exit(-1);
         }
         */
     }
-
-    public void setResource(String urn)
-    {
-        if (urn == null || urn.length() == 0)
-            setResource((Resource)null);
-        else
-            setResource(new MapResource(urn));
-    }
- 
-    public Resource getResource()
-    {
+    
+    public Resource getResource() {
         return this.resource;
     }
+
+    public Resource.Factory getResourceFactory() {
+        final LWMap map = getMap();
+        if (map == null)
+            return Resource.getFactory();
+        else
+            return map.getResourceFactory();
+    }
+ 
+    /** convenience delegate to resource factory */
+    public void setResource(String spec) {
+        setResource(getResourceFactory().get(spec));
+    }
+    /** convenience delegate to resource factory */
+    public void setResource(java.net.URL url) {
+        setResource(getResourceFactory().get(url));
+    }
+    /** convenience delegate to resource factory */
+    public void setResource(java.net.URI uri) {
+        setResource(getResourceFactory().get(uri));
+    }
+    /** convenience delegate to resource factory */
+    public void setResource(java.io.File file) {
+        setResource(getResourceFactory().get(file));
+    }
+        
+//     public void setResource(String urn)
+//     {
+//         if (urn == null || urn.length() == 0)
+//             setResource((Resource)null);
+//         else
+//             setResource(new MapResource(urn));
+//     }
+
     
     public String getID() {
         return this.ID;

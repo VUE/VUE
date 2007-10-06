@@ -40,7 +40,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.29 $ / $Date: 2006-08-03 06:36:31 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -155,14 +155,14 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             }
             
         }
-        if (rootNode.getResource().getType() == FAVORITES){
+        if (rootNode.getResource().getClientType() == FAVORITES){
             if (resourceList != null){
                 java.util.Iterator iter = resourceList.iterator();
                 while(iter.hasNext()) {
                     Resource resource = (Resource) iter.next();
-                    if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getType()+ " resource class:"+resource.getClass());
+                    if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getClientType()+ " resource class:"+resource.getClass());
                     ResourceNode newNode;
-                    if(resource.getType() == Resource.FILE){
+                    if(resource.getClientType() == Resource.FILE){
                         //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
                         newNode = new CabinetNode(resource,CabinetNode.LOCAL);
                         CabinetResource cr = (CabinetResource)newNode.getResource();
@@ -186,7 +186,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                         LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                         osid.shared.Agent agent = null;
                         LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
-                        CabinetResource res = new CabinetResource(cab);
+                        CabinetResource res = CabinetResource.create(cab);
                         CabinetEntry entry = res.getEntry();
                         CabinetNode cabNode = null;
                         if (entry instanceof RemoteCabinetEntry)
@@ -207,7 +207,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             
             else  if (droppedText != null){
                 
-                ResourceNode newNode = new ResourceNode(new MapResource(droppedText));;
+                ResourceNode newNode = new ResourceNode(Resource.getFactory().get(droppedText));
                 this.setRootVisible(true);
                 model.insertNodeInto(newNode, rootNode, (rootNode.getChildCount()));
                 this.expandPath(new TreePath(rootNode.getPath()));
@@ -328,8 +328,8 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             //else setBackground(Color.white);
             
             hasImageIcon = false;
-            
-            if ( !(node instanceof FileNode) && (node.getResource().getType() == FAVORITES)) {
+
+            if ( !(node instanceof FileNode) && (node.getResource().getClientType() == FAVORITES)) {
                 if (node.getChildCount() > 0 ) {
                     setIcon(activeIcon);
                 } else {
@@ -337,14 +337,14 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 }
             } else if (leaf) {
                 Icon icon = nleafIcon;
-                Resource r = node.getResource();
+                final Resource r = node.getResource();
                 //System.out.println("level " + node.getLevel() + " for " + r);
-                // Only do Osid assets for now...
                 if (level == 1 && r.isImage()) {
-                    Icon i = r.getIcon(tree);
+                    Icon i = r.getContentIcon(tree);
                     if (i != null) {
                         hasImageIcon = true;
                         icon = i;
+                        //setIcon(icon);
                     }
                 }
                 setIcon(icon);
@@ -394,7 +394,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         VUE.init(args);
         
         new Frame("An Active Frame").setVisible(true);
-        MapResource r = new MapResource("http://www.tufts.edu/");
+        Resource r = Resource.getFactory().get("http://www.tufts.edu/");
         VueDandDTree tree = new VueDandDTree(new FavoritesNode(r));
         tufts.Util.displayComponent(tree);
     }

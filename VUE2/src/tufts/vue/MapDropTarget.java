@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.75 $ / $Date: 2007-10-03 23:16:50 $ / $Author: sfraize $  
+ * @version $Revision: 1.76 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -737,7 +737,8 @@ class MapDropTarget
 
     private LWComponent createNodeAndResource(DropContext drop, String resourceSpec, Map properties, Point2D where)
     {
-        URLResource resource = new URLResource(resourceSpec);
+        //URLResource resource = new URLResource(resourceSpec);
+        Resource resource = mViewer.getMap().getResourceFactory().get(resourceSpec);
 
         if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " where=" + where);
 

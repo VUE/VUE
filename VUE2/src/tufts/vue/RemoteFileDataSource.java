@@ -110,7 +110,7 @@ public class RemoteFileDataSource extends VueDataSource{
             osid.shared.Agent agent = null; //  This may cause problems later.
             while(rootCabs.hasNext()){
                 RemoteCabinetEntry rootNode = (RemoteCabinetEntry)rootCabs.next();
-                CabinetResource res = new CabinetResource(rootNode);
+                CabinetResource res = CabinetResource.create(rootNode);
                 cabVector.add(res);
                 
             }

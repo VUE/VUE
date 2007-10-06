@@ -46,7 +46,7 @@ import org.xml.sax.InputSource;
 
 /**
  * @author  RSaigal
- * @version $Revision: 1.19 $ / $Date: 2006-01-20 20:14:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.20 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $ 
  */
 public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     JTabbedPane googlePane;
@@ -223,10 +223,12 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                 
                 while(i.hasNext()) {
                     Result r = (Result)i.next();
-                    URLResource urlResource = new URLResource(r.getUrl());
-                    if (r.getTitle() != null) urlResource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
-                    else urlResource.setTitle(r.getUrl().toString());
-                    resultVector.add(urlResource);
+                    Resource resource = Resource.getFactory().get(r.getUrl());
+                    if (r.getTitle() != null)
+                        resource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
+                    else
+                        resource.setTitle(r.getUrl().toString());
+                    resultVector.add(resource);
                     System.out.println(r.getTitle()+" "+r.getUrl());
                     
                 }

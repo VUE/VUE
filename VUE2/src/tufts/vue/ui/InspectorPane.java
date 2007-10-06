@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.ui.MetadataEditor;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.45 $ / $Date: 2007-10-05 17:54:07 $ / $Author: dan $
+ * @version $Revision: 1.46 $ / $Date: 2007-10-06 03:06:58 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -693,7 +693,7 @@ public class InspectorPane extends JPanel
         LWComponent node = new LWNode("Test Node");
         node.setNotes("I am a note.");
         System.out.println("Loading resource[" + rsrc + "]");
-        MapResource r = new MapResource(rsrc);
+        Resource r = Resource.getFactory().get(rsrc);
         System.out.println("Got resource " + r);
         r.setTitle("A Very Long Long Resource Title Ya Say");
         node.setResource(r);
@@ -736,7 +736,7 @@ public class InspectorPane extends JPanel
         if (args.length > 0 && args[0].charAt(0) != '-')
             rsrc = args[0];
 
-        Resource r = new URLResource("file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif");
+        Resource r = Resource.getFactory().get("file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif");
 
         if (true) {
             displayTestPane(rsrc);

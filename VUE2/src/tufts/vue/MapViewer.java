@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.450 $ / $Date: 2007-10-04 14:21:37 $ / $Author: mike $ 
+ * @version $Revision: 1.451 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3779,7 +3779,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             LWNode n = (LWNode) c;
             Resource r = n.getResource();
-            if (r != null && r.getType() == Resource.ASSET_FEDORA) {
+            if (r != null && r.getClientType() == Resource.ASSET_FEDORA) {
                 Asset a = r == null ? null :((AssetResource)r).getAsset();
                 if (a != null && sAssetMenu == null) {
                     buildAssetMenu(a);

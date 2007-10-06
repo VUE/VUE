@@ -99,7 +99,7 @@ public class SaveVueJTree {
                         
                     model.insertNodeInto(nextNode,rootNode,0);
                     restoreModel(model, nextNode, nextSNode);
-                }else if (resource.getType() == FAVORITES){
+                }else if (resource.getClientType() == FAVORITES){
                     FavoritesNode nextFNode = new FavoritesNode(resource);
                     model.insertNodeInto(nextFNode,rootNode,0);
                     restoreModel(model, nextFNode, nextSNode);

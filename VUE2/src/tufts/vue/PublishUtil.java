@@ -130,7 +130,8 @@ public class PublishUtil implements  tufts.vue.DublinCoreConstants  {
                 IMSCPResources += getResourceTag(r.getProperties().asProperties(), entry,resourceCount);
                 IMSCPOrganization += getItemTag("ITEM"+resourceCount, "RESOURCE"+resourceCount,"Resource "+resourceCount+" in Concept Map");
                 //resourceTable.setValueAt("Done",resourceVector.indexOf(vector),STATUS_COL);
-                replaceResource(saveMap,r,new MapResource(IMSCP.RESOURCE_FILES+File.separatorChar+file.getName()));
+                replaceResource(saveMap,r,Resource.getFactory().get(IMSCP.RESOURCE_FILES+File.separatorChar+file.getName()));
+                //replaceResource(saveMap,r,new MapResource(IMSCP.RESOURCE_FILES+File.separatorChar+file.getName()));
                 resourceCount++;
             }
         }

@@ -174,11 +174,12 @@ public class RDFOpenAction extends VueAction {
     }
     
     private static LWNode createNodeFromResource(com.hp.hpl.jena.rdf.model.Resource r) {
-        
-        tufts.vue.MapResource resource = null;
+
+        tufts.vue.Resource resource = null;
         try
         {
-          resource = new MapResource(r.getURI());
+            resource = tufts.vue.Resource.getFactory().get(r.getURI());
+            //resource = new MapResource(r.getURI());
         }
         catch(Error err)
         {

@@ -39,10 +39,10 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.26 $ / $Date: 2006-10-27 17:10:23 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  * @author  Mark Norton
  */
-public class CabinetResource extends MapResource {
+public class CabinetResource extends URLResource {
     //  Filing metadata property keywords.
     public static final String MD_NAME = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_TITLE];
     //public static final String MD_TIME = "md.filing.time";
@@ -75,7 +75,7 @@ public class CabinetResource extends MapResource {
      *  Creates a new instance of CabinetResource .  This creator is used when the
      *  resource is part of a CabinetNode in a JTree.
      */
-    public CabinetResource(osid.filing.CabinetEntry entry) {
+    private CabinetResource(osid.filing.CabinetEntry entry) {
         this.entry = entry;
 
         getSpec();
@@ -86,6 +86,10 @@ public class CabinetResource extends MapResource {
         //this.getExtension();
         //this.getTitle();
         
+    }
+
+    public static CabinetResource create(osid.filing.CabinetEntry entry) {
+        return new CabinetResource(entry);
     }
     
     /**
@@ -121,9 +125,12 @@ public class CabinetResource extends MapResource {
         if(extension == null || extension.length() == 0)
             extension = "none";
          */
-        if (this.extension != null && this.entry == null )
+        //if (this.extension != null && this.entry == null )
+        if (this.extension != null) {
             return this.extension;
-        else {
+        } else if (getSpec() == SPEC_UNSET) {
+            return "<?>";
+        } else {
             URL url = null;
             try {
                 url = new URL (getSpec());      //  Get the URL of this cabinet.
@@ -139,7 +146,25 @@ public class CabinetResource extends MapResource {
             }
                 
 
-            File file =  new File(url.getFile());  //  Extract the file portion.
+            File file = new File(url.getFile());  //  Extract the file portion.
+            
+//             String name = file.getName();       //  Get the filename with out path.
+//             String ext = null;
+//             if (name.lastIndexOf('.') > -1) 
+//                 ext = name.substring (name.lastIndexOf ('.')+1);  //  Extract extention.
+
+//             if (tufts.Util.isMacPlatform() && "app".equals(ext))
+//                 this.extension = "app";
+//             else if (file.isDirectory())
+//                 this.extension = "dir";
+//             else if (ext != null)
+//                 this.extension = ext;
+//             else if (name.length() > 0)
+//                 this.extension = "none";
+//             else
+//                 return null;
+
+                        
             if (file.isDirectory())
                 this.extension = new String ("dir");              //  Directories don't have extensions.
             else {
@@ -150,8 +175,11 @@ public class CabinetResource extends MapResource {
                     this.extension = "none";
                 else 
                     return null;  // this is case where there is no file.  useful for castor save/restore
-                    
             }
+
+            //if (file.getName().charAt(0) == '#')
+            //System.out.format("FILE ext %-10s for %s\n", extension, file);
+
             return this.extension;
         }
     }
@@ -248,6 +276,7 @@ public class CabinetResource extends MapResource {
      *
      *  @author Mark Norton
      */
+    @Override
     public String getSpec() {
         //  Check for a restored resource.
         final String hasSpec = super.getSpec();
@@ -382,9 +411,12 @@ public class CabinetResource extends MapResource {
     }
     
     
+    @Override
     public Object getPreview() {    	
-       return GUI.getSystemIconForExtension(getExtension());
+        //return GUI.getSystemIconForExtension(getExtension(), 128);
+        return super.getFileIconImage();
     }
+    
     //*/
     
 }

@@ -29,7 +29,7 @@ import tufts.vue.gui.*;
 // TODO FIX: the text input fields should save value on focus loss
 
 /**
- * @version $Revision: 1.29 $ / $Date: 2007-05-11 20:27:48 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  */
 
 class LWCInfoPanel extends javax.swing.JPanel
@@ -307,16 +307,14 @@ class LWCInfoPanel extends javax.swing.JPanel
         
         loadText(labelField, c.getLabel());
 
-        String ss = "";
-        if (r instanceof MapResource) // REALLY got to clean up the Resource interface & add an abstract class...
-            ss = VueUtil.abbrevBytes(((MapResource)r).getSize());
+        String ss = VueUtil.abbrevBytes(r.getByteSize());
         sizeField.setText(ss);
         
         //loading the metadata if it exists
         if (c.getResource() != null) {
             PropertyMap properties = c.getResource().getProperties();
             if (properties != null) {
-                if (c.getResource().getType() == Resource.ASSET_FEDORA)
+                if (c.getResource().getClientType() == Resource.ASSET_FEDORA)
                     propertiesEditor.setProperties(properties, false);
                 else
                     propertiesEditor.setProperties(properties, true);

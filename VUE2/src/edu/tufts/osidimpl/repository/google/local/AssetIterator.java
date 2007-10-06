@@ -118,11 +118,11 @@ implements org.osid.repository.AssetIterator
 				
 				while(i.hasNext()) {
 					Result r = (Result)i.next();
-					URLResource urlResource = new URLResource(r.getUrl());
+					Resource resource = Resource.getFactory().get(r.getUrl());
 					if (r.getTitle() != null) 
-						urlResource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
-					 else 
-						 urlResource.setTitle(r.getUrl().toString());
+                                            resource.setTitle(r.getTitle().replaceAll("</*[a-zA-Z]>",""));
+                                        else 
+                                            resource.setTitle(r.getUrl().toString());
 					 resultVector.add(new Asset(r.getTitle(),"",r.getUrl()));
 					 //System.out.println(r.getTitle()+" "+r.getUrl());
 				}

@@ -103,7 +103,7 @@ public class RSSDataSource  extends VueDataSource{
         
         List<SyndEntry> itemList = rssFeed.getEntries();
         
-        List<URLResource> resourceList = new ArrayList<URLResource>();
+        List<Resource> resourceList = new ArrayList<Resource>();
         
         // getUri did not work for Reuters (and Atom feeds in general?), 
         // switched to getLink() instead (see below)
@@ -119,7 +119,7 @@ public class RSSDataSource  extends VueDataSource{
         while(i.hasNext())
         {
             SyndEntry entry = i.next();
-            URLResource res = null;
+            Resource res = null;
             try
             {
               //res = new URLResource(new URL(entry.getUri()));
@@ -129,7 +129,8 @@ public class RSSDataSource  extends VueDataSource{
               URL url = new URL(link);
               //System.out.println("trying to create rss resource - url:" + url);
               /*link = *///java.net.URLDecoder.decode(link,"UTF-8");
-              res = new URLResource(url);
+              //res = new URLResource(url);
+              res = Resource.getFactory().get(url);
             }
             /*catch(java.io.UnsupportedEncodingException uee)
             {

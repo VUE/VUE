@@ -19,7 +19,9 @@
 package tufts.vue;
 
 import tufts.Util;
+import tufts.vue.filter.*;
 
+import java.net.URI;
 import java.util.*;
 import java.awt.Dimension;
 import java.awt.geom.Point2D;
@@ -30,7 +32,6 @@ import java.awt.Graphics2D;
 import java.awt.print.Printable;
 import java.awt.print.PageFormat;
 import java.io.File;
-import tufts.vue.filter.*;
 
 /**
  * This is the top-level VUE model class.
@@ -57,13 +58,16 @@ import tufts.vue.filter.*;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.159 $ / $Date: 2007-09-19 04:15:42 $ / $Author: sfraize $
+ * @version $Revision: 1.160 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWMap.class);
+    
     /** file we were opened from of saved to, if any */
-    private File file;
+    private File mFile;
+    private File mSaveLocation;
     
     /** the list of LWPathways, if any */
     private LWPathwayList mPathways;
@@ -215,13 +219,25 @@ public class LWMap extends LWContainer
     }
     
     public void setFile(File file) {
-        this.file = file;
-        if (file != null)
-            setLabel(file.getName()); // todo: don't let this be undoable!
+        mFile = file;
+        if (mFile != null)
+            setLabel(mFile.getName()); // todo: don't let this be undoable!
     }
     
     public File getFile() {
-        return this.file;
+        return mFile;
+    }
+
+    /** persistance only */
+    public String getSaveLocation() {
+        return mFile == null ? null : mFile.toString();
+        //return file == null ? null : file.getAbsolutePath();
+    }
+
+    /** persistance only */
+    public void setSaveLocation(String path) {
+        //out("SET SAVE LOCATION: " + path);
+        mSaveLocation = new File(path);
     }
     
     public void markAsModified() {
@@ -614,10 +630,13 @@ public class LWMap extends LWContainer
             if (getCurrentModelVersion() >= 4 && getModelVersion() < 4)
                 upgradeLinksToParentRelative(allRestored);
 
-            VUE.Log.info(this + " Updated from model version " + getModelVersion() + " to " + getCurrentModelVersion());
+            Log.info(this + " Updated from model version " + getModelVersion() + " to " + getCurrentModelVersion());
             mModelVersion = getCurrentModelVersion();
         }
-        
+
+// Not turned on yet:
+//         if (mSaveLocation != null)
+//             ensureAllResourcesFoundAndRelative(allRestored, mSaveLocation);
         
         //----------------------------------------------------------------------------------------
         
@@ -643,7 +662,7 @@ public class LWMap extends LWContainer
 //         for (LWComponent c : allRestored)
 //                 if (c instanceof LWGroup)
 //                     ((LWGroup)c).normalize();
-        
+
         // Layout non-links:
         for (LWComponent c : allRestored) {
             // mark all, including links, now, as when we get to them, links-to-links may
@@ -710,6 +729,73 @@ public class LWMap extends LWContainer
         }
     }
     */
+
+    public class RelativeResourceFactory extends Resource.DefaultFactory {
+        @Override
+        protected Resource postProcess(Resource r, Object source) {
+            VUE.Log.debug(LWMap.this + " created  " + r + " from " + Util.tag(source) + ";" + source);
+            return r;
+        }
+        
+    }
+
+    private final Resource.Factory mResourceFactory = new RelativeResourceFactory();
+    
+    @Override
+    public Resource.Factory getResourceFactory() {
+        return mResourceFactory;
+    }
+    
+    private void ensureAllResourcesFoundAndRelative(Collection<LWComponent> nodes, File oldMapLocation)
+    {
+        //final URI root = URI.create("file:/Users/sfraize");
+        //final URI root = URI.create("file:" + mSaveLocation.getPath());
+
+        final File oldParentDirectory = oldMapLocation.getParentFile();
+        final File newParentDirectory = mFile.getParentFile();
+
+        if (oldParentDirectory == null) {
+            Util.printStackTrace("Unable to find parent of " + oldMapLocation + "; can't relativize local resources.");
+            return;
+        }
+
+        Log.info("    SAVED MAP FILE: " + oldMapLocation);
+        Log.info("SAVED MAP LOCATION: " + oldParentDirectory);
+        
+        //final URI oldRoot = oldParentDirectory.toURI();
+        final URI oldRoot = URLResource.makeURI(oldParentDirectory);
+        final URI newRoot;
+
+        if (oldRoot == null) {
+            Log.error(this + "; unable to parse old parent directory: " + oldParentDirectory);
+            return;
+        }
+
+        Util.dumpURI(oldRoot, "ROOT SAVED");
+        
+        if (oldParentDirectory.equals(newParentDirectory)) {
+            System.err.println("ROOT NEW URI: (same)");
+            newRoot = null;
+        } else {
+            newRoot = newParentDirectory.toURI();
+            Util.dumpURI(newRoot, "ROOT NEW OPENED");
+        }
+
+
+        // Normalize resources
+        for (LWComponent c : nodes) {
+            if (!c.hasResource())
+                continue;
+            try {
+                //Log.info(this + "; relativize: " + c.getResource());
+                c.getResource().updateRootLocation(oldRoot, newRoot);
+            } catch (Throwable t) {
+                Log.warn(this + "; relativiztion: " + t + "; " + c.getResource());
+            }
+        }
+    }
+        
+    
 
     LWComponent findByID(Collection<LWComponent> allRestored, String id) {
         for (LWComponent c : allRestored)
@@ -1295,8 +1381,8 @@ public class LWMap extends LWContainer
         StringBuffer buf = new StringBuffer("LWMap[");
         buf.append(getLabel());
         buf.append(" n=" + numChildren());
-        if (DEBUG.DATA && file != null)
-            buf.append(" <" + file + ">");
+        if (DEBUG.DATA && mFile != null)
+            buf.append(" <" + mFile + ">");
 //         return "LWMap[" + getLabel()
 //             + " n=" + children.size()
 //             + (file==null?"":" <" + this.file + ">")

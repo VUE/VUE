@@ -177,13 +177,13 @@ public class TypeList extends JList {
               {
                  System.out.println("TypeList: image not null");
                  java.net.URL imageURL = null;
-                 URLResource resource = null;
+                 Resource resource = null;
                  java.io.File file = null;
                  try
                  {
                     file = new java.io.File(image);
                     imageURL = file.toURL();//new URL(image);
-                    resource = new URLResource(imageURL);
+                    resource = Resource.getFactory().get(imageURL);
                  }
                  catch(java.net.MalformedURLException mue)
                  {

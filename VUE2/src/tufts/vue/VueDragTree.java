@@ -50,7 +50,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.64 $ / $Date: 2006-08-07 04:59:21 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -217,7 +217,7 @@ public class VueDragTree extends JTree
     
     
     private DefaultTreeModel createTreeModel(Object obj, String treeName ){
-        ResourceNode root = new ResourceNode(new MapResource(treeName));
+        ResourceNode root = new ResourceNode(Resource.getFactory().get(treeName));
         if (obj instanceof Iterator){
             Iterator i = (Iterator)obj;
             while (i.hasNext()){
@@ -259,7 +259,7 @@ public class VueDragTree extends JTree
             if (resource != null) {
                 
                 Image imageIcon = nleafIcon.getImage();
-                if (resource.getType() == Resource.DIRECTORY) {
+                if (resource.getClientType() == Resource.DIRECTORY) {
                     imageIcon = activeIcon.getImage();
                 } else if (oldnode instanceof CabinetNode) {
                     CabinetNode cn = (CabinetNode) oldnode;
@@ -336,6 +336,30 @@ public class VueDragTree extends JTree
             super.getTreeCellRendererComponent(tree, value, sel,
                     expanded, leaf, row,
                     hasFocus);
+
+            //if (VueUtil.isMacPlatform()) {
+            if (true) {
+                if (leaf && value instanceof ResourceNode) {
+                    Resource r = ((ResourceNode)value).getResource();
+                    Icon icon = r.getTinyIcon();
+                    if (icon != null)
+                        setIcon(icon);
+//                     // TODO: standardize on URLResource / a to-be abstract Resource class,
+//                     // and cache the damn ImageIcon...  and TODO: if the image we
+//                     // get back is bigger than 16px, force a scale down (maybe in the
+//                     // GUI method call)
+//                     Image image = GUI.getSystemIconForExtension(r.getExtension(), 16);
+//                     //if (image != null && image.getWidth(null) <= 16)
+//                     if (image != null) {
+//                         if (image.getWidth(null) > 16)
+//                             image = image.getScaledInstance(16, 16, Image.SCALE_SMOOTH); // TODO: CACHE IN RESOURCE
+//                         setIcon(new javax.swing.ImageIcon(image)); // create imageicon that can force-scale down size
+//                     }
+                }
+                return this;
+            }
+            
+            
             
             if (value instanceof FavoritesNode) {
                 
@@ -485,14 +509,17 @@ class ResourceTransfer extends Object  {
  */
 class ResourceNode extends DefaultMutableTreeNode {
     private boolean explored = false;
-    protected Resource resource;
-    public ResourceNode() {
-    }
+    protected final Resource resource;
     public ResourceNode(Resource resource) {
         
         this.resource = resource;
         setUserObject(resource);
     }
+
+    protected ResourceNode() {
+        resource = null;
+    }
+    
     public Resource getResource() {
         return resource;
     }
@@ -518,10 +545,6 @@ class CabinetNode extends ResourceNode {
         this.type = type;
     }
     
-    public CabinetNode(CabinetResource cabinet, String type) {
-        super(cabinet);
-        this.type = type;
-    }
     public static CabinetNode  getCabinetNode(String title, File file, ResourceNode rootNode, DefaultTreeModel model){
         CabinetNode node= null;
         try{
@@ -533,7 +556,7 @@ class CabinetNode extends ResourceNode {
             } else {
                 cab = new LocalCabinetEntry(file.getAbsolutePath(),agent,null);
             }
-            CabinetResource res = new CabinetResource(cab);
+            CabinetResource res = CabinetResource.create(cab);
             CabinetEntry entry = res.getEntry();
 
             //if (title != null) res.setTitle(title);
@@ -599,7 +622,7 @@ class CabinetNode extends ResourceNode {
                         CabinetEntry ce = (RemoteCabinetEntry) i.next();
                         if (ce.getDisplayName().startsWith(".")) // don't display dot files
                             continue;
-                        CabinetResource res = new CabinetResource(ce);
+                        CabinetResource res = CabinetResource.create(ce);
                         CabinetNode rootNode = new CabinetNode(res, this.type);
                         this.add(rootNode);
                     }
@@ -610,7 +633,7 @@ class CabinetNode extends ResourceNode {
                         CabinetEntry ce = (LocalCabinetEntry) i.next();
                         if (ce.getDisplayName().startsWith(".")) // don't display dot files
                             continue;
-                        CabinetResource res = new CabinetResource(ce);
+                        CabinetResource res = CabinetResource.create(ce);
                         CabinetNode rootNode = new CabinetNode(res, this.type);
                         this.add(rootNode);
                         // todo fix: note, this is still happening twice per
@@ -658,9 +681,11 @@ class FileNode extends ResourceNode {
     private boolean explored = false;
     public FileNode(File file) 	{
         setUserObject(file);
-        try{
-            MapResource resource = new  MapResource(file.toURL().toString());
-        }catch (Exception ex){};
+        
+        // Code w/no apparent effect commented out -- SMF 2007-10-05
+        //try{
+        //    MapResource resource = new  MapResource(file.toURL().toString());
+        //}catch (Exception ex){};
         
     }
     public boolean getAllowsChildren() { return isDirectory(); }
