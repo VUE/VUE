@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.73 $ / $Date: 2007-09-14 19:07:28 $ / $Author: anoop $
+ * @version $Revision: 1.74 $ / $Date: 2007-10-06 02:51:51 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -454,7 +454,24 @@ public class ActionUtil {
             //marshaller.setRootElement("FOOBIE"); // overrides name of root element
             
             marshaller.setMapping(getDefaultMapping());
-            //marshaller.setValidation(false); // probably don't need this; disable if we have performance problems
+
+            //----------------------------------------------------------------------------------------
+            // 
+            // 2007-10-01 SMF -- turning off validation during marshalling now required
+            // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
+            // with any connected endpoints cause validation exceptions when attempting to
+            // save.  E.g, from a map with one node and one link connected to it:
+            //
+            // ValidationException: The following exception occured while validating field: childList of class:
+            // tufts.vue.LWMap: The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type
+            // class tufts.vue.LWNode has no ID!;
+            // - location of error: XPATH: /LW-MAP
+            // The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type class tufts.vue.LWNode has no ID!
+            //
+            // Even tho the node's getID() is correctly returning "2"
+            //
+            marshaller.setValidation(false); 
+            //----------------------------------------------------------------------------------------
             
             /*
             Logger logger = new Logger(System.err);
@@ -765,7 +782,9 @@ public class ActionUtil {
                 map = (LWMap) unmarshaller.unmarshal(new InputSource(reader));
             } catch (org.exolab.castor.xml.MarshalException me) {
                 //if (allowOldFormat && me.getMessage().endsWith("tufts.vue.Resource")) {
-                if (allowOldFormat && me.getMessage().indexOf("Unable to instantiate tufts.vue.Resource") >= 0) {
+                //if (allowOldFormat && me.getMessage().indexOf("Unable to instantiate tufts.vue.Resource") >= 0) {
+                // 2007-10-01 SMF: rev forward the special exception to check for once again in new castor version: castor-1.1.2.1-xml.jar
+                if (allowOldFormat && me.getMessage().indexOf("tufts.vue.Resource can no longer be constructed") >= 0) {
                     System.err.println("ActionUtil.unmarshallMap: " + me);
                     System.err.println("Attempting specialized MapResource mapping for old format.");
                     // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.
