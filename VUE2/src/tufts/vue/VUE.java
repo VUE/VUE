@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.490 $ / $Date: 2007-10-06 06:34:22 $ / $Author: sfraize $ 
+ * @version $Revision: 1.491 $ / $Date: 2007-10-06 06:40:34 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -476,7 +476,7 @@ public class VUE
         if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
 
         if (DEBUG.Enabled)
-            debugInit(DEBUG.META);
+            debugInit(DEBUG.TRACE);
 
     }
 

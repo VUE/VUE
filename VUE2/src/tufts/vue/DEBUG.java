@@ -79,6 +79,8 @@ public class DEBUG
     
     public static boolean META = false; // generic toggle to use in combination with other flags
     
+    public static boolean TRACE = false; // enhanced (yet slow) log4j logger tracing
+    
     public static boolean RDF = false;
 
     public static  void setAllEnabled(boolean t) {
@@ -86,7 +88,7 @@ public class DEBUG
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
             CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=
-            PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=t;
+            PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=TRACE=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -155,6 +157,7 @@ public class DEBUG
             else if (a.startsWith("style"))  DEBUG.STYLE = true;
             else if (a.startsWith("rdf")) DEBUG.RDF = true;
             else if (a.startsWith("pdf"))  DEBUG.PDF = true;
+            else if (a.startsWith("trace"))  DEBUG.TRACE = true;
         }
     }
 

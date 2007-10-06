@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.80 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2007-10-06 06:40:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -183,7 +183,6 @@ public class GUI
             return;
         }
         
-        org.apache.log4j.NDC.push("GUI");
         Log.debug("init");
 
         if (FORCE_WINDOWS_LAF || SKIP_CUSTOM_LAF || SKIP_OCEAN_THEME || SKIP_WIN_NATIVE_LAF)
@@ -286,8 +285,6 @@ public class GUI
         Log.log(level, "LAF  name: " + UIManager.getLookAndFeel().getName());
         Log.log(level, "LAF descr: " + UIManager.getLookAndFeel().getDescription());
         Log.log(level, "LAF class: " + UIManager.getLookAndFeel().getClass());
-
-        org.apache.log4j.NDC.pop();
 
         initUnderway = false;
     }
