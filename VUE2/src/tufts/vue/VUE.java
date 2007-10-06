@@ -58,7 +58,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.486 $ / $Date: 2007-10-05 18:26:19 $ / $Author: mike $ 
+ * @version $Revision: 1.487 $ / $Date: 2007-10-06 02:52:56 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -466,9 +466,29 @@ public class VUE
         }
 
         GUI.parseArgs(args);
-        
+
         if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
+
+        if (DEBUG.Enabled)
+            debugInit(false);
+
     }
+
+    public static void debugInit(boolean heavy) {
+        if (heavy) {
+            // this handy for finding code locations:
+            // Note: %F, %C and %M are "very slow"
+            MasterLogPattern.setConversionPattern("@%6r [%t] %5p %x "
+                                                  + Util.TERM_RED + "(%F/%C/%M)" + Util.TERM_CLEAR
+                                                  + " %m%n"); 
+        } else {
+            MasterLogPattern.setConversionPattern("@%6r [%t] %5p %x %m%n");
+        }
+        Log.setLevel(Level.DEBUG);
+        Log.info("VUE startup: " + new Date());
+    }
+        
+    
 
     
     //-----------------------------------------------------------------------------
@@ -492,12 +512,17 @@ public class VUE
     private static DockWindow ObjectInspector;
     private static DockWindow outlineDock;
     private static DockWindow floatingZoomDock;
+
+    private static final PatternLayout MasterLogPattern = new PatternLayout("VUE %d [%t] %5p %x %m%n");
+    
     
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
         //BasicConfigurator.configure();
         //Logger.getRootLogger().addAppender(new ConsoleAppender(new PatternLayout("VUE %d [%t] %-5p %c:%x %m%n")));
-        final PatternLayout pattern = new PatternLayout("VUE %d [%t] %-5p %x %m%n");
+        //final org.apache.log4j.Layout pattern = new PatternLayout("VUE %d [%t] %5p %x %m%n");
+        //final PatternLayout pattern = new PatternLayout("VUE %d [%t] %5p %x %F/%C/%M %m%n");
+        final PatternLayout pattern = MasterLogPattern;
         Logger.getRootLogger().addAppender(new ConsoleAppender(pattern));
         Logger.getRootLogger().addAppender(new WriterAppender(pattern, Util.getLogWriter()));
         //Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
@@ -515,8 +540,8 @@ public class VUE
         VUE.isStartupUnderway = true;
 
         parseArgs(args);
-        
-        Log.info("Startup; VUE build: " + tufts.vue.Version.AllInfo);
+
+        Log.info("VUE build: " + tufts.vue.Version.AllInfo);
         Log.info("Platform: " + Util.getPlatformName());
         Log.info("Running in Java VM: " + getSystemProperty("java.runtime.version")
                  + "; MaxMemory(-Xmx)=" + VueUtil.abbrevBytes(Runtime.getRuntime().maxMemory())
@@ -528,9 +553,6 @@ public class VUE
         Log.info("Current Working Directory: " + getSystemProperty("user.dir"));
         Log.info("User/host: " + getSystemProperty("user.name") + "@" + System.getenv("HOST"));
         
-        if (DEBUG.Enabled)
-            Log.setLevel(Level.DEBUG);
-
         if (VueUtil.isMacPlatform())
             installMacOSXApplicationEventHandlers();
             
@@ -893,8 +915,18 @@ public class VUE
         DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
         //DockWindow searchDock = GUI.createDockWindow("Search");
         DockWindow searchDock = null;
-        DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
-        DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        if (!SKIP_DR) {
+            
+            // TODO: DRBrowser init needs to load all it's content/viewers in a threaded
+            // manner (didn't this used to happen?)  In any case, even local file data
+            // sources, which can still take quite a long time to init depending on
+            // what's out there (e.g., CabinetResources don't know how to lazy init
+            // their contents -- every 1st & 2nd level file is polled and initialized at
+            // startup).  SMF 2007-10-05
+            
+            DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
+            DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        }
 		
         //-----------------------------------------------------------------------------
         // Map Inspector
@@ -2366,10 +2398,10 @@ public class VUE
 
         //map.addLWC(new LWImage(new MapResource("/Users/sfraize/Desktop/Test Image.jpg"))).setLocation(350, 90);
         
-        LWNode n1 = new LWNode("Google", new MapResource("http://www.google.com/"));
-        LWNode n2 = new LWNode("Program\nFiles", new MapResource("C:\\Program Files"));
-        LWNode n3 = new LWNode("readme.txt", new MapResource("readme.txt"));
-        LWNode n4 = new LWNode("Slash", new MapResource("file:///"));
+        LWNode n1 = new LWNode("Google", URLResource.create("http://www.google.com/"));
+        LWNode n2 = new LWNode("Program\nFiles", URLResource.create("C:\\Program Files"));
+        LWNode n3 = new LWNode("readme.txt", URLResource.create("readme.txt"));
+        LWNode n4 = new LWNode("Slash", URLResource.create("file:///"));
         n1.setLocation(100, 30);
         n2.setLocation(100, 100);
         n3.setLocation(50, 180);
