@@ -107,7 +107,7 @@ public class DataSourceViewer extends JPanel
     private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
     
     public DataSourceViewer(DRBrowser drBrowser) {
-        GUI.activateWaitCursor();
+        //GUI.activateWaitCursor();
         
         setLayout(new BorderLayout());
         this.DRB = drBrowser;
