@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.78 $ / $Date: 2007-09-30 22:27:33 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2007-10-06 02:50:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -75,6 +75,12 @@ public class GUI
     public static final Color AquaFocusBorderLight = new Color(157, 191, 222);
     public static final Color AquaFocusBorderDark = new Color(137, 170, 201);
     public static final boolean ControlMaxWindow = false;
+
+    //public static final Image NoImage32 = VueResources.getImage("NoImage");
+    public static final Image NoImage32 = VueResources.getImage("/icon_noimage32.gif");
+    public static final Image NoImage64 = VueResources.getImage("/icon_noimage64.gif");
+    public static final Image NoImage128 = VueResources.getImage("/icon_noimage128.gif");
+    
     
     public static boolean UseAlwaysOnTop = false;
     
@@ -105,6 +111,7 @@ public class GUI
     private static boolean SKIP_OCEAN_THEME = false; // test: in java 1.5, use default java Metal theme instead of new Ocean theme
     private static boolean FORCE_WINDOWS_LAF = false; // test: on mac, use windows look (java metal), on windows, use native windows L&F
     private static boolean SKIP_WIN_NATIVE_LAF = false;
+
 
     public static void parseArgs(String[] args) {
         for (int i = 0; i < args.length; i++) {
@@ -610,11 +617,35 @@ public class GUI
         
     }
 
-    // TODO: cache results based on extension -- SMF
-    public static Image getSystemIconForExtension(String ext)
+    public static Image getSystemIconForExtension(String ext) {
+        return getSystemIconForExtension(ext, 32);
+    }
+
+//     private static final Image UNKNOWN_TYPE;
+//     static {
+//         if (Util.isMacPlatform())
+//             UNKNOWN_TYPE = tufts.macosx.MacOSX.getIconForExtension("", 16);
+//         else
+//             UNKNOWN_TYPE = null;
+//     }
+    
+    public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
-    	if (Util.isMacPlatform())
-            return tufts.macosx.MacOSX.getIconForExtension(ext);
+        //if (true) return null;
+        
+        if (ext == null)
+            return null;
+
+        ext = ext.toLowerCase();
+        
+        if (Util.isMacPlatform()) {
+            return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
+//             Image image = tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
+//             // May need an unknown type for each likely sizeRequest
+//             if ((image == null || image == UNKNOWN_TYPE) && ("readme".equals(ext) || "msg".equals(ext)))
+//                 image = tufts.macosx.MacOSX.getIconForExtension("txt", sizeRequest);
+//             return image;
+        }
         
         java.io.File file = null;
         java.io.File root = null;
@@ -623,12 +654,15 @@ public class GUI
             if ("dir.".equals(ext)) {
                 root = new java.io.File(VUE.getSystemProperty("java.home"));
                 sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(root);
+                if (DEBUG.Enabled) out("got 'root' ShellFolder: " + Util.tag(shellFolder));
                 image = shellFolder.getIcon(true);
             } else {
                 //Create a temporary file with the specified extension
                 file = java.io.File.createTempFile("icon", "." + ext);
                 sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(file);
-                image = shellFolder.getIcon(true);
+                if (DEBUG.Enabled) out("got ShellFolder: " + Util.tag(shellFolder));
+                image = shellFolder.getIcon(false);
+                if (DEBUG.Enabled) out("got image: " + image);
             }
         } catch (Throwable t) {
             tufts.vue.VUE.Log.debug("Could not generate Icon for filetype : " + ext + "; " + t);
