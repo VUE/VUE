@@ -191,7 +191,7 @@ public class Util
     public static void openURL(String url)
         throws java.io.IOException
     {
-        boolean isLocalFile = url.length() >= 5 && "file:".equalsIgnoreCase(url.substring(0,5));
+        boolean isLocalFile = (url.length() >= 5 && "file:".equalsIgnoreCase(url.substring(0,5))) || url.startsWith("/");
         boolean isMailTo = url.length() >= 7 && "mailto:".equalsIgnoreCase(url.substring(0,7));
 
         if (DEBUG) System.err.println("openURL_PLAT [" + url + "] isLocalFile=" + isLocalFile + " isMailTo=" + isMailTo);
@@ -480,7 +480,7 @@ public class Util
         return url.toString();
     }
     
-    private static String encodeURLData(String url) {
+    public static String encodeURLData(String url) {
         try {
             url = URLEncoder.encode(url, "UTF-8");
             url = url.replaceAll("\\+", "%20"); // Mail clients don't understand '+' as space
@@ -512,12 +512,18 @@ public class Util
         if (DEBUG) System.err.println("openURL_Mac0 [" + url + "]");
 
         if (isLocalFile) {
+            boolean changed = true;
             if (url.startsWith("file:////")) {
                 // don't think we have to do this, but just in case
                 // (was getting a complaint and couldn't tell if this was why or not,
                 // so now we won't see it)
                 url = "file:///" + url.substring(9);
-            }
+            } else if (url.startsWith("/")) {
+                // must have file: at head to be sure it works on mac
+                url = "file:" + url;
+            } else
+                changed = false;
+            if (DEBUG && changed) System.err.println("openURL_Mac1 [" + url + "]");
         }
 
         if (isMailTo) {
@@ -721,8 +727,9 @@ public class Util
                 } else {
                     buf.append(charValue);
                 }
-            } else
+            } else {
                 buf.append(c);
+            }
         }
         if (DEBUG) {
             System.out.println("DECODED      [" + s + "]");
@@ -930,21 +937,52 @@ public class Util
     }
 
     public static void dumpURI(URI u) {
-        out("URI dump: " + u
-            + "\n\t       scheme " + u.getScheme()
-            + "\n\t rawAuthority " + u.getRawAuthority()
-            + "\n\t    authority " + u.getAuthority()
-            + "\n\t     userInfo " + u.getUserInfo()
-            + "\n\t         host " + u.getHost()
-            + "\n\t         port " + u.getPort()
-            + "\n\t      rawPath " + u.getRawPath()
-            + "\n\t         path " + u.getPath()
-            + "\n\t     rawQuery " + u.getRawQuery()
-            + "\n\t        query " + u.getQuery()
-            + "\n\t  rawFragment " + u.getRawFragment()
-            + "\n\t     fragment " + u.getFragment()
-            );
+        dumpURI(u, null);
+    }
+    public static void dumpURI(URI u, String msg) {
+
+        synchronized (System.out) {
+            //System.out.format("%16s URI: %s %s\n", msg, u, System.identityHashCode(u), u, msg==null?"":"("+msg+")");
+            System.out.format("%16s URI: %s @%x\n",
+                              msg==null?"":('"'+msg+'"'),
+                              u,
+                              System.identityHashCode(u));
+            dumpField("hashCode",       Integer.toHexString(u.hashCode()));
+            dumpField("scheme",		u.getScheme());
+            dumpField("rawAuthority",   u.getRawAuthority());
+            dumpField("authority",      u.getAuthority());
+            dumpField("userInfo",       u.getUserInfo());
+            dumpField("host",		u.getHost());
+            if (u.getPort() != -1)
+                dumpField("port",	u.getPort());
+            dumpField("rawPath",        u.getRawPath());
+            dumpField("path",		u.getPath());
+            dumpField("rawQuery",       u.getRawQuery());
+            dumpField("query",		u.getQuery());
+            dumpField("rawFragment",    u.getRawFragment());
+            dumpField("fragment",       u.getFragment());
+            System.out.println("-------------------------------------------------------");
+        }
         
+//             + "\n\t     hashCode " + Integer.toHexString(u.hashCode())
+//             + "\n\t       scheme " + u.getScheme()
+//             + "\n\t rawAuthority " + u.getRawAuthority()
+//             + "\n\t    authority " + u.getAuthority()
+//             + "\n\t     userInfo " + u.getUserInfo()
+//             + "\n\t         host " + u.getHost()
+//             + "\n\t         port " + u.getPort()
+//             + "\n\t      rawPath " + u.getRawPath()
+//             + "\n\t         path " + u.getPath()
+//             + "\n\t     rawQuery " + u.getRawQuery()
+//             + "\n\t        query " + u.getQuery()
+//             + "\n\t  rawFragment " + u.getRawFragment()
+//             + "\n\t     fragment " + u.getFragment()
+        
+    }
+
+    private static void dumpField(String label, Object value) {
+        if (value != null)
+            System.out.format("%20s: %s\n", label, value);
     }
 
     /** center the given window on default physical screen */
