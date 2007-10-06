@@ -16,7 +16,7 @@ import java.net.*;
 
 /**
  * Mac OSX Test Code
- * @version $Revision: 1.4 $ / $Date: 2006-02-26 23:31:00 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-10-06 02:59:21 $ / $Author: sfraize $
  */
 public class MacTest extends MacOSX
 {
@@ -27,11 +27,9 @@ public class MacTest extends MacOSX
         tufts.vue.gui.GUI.init();
 
         //test_fadeScreen();
-        //test_colorPicker(args);
-        if (false)
-            test_movie(args);
-        else
-            test_macPanel(args);
+        test_colorPicker(args);
+        //test_movie(args);
+        //test_macPanel(args);
         
     }
     
@@ -188,6 +186,10 @@ public class MacTest extends MacOSX
     static void test_colorPicker(String args[])
     {
         DEBUG=true;
+        showColorPicker();
+        try { Thread.sleep(5000); } catch (Exception e) {}
+        
+        /*
         Frame w = new Frame("invisible");
         fadeToBlack();
         if (args.length > 0)
@@ -206,6 +208,7 @@ public class MacTest extends MacOSX
         }
         fadeFromBlack();
         //try { Thread.sleep(5000); } catch (Exception e) {}
+        */
     }
 
         
