@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.79 $ / $Date: 2007-10-06 02:50:42 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -56,6 +56,8 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 public class GUI
     implements tufts.vue.VueConstants/*, java.beans.PropertyChangeListener*/
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(GUI.class);
+    
     public static Font LabelFace; 
     public static Font ValueFace;
     public static Font TitleFace;
@@ -182,7 +184,7 @@ public class GUI
         }
         
         org.apache.log4j.NDC.push("GUI");
-        VUE.Log.debug("init");
+        Log.debug("init");
 
         if (FORCE_WINDOWS_LAF || SKIP_CUSTOM_LAF || SKIP_OCEAN_THEME || SKIP_WIN_NATIVE_LAF)
             System.out.println("GUI.init; test parameters:"
@@ -193,7 +195,7 @@ public class GUI
                                );
 
         if (SKIP_CUSTOM_LAF)
-            VUE.Log.info("INIT: skipping installation of custom VUE Look & Feels");
+            Log.info("INIT: skipping installation of custom VUE Look & Feels");
         
         /* VUE's JIDE open-source license if we end up using this:
         tufts.Util.executeIfFound("com.jidesoft.utils.Lm", "verifyLicense",
@@ -235,7 +237,7 @@ public class GUI
             }
             catch(Exception e)
             {
-            	VUE.Log.error("Couldn't load quaqua look and feel");
+            	Log.error("Couldn't load quaqua look and feel");
             }
      
         } else {
@@ -281,9 +283,9 @@ public class GUI
 
         // if (!skipCustomLAF) level = org.apache.log4j.Level.DEBUG; // always show for the moment
         
-        VUE.Log.log(level, "LAF  name: " + UIManager.getLookAndFeel().getName());
-        VUE.Log.log(level, "LAF descr: " + UIManager.getLookAndFeel().getDescription());
-        VUE.Log.log(level, "LAF class: " + UIManager.getLookAndFeel().getClass());
+        Log.log(level, "LAF  name: " + UIManager.getLookAndFeel().getName());
+        Log.log(level, "LAF descr: " + UIManager.getLookAndFeel().getDescription());
+        Log.log(level, "LAF class: " + UIManager.getLookAndFeel().getClass());
 
         org.apache.log4j.NDC.pop();
 
@@ -345,7 +347,7 @@ public class GUI
 
         MetalLookAndFeel.setCurrentTheme(Theme);
         
-        VUE.Log.debug("installed theme: " + Theme);
+        Log.debug("installed theme: " + Theme);
     }
 
     /** @return true if was successful */
@@ -528,7 +530,7 @@ public class GUI
             if (DEBUG.Enabled)
                 tufts.Util.printStackTrace(msg);
             else
-                VUE.Log.error(msg);
+                Log.error(msg);
         }
         return font.getStringBounds(s, GUI.DefaultFontContext).getWidth();
     }
@@ -665,7 +667,7 @@ public class GUI
                 if (DEBUG.Enabled) out("got image: " + image);
             }
         } catch (Throwable t) {
-            tufts.vue.VUE.Log.debug("Could not generate Icon for filetype : " + ext + "; " + t);
+            Log.debug("Could not generate Icon for filetype : " + ext + "; " + t);
         }
         finally {
             if (file != null)
@@ -900,19 +902,19 @@ public class GUI
     
     public static synchronized void activateWaitCursor() {
         //tufts.Util.printStackTrace("ACTIAVTE WAIT-CURSOR");
-        if (DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR");
+        if (DEBUG.THREAD) Log.info("ACTIVATE WAIT CURSOR");
         activateWaitCursorInAllWindows();
     }
     
     private static synchronized void activateWaitCursorInAllWindows() {
 
         synchronized (CursorMap) {
-            if (DEBUG.THREAD) VUE.Log.info("ACTIVATE WAIT CURSOR IN ALL WINDOWS");
+            if (DEBUG.THREAD) Log.info("ACTIVATE WAIT CURSOR IN ALL WINDOWS");
 
             //if (!CursorMap.isEmpty()) {
             if (WaitCursorActive) {
                 //VUE.Log.error("attempting to activate wait cursor while one is already active");
-                if (DEBUG.THREAD) VUE.Log.info("FYI, activating wait cursor for all windows while one is already active");
+                if (DEBUG.THREAD) Log.info("FYI, activating wait cursor for all windows while one is already active");
                 //return;
             }
 
@@ -939,22 +941,22 @@ public class GUI
         if (curCursor != CURSOR_DEFAULT && curCursor != CURSOR_WAIT)
             CursorMap.put(c, curCursor);
         c.setCursor(CURSOR_WAIT);
-        if (DEBUG.THREAD) VUE.Log.info("set wait cursor on " + name(c) + " (old=" + curCursor + ")");
+        if (DEBUG.THREAD) Log.info("set wait cursor on " + name(c) + " (old=" + curCursor + ")");
     }
     
     
     public static synchronized void clearWaitCursor() {
         //tufts.Util.printStackTrace("CLEAR WAIT-CURSOR");
-        if (DEBUG.THREAD) VUE.Log.info("CLEAR WAIT CURSOR SCHEDULED");
+        if (DEBUG.THREAD) Log.info("CLEAR WAIT CURSOR SCHEDULED");
         VUE.invokeAfterAWT(new Runnable() { public void run() { clearAllWaitCursors(); }});
     }
     
     private static synchronized void clearAllWaitCursors() {
 
         synchronized (CursorMap) {
-            if (DEBUG.THREAD) VUE.Log.info("CLEAR ALL WAIT CURSORS");
+            if (DEBUG.THREAD) Log.info("CLEAR ALL WAIT CURSORS");
             if (!WaitCursorActive) {
-                if (DEBUG.THREAD) VUE.Log.info("\t(wait cursors already cleared)");
+                if (DEBUG.THREAD) Log.info("\t(wait cursors already cleared)");
                 return;
             }
             //clearWaitCursor(ViewerWithWaitCursor);
@@ -973,11 +975,11 @@ public class GUI
         Object oldCursor = CursorMap.get(c);
         if (oldCursor == null || oldCursor == CURSOR_WAIT) {
             if (oldCursor == CURSOR_WAIT)
-                VUE.Log.error("old cursor on " + name(c) + " was wait cursor!  Restoring to default.");
-            if (DEBUG.THREAD) VUE.Log.info("cleared wait cursor on " + name(c) + " to default");
+                Log.error("old cursor on " + name(c) + " was wait cursor!  Restoring to default.");
+            if (DEBUG.THREAD) Log.info("cleared wait cursor on " + name(c) + " to default");
             c.setCursor(CURSOR_DEFAULT);
         } else {
-            if (DEBUG.THREAD) VUE.Log.info("cleared wait cursor on " + name(c) + " to old: " + oldCursor);
+            if (DEBUG.THREAD) Log.info("cleared wait cursor on " + name(c) + " to old: " + oldCursor);
             c.setCursor((Cursor) oldCursor);
         }
     }
@@ -1113,7 +1115,7 @@ public class GUI
     }
     
     public static void setAlwaysOnTop(Window w, boolean onTop) {
-        VUE.Log.debug("setAlwaysOnTop " + onTop + " " + name(w));
+        Log.debug("setAlwaysOnTop " + onTop + " " + name(w));
         Util.invoke(w, "setAlwaysOnTop", onTop ? Boolean.TRUE : Boolean.FALSE);
     }
 

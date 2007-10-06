@@ -24,13 +24,15 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.10 $ / $Date: 2007-06-21 00:20:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.11 $ / $Date: 2007-10-06 03:49:27 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
 //public class VueFrame extends com.jidesoft.action.DefaultDockableBarDockableHolder // JIDE ENABLE
     implements ActiveListener<MapViewer>
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueFrame.class);
+    
     private static int sNameIndex = 0;
     private WindowPropertiesPreference wpp = null;
     
@@ -78,7 +80,7 @@ public class VueFrame extends javax.swing.JFrame
 
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                VUE.Log.warn(e);
+                Log.warn(e);
                 tufts.vue.action.ExitAction.exitVue();
 
                 // If we get here, it means the exit was aborted by the user (something
@@ -95,12 +97,12 @@ public class VueFrame extends javax.swing.JFrame
                 
             public void windowClosed(WindowEvent e) {
                 // I've never see us even get this event...
-                VUE.Log.fatal("Too late: window disposed: exiting. " + e);
+                Log.fatal("Too late: window disposed: exiting. " + e);
                 System.exit(-1);
             }
             public void windowStateChanged(WindowEvent e) {
                 out(e.toString());
-                VUE.Log.debug(e);
+                Log.debug(e);
             }
         });
 
@@ -218,7 +220,7 @@ public class VueFrame extends javax.swing.JFrame
 
         // why do we do this?  Must have to do with full-screen or something...
         if (VUE.getRootWindow() != VUE.getMainWindow()) {
-            VUE.Log.warn("VueFrame: processEvent: root != main: forcing root visible & front");
+            Log.warn("VueFrame: processEvent: root != main: forcing root visible & front");
             VUE.getRootWindow().setVisible(true);
             VUE.getRootWindow().toFront();
         }

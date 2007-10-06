@@ -42,11 +42,13 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.27 $ / $Date: 2007-09-21 03:08:35 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2007-10-06 03:49:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Images.class);
+
     public static VueAction ClearCacheAction = new VueAction("Empty Image Cache") {
             public void act() { Cache.clear(); }
         };
@@ -105,7 +107,7 @@ public class Images
             return getCachedOrLoad(imageSRC, null);
         } catch (Throwable t) {
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
-            VUE.Log.error("getImage " + imageSRC + ": " + t);
+            Log.error("getImage " + imageSRC + ": " + t);
             return null;
         }
     }
@@ -523,7 +525,7 @@ public class Images
         Loader(ImageSource imageSRC, Listener l) {
             super("VUE-ImageLoader" + LoaderCount++);
             if (l == null)
-                VUE.Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
+                Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
             this.imageSRC = imageSRC;
             this.relay = new LoaderRelayer(imageSRC, l);
             setDaemon(true);
@@ -601,7 +603,7 @@ public class Images
             
             cachedImage = ((CacheEntry)Cache.get(imageSRC.key)).getImage();
             if (cachedImage == null)
-                VUE.Log.warn("Zealous GC: image tossed immediately " + imageSRC);
+                Log.warn("Zealous GC: image tossed immediately " + imageSRC);
 
         } else if (fetchResult instanceof BufferedImage) {
             cachedImage = (BufferedImage) fetchResult;
@@ -690,7 +692,7 @@ public class Images
                     imageSRC.cacheFile = ce.file;
                     emptyEntry = false;
                 } else
-                    VUE.Log.warn("cache file no longer available: " + ce.file);
+                    Log.warn("cache file no longer available: " + ce.file);
             }
 
             if (emptyEntry) {
@@ -780,7 +782,7 @@ public class Images
                 // during image loading:
                 listener.gotImageError(imageSRC.original, msg);
 
-                VUE.Log.warn("Image source: " + imageSRC + ": " + t);
+                Log.warn("Image source: " + imageSRC + ": " + t);
             }
 
             if (imageSRC.resource != null)
@@ -885,14 +887,14 @@ public class Images
             file = new File(getCacheDirectory(), cacheName);
             try {
                 if (!file.createNewFile())
-                    VUE.Log.debug("cache file already exists: " + file);
+                    Log.debug("cache file already exists: " + file);
             } catch (java.io.IOException e) {
                 Util.printStackTrace(e, "can't create tmp cache file " + file);
                 //VUE.Log.warn(e.toString());
                 return null;
             }
             if (!file.canWrite()) {
-                VUE.Log.warn("can't write cache file: " + file);
+                Log.warn("can't write cache file: " + file);
                 return null;
             }
             if (DEBUG.IMAGE) out("got tmp cache file " + file);
@@ -931,14 +933,14 @@ public class Images
             File dir = VueUtil.getDefaultUserFolder();
             CacheDir = new File(dir, "cache");
             if (!CacheDir.exists()) {
-                VUE.Log.debug("creating cache directory: " + CacheDir);
+                Log.debug("creating cache directory: " + CacheDir);
                 if (!CacheDir.mkdir())
-                    VUE.Log.warn("couldn't create cache directory " + CacheDir);
+                    Log.warn("couldn't create cache directory " + CacheDir);
             } else if (!CacheDir.isDirectory()) {
-                VUE.Log.warn("couldn't create cache directory (is a file) " + CacheDir);
+                Log.warn("couldn't create cache directory (is a file) " + CacheDir);
                 return CacheDir = null;
             }
-            VUE.Log.debug("Got cache directory: " + CacheDir);
+            Log.debug("Got cache directory: " + CacheDir);
         }
         return CacheDir;
     }
@@ -950,9 +952,9 @@ public class Images
         if (dir == null)
             return;
 
-        VUE.Log.debug("listing disk cache...");
+        Log.debug("listing disk cache...");
         File[] files = dir.listFiles();
-        VUE.Log.debug("listing disk cache: done; entries=" + files.length);
+        Log.debug("listing disk cache: done; entries=" + files.length);
         
         synchronized (Cache) {
             for (int i = 0; i < files.length; i++) {
@@ -1086,19 +1088,19 @@ public class Images
                         imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile, listener);
                         success = true;
                     } catch (Images.DataException e) {
-                        VUE.Log.error(imageSRC + ": " + e);
+                        Log.error(imageSRC + ": " + e);
                         if (++tries > 1) {
                             tufts.Util.printStackTrace(e);
                             throw e;
                         } else {
-                            VUE.Log.info("second try for " + imageSRC);
+                            Log.info("second try for " + imageSRC);
                             urlStream.close();
                         }
                         // try the reconnect one more time
                     }
                 } else {
                     // unable to create cache file: read directly from the stream
-                    VUE.Log.warn("Failed to create cache file " + tmpCacheFile);
+                    Log.warn("Failed to create cache file " + tmpCacheFile);
                     imageSRC.readable = urlStream;
                     success = true;
                 }
@@ -1135,7 +1137,7 @@ public class Images
                     // This FirstFailure code was an attempt to deal with what is now handled
                     // via DataException, but it's not a bad idea to keep it around.
                     FirstFailure = false;
-                    VUE.Log.warn("No reader found: first failure, rescanning for codecs: " + imageSRC);
+                    Log.warn("No reader found: first failure, rescanning for codecs: " + imageSRC);
                     // TODO: okay, problem appears to be with the URLConnection / stream? Is only
                     // getting us tiny amount of bytes the first time...
                     if (DEBUG.Enabled) tufts.Util.printStackTrace("first failure: " + imageSRC);
@@ -1281,7 +1283,7 @@ public class Images
     }
     
     private static void out(Object o) {
-        VUE.Log.debug("Images " + (o==null?"null":o.toString()));
+        Log.debug("Images " + (o==null?"null":o.toString()));
 
         /*
         String s = "Images " + (""+System.currentTimeMillis()).substring(8);
@@ -1463,6 +1465,8 @@ public class Images
  */
 class FileBackedImageInputStream extends ImageInputStreamImpl
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FileBackedImageInputStream.class);
+
     private static final int BUFFER_LENGTH = 2048;
 
     private final RandomAccessFile cache;
@@ -1511,7 +1515,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
             String test = content.toUpperCase();
 
             if (test.startsWith("<HTML>") || test.startsWith("<!DOCTYPE")) {
-                VUE.Log.error("Stream " + stream + " contains HTML, not image data; [" + content + "]");
+                Log.error("Stream " + stream + " contains HTML, not image data; [" + content + "]");
                 close();
                 throw new Images.DataException("Content is HTML, not image data");
             }

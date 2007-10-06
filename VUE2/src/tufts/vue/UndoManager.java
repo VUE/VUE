@@ -44,6 +44,8 @@ import javax.swing.Action;
 public class UndoManager
     implements LWComponent.Listener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(UndoManager.class);
+    
     private boolean mUndoUnderway = false;
     private boolean mRedoUnderway = false;
     private boolean mCleanupUnderway = false;
@@ -874,7 +876,7 @@ public class UndoManager
             if (DEBUG.Enabled)
                 Util.printStackTrace("Running cleanup tasks with an empty undo queue: " + this);
             else
-                VUE.Log.info("Running cleanup tasks with an empty undo queue: " + this);
+                Log.info("Running cleanup tasks with an empty undo queue: " + this);
             
             debug = true;
         } else if (!debug)
@@ -894,7 +896,7 @@ public class UndoManager
             if (recurseCount >= MaxRecurse)
                 Util.printStackTrace(this + " cleanup task recursion count exceeded max at " + recurseCount);
             else
-                VUE.Log.info("note: UndoManager cleanup task recusion count reached " + recurseCount + " extra passes before model settled down.");
+                Log.info("note: UndoManager cleanup task recusion count reached " + recurseCount + " extra passes before model settled down.");
         }
         
         // When we clear this out has very complex semantics.  Theoretically
@@ -1369,7 +1371,7 @@ public class UndoManager
                     // this will happen once for every damn link auto-grabbed at the end of new group creation.
                     // We may want to re-enabled that auto-grabbing at group creation time for LWLinks...
                     // Also, is happening on new master slide creation...
-                    VUE.Log.debug("UndoManager: compressing hier change event for newly created component: " + component);
+                    Log.debug("UndoManager: compressing hier change event for newly created component: " + component);
                     if (DEBUG.UNDO) System.out.println(" (compressed:NEW COMPONENT IGNORES HIER CHANGES)");
                     compressed = true;
                 }

@@ -28,12 +28,14 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-10-05 19:15:30 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2007-10-06 03:49:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
     implements java.awt.event.FocusListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueMenuBar.class);
+    
     public static VueMenuBar RootMenuBar;
     private static JCheckBoxMenuItem fullScreenToolbarItem = null;
     // this may be created multiple times as a workaround for the inability
@@ -688,14 +690,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
     
 
     public void setVisible(boolean b) {
-        VUE.Log.debug("VMB: setVisible: " + b);
+        Log.debug("VMB: setVisible: " + b);
         super.setVisible(b);
     }
     public void focusGained(java.awt.event.FocusEvent e) {
-        VUE.Log.debug("VMB: focusGained from " + e.getOppositeComponent());
+        Log.debug("VMB: focusGained from " + e.getOppositeComponent());
     }
     public void focusLost(java.awt.event.FocusEvent e) {
-        VUE.Log.debug("VMB: focusLost to " + e.getOppositeComponent());
+        Log.debug("VMB: focusLost to " + e.getOppositeComponent());
     }
 
 

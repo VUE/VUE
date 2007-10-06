@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.160 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.161 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -733,7 +733,7 @@ public class LWMap extends LWContainer
     public class RelativeResourceFactory extends Resource.DefaultFactory {
         @Override
         protected Resource postProcess(Resource r, Object source) {
-            VUE.Log.debug(LWMap.this + " created  " + r + " from " + Util.tag(source) + ";" + source);
+            Log.debug(LWMap.this + " created  " + r + " from " + Util.tag(source) + ";" + source);
             return r;
         }
         

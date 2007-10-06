@@ -30,12 +30,14 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.85 $ / $Date: 2007-08-28 17:37:14 $ / $Author: sfraize $
+ * @version $Revision: 1.86 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 public class VueUtil extends tufts.Util
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueUtil.class);
+    
     public static final String DEFAULT_WINDOWS_FOLDER = "vue_2";
     public static final String DEFAULT_MAC_FOLDER = ".vue_2";
     private static String currentDirectoryPath = "";
@@ -53,9 +55,9 @@ public class VueUtil extends tufts.Util
                 // in case there's a big subject or body (e.g, ?subject=Foo&body=Bar in the URL), don't log the whole thing
                 logURL = platformURL.substring(0,80) + "...";
             }
-            VUE.Log.info("openURL[" + logURL + "]");
+            Log.info("openURL[" + logURL + "]");
         } else
-            VUE.Log.debug("openURL[" + logURL + "]");
+            Log.debug("openURL[" + logURL + "]");
 
         if (VUE.inNativeFullScreen())
             VUE.toggleFullScreen();
@@ -87,7 +89,7 @@ public class VueUtil extends tufts.Util
                 try {
                     tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
                 } catch (java.net.MalformedURLException e) {
-                    VUE.Log.error(e + " " + platformURL);
+                    Log.error(e + " " + platformURL);
                     try {
                         tufts.vue.VUE.displayMap(new File(platformURL));
                     } catch (Exception ex) {

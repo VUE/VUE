@@ -12,6 +12,8 @@ public class EditorManager
                LWComponent.Listener,
                PropertyChangeListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EditorManager.class);
+    
     private static final Collection<LWEditor> mEditors = new HashSet<LWEditor>();
     private static final Map<LWEditor,JLabel> mLabels = new HashMap();
     private static EditorManager singleton;
@@ -725,7 +727,7 @@ public class EditorManager
                     mLabels.put((LWEditor)gui, label);
             }
         }.raise();
-        VUE.Log.debug(this + " now managing " + mEditors.size() + " LWEditors.");
+        Log.debug(this + " now managing " + mEditors.size() + " LWEditors.");
     }
 
     static void out(Object o) {

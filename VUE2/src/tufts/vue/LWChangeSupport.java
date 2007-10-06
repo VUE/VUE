@@ -36,6 +36,8 @@ import java.util.Arrays;
  */
 public class LWChangeSupport
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWChangeSupport.class);
+    
     private static int sEventDepth = 0;
     
     private List listeners;
@@ -129,7 +131,7 @@ public class LWChangeSupport
     public synchronized void setPriorityListener(LWComponent.Listener listener) {
 
         if (listeners == null) {
-            VUE.Log.error("Attempting to set priorty listener with no listeners at all for client " + mClient);
+            Log.error("Attempting to set priorty listener with no listeners at all for client " + mClient);
             return;
         }
         
@@ -239,7 +241,7 @@ public class LWChangeSupport
             if (DEBUG.Enabled)
                 Util.printStackTrace(msg);
             else
-                VUE.Log.warn(msg);
+                Log.warn(msg);
         }
 
         if (DEBUG.EVENTS && (DEBUG.META || !DEBUG.THREAD)) {

@@ -61,12 +61,15 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.74 $ / $Date: 2007-10-06 02:51:51 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
 // TODO: rename / relocate most of this code! -- SMF
-public class ActionUtil {
+public class ActionUtil
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ActionUtil.class);
+    
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT =      VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     private final static URL XML_MAPPING_UNVERSIONED =  VueResources.getURL("mapping.lw.version_none");
@@ -213,7 +216,7 @@ public class ActionUtil {
                     //System.out.println("chdir " + chosenPath);
                     VueUtil.setCurrentDirectoryPath(chosenPath);
                 } else {
-                    VUE.Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
+                    Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
                     tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
                 }
                 file = null;
@@ -269,7 +272,7 @@ public class ActionUtil {
                  //System.out.println("chdir " + chosenPath);
         			 VueUtil.setCurrentDirectoryPath(chosenPath);
         		 } else {
-        			 VUE.Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
+        			 Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
         			 tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
         		 }
         		 chooserFile[0] = null;
@@ -342,7 +345,7 @@ public class ActionUtil {
         unmarshaller.setMapping(mapping);
 
         if (DEBUG.CASTOR || DEBUG.XML || DEBUG.IO)
-            VUE.Log.debug("got default unmarshaller for mapping " + mapping + " source " + sourceName + "\n\n");
+            Log.debug("got default unmarshaller for mapping " + mapping + " source " + sourceName + "\n\n");
 
         return unmarshaller;
     }
@@ -635,7 +638,7 @@ public class ActionUtil {
                         savingVersion = savingVersion.substring(0, savingVersion.indexOf("-->"));
                     savingVersion = savingVersion.trim();
                 } else {
-                    VUE.Log.warn(url + ": unknown saving version XML comment [" + line + "]");
+                    Log.warn(url + ": unknown saving version XML comment [" + line + "]");
                 }
                 if (DEBUG.IO) System.out.println("Saving version: [" + savingVersion + "]");
             }
@@ -650,13 +653,13 @@ public class ActionUtil {
                 int x = s.indexOf(')');
                 if (x > 0) {
                     versionID = s.substring(9,x);
-                    if (DEBUG.CASTOR || DEBUG.IO) VUE.Log.debug(url + "; Found mapping version ID[" + versionID + "]");
+                    if (DEBUG.CASTOR || DEBUG.IO) Log.debug(url + "; Found mapping version ID[" + versionID + "]");
                     if (versionID.equals(XML_MAPPING_CURRENT_VERSION_ID)) {
                         mapping = getDefaultMapping();
                     } else {
                         URL mappingURL = VueResources.getURL("mapping.lw.version_" + versionID);
                         if (mappingURL == null) {
-                            VUE.Log.error("Failed to find mapping for version tag [" + versionID + "], attempting default.");
+                            Log.error("Failed to find mapping for version tag [" + versionID + "], attempting default.");
                             mapping = getDefaultMapping();
                         } else {
                             mapping = getMapping(mappingURL);
@@ -706,7 +709,7 @@ public class ActionUtil {
                 if (localEncoding)
                     guessedEncoding = Util.getDefaultPlatformEncoding();
                     
-                VUE.Log.info(url + "; assuming "
+                Log.info(url + "; assuming "
                              + (localEncoding ? "LOCAL " : "PLATFORM DEFAULT ")
                              + "\'" + guessedEncoding + "\' charset encoding");
 
@@ -721,14 +724,14 @@ public class ActionUtil {
                 
             }
         } else {
-            VUE.Log.warn("Missing XML header in [" + firstNonCommentLine + "]");
+            Log.warn("Missing XML header in [" + firstNonCommentLine + "]");
         }
 
         boolean oldFormat = false;
 
         if (versionID == null && mapping == null) {
             oldFormat = true;
-            VUE.Log.info(url + "; save file is of old pre-versioned type.");
+            Log.info(url + "; save file is of old pre-versioned type.");
             mapping = getMapping(XML_MAPPING_UNVERSIONED);
         }
         

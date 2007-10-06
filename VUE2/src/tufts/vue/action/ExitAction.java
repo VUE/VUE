@@ -47,7 +47,9 @@ import tufts.vue.*;
 import java.util.Vector;
 
 
-public class ExitAction extends VueAction {
+public class ExitAction extends VueAction
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ExitAction.class);
     
     private static String  FAVORITES_MAPPING;
     private static String  DATASOURCES_MAPPING;
@@ -89,10 +91,10 @@ public class ExitAction extends VueAction {
             }
         } catch (Throwable t) {
             java.awt.Toolkit.getDefaultToolkit().beep();
-            VUE.Log.error("exception exiting view: " + t);
+            Log.error("exception exiting view: " + t);
             t.printStackTrace();
         } finally {
-            VUE.Log.info("Exiting VUE.");
+            Log.info("Exiting VUE.");
             System.exit(0);
         }
     }

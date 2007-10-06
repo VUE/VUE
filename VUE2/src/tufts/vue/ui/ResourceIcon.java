@@ -34,13 +34,15 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-10-06 03:06:58 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2007-10-06 03:49:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class ResourceIcon
     implements javax.swing.Icon, Images.Listener, Runnable
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ResourceIcon.class);
+
     //private final Image NoImage = VueResources.getImage("/icon_noimage32.gif");
     private static final Image NoImage = GUI.NoImage32;
     
@@ -361,7 +363,7 @@ public class ResourceIcon
 
     private void out(String s) {
         String name = "ResourceIcon" + "@" + Integer.toHexString(hashCode());
-        VUE.Log.debug(name + " " + s);
+        Log.debug(name + " " + s);
     }
         
     

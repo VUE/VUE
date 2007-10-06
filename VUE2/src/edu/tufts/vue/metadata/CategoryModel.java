@@ -33,7 +33,10 @@ import java.io.*;
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.ontology.*;
 
-public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
+public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(CategoryModel.class);
+    
     public static final String CUSTOM_METADATA_FILE = tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+tufts.vue.VueResources.getString("metadata.custom.file");
     public static final String ONT_SEPARATOR = "#";
     
@@ -68,7 +71,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
             try {
                 loadOntology(tufts.vue.VueResources.getBundle().getClass().getResource(ontologyUrls[i]));
             } catch(Throwable t) {
-                tufts.vue.VUE.Log.error("Problem loading metadata: "+ontologyUrls[i]+" Error:"+t.getMessage());
+                Log.error("Problem loading metadata: "+ontologyUrls[i]+" Error:"+t.getMessage());
             }
         }
     }
@@ -114,7 +117,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
             writer.setProperty("allowBadURIs","true");
             writer.write(m,new BufferedWriter(new FileWriter(CUSTOM_METADATA_FILE)),customOntology.getBase());
         }catch(Throwable t) {
-            tufts.vue.VUE.Log.error("Problem saving custom metadata - Error:"+t.getMessage());
+            Log.error("Problem saving custom metadata - Error:"+t.getMessage());
             t.printStackTrace();
         }
     }
@@ -147,7 +150,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>{
             customOntology = new RDFSOntology();
             customOntology.setBase(url.toString());
             add(customOntology);
-            tufts.vue.VUE.Log.error("Problem loading custom metadata, creating new one - Error:"+t.getMessage());
+            Log.error("Problem loading custom metadata, creating new one - Error:"+t.getMessage());
         }
     }
 }

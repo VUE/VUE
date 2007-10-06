@@ -47,7 +47,10 @@ import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 import osid.dr.*;
 
-public class OntManager {
+public class OntManager
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(OntManager.class);
+    
     public static final String ONT_NOT_FOUND = "Ontology Not Found";
     public static final String ONT_FILE = tufts.vue.VueResources.getString("ontology.save");
     public static final int RDFS = 0;
@@ -133,10 +136,10 @@ public class OntManager {
                 writer.flush();
                 writer.close();
             } catch(Exception ex) {
-                tufts.vue.VUE.Log.error("OntManager.save: "+ex);
+                Log.error("OntManager.save: "+ex);
             }
         } else
-            tufts.vue.VUE.Log.error("OntManager.save: OntManager not initialized");
+            Log.error("OntManager.save: OntManager not initialized");
         
     }
     
@@ -149,7 +152,7 @@ public class OntManager {
             loadSavedOntTypes() ;
             reader.close();
         } catch(Exception ex) {
-            tufts.vue.VUE.Log.error("OntManager.save: "+ex);
+            Log.error("OntManager.save: "+ex);
         }
     }
     public  static OntManager getOntManager() {

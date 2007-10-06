@@ -42,7 +42,9 @@ import tufts.vue.gui.GUI;
 public class MetaDataPane extends JPanel
    implements PropertyMap.Listener, Runnable
 {
-   private JLabel[] mLabels;
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetaDataPane.class);
+    
+    private JLabel[] mLabels;
    //private JLabel[] mValues;
    private JTextArea[] mValues;
    private final ScrollableGrid mGridBag;
@@ -153,7 +155,7 @@ public class MetaDataPane extends JPanel
                            });
                    }
                } catch (Throwable t) {
-                   VUE.Log.error(t);
+                   Log.error(t);
                }
            }
    }
@@ -209,7 +211,7 @@ public class MetaDataPane extends JPanel
        if (DEBUG.RESOURCE) out("loadProperties: " + rsrcProps);
        
        if (DEBUG.SCROLL)
-           VUE.Log.debug("scroll model listeners: "
+           Log.debug("scroll model listeners: "
                          + Arrays.asList(((DefaultBoundedRangeModel)
                                           mScrollPane.getVerticalScrollBar().getModel())
                                          .getListeners(ChangeListener.class)));
@@ -331,7 +333,7 @@ public class MetaDataPane extends JPanel
    }
 
    private void out(Object o) {
-        VUE.Log.debug("MetaDataPane: " + (o==null?"null":o.toString()));
+        Log.debug("MetaDataPane: " + (o==null?"null":o.toString()));
    }
    
    //----------------------------------------------------------------------------------------

@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.64 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -366,7 +366,7 @@ public class LWSlide extends LWContainer
 
     public void synchronizeResourcesWithNode() {
         if (getSourceNode() == null) {
-            VUE.Log.warn("Can't synchronize a slide w/out a source node: " + this);
+            Log.warn("Can't synchronize a slide w/out a source node: " + this);
             return;
         }
 
@@ -651,7 +651,7 @@ public class LWSlide extends LWContainer
             
     private static void applyMasterStyle(MasterSlide master, LWComponent c) {
         if (master == null) {
-            VUE.Log.error("null master slide applying master style to " + c);
+            Log.error("null master slide applying master style to " + c);
             return;
         }
         if (c.hasResource())

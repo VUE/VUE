@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.451 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.452 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -97,6 +97,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                , java.awt.event.MouseMotionListener
                , java.awt.event.MouseWheelListener               
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapViewer.class);
+    
     static int RolloverAutoZoomDelay = VueResources.getInt("mapViewer.rolloverAutoZoomDelay");
     //static int RolloverAutoZoomDelay = 1;
     //static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
@@ -4462,6 +4464,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if ("DEBUG".charAt(kk++) == c) {
                     if (kk == 5) {
                         DEBUG.Enabled = !DEBUG.Enabled;
+                        VUE.debugInit(DEBUG.META);
                         java.awt.Toolkit.getDefaultToolkit().beep();
                         System.out.println("debug: " + DEBUG.Enabled);
                         if (!DEBUG.Enabled) {
@@ -4696,7 +4699,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (wasFocusOwner == false && !GUI.isMenuPopup(e)) {
                 //if (DEBUG.FOCUS) out("ignoring click on viewer focus gain");
                 Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-                VUE.Log.info(MapViewer.this + " ignoring click on viewer focus gain; focusOwner=" + owner);
+                Log.info(MapViewer.this + " ignoring click on viewer focus gain; focusOwner=" + owner);
                 e.consume();
                 return;
             }
@@ -6166,7 +6169,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (mFocal != null)
                 mFocal.getChangeSupport().setPriorityListener(this);
             else
-                VUE.Log.warn("Active viewer has no focal: " + this);
+                Log.warn("Active viewer has no focal: " + this);
             // TODO: VUE.getSelection().setPriorityListener(this);
                 
             // hierarchy view switching: TODO: make an active map listener instead of this(?)
@@ -6338,7 +6341,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // hack: check the name against the special name of Popup$HeavyWeightWindow
             if (GUI.OVERRIDE_REDIRECT.equals(opName)) {
                 //if (DEBUG.FOCUS) System.out.println("\tFOCUS LOST TO POPUP");
-                VUE.Log.info(MapViewer.this + " focus lost to pop-up (overrideRedirect)");
+                Log.info(MapViewer.this + " focus lost to pop-up (overrideRedirect)");
                 //requestFocus();
                 // Actually, requestFocus can ADD to our problems if moving right from one rollover to another...
                 // The bug is this: on Mac, rolling right from a tip that was HeavyWeight to one

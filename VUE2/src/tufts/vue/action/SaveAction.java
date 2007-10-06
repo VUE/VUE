@@ -41,6 +41,8 @@ import tufts.vue.gui.VueFrame;
  */
 public class SaveAction extends VueAction
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SaveAction.class);
+
     private boolean saveAs = true;
     private boolean export = false;
     
@@ -88,11 +90,11 @@ public class SaveAction extends VueAction
 
         try {
             inSave = true;
-            tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] invoked...");
+            Log.info("Action["+e.getActionCommand()+"] invoked...");
             if (saveMap(tufts.vue.VUE.getActiveMap(), isSaveAs(),export))
-                tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] completed.");
+                Log.info("Action["+e.getActionCommand()+"] completed.");
             else
-                tufts.vue.VUE.Log.info("Action["+e.getActionCommand()+"] aborted.");
+                Log.info("Action["+e.getActionCommand()+"] aborted.");
         } finally {
             inSave = false;
         }
@@ -224,18 +226,18 @@ public class SaveAction extends VueAction
             return true;
 
         } catch (Throwable t) {
-            VUE.Log.error("Exception attempting to save file " + file + ": " + t);
+            Log.error("Exception attempting to save file " + file + ": " + t);
             Throwable e = t;
             if (t.getCause() != null)
                 e = t.getCause();
             if (e instanceof java.io.FileNotFoundException) {
-                VUE.Log.error("Save Failed"+e.getMessage());
+                Log.error("Save Failed"+e.getMessage());
             } else {
                 e.printStackTrace();
-                VUE.Log.error("Save failed for \"" + file + "\""+ e);
+                Log.error("Save failed for \"" + file + "\""+ e);
             }
             if (e != t)
-                VUE.Log.error("Exception attempting to save file " + file + ": " + e);
+                Log.error("Exception attempting to save file " + file + ": " + e);
         } finally {
             VUE.clearWaitCursor();
         }

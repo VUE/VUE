@@ -40,12 +40,13 @@ import edu.tufts.vue.metadata.ui.MetadataEditor;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.46 $ / $Date: 2007-10-06 03:06:58 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2007-10-06 03:49:27 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
     implements VueConstants, ResourceSelection.Listener, SearchListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(InspectorPane.class);
     
     public static int OLD = 0;
     public static int NEW = 1;
@@ -680,7 +681,7 @@ public class InspectorPane extends JPanel
     
     private void out(Object o) {
         //System.out.println("Inspector: " + (o==null?"null":o.toString()));
-        VUE.Log.debug("InspectorPane: " + (o==null?"null":o.toString()));
+        Log.debug("InspectorPane: " + (o==null?"null":o.toString()));
     }
     
     public static void displayTestPane(String rsrc)

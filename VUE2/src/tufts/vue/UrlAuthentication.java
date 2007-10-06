@@ -51,6 +51,8 @@ import org.osid.OsidException;
  */
 public class UrlAuthentication 
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(UrlAuthentication.class);
+    
     private static final Map<String, Map<String,String>> HostMap = new HashMap();
     private static final UrlAuthentication ua = new UrlAuthentication();
     
@@ -71,10 +73,8 @@ public class UrlAuthentication
 				
 		try {
 			// load new data sources
-			VUE.Log
-					.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
-			dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager
-					.getInstance();
+			Log.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
+			dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
 			
 			// Sakai specific code begins
 			SakaiExport se = new SakaiExport(dsm);
@@ -82,8 +82,7 @@ public class UrlAuthentication
 			
 			for (int i = 0; i < dataSources.length; i++) 
 			{
-				VUE.Log
-						.info("DataSourceViewer; adding data source to sakai data source list: "
+				Log.info("DataSourceViewer; adding data source to sakai data source list: "
 								+ dataSources[i]);
 				if (dataSources[i].hasConfiguration()) 
 				{

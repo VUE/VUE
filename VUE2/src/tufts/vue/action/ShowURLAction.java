@@ -43,7 +43,7 @@ public class ShowURLAction extends tufts.vue.VueAction
             browserURL = urlString;
         } else {
             
-            if (DEBUG.IO) VUE.Log.info("ShowURLAction: raw url: " + url);
+            if (DEBUG.IO) Log.info("ShowURLAction: raw url: " + url);
             if (DEBUG.IO) out("PROTOCOL: " + url.getProtocol());
 
             if ("jar".equals(url.getProtocol())) {
@@ -67,7 +67,7 @@ public class ShowURLAction extends tufts.vue.VueAction
                     if (DEBUG.IO) out("LOCAL URL: " + browserURL);
                     
                 } catch (Throwable t) {
-                    VUE.Log.error("Failed to display content for " + url + " in " + localFile);
+                    Log.error("Failed to display content for " + url + " in " + localFile);
                     t.printStackTrace();
                     return;
                 }

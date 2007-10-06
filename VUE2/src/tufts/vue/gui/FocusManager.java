@@ -147,7 +147,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.15 $ / $Date: 2007-06-05 12:59:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.16 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -169,6 +169,8 @@ import javax.swing.JTextField;  // for test harness
 
 public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FocusManager.class);
+    
     private static final Object FOCUS_FORWARD = "FORWARD";
     private static final Object FOCUS_BACKWARD = "BACKWARD";
 
@@ -452,7 +454,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             e.isAltDown() &&
             e.isControlDown())
         {
-            VUE.Log.info("Keyboard Abort Sequence");
+            Log.info("Keyboard Abort Sequence");
             System.err.println("VUE: key sequence abort");
             System.exit(0);
         } // debug abort

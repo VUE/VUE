@@ -25,11 +25,13 @@ import tufts.vue.gui.GUI;
  * The currently selected resource.  Currently only supports a single selected
  * resource at a time.
  *
- * @version $Revision: 1.9 $ / $Date: 2007-10-06 02:53:31 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  */
 //public class ResourceSelection {}
 public class ResourceSelection
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ResourceSelection.class);
+    
     private Resource selected = null;
     
     private java.util.List listeners = new java.util.ArrayList();
@@ -135,7 +137,7 @@ public class ResourceSelection
         String s = "ResourceSelection#" + notifyCount + " " + (""+System.currentTimeMillis()).substring(8);
         s += " [" + Thread.currentThread().getName() + "]";
         if (false)
-            VUE.Log.debug(s + " " + (o==null?"null":o.toString()));
+            Log.debug(s + " " + (o==null?"null":o.toString()));
         else
             System.err.println(s + " " + (o==null?"null":o.toString()));
     }

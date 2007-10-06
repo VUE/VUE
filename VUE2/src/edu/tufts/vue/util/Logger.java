@@ -1,7 +1,6 @@
 package edu.tufts.vue.util;
 
 import tufts.Util;
-import tufts.vue.VUE;
 import tufts.vue.DEBUG;
 
 /*
@@ -27,6 +26,8 @@ import tufts.vue.DEBUG;
   */
 public class Logger
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Logger.class);
+    
     // just to mark stuff coming from this logger
     private static final String Tag = "[ETVUL] ";
     
@@ -35,7 +36,7 @@ public class Logger
             if (DEBUG.Enabled) {
                 Util.printStackTrace(t, message);
             } else {
-                VUE.Log.info(Tag + t + "; " + message);
+                Log.info(Tag + t + "; " + message);
                 //t.printStackTrace();
             }
             
@@ -44,7 +45,7 @@ public class Logger
 	}
 
 	public static void log(String message) {
-            VUE.Log.info(Tag + message);
+            Log.info(Tag + message);
             //if (DEBUG.Enabled) VUE.Log.info(message);
             //System.out.println(message);
 	}
@@ -53,7 +54,7 @@ public class Logger
             if (DEBUG.Enabled) {
                 Util.printStackTrace(t);
             } else {
-                VUE.Log.info(Tag + t);
+                Log.info(Tag + t);
                 t.printStackTrace();
             }
 		//t.printStackTrace();

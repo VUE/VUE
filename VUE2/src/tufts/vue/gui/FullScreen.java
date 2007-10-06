@@ -16,7 +16,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.7 $ / $Date: 2007-09-01 16:18:42 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  *
  */
 
@@ -30,6 +30,8 @@ import org.apache.log4j.NDC;
 
 public class FullScreen
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FullScreen.class);
+    
     private static boolean fullScreenMode = false;
     private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
     private static boolean nativeModeHidAllDockWindows;
@@ -258,7 +260,7 @@ public class FullScreen
         // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
 
 
-        VUE.Log.debug("Entering full screen mode; goNative=" + goNative);
+        Log.debug("Entering full screen mode; goNative=" + goNative);
         if (FullScreenWindow == null) {
             FullScreenWindow = (FSWindow) GUI.getFullScreenWindow();
             FullScreenWindow.getContentPane().add(FullScreenViewer = new MapViewer(null, VIEWER_NAME));
@@ -318,12 +320,12 @@ public class FullScreen
         
         
 //         GUI.invokeAfterAWT(new Runnable() { public void run() {
-//             if (DEBUG.PRESENT) VUE.Log.debug("AWT thread full-screen viewer loading map " + activeMap);
+//             if (DEBUG.PRESENT) Log.debug("AWT thread full-screen viewer loading map " + activeMap);
 //             FullScreenViewer.loadFocal(activeMap);
 //         }});
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
-            if (DEBUG.PRESENT) VUE.Log.debug("AWT thread activeTool.handleFullScreen for " + activeTool);
+            if (DEBUG.PRESENT) Log.debug("AWT thread activeTool.handleFullScreen for " + activeTool);
             activeTool.handleFullScreen(true, goNative);
             NDC.pop();
         }});
@@ -339,13 +341,13 @@ public class FullScreen
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();
         
-        VUE.Log.debug("Exiting full screen mode; inNative=" + wasNative);
+        Log.debug("Exiting full screen mode; inNative=" + wasNative);
 
         //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
         
         if (device.getFullScreenWindow() != null) {
             // this will take us out of true full screen mode
-            VUE.Log.debug("clearing native full screen window:"
+            Log.debug("clearing native full screen window:"
                           + "\n\t  controlling device: " + device
                           + "\n\tcur device FS window: " + device.getFullScreenWindow());
             device.setFullScreenWindow(null);
@@ -371,7 +373,7 @@ public class FullScreen
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
-            //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
+            //Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
             //VUE.getActiveViewer().popToMapFocal(); // old active viewer shouldn't have changed...
             NDC.pop();
         }});
@@ -387,14 +389,14 @@ public class FullScreen
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();
         
-        VUE.Log.debug("Exiting full screen mode, inNative=" + wasNative);
+        Log.debug("Exiting full screen mode, inNative=" + wasNative);
 
         //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
         //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
         
         if (device.getFullScreenWindow() != null) {
             // this will take us out of true full screen mode
-            VUE.Log.debug("clearing native full screen window:"
+            Log.debug("clearing native full screen window:"
                           + "\n\t  controlling device: " + device
                           + "\n\tcur device FS window: " + device.getFullScreenWindow());
             device.setFullScreenWindow(null);
@@ -407,7 +409,7 @@ public class FullScreen
         fullScreenMode = false;
         fullScreenNative = false;
         if (fullScreenWindow != VUE.getMainWindow()) {
-            VUE.Log.debug("re-attaching prior extracted viewer content " + fullScreenContent);
+            Log.debug("re-attaching prior extracted viewer content " + fullScreenContent);
             fullScreenOldParent.add(fullScreenContent);
             //fullScreenOldParent.add(VUE.getActiveViewer());
         }
@@ -418,7 +420,7 @@ public class FullScreen
 //                 VUE.getMainWindow().setSize(fullScreenOldVUESize); // mac window manager won't go to 0
             //VUE.getMainWindow.setExtendedState(Frame.NORMAL); // iconifies but only until an Option-TAB switch-back
             GUI.invokeAfterAWT(new Runnable() { public void run() {
-                VUE.Log.debug("showing main window " + VUE.getMainWindow());
+                Log.debug("showing main window " + VUE.getMainWindow());
                 VUE.getMainWindow().setVisible(true);
             }});
         }
@@ -433,7 +435,7 @@ public class FullScreen
         
         GUI.invokeAfterAWT(new Runnable() {
                 public void run() {
-                    //VUE.Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
+                    //Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
                     VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
                     NDC.pop();
                 }});
@@ -476,7 +478,7 @@ public class FullScreen
         // todo: crap: if the screen resolution changes, we'll need to resize the full-screen window
 
 
-        VUE.Log.debug("enterFullScreenMode: goingNative=" + goNative);
+        Log.debug("enterFullScreenMode: goingNative=" + goNative);
 //         if (false&&goNative) {
 //             if (VueUtil.isMacPlatform() || cachedFSWnative == null) {
 //                 // have to create full screen native win on mac every time or it comes
@@ -522,7 +524,7 @@ public class FullScreen
             //fullScreenContent = new JLabel("TEST");
             fullScreenOldParent = viewer.getParent();
 
-            VUE.Log.debug("adding content to FSW:"
+            Log.debug("adding content to FSW:"
                           + "\n\tCONTENT: "+ fullScreenContent
                           + "\n\t    FSW: "+ fullScreenWindow
                           );

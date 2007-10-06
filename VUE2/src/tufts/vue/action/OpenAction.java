@@ -35,7 +35,8 @@ import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
 
-public class OpenAction extends VueAction {
+public class OpenAction extends VueAction
+{
     public static final String ZIP_IMPORT_LABEL ="Imported";
     public OpenAction(String label) {
         super(label, null, ":general/Open");
@@ -103,7 +104,7 @@ public class OpenAction extends VueAction {
             ZipFile zipFile = new ZipFile(file);
             return zipFile.getEntry(IMSCP.MAP_FILE) != null && zipFile.getEntry(IMSCP.MANIFEST_FILE) != null;
         } catch (Throwable t) {
-            VUE.Log.warn(t);
+            Log.warn(t);
             return false;
         }
     }
@@ -161,7 +162,7 @@ public class OpenAction extends VueAction {
         // Safari.
 
         if (isVueIMSCPArchive(file)) {
-            VUE.Log.info("Unpacking VUE IMSCP zip archive: " + file);
+            Log.info("Unpacking VUE IMSCP zip archive: " + file);
             ZipFile zipFile = new ZipFile(file);
             Vector<Resource> resourceVector = new Vector();
             File resourceFolder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.RESOURCE_FILES);

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.346 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.347 $ / $Date: 2007-10-06 03:49:25 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -589,7 +589,7 @@ u                    getSlot(c).setFromString((String)value);
             } catch (ClassCastException e) {
                 String msg = "Property not supported: " + this + " on\t" + c + " (getSlot failed; returned null)";
                 //tufts.Util.printStackTrace(e, msg);
-                VUE.Log.warn(msg + "; " + e);
+                Log.warn(msg + "; " + e);
                 return null;
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(new Throwable(t), this + ": bad slot? unimplemented get/setValue?");
@@ -615,7 +615,7 @@ u                    getSlot(c).setFromString((String)value);
                     if (DEBUG.META)
                         tufts.Util.printStackTrace(e, msg);
                     else
-                        VUE.Log.warn(msg + "; " + e);
+                        Log.warn(msg + "; " + e);
                     return DEBUG.Enabled ? "<unsupported for this object>" : null;
                 }
                 return typedValue == null ? null : typedValue.toString(); // produce something
@@ -750,7 +750,7 @@ u                    getSlot(c).setFromString((String)value);
             try {
                 setBy(s);
             } catch (Throwable t) {
-                VUE.Log.error("bad value for " + this + ": [" + s + "] " + t);
+                Log.error("bad value for " + this + ": [" + s + "] " + t);
             }
         }
 
@@ -762,7 +762,7 @@ u                    getSlot(c).setFromString((String)value);
         void setBy(String fromValue) {
             // Could get rid all of the setBy's (and then mayve even all the StyleProp subclasses!!)
             // If we just had mapper class that took a type, a value, and returned a string (e.g., Font.class, Object value)
-            VUE.Log.error("unimplememnted: " + this + " setBy " + fromValue.getClass() + " " + fromValue);
+            Log.error("unimplememnted: " + this + " setBy " + fromValue.getClass() + " " + fromValue);
         }
 
         /** override to provide an impl other than value.toString() */
@@ -1235,7 +1235,7 @@ u                    getSlot(c).setFromString((String)value);
                 if (DEBUG.META)
                     tufts.Util.printStackTrace(e, msg);
                 else
-                    VUE.Log.warn(msg + "; " + e);
+                    Log.warn(msg + "; " + e);
                 return null;
             }
         }
@@ -1246,7 +1246,8 @@ u                    getSlot(c).setFromString((String)value);
         if (key == LWKey.Size)          return new Size(this.width, this.height);
         if (key == LWKey.Hidden)        return isHidden() ? Boolean.TRUE : Boolean.FALSE;
              
-        VUE.Log.warn(this + " getPropertyValue; unsupported property [" + key + "] (returning null)");
+        Log.warn(this + " getPropertyValue; unsupported property [" + key + "] (returning null)");
+        if (key == null) Util.printStackTrace("key was null");
         //throw new RuntimeException("Unknown property key[" + key + "]");
         return null;
     }
@@ -2737,7 +2738,7 @@ u                    getSlot(c).setFromString((String)value);
             mLinks = new ArrayList(4);
         if (mLinks.contains(link)) {
             //tufts.Util.printStackTrace("addLinkRef: " + this + " already contains " + link);
-            if (DEBUG.Enabled) VUE.Log.warn("addLinkRef: " + this + " already contains " + link);
+            if (DEBUG.Enabled) Log.warn("addLinkRef: " + this + " already contains " + link);
         } else {
             mLinks.add(link);
             notify(LWKey.LinkAdded, link); // informational only event
@@ -3701,7 +3702,7 @@ u                    getSlot(c).setFromString((String)value);
                         if (DEBUG.META)
                             Util.printStackTrace(msg);
                         else
-                            VUE.Log.debug(msg);
+                            Log.debug(msg);
                     }
                 }
             }

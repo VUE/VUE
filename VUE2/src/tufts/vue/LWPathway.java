@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.187 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
+ * @version $Revision: 1.188 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -251,7 +251,7 @@ public class LWPathway extends LWContainer
         public void setPersistSlide(LWSlide s) {
             if (isMapView) {
                 if (DEBUG.Enabled)
-                    VUE.Log.info("skipping restoring slide for an entry marked as map-view: " + this);
+                    Log.info("skipping restoring slide for an entry marked as map-view: " + this);
                 //Util.printStackTrace("skipping restoring slide for an entry marked as map-view: " + this);
                 slide = null;
             } else

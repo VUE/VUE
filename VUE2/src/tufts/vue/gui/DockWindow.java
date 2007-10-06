@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.106 $ / $Date: 2007-08-30 23:21:46 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -67,6 +67,8 @@ public class DockWindow extends javax.swing.JWindow
                , FocusManager.MouseInterceptor
                , java.beans.PropertyChangeListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DockWindow.class);
+    
     public static final int DefaultWidth = 300;
     private static boolean AllVisible = true;
     
@@ -2762,7 +2764,7 @@ public class DockWindow extends javax.swing.JWindow
         if (near != null) {
 
             if (hasDescendant(near)) {
-                VUE.Log.error("can't drop a parent onto a descendant: " + near);
+                Log.error("can't drop a parent onto a descendant: " + near);
             } else {
                 near.setChild(this);
             }
@@ -3327,7 +3329,7 @@ public class DockWindow extends javax.swing.JWindow
             d.height = getHeight(); // height is always whatever we've been laid out to (preferred size)
             //Dimension d = getSize();
             //d.height = tracked.getHeight();
-            if (DEBUG.DOCK || DEBUG.SCROLL) VUE.Log.debug(GUI.name(tracked) + " viewportSize " + GUI.name(d));
+            if (DEBUG.DOCK || DEBUG.SCROLL) Log.debug(GUI.name(tracked) + " viewportSize " + GUI.name(d));
             return d;
         }
 

@@ -13,7 +13,10 @@ import tufts.vue.DEBUG;
 import tufts.vue.VUE;
 import tufts.vue.gui.GUI;
 
-public class ScrollableGrid extends JPanel implements Scrollable {
+public class ScrollableGrid extends JPanel implements Scrollable
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ScrollableGrid.class);
+    
     private JComponent delegate;
     private int vertScrollUnit;
 
@@ -38,17 +41,17 @@ public class ScrollableGrid extends JPanel implements Scrollable {
     }
 
     public void validate() {
-        if (DEBUG.SCROLL) VUE.Log.debug("ScrollableGrid; validate");
+        if (DEBUG.SCROLL) Log.debug("ScrollableGrid; validate");
         super.validate();
     }
     public void doLayout() {
-        if (DEBUG.SCROLL) VUE.Log.debug("ScrollableGrid: doLayout");
+        if (DEBUG.SCROLL) Log.debug("ScrollableGrid: doLayout");
         super.doLayout();
     }
     public void paint(Graphics g) {
         if (paintDisabled > 0)
             return;
-        if (DEBUG.SCROLL) VUE.Log.debug("ScrollableGrid: paint " + g.getClip());
+        if (DEBUG.SCROLL) Log.debug("ScrollableGrid: paint " + g.getClip());
         super.paint(g);
     }
 //     public void paintComponent(Graphics g) {
@@ -58,7 +61,7 @@ public class ScrollableGrid extends JPanel implements Scrollable {
     public Dimension getPreferredScrollableViewportSize() {
         Dimension d = delegate.getSize();
         d.height = getHeight();
-        if (DEBUG.SCROLL) VUE.Log.debug(GUI.name(delegate) + " viewportSize " + GUI.name(d));
+        if (DEBUG.SCROLL) Log.debug(GUI.name(delegate) + " viewportSize " + GUI.name(d));
         return d;
     }
 

@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.44 $ / $Date: 2007-06-11 10:11:33 $ / $Author: sfraize $ 
+ * @version $Revision: 1.45 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -43,6 +43,8 @@ import java.util.ArrayList;
 public class MapTabbedPane extends JTabbedPane
     implements LWComponent.Listener, FocusListener, MapViewer.Listener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapTabbedPane.class);
+    
     private final String name;
     private final Color BgColor;
 
@@ -390,7 +392,7 @@ public class MapTabbedPane extends JTabbedPane
                 return i;
             }
         }
-        VUE.Log.error(this + ": failed to find map " + map + " at any index");
+        Log.error(this + ": failed to find map " + map + " at any index");
         return -1;
     }
 

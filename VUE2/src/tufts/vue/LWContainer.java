@@ -33,7 +33,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.132 $ / $Date: 2007-09-18 22:13:42 $ / $Author: sfraize $
+ * @version $Revision: 1.133 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -471,7 +471,7 @@ public abstract class LWContainer extends LWComponent
 
         if (getParent() == null) {
             //if (DEBUG.Enabled) Util.printStackTrace("skipping coordinate localization in unparented (new?) LWContainer: " + this + "; for " + c);
-            if (DEBUG.Enabled) VUE.Log.warn("coordinate localization in unparented (new?) LWContainer: " + this + "; for " + c);
+            if (DEBUG.Enabled) Log.warn("coordinate localization in unparented (new?) LWContainer: " + this + "; for " + c);
         } //else
 
         if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("localizing coordinates: " + c + " oldParent=" + oldParent);
@@ -663,7 +663,7 @@ public abstract class LWContainer extends LWComponent
                 if (DEBUG.LINK)
                     tufts.Util.printStackTrace(msg);
                 else
-                    VUE.Log.info(msg);
+                    Log.info(msg);
             } else
                 commonParent.ensurePaintSequence(topMostParentThatIsSiblingOfLink, link);
         }

@@ -77,7 +77,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.28 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -210,7 +210,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             if (mURI != null) 
                 pretty += nl + "URI-RELATIVE: " + mURI;
             pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
-                + " impl=" + getClass().getName();
+                + " impl=" + getClass().getName() + " ext=[" + getExtension() + "]";
             if (isLocalFile())
                 pretty += " (isLocal)";
             //pretty += nl + "localFile=" + isLocalFile();

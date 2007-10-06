@@ -31,6 +31,8 @@ package tufts.vue;
 
 public class Osid2AssetResource extends URLResource
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Osid2AssetResource.class);
+    
     private static final org.osid.shared.Type BrowsePartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","URL");
     private static final org.osid.shared.Type ThumbnailPartType = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnail");
     private static final org.osid.shared.Type ThumbnailPartType2 = new edu.tufts.vue.util.Type("mit.edu","partStructure","thumbnailURL");
@@ -184,12 +186,12 @@ public class Osid2AssetResource extends URLResource
 					}                
 					
 					if (key == null) {
-						VUE.Log.warn(this + " Asset Part [" + part + "] has null key.");
+						Log.warn(this + " Asset Part [" + part + "] has null key.");
 						continue;
 					}
 					
 					if (value == null) {
-						VUE.Log.warn(this + " Asset Part [" + key + "] has null value.");
+						Log.warn(this + " Asset Part [" + key + "] has null value.");
 						continue;
 					}
 					
@@ -251,7 +253,7 @@ public class Osid2AssetResource extends URLResource
         if (getSpec() == SPEC_UNSET && mURL_Browse == null) {
             String defaultURL = getProperty("URL");
             if (defaultURL != null) {
-                if (DEBUG.RESOURCE && DEBUG.META) VUE.Log.warn("Osid2AssetResource failsafe: using URL property " + defaultURL);
+                if (DEBUG.RESOURCE && DEBUG.META) Log.warn("Osid2AssetResource failsafe: using URL property " + defaultURL);
                 setSpec(defaultURL);
             }
         }

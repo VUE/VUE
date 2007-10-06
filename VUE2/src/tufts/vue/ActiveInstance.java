@@ -27,13 +27,15 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.14 $ / $Date: 2007-10-03 22:40:44 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-10-06 03:49:25 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
 // as we stay with only a singly selected resource object at a time.
 public class ActiveInstance<T>
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ActiveInstance.class);
+    
     private static final Map<Class,ActiveInstance> AllActiveHandlers = new HashMap();
     private static final List<ActiveListener> ListenersForAllActiveEvents = new CopyOnWriteArrayList();
     private static int depth = -1; // event delivery depth
@@ -298,7 +300,7 @@ public class ActiveInstance<T>
         if (mListeners.addIfAbsent(listener)) {
             if (DEBUG.EVENTS) outf(TERM_YELLOW + "%-50s added listener %s\n" + TERM_CLEAR, this, listener);
         } else {
-            VUE.Log.warn(this + "; add: is already listening: " + listener);
+            Log.warn(this + "; add: is already listening: " + listener);
             if (DEBUG.Enabled)
                 Util.printStackTrace(this + "; already listening: " + listener);
         }
@@ -326,7 +328,7 @@ public class ActiveInstance<T>
         if (mListeners.remove(listener)) {
             outf(TERM_YELLOW + "%-50s removed listener %s\n" + TERM_CLEAR, this, listener);
         } else if (DEBUG.EVENTS) {
-            VUE.Log.warn(this + "; remove: didn't contain listener " + listener);
+            Log.warn(this + "; remove: didn't contain listener " + listener);
         }
     }
 
