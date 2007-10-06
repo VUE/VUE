@@ -23,6 +23,7 @@ import tufts.vue.gui.TextRow;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
+import javax.swing.border.*;
 
 import edu.tufts.vue.preferences.PreferencesManager;
 
@@ -407,77 +408,113 @@ public abstract class LWIcon extends Rectangle2D.Float
         }
         
         final static String gap = "&nbsp;";
+        final static String indent = "";
+        //final static String indent = "&nbsp;";
         
-        private JComponent ttResource;
-        private String ttLastString;
-        private boolean hadTitle = false;
-        private long lastAccess = 0;
+        private JLabel ttResource;
         public JComponent getToolTipComponent()
         {
-            tufts.vue.Resource r = mLWC.getResource();
-            boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
-            long access = 0;
-            if (r instanceof MapResource)
-                access = ((MapResource)r).getAccessSuccessful();
-
-            if (ttResource == null
-                || access > lastAccess // title may have been updated
-                || !ttLastString.equals(mLWC.getResource().getSpec())
-                || hadTitle != hasTitle)
-            {
-                hadTitle = hasTitle;
-                ttLastString = mLWC.getResource().getSpec();
-                // todo perf: use StringBuffer
-                String prettyURL = VueUtil.decodeURL(ttLastString);
-                if (prettyURL.startsWith("file://") && prettyURL.length() > 7)
-                    prettyURL = prettyURL.substring(7);
-                final String html =
-                    "<html>"
-                    + (hasTitle ? (gap + "<b>"+mLWC.getResource().getTitle()+"</b>&nbsp;<br>") : "")
-                    + gap + prettyURL + gap
-                    //+ (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
-                    + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;"
-                    ;
-                
-                JLabel label = new AALabel(html);
+            if (ttResource == null) {
+                ttResource = new AALabel("");
                 //label.setFont(FONT_MEDIUM);
                 // todo: "Arial Unicode MS" looks great on mac (which it maps to Hevetica, which on
                 // mac supports unicode, and appears identical to Arial), but is only thing that
                 // works for unicode on the PC, yet looks relaively crappy for regular text.  Check
                 // into fonts avail on Win XP (this was Win2k) todo: try embedding the font name in
                 // the HTML above for just the title, and not the URL & click message.
-                label.setFont(FONT_MEDIUM_UNICODE);
-
-                if (false) {
-                    // example of button a gui component in a rollover
-                    JPanel panel = new JPanel();
-                    panel.setName("LWIcon$Resource-Action");
-                    panel.add(label);
-                    //JButton btn = new JButton(new VueAction(prettyURL) { // looks okay but funny & leaves out title...
-                    //JButton btn = new JButton(new VueAction(html) { // looks terrible
-                    AbstractButton btn = new JButton(new VueAction("Open") {
-                            // TODO: need a superclass of VueAction that doesn't add it to a global list,
-                            // as this action is very transient, and we'll want it GC'able.  And actually,
-                            // in this case, the resource object itself ought to have an action built in
-                            // that can be re-used by everyone interested in doing this.
-                            public void act() { doDoubleClickAction(); }
-                        });
-                    
-                    btn.setOpaque(false);
-                    btn.setToolTipText(null);
-                    btn.setFont(FONT_SMALL_BOLD);
-                    panel.add(btn);
-                    //panel.setBackground(Color.white); // no effect
-                    ttResource = panel;
-                } else {
-                    ttResource = label;
-                }
+                ttResource.setFont(FONT_MEDIUM_UNICODE);
             }
             
-            lastAccess = access;
+            final tufts.vue.Resource r = mLWC.getResource();
+            final boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
+            final String prettyResource = r.getPrettyString();
+            ttResource.setIcon(r.getTinyIcon());
+            ttResource.setVerticalTextPosition(SwingConstants.TOP);
+            // already has a border -- either make compound or put in a panel
+//             if (DEBUG.BOXES)
+//                 ttResource.setBorder(new LineBorder(Color.green, 1));
+//             else
+//                 ttResource.setBorder(BorderFactory.createEmptyBorder(1,1,0,1));
+            ttResource.setText(
+                    "<html>"
+                    + (hasTitle ? (indent + "<b>" + r.getTitle() + "</b>&nbsp;<br>") : "")
+                    + indent + prettyResource + gap
+                    + "<font size=-2 color=#999999><br>" + indent + "Double-click to open in new window&nbsp;"
+                               );
                 
             return ttResource;
         }
+        
+//         private JComponent ttResource;
+//         private String ttLastString;
+//         private boolean hadTitle = false;
+//         private long lastAccess = 0;
+//         public JComponent getToolTipComponent()
+//         {
+//             tufts.vue.Resource r = mLWC.getResource();
+//             boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
+//             long access = 0;
+//             if (r instanceof URLResource)
+//                 access = ((URLResource)r).getAccessSuccessful();
+
+//             if (ttResource == null
+//                 || access > lastAccess // title may have been updated
+//                 || !ttLastString.equals(mLWC.getResource().getSpec())
+//                 || hadTitle != hasTitle)
+//             {
+//                 hadTitle = hasTitle;
+//                 ttLastString = mLWC.getResource().getSpec();
+//                 // todo perf: use StringBuffer
+//                 String prettyURL = VueUtil.decodeURL(ttLastString);
+//                 if (prettyURL.startsWith("file://") && prettyURL.length() > 7)
+//                     prettyURL = prettyURL.substring(7);
+//                 final String html =
+//                     "<html>"
+//                     + (hasTitle ? (gap + "<b>"+mLWC.getResource().getTitle()+"</b>&nbsp;<br>") : "")
+//                     + gap + prettyURL + gap
+//                     //+ (hasTitle?("<font size=-2><br>&nbsp;"+mLWC.getResource().getTitle()+"</font>"):"")
+//                     + "<font size=-2 color=#999999><br>&nbsp;Double-click to open in new window&nbsp;"
+//                     ;
+                
+//                 JLabel label = new AALabel(html);
+//                 //label.setFont(FONT_MEDIUM);
+//                 // todo: "Arial Unicode MS" looks great on mac (which it maps to Hevetica, which on
+//                 // mac supports unicode, and appears identical to Arial), but is only thing that
+//                 // works for unicode on the PC, yet looks relaively crappy for regular text.  Check
+//                 // into fonts avail on Win XP (this was Win2k) todo: try embedding the font name in
+//                 // the HTML above for just the title, and not the URL & click message.
+//                 label.setFont(FONT_MEDIUM_UNICODE);
+
+//                 if (false) {
+//                     // example of button a gui component in a rollover
+//                     JPanel panel = new JPanel();
+//                     panel.setName("LWIcon$Resource-Action");
+//                     panel.add(label);
+//                     //JButton btn = new JButton(new VueAction(prettyURL) { // looks okay but funny & leaves out title...
+//                     //JButton btn = new JButton(new VueAction(html) { // looks terrible
+//                     AbstractButton btn = new JButton(new VueAction("Open") {
+//                             // TODO: need a superclass of VueAction that doesn't add it to a global list,
+//                             // as this action is very transient, and we'll want it GC'able.  And actually,
+//                             // in this case, the resource object itself ought to have an action built in
+//                             // that can be re-used by everyone interested in doing this.
+//                             public void act() { doDoubleClickAction(); }
+//                         });
+                    
+//                     btn.setOpaque(false);
+//                     btn.setToolTipText(null);
+//                     btn.setFont(FONT_SMALL_BOLD);
+//                     panel.add(btn);
+//                     //panel.setBackground(Color.white); // no effect
+//                     ttResource = panel;
+//                 } else {
+//                     ttResource = label;
+//                 }
+//             }
+            
+//             lastAccess = access;
+                
+//             return ttResource;
+//         }
 
         void layout()
         {
@@ -494,6 +531,33 @@ public abstract class LWIcon extends Rectangle2D.Float
         void draw(DrawContext dc)
         {
             super.draw(dc);
+
+            if (mLWC.hasResource()) {
+
+                // Draw a small image icon instead of the text "extension" icon
+                
+                final Image image;
+
+                if (!dc.isInteractive() || dc.getAbsoluteScale() >= 2) {
+                    // non-interative: eg, printing or image generating
+                    image = mLWC.getResource().getLargeIconImage();
+                } else
+                    image = mLWC.getResource().getTinyIconImage();
+                
+                if (image != null) {
+                    final double iw = image.getWidth(null);
+                    final double ih = image.getHeight(null);
+                     final AffineTransform tx = AffineTransform.getTranslateInstance(getX() + (getWidth() - 16) / 2,
+                                                                                     getY() + (getHeight() - 16) / 2);
+                    //final AffineTransform tx = AffineTransform.getScaleInstance(1.0/8.0, 1.0/8.0);
+                    //final AffineTransform tx = new AffineTransform();
+                    if (iw > 16)
+                        tx.scale(16 / iw, 16 / iw);
+                    //tx.scale(1.0/8.0, 1.0/8.0);
+                    dc.g.drawImage(image, tx, null);
+                    //return;
+                }
+            }
 
             double _x = getX();
             double _y = getY();
