@@ -309,6 +309,19 @@ public class EditorManager
             EditorLoadingUnderway = false;
         }
     }
+
+    private static String dumpEditor(LWEditor editor) {
+        String msg = tufts.vue.gui.GUI.name(editor);
+
+        if (DEBUG.TOOL) {
+            msg += ";\n\tObject: " + editor;
+            if (editor instanceof java.awt.Component) {
+                java.awt.Component parent = ((java.awt.Component)editor).getParent();
+                msg += "\n\tAWT parent: " + tufts.vue.gui.GUI.name(parent) + "; " + parent;
+            }
+        }
+        return msg;
+    }
     
     private void setEditorState(LWEditor editor, LWSelection selection, LWComponent propertySource, boolean setEnabledState) {
         final boolean supported;
@@ -333,6 +346,13 @@ public class EditorManager
         }
 
         final Object key = editor.getPropertyKey();
+
+        if (key == null) {
+            //Log.debug("editor reports null property key: " + dumpEditor(editor));
+            return;
+        }
+
+        
         //final Object value = propertySource.getPropertyValue(key);
             
         //if (DEBUG.TOOL&&DEBUG.META) out("loadEditor: " + editor + " loading " + editor.getPropertyKey() + " from " + source);
@@ -706,6 +726,13 @@ public class EditorManager
     }
     
     static void registerEditor(LWEditor editor) {
+
+        if (editor.getPropertyKey() == null) {
+            //if (DEBUG.Enabled) System.out.println("EditorManager: registration ignoring editor w/null key: " + dumpEditor(editor));
+            Log.debug("registration ignoring editor w/null key: " + dumpEditor(editor));
+            return;
+        }
+        
         if (mEditors.add(editor)) {
             if (DEBUG.TOOL || DEBUG.INIT) System.out.println("REGISTERED EDITOR: " + editor);
             if (editor instanceof java.awt.Component)
@@ -731,7 +758,8 @@ public class EditorManager
     }
 
     static void out(Object o) {
-        System.out.println("EditorManager: " + o);
+        //Log.forcedLog("FOO", org.apache.log4j.Level.ALL, "EditorManager: " + o, null);
+        Log.debug(o);
     }
         
 
