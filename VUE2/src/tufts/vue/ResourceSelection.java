@@ -25,8 +25,9 @@ import tufts.vue.gui.GUI;
  * The currently selected resource.  Currently only supports a single selected
  * resource at a time.
  *
- * @version $Revision: 1.8 $ / $Date: 2006-08-07 05:31:22 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-10-06 02:53:31 $ / $Author: sfraize $
  */
+//public class ResourceSelection {}
 public class ResourceSelection
 {
     private Resource selected = null;
@@ -36,9 +37,6 @@ public class ResourceSelection
     private int notifyCount = 0;
     private boolean inNotify = false;
 
-    public interface Listener extends java.util.EventListener {
-        void resourceSelectionChanged(ResourceSelection.Event e);
-    }
     public static class Event {
         final public Resource selected;
         final public Object source;
@@ -48,6 +46,10 @@ public class ResourceSelection
         }
     }
 
+    public interface Listener extends java.util.EventListener {
+        void resourceSelectionChanged(Event e);
+    }
+    
     public synchronized void addListener(Listener l)
     {
         if (DEBUG.SELECTION) out("adding listener: " + GUI.namex(l));
