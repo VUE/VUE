@@ -28,7 +28,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.59 $ / $Date: 2007-10-06 02:59:55 $ / $Author: sfraize $ 
+ * @version $Revision: 1.60 $ / $Date: 2007-10-06 06:17:10 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -309,7 +309,7 @@ public class DRBrowser extends JPanel
     
     public void loadDataSourceViewer()
     {
-        if (DEBUG.DR || DEBUG.Enabled) out("loading the DataSourceViewer...");
+        Log.debug("loading the DataSourceViewer...");
             
         try {
             DataSourceViewer dsv = new DataSourceViewer(this);
@@ -349,7 +349,7 @@ public class DRBrowser extends JPanel
 
     private static void out(String s) {
         //System.out.println("DRBrowser: " + s);
-        Log.info("DRBrowser: " + s);
+        Log.info(s);
     }
 
     

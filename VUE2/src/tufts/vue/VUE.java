@@ -49,6 +49,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.WriterAppender;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.LogManager;
 
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
@@ -58,12 +59,17 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.488 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.489 $ / $Date: 2007-10-06 06:17:10 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
+    /** This is the root logger for all classes named tufts.* */
+    private static final Logger TuftsLog = Logger.getLogger("tufts");
+    /** This is the root logger for all classes named edu.tufts.* */
+    private static final Logger EduTuftsLog = Logger.getLogger("edu.tufts");
+
     private static final Logger Log = Logger.getLogger(VUE.class);
     
     private static AppletContext sAppletContext = null;
@@ -469,11 +475,14 @@ public class VUE
 
         if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
 
-        if (DEBUG.Enabled)
+        if (DEBUG.Enabled) {
             debugInit(false);
+        }
 
     }
 
+    private static final PatternLayout MasterLogPattern = new PatternLayout("VUE %d %5p [%t] %c{1}:%x %m%n");
+    
     public static void debugInit(boolean heavy) {
         if (heavy) {
             // this handy for finding code locations:
@@ -482,11 +491,50 @@ public class VUE
                                                   + Util.TERM_RED + "(%F/%C/%M)" + Util.TERM_CLEAR
                                                   + " %m%n"); 
         } else {
-            MasterLogPattern.setConversionPattern("@%6r [%t] %5p %x %m%n");
+            MasterLogPattern.setConversionPattern("@%6r %5p [%t] %c{1}: %m%n");
+            //MasterLogPattern.setConversionPattern("@%6r [%t] %5p %c %x %m%n");
         }
-        Log.setLevel(Level.DEBUG);
-        Log.info("VUE startup: " + new Date());
+
+        // This will enabled it for every logger in any jar, which is tons of stuff.
+        // Logger.getRootLogger().setLevel(Level.DEBUG);
+        
+        TuftsLog.setLevel(Level.DEBUG);
+        EduTuftsLog.setLevel(Level.DEBUG);
     }
+
+    /*
+    // no longer needed as is: can clean up to dump all loggers in the VM if we like:
+    private static void updateTuftsLoggers(Level newLevel)
+    {
+        if (newLevel == null)
+            newLevel = DEBUG.Enabled ? Level.DEBUG : Level.INFO;
+        
+        Enumeration<Logger> e = LogManager.getCurrentLoggers();
+        while (e.hasMoreElements()) {
+            Logger l = e.nextElement();
+            //System.out.println("Found logger: " + l + "; " + l.getName() + " at " + l.getLevel()
+            if (DEBUG.Enabled && DEBUG.META)
+                System.out.println("Found in "
+                                   + l.getParent() + ": " 
+                                   + l + "; " + l.getName() + "; at " + l.getLevel()
+                                   //+ " " + l.getParent().getName()
+                                   );
+            if (newLevel != null && l.getName().startsWith("tufts")) {
+                Level curLevel = l.getLevel();
+                if (true) {
+                    System.out.println("\tlogger " + l.getName() + "; " + curLevel + " -> " + l.getLevel());
+                    continue;
+                }
+                if (curLevel == null || newLevel.toInt() > curLevel.toInt()) {
+                    l.setLevel(newLevel);
+                    if (true||DEBUG.Enabled)
+                        System.out.println("\tlogger " + l.getName() + "; " + curLevel + " -> " + l.getLevel());
+                }
+            }
+        }
+    }
+    */
+    
         
     
 
@@ -513,8 +561,6 @@ public class VUE
     private static DockWindow outlineDock;
     private static DockWindow floatingZoomDock;
 
-    private static final PatternLayout MasterLogPattern = new PatternLayout("VUE %d [%t] %5p %x %m%n");
-    
     
     static {
         Logger.getRootLogger().removeAllAppenders(); // need to do this or we get everything twice
@@ -525,8 +571,8 @@ public class VUE
         final PatternLayout pattern = MasterLogPattern;
         Logger.getRootLogger().addAppender(new ConsoleAppender(pattern));
         Logger.getRootLogger().addAppender(new WriterAppender(pattern, Util.getLogWriter()));
+        Logger.getRootLogger().setLevel(Level.INFO);
         //Log.addAppender(new ConsoleAppender(new PatternLayout("[%t] %-5p %c %x - %m%n")));
-        Log.setLevel(Level.INFO);
 
         //set tooltips to psuedo-perm
         ToolTipManager.sharedInstance().setDismissDelay(240000);
@@ -540,6 +586,12 @@ public class VUE
         VUE.isStartupUnderway = true;
 
         parseArgs(args);
+
+        if (DEBUG.Enabled) {
+            // dump a date if debug is on, as it will have installed a log format that leaves it out
+            Log.info("VUE startup: " + new Date());
+        }
+        
 
         Log.info("VUE build: " + tufts.vue.Version.AllInfo);
         Log.info("Platform: " + Util.getPlatformName());
@@ -584,7 +636,7 @@ public class VUE
         VUE.isStartupUnderway = false;
         
         Log.info("startup completed.");
-        
+
         if (exitAfterInit) {
             out("init completed: exiting");
             System.exit(0);

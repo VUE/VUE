@@ -114,7 +114,7 @@ public class DataSourceViewer extends JPanel
         dataSourceList = new DataSourceList(this);
         Widget.setExpanded(DRB.browsePane, false);
         edu.tufts.vue.dsm.DataSource dataSources[] = null;
-        org.apache.log4j.NDC.push(getClass().getSimpleName() + ";");
+        //org.apache.log4j.NDC.push(getClass().getSimpleName() + ";");
         try {
             // load old-style data sources
             Log.info("Loading old style data sources...");
@@ -138,7 +138,7 @@ public class DataSourceViewer extends JPanel
             t.printStackTrace();
             VueUtil.alert("Error loading Resource","Error");
         }
-        org.apache.log4j.NDC.pop();
+        //org.apache.log4j.NDC.pop();
         
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();

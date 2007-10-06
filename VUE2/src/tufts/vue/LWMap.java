@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.161 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.162 $ / $Date: 2007-10-06 06:17:10 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -634,9 +634,10 @@ public class LWMap extends LWContainer
             mModelVersion = getCurrentModelVersion();
         }
 
-// Not turned on yet:
-//         if (mSaveLocation != null)
-//             ensureAllResourcesFoundAndRelative(allRestored, mSaveLocation);
+        if (false) { // Not turned on yet
+            if (mSaveLocation != null)
+                ensureAllResourcesFoundAndRelative(allRestored, mSaveLocation);
+        }
         
         //----------------------------------------------------------------------------------------
         

@@ -27,7 +27,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.15 $ / $Date: 2007-10-06 03:49:25 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2007-10-06 06:17:10 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -326,7 +326,8 @@ public class ActiveInstance<T>
 
     public void removeListener(ActiveListener listener) {
         if (mListeners.remove(listener)) {
-            outf(TERM_YELLOW + "%-50s removed listener %s\n" + TERM_CLEAR, this, listener);
+            if (DEBUG.Enabled) 
+                outf(TERM_YELLOW + "%-50s removed listener %s\n" + TERM_CLEAR, this, listener);
         } else if (DEBUG.EVENTS) {
             Log.warn(this + "; remove: didn't contain listener " + listener);
         }

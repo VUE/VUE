@@ -19,7 +19,7 @@
 
 package tufts.vue;
 
-//import tufts.vue.DEBUG;
+import tufts.Util;
 import java.util.Properties;
 import java.net.URI;
 import java.awt.Image;
@@ -32,7 +32,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-10-06 06:17:10 $ / $Author: sfraize $
  * @author  akumar03
  */
 
@@ -161,7 +161,7 @@ public abstract class Resource
         }
 
         protected Resource postProcess(Resource r, Object source) {
-            Log.debug("Created " + r + " from " + tufts.Util.tag(source) + ";" + source);
+            Log.debug("Created " + Util.tags(r) + " from " + Util.tags(source));
             return r;
         }
     }
