@@ -32,11 +32,13 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.46 $ / $Date: 2007-02-16 16:55:44 $ / $Author: dan $
+ * @version $Revision: 1.47 $ / $Date: 2007-10-06 06:34:22 $ / $Author: sfraize $
  *
  */
 public class VueResources
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueResources.class);
+
     /** Resource Bundle **/
     //protected static final ResourceBundle VueResourceBundle = ResourceBundle.getBundle("tufts.vue.VueResources");
     //protected static final ResourceBundle NarraVisionResourceBundle;
@@ -731,7 +733,8 @@ public class VueResources
 
     static protected void alert( String pMsg) {
         if( DEBUG.Enabled || sDebug || ( get("alerts") != null) )
-            System.out.println("VueResources: " + pMsg);
+            //System.out.println("VueResources: " + pMsg);
+            Log.info("alert: " + pMsg);
     }
 	
 

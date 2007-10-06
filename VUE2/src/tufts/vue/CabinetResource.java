@@ -39,7 +39,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.28 $ / $Date: 2007-10-06 03:49:25 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-10-06 06:34:22 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -139,7 +139,7 @@ public class CabinetResource extends URLResource
                 url = new URL (getSpec());      //  Get the URL of this cabinet.
             } catch (java.net.MalformedURLException ex) {
                 //if (DEBUG.Enabled) ex.printStackTrace();
-                Log.warn("CabinetResource: Illegal URL on this platform: " + getSpec());
+                Log.warn("Illegal URL on this platform: " + getSpec());
             }
 
             if (url == null) {

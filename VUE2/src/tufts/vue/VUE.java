@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.489 $ / $Date: 2007-10-06 06:17:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.490 $ / $Date: 2007-10-06 06:34:22 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -475,9 +475,8 @@ public class VUE
 
         if (DEBUG.INIT) System.out.println("VUE: parsed args " + allArgs);
 
-        if (DEBUG.Enabled) {
-            debugInit(false);
-        }
+        if (DEBUG.Enabled)
+            debugInit(DEBUG.META);
 
     }
 
@@ -594,7 +593,7 @@ public class VUE
         
 
         Log.info("VUE build: " + tufts.vue.Version.AllInfo);
-        Log.info("Platform: " + Util.getPlatformName());
+        Log.info("Current Platform: " + Util.getPlatformName());
         Log.info("Running in Java VM: " + getSystemProperty("java.runtime.version")
                  + "; MaxMemory(-Xmx)=" + VueUtil.abbrevBytes(Runtime.getRuntime().maxMemory())
                  + ", CurMemory(-Xms)=" + VueUtil.abbrevBytes(Runtime.getRuntime().totalMemory())

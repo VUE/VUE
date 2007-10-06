@@ -219,7 +219,7 @@ public class OpenAction extends VueAction
     public static void main(String args[]) throws Exception {
 
         VUE.parseArgs(args);
-        VUE.debugInit(false);
+        VUE.debugInit(DEBUG.META);
 
         for (String arg : args) {
             if (arg.charAt(0) == '-')
