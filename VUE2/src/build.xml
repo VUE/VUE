@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.142 $ / $Date: 2007-09-25 14:16:08 $ / $Author: jeff $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.142 2007-09-25 14:16:08 jeff Exp $ -->
+<!-- $Revision: 1.143 $ / $Date: 2007-10-06 03:01:35 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.143 2007-10-06 03:01:35 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -126,6 +126,7 @@
   <!-- aclibico-1.0.jar: SMF 2006-03-29; removed for now: is claiming to handle all images types (no just .ico)
        and completely blowing out the java VM when it tries (out of memory)-->
   <!-- 2007-01-01 SMF: updated castor to version castor-1.0.5-xml.jar -->
+  <!-- 2007-09-30 SMF: updated castor to version castor-1.1.2.1-xml.jar -->
   
   <property name="thirdparty.jarfiles.names"
             value="MERLOTOsid-1.0.jar
@@ -139,7 +140,7 @@
 				   OSIDLoggingPlain-1.0.jar
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
-                   castor-1.0.5-xml.jar
+                   castor-1.1.2.1-xml.jar
                    jaxb-api-unsigned.jar
                    jaxb-impl-unsigned.jar
                    jax-qname-unsigned.jar
