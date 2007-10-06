@@ -112,83 +112,92 @@ public class OpenAction extends VueAction {
     // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
     public static LWMap loadMap(String filename) {
         try {
-            if (DEBUG.CASTOR || DEBUG.IO) System.err.println("\nloadMap " + filename);
-            File file = new File(filename);
-
-            //int dotIndex = file.getName().lastIndexOf('.');
-            //String extension = "";
-            //if (dotIndex >= 0 && file.getName().length() > 1)
-            //    extension = file.getName().substring(dotIndex + 1).toLowerCase();
-            //System.out.println("Extension = "+extension);
-
-            // TODO: the current method of saving VUE zip archives doesn't preserve the
-            // original resource reference.  We could easily do this by changing this to
-            // a system where the original resources are left alone, (and the archiving
-            // process can speedily pull the images from the disk image cache), and
-            // here, when restoring, simply pre-load the disk cache with images included
-            // in the archive.  Unless we want to provide other functionaly, such as the
-            // ability for the user to get at the content directly in a special folder,
-            // look at/edit it, etc.
-
-            // Also problem: opening a VUE .zip archive, then trying to save it normally
-            // won't produce something restorable.   Don't know if saving it as
-            // a zip archive again will work or not.
-
-            // TODO PREF: may want option for user to by default use the cached on-disk
-            // image version of something when double clicking, v.s., going back out
-            // online for the original resource.  (Would be nice also to do this by
-            // default if not online!)  E.g., opening an image from the cache on MacOSX
-            // would immediately open in, usually in Preview, instead of reloading it in
-            // Safari.
-
-            if (isVueIMSCPArchive(file)) {
-                VUE.Log.info("Unpacking VUE IMSCP zip archive: " + file);
-                ZipFile zipFile = new ZipFile(file);
-                Vector resourceVector = new Vector();
-                File resourceFolder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.RESOURCE_FILES);
-                if(resourceFolder.exists() || resourceFolder.mkdir()) {
-                    ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
-                    ZipEntry e;
-                    while ((e=zin.getNextEntry()) != null) {
-                        unzip(zin, e.getName());
-                        //if (DEBUG.IO) System.out.println("ZipEntry: " + e.getName());  
-                        if(!e.getName().equalsIgnoreCase(IMSCP.MAP_FILE) && !e.getName().equalsIgnoreCase(IMSCP.MANIFEST_FILE)){
-                            Resource resource = new URLResource(e.getName());
-                            resourceVector.add(resource);
-                            //if (DEBUG.IO) System.out.println("Resource: " + resource);
-                        }
-                    }
-                    zin.close();
-                }
-           
-                File mapFile  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.MAP_FILE);
-                LWMap map = ActionUtil.unmarshallMap(mapFile);
-                map.setFile(null);
-                map.setLabel(ZIP_IMPORT_LABEL);
-                Iterator i = resourceVector.iterator();
-                while(i.hasNext()){
-                    Resource r = (Resource)i.next();
-                    replaceResource(map,r,new URLResource(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
-                }
-
-                map.markAsSaved();
-                
-                return map;
-            } else {
-                LWMap map = ActionUtil.unmarshallMap(file);
-                return map;
-            }
+            return doLoadMap(filename);
         } catch (FileNotFoundException e) {
             // maybe move all exception code here, taking the file-not-found handling
             System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
             VueUtil.alert(null, "\"" + filename + "\": file not found.", "Map Not Found");
-        } catch (Exception e) {
+        } catch (Throwable t) {
             // out of the Open File dialog box.
-            System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
+            System.err.println("OpenAction.loadMap[" + filename + "]: " + t);
             VueUtil.alert(null, "\"" + filename + "\" cannot be opened in this version of VUE.", "Map Open Error");
-            e.printStackTrace();
+            t.printStackTrace();
         }
         return null;
+    }
+
+    private static LWMap doLoadMap(String filename)
+        throws java.io.FileNotFoundException,
+               java.util.zip.ZipException,
+               java.io.IOException
+    {
+        if (DEBUG.CASTOR || DEBUG.IO) System.err.println("\nloadMap " + filename);
+        File file = new File(filename);
+
+        //int dotIndex = file.getName().lastIndexOf('.');
+        //String extension = "";
+        //if (dotIndex >= 0 && file.getName().length() > 1)
+        //    extension = file.getName().substring(dotIndex + 1).toLowerCase();
+        //System.out.println("Extension = "+extension);
+
+        // TODO: the current method of saving VUE zip archives doesn't preserve the
+        // original resource reference.  We could easily do this by changing this to
+        // a system where the original resources are left alone, (and the archiving
+        // process can speedily pull the images from the disk image cache), and
+        // here, when restoring, simply pre-load the disk cache with images included
+        // in the archive.  Unless we want to provide other functionaly, such as the
+        // ability for the user to get at the content directly in a special folder,
+        // look at/edit it, etc.
+
+        // Also problem: opening a VUE .zip archive, then trying to save it normally
+        // won't produce something restorable.   Don't know if saving it as
+        // a zip archive again will work or not.
+
+        // TODO PREF: may want option for user to by default use the cached on-disk
+        // image version of something when double clicking, v.s., going back out
+        // online for the original resource.  (Would be nice also to do this by
+        // default if not online!)  E.g., opening an image from the cache on MacOSX
+        // would immediately open in, usually in Preview, instead of reloading it in
+        // Safari.
+
+        if (isVueIMSCPArchive(file)) {
+            VUE.Log.info("Unpacking VUE IMSCP zip archive: " + file);
+            ZipFile zipFile = new ZipFile(file);
+            Vector<Resource> resourceVector = new Vector();
+            File resourceFolder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.RESOURCE_FILES);
+            if(resourceFolder.exists() || resourceFolder.mkdir()) {
+                ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
+                ZipEntry e;
+                while ((e=zin.getNextEntry()) != null) {
+                    unzip(zin, e.getName());
+                    //if (DEBUG.IO) System.out.println("ZipEntry: " + e.getName());  
+                    if(!e.getName().equalsIgnoreCase(IMSCP.MAP_FILE) && !e.getName().equalsIgnoreCase(IMSCP.MANIFEST_FILE)){
+                        // todo: may want to add a Resource.Factory.get(ZipEntry) method
+                        Resource resource = Resource.getFactory().get(e.getName());
+                        resourceVector.add(resource);
+                        //if (DEBUG.IO) System.out.println("Resource: " + resource);
+                    }
+                }
+                zin.close();
+            }
+           
+            File mapFile  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+IMSCP.MAP_FILE);
+            LWMap map = ActionUtil.unmarshallMap(mapFile);
+            map.setFile(null);
+            map.setLabel(ZIP_IMPORT_LABEL);
+            for (Resource r : resourceVector) {
+                replaceResource(map, r,
+                                Resource.getFactory().get(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
+                //new URLResource(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+r.getSpec()));
+            }
+
+            map.markAsSaved();
+                
+            return map;
+        } else {
+            LWMap map = ActionUtil.unmarshallMap(file);
+            return map;
+        }
     }
     
     public static LWMap loadMap(java.net.URL url) {
@@ -205,17 +214,68 @@ public class OpenAction extends VueAction {
         }
     }
     
+    /** test harness for opening a whole bunch of map files just to make sure we can parse and create an LWMap model from them */
     public static void main(String args[]) throws Exception {
+
         VUE.parseArgs(args);
-        String file = args.length == 0 ? "test.xml" : args[0];
-        System.err.println("Attempting to read map from " + file);
-        DEBUG.Enabled = true;
-        LWMap map;
-        if (file.indexOf(':') >= 0)
-            map = OpenAction.loadMap(new java.net.URL(file));
-        else
-            map = OpenAction.loadMap(file);
-        System.out.println("Loaded map: " + map);
+        VUE.debugInit(false);
+
+        for (String arg : args) {
+            if (arg.charAt(0) == '-')
+                continue;
+            System.err.println("Attempting to read map from " + arg);
+            LWMap map = null;
+
+            Throwable tx = null;
+            try {
+                if (arg.indexOf(':') >= 0)
+                    map = OpenAction.loadMap(new java.net.URL(arg));
+                else
+                    map = OpenAction.doLoadMap(arg);
+            } catch (OutOfMemoryError e) {
+                System.err.println("@@@OUT OF MEMORY " + e);
+                System.exit(-1);
+            } catch (Throwable t) {
+                t.printStackTrace();
+                tx = t;
+            }
+
+            final Object result;
+
+            if (map == null) {
+                if (tx.getCause() != null)
+                    result = tx.getCause();
+                else
+                    result = tx;
+            } else
+                result = map;
+
+            // If exception has multi-line content, and we're grepping output for '@@@',
+            // we're ensure to include this token after the exception is printed, so
+            // we can still see the file that failed.
+            System.err.format("@@@Free: %4.1fm; Loaded: %-60s from @@@ %s\n",
+                              (float) (Runtime.getRuntime().freeMemory() / (float) (1024*1024)),
+                              result, arg);
+            //System.err.println("@@@ARG[" + arg + "]");
+
+            //System.out.println("@@@Loaded map: " + map + " from " + arg);
+        }
+        System.out.println("@@@Done.");
+
+        
+
+//         String file = args.length == 0 ? "test.xml" : args[0];
+//         System.err.println("Attempting to read map from " + file);
+//         DEBUG.Enabled = true;
+//         LWMap map;
+//         if (file.indexOf(':') >= 0)
+//             map = OpenAction.loadMap(new java.net.URL(file));
+//         else
+//             map = OpenAction.loadMap(file);
+//         System.out.println("Loaded map: " + map);
+        
+
+        
     }
     
     public static void unzip(ZipInputStream zin, String s) throws IOException {
