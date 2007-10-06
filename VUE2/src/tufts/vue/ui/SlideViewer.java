@@ -189,7 +189,7 @@ public class SlideViewer extends tufts.vue.MapViewer
 
         DEBUG_TIMER_ROLLOVER = false;
 
-        VUE.addActiveListener(LWPathway.Entry.class, this);
+        //VUE.addActiveListener(LWPathway.Entry.class, this);
 
         /*
         VUE.addActiveListener(LWPathway.Entry.class, new VUE.ActiveListener() {
@@ -238,11 +238,11 @@ public class SlideViewer extends tufts.vue.MapViewer
             return "Empty";
     }
     
-    @Override
-    public void addNotify() {
-        super.addNotify();
-        getParent().add(new Toolbar(), BorderLayout.NORTH);
-    }
+//     @Override
+//     public void addNotify() {
+//         super.addNotify();
+//         getParent().add(new Toolbar(), BorderLayout.NORTH);
+//     }
 
     @Override
     public void grabVueApplicationFocus(String from, ComponentEvent event) {
