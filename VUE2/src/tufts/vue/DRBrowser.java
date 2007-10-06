@@ -28,10 +28,12 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.58 $ / $Date: 2006-07-28 22:49:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.59 $ / $Date: 2007-10-06 02:59:55 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DRBrowser.class);
+    
     public static final Object SEARCH_EDITOR = "search_editor_layout_constraint";
     public static final Object SEARCH_RESULT = "search_result_layout_constraint";
     
@@ -154,7 +156,7 @@ public class DRBrowser extends JPanel
     public DRBrowser(boolean delayedLoading, DockWindow resourceDock, DockWindow searchDock)
     {
         super(new BorderLayout());
-        if(DEBUG.DR) System.out.println("Creating DRBrowser");
+        if (DEBUG.DR || DEBUG.INIT) out("Creating DRBrowser");
         setName("Resources");
         //Dimension startSize = new Dimension(300,160);
         //setPreferredSize(startSize);
@@ -186,6 +188,8 @@ public class DRBrowser extends JPanel
             buildSingleDockWindow();
         else
             buildMultipleDockWindows();
+
+        if (DEBUG.DR || DEBUG.INIT) out("Instantiated.");
     }
 
     private void buildSingleDockWindow()
@@ -289,7 +293,7 @@ public class DRBrowser extends JPanel
             browsePane.add(comp);
              
         } catch (Exception ex) {
-            if (DEBUG.DR) System.out.println("Problem loading local file library");
+            if (DEBUG.DR) out("Problem loading local file library");
         }
 		
         //-----------------------------------------------------------------------------
@@ -300,12 +304,12 @@ public class DRBrowser extends JPanel
         //savedResourcesPane.setPreferredSize(startSize);
         //savedResourcesPane.add(new JLabel("saved resources"));
 	
-        if(DEBUG.DR) System.out.println("build widgets complete");	
+        if (DEBUG.DR) out("build widgets complete");	
     }
     
     public void loadDataSourceViewer()
     {
-        if (DEBUG.DR || DEBUG.Enabled) System.out.println("DRBrowser: loading the DataSourceViewer...");
+        if (DEBUG.DR || DEBUG.Enabled) out("loading the DataSourceViewer...");
             
         try {
             DataSourceViewer dsv = new DataSourceViewer(this);
@@ -335,16 +339,17 @@ public class DRBrowser extends JPanel
             //setPreferredSize(dsv.getPreferredSize());
             
         } catch (Throwable e) {
-            VUE.Log.error(e);
+            Log.error(e);
             e.printStackTrace();
             loadingLabel.setText(e.toString());
         }
         
-        if (DEBUG.DR || DEBUG.Enabled) System.out.println("DRBrowser: done loading DataSourceViewer.");
+        if (DEBUG.DR || DEBUG.Enabled) out("done loading DataSourceViewer");
     }
 
     private static void out(String s) {
-        System.out.println("DRBrowser: " + s);
+        //System.out.println("DRBrowser: " + s);
+        Log.info("DRBrowser: " + s);
     }
 
     
