@@ -36,7 +36,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-10-05 18:26:19 $ / $Author: mike $ 
+ * @version $Revision: 1.54 $ / $Date: 2007-10-06 05:23:01 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -209,6 +209,7 @@ public class MapInspectorPanel extends JPanel
         public InfoPanel() {
              
              mMapColor.setToolTipText("Map Color");
+             mMapColor.setName("Map-Color");
   
              mMapColor.setPropertyKey(null);
              mMapColor.getPopupWindow().addFocusListener(new FocusListener()
