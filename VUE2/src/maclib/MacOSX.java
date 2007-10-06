@@ -11,6 +11,7 @@ import com.apple.eawt.Application;
 import com.apple.eawt.ApplicationEvent;
 
 import java.awt.*;
+import java.util.*;
 import java.awt.image.BufferedImage;
 
 // NOTE: This will ONLY compile on Mac OS X (or, technically, anywhere
@@ -24,13 +25,15 @@ import java.awt.image.BufferedImage;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.10 $ / $Date: 2006-10-27 15:57:22 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2007-10-06 02:57:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
 {
     protected static NSWindow sFullScreen;
     protected static boolean DEBUG = false;
+
+    private static int DefaultColorCycleSteps = 8; // old was 32
 
     static {
         if (System.getProperty("tufts.macosx.debug") != null)
@@ -77,41 +80,87 @@ public class MacOSX
             });
     }
     
-    public static Image getIconForExtension(String ext)
+    // We allow non-threadsafe access to this map, as worst case
+    // simply allocates some extra icons.
+    private static final Map<String,Image> IconCache = new HashMap();
+    
+    public static Image getIconForExtension(String ext) {
+        return getIconForExtension(ext, 128);
+    }
+        
+    public static Image getIconForExtension(String ext, int sizeRequest) {
+        try {
+            return fetchIconForExtension(ext, sizeRequest);
+        } catch (Throwable t) {
+            out("Failed to find icon for extension [" + ext + "] size " + sizeRequest);
+            t.printStackTrace();
+        }
+        return null;
+    }
+    
+    private static Image fetchIconForExtension(String ext, int sizeRequest)
     {
-    	
-    	NSImage nsimage = null;
-    	if (ext.equals("dir"))
-    	  nsimage = NSWorkspace.sharedWorkspace().iconForFile("/bin");
+        final String key = ext + '.' + sizeRequest;
+        
+        Image image = IconCache.get(key);
+        if (image != null)
+            return image;
+        
+        NSImage nsImage = null;
+        
+    	if ("dir".equals(ext))
+            nsImage = NSWorkspace.sharedWorkspace().iconForFile("/bin");
     	else    		
-    	  nsimage = NSWorkspace.sharedWorkspace().iconForFileType(ext);
-    	NSData tiffData = nsimage.TIFFRepresentation();
-        byte []data = tiffData.bytes(0,tiffData.length());
-        BufferedImage bim = null;
-        java.io.ByteArrayInputStream bis = null;
+            nsImage = NSWorkspace.sharedWorkspace().iconForFileType(ext);
+
+        if (DEBUG) System.out.println(key + "; image w/reps: " + nsImage);
+
+        final NSArray reps = nsImage.representations();
+        NSData nsData = null;
+
+        try {
+            for (int i = 0; i < reps.count(); i++) {
+                final NSImageRep rep = (NSImageRep) reps.objectAtIndex(i);
+                if (rep.pixelsHigh() == sizeRequest && rep instanceof NSBitmapImageRep) {
+                    nsData = ((NSBitmapImageRep)rep).TIFFRepresentation();
+                    break;
+                }
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
+        if (nsData == null)
+            nsData = nsImage.TIFFRepresentation();
+
+        image = NStoJavaImage(nsData);
+
+        if (image == null)
+            out("Could not generate Icon for filetype : " + ext);
+        else
+            IconCache.put(key, image);
+        
+        return image;
+    }
+
+    private static Image NStoJavaImage(NSData tiffData)
+    {
+        final byte[] data = tiffData.bytes(0, tiffData.length());
         
         if (data.length == 0)
-        	return null;
+            return null;
         
-        try{        	        
-          bis = new java.io.ByteArrayInputStream(data);
-          bim = javax.imageio.ImageIO.read(bis);
-          
-          
-        }
-        catch (Exception e)
-        {
-        	tufts.vue.VUE.Log.debug("Could not generate Icon for filetype : " + ext);
-        }
-        finally{
-        	try
-        	{
-        		bis.close();
-        	}catch(Exception e){}
-        }
+        BufferedImage bim = null;
         
-        return bim;                
+        try {        	        
+            bim = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(data));
+            // note: byte array input streams don't need to be closed
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return bim;
     }
+    
     
     public static void goBlack() {
         goBlack(getFullScreenWindow());
@@ -119,6 +168,7 @@ public class MacOSX
     
     public static void goBlack(NSWindow w) {
         w.setAlphaValue(1);
+        //w.setBackgroundColor(NSColor.redColor());
         w.orderFrontRegardless();
         //w.orderFront(w);
     }
@@ -145,11 +195,11 @@ public class MacOSX
     }
 
     private static void cycleAlpha(float start, float end) {
-        cycleAlpha(getFullScreenWindow(), start, end, 32);
+        cycleAlpha(getFullScreenWindow(), start, end, DefaultColorCycleSteps);
     }
     
     private static void cycleAlpha(NSWindow w, float start, float end) {
-        cycleAlpha(w, start, end, 32);
+        cycleAlpha(w, start, end, DefaultColorCycleSteps);
     }
     
     private static void cycleAlpha(NSWindow w, float start, float end, final int steps) {
@@ -160,14 +210,18 @@ public class MacOSX
         for (int i = 0; i < steps; i++) {
             alpha = start + inc * i;
             w.setAlphaValue(alpha);
-            //if (DEBUG) out("alpha=" + alpha);
-            //try { Thread.sleep(10); } catch (Exception e) {} // give CPU a break
+            if (DEBUG) out("alpha=" + alpha);
+            //try { Thread.sleep(500); } catch (Exception e) {} // give CPU a break
         }
         // if end value isn't 0, and you don't manuall close the window,
         // it will grab all mouse events, locking out everything below it!
         //if (DEBUG) { if (end == 0) end=.1f; }
         w.setAlphaValue(end);
-        if (DEBUG) out("cycleAlpha complete");
+        if (DEBUG) {
+            out("cycleAlpha complete");
+            //java.awt.Toolkit.getDefaultToolkit().beep();
+        }
+            
     }
 
     private static NSWindow getFullScreenWindow() {
@@ -175,13 +229,18 @@ public class MacOSX
             Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
             sFullScreen = new NSWindow(new NSRect(0,0,screen.width,screen.height),
                                        0,
+                                       //NSWindow.Retained,
                                        NSWindow.NonRetained,
                                        //NSWindow.Buffered,
                                        true);
-            if (false&&DEBUG)
-                sFullScreen.setBackgroundColor(NSColor.redColor());
-            else
-                sFullScreen.setBackgroundColor(NSColor.blackColor());
+            sFullScreen.setBackgroundColor(NSColor.blackColor());
+//            sFullScreen.setBackgroundColor(NSColor.redColor());
+//            out(" RED COLOR " + NSColor.redColor());
+//            out("FILL COLOR " + sFullScreen.backgroundColor());
+//             if (DEBUG)
+//                 sFullScreen.setBackgroundColor(NSColor.redColor());
+//             else
+//                 sFullScreen.setBackgroundColor(NSColor.blackColor());
             sFullScreen.setLevel(NSWindow.ScreenSaverWindowLevel); // this allows it over the  mac menu bar
             sFullScreen.setHasShadow(false);
             sFullScreen.setIgnoresMouseEvents(true);
