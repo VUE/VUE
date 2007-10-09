@@ -64,9 +64,11 @@ public class MetadataSearchGUI extends JPanel {
     
     //TEXT FIELD BASED
     private JPanel optionsPanel;
+    private JPanel resultsTypePanel;
+    private JComboBox resultsTypeChoice;
     private JComboBox searchTypesChoice;
     private String[] searchTypes = {"Basic","Categories","Advanced","All"};
-    //private String[] searchTypes = {"Basic","Categories","All"};
+    private String[] resultsTypes = {"Show","Hide","Select"};
     
     private JPanel fieldsPanel;
     private JTable searchTermsTable;
@@ -127,15 +129,8 @@ public class MetadataSearchGUI extends JPanel {
     {
         setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         optionsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        resultsTypePanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
         fieldsPanel = new JPanel(new java.awt.BorderLayout());
-        
-        
-         /*VueMetadataElement newElement = new VueMetadataElement();
-         String pairedObject[] = {"Tag",""};
-         newElement.setObject(pairedObject);
-         newElement.setType(VueMetadataElement.CATEGORY);
-         searchTerms.add(newElement);*/
-               //((SearchTermsTableModel)searchTermsTable.getModel()).refresh();
         
         searchTypesChoice = new JComboBox(searchTypes);
         searchTypesChoice.addItemListener(new ItemListener()
@@ -167,6 +162,20 @@ public class MetadataSearchGUI extends JPanel {
                }
            }
         });
+        
+        resultsTypeChoice = new JComboBox(resultsTypes);
+        resultsTypeChoice.addItemListener(new ItemListener()
+        {
+           public void itemStateChanged(ItemEvent e)
+           {
+               if(e.getStateChange() == ItemEvent.SELECTED)
+               {
+                 allSearch.setResultsType(resultsTypeChoice.getSelectedItem().toString());
+                 termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
+               }
+           }
+        });
+        
         optionsLabel = new JLabel("show options");
         advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
         advancedSearch.setBorder(BorderFactory.createEmptyBorder());
@@ -180,6 +189,8 @@ public class MetadataSearchGUI extends JPanel {
         //optionsPanel.add(optionsLabel);
         optionsPanel.add(new JLabel("Search Type: "));
         optionsPanel.add(searchTypesChoice);
+        resultsTypePanel.add(new JLabel("Results Type:"));
+        resultsTypePanel.add(resultsTypeChoice);
         
         
         searchTermsTable = new JTable(new SearchTermsTableModel());
@@ -211,10 +222,14 @@ public class MetadataSearchGUI extends JPanel {
         fieldsPanel.add(scroll);
         
         add(optionsPanel);
+        add(resultsTypePanel);
         add(fieldsPanel);
         
         JPanel buttonPanel = new JPanel(new BorderLayout());
         termsAction = new SearchAction(searchTerms);
+        //SearchAction.revertGlobalSearchSelection();
+        //termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
+        
         searchButton = new JButton(termsAction);
         //searchButton.setBackground(java.awt.Color.WHITE);
         buttonPanel.setOpaque(true);
@@ -350,8 +365,10 @@ public class MetadataSearchGUI extends JPanel {
         adjustColumnModel();
         
         //allSearchField.setText("FF");
-        
+
+        //allSearch.setResultsType(resultsTypeChoice.getSelectedItem().toString());
         searchButton.setAction(allSearch);
+
         singleLine = true;
     }
     

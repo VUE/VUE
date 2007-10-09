@@ -61,10 +61,10 @@ public class SearchAction extends AbstractAction {
     private List<VueMetadataElement> searchTerms;
     
     //enable for show or hide (for now until GUI dropdown installed)
-    //private int resultsType = SHOW_ACTION;
+    private int resultsType = SHOW_ACTION;
     //private int resultsType = HIDE_ACTION;
-    private int resultsType = SELECT_ACTION;
-    private static int globalResultsType = SELECT_ACTION;
+    //private int resultsType = SELECT_ACTION;
+    private static int globalResultsType = SHOW_ACTION;
     
     public SearchAction(JTextField searchInput) {
         super("Search");
@@ -210,6 +210,7 @@ public class SearchAction extends AbstractAction {
         // VUE.getSelection().setTo(comps.iterator());
         
         revertGlobalSearchSelection();
+        globalResultsType = resultsType;
         Iterator<LWComponent> it = comps.iterator();
         
         if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION)
@@ -277,6 +278,18 @@ public class SearchAction extends AbstractAction {
         {
             it.next().setSelected(false);
         } 
+    }
+    
+    public void setResultsType(String type)
+    {
+        if(type.equals("Show"))
+            resultsType = SHOW_ACTION;
+        if(type.equals("Hide"))
+            resultsType = HIDE_ACTION;
+        if(type.equals("Select"))
+            resultsType = SELECT_ACTION;
+        
+        //globalResultsType = resultsType;
     }
     
     public static void showHiddenComponents(Collection<LWComponent> toBeReverted)
