@@ -19,7 +19,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.23 $ / $Date: 2007-06-01 18:44:49 $ / $Author: dan $
+ * @version $Revision: 1.24 $ / $Date: 2007-10-09 18:07:06 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -80,20 +80,25 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     
     private JLabel parameterChoiceMessage;
     
-    private static WeightVisualizationSettingsPanel panel = new WeightVisualizationSettingsPanel();
+    //private static WeightVisualizationSettingsPanel panel = new WeightVisualizationSettingsPanel();
     
     private int nodePaletteChoice = 0;
     private int linkPaletteChoice = 0;
     
     private boolean skipPaletteApplication = false;
     
-    public static WeightVisualizationSettingsPanel getSharedPanel()
+    private boolean parameterChoiceDisplayedInOtherPanel;
+    
+    /*public static WeightVisualizationSettingsPanel getSharedPanel()
     {
         return panel;
-    }
+    }*/
 
-    public WeightVisualizationSettingsPanel() 
+    public WeightVisualizationSettingsPanel(boolean parameterChoiceDisplayedInOtherPanel) 
     {
+        this. parameterChoiceDisplayedInOtherPanel =  parameterChoiceDisplayedInOtherPanel;
+        
+        
         // too soon for all settings, so just load default styles here
         loadDefaultStyles();
         
@@ -197,13 +202,21 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         c.anchor = GridBagConstraints.EAST;
         c.insets = new Insets(0,0,0,5);
         gridBag.setConstraints(parameterChoiceMessage,c);
-        add(parameterChoiceMessage);
+        
+        if(! parameterChoiceDisplayedInOtherPanel)
+          add(parameterChoiceMessage);
+        
+        
         c.insets = new Insets(0,0,0,0);
         c.anchor = GridBagConstraints.WEST;
         //c.weightx = 1.0;
         c.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(parameterChoice,c);
-        add(parameterChoice);
+        
+        if(! parameterChoiceDisplayedInOtherPanel)
+          add(parameterChoice);
+        
+
         //c.weightx = 1.0;
         //c.gridwidth = GridBagConstraints.REMAINDER;
         //gridBag.setConstraints(helpLabel,c);
@@ -259,6 +272,11 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         parameterChoice.addActionListener(this);
         paletteChoice.addActionListener(this);
         
+    }
+     
+    public JComboBox getParameterCombo()
+    {
+        return parameterChoice;
     }
     
     //Likely will do more than just return map later, Probably will be initialized as needed in the constructor

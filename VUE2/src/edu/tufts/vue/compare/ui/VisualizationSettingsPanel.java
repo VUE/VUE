@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.11 $ / $Date: 2007-07-31 21:05:32 $ / $Author: dan $
+ * @version $Revision: 1.12 $ / $Date: 2007-10-09 18:07:06 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -60,14 +60,28 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     private GridBagConstraints gridBagConstraints;
     
     private VoteVisualizationSettingsPanel votePanel = VoteVisualizationSettingsPanel.getSharedPanel();
-    private WeightVisualizationSettingsPanel weightPanel = WeightVisualizationSettingsPanel.getSharedPanel();
+    private WeightVisualizationSettingsPanel weightPanel;// = WeightVisualizationSettingsPanel.getSharedPanel();
+    
+    private JComboBox weightParameterChoice;
+    
+    private JLabel weightParameterChoiceLabel;
    
-    //moved to Maps Selection Panel
-    //private JPanel bottomPanel;
-    //private JCheckBox filterOnBaseMap;
+    // the following boolean specifies to the weight panel a design decision that
+    // makes layout of nodes/links drop alignment with visualization choice drop down a bit faster
+    // to implement -- in the old interface (tufts.vue.MergeMapsChooser) this drop down aligned with
+    // other weight controls 
+    // the following flag provides a means to choose between these options dynamically in future.
+    // Could be useful if weight visualization panel separates from visualization panel at any point
+    // (or it becomes some sort of plug in)
+    // note: the combo box itself is still defined and instantiated in the weight panel
+    private static final boolean weightParameterChoiceDisplayedHere = true;
     
     public VisualizationSettingsPanel() 
     {
+        
+        weightPanel = new WeightVisualizationSettingsPanel(weightParameterChoiceDisplayedHere);
+        weightParameterChoice = weightPanel.getParameterCombo();
+        
         setOpaque(false);
         gridBag = new GridBagLayout();
         gridBagConstraints = new GridBagConstraints();
@@ -78,31 +92,52 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         visualizationChoice.addActionListener(this);
         
         JLabel visualizationSettingsChoiceLabel = new JLabel(visualizationSettingsChoiceMessage);
-        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        
+        gridBagConstraints.weightx = 0.5;
+        
+        //gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.anchor = GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(15,10,15,8);
         gridBag.setConstraints(visualizationSettingsChoiceLabel,gridBagConstraints);
         add(visualizationSettingsChoiceLabel);
         gridBagConstraints.insets = new java.awt.Insets(0,0,0,0);
         
-        gridBagConstraints.weightx = 0.0;
+        //gridBagConstraints.weightx = 0.0;
+        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
+        //gridBagConstraints.anchor = GridBagConstraints.CENTER;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(visualizationChoice,gridBagConstraints);
         add(visualizationChoice);
+           
+        setUpParameterChoiceGUI();        
+     
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
         gridBag.setConstraints(votePanel,gridBagConstraints);
         gridBag.setConstraints(weightPanel,gridBagConstraints);
         add(weightPanel);
         
-        //bottomPanel = new JPanel();
-        //filterOnBaseMap = new JCheckBox();
-        //JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
-        //bottomPanel.add(filterOnBaseMap);
-        //bottomPanel.add(filterOnBaseMapMessage);
-        //gridBagConstraints.weighty = 0.0;
-        //gridBag.setConstraints(bottomPanel,gridBagConstraints);
-        //add(bottomPanel);
+    }
+    
+    public void setUpParameterChoiceGUI()
+    {
+        gridBagConstraints.gridwidth = GridBagConstraints.RELATIVE;;
+        weightParameterChoiceLabel = new JLabel("Set parameters for:");
+        //gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraints.anchor = GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(15,10,15,8);
+        gridBag.setConstraints(weightParameterChoiceLabel,gridBagConstraints);
+        add(weightParameterChoiceLabel);
+        gridBagConstraints.insets = new java.awt.Insets(0,0,0,0);
+        
+        //gridBagConstraints.weightx = 0.0;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        //gridBagConstraints.anchor = GridBagConstraints.CENTER;
+        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(weightParameterChoice,gridBagConstraints);
+        add(weightParameterChoice); 
     }
     
     public void setVisualizationSettingsType(int type)
@@ -128,6 +163,8 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         {
             if(getVisualizationSettingsType() == VOTE)
             {
+                remove(weightParameterChoiceLabel);
+                remove(weightParameterChoice);
                 remove(weightPanel);
                 //moved bottonPanel to Maps Selection Panel
                 //remove(bottomPanel);
@@ -151,10 +188,15 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
             {
                 remove(votePanel);
                 //remove(bottomPanel);
+                
+                setUpParameterChoiceGUI();
+                
                 gridBagConstraints.weighty = 1.0;
                 gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(weightPanel,gridBagConstraints);
+
+                
                 add(weightPanel);
                 //add(bottomPanel);
                 getTopLevelAncestor().setSize(new java.awt.Dimension(535,540));
@@ -187,16 +229,5 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     {
         return votePanel.getLinkThresholdSliderValue();
     }
-    
-    
-    /*
-     *moved to SelectMapsPanel
-    public boolean getFilterOnBaseMap()
-    {
-        if(filterOnBaseMap.isSelected())
-            return true;
-        else
-            return false;
-    }*/
     
 }
