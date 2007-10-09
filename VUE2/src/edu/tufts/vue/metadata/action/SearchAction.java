@@ -60,8 +60,9 @@ public class SearchAction extends AbstractAction {
     private int searchType = FIELD;
     private List<VueMetadataElement> searchTerms;
     
-    //enable for hide (for now until GUI arrives)
-    // private int resultsType = HIDE_ACTION;
+    //enable for show or hide (for now until GUI dropdown installed)
+    //private int resultsType = SHOW_ACTION;
+    //private int resultsType = HIDE_ACTION;
     private int resultsType = SELECT_ACTION;
     private static int globalResultsType = SELECT_ACTION;
     
@@ -69,14 +70,7 @@ public class SearchAction extends AbstractAction {
         super("Search");
         this.searchInput = searchInput;
         runIndex();
-        searchType = FIELD;
-        /*Thread t = new Thread() {
-            public void run() {
-                index = new  edu.tufts.vue.rdf.RDFIndex();
-                index.index(VUE.getActiveMap());
-            }
-        };
-        t.start();*/ 
+        searchType = FIELD; 
     }
     
     public SearchAction(java.util.List<edu.tufts.vue.metadata.VueMetadataElement> searchTerms)
@@ -98,19 +92,6 @@ public class SearchAction extends AbstractAction {
         t.start(); 
     }
     
-    /**
-     *
-     * could help for easy creation/synch of text field in toolbar 
-     * from multiple field based version of search window
-     * preferably: use previous method instead
-     * .. this actually would now use VueMetadataElements most likely..
-     * (since even simple search uses those elements now)
-     **/
-    /*public SearchAction(String[] searchTerms)
-    {
-        
-    }*/
-    
     public void loadKeywords(String searchString) {
         
         tags = new ArrayList<String>();
@@ -128,13 +109,19 @@ public class SearchAction extends AbstractAction {
         while(criterias.hasNext())
         {
             VueMetadataElement criteria = criterias.next();
-            System.out.println("SearchAction adding criteria - getKey(), getValue() " + criteria.getKey() + "," + criteria.getValue());
+            if(DEBUG_LOCAL)
+            {    
+              System.out.println("SearchAction adding criteria - getKey(), getValue() " + criteria.getKey() + "," + criteria.getValue());
+            }
            // query.addCriteria(criteria.getKey(),criteria.getValue());
             String[] statement = (String[])(criteria.getObject());
             query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
         }
         
-        System.out.println("SearchAction: query - " + query.createSPARQLQuery());
+        if(DEBUG_LOCAL)
+        {
+          System.out.println("SearchAction: query - " + query.createSPARQLQuery());
+        }
         
     }
     
@@ -151,7 +138,10 @@ public class SearchAction extends AbstractAction {
         if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
         index.remove(index);
         index.index(VUE.getActiveMap());
-        System.out.println("SearchAction: index - " + index);
+        if(DEBUG_LOCAL)
+        {    
+          System.out.println("SearchAction: index - " + index);
+        }
         if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
         }
         finds = new ArrayList<List<URI>>();
@@ -202,9 +192,10 @@ public class SearchAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         
         VUE.getSelection().clear();
-        revertSelections();
+
         if(searchType == FIELD)
         {
+          revertSelections();
           loadKeywords(searchInput.getText());
         }
         performSearch();
@@ -240,7 +231,25 @@ public class SearchAction extends AbstractAction {
         
         if(resultsType == SHOW_ACTION)
         {    
-          //globalHides = // opposite of found 
+          //globalHides = // opposite of comps 
+          Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER);
+          globalHides = new ArrayList();
+          Iterator<LWComponent> allIt = allComps.iterator();
+          while(allIt.hasNext())
+          {
+              LWComponent comp = allIt.next();
+              if(!comps.contains(comp))
+              {
+                  if(DEBUG_LOCAL)
+                  {
+                      System.out.println("SearchAction adding " + comp.getLabel() + " to globalHides and hiding");
+                  }
+                  
+                  comp.setHidden(LWComponent.HideCause.DEFAULT);
+                  globalHides.add(comp);
+              }
+
+          }
         }
         else if(resultsType == HIDE_ACTION)
         {
@@ -255,7 +264,8 @@ public class SearchAction extends AbstractAction {
     
     public void revertSelections()
     {
-        revertSelections(comps);
+        //revertSelections(comps);
+        revertGlobalSearchSelection();
     }
     
     public static void revertSelections(List<LWComponent> toBeReverted)
@@ -269,10 +279,25 @@ public class SearchAction extends AbstractAction {
         } 
     }
     
+    public static void showHiddenComponents(Collection<LWComponent> toBeReverted)
+    {
+        if(toBeReverted == null)
+            return;
+        Iterator<LWComponent> it = toBeReverted.iterator();
+        while(it.hasNext())
+        {
+            it.next().clearHidden(LWComponent.HideCause.DEFAULT);
+        } 
+    }
+    
     public static void revertGlobalSearchSelection()
     {
-        //if(globalResultType == SELECT_ACTION)
-        revertSelections(globalResults);
+        if(globalResultsType == SELECT_ACTION)
+          revertSelections(globalResults);
+        if(globalResultsType == HIDE_ACTION)
+          showHiddenComponents(globalResults);
+        if(globalResultsType == SHOW_ACTION)
+          showHiddenComponents(globalHides);
     }
     
 }
