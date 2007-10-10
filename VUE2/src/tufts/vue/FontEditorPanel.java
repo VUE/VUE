@@ -55,7 +55,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.63 $ / $Date: 2007-09-13 21:02:51 $ / $Author: mike $
+ * @version $Revision: 1.64 $ / $Date: 2007-10-10 16:19:50 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -76,7 +76,7 @@ public class FontEditorPanel extends JPanel
     private final AbstractButton mItalicButton;
     private final AbstractButton mUnderlineButton;
     private final AlignmentDropDown alignmentButton;
-    private static ColorMenuButton mTextColorButton;
+    public static ColorMenuButton mTextColorButton;
     private final AbstractButton orderedListButton = new VueButton("list.button.ordered");
     private final AbstractButton unorderedListButton = new VueButton("list.button.unordered");
 	
@@ -717,10 +717,50 @@ public class FontEditorPanel extends JPanel
         setSpecialEditorsEnabled(false);
     }
 
+    public String colorToString(Color c) {
+		char[] buf = new char[7];
+		buf[0] = '#';
+		String s = Integer.toHexString(c.getRed());
+		if (s.length() == 1) {
+			buf[1] = '0';
+			buf[2] = s.charAt(0);
+		}
+		else {
+			buf[1] = s.charAt(0);
+			buf[2] = s.charAt(1);
+		}
+		s = Integer.toHexString(c.getGreen());
+		if (s.length() == 1) {
+			buf[3] = '0';
+			buf[4] = s.charAt(0);
+		}
+		else {
+			buf[3] = s.charAt(0);
+			buf[4] = s.charAt(1);
+		}
+		s = Integer.toHexString(c.getBlue());
+		if (s.length() == 1) {
+			buf[5] = '0';
+			buf[6] = s.charAt(0);
+		}
+		else {
+			buf[5] = s.charAt(0);
+			buf[6] = s.charAt(1);
+		}
+		return String.valueOf(buf);
+	}
+    
     private void setSpecialEditorsEnabled(boolean enabled) {
-        mUnderlineButton.setEnabled(enabled);
+        mUnderlineButton.setEnabled(enabled); 
         orderedListButton.setEnabled(enabled);
-        unorderedListButton.setEnabled(enabled);
+        unorderedListButton.setEnabled(enabled);    	
+    	Color c = null;
+    	if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
+    		c = ((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getTextColor();
+    	else    		
+    		c = mTextColorButton.getColor();
+    		toggleBulletsAction.setColor(colorToString(c));
+    		toggleNumbersAction.setColor(colorToString(c)); 
     }
 
 
@@ -767,7 +807,8 @@ public class FontEditorPanel extends JPanel
                 final Color color = (Color) e.getNewValue();
                 final SimpleAttributeSet set = new SimpleAttributeSet();
                 final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
-
+                toggleBulletsAction.setColor(colorString);
+                toggleNumbersAction.setColor(colorString);
                 Util.styleSheet().addCSSAttribute(set, CSS.Attribute.COLOR, colorString);
                 
                 set.addAttribute(HTML.Attribute.COLOR, colorString);
@@ -974,10 +1015,11 @@ public class FontEditorPanel extends JPanel
 		mUnderlineButton.setSelected(false);
 		if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
 		{
-			Font f = ((LWSlide)VUE.getActiveViewer().getFocal()).getMasterSlide().getFont();
+			Font f = ((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getFont();
+			//LWComponent style = ((LWSlide)VUE.getActiveViewer().getFocal()).getMasterSlide().getStyle();
 			mSizeField.setSelectedItem(Integer.toString(f.getSize()));
 			mFontCombo.setSelectedItem(f.getFontName());
-			System.out.println("SLIDE FONT DEFAULTS");			
+		//	System.out.println("SLIDE FONT DEFAULTS");			
 		}
 		else
 		{
@@ -987,7 +1029,8 @@ public class FontEditorPanel extends JPanel
 		
 		if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
 		{
-			Color c= ((LWSlide)VUE.getActiveViewer().getFocal()).getMasterSlide().getTextColor();									
+			Color c = ((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getTextColor();
+			//System.out.println("LW SLIDE : " + c.toString());
 			mTextColorButton.setColor(c);
 		}
 		else
@@ -1000,7 +1043,7 @@ public class FontEditorPanel extends JPanel
 	        	if ((o.toString().equals("color")))
 	        	{
 	        		mTextColorButton.setColor(edu.tufts.vue.style.Style.hexToColor(charSet.getAttribute(o).toString()));
-	        		System.out.println("COLOR : " + charSet.getAttribute(o).toString());
+	        	//	System.out.println("COLOR : " + charSet.getAttribute(o).toString());
 	        	}
 	        	//if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
 	        	//	System.out.println("C:"+charSet.getAttribute(o).toString());

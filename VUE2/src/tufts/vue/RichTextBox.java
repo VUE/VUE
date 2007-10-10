@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.8 $ / $Date: 2007-09-06 16:58:02 $ / $Author: mike $
+ * @version $Revision: 1.9 $ / $Date: 2007-10-10 16:19:50 $ / $Author: mike $
  *
  */
 
@@ -131,19 +131,24 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 
     RichTextBox(LWComponent lwc, String text)
     {
-        if (DEBUG.TEXT && DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue.", "NEW TextBox, txt=" + text);
+    
+        if (DEBUG.TEXT && DEBUG.LAYOUT) tufts.Util.printClassTrace("tufts.vue.", "NEW RichTextBox, txt=" + text);
         if (TestDebug||DEBUG.TEXT) out("NEW [" + text + "] " + lwc);
     	SHTMLEditorKit kit = new SHTMLEditorKit(/* renderMode */);
 		 //kit.resetStyleSheet();
 		setEditorKit(kit);
         this.lwc = lwc;
+        
         //setBorder(javax.swing.border.LineBorder.createGrayLineBorder());
         // don't set border -- adds small margin that screws us up, especially
         // at high scales
         setDragEnabled(false);
         setBorder(null);
+    	
         if (text != null)
             setText(text);
+         
+        overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
         setMargin(null);
         setOpaque(false); // don't bother to paint background
         setVisible(true);
@@ -1087,6 +1092,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 
     public void overrideTextColor(Color c)
     {
+    	System.out.println("OVERRIDE TEXT COLOR : " + c.toString());
     	SimpleAttributeSet set = new SimpleAttributeSet();
    	        String colorString = "#" + Integer.toHexString(
    	                c.getRGB()).substring(2);
