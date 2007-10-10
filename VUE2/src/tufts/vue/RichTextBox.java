@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.10 $ / $Date: 2007-10-10 17:29:24 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2007-10-10 18:55:23 $ / $Author: mike $
  *
  */
 
@@ -148,7 +148,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (text != null)
             setText(text);
          
-        overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
+     
         setMargin(null);
         setOpaque(false); // don't bother to paint background
         setVisible(true);
