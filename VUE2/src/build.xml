@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.143 $ / $Date: 2007-10-06 03:01:35 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.143 2007-10-06 03:01:35 sfraize Exp $ -->
+<!-- $Revision: 1.144 $ / $Date: 2007-10-10 21:16:58 $ / $Author: peter $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.144 2007-10-10 21:16:58 peter Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -168,8 +168,6 @@
                    batik.jar
                    commons-codec-1.3.jar
                    commons-discovery.jar
-                   commons-httpclient.jar
-                   commons-httpclient-2.0.jar
                    commons-logging.jar
                    concurrent.jar
                    cryptix-asn1.jar
