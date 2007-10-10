@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.12 $ / $Date: 2007-10-09 18:07:06 $ / $Author: dan $
+ * @version $Revision: 1.13 $ / $Date: 2007-10-10 18:26:12 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -85,7 +85,11 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         setOpaque(false);
         gridBag = new GridBagLayout();
         gridBagConstraints = new GridBagConstraints();
+        
+        gridBagConstraints.weighty =0.0;
+        
         setLayout(gridBag);
+        
         
         String[] choices = {"Weight","Vote"};
         visualizationChoice = new JComboBox(choices);
@@ -112,8 +116,9 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
            
         setUpParameterChoiceGUI();        
      
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
+        //gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
         gridBag.setConstraints(votePanel,gridBagConstraints);
         gridBag.setConstraints(weightPanel,gridBagConstraints);
         add(weightPanel);
@@ -122,6 +127,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     
     public void setUpParameterChoiceGUI()
     {
+        gridBagConstraints.weighty = 0.0;
         gridBagConstraints.gridwidth = GridBagConstraints.RELATIVE;;
         weightParameterChoiceLabel = new JLabel("Set parameters for:");
         //gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
@@ -174,11 +180,11 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
                 gridBag.setConstraints(votePanel,gridBagConstraints);
                 add(votePanel);
                 //add(bottomPanel);
-                getRootPane().setSize(new java.awt.Dimension(535,540));
+                getRootPane().setSize(new java.awt.Dimension(535,535));
                 getRootPane().revalidate();
                 getRootPane().repaint();
                 
-                getTopLevelAncestor().setSize(new java.awt.Dimension(535,540));
+                //getTopLevelAncestor().setSize(new java.awt.Dimension(535,535));
                 //getTopLevelAncestor().revalidate();
                 getTopLevelAncestor().repaint();
                 revalidate();
@@ -191,15 +197,16 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
                 
                 setUpParameterChoiceGUI();
                 
+                gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
                 gridBagConstraints.weighty = 1.0;
-                gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
+                //gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(weightPanel,gridBagConstraints);
 
                 
                 add(weightPanel);
                 //add(bottomPanel);
-                getTopLevelAncestor().setSize(new java.awt.Dimension(535,540));
+                //getTopLevelAncestor().setSize(new java.awt.Dimension(535,540));
                // getTopLevelAncestor().revalidate();
                 getTopLevelAncestor().repaint();
                 System.out.println("VSP: rootpane class: " + getRootPane().getClass());

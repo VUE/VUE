@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.13 $ / $Date: 2007-07-24 11:47:50 $ / $Author: dan $
+ * @version $Revision: 1.14 $ / $Date: 2007-10-10 18:26:12 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -85,12 +85,12 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                 //System.out.println("MMCP: tabbed pane change event " + e);
                 if(tabs.getSelectedIndex() == 0)
                 {
-                    dw.setSize(650,550);
+                    dw.setSize(535,535);
                     dw.repaint();
                 }
                 if(tabs.getSelectedIndex() == 1)
                 {
-                    dw.setSize(535,540);
+                    dw.setSize(535,535);
                     dw.repaint();
                 }
                 
@@ -167,7 +167,7 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         buttonPanel.add(generateButton);
         add(buttonPanel,BorderLayout.SOUTH);
         dw.setContent(this);
-        dw.setSize(650,550);
+        dw.setSize(535,535);
         dw.setResizeEnabled(false);
         // unfortunately setting the default button conflicts with the enter key in main VUE window:
         // if(getRootPane()!=null)

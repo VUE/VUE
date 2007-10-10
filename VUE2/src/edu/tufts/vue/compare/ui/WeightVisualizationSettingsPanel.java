@@ -19,7 +19,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.24 $ / $Date: 2007-10-09 18:07:06 $ / $Author: dan $
+ * @version $Revision: 1.25 $ / $Date: 2007-10-10 18:26:12 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -179,7 +179,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         //paletteChoice.setModel(... need way to express both style loaded and color brewer choices?
         nodeModel = new IntervalListModel();
         linkModel = new IntervalListModel();
-        intervalList = new JTable();
+        intervalList = new JTable()
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+                return new java.awt.Dimension(100,300);
+            }
+        };
+        //intervalList.setPreferredSize(new java.awt.Dimension(535,200));
         intervalList.setDefaultRenderer(PercentageInterval.class,new PercentageIntervalRenderer());
         intervalList.setDefaultEditor(PercentageInterval.class,new PercentageIntervalEditor());
         intervalList.setDefaultRenderer(IntervalStylePreview.class,new IntervalStylePreviewRenderer());
@@ -242,12 +249,13 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         //third row
         c.weightx = 0.0;
+        c.weighty = 0.0;
         c.gridwidth = 1;
         c.anchor = GridBagConstraints.EAST;
         c.insets = new Insets(0,0,0,5);
         gridBag.setConstraints(paletteChoiceMessage,c);
         add(paletteChoiceMessage);
-        c.insets = new Insets(0,0,0,150);
+        c.insets = new Insets(0,0,0,170);
         c.gridwidth = GridBagConstraints.REMAINDER;
         c.anchor = GridBagConstraints.WEST;
         gridBag.setConstraints(paletteChoice,c);
@@ -256,14 +264,22 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         //table
         //c.fill = GridBagConstraints.NONE;
-        intervalList.setPreferredScrollableViewportSize(new java.awt.Dimension(200,150));
-        JScrollPane scroll = new JScrollPane(intervalList);
+        intervalList.setPreferredScrollableViewportSize(new java.awt.Dimension(200,300));
+        JScrollPane scroll = new JScrollPane(intervalList)
+        {
+           public java.awt.Dimension getMinimumSize()
+           {
+               return new java.awt.Dimension(100,350);
+           }
+        };
+       // scroll.setPreferredSize(new java.awt.Dimension(100,300));
         //c.gridx = 0;
         //c.gridy = 2;
         //c.gridwidth = 3;
         //$
           c.insets = new Insets(25,0,25,0);
           c.weightx = 1.0;
+          c.weighty = 1.0;
         //$
         gridBag.setConstraints(scroll,c);
         add(scroll);
