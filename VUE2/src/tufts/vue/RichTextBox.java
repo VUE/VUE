@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.9 $ / $Date: 2007-10-10 16:19:50 $ / $Author: mike $
+ * @version $Revision: 1.10 $ / $Date: 2007-10-10 17:29:24 $ / $Author: mike $
  *
  */
 
@@ -1092,7 +1092,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 
     public void overrideTextColor(Color c)
     {
-    	System.out.println("OVERRIDE TEXT COLOR : " + c.toString());
+    	//System.out.println("OVERRIDE TEXT COLOR : " + c.toString());
     	SimpleAttributeSet set = new SimpleAttributeSet();
    	        String colorString = "#" + Integer.toHexString(
    	                c.getRGB()).substring(2);
