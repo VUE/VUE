@@ -46,7 +46,7 @@ public class MetadataList {
       return metadataList;   
     }
     
-    private static void addListener(MetadataListListener listener)
+    public static void addListener(MetadataListListener listener)
     {
         listeners.add(listener);
     }

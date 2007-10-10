@@ -39,9 +39,9 @@ import tufts.vue.*;
  *
  * @author dhelle01
  */
-public class MetadataEditor extends JPanel implements ActiveListener {
+public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG_LOCAL = false;
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -71,7 +71,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     {
         this.current = current;
         
-        if(DEBUG)
+        if(DEBUG_LOCAL)
         {
             System.out.println("MetadataEditor - just created new instance for (current,followActive) (" + current +"," + followAllActive + ")");
         }
@@ -88,7 +88,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                    {
                        if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {
-                         if(DEBUG) 
+                         if(DEBUG_LOCAL) 
                          {
                            System.out.println("metadata table header: mouse pressed" + evt);
                            System.out.println("current at table header mouse press: " + MetadataEditor.this.current);
@@ -236,6 +236,23 @@ public class MetadataEditor extends JPanel implements ActiveListener {
         
         setMinimumSize(new java.awt.Dimension(getWidth(),200));
         
+        MetadataList.addListener(this);
+        
+        validate();
+    }
+    
+    public void listChanged()
+    {
+        //validate();
+        //repaint();
+        
+        if(DEBUG_LOCAL)
+        {
+            System.out.println("MetadataEditor: list changed ");
+        }
+        
+        ((MetadataTableModel)metadataTable.getModel()).refresh();
+        ((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
         validate();
     }
     
@@ -267,7 +284,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        if(e!=null)
        {
           
-         if(DEBUG)
+         if(DEBUG_LOCAL)
          {
              System.out.println("MetadataEditor: active changed - " + e + "," + this);
          }
@@ -329,7 +346,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
     public void findCategory(Object currValue,int row,int col,int n,JComboBox categories)
     {
     
-               if(DEBUG)
+               if(DEBUG_LOCAL)
                {
                    System.out.println("MetadataEditor findCategory - " + currValue);
                }
@@ -466,7 +483,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
        
        public boolean stopCellEditing()
        {
-           if(DEBUG)
+           if(DEBUG_LOCAL)
            {
                System.out.println("MetadataEditor MetadataTableEditor - stop cell editing - set previousCurrent to current");
            }
@@ -513,7 +530,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
               public void itemStateChanged(java.awt.event.ItemEvent ie)
               {
                   
-                  if(DEBUG)
+                  if(DEBUG_LOCAL)
                   {
                       System.out.println("Categories - item listener - item state changed - " + ie);
                   }    
@@ -523,14 +540,14 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                       
                     if(!(categories.getSelectedItem() instanceof OntType) || !(ie.getItem() instanceof OntType))
                     {
-                        if(DEBUG)
+                        if(DEBUG_LOCAL)
                         {
                             System.out.println("MetadataEditor -- non ontology category type selected " + categories.getSelectedItem().getClass());
                         }
                         return;
                     }
                     
-                    if(DEBUG)
+                    if(DEBUG_LOCAL)
                     {
                       OntType item = (OntType)(ie.getItem());//categories.getSelectedItem();  
                         
@@ -567,7 +584,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
               public void focusLost(java.awt.event.FocusEvent fe)
               {  
                   
-                  if(DEBUG)
+                  if(DEBUG_LOCAL)
                   {
                     System.out.println("MetadataEditor focuslost row -- " + row);
                     System.out.println("MetadataEditor focuslost current -- " + current);
@@ -583,7 +600,7 @@ public class MetadataEditor extends JPanel implements ActiveListener {
                   
                   if(previousCurrent == null && current == null)
                   {
-                      if(DEBUG)
+                      if(DEBUG_LOCAL)
                       {
                           System.out.println("MetadataEditor - there was no previous current or current");
                           System.out.println("exiting focusLost");
