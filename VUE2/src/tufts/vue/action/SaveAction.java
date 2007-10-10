@@ -212,7 +212,25 @@ public class SaveAction extends VueAction
             else if(name.endsWith(".rdf"))
             {
                edu.tufts.vue.rdf.RDFIndex index = new edu.tufts.vue.rdf.RDFIndex();
-               index.index(VUE.getActiveMap());
+               
+               String selectionType = VueResources.getString("rdf.export.selection");
+               
+               if(selectionType.equals("ALL"))
+               {
+                 Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
+                 while(maps.hasNext())
+                 {
+                     index.index(maps.next());
+                 }
+               }
+               else if(selectionType.equals("ACTIVE"))
+               {
+                 index.index(VUE.getActiveMap());  
+               }    
+               else
+               {    
+                 index.index(VUE.getActiveMap());
+               }  
                index.write(new FileWriter(file));
             }
             
