@@ -22,6 +22,7 @@ import edu.tufts.vue.ontology.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 /*
@@ -37,20 +38,38 @@ import java.util.List;
 public class MetadataList {
     
     private List<VueMetadataElement> metadataList = new CategoryFirstList<VueMetadataElement>();
+    
+    private static List<MetadataListListener> listeners = new ArrayList<MetadataListListener>();
    
     public List<VueMetadataElement> getMetadata()
     {
       return metadataList;   
     }
     
+    private static void addListener(MetadataListListener listener)
+    {
+        listeners.add(listener);
+    }
+    
+    private static void fireListChanged()
+    {
+        Iterator<MetadataListListener> i = listeners.iterator();
+        while(i.hasNext())
+        {
+            i.next().listChanged();
+        }
+    }
+    
     public void addElement(VueMetadataElement element)
     {
       metadataList.add(element);
+      fireListChanged();
     }
     
     public void setMetadata(List<VueMetadataElement> list)
     {
       metadataList = list;
+      fireListChanged();
     }
     
     public boolean containsOntologicalType(String ontType)
@@ -131,7 +150,9 @@ public class MetadataList {
           }
           else
               add(otherEndIndex++,(E)vme);
-              
+          
+          fireListChanged();
+          
           return true;
       }
       
@@ -151,8 +172,16 @@ public class MetadataList {
               categoryEndIndex--;
               ontologyEndIndex--;
           }
+          
+          fireListChanged();
+          
           return super.remove(i);
       }
             
+    }
+    
+    public interface MetadataListListener
+    {
+       public void listChanged();
     }
 }
