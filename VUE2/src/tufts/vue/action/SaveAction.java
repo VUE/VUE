@@ -209,6 +209,12 @@ public class SaveAction extends VueAction
 //             else if (name.endsWith(".htm")) {
 //                 writeHTMLOutline(map, file);
 //             }
+            else if(name.endsWith(".rdf"))
+            {
+               edu.tufts.vue.rdf.RDFIndex index = new edu.tufts.vue.rdf.RDFIndex();
+               index.index(VUE.getActiveMap());
+               index.write(new FileWriter(file));
+            }
             
 
 			// don't know this as not all the above stuff is passing
