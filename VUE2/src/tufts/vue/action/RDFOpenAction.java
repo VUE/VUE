@@ -193,7 +193,19 @@ public class RDFOpenAction extends VueAction {
         }
         else
         {
-          node = new LWNode(r.getURI());
+          
+          String labelDisplay = VueResources.getString("rdf.import.displayType");
+          
+          if(labelDisplay.equals("LABEL"))
+          {    
+            edu.tufts.vue.rdf.RDFIndex index = new edu.tufts.vue.rdf.RDFIndex();
+            com.hp.hpl.jena.rdf.model.Property labelOf = index.createProperty(edu.tufts.vue.rdf.RDFIndex.VUE_ONTOLOGY,edu.tufts.vue.metadata.Constants.LABEL);
+            node = new LWNode(r.getProperty(labelOf).getString());
+          }
+          else
+          {
+            node = new LWNode(r.getURI());  
+          }    
           node.setResource(resource);
         }
         placeNode(node);
