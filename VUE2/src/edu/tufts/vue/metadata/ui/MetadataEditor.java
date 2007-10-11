@@ -67,6 +67,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     private boolean showOntologicalMembership;
     
+    private boolean focusToggle = false;
+    
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
         this.current = current;
@@ -284,6 +286,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        if(e!=null)
        {
           
+         focusToggle = false;  
+           
          if(DEBUG_LOCAL)
          {
              System.out.println("MetadataEditor: active changed - " + e + "," + this);
@@ -297,7 +301,22 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
          
          current = active;
          
-         if(current !=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
+         /*MetadataList metadata = null;
+         
+         if(metadataTable.hasFocus())
+         {
+             if(DEBUG_LOCAL)
+             {
+                 System.out.println("MetadataTable - has Focus in active changed ");
+             }
+             metadata = previousCurrent;
+         }
+         else
+         {
+             metadata = current;
+         }*/
+         
+         if(current!=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
          {
            VueMetadataElement vme = new VueMetadataElement();
            String[] emptyEntry = {TAG_ONT,""};
@@ -470,7 +489,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        }
        
        public void focusField()
-       {
+       {           
            field.requestFocus();
        }
        
@@ -608,7 +627,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                       return;
                   }
                   else
-                  if(previousCurrent != null)
+                  if(previousCurrent != null && !focusToggle)
                   {
                      metadata = previousCurrent.getMetadataList().getMetadata();
                   }    
@@ -662,6 +681,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   }
 
 
+              }
+              
+              public void focusGained(java.awt.event.FocusEvent fe)
+              {
+                  focusToggle = true;
               }
            });
            final JPanel comp = new JPanel();
