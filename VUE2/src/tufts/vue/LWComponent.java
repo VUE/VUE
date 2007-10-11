@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.347 $ / $Date: 2007-10-06 03:49:25 $ / $Author: sfraize $
+ * @version $Revision: 1.348 $ / $Date: 2007-10-11 19:50:33 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -334,8 +334,9 @@ public class LWComponent
 
     public void applyCSS(edu.tufts.vue.style.Style cssStyle)
     {
-        out("Applying CSS style " + cssStyle.getName() + ":");
+        System.out.println("Applying CSS style " + cssStyle.getName() + ":");
         for (Map.Entry<String,String> se : cssStyle.getAttributes().entrySet()) {
+            
             final String cssName = se.getKey().trim().toLowerCase(); // todo: shouldn't have to trim this
             final String cssValue = se.getValue().trim();
             boolean applied = false;
@@ -350,6 +351,19 @@ public class LWComponent
                 if (key.cssName == null)
                     continue;
                 //out("Checking key [" + cssName + "] against [" + key.cssName + "]");
+                                
+                if(key.cssName.indexOf(";") > 0)
+                {
+                    String[] names = key.cssName.split(";");
+                    for(int i=0;i<names.length;i++)
+                    {
+                        if(supportsProperty(key) && names[i].equals(cssName))
+                        {    
+                          applied = key.setValueFromCSS(this,names[i],cssValue);
+                        }
+                    }
+                }
+                else
                 if (supportsProperty(key) && cssName.equals(key.cssName)) {
                     //out("Matched supported property key " + key.cssName);
 

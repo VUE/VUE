@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.175 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.176 $ / $Date: 2007-10-11 19:50:33 $ / $Author: dan $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -282,15 +282,73 @@ public class LWLink extends LWComponent
     // type in getSlot here if we don't compile this file at the same time as
     // LWCopmonent.java... (this is a javac bug)
     public static final Key KEY_LinkArrows = new Key<LWLink,Object>("link.arrows", "vue-head;vue-tail") {
+        
+        private boolean vueHeadOnFromCSS = false;
+        private boolean vueHeadOffFromCSS = false;
+        
         final Property getSlot(LWLink l) {
             return l.mArrowState; // if getting a type-mismatch on mLine, feed this file to javac with LWComponent.java at the same time
         }
+        
+        public boolean setValueFromCSS(LWLink c, String cssKey, String cssValue) {
+            
+            if(cssKey.equals("vue-head"))
+            {    
+              if(cssValue.equals("on"))
+              {   
+                c.setArrowState(ARROW_HEAD);
+                vueHeadOnFromCSS = true;
+              } else
+              if(cssValue.equals("off"))
+              {
+                vueHeadOffFromCSS = true; 
+              }
+            }  
+            
+            if(cssKey.equals("vue-tail"))
+            {    
+              if(cssValue.equals("on"))
+              {     
+                if(!vueHeadOnFromCSS)
+                {    
+                  c.setArrowState(ARROW_TAIL);
+                }
+                else
+                {
+                  c.setArrowState(ARROW_BOTH);
+                }         
+              }
+              else if(cssValue.equals("off") && vueHeadOffFromCSS)
+              {
+                  c.setArrowState(ARROW_NONE);
+              }
+            }
+            return true;
+        }
     };
+    
+    /*public static final Key KEY_LinkArrows_Head = new Key<LWLink,Object>("link.arrows", "vue-head") {
+        
+        @Override
+        final Property getSlot(LWLink l) {
+            return l.mArrowState; // if getting a type-mismatch on mLine, feed this file to javac with LWComponent.java at the same time
+        }
+        
+        @Override
+        public boolean setValueFromCSS(LWLink c, String cssKey, String cssValue) {
+            System.out.println("vue-head");
+            if(getValue(c).equals("on"))
+            {    
+              c.setArrowState(ARROW_HEAD);
+            }
+            return true;
+        }
+    }; */
+    
     private final IntProperty mArrowState = new IntProperty(KEY_LinkArrows, ARROW_TAIL) {
             void onChange() { mRecompute = true; layout(); }
         };
-
-
+        
     public static final Key KEY_LinkShape = new Key<LWLink,Integer>("link.shape") { // do we want this to be a KeyType.STYLE? could argue either way...
         @Override
         public void setValue(LWLink link, Integer linkStyle) {
