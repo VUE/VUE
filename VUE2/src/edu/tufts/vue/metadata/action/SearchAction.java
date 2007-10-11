@@ -37,7 +37,7 @@ import tufts.vue.*;
  */
 public class SearchAction extends AbstractAction {
    
-    private final static boolean DEBUG_LOCAL = true; 
+    private final static boolean DEBUG_LOCAL = false; 
     
     public static final int FIELD = 0;
     public static final int QUERY = 1;
@@ -45,6 +45,9 @@ public class SearchAction extends AbstractAction {
     public static final int SHOW_ACTION = 0;
     public static final int HIDE_ACTION = 1;
     public static final int SELECT_ACTION = 2;
+    
+    public static final int SEARCH_SELECTED_MAP = 0;
+    public static final int SEARCH_ALL_OPEN_MAPS = 1;
     
     private List<List<URI>> finds = null;
     
@@ -60,11 +63,15 @@ public class SearchAction extends AbstractAction {
     private int searchType = FIELD;
     private List<VueMetadataElement> searchTerms;
     
+    private int searchLocationType = SEARCH_SELECTED_MAP;
+    
     //enable for show or hide (for now until GUI dropdown installed)
     private int resultsType = SHOW_ACTION;
     //private int resultsType = HIDE_ACTION;
     //private int resultsType = SELECT_ACTION;
     private static int globalResultsType = SHOW_ACTION;
+    
+    private static int searchResultsMaps = 1;
     
     public SearchAction(JTextField searchInput) {
         super("Search");
@@ -85,8 +92,28 @@ public class SearchAction extends AbstractAction {
     {
         Thread t = new Thread() {
             public void run() {
-                index = new  edu.tufts.vue.rdf.RDFIndex();
-                index.index(VUE.getActiveMap());
+             index = new  edu.tufts.vue.rdf.RDFIndex();
+                //index.index(VUE.getActiveMap());
+                
+             if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
+             { 
+            
+                    if(DEBUG_LOCAL)
+                    { 
+                      System.out.println("SearchAction: Searching all open maps...");
+                    }
+          
+                    Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
+                    while(maps.hasNext())
+                    {
+                       index.index(maps.next());
+                    }
+             }    
+             else // default is SEARCH_SELECTED_MAP
+             {    
+                    index.index(VUE.getActiveMap());
+             }
+                
             }
         };
         t.start(); 
@@ -125,7 +152,7 @@ public class SearchAction extends AbstractAction {
         
     }
     
-    public void performSearch() {
+    public void performSearch(int searchLocationType) {
         
         if(searchType == QUERY)
         {
@@ -133,11 +160,34 @@ public class SearchAction extends AbstractAction {
         }
         
         // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
+        
+        
         long t0 = System.currentTimeMillis();
+        
         synchronized(index) { 
         if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
         index.remove(index);
-        index.index(VUE.getActiveMap());
+        
+        if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
+        { 
+            
+          if(DEBUG_LOCAL)
+          {
+              System.out.println("SearchAction: Searching all open maps...");
+          }
+          
+          Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
+          while(maps.hasNext())
+          {
+              index.index(maps.next());
+          }
+        }    
+        else // default is SEARCH_SELECTED_MAP
+        {    
+          index.index(VUE.getActiveMap());
+        }
+        
+        
         if(DEBUG_LOCAL)
         {    
           System.out.println("SearchAction: index - " + index);
@@ -167,6 +217,14 @@ public class SearchAction extends AbstractAction {
         
         comps = new ArrayList<LWComponent>();
         
+        Iterator<LWMap> mapsIterator = VUE.getLeftTabbedPane().getAllMaps();
+        
+        ArrayList<LWMap> maps = new ArrayList<LWMap>();
+        while(mapsIterator.hasNext())
+        {
+            maps.add(mapsIterator.next());
+        }
+        
         while(findsIterator.hasNext()) {
             found = findsIterator.next();
             if(found !=null) {
@@ -175,9 +233,11 @@ public class SearchAction extends AbstractAction {
                     URI uri = foundIterator.next();
                     System.out.println("SearchAction: uri found - " + uri);
                     LWComponent r = (LWComponent)edu.tufts.vue.rdf.VueIndexedObjectsMap.getObjectForID(uri);
-                    if(r!=null && (r.getMap() != null) && r.getMap().equals(VUE.getActiveMap())) {
+                    //if(r!=null && (r.getMap() != null) && r.getMap().equals(VUE.getActiveMap())) {
+                    if(r!=null && (r.getMap() != null) && maps.contains(r.getMap())) {
                         comps.add(r);
                     }
+                    //else if(r != null && (r.getMap() !=null) && maps.contains(r.getMap()))
                 }
             }
         }
@@ -189,7 +249,14 @@ public class SearchAction extends AbstractAction {
         return "Search";
     }
     
+    public void setLocationType(int type)
+    {
+        searchLocationType = type;
+    }
+    
     public void actionPerformed(ActionEvent e) {
+        
+       // runIndex();
         
         VUE.getSelection().clear();
 
@@ -198,7 +265,31 @@ public class SearchAction extends AbstractAction {
           revertSelections();
           loadKeywords(searchInput.getText());
         }
-        performSearch();
+        performSearch(searchLocationType);
+        
+        if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
+        {
+            Iterator<LWMap> allOpenMaps = VUE.getLeftTabbedPane().getAllMaps();
+            
+            LWMap searchResultMap = new LWMap("Search Result #" + searchResultsMaps++);
+            
+            while(allOpenMaps.hasNext())
+            {
+                Iterator<LWComponent> components = allOpenMaps.next().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();   
+                while(components.hasNext())
+                {
+                    LWComponent next = components.next();
+                    if(comps.contains(next))
+                    {
+                        searchResultMap.add(next.duplicate());
+                    }
+                }
+            }
+            
+            VUE.displayMap(searchResultMap);
+            
+            return;
+        }
         
         if(DEBUG_LOCAL)
         {

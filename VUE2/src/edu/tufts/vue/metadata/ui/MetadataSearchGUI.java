@@ -55,6 +55,9 @@ public class MetadataSearchGUI extends JPanel {
     public final static int SHOW_OPTIONS = 1;
     public final static int HIDE_OPTIONS = 0;
     
+    public final static String SELECTED_MAP_STRING = "Selected Map";
+    public final static String ALL_MAPS_STRING = "All Open Maps";
+    
     //ONE_LINE
     private JTextField searchField;
     private JTable searchTable;
@@ -64,10 +67,13 @@ public class MetadataSearchGUI extends JPanel {
     
     //TEXT FIELD BASED
     private JPanel optionsPanel;
+    private JPanel locationPanel;
     private JPanel resultsTypePanel;
     private JComboBox resultsTypeChoice;
+    private JComboBox locationChoice;
     private JComboBox searchTypesChoice;
     private String[] searchTypes = {"Basic","Categories","Advanced","All"};
+    private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
     private String[] resultsTypes = {"Show","Hide","Select"};
     
     private JPanel fieldsPanel;
@@ -129,6 +135,7 @@ public class MetadataSearchGUI extends JPanel {
     {
         setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         optionsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        locationPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
         resultsTypePanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
         fieldsPanel = new JPanel(new java.awt.BorderLayout());
         
@@ -163,6 +170,29 @@ public class MetadataSearchGUI extends JPanel {
            }
         });
         
+        locationChoice = new JComboBox(locationTypes);
+        locationChoice.addItemListener(new ItemListener()
+        {
+           public void itemStateChanged(ItemEvent e)
+           {
+               if(e.getStateChange() == ItemEvent.SELECTED)
+               {
+                 String type = locationChoice.getSelectedItem().toString();
+                 
+                 if(type.equals(ALL_MAPS_STRING))
+                 {    
+                   allSearch.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+                   termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+                 }
+                 else // SELECTED_MAP_STRING as current default
+                 {
+                   allSearch.setLocationType(SearchAction.SEARCH_SELECTED_MAP); 
+                   termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+                 }    
+               }
+           }
+        });
+        
         resultsTypeChoice = new JComboBox(resultsTypes);
         resultsTypeChoice.addItemListener(new ItemListener()
         {
@@ -187,9 +217,20 @@ public class MetadataSearchGUI extends JPanel {
         });
         //optionsPanel.add(advancedSearch);
         //optionsPanel.add(optionsLabel);
-        optionsPanel.add(new JLabel("Search Type: "));
+        
+        JLabel searchTypeLabel = new JLabel("Search Type: ");
+        JLabel locationLabel = new JLabel("Location: ");
+        JLabel resultsTypeLabel = new JLabel("Results Type: ");
+        
+        searchTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        locationLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        resultsTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        
+        optionsPanel.add(searchTypeLabel);
         optionsPanel.add(searchTypesChoice);
-        resultsTypePanel.add(new JLabel("Results Type:"));
+        locationPanel.add(locationLabel);
+        locationPanel.add(locationChoice);
+        resultsTypePanel.add(resultsTypeLabel);
         resultsTypePanel.add(resultsTypeChoice);
         
         
@@ -222,6 +263,7 @@ public class MetadataSearchGUI extends JPanel {
         fieldsPanel.add(scroll);
         
         add(optionsPanel);
+        add(locationPanel);
         add(resultsTypePanel);
         add(fieldsPanel);
         
@@ -325,6 +367,7 @@ public class MetadataSearchGUI extends JPanel {
         conditionColumn = -1;
         model.setColumns(3);
         adjustColumnModel();
+        //termsAction = new SearchAction(searchTerms);
         searchButton.setAction(termsAction);
     }
     
@@ -338,6 +381,7 @@ public class MetadataSearchGUI extends JPanel {
         conditionColumn = -1;
         model.setColumns(2);
         adjustColumnModel();
+        //termsAction = new SearchAction(searchTerms);
         searchButton.setAction(termsAction);
     }
     
@@ -351,6 +395,7 @@ public class MetadataSearchGUI extends JPanel {
         conditionColumn = 1;
         model.setColumns(4);
         adjustColumnModel();
+        //termsAction = new SearchAction(searchTerms);
         searchButton.setAction(termsAction);
     }
     
@@ -367,6 +412,7 @@ public class MetadataSearchGUI extends JPanel {
         //allSearchField.setText("FF");
 
         //allSearch.setResultsType(resultsTypeChoice.getSelectedItem().toString());
+        //allSearch = new SearchAction(allSearchField);
         searchButton.setAction(allSearch);
 
         singleLine = true;
