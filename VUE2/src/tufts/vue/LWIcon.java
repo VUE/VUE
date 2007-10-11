@@ -427,7 +427,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             
             final tufts.vue.Resource r = mLWC.getResource();
             final boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
-            final String prettyResource = r.getPrettyString();
+            final String prettyResource = r.getToolTipText();
             ttResource.setIcon(r.getTinyIcon());
             ttResource.setVerticalTextPosition(SwingConstants.TOP);
             // already has a border -- either make compound or put in a panel
@@ -518,14 +518,14 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         void layout()
         {
-            String extension = NoResource;
-            if (mLWC.hasResource())
-                extension = mLWC.getResource().getExtension();
-            mTextRow = new TextRow(extension, FONT_ICON);
-            // Resource icon special case can override parent set width:
-            super.width = mTextRow.width;
-            if (super.width < super.mMinWidth)
-                super.width = super.mMinWidth;
+//             String extension = NoResource;
+//             if (mLWC.hasResource())
+//                 extension = mLWC.getResource().getExtension();
+//             mTextRow = new TextRow(extension, FONT_ICON);
+//             // Resource icon special case can override parent set width:
+//             super.width = mTextRow.width;
+//             if (super.width < super.mMinWidth)
+//                 super.width = super.mMinWidth;
         }
         
         void draw(DrawContext dc)
@@ -558,6 +558,9 @@ public abstract class LWIcon extends Rectangle2D.Float
                     //return;
                 }
             }
+
+            if (mTextRow == null)
+                return;
 
             double _x = getX();
             double _y = getY();
