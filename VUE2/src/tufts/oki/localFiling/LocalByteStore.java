@@ -39,8 +39,11 @@ import tufts.oki.shared.*;
  * @author  Mark Norton
  *
  */
-public class LocalByteStore extends LocalCabinetEntry implements osid.filing.ByteStore {
-    private byte[] byte_store;          //  This is the actual byte storage buffer.
+public class LocalByteStore extends LocalCabinetEntry implements osid.filing.ByteStore
+{
+    //private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalByteStore.class);
+    
+    //private byte[] byte_store;          //  This is the actual byte storage buffer. (UNUSED)
     private int used = 0;                   //  Bytes written to the buffer.
     private String mime_type = null;    //  The mime type of this byte store.
     private boolean writable = true;    //  Is it writable?
@@ -59,12 +62,14 @@ public class LocalByteStore extends LocalCabinetEntry implements osid.filing.Byt
         
         //System.out.println ("LocalByteStore creator - name: " + displayName);
 
-        byte_store = new byte[1024];
+        //byte_store = new byte[1024]; // UNUSED
         file = new File (displayName);
         
         //System.out.println ("LocalByteStore creator - absolute path: " + file.getAbsolutePath());
         
         updateDisplayName (file.getName());
+
+        if (Log.isDebugEnabled()) Log.debug("CREATED in " + parent + ": " + this);        
     }
     
     /**
@@ -76,10 +81,12 @@ public class LocalByteStore extends LocalCabinetEntry implements osid.filing.Byt
      public LocalByteStore(String displayName, osid.filing.Cabinet parent, int initialCapacity) throws osid.OsidException {
         super (displayName, parent.getCabinetEntryAgent(), parent);
 
-        byte_store = new byte[initialCapacity];
+        //byte_store = new byte[initialCapacity]; // UNUSED
         //file = new File (((LocalCabinet)parent).getPath(), displayName);
         file = new File (displayName);
         updateDisplayName (file.getName());
+
+        if (Log.isDebugEnabled()) Log.debug("CREATED in " + parent + ": " + this);        
     }
     
     /**

@@ -49,7 +49,10 @@ import tufts.oki.shared.*;
  *  @author  Mark Norton
  *
  */
-public class LocalFilingManager extends tufts.oki.OsidManager implements osid.filing.FilingManager {
+public class LocalFilingManager extends tufts.oki.OsidManager implements osid.filing.FilingManager
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalFilingManager.class);
+    
     private static final int BUFFER_SIZE = 1024;    //  Size of buffer to use.
     public boolean trace = false;       //  Set this to true to trace operations.
     private SortedSet rootCabinets = null;
@@ -76,7 +79,9 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         LocalCabinet root = null;
         try {
             osid.shared.Agent agent = new Agent("unknown", new AgentPersonType());
-            root = new LocalCabinet(path, agent, null);
+            Log.debug(this + "; addRoot " + path);
+            root = LocalCabinet.instance(path, agent, null);
+            //root = new LocalCabinet(path, agent, null);
             rootCabinets.add (root);
             cwd = root;
         }
@@ -118,8 +123,8 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
     		list.add(roots[i]);
     }
     private void initializeRoots() throws osid.filing.FilingException {
-        String[] drives = {"C","D","E","F","G","H","I","J","K","L","M","N",
-                           "O","P","Q","R","S","T","U","V","W","X","Y","Z"};
+        final String[] drives = {"C","D","E","F","G","H","I","J","K","L","M","N",
+                                 "O","P","Q","R","S","T","U","V","W","X","Y","Z"};
         
         //  Create  dummy owner.
         osid.shared.Agent agent = null;
@@ -150,7 +155,8 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
             	if(!isRemovableDisk && file.exists()){
                     String idStr = drives[i]+":" + java.io.File.separator;
                     //this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
-                    LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
+                    LocalCabinet newRoot = LocalCabinet.instance(idStr, agent, null);
+                    //LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
                     rootCabinets.add (newRoot);
                     if (drives[i].compareTo("C:") == 0)
                         cwd = newRoot;

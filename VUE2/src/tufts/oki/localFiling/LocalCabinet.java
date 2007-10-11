@@ -38,15 +38,71 @@ import osid.OsidException;
  * @author  Mark Norton
  *
  */
-public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabinet {
+public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabinet
+{
+    private static final boolean UseCache = false;
+    private static final Map<String,LocalCabinet> Cache;
+
+    static { Cache = UseCache ? new java.util.HashMap() : null; }
+
+    //private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalCabinet.class);
     
     /* parent is inherited from Cabinet Entry.  */
-    private SortedSet children = null;
-    private tufts.oki.shared.Properties properties = null;
-    private boolean initialized = false;    //  True if expanded to include entries.
+    private final SortedSet children;
+    //private tufts.oki.shared.Properties properties = null;
+    private volatile boolean initialized = false;    //  True if expanded to include entries.
     private boolean open = false;           //  Indicates open or closed status for UI. 
-    private File dir = null;                //  The local directory being modeled.
-    private String rootBase = null;         //  Set if this is a root.
+    private final File dir;                //  The local directory being modeled.
+    private final String rootBase;         //  Set if this is a root.
+
+    private final String _cacheKey;
+
+    public static LocalCabinet instance(String path, osid.shared.Agent owner, osid.filing.Cabinet parent) {
+        if (UseCache) {
+            LocalCabinet cabinet = null;
+            synchronized (Cache) {
+                if (cabinet == null) {
+                    cabinet = new LocalCabinet(path, owner, parent);
+                    Cache.put(path, cabinet);
+                } else
+                    if (Log.isDebugEnabled()) Log.debug("CACHE HIT " + cabinet);
+            }
+            return cabinet;
+        } else
+            return new LocalCabinet(path, owner, parent);
+    }
+
+    public static LocalCabinet instance(File file, osid.shared.Agent owner, osid.filing.Cabinet parent) {
+        return instance(file.getPath(), owner, parent);
+    }
+    
+    public String toString() {
+        String name = "<unknown>";
+        try {
+            name = getDisplayName();
+        } catch (Throwable t) {
+            name = t.toString();
+        }
+        if (rootBase == null) {
+            return String.format("LocalCabinet@%07x[%s](%s) n=%02d",
+                                 System.identityHashCode(this),
+                                 _cacheKey,
+                                 name,
+                                 children == null ? -1 : children.size()
+                                 );
+        } else {
+            return String.format("LocalCabinet@%07x{%s} n=%02d",
+                                 System.identityHashCode(this),
+                                 rootBase,
+                                 children == null ? -1 : children.size()
+                                 );
+        }
+    }
+
+    private void debug(String fmt, Object... args) {
+        if (Log.isDebugEnabled())
+            Log.debug(this + ": " + String.format(fmt, args));
+    }
     
      /**
       * Initializes the feilds interited from CabinetEntry and adds a vector of children.
@@ -58,6 +114,8 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     public LocalCabinet(String displayName, osid.shared.Agent agentOwner, osid.filing.Cabinet parent){
         super (displayName, agentOwner, parent);
 
+        _cacheKey = displayName;
+
         children = new TreeSet(new LocalCabinetEntryComparator());
         //FilingCabinetType type = new FilingCabinetType();
         //properties = new Properties(type);
@@ -68,9 +126,17 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
         if (parent == null) {
             rootBase = dir.getPath();
             updateDisplayName (rootBase);
-        }
-        else
+        } else {
             updateDisplayName(dir.getName());
+            rootBase = null;
+        }
+
+        if (Log.isDebugEnabled()) {
+            if (parent != null)
+                Log.debug("CREATED in " + parent + ": " + this);
+            else
+                Log.debug("CREATED " + this);
+        }
     }
     
    /**
@@ -84,6 +150,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
         entry.updateDisplayName (name);
         
         /*  Add the element to the Vector array.  */
+        //Log.debug(this + " add " + entry + " [" + name + "]");
         children.add(entry);
     }
 
@@ -135,6 +202,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
         osid.filing.ByteStore bs = null;
         try {
              bs = new LocalByteStore(name, this);
+             //if (Log.isDebugEnabled()) Log.debug("CREATED " + bs);
              this.add (bs);
         }
         catch (osid.OsidException ex) {
@@ -200,7 +268,8 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
 
         try {
              osid.shared.Agent agentOwner = super.getCabinetEntryAgent();
-             LocalCabinet entry = new LocalCabinet(displayName, agentOwner, this);
+             LocalCabinet entry = instance(displayName, agentOwner, this);
+             //LocalCabinet entry = new LocalCabinet(displayName, agentOwner, this);
              //entry.updateDisplayName(displayName);
             
             /*  Add the element to the Vector array.  */
@@ -224,52 +293,64 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     */
     public osid.filing.CabinetEntryIterator entries() throws osid.filing.FilingException {
         if (!initialized) {
-            //  Initialize the directory by getting all entries contained in it.
-            String[] files = null;
+            synchronized (this) {
+                if (!initialized)
+                    loadChildren();
+            }
+        }
+        return new LocalCabinetEntryIterator(children);
+    }
 
-            //System.out.println ("Open Directory: " + this.cwd.getDisplayName());
-            files = dir.list();
-            if (files == null)
-                throw new osid.filing.FilingException (osid.filing.FilingException.NOT_A_CABINET);
+    private void loadChildren() throws osid.filing.FilingException
+    {
+        //tufts.Util.printStackTrace("ENTRIES " + this + "; " + getDisplayName());
+        debug("initializing");
+        //  Initialize the directory by getting all entries contained in it.
+        String[] files = null;
 
-            String rootBase = getRootBase();
-            String path = rootBase + getFullName();
+        //System.out.println ("Open Directory: " + this.cwd.getDisplayName());
+        files = dir.list();
+        if (files == null)
+            throw new osid.filing.FilingException (osid.filing.FilingException.NOT_A_CABINET);
+        debug("listed, n=%d", files.length);
 
-            //System.out.println ("openDirectory - path name: " + path);
-            for (int i = 0; i < files.length; i++) {
-                //File temp = new File (cwd.getPath(), files[i]);
-                File temp = new File (rootBase+getFullName(), files[i]);
+        String rootBase = getRootBase();
+        String path = rootBase + getFullName();
 
-                //System.out.println ("openDirectory - new file: " + rootBase + getFullName() + files[i]);
+        //System.out.println ("openDirectory - path name: " + path);
+        for (int i = 0; i < files.length; i++) {
+            //File temp = new File (cwd.getPath(), files[i]);
+            File temp = new File (rootBase+getFullName(), files[i]);
 
-                String absolute = null;
-                if (isRootCabinet())
-                    absolute = path + temp.getName();
-                else
-                    absolute = path + separator() + temp.getName();
+            //System.out.println ("openDirectory - new file: " + rootBase + getFullName() + files[i]);
 
-                if (temp.isDirectory()) {
+            String absolute = null;
+            if (isRootCabinet())
+                absolute = path + temp.getName();
+            else
+                absolute = path + separator() + temp.getName();
 
-                    //System.out.println ("\tDir " + i + ": " + temp.getName() + "\t" + absolute);
-                    //cwd.createCabinet (temp.getName());
-                    createCabinet (absolute);
-                }
-                else if (temp.isFile()) {
-                    //System.out.println ("\tFile " + i + ": " + temp.getName() + "\t" + absolute);
-                    //cwd.createByteStore (temp.getName());
-                    createByteStore (absolute);
-                }
+            if (temp.isDirectory()) {
 
-                //  Unknown cases are ignored.
+                //System.out.println ("\tDir " + i + ": " + temp.getName() + "\t" + absolute);
+                //cwd.createCabinet (temp.getName());
+                createCabinet (absolute);
+            }
+            else if (temp.isFile()) {
+                //System.out.println ("\tFile " + i + ": " + temp.getName() + "\t" + absolute);
+                //cwd.createByteStore (temp.getName());
+                createByteStore (absolute);
             }
 
-            //  Set flags.
-            open = true;
-            initialized = true;
+            //  Unknown cases are ignored.
         }
-        
-        return (osid.filing.CabinetEntryIterator) new LocalCabinetEntryIterator(children);
+
+        //  Set flags.
+        open = true;
+        initialized = true;
+        debug("initialized");
     }
+    
     
     /**
      *  Get a cabinet entry given its name.
@@ -329,8 +410,10 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
      *  @return The property set of the Properties object associated with this cabinet as a Map.
      */
     public java.util.Map getProperties() throws osid.filing.FilingException {
-        HashMap map = properties.getPropertySet();
-        return (Map) map;
+        throw new UnsupportedOperationException(getClass() + ".getProperties");
+//         // Properties found unsupported (uninitiailized) -- would throw NPE -- SMF 2007-10-10
+//         HashMap map = properties.getPropertySet();
+//         return (Map) map;
     }
     
     /**

@@ -45,7 +45,10 @@ import osid.OsidException;
  *
  * @author  Mark Norton
  */
-public class LocalCabinetEntry implements osid.filing.CabinetEntry {
+public class LocalCabinetEntry implements osid.filing.CabinetEntry
+{
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalCabinetEntry.class);
+    
     private osid.shared.Id id;
     private String display_name;
     private osid.shared.Agent agent_owner;
@@ -54,7 +57,7 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry {
     private java.util.Date accessed_time;
     private Vector modified_times;
     private osid.filing.Cabinet parent = null;
-    
+
     /**
      *  Creates a new instance of CabinetEntry.
      *  Requires that a display name, agent owner, and parent cabinet be passed.
@@ -80,7 +83,7 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry {
         created_time = (java.util.Date) now.clone();
         modified_time = (java.util.Date) now.clone();
         accessed_time = (java.util.Date) now.clone();
-        modified_times = new Vector(100);
+        modified_times = new Vector();
         modified_times.add(modified_time);
     }
     
@@ -206,4 +209,15 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry {
     public boolean isCabinet() {
         return (this instanceof LocalCabinet);
     }
+
+    public String toString() {
+        String name = "<unknown>";
+        try {
+            name = getDisplayName();
+        } catch (Throwable t) {
+            name = t.toString();
+        }
+        return String.format("%s@%07x[%s]", getClass().getSimpleName(), System.identityHashCode(this), name);
+    }
+    
 }
