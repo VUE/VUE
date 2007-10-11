@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.58 $ / $Date: 2007-10-03 14:27:57 $ / $Author: anoop $
+ * @version $Revision: 1.59 $ / $Date: 2007-10-11 22:48:58 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -81,10 +81,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
+ 
+    //TODO: move it edu.tufts.vue.dsm
     
-    
-    private org.osid.shared.Type sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
-    private org.osid.shared.Type fedoraRepositoryType = new edu.tufts.vue.util.Type("tufts.edu","repository","fedora_2_2");
+    public static final org.osid.shared.Type sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
+    public static final org.osid.shared.Type fedoraRepositoryType = new edu.tufts.vue.util.Type("tufts.edu","repository","fedora_2_2");
     
     
     int count = 0;
