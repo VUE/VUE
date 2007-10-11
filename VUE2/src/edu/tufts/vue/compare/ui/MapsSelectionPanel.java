@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.19 $ / $Date: 2007-06-04 15:11:43 $ / $Author: dan $
+ * @version $Revision: 1.20 $ / $Date: 2007-10-11 16:15:13 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -68,8 +68,9 @@ public class MapsSelectionPanel extends JPanel  {
     public static final int OPEN_MAP = 0;
     public static final int LOCAL_FILE = 1;
     
-    public static final String stepOneMessage = "1. Create a set of maps from open maps and/or from maps stored on your computer";
-    public static final String stepTwoMessage = "2. Pick a \"guide\" map to define the layout of the new merged map";
+    public static final String stepOneMessage = "1. Create a set of maps";
+    public static final String stepTwoMessage = "2. Pick a primary map";
+    public static final String stepThreeMessage = "3. Determine map filter:";
 
     public final static String filterOnBaseMapMessageString = "Only include items found on the base map";
     
@@ -183,16 +184,31 @@ public class MapsSelectionPanel extends JPanel  {
         });
 
         JLabel stepOneLabel = new JLabel(stepOneMessage);
-        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         gridBag.setConstraints(stepOneLabel,gridBagConstraints);
-        stepOneLabel.setBorder(BorderFactory.createEmptyBorder(15,0,0,0));
+        //stepOneLabel.setBorder(BorderFactory.createEmptyBorder(15,0,0,0));
+        stepOneLabel.setBorder(BorderFactory.createEmptyBorder(5 + 5,15,2 + 5,5));
         add(stepOneLabel);
+        
+        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBagConstraints.weightx = 0.0;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        
+        gridBagConstraints.insets = new Insets(5,0,5,0);
+        
+        //gridBagConstraints.gridwidth = 1;
+        // //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(browseButton,gridBagConstraints);
+        browseButton.setOpaque(false);
+        add(browseButton);
+        
+        gridBagConstraints.insets = new Insets(0,0,0,0);
         
         JLabel stepTwoLabel = new JLabel(stepTwoMessage);
         //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(stepTwoLabel,gridBagConstraints);
-        stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(0,0,15,0));
+        stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(5,15,5,5));
         add(stepTwoLabel);  
                
         //bottomPanel = new JPanel();
@@ -220,14 +236,21 @@ public class MapsSelectionPanel extends JPanel  {
         //gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
         //gridBag.setConstraints(fileNameField,gridBagConstraints);
         //add(fileNameField);
-        gridBagConstraints.weightx = 0.0;
-        gridBagConstraints.anchor = GridBagConstraints.WEST;
-        gridBagConstraints.gridwidth = 1;
-        //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        gridBag.setConstraints(browseButton,gridBagConstraints);
-        browseButton.setOpaque(false);
-        add(browseButton);
+        
+        
+        //gridBagConstraints.weightx = 0.0;
+        //gridBagConstraints.anchor = GridBagConstraints.WEST;
+        //gridBagConstraints.gridwidth = 1;
+        // //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        //gridBag.setConstraints(browseButton,gridBagConstraints);
+        //browseButton.setOpaque(false);
+        //add(browseButton);
+        
+        
         gridBagConstraints.weightx = 1.0;
+        
+        gridBagConstraints.gridwidth = 1;
+        
         gridBagConstraints.anchor = GridBagConstraints.EAST;
         gridBag.setConstraints(filterOnBaseMap,gridBagConstraints);
         filterOnBaseMap.setOpaque(false);
@@ -285,8 +308,8 @@ public class MapsSelectionPanel extends JPanel  {
           
         });
         maps.setDefaultRenderer(Object.class,new MapTableCellRenderer());
-        maps.getColumnModel().getColumn(0).setMinWidth(50);
-        maps.getColumnModel().getColumn(1).setMinWidth(360);
+        maps.getColumnModel().getColumn(0).setMinWidth(40);
+        maps.getColumnModel().getColumn(1).setMinWidth(310);
         maps.getColumnModel().getColumn(2).setMinWidth(50);
         maps.getColumnModel().getColumn(3).setMinWidth(80);
         gridBagConstraints.weightx = 1.0;
@@ -294,8 +317,15 @@ public class MapsSelectionPanel extends JPanel  {
         gridBagConstraints.anchor = GridBagConstraints.NORTH;
         gridBagConstraints.fill = gridBagConstraints.BOTH;
         scroll = new JScrollPane(maps);
-        gridBag.setConstraints(scroll,gridBagConstraints);
-        add(scroll);
+        //scroll.setViewportBorder(BorderFactory.createEmptyBorder(0,5,0,5));
+        //gridBag.setConstraints(scroll,gridBagConstraints);
+        JPanel scrollPanel = new JPanel(new java.awt.BorderLayout());
+        scrollPanel.setOpaque(false);
+        scrollPanel.setBorder(BorderFactory.createEmptyBorder(5,15,15,15));
+        scrollPanel.add(scroll);
+        gridBag.setConstraints(scrollPanel,gridBagConstraints);
+        //add(scroll);
+        add(scrollPanel);
         
     }
     
@@ -672,7 +702,7 @@ public class MapsSelectionPanel extends JPanel  {
            if(col == 1)
                return "Name";
            if(col == 2)
-               return "Layout";
+               return "Primary";
            if(col == 3)
                return "Location";
            else
