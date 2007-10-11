@@ -223,7 +223,8 @@ public class SearchAction extends AbstractAction {
              }
              if(resultsType == HIDE_ACTION)
              {
-               it.next().setHidden(LWComponent.HideCause.DEFAULT);  
+               //it.next().setHidden(LWComponent.HideCause.DEFAULT);  
+               it.next().setFiltered(true);
              }
           }
         }
@@ -246,7 +247,8 @@ public class SearchAction extends AbstractAction {
                       System.out.println("SearchAction adding " + comp.getLabel() + " to globalHides and hiding");
                   }
                   
-                  comp.setHidden(LWComponent.HideCause.DEFAULT);
+                  //comp.setHidden(LWComponent.HideCause.DEFAULT);
+                  comp.setFiltered(true);
                   globalHides.add(comp);
               }
 
@@ -299,7 +301,8 @@ public class SearchAction extends AbstractAction {
         Iterator<LWComponent> it = toBeReverted.iterator();
         while(it.hasNext())
         {
-            it.next().clearHidden(LWComponent.HideCause.DEFAULT);
+            //it.next().clearHidden(LWComponent.HideCause.DEFAULT);
+            it.next().setFiltered(false);
         } 
     }
     
