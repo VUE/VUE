@@ -47,7 +47,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.48 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-10-11 04:01:55 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -218,7 +218,11 @@ public class DataSourceList extends JList implements DropTargetListener {
                             try{
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
-                                LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                                LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
+                                // todo: need to extend Resource class and/or refactor this code so
+                                // we don't need the LOCAL / REMOTE distinction, or can discover it
+                                // generically.
+                                //Resource res = Resource.instance(cab);
                                 CabinetResource res = CabinetResource.create(cab);
                                 CabinetEntry entry = res.getEntry();
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
@@ -247,7 +251,7 @@ public class DataSourceList extends JList implements DropTargetListener {
                             try{
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
-                                LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                                LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
                                 CabinetResource res = CabinetResource.create(cab);
                                 //res.setTitle(file.getAbsolutePath());
                                 CabinetEntry oldentry = res.getEntry();
