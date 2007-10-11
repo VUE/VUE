@@ -38,11 +38,13 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-08-14 18:54:52 $ / $Author: mike $
+ * @version $Revision: 1.37 $ / $Date: 2007-10-11 04:00:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(WidgetStack.class);
+    
     private final JPanel mGridBag;
     private final GridBagConstraints _gbc = new GridBagConstraints();
     private final Insets ExpandedTitleBarInsets = GUI.EmptyInsets;
@@ -226,7 +228,7 @@ public class WidgetStack extends Widget
         updateDefaultExpander();
         super.addNotify();
         if (mExpanderCount == 0)
-            if (DEBUG.Enabled) out("warning: no vertical expanders");
+            if (DEBUG.Enabled) out("no vertical expanders");
             //tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
         setName("in " + GUI.name(getParent()));
     }
@@ -598,14 +600,16 @@ public class WidgetStack extends Widget
 
 
         private void out(Object o) {
-            System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
+            Log.debug(GUI.name(this) + " " + (o==null?"null":o.toString()));
+            //System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
         }
 
     
     }
     
     private void out(Object o) {
-        System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
+        Log.debug(GUI.name(this) + " " + (o==null?"null":o.toString()));
+        //System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
     }
 
     static class MenuButton extends JButton {

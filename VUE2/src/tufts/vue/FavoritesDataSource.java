@@ -45,11 +45,13 @@ public class FavoritesDataSource extends VueDataSource{
         this.setDisplayName(DisplayName);
         if(saveFile== null) {
             saveFile = FOLDER+"f"+GUID.generate()+".xml";
+            //setSaveFile(FOLDER+"f"+GUID.generate()+".xml");
         }
         this.setResourceViewer();
     }
     
     public void setSaveFile(String saveFile ) {
+        //tufts.Util.printStackTrace("setSaveFile " + saveFile);
         this.saveFile = saveFile;
     }
     
