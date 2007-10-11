@@ -154,7 +154,7 @@ public class FedoraPublisher {
                 String ingestFoxml = foxml;
                 ingestFoxml = ingestFoxml.replace("%OWNER%",userName);
                 ingestFoxml = ingestFoxml.replaceAll("%CREATE_DATE%",dateString);
-                ingestFoxml = ingestFoxml.replace("%PID%",pid);
+                ingestFoxml = ingestFoxml.replaceAll("%PID%",pid);
                 ingestFoxml = ingestFoxml.replace("%TITLE%",label);
                 ingestFoxml = ingestFoxml.replace("%CONTENT_MODEL%",cm);
                 ingestFoxml = ingestFoxml.replace("%UPLOAD%",uploadId);
