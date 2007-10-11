@@ -1619,14 +1619,51 @@ public class Util
         if (o == null)
             return "null";
         else
-            return o.getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(o));
+            return String.format("%s@%07x", o.getClass().getName(), System.identityHashCode(o));
     }
     
+    /**
+     * Produce a "package.class@idenityHashCode[toString]" debug tag to uniquely identify
+     * arbitrary objects.  Allows for toString failure, and shortens the output if the
+     * toString result already includes the type (class) @ identityHashCode information.
+     */
     public static String tags(Object o) {
         if (o == null)
-            return tag(o);
+            return "null";
+
+        if (o instanceof java.lang.String) {
+            // special case for strings: we dont care about hashCode / type -- just return quoted
+            return '"' + o.toString() + '"';
+        }
+            
+        final String type = o.getClass().getName();
+        String txt = null;
+        try {
+            txt = o.toString();
+        } catch (Throwable t) {
+            txt = t.toString();
+        }
+
+        final int ident = System.identityHashCode(o);
+        final String pureTag = String.format("%s@%x", type, ident); // default java object toString
+
+        if (txt.startsWith(pureTag)) {
+            // remove redunant type info from toString
+            txt = txt.substring(pureTag.length());
+        } else {
+            final String shortTag = String.format("%s@%x", o.getClass().getSimpleName(), ident);
+            // remove redunant (short) type info from toString
+            if (txt.startsWith(shortTag))
+                txt = txt.substring(shortTag.length());
+        }
+        
+        final String s;
+        if (txt.length() > 0)
+            s = String.format("%s@%07x[%s]", type, ident, txt);
         else
-            return tag(o) + "[" + o + "]";
+            s = String.format("%s@%07x", type, ident);
+            
+        return s;
     }
     
     public static String objectTag(Object o) {
