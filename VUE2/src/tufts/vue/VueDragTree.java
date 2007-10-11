@@ -50,7 +50,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.65 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-10-11 03:59:55 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -60,23 +60,28 @@ public class VueDragTree extends JTree
                TreeSelectionListener,
                ActionListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDragTree.class);
     
     public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
-    private static  ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-    private static ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-    private static  ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+    private static final ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+    private static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+    private static final ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
     private static final int DOUBLE_CLICK = 2;
     ///private javax.swing.JPanel previewPanel = null;
     //	private tufts.vue.gui.DockWindow previewDockWindow = null;
+
+    private static final boolean SlowStartup = VueUtil.isMacPlatform() && !DEBUG.Enabled;
     
     public VueDragTree(Object  obj, String treeName) {
         setModel(createTreeModel(obj, treeName));
         setName(treeName);
         this.setRootVisible(true);
-        this.expandRow(0);
-        this.expandRow(1);
-        this.setRootVisible(false);
+        if (SlowStartup) {
+            this.expandRow(0);
+            this.expandRow(1);
+            this.setRootVisible(false);
+        }
         implementDrag(this);
         createPopupMenu();
         this.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -231,8 +236,15 @@ public class VueDragTree extends JTree
                     else
                         cabNode = new CabinetNode(cabRes, CabinetNode.LOCAL);
                     root.add(cabNode);
-                    if((new File(cabRes.getSpec())).isDirectory()) cabNode.explore();
-                    else if (cabNode.getCabinet() != null)cabNode.explore();
+                    if (SlowStartup) {
+                        // Do NOT DO THIS AUTOMATICALLY -- it can dramaticaly slow startup times.
+                        // by tens of seconds (!) -- SMF 2007-10-10
+                        if ((new File(cabRes.getSpec())).isDirectory())
+                            cabNode.explore();
+                        else if (cabNode.getCabinet() != null)
+                            cabNode.explore();
+                    }
+
                 } else {
                     ResourceNode node = new ResourceNode((Resource)resource);
                     root.add(node);
@@ -255,25 +267,28 @@ public class VueDragTree extends JTree
             
             if (DEBUG.DND) System.out.println(this + " dragGestureRecognized " + e);
             if (DEBUG.DND) System.out.println("selected node is " + oldnode.getClass() + "[" + oldnode + "] resource=" + resource);
-            
+
             if (resource != null) {
-                
-                Image imageIcon = nleafIcon.getImage();
-                if (resource.getClientType() == Resource.DIRECTORY) {
-                    imageIcon = activeIcon.getImage();
-                } else if (oldnode instanceof CabinetNode) {
-                    CabinetNode cn = (CabinetNode) oldnode;
-                    if (!cn.isLeaf())
-                        imageIcon = activeIcon.getImage();
-                }
-                
-                e.startDrag(DragSource.DefaultCopyDrop, // cursor
-                        imageIcon, // drag image
-                        new Point(-10,-10), // drag image offset
-                        new tufts.vue.gui.GUI.ResourceTransfer(resource),
-                        //new VueDragTreeNodeSelection(resource), // transferable
-                        this);  // drag source listener
+                GUI.startRecognizedDrag(e, resource, this);
             }
+            
+//             if (resource != null) {
+//                 Image imageIcon = nleafIcon.getImage();
+//                 if (resource.getClientType() == Resource.DIRECTORY) {
+//                     imageIcon = activeIcon.getImage();
+//                 } else if (oldnode instanceof CabinetNode) {
+//                     CabinetNode cn = (CabinetNode) oldnode;
+//                     if (!cn.isLeaf())
+//                         imageIcon = activeIcon.getImage();
+//                 }
+//                 e.startDrag(DragSource.DefaultCopyDrop, // cursor
+//                         imageIcon, // drag image
+//                         new Point(-10,-10), // drag image offset
+//                         new tufts.vue.gui.GUI.ResourceTransfer(resource),
+//                         //new VueDragTreeNodeSelection(resource), // transferable
+//                         this);  // drag source listener
+//             }
+            
         }
     }
     
@@ -534,6 +549,9 @@ class ResourceNode extends DefaultMutableTreeNode {
 
 
 class CabinetNode extends ResourceNode {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(CabinetNode.class);
+    
     //DefaultTreeModel dataModel;
     public static final String LOCAL = "local";
     public static final String REMOTE = "remote";
@@ -548,13 +566,15 @@ class CabinetNode extends ResourceNode {
     public static CabinetNode  getCabinetNode(String title, File file, ResourceNode rootNode, DefaultTreeModel model){
         CabinetNode node= null;
         try{
-            LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+            //LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
             osid.shared.Agent agent = null;
             LocalCabinetEntry cab;
             if(file.isDirectory()){
-                cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
             } else {
+                // todo: use factory, also -- should this be a bytestore?
                 cab = new LocalCabinetEntry(file.getAbsolutePath(),agent,null);
+                Log.debug("new " + cab);
             }
             CabinetResource res = CabinetResource.create(cab);
             CabinetEntry entry = res.getEntry();
