@@ -40,7 +40,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.30 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-10-11 04:01:06 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -185,7 +185,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                     try{
                         LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                         osid.shared.Agent agent = null;
-                        LocalCabinet cab = new LocalCabinet(file.getAbsolutePath(),agent,null);
+                        LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
                         CabinetResource res = CabinetResource.create(cab);
                         CabinetEntry entry = res.getEntry();
                         CabinetNode cabNode = null;
