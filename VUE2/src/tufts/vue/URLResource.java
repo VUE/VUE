@@ -38,22 +38,27 @@ import java.awt.geom.*;
 import java.awt.image.*;
 
 // TODO: tempting to split out a separate FileResource subclass of Resource to handle
-// stuff that is just the local file system (and enforce factory resource creation,
-// which is a good idea in any case), where code digging up local filesystem icons could
-// reside, and we'd only need a single spec / file object (not all this crazy URL
+// stuff that is just the local file system where code digging up local filesystem icons
+// could reside, and we'd only need a single spec / file object (not all this crazy URL
 // stuff).  Tho the icon-type stuff is actually generic to network resources: e.g., an
 // .xls file on a remote server would still be nice if it showed the Excel icon...  Tho
 // that code can probably stay residing in GUI, and doing this would still simplify lots
 // of stuff.  E.g., the C:\Program stuff when it shows up on mac, the handling of ':' ->
-// '/' for mac file names.  Oh, and of course, all of the local file resolution could
-// be handled just in FileResource, tho technically, that could also be useful
-// if the content was residing on a server, and it's location changed...
+// '/' for mac file names.  Oh, and of course, all of the local file resolution could be
+// handled just in FileResource, tho technically, that could also be useful if the
+// content was residing on a server, and it's location changed...
 
 // Since FTP Resources are handled by CabinetResource, maybe we can also get away
 // with making this an HttpResource... is there anything else this needs to do?
 // What about FTP urls dragged from web browsers?  Well, they ought to be going
 // thru a factory for creation anyway so we can do what we want -- they're
 // probably creating URLResources right now tho...
+
+// Biggest problem w/FileResource: still need URLResource support for files due to old
+// save files, unless change to a model of using restored resources only for the
+// data-portion, and recreate new (potentially atomic) resources after the data has been
+// restored.  (Yet another reason to choose something more flexible than castor for XML
+// persistance -- e.g. XStream)
 
 
 /**
@@ -77,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.29 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -94,11 +99,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     //static final long SIZE_UNKNOWN = -1;
     
-    private long referenceCreated; // this currently meaningless -- gets set every time -- is there anything meaningful here?
-    private long accessAttempted;
-    private long accessSuccessful;
     //private long size = SIZE_UNKNOWN;
-    //protected transient boolean selected = false;
     private String spec = SPEC_UNSET;
     private int type = Resource.NONE;
     //private JComponent preview;
@@ -106,12 +107,15 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     //private Object mPreview;
     private boolean isImage;
 
-    private URI mURI; // right now, I think this only used if it's RELATIVE -- kind of a marker for a short-name
+    private URI mRelativeURI; // right now, I think this only used if it's RELATIVE -- kind of a marker for a short-name
     
     // TODO performance: store as strings or URI's and only do conversion when we ask for them.
     protected URL mURL_Browse;
     private URL mURL_Thumb;
     private URL mURL_Image;
+    
+    /** if non-null, is local file */ // todo: FileResource...
+    private File mFile;
     
 //     /** the metadata property map **/
 //     final private PropertyMap mProperties = new PropertyMap();
@@ -134,32 +138,32 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         init();
     }
 
-    static URLResource create(String spec) {
-        return new URLResource(spec);
-    }
-    static URLResource create(URL url) {
-        return new URLResource(url);
-    }
-    static URLResource create(URI uri) {
-        return new URLResource(uri);
-    }
-    static URLResource create(File file) {
-        return new URLResource(file.toString()); // toURL / toURI probably better
-    }
-    
     private URLResource(String spec) {
         init();
         setSpec(spec);
     }
     
-    private URLResource(URL url) {
-        init();
-        setSpec(url.toString());
-    }
+//     private URLResource(URL url) {
+//         init();
+//         setSpec(url.toString());
+//     }
 
-    private  URLResource(URI uri) {
-        init();
-        setSpec(uri.toString());
+//     private  URLResource(URI uri) {
+//         init();
+//         setSpec(uri.toString());
+//     }
+    
+    static URLResource create(String spec) {
+        return new URLResource(spec);
+    }
+    static URLResource create(URL url) {
+        return new URLResource(url.toString());
+    }
+    static URLResource create(URI uri) {
+        return new URLResource(uri.toString());
+    }
+    static URLResource create(File file) {
+        return new URLResource(file.toString()); // toURL / toURI probably better
     }
     
     private void init() {
@@ -171,13 +175,36 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
     }
 
+    @Override
+    public String getContentType() {
+        if (mURL_Browse != null)
+            return extractExtension(mURL_Browse);
+        else
+            return super.getContentType();
+    }
+    
+    // todo: rename relativeName, and add a "shortName", for what CabinetResource provides
+    // (which will also translate ':' to '/' on the mac)
+
+
+    private volatile String mToolTipHTML;
+
+    @Override
+    public String getToolTipText() {
+        if (mToolTipHTML == null || DEBUG.META)
+            mToolTipHTML = buildToolTipHTML();
+        return mToolTipHTML;
+    }
+
+    private void invalidateToolTip() {
+        mToolTipHTML = null;
+    }
+    
     private static String deco(String s) {
         return "<i><b>"+s+"</b></i>";
     }
 
-    // todo: rename relativeName, and add a "shortName", for what CabinetResource provides
-    // (which will also translate ':' to '/' on the mac)
-    public String getPrettyString() {
+    private String buildToolTipHTML() {
         String pretty = "";
 
 //         if (mURI != null) {
@@ -207,16 +234,67 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             final String nl = "<br>";
 
             pretty += nl + spec + " (spec)";
-            if (mURI != null) 
-                pretty += nl + "URI-RELATIVE: " + mURI;
+            if (mRelativeURI != null) 
+                pretty += nl + "URI-RELATIVE: " + mRelativeURI;
             pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
-                + " impl=" + getClass().getName() + " ext=[" + getExtension() + "]";
+                + " impl=" + getClass().getName() + " ext=[" + getContentType() + "]";
             if (isLocalFile())
                 pretty += " (isLocal)";
             //pretty += nl + "localFile=" + isLocalFile();
         }
         return pretty;
         
+    }
+    
+    @Override
+    public void relativize(URI root)
+    {
+        URI oldRelative = mRelativeURI;
+        mRelativeURI = findRelativeURI(root);
+        if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
+            invalidateToolTip();
+        }
+    }
+    
+    private URI findRelativeURI(URI root)
+    {
+        if (DEBUG.Enabled) {
+            System.out.println("\n=======================================================");
+            Log.debug("attempting to relativize [" + this + "] against root " + root);
+        }
+        
+        final URL url = asURL();
+        if (url == null)
+            return null;
+
+        final URI absURI = makeURI(url.toString());
+        // absURI should always be absolute -- the way we persist them
+
+        if (!absURI.isAbsolute())
+            Log.warn("Non absolute URI: " + absURI + "; from URL " + url);
+
+        if (absURI == null) {
+            System.out.println("URL INVALID FOR URI: " + url + "; in " + this);
+            return null;
+        }
+
+        Util.dumpURI(absURI, "ORIGINAL");
+        final URI relativeURI = root.relativize(absURI);
+
+        if (relativeURI == absURI) {
+            // oldRoot was unable to relativize absURI -- this resource
+            // was not relative to it's map in it's previous incarnation.
+            return null;
+        }
+        
+        if (relativeURI != absURI)
+            Util.dumpURI(relativeURI, "RELATIVE");
+
+
+        System.out.println(TERM_GREEN+"FOUND RELATIVE: " + relativeURI + TERM_CLEAR);        
+
+        return relativeURI;
+
     }
     
     /**
@@ -228,8 +306,15 @@ public class URLResource extends Resource implements XMLUnmarshalListener
      * @param oldRoot - the root (parent directory) of the map the last time it was saved
      * @param newRoot - null if the same as oldRoot, otherwise, the newRoot
      */
+    // ONLY USED FOR OLD STYLE AUTO-CONVERSION ON STARTUP
     @Override
     public void updateRootLocation(URI oldRoot, URI newRoot) {
+
+        if (DEBUG.Enabled) {
+            System.out.println();
+            Log.debug("attempting to relativize [" + this + "] against curRoot " + oldRoot + "; newRoot " + newRoot);
+        }
+        
         final URL url = asURL();
         if (url == null)
             return;
@@ -275,37 +360,41 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 //-------------------------------------------------------
                 if (relativeURI != absURI) Log.warn("URLResource assertion failure: " + relativeURI + "; " + absURI);
                 
-                System.out.println("ATTEMPTING TO RELATIVIZE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
+                Log.debug("ATTEMPTING TO RELATIVIZE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
                 final URI newRelativeURI = newRoot.relativize(relativeURI);
 
                 if (newRelativeURI != relativeURI) {
                     System.out.println(TERM_GREEN+"NOTICED NEW RELATIVE: " + newRelativeURI + TERM_CLEAR);
-                    mURI = newRelativeURI;
+                    mRelativeURI = newRelativeURI;
                 }
                 
             } else {
                 //-------------------------------------------------------
                 // was relative: attempt to resolve against newRoot
                 //-------------------------------------------------------
-                System.out.println("ATTEMPTING RESOLVE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
+                Log.debug("ATTEMPTING RESOLVE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
                 final URI newAbsoluteURI = newRoot.resolve(relativeURI);
                 final File newFile = new File(newAbsoluteURI.getPath());
                 if (newFile.exists()) {
                     System.out.println(TERM_GREEN+"  FOUND NEW LOCATION: " + newFile + TERM_CLEAR);
                     spec = newAbsoluteURI.getRawPath();
                     // File was found at same relative location:
-                    mURI = relativeURI;
+                    mRelativeURI = relativeURI;
                     mURL_Browse = null; // reset
                 } else {
                     // File was NOT found same relative location --
                     // leave this Resource as it's old absolute value.
-                    mURI = null;
+                    mRelativeURI = null;
                 }
             }
 
         } else if (relativeURI != absURI) {
-            mURI = relativeURI;
+            mRelativeURI = relativeURI;
+            System.out.println(TERM_GREEN+"  FOUND NEW RELATIVE: " + relativeURI + TERM_CLEAR);
+            
         }
+
+        invalidateToolTip();        
 
     }
 
@@ -581,7 +670,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         return false;
     }
-    
 
     
     /** If given string is a valid URL, make one and return it, otherwise, return null. */
@@ -608,9 +696,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             systemSpec = getSpec();
         
         try {
-            //this.accessAttempted = System.currentTimeMillis();
+            markAccessAttempt();
             VueUtil.openURL(systemSpec);
-            this.accessSuccessful = System.currentTimeMillis();
+            // access successful is not currently very meaningful,
+            // as we don't know if the openURL failed or not.
+            markAccessSuccess();
         } catch (Exception e) {
             //System.err.println(e);
             Log.error(systemSpec + "; " + e);
@@ -618,30 +708,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
 
-    public long getReferenceCreated() {
-        return this.referenceCreated;
-    }
-    
-    public void setReferenceCreated(long referenceCreated) {
-        this.referenceCreated = referenceCreated;
-    }
-    
-    public long getAccessAttempted() {
-        return this.accessAttempted;
-    }
-    
-    public void setAccessAttempted(long accessAttempted) {
-        this.accessAttempted = accessAttempted;
-    }
-    
-    public long getAccessSuccessful() {
-        return this.accessSuccessful;
-    }
-    
-    public void setAccessSuccessful(long accessSuccessful) {
-        this.accessSuccessful = accessSuccessful;
-    }
-    
     public void setTitle(String title) {
         if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) out("setTitle " + title);
         mTitle = title;
@@ -691,10 +757,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     // process unless asked for something later...
     public void setSpec(final String spec) {
 
-        if (mURI != null) {
-            Util.printStackTrace(this + " setSpec w/URI set: " + mURI + " spec denied: " + spec);
+        if (mRelativeURI != null) {
+            Util.printStackTrace(this + " setSpec w/URI set: " + mRelativeURI + " spec denied: " + spec);
             return;
         }
+
+        invalidateToolTip();
         
         if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
             out("setSpec " + spec);
@@ -866,13 +934,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         try {
             setByteSize(Integer.parseInt((String) getProperty("contentLength")));
         } catch (Exception e) {}
-    }
-
-    private void markAccessAttempt() {
-        this.accessAttempted = System.currentTimeMillis();
-    }
-    private void markAccessSuccess() {
-        this.accessSuccessful = System.currentTimeMillis();
     }
 
     
@@ -1081,6 +1142,23 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return mURL_Browse.toString();
         */
     }
+
+    public String getRelativeURI() {
+        if (mRelativeURI != null)
+            return mRelativeURI.toString();
+        else
+            return null;
+    }
+
+    /** persistance only */
+    public void setRelativeURI(String s) {
+        if (!mXMLrestoreUnderway) {
+            Util.printStackTrace("only allowed for persistance; setRelativeURI " + s);
+            return;
+        }
+        mRelativeURI = makeURI(s);
+    }
+    
     
     /*
      * If isLocalFile is true, this will return a file name
@@ -1100,9 +1178,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     /** this is only meaninful if this resource points to a local file */
     protected Image getFileIconImage() {
-        return GUI.getSystemIconForExtension(getExtension(), 128);
+        return GUI.getSystemIconForExtension(getContentType(), 128);
     }
     
+    @Override
     public boolean isLocalFile() {
         asURL();
         return mURL_Browse == null || mURL_Browse.getProtocol().equals("file");
@@ -1110,27 +1189,28 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         //return s.startsWith("file:") || s.indexOf(':') < 0;
     }
     
-    public String getExtension() {
-        final String r = getSpec();
-        String ext = "xxx";
+    
+//     public String getExtension() {
+//         final String r = getSpec();
+//         String ext = "xxx";
 
-        if (r.startsWith("http"))
-            ext = "web";
-        else if (r.startsWith("file"))
-            ext = "file";
-        else {
-            ext = r.substring(0, Math.min(r.length(), 3));
-            if (!r.endsWith("/")) {
-                int i = r.lastIndexOf('.');
-                if (i > 0 && i < r.length()-1)
-                    ext = r.substring(i+1);
-            }
-        }
-        if (ext.length() > 4)
-            ext = ext.substring(0,4);
+//         if (r.startsWith("http"))
+//             ext = "web";
+//         else if (r.startsWith("file"))
+//             ext = "file";
+//         else {
+//             ext = r.substring(0, Math.min(r.length(), 3));
+//             if (!r.endsWith("/")) {
+//                 int i = r.lastIndexOf('.');
+//                 if (i > 0 && i < r.length()-1)
+//                     ext = r.substring(i+1);
+//             }
+//         }
+//         if (ext.length() > 4)
+//             ext = ext.substring(0,4);
         
-        return ext;
-    }
+//         return ext;
+//     }
     
     
 //     /**
@@ -1172,11 +1252,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     protected void setClientType(int type) {
         this.type = type;
     }
-    public String getToolTipInformation() {
-        return "ToolTip Information";
-    }
-
-
+    
     /*
     public Map getPropertyMap() {
         System.out.println(this + " *** getPropertyMap " + mProperties);
@@ -1556,15 +1632,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
       
     /*
-
-    public boolean isSelected(){
-        return selected;
-    }
-    
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
-
     private JComponent viewer;
     public JComponent getAssetViewer(){
         return null;   
@@ -1669,11 +1736,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     public static void main(String args[]) {
         String rs = args.length > 0 ? args[0] : "/";
+
+        VUE.parseArgs(args);
         
         DEBUG.Enabled = true;
         DEBUG.DND = true;
 
-        URLResource r = new URLResource(rs);
+        URLResource r = (URLResource) Resource.instance(rs);
         System.out.println("Resource: " + r);
         System.out.println("URL: " + r.asURL());
         r.displayContent();

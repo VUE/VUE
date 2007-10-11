@@ -20,6 +20,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import tufts.vue.ui.ResourceIcon;
 import java.util.Properties;
 import java.net.URI;
 import java.awt.Image;
@@ -32,13 +33,9 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.48 $ / $Date: 2007-10-06 06:17:10 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
  * @author  akumar03
  */
-
-// todo: consider adding an optional icon that can be set for the resource
-// todo fix: type isn't always being set in VUE code (e.g., VueDragTree),
-//      and type may not really belong here (e.g., ASSET & FAVORITE types too specific)
 
 // TODO:
 // add getSource (or: get Location/Repository/Collection/DataSource/Where) (e.g. "ArtStor", "Internet/Web", "Local File")
@@ -58,8 +55,6 @@ import javax.swing.ImageIcon;
 // get rid of getToolTipInformation: getTitle will be our only special case
 // mapping of information from either meta-data or the URL/file-name to something
 // exposed in the API.
-//
-// Get rid if selection methods.
 //
 // Maybe even get rid of displayContent: make a cross-cutting concern handled
 // by a ResourceHandler?  could theoretically put stuff like isImage/isHTML
@@ -113,14 +108,6 @@ import javax.swing.ImageIcon;
 // not having a massaged version that leaves (that does stuff like create spaces, removes
 // the extension, etc).
 
-
-
-// Note: the inclusion of "setProperty" has huge implications, which means
-// writing back to the underlying repository, unless we're just going to
-// provide local masking/extension of that data, which I recommend against.
-// If we eventually want write-back, this could be provided via the DataSource.
-// Let's get rid of this?
-
 public abstract class Resource 
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Resource.class);
@@ -128,20 +115,33 @@ public abstract class Resource
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(Resource.class);
 
-    /** interface for Resource factories.  All methods are "get" based as opposed to "create"
+    /**
+     * Interface for Resource factories.  All methods are "get" based as opposed to "create"
      * as the implementation may optionally provide resources on an atomic basis (e.g., all equivalent URI's / URL's
-     * may return the very same object */
+     * may return the very same object.
+     *
+     * TODO: handle Fedora AssetResource?  Are we still using that, or has it been implemented as a generic OSID?
+     * If not being used, see if we can remove it from the codebase...
+     *
+     */
     public static interface Factory {
         Resource get(String spec);
         Resource get(java.net.URL url);
         Resource get(java.net.URI uri);
         Resource get(java.io.File file);
         Resource get(osid.filing.CabinetEntry entry);
+        Resource get(org.osid.repository.Repository repository,
+                     org.osid.repository.Asset asset,
+                     org.osid.OsidContext context) throws org.osid.repository.RepositoryException;
+
     }
 
     /** A default resource factory: does basic delgation by type, but only handle's absolute resources (e.g., does no relativization) */
     public static class DefaultFactory implements Factory {
         public Resource get(String spec) {
+            // if spec looks a URL/URI or File, could attempt to construct such and if succeed,
+            // pass off to appropriate factory variant.  Wouldn't be worth anything at moment
+            // as they all pretty much do the same thing for now...
             return postProcess(URLResource.create(spec), spec);
         }
         public Resource get(java.net.URL url) {
@@ -160,8 +160,21 @@ public abstract class Resource
             return postProcess(CabinetResource.create(entry), entry);
         }
 
+        public Resource get(org.osid.repository.Repository repository,
+                            org.osid.repository.Asset asset,
+                            org.osid.OsidContext context)
+            throws org.osid.repository.RepositoryException
+        {
+            Resource r = new Osid2AssetResource(asset, context);
+            if (DEBUG.DR && repository != null) r.addProperty("~Repository", repository.getDisplayName());
+            return postProcess(r, asset);
+        }
+        
+
         protected Resource postProcess(Resource r, Object source) {
-            Log.debug("Created " + Util.tags(r) + " from " + Util.tags(source));
+            r.setReferenceCreated(System.currentTimeMillis());
+            Log.debug(Util.tags(source) + " -> " + Util.tags(r));
+            //Log.debug("Created " + Util.tags(r) + " from " + Util.tags(source));
             return r;
         }
     }
@@ -174,15 +187,33 @@ public abstract class Resource
         return AbsoluteResourceFactory;
     }
 
-        
-    /*  Some client type codes defined for resources.  */
+    // Convenience factory methods: guaranteed equivalent to getFactory().get(args...)
 
+    public static Resource instance(String spec)        { return getFactory().get(spec); }
+    public static Resource instance(java.net.URL url)   { return getFactory().get(url); }
+    public static Resource instance(java.net.URI uri)   { return getFactory().get(uri); }
+    public static Resource instance(java.io.File file)  { return getFactory().get(file); }
+    public static Resource instance(osid.filing.CabinetEntry entry) { return getFactory().get(entry); }
+    public static Resource instance(org.osid.repository.Repository repository,
+                                    org.osid.repository.Asset asset,
+                                    org.osid.OsidContext context)
+        throws org.osid.repository.RepositoryException
+    {
+        return getFactory().get(repository, asset, context);
+    }
+    
+
+        
     /*
-     * Todo: the set of types should ideally be defined / used by clients and subclass impl's,
-     * not enumerated in the Resource class, but we're keeping this around as is
-     * for old code and given that this info is actually persisted in save files.
+     * The set of types might ideally be defined / used by clients and subclass impl's,
+     * not enumerated in the Resource class, but we're keeping this around
+     * for old code and given that this info is actually persisted in save files
+     * going back years. Tho given the way we're currently using these types,
+     * we can probably get rid of them / ignore old persisted values if we
+     * get time to clean this up.  SMF 2007-10-07
      */
 
+    /*  Some client type codes defined for resources.  */
     static final int NONE = 0;              //  Unknown type.
     static final int FILE = 1;              //  Resource is a Java File object.
     static final int URL = 2;               //  Resource is a URL.
@@ -198,18 +229,19 @@ public abstract class Resource
         "ASSET_OKIDR", "ASSET_FEDORA", "ASSET_OKIREPOSITORY"
     };
 
-//     // preview preference keys: use 
-//     public static final Object SMALL = "small";
-//     public static final Object MEDIUM = "medium";
-//     public static final Object LARGE = "large";
-
-
     /** the metadata property map **/
     final protected PropertyMap mProperties = new PropertyMap();
 
     static final long SIZE_UNKNOWN = -1;
+    
     private long mByteSize = SIZE_UNKNOWN;
+    private long mReferenceCreated;
+    private long mAccessAttempted;
+    private long mAccessSuccessful;
 
+    //----------------------------------------------------------------------------------------
+    // Standard methods for all Resources
+    //----------------------------------------------------------------------------------------
 
     public long getByteSize() {
         return mByteSize;
@@ -289,6 +321,22 @@ public abstract class Resource
         return mProperties;
     }
 
+    public long getReferenceCreated() { return mReferenceCreated; }
+    public void setReferenceCreated(long created) { mReferenceCreated = created; }
+    
+    public long getAccessAttempted() { return mAccessAttempted; }
+    public void setAccessAttempted(long attempted) { mAccessAttempted = attempted; }
+    
+    public long getAccessSuccessful() { return mAccessSuccessful; }
+    public void setAccessSuccessful(long succeeded) { mAccessSuccessful = succeeded; }
+
+    protected void markAccessAttempt() {
+        setAccessAttempted(System.currentTimeMillis());
+    }
+    protected void markAccessSuccess() {
+        setAccessSuccessful(System.currentTimeMillis());
+    }
+
     
     /** @return true if this resource contains displayable image data */
     public abstract boolean isImage();
@@ -308,11 +356,9 @@ public abstract class Resource
      *  (any length restrictions?)
      */
     public abstract String getTitle();
-
     public abstract void setTitle(String title);    
     
     //public abstract java.net.URL asURL();
-    
     //public abstract long getSize();
 
     /**
@@ -320,29 +366,6 @@ public abstract class Resource
      */
     public abstract String getSpec();
     
-    /**
-     *  Return the filename extension of this resource (if any).
-     *  (What if it doesn't have an extension?  Unix files are not required to have one)
-     */
-    // get rid of this, and perhaps add a getType?  needs to encompass file/directory/URL/DR 
-    public abstract String getExtension();
-    
-    /**
-     *  Return tooltip information or none.
-     *  (should null be returned if no tool tip info?)
-     */
-    public abstract String getToolTipInformation();
-    
-    
-    /** 
-     *  Return true if the resource is selected.  Initialize select flag to false.
-     */
-    //public abstract boolean isSelected();
-    
-    /**
-     *  Set the selected flag to the value given.
-     */
-    //public abstract void setSelected(boolean selected);
     
     /** 
      * Return the resource type.  This should be one of the types defined above.
@@ -355,6 +378,108 @@ public abstract class Resource
      */
     public abstract void displayContent();
 
+//     public String getTypeIconText() {
+//         final String r = getSpec();
+//         String ext = "xxx";
+
+//         if (r.startsWith("http"))
+//             ext = "web";
+//         else if (r.startsWith("file"))
+//             ext = "file";
+//         else {
+//             ext = r.substring(0, Math.min(r.length(), 3));
+//             if (!r.endsWith("/")) {
+//                 int i = r.lastIndexOf('.');
+//                 if (i > 0 && i < r.length()-1)
+//                     ext = r.substring(i+1);
+//             }            
+//         }
+//         if (ext.length() > 4)
+//             ext = ext.substring(0,4);
+        
+//         return ext;
+//     }
+    
+    
+
+    public static final String NO_EXTENSION = "";
+    public static final String EXTENSION_DIR = "dir";
+
+    /**
+     * Return a filename extension / file type of this resource (if any) suitable for identify it
+     * it's "type" to the local file system shell environement (e.g., txt, html, jpg).
+     */
+    // was getExtension
+    // TODO: cache / allow setting (e.g. special data sources might be able to indicate type that's otherwise unclear
+    // e.g., a URL query part that requests "type=jpeg")
+    public String getContentType() {
+        String type = null;
+        
+        if (getClientType() == DIRECTORY)
+            type = EXTENSION_DIR;
+        else
+            type = extractExtension(getSpec());
+
+        if (type == NO_EXTENSION) {
+            if (getClientType() == FILE) {
+                // todo: this really ought to be in a FileResource and/or a useful osid filing impl
+                type = EXTENSION_DIR;
+                // assume a directory for now...
+            } 
+        }
+
+        Log.debug(getSpec() + "; extType=[" + type + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
+        return type;
+    }
+    
+
+    /** @return the likely extension for the given string, or NO_EXTENSION if none found */
+    protected static String extractExtension(String s) {
+
+        final char lastChar = s.charAt(s.length()-1);
+        String ext = NO_EXTENSION;
+        
+        //if (lastChar == '/' || lastChar == '\\' || lastChar == File.separatorChar)
+        if (Character.isLetterOrDigit(lastChar) == false) {
+            // assume some a path element or special file
+        } else {
+            final int lastDotIdx = s.lastIndexOf('.');
+        
+            // must have at least one char's worth of file-name, and one two chars worth of data after the dot
+            if (lastDotIdx > 1 && (s.length() - lastDotIdx) > 2) {
+                String txt = s.substring(lastDotIdx + 1);
+                if (Character.isLetterOrDigit(txt.charAt(0))) {
+                    ext = txt;
+                } else {
+                    // failsafe check in case somehow a separator wound up at the end
+                    // ext = NO_EXTENSION;
+                }
+            } // else ext = NO_EXTENSION;
+        }
+
+        Log.debug(s + "; ext=[" + ext + "]");
+        return ext;
+    }
+
+    protected static String extractExtension(java.net.URL url) {
+        // if HTTP, could check query for stuff like =jpeg at the end
+        final String ext = extractExtension(url.getPath());
+        if (ext == NO_EXTENSION && "http".equals(url.getProtocol()))
+            return "html"; // presume a web document
+        else
+            return ext;
+    }
+
+    protected static String extractExtension(java.net.URI uri) {
+        return extractExtension(uri.getPath());
+    }
+    
+
+    // TODO: create a multi-sized generic smart icon class that can cache / create well-sampled standard
+    // sizes, and draw at any requested size.
+    // may want to call these getShellIcon{small,large}, etc, tho that's REALLY what
+    // we want implemented in LocalCabinetEntry (and move the GUI.getSystemIconForExtension code there),
+    // for the beginning of a truely useful OKI filing API.
 
     private ImageIcon mTinyIcon;
     /** @return a 16x16 icon */
@@ -362,7 +487,7 @@ public abstract class Resource
         if (mTinyIcon != null)
             return mTinyIcon;
         
-        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getExtension(), 16);
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getContentType(), 16);
         if (image != null) {
             if (image.getWidth(null) > 16) {
                 // see http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
@@ -389,7 +514,7 @@ public abstract class Resource
         if (mLargeIcon != null)
             return mLargeIcon;
         
-        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getExtension(), 128);
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getContentType(), 128);
         if (image != null) {
             if (image.getWidth(null) > 128) {
                 image = image.getScaledInstance(128, 128, 0); //Image.SCALE_SMOOTH);
@@ -407,6 +532,25 @@ public abstract class Resource
         else
             return null;
     }
+
+    /** @return an image to use when dragging this resource */
+    public Image getDragImage() {
+        Image image = null;
+        if (!isLocalFile()) {
+            Icon icon = getContentIcon();
+            if (icon instanceof ResourceIcon)
+                image = ((ResourceIcon)icon).getImage();
+        }
+        if (image == null)
+            image = getLargeIconImage();
+
+        return image;
+    }
+
+    public boolean isLocalFile() {
+        return false;
+    }
+    
     
     
 
@@ -447,9 +591,6 @@ public abstract class Resource
         return getContentIcon(null);
     }
     
-    //public abstract javax.swing.Icon getIcon();
-    //public abstract javax.swing.Icon getIcon(java.awt.Component painter);
-    //public abstract javax.swing.Icon getIcon(int width, int height);
 
     /**
      * Get preview of the object such as thummbnail / small sized image. Suggested return
@@ -458,34 +599,44 @@ public abstract class Resource
      */
     public abstract Object getPreview();
 
-    /**
-     * @param preferredSize: either SMALL, MEDIUM, or LARGE. This is a general hint only and may
-     * not be respected.  If the Resource is image content, 
-     */
-    //public abstract Object getPreview(Object preferredSize);
+//     public static final Object SMALL = "small";
+//     public static final Object MEDIUM = "medium";
+//     public static final Object LARGE = "large";
+//     /**
+//      * @param preferredSize: either SMALL, MEDIUM, or LARGE. This is a general hint only and may
+//      * not be respected.  If the Resource is image content, 
+//      */
+//     public abstract Object getPreview(Object preferredSize);
 
 
     //public abstract boolean isCached();
-
     // todo: should be protected or not have it
     public abstract void setCached(boolean cached);
 
+    /** if possible, make this Resource relatve to the given root */
+    public abstract void relativize(URI root);    
+
     public abstract void updateRootLocation(URI oldRoot, URI newRoot);
-    public abstract String getPrettyString();
 
-    //public abstract void setPreview(Object preview);
-      
-    
     /**
-     *Associate a asset viewer with a resource. 
-     *
+     *  Return tooltip information, if any.  Basic HTML tags are permitted.
      */
-    //public abstract JComponent getAssetViewer();
+    public String getToolTipText() { return toString(); }
 
-
+    
     protected void out(String s) {
-        Log.info(getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
+        //Log.info(getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
+        Log.info(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
-    
-    
 }
+
+// class FileResource extends Resource {
+//     final java.io.File file;
+//     FileResource(java.io.File file) {
+//         this.file = file;
+//     }
+
+// //     public String getPrettyString() {
+// //         return file.getName();
+// //     }
+// }

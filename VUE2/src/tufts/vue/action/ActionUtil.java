@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.76 $ / $Date: 2007-10-06 04:04:47 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -309,6 +309,9 @@ public class ActionUtil
     {
         return getDefaultUnmarshaller(null, sourceName);
     }
+
+
+	    
     
     /**
      * Return the default unmarshaller for VUE data, which includes an installed
@@ -327,6 +330,7 @@ public class ActionUtil
         unmarshaller.setIgnoreExtraAttributes(true);
         unmarshaller.setIgnoreExtraElements(true);
         unmarshaller.setValidation(false);
+        unmarshaller.setObjectFactory(new XMLObjectFactory());
         //unmarshaller.setWhitespacePreserve(true); // doesn't affect elements!  (e.g. <notes> foo bar </notes>)
         // HOWEVER: castor 0.9.7 now automatically encodes/decodes white space for attributes...
         /*
@@ -391,143 +395,205 @@ public class ActionUtil
     /**
      * Marshall the given map to XML and write it out to the given file.
      */
-    public static void marshallMap(File file, LWMap map)
-    /*throws java.io.IOException,
+    public static void marshallMap(File file, LWMap map) {
+        try {
+            doMarshallMap(file, map);
+        } catch (Throwable t) {
+            if (t instanceof WrappedMarshallException)
+                t = t.getCause();
+            Log.error("marshalling: " + map + "; " + t);
+            Util.printStackTrace(t);
+            // until everyone has chance to update their code
+            // to handle the exceptions, wrap this in a runtime exception.
+            throw new RuntimeException(t);
+        }
+    }
+
+    private static class WrappedMarshallException extends RuntimeException {
+        WrappedMarshallException(Throwable cause) {
+            super(cause);
+        }
+    }
+
+    private static void doMarshallMap(File file, LWMap map)
+        throws java.io.IOException,
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException*/
+               org.exolab.castor.xml.ValidationException
     {
         Marshaller marshaller = null;
 
-        map.setModelVersion(LWMap.getCurrentModelVersion());
-        try {  
-            final String path = file.getAbsolutePath().replaceAll("%20"," ");
-            final Writer writer;
-            if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
-                writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
-            } else {
-                writer = new FileWriter(path);
-                // For the actual file writer we can use the default encoding because
-                // we're marshalling specifically in US-ASCII.  E.g., because we direct
-                // castor to fully encode any special characters via
-                // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
-                // and any default encoding will handle that...
+        final String path = file.getAbsolutePath().replaceAll("%20"," ");
+        final Writer writer;
+        if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
+            writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
+        } else {
+            writer = new FileWriter(path);
+            // For the actual file writer we can use the default encoding because
+            // we're marshalling specifically in US-ASCII.  E.g., because we direct
+            // castor to fully encode any special characters via
+            // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
+            // and any default encoding will handle that...
                 
-            }
+        }
             
-            writer.write(VUE_COMMENT_START
-                         + " VUE mapping "
-                         + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
-                         + " " + XML_MAPPING_DEFAULT
-                         + " -->\n");
-            writer.write(VUE_COMMENT_START
-                         + " Saved date " + new java.util.Date()
-                         + " by " + VUE.getSystemProperty("user.name")
-                         + " on platform " + VUE.getSystemProperty("os.name")
-                         + " " + VUE.getSystemProperty("os.version")
-                         + " in JVM " + VUE.getSystemProperty("java.runtime.version")
-                         + " -->\n");
-            writer.write(VUE_COMMENT_START
-                         + " Saving version " + tufts.vue.Version.WhatString
-                         + " -->\n");
-            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
-            marshaller = new Marshaller(writer);
-            //marshaller.setDebug(DEBUG.CASTOR);
-            marshaller.setEncoding(OUTPUT_ENCODING);
-            // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
-            marshaller.setMarshalAsDocument(true);
-            marshaller.setNoNamespaceSchemaLocation("none");
-            // setting to "none" gets rid of all the spurious tags like these:
-            // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        writer.write(VUE_COMMENT_START
+                     + " VUE mapping "
+                     + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
+                     + " " + XML_MAPPING_DEFAULT
+                     + " -->\n");
+        writer.write(VUE_COMMENT_START
+                     + " Saved date " + new java.util.Date()
+                     + " by " + VUE.getSystemProperty("user.name")
+                     + " on platform " + VUE.getSystemProperty("os.name")
+                     + " " + VUE.getSystemProperty("os.version")
+                     + " in JVM " + VUE.getSystemProperty("java.runtime.version")
+                     + " -->\n");
+        writer.write(VUE_COMMENT_START
+                     + " Saving version " + tufts.vue.Version.WhatString
+                     + " -->\n");
+        if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
+        marshaller = new Marshaller(writer);
+        //marshaller.setDebug(DEBUG.CASTOR);
+        marshaller.setEncoding(OUTPUT_ENCODING);
+        // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
+        marshaller.setMarshalAsDocument(true);
+        marshaller.setNoNamespaceSchemaLocation("none");
+        // setting to "none" gets rid of all the spurious tags like these:
+        // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
-            //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
+        //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
 
-            /*
-            marshaller.setMarshalListener(new MarshalListener() {
-                    public boolean preMarshal(Object o) {
-                        System.out.println(" preMarshal " + o.getClass().getName() + " " + o);
-                        return true;
-                    }
-                    public void postMarshal(Object o) {
-                        System.out.println("postMarshal " + o.getClass().getName() + " " + o);
-                    }
-                });
-            */
+        /*
+          marshaller.setMarshalListener(new MarshalListener() {
+          public boolean preMarshal(Object o) {
+          System.out.println(" preMarshal " + o.getClass().getName() + " " + o);
+          return true;
+          }
+          public void postMarshal(Object o) {
+          System.out.println("postMarshal " + o.getClass().getName() + " " + o);
+          }
+          });
+        */
 
-            //marshaller.setRootElement("FOOBIE"); // overrides name of root element
+        //marshaller.setRootElement("FOOBIE"); // overrides name of root element
             
-            marshaller.setMapping(getDefaultMapping());
+        marshaller.setMapping(getDefaultMapping());
 
-            //----------------------------------------------------------------------------------------
-            // 
-            // 2007-10-01 SMF -- turning off validation during marshalling now required
-            // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
-            // with any connected endpoints cause validation exceptions when attempting to
-            // save.  E.g, from a map with one node and one link connected to it:
-            //
-            // ValidationException: The following exception occured while validating field: childList of class:
-            // tufts.vue.LWMap: The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type
-            // class tufts.vue.LWNode has no ID!;
-            // - location of error: XPATH: /LW-MAP
-            // The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type class tufts.vue.LWNode has no ID!
-            //
-            // Even tho the node's getID() is correctly returning "2"
-            //
-            marshaller.setValidation(false); 
-            //----------------------------------------------------------------------------------------
+        //----------------------------------------------------------------------------------------
+        // 
+        // 2007-10-01 SMF -- turning off validation during marshalling now required
+        // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
+        // with any connected endpoints cause validation exceptions when attempting to
+        // save.  E.g, from a map with one node and one link connected to it:
+        //
+        // ValidationException: The following exception occured while validating field: childList of class:
+        // tufts.vue.LWMap: The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type
+        // class tufts.vue.LWNode has no ID!;
+        // - location of error: XPATH: /LW-MAP
+        // The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type class tufts.vue.LWNode has no ID!
+        //
+        // Even tho the node's getID() is correctly returning "2"
+        //
+        marshaller.setValidation(false); 
+        //----------------------------------------------------------------------------------------
             
-            /*
-            Logger logger = new Logger(System.err);
-            logger.setPrefix("Castor ");
-            marshaller.setLogWriter(logger);
-            */
-            marshaller.setLogWriter(new PrintWriter(System.err));
+        /*
+          Logger logger = new Logger(System.err);
+          logger.setPrefix("Castor ");
+          marshaller.setLogWriter(logger);
+        */
+        marshaller.setLogWriter(new PrintWriter(System.err));
+
+        // Make modifications to the map at the last minute, so any prior exceptions leave the map untouched.
+
+        final int oldModelVersion = map.getModelVersion();
+        final File oldSaveFile = map.getFile();
+        
+        map.setModelVersion(LWMap.getCurrentModelVersion());
+        // note that if this file is different from it's last save file, this
+        // operation may cause any/all of the resources in the map to be
+        // updated before returning.
+        map.setFile(file);
             
-            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
+        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
+        Log.debug("marshalling " + map + " ...");
+
+        try {
             marshaller.marshal(map);
-            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
-            
+            Log.debug("marshalled " + map);
             writer.flush();
             writer.close();
-
-            map.setFile(file);
-            map.markAsSaved();
-
-            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
-
-        } catch (Exception e) {
-            System.err.println("ActionUtil.marshallMap: " + e);
-            e.printStackTrace();
-            // until everyone has chance to update their code
-            // to handle the exceptions, wrap this in a runtime exception.
-            throw new RuntimeException(e);
+            //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
+        } catch (Throwable t) {
+            try {
+                // revert map model version & save file
+                map.setModelVersion(oldModelVersion);
+                map.setFile(oldSaveFile);
+            } catch (Throwable tx) {
+                Util.printStackTrace(tx);
+            } finally {
+                throw new WrappedMarshallException(t);
+            }
         }
+            
+        map.markAsSaved();
+        Log.debug("saved " + map);
+
+        //map.setFile(file);
+
+        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
 
     }
 
     private static class VueUnmarshalListener implements UnmarshalListener {
         public void initialized(Object o) {
-            if (DEBUG.XML) System.out.println("**** VUL initialized " + o.getClass().getName() + " " + o);
+            //if (DEBUG.XML) System.out.println("**** VUL initialized " + o.getClass().getName() + " " + tos(o));
+            if (DEBUG.XML) Log.debug("VUL  initialized: " + Util.tags(o));
             if (o instanceof XMLUnmarshalListener)
                 ((XMLUnmarshalListener)o).XML_initialized();
         }
         public void attributesProcessed(Object o) {
-            if (DEBUG.XML) System.out.println("      got attributes " + o.getClass().getName() + " " + o);
+            //if (DEBUG.XML) System.out.println("      got attributes " + o.getClass().getName() + " " + tos(o));
+            if (DEBUG.XML) Log.debug("VUL   attributes: " + Util.tags(o));
         }
         public void unmarshalled(Object o) {
-            if (DEBUG.XML||DEBUG.CASTOR) System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + o);
+            //if (DEBUG.XML||DEBUG.CASTOR) System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + tos(o));
+            if (DEBUG.XML||DEBUG.CASTOR) Log.debug("VUL unmarshalled: " + Util.tags(o));
+            
             if (o instanceof XMLUnmarshalListener)
                 ((XMLUnmarshalListener)o).XML_completed();
         }
         public void fieldAdded(String name, Object parent, Object child) {
-            if (DEBUG.XML) System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t[" + parent + "]\n"
-                             + "             new child: " +  child.getClass().getName() + " \"" + name + "\" [" + child + "]\n"
-                               );
+            if (DEBUG.XML){
+                Log.debug("VUL   fieldAdded: parent: " + Util.tags(parent) + " newChild[" + name + "] " + Util.tags(child) + "\n");
+                //System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t" + tos(parent) + "\n"
+                //+ "             new child: " +  child.getClass().getName() + " \"" + name + "\" " + tos(child) + "\n");
+            }
             if (parent instanceof XMLUnmarshalListener)
                 ((XMLUnmarshalListener)parent).XML_fieldAdded(name, child);
             if (child instanceof XMLUnmarshalListener)
                 ((XMLUnmarshalListener)child).XML_addNotify(name, parent);
         }
+
+//         // exception trapping toString in case the object isn't initialized enough
+//         // for it's toString to work...
+//         private String tos(Object o) {
+//             if (o == null)
+//                 return "<null-object>";
+            
+//             String s = o.getClass().getName() + " ";
+//             //String s = null;
+//             String txt = null;
+//             try {
+//                 txt = o.toString();
+//                 if (
+//             } catch (Throwable t) {
+//                 txt = t.toString();
+//                 // "[" + t.toString() + "]";
+//             }
+//             return s;
+//         }
     }
 
     /** Unmarshall a LWMap from the given file (XML map data) */
@@ -759,7 +825,8 @@ public class ActionUtil
     {
         LWMap map = null;
 
-        if (DEBUG.CASTOR || DEBUG.IO) System.out.println("UNMARSHALLING: " + url + " charset=" + charsetEncoding);
+        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("UNMARSHALLING: " + url + " charset=" + charsetEncoding);
+        Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
         
         BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), charsetEncoding));
 
@@ -840,17 +907,66 @@ public class ActionUtil
                 
             }
 
+            Log.debug("unmarshalled: " + map);
+            // Note that map.setFile must have been done before map.completeXMLResource is called.
             map.completeXMLRestore();
+            Log.debug("restored: " + map);
         }
         catch (Exception e) {
             tufts.Util.printStackTrace(e, "Exception restoring map from [" + url + "]: " + e.getClass().getName());
             map = null;
             throw new Error("Exception restoring map from [" + url + "]", e);
         }
+
         
         return map;
     }
 
+}
+
+final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLObjectFactory.class);        
+		
+    @Override
+    public Object createInstance(Class type, Object[] args) throws IllegalAccessException, InstantiationException {
+        //System.err.println("VOF0 ASKED FOR " + type + " args=" + args);
+        Log.warn("ASKED FOR " + type + " args=" + args);
+        return this.createInstance(type, null, null);
+    }
+
+    @Override
+    public Object createInstance(Class type) throws IllegalAccessException, InstantiationException {
+        //System.err.println("VOF1 ASKED FOR " + type);
+        Log.warn("ASKED FOR " + type);
+        return this.createInstance(type, null, null);
+    }
+
+    @Override
+    public Object createInstance(Class _type, Class[] argTypes, Object[] args)
+        throws IllegalAccessException, InstantiationException
+    {
+        Class type = _type;
+            
+//         if (_type == tufts.vue.MapResource.class || _type == tufts.vue.CabinetResource.class)
+//             type = tufts.vue.URLResource.class;
+
+//         if (_type != type) {
+//             Log.info("CONVERTED " + _type + " to " + type);
+//         }
+
+        //System.err.println("VOF ASKED FOR " + type + " argTypes=" + argTypes);
+        //Object o = super.createInstance(type);
+        final Object o = type.newInstance();
+        if (DEBUG.Enabled) {
+            // don't use tags (allow toString to be called) -- unmarshalling can fail
+            // if there are side-effects (!!!) due to calling it -- this happens
+            // with a FavoritesDataSource in any case...
+            Log.debug("new " + Util.tag(o)); 
+            //System.err.println("new " + Util.tag(o));
+        }
+        return o;
+    }
 }
 
 class MapException extends IOException {

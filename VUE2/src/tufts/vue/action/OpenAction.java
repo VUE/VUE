@@ -220,11 +220,11 @@ public class OpenAction extends VueAction
 
         VUE.parseArgs(args);
 
+        LWMap map = null;
         for (String arg : args) {
             if (arg.charAt(0) == '-')
                 continue;
             System.err.println("Attempting to read map from " + arg);
-            LWMap map = null;
 
             Throwable tx = null;
             try {
@@ -262,6 +262,10 @@ public class OpenAction extends VueAction
         }
         System.out.println("@@@Done.");
 
+        if (map != null) {
+            createVUEArchive(map, new File("test.var"));
+        }
+
         
 
 //         String file = args.length == 0 ? "test.xml" : args[0];
@@ -274,7 +278,58 @@ public class OpenAction extends VueAction
 //             map = OpenAction.loadMap(file);
 //         System.out.println("Loaded map: " + map);
         
+    }
 
+    // Could just unpack all resources into the cache, tho if it matches an existing
+    // resource there, it will overwrite the old version, which isn't ideal, tho
+    // allowing the old version + the new version violates the idea of atomic resources.
+    // I guess we really need versionable resources (and ultimately track expiration).
+    // For now, we can probably live with the overwrite, tho ideally we'd unpack the vue
+    // archive with it's own cache directory (both for the automatic, or manual unzip
+    // case) and the stored resource would have a hardcoded reference to it's special
+    // cached version.
+    
+
+    private static void createVUEArchive(LWMap map, File zipFile)
+        throws java.util.zip.ZipException,
+               java.io.IOException
+    {
+        final String mapName = map.getLabel();
+        final File mapFile = map.getFile();
+        
+        Log.debug("create archive of " + map + " to " + zipFile);
+        zipFile.createNewFile();
+        //ZipFile archive = new ZipFile(file);
+
+        File tmpMapFile = File.createTempFile("vuetmp", ".vue");
+        ActionUtil.marshallMap(tmpMapFile, map);
+
+        Log.debug("created " + tmpMapFile);
+        ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
+        ZipEntry mapEntry = new ZipEntry(map.getLabel());
+        //ZipEntry mapEntry = new ZipEntry("foo");
+        mapEntry.setComment("[" + mapFile + "]");
+        //mapEntry.setMethod(ZipEntry.DEFLATED);
+        zos.putNextEntry(mapEntry);
+
+        Log.debug("writing map to zip");
+        
+        BufferedInputStream fis = new BufferedInputStream(new FileInputStream(tmpMapFile));
+        byte[] buf = new byte[1024];
+        int len;
+        int total = 0;
+        while ((len = fis.read(buf)) > 0) {
+            System.err.print(".");
+            zos.write(buf, 0, len);
+            total += len;
+        }
+        Log.debug("wrote " + total + " bytes");
+        fis.close();
+        zos.closeEntry();
+        zos.close();
+        
+        Log.debug("done");
+        
         
     }
     

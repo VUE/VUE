@@ -237,7 +237,7 @@ public class SaveAction extends VueAction
 
 			// don't know this as not all the above stuff is passing
             // exceptions on to us!
-            System.out.println("Save code completed for " + file);
+            Log.debug("Save completed for " + file);
             VueFrame frame = (VueFrame)VUE.getMainWindow();
             String title = VUE.getName() + ": " + name;                      
             frame.setTitle(title);
@@ -255,10 +255,10 @@ public class SaveAction extends VueAction
             if (t.getCause() != null)
                 e = t.getCause();
             if (e instanceof java.io.FileNotFoundException) {
-                Log.error("Save Failed"+e.getMessage());
+                Log.error("Save Failed: " + e);
             } else {
-                e.printStackTrace();
-                Log.error("Save failed for \"" + file + "\""+ e);
+                Log.error("Save failed for \"" + file + "\"; " + e);
+                tufts.Util.printStackTrace(e);
             }
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);

@@ -39,7 +39,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.29 $ / $Date: 2007-10-06 06:34:22 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -91,6 +91,7 @@ public class CabinetResource extends URLResource
         
     }
 
+    // todo: shouldn't be public -- eventually everything should go thru factory
     public static CabinetResource create(osid.filing.CabinetEntry entry) {
         return new CabinetResource(entry);
     }
@@ -121,71 +122,71 @@ public class CabinetResource extends URLResource
      *
      *  @author Mark Norton
      */
-    public String getExtension() {
+//     public String getExtension() {
         
-        //  Check for a restored resource.
-        /**
-        if(extension == null || extension.length() == 0)
-            extension = "none";
-         */
-        //if (this.extension != null && this.entry == null )
-        if (this.extension != null) {
-            return this.extension;
-        } else if (getSpec() == SPEC_UNSET) {
-            return "<?>";
-        } else {
-            URL url = null;
-            try {
-                url = new URL (getSpec());      //  Get the URL of this cabinet.
-            } catch (java.net.MalformedURLException ex) {
-                //if (DEBUG.Enabled) ex.printStackTrace();
-                Log.warn("Illegal URL on this platform: " + getSpec());
-            }
+//         //  Check for a restored resource.
+//         /**
+//         if(extension == null || extension.length() == 0)
+//             extension = "none";
+//          */
+//         //if (this.extension != null && this.entry == null )
+//         if (this.extension != null) {
+//             return this.extension;
+//         } else if (getSpec() == SPEC_UNSET) {
+//             return "<?>";
+//         } else {
+//             URL url = null;
+//             try {
+//                 url = new URL (getSpec());      //  Get the URL of this cabinet.
+//             } catch (java.net.MalformedURLException ex) {
+//                 //if (DEBUG.Enabled) ex.printStackTrace();
+//                 Log.warn("Illegal URL on this platform: " + getSpec());
+//             }
 
-            if (url == null) {
-                // this can happen if a Windows file URL with a C: specifier
-                // in it is used on Mac, where "file://C:\foo\bar" is NOT a legal URL.
-                return this.extension = "???";
-            }
+//             if (url == null) {
+//                 // this can happen if a Windows file URL with a C: specifier
+//                 // in it is used on Mac, where "file://C:\foo\bar" is NOT a legal URL.
+//                 return this.extension = "???";
+//             }
                 
 
-            File file = new File(url.getFile());  //  Extract the file portion.
+//             File file = new File(url.getFile());  //  Extract the file portion.
             
-//             String name = file.getName();       //  Get the filename with out path.
-//             String ext = null;
-//             if (name.lastIndexOf('.') > -1) 
-//                 ext = name.substring (name.lastIndexOf ('.')+1);  //  Extract extention.
+// //             String name = file.getName();       //  Get the filename with out path.
+// //             String ext = null;
+// //             if (name.lastIndexOf('.') > -1) 
+// //                 ext = name.substring (name.lastIndexOf ('.')+1);  //  Extract extention.
 
-//             if (tufts.Util.isMacPlatform() && "app".equals(ext))
-//                 this.extension = "app";
-//             else if (file.isDirectory())
-//                 this.extension = "dir";
-//             else if (ext != null)
-//                 this.extension = ext;
-//             else if (name.length() > 0)
-//                 this.extension = "none";
-//             else
-//                 return null;
+// //             if (tufts.Util.isMacPlatform() && "app".equals(ext))
+// //                 this.extension = "app";
+// //             else if (file.isDirectory())
+// //                 this.extension = "dir";
+// //             else if (ext != null)
+// //                 this.extension = ext;
+// //             else if (name.length() > 0)
+// //                 this.extension = "none";
+// //             else
+// //                 return null;
 
                         
-            if (file.isDirectory())
-                this.extension = new String ("dir");              //  Directories don't have extensions.
-            else {
-                String name = file.getName();       //  Get the filename with out path.
-                if(name.lastIndexOf('.')> -1) 
-                    this.extension = name.substring (name.lastIndexOf ('.')+1);  //  Extract extention.
-                else if(name.length() > 0)
-                    this.extension = "none";
-                else 
-                    return null;  // this is case where there is no file.  useful for castor save/restore
-            }
+//             if (file.isDirectory())
+//                 this.extension = new String ("dir");              //  Directories don't have extensions.
+//             else {
+//                 String name = file.getName();       //  Get the filename with out path.
+//                 if(name.lastIndexOf('.')> -1) 
+//                     this.extension = name.substring (name.lastIndexOf ('.')+1);  //  Extract extention.
+//                 else if(name.length() > 0)
+//                     this.extension = "none";
+//                 else 
+//                     return null;  // this is case where there is no file.  useful for castor save/restore
+//             }
 
-            //if (file.getName().charAt(0) == '#')
-            //System.out.format("FILE ext %-10s for %s\n", extension, file);
+//             //if (file.getName().charAt(0) == '#')
+//             //System.out.format("FILE ext %-10s for %s\n", extension, file);
 
-            return this.extension;
-        }
-    }
+//             return this.extension;
+//         }
+//     }
     
     
     
@@ -352,15 +353,15 @@ public class CabinetResource extends URLResource
     }
      */
     
-    /**
-     *  Return the tool tip information for this resource.  This is currently stubbed
-     *  to return an empty string.
-     *
-     *  @author Mark Norton
-     */
-    public String getToolTipInformation() {
-        return new String ("");
-    }
+//     /**
+//      *  Return the tool tip information for this resource.  This is currently stubbed
+//      *  to return an empty string.
+//      *
+//      *  @author Mark Norton
+//      */
+//     public String getToolTipInformation() {
+//         return new String ("");
+//     }
     
     /**
      *  Return the resource type.

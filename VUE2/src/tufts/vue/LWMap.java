@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.163 $ / $Date: 2007-10-06 06:34:22 $ / $Author: sfraize $
+ * @version $Revision: 1.164 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -67,7 +67,10 @@ public class LWMap extends LWContainer
     
     /** file we were opened from of saved to, if any */
     private File mFile;
-    private File mSaveLocation;
+    private String mSaveLocation;
+    private URI mSaveLocationURI;
+    private String mSaveFile;
+    private File mLastSaveLocation;
     
     /** the list of LWPathways, if any */
     private LWPathwayList mPathways;
@@ -181,8 +184,8 @@ public class LWMap extends LWContainer
     /** for persistance */
     public void setModelVersion(int version) {
         if (DEBUG.Enabled) {
-            if (this.label != InitLabel)
-                out("setModelVersion " + version + "; current=" + mModelVersion);
+            if (this.label != InitLabel) // don't bother with this message on construction
+                Log.debug("setModelVersion " + version + "; current=" + mModelVersion);
         }
         mModelVersion = version;
         mSaveFileModelVersion = version;
@@ -218,27 +221,52 @@ public class LWMap extends LWContainer
         mUndoManager = um;
     }
     
-    public void setFile(File file) {
-        mFile = file;
-        if (mFile != null)
-            setLabel(mFile.getName()); // todo: don't let this be undoable!
-    }
-    
     public File getFile() {
         return mFile;
     }
 
-    /** persistance only */
-    public String getSaveLocation() {
-        return mFile == null ? null : mFile.toString();
-        //return file == null ? null : file.getAbsolutePath();
+    public void setFile(File file) {
+        mFile = file;
+        if (mFile != null)
+            setLabel(mFile.getName()); // todo: don't let this be undoable!
+        Log.debug("setFile " + file);
+        final File parentDir = mFile.getParentFile();
+        mSaveLocation = parentDir.toString();
+        Log.debug("saveLocation " + mSaveLocation);
+        mSaveLocationURI = parentDir.toURI();
+        Log.debug("saveLocationURI " + mSaveLocationURI);
+
+        if (false && !mXMLRestoreUnderway) { // not turned on yet
+            // only do this on save: will be handled in completeXMLRestore
+            // for restores
+            relativizeResources(getAllDescendents(ChildKind.ANY),
+                                mSaveLocationURI);
+        }
+        
     }
 
     /** persistance only */
-    public void setSaveLocation(String path) {
-        //out("SET SAVE LOCATION: " + path);
-        mSaveLocation = new File(path);
+    public String getSaveLocation() {
+        return mSaveLocation == null ? null : mSaveLocation.toString();
     }
+
+    /** persistance only */
+    public String getSaveFile() {
+        return mFile == null ? null : mFile.toString();
+    }
+    
+
+    /** persistance only */
+    public void setSaveLocation(String path) {
+        mSaveLocation = path;
+        mSaveLocationURI = null; // may not be valid if save file was from another platform
+    }
+
+    /** persistance only */
+    public void setSaveFile(String path) {
+        mSaveFile = path;
+    }
+    
     
     public void markAsModified() {
         if (DEBUG.INIT) System.out.println(this + " explicitly marking as modified");
@@ -634,10 +662,12 @@ public class LWMap extends LWContainer
             mModelVersion = getCurrentModelVersion();
         }
 
-        if (true) { // Not turned on yet
-            if (mSaveLocation != null)
-                ensureAllResourcesFoundAndRelative(allRestored, mSaveLocation);
-        }
+        relativizeResources(allRestored, mSaveLocationURI);
+
+//         if (true) { // Not turned on yet
+//             if (
+//                 ensureAllResourcesFoundAndRelative(allRestored, mSaveLocationURI);
+//         }
         
         //----------------------------------------------------------------------------------------
         
@@ -706,6 +736,7 @@ public class LWMap extends LWContainer
         
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) out("RESTORE COMPLETED; nextID=" + nextID + "\n");
         
+        mXMLRestoreUnderway = false;
         //setEventsResumed();
         markAsSaved();
     }
@@ -734,7 +765,14 @@ public class LWMap extends LWContainer
     public class RelativeResourceFactory extends Resource.DefaultFactory {
         @Override
         protected Resource postProcess(Resource r, Object source) {
-            Log.debug(LWMap.this + " created  " + r + " from " + Util.tag(source) + ";" + source);
+            Log.debug(LWMap.this + " created  " + r + " from " + Util.tags(source));
+            // not turned on yet
+//             if (mSaveLocationURI != null) {
+//                 //URI curRoot = URLResource.makeURI(mSaveLocation.getParentFile());
+//                 //if (curRoot != null) {
+//                     r.updateRootLocation(mSaveLocationURI, null);
+//                     //}
+//             }
             return r;
         }
         
@@ -747,11 +785,22 @@ public class LWMap extends LWContainer
         return mResourceFactory;
     }
     
+    private void relativizeResources(Collection<LWComponent> nodes, URI root) {
+        
+        for (LWComponent c : nodes) {
+            if (!c.hasResource())
+                continue;
+            try {
+                c.getResource().relativize(root);
+            } catch (Throwable t) {
+                Log.warn(this + "; relativiztion: " + t + "; " + c.getResource());
+            }
+        }
+        
+    }
+    
     private void ensureAllResourcesFoundAndRelative(Collection<LWComponent> nodes, File oldMapLocation)
     {
-        //final URI root = URI.create("file:/Users/sfraize");
-        //final URI root = URI.create("file:" + mSaveLocation.getPath());
-
         final File oldParentDirectory = oldMapLocation.getParentFile();
         final File newParentDirectory = mFile.getParentFile();
 
