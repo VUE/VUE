@@ -41,7 +41,7 @@ import tufts.vue.*;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = true;
+    private static final boolean DEBUG_LOCAL = false;
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -177,6 +177,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         
         final JLabel optionsLabel = new JLabel("more options");
+        optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         advancedSearch.setBorder(BorderFactory.createEmptyBorder());
         advancedSearch.addActionListener(new java.awt.event.ActionListener(){
@@ -217,6 +218,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         //ontologyListScroll.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
         ontologyListScroll.getViewport().setOpaque(false);
         JLabel membershipLabel = new JLabel("Ontological Membership: ");
+        membershipLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         ontologicalMembershipPane.add(membershipLabel);
         ontologicalMembershipPane.add(ontologyListScroll);
         ontologyListScroll.setAlignmentX(0.0f);
@@ -339,7 +341,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        {
            JComponent comp = new JPanel();
            if(col == 0)
+           {
                comp =  new JLabel("Keywords:");
+               comp.setFont(tufts.vue.gui.GUI.LabelFace);
+           }
            else if(col == buttonColumn)
            {
                comp = new JLabel();
