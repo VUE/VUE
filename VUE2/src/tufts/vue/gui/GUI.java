@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.81 $ / $Date: 2007-10-06 06:40:35 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2007-10-11 03:58:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -627,6 +627,30 @@ public class GUI
 //         else
 //             UNKNOWN_TYPE = null;
 //     }
+
+    private static final Image NULL_IMAGE = NoImage32; // any image would do
+    
+    private static final Map<String,Image> IconCache = new java.util.concurrent.ConcurrentHashMap<String,Image>() {
+            @Override
+            public Image put(String key, Image image) {
+                if (DEBUG.Enabled||DEBUG.IMAGE) Log.debug("caching " + key + "=" + Util.tags(image));
+                if (image == null)
+                    return super.put(key, NULL_IMAGE);
+                else
+                    return super.put(key, image);
+            }
+// May not be safe for internal hash map functions if this can return null?
+//             @Override
+//             public Image get(String key) {
+//                 final Image image = super.get(key);
+//                 if (image == NULL_IMAGE)
+//                     return null
+//                 else
+//                     return image;
+//             }
+        };
+
+            
     
     public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
@@ -638,6 +662,7 @@ public class GUI
         ext = ext.toLowerCase();
         
         if (Util.isMacPlatform()) {
+            // caching hanled by the tufts.macosx.MacOSX code
             return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
 //             Image image = tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
 //             // May need an unknown type for each likely sizeRequest
@@ -645,12 +670,37 @@ public class GUI
 //                 image = tufts.macosx.MacOSX.getIconForExtension("txt", sizeRequest);
 //             return image;
         }
+
+        final String largeKey = ext + ".32";
+        final String smallKey = ext + ".16"; // don't really need to construct both keys each time if is already in cache...
+        final String desiredKey;
+
+        final boolean largeDesired = sizeRequest > 16; // presume only 16x16 & 32x32 icons avail as per WinXP
+
+        if (largeDesired)
+            desiredKey = largeKey;
+        else
+            desiredKey = smallKey;
         
+        Image image = IconCache.get(desiredKey);
+
+        if (image != null) {
+            if (image == NULL_IMAGE)
+                return null;
+            else
+                return image;
+        }
+
+        // proceed the slow way, but all we can do until we have jdic/jdesktop and they actually handle this for us:
+
         java.io.File file = null;
         java.io.File root = null;
-        Image image = null;
+
+        Image largeIcon = null;
+        Image smallIcon = null;
+
         try {
-            if ("dir.".equals(ext)) {
+            if ("dir.".equalsIgnoreCase(ext)) {
                 root = new java.io.File(VUE.getSystemProperty("java.home"));
                 sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(root);
                 if (DEBUG.Enabled) out("got 'root' ShellFolder: " + Util.tag(shellFolder));
@@ -659,9 +709,9 @@ public class GUI
                 //Create a temporary file with the specified extension
                 file = java.io.File.createTempFile("icon", "." + ext);
                 sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(file);
-                if (DEBUG.Enabled) out("got ShellFolder: " + Util.tag(shellFolder));
-                image = shellFolder.getIcon(false);
-                if (DEBUG.Enabled) out("got image: " + image);
+                if (DEBUG.IO) Log.debug("created " + file);
+                largeIcon = shellFolder.getIcon(true);
+                smallIcon = shellFolder.getIcon(false);
             }
         } catch (Throwable t) {
             Log.debug("Could not generate Icon for filetype : " + ext + "; " + t);
@@ -670,10 +720,13 @@ public class GUI
             if (file != null)
                 file.delete();
         }
-    		
-        return image;
+        
+        IconCache.put(largeKey, largeIcon);
+        IconCache.put(smallKey, smallIcon);
+        
+        return largeDesired ? largeIcon : smallIcon;
     }
-    
+
     /** these may change at any time, so we must fetch them newly each time */
     public static Insets getScreenInsets() {
         refreshGraphicsInfo();
@@ -1981,6 +2034,19 @@ public class GUI
         startDrag(source, mouseEvent, image, imageOffset, transfer);
 
     }
+
+    public static void startRecognizedDrag(DragGestureEvent e, Resource resource, DragSourceListener dsl)
+    {
+        final Image dragImage = resource.getDragImage();
+        final int offX = -dragImage.getWidth(null) / 2;
+        final int offY = -dragImage.getHeight(null) / 2;
+        e.startDrag(DragSource.DefaultCopyDrop, // cursor
+                    dragImage, // drag image
+                    new Point(offX,offY), // drag image offset
+                    new GUI.ResourceTransfer(resource),
+                    dsl);  // drag source listener
+    }
+
 
     private static void startDrag(Component source,
                                   MouseEvent mouseEvent,
