@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.20 $ / $Date: 2007-10-11 16:15:13 $ / $Author: dan $
+ * @version $Revision: 1.21 $ / $Date: 2007-10-11 16:48:30 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -72,6 +72,10 @@ public class MapsSelectionPanel extends JPanel  {
     public static final String stepTwoMessage = "2. Pick a primary map";
     public static final String stepThreeMessage = "3. Determine map filter:";
 
+    public static final String showAllMessage = "All";
+    public static final String filterOnPrimaryMapMessage = "Show nodes found on primary map only";
+    public static final String excluePrimaryMapNodesMessage = "Exclude nodes found on primary map";
+    
     public final static String filterOnBaseMapMessageString = "Only include items found on the base map";
     
     private JScrollPane scroll;
@@ -80,6 +84,10 @@ public class MapsSelectionPanel extends JPanel  {
     private JButton browseButton;
     
     //private JPanel bottomPanel;
+    
+    private String[] mapFilterChoices = {showAllMessage,filterOnPrimaryMapMessage,excluePrimaryMapNodesMessage};
+    private JComboBox mapFilterChoice;
+    
     private JCheckBox filterOnBaseMap;
     
     private boolean deleteDown = false;
@@ -210,7 +218,29 @@ public class MapsSelectionPanel extends JPanel  {
         gridBag.setConstraints(stepTwoLabel,gridBagConstraints);
         stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(5,15,5,5));
         add(stepTwoLabel);  
-               
+
+        JLabel stepThreeLabel = new JLabel(stepThreeMessage);
+        //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBagConstraints.gridwidth = 1;
+        gridBag.setConstraints(stepThreeLabel,gridBagConstraints);
+        stepThreeLabel.setBorder(BorderFactory.createEmptyBorder(5 + 5,15,2 + 5,5));
+        add(stepThreeLabel);  
+        
+        mapFilterChoice = new JComboBox(mapFilterChoices);
+        
+        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBagConstraints.weightx = 0.0;
+        gridBagConstraints.anchor = GridBagConstraints.WEST;
+        
+        gridBagConstraints.insets = new Insets(5,0,5,0);
+        
+        //gridBagConstraints.gridwidth = 1;
+        // //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(mapFilterChoice,gridBagConstraints);
+        add(mapFilterChoice);
+        
+        gridBagConstraints.insets = new Insets(0,0,0,0);
+        
         //bottomPanel = new JPanel();
         filterOnBaseMap = new JCheckBox();
         JLabel filterOnBaseMapMessage = new JLabel(filterOnBaseMapMessageString);
@@ -254,13 +284,13 @@ public class MapsSelectionPanel extends JPanel  {
         gridBagConstraints.anchor = GridBagConstraints.EAST;
         gridBag.setConstraints(filterOnBaseMap,gridBagConstraints);
         filterOnBaseMap.setOpaque(false);
-        add(filterOnBaseMap);
+        //add(filterOnBaseMap);
         gridBagConstraints.weightx = 0.0;
         gridBagConstraints.insets = new Insets(0,0,0,5);
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         filterOnBaseMapMessage.setForeground(new Color(77,109,109));
         gridBag.setConstraints(filterOnBaseMapMessage,gridBagConstraints);
-        add(filterOnBaseMapMessage);
+        //add(filterOnBaseMapMessage);
         gridBagConstraints.insets = new Insets(0,0,0,0);
         maps = new JTable(new MapTableModel());
         maps.setRowHeight(maps.getRowHeight()+6);
@@ -321,7 +351,7 @@ public class MapsSelectionPanel extends JPanel  {
         //gridBag.setConstraints(scroll,gridBagConstraints);
         JPanel scrollPanel = new JPanel(new java.awt.BorderLayout());
         scrollPanel.setOpaque(false);
-        scrollPanel.setBorder(BorderFactory.createEmptyBorder(5,15,15,15));
+        scrollPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
         scrollPanel.add(scroll);
         gridBag.setConstraints(scrollPanel,gridBagConstraints);
         //add(scroll);
@@ -436,7 +466,8 @@ public class MapsSelectionPanel extends JPanel  {
     
     public boolean getFilterOnBaseMap()
     {
-        if(filterOnBaseMap.isSelected())
+        //if(filterOnBaseMap.isSelected())
+        if(mapFilterChoice.getSelectedItem().equals(filterOnPrimaryMapMessage))
             return true;
         else
             return false;
