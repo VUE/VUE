@@ -258,14 +258,23 @@ public class Osid2AssetResource extends URLResource
             }
         }
     }
+
+    @Override
+    public String getContentType() {
+        if (getSpec().endsWith("=jpeg")) {
+            // special case for MFA data source
+            return "jpeg";
+        } else
+            return super.getContentType();
+    }
     
     public org.osid.repository.Asset getAsset() 
     {
         return this.asset;
     }    
 	
-    public String getImageIcon()
-    {
-        return this.icon;
-    }	
+//     public String getImageIcon()
+//     {
+//         return this.icon;
+//     }	
 }
