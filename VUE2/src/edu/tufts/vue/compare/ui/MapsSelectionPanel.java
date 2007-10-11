@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.21 $ / $Date: 2007-10-11 16:48:30 $ / $Author: dan $
+ * @version $Revision: 1.22 $ / $Date: 2007-10-11 17:26:42 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -468,6 +468,14 @@ public class MapsSelectionPanel extends JPanel  {
     {
         //if(filterOnBaseMap.isSelected())
         if(mapFilterChoice.getSelectedItem().equals(filterOnPrimaryMapMessage))
+            return true;
+        else
+            return false;
+    }
+    
+    public boolean getExcludeNodesFromBaseMap()
+    {
+        if(mapFilterChoice.getSelectedItem().equals(excluePrimaryMapNodesMessage))
             return true;
         else
             return false;

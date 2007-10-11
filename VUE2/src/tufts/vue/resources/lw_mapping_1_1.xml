@@ -344,6 +344,9 @@
             <field name="filterOnBaseMap">
                 <bind-xml name="filterOnBaseMap" node="element" />
             </field>
+            <field name="excludeNodesFromBaseMap">
+                <bind-xml name="excludeNodesFromBaseMap" node="element" />
+            </field>
             <field name="nodeThresholdSliderValue">
                 <bind-xml name="nodeSliderValue"/>
             </field>

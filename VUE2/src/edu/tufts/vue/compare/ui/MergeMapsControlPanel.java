@@ -20,7 +20,7 @@
  *
  * Created on May 8, 2007, 1:31 PM
  *
- * @version $Revision: 1.14 $ / $Date: 2007-10-10 18:26:12 $ / $Author: dan $
+ * @version $Revision: 1.15 $ / $Date: 2007-10-11 17:26:42 $ / $Author: dan $
  * @author dhelle01
  *
  * 
@@ -74,8 +74,10 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
             {
                 revalidate();
                 repaint();
-                System.out.println("MMCP: tabbed pane property change event " + e.getPropertyName());
-            }
+                if(DEBUG_LOCAL)
+                {
+                  System.out.println("MMCP: tabbed pane property change event " + e.getPropertyName());
+                }
         });*/
         
         tabs.addChangeListener(new ChangeListener()
@@ -197,6 +199,7 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
         //moved from Visualization panel to Maps Panel:
         //map.setFilterOnBaseMap(visualizationSettingsPanel.getFilterOnBaseMap());
         map.setFilterOnBaseMap(mapSelectionPanel.getFilterOnBaseMap());
+        map.setExcludeNodesFromBaseMap(mapSelectionPanel.getExcludeNodesFromBaseMap());
         map.setVisualizationSelectionType(visualizationSettingsPanel.getVisualizationSettingsType());
     }
     

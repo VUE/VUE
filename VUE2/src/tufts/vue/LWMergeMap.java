@@ -39,6 +39,8 @@ import java.util.Stack;
 
 public class LWMergeMap extends LWMap {
     
+    private static final boolean DEBUG_LOCAL = false;
+    
     public static final int THRESHOLD_DEFAULT = 20;
     
     // recording source nodes code currently does not compile
@@ -62,6 +64,7 @@ public class LWMergeMap extends LWMap {
     private int nodeThresholdSliderValue = THRESHOLD_DEFAULT;
     private int linkThresholdSliderValue = THRESHOLD_DEFAULT;
     private boolean filterOnBaseMap;
+    private boolean excludeNodesFromBaseMap;
     
     private List<String> fileList = new ArrayList<String>();
     private List<Boolean> activeFiles = new ArrayList<Boolean>();
@@ -219,6 +222,16 @@ public class LWMergeMap extends LWMap {
         return filterOnBaseMap;
     }
     
+    public void setExcludeNodesFromBaseMap(boolean doExclude)
+    {
+        excludeNodesFromBaseMap = doExclude;
+    }
+    
+    public boolean getExcludeNodesFromBaseMap()
+    {
+        return excludeNodesFromBaseMap;
+    }
+    
     public void setNodeThresholdSliderValue(int value)
     {
         nodeThresholdSliderValue = value;
@@ -369,7 +382,10 @@ public class LWMergeMap extends LWMap {
                        nodes.put(Util.getMergeProperty(comp),node);
                      }*/
                      //addNode(node);
-                     add(node);
+                     if(!excludeNodesFromBaseMap || !nodePresentOnBaseMap(node))
+                     {    
+                       add(node);
+                     }
                    }
              }         
              
@@ -405,7 +421,10 @@ public class LWMergeMap extends LWMap {
         
         //compute and create nodes in Merge Map
         
-        addMergeNodesFromSourceMap(baseMap,voteAggregate,nodes);
+        if(!excludeNodesFromBaseMap)
+        {    
+          addMergeNodesFromSourceMap(baseMap,voteAggregate,nodes);
+        }
         
         if(!getFilterOnBaseMap())
         {
@@ -472,9 +491,7 @@ public class LWMergeMap extends LWMap {
         fillAsVoteMerge();    
     }
     
-    
-    
-    public boolean nodeAlreadyPresent(/*LWNode*/LWComponent node)
+    public boolean nodeAlreadyPresent(LWComponent node)
     {
         
         if(getFilterOnBaseMap())
@@ -492,8 +509,11 @@ public class LWMergeMap extends LWMap {
               {    
                 if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
                 {
-                  System.out.println("LWMergeMap - returning true in nodeAlreadyPresent - for (node,c) (" +
-                          Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
+                  if(DEBUG_LOCAL)
+                  {    
+                    System.out.println("LWMergeMap - returning true in nodeAlreadyPresent - for (node,c) (" +
+                            Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
+                  }
                   return true;
                 }
               }
@@ -506,6 +526,41 @@ public class LWMergeMap extends LWMap {
             else
             {
                 //System.out.println("LWMergeMap-nodeAlreadyPresent: node or c is null: (node,c) (" + node + "," + c + ")" );
+            }
+        }
+        return false;
+    }
+    
+    public boolean nodePresentOnBaseMap(LWComponent node)
+    {
+       
+        Iterator<LWComponent> i = getBaseMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        while(i.hasNext())
+        {
+            LWComponent c = i.next();
+            if(c!=null && node!=null)
+            {    
+              if(Util.getMergeProperty(node) != null && Util.getMergeProperty(c) != null )
+              {    
+                if(Util.getMergeProperty(node).equals(Util.getMergeProperty(c)))
+                {
+                  if(DEBUG_LOCAL)
+                  {    
+                    System.out.println("LWMergeMap - returning true in nodePresentOnBaseMap - for (node,c) (" +
+                            Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
+                  }
+                  return true;
+                }
+              }
+              else
+              {
+                  //System.out.println("LWMergeMap: nodePresentOnBaseMap, merge property is null for " + node + " or " + c );
+                  //System.out.println("node: " + Util.getMergeProperty(node) + "c: (current) " + Util.getMergeProperty(c));
+              }
+            }
+            else
+            {
+                //System.out.println("LWMergeMap-nodePresentOnBaseMap: node or c is null: (node,c) (" + node + "," + c + ")" );
             }
         }
         return false;
@@ -570,7 +625,10 @@ public class LWMergeMap extends LWMap {
                if(!repeat)
                {    
                  //addNode(node);
-                 add(node);
+                 if(!excludeNodesFromBaseMap || !nodePresentOnBaseMap(node))
+                 {    
+                   add(node);
+                 }
                }     
              }
              
@@ -588,7 +646,10 @@ public class LWMergeMap extends LWMap {
         while(i.hasNext())
         {
           LWMap m = i.next();
-          System.out.println("LWMergeMap, computing matrix array next map is: " + m.getLabel());
+          if(DEBUG_LOCAL)
+          {    
+            System.out.println("LWMergeMap, computing matrix array next map is: " + m.getLabel());
+          }
           Boolean b = Boolean.TRUE;
           if(ci!=null && ci.hasNext())
           {    
@@ -596,13 +657,19 @@ public class LWMergeMap extends LWMap {
           }
           if(b.booleanValue() || (m==getBaseMap()))
           {
-            System.out.println("LWMergeMap, computing matrix array actually adding: " + m.getLabel());
+            if(DEBUG_LOCAL)
+            {    
+              System.out.println("LWMergeMap, computing matrix array actually adding: " + m.getLabel());
+            }
             cms.add(new ConnectivityMatrix(m));
           }
           else
           {
-            System.out.println("LWMergeMap, computing matrix array not adding due to check box or base map (already added):" +
-                               " (label, m == getBaseMap()) (" + m.getLabel() + "," + (m==getBaseMap()) +")");
+            if(DEBUG_LOCAL)
+            {    
+              System.out.println("LWMergeMap, computing matrix array not adding due to check box or base map (already added):" +
+                                 " (label, m == getBaseMap()) (" + m.getLabel() + "," + (m==getBaseMap()) +")");
+            }
           }
         }
         
@@ -621,7 +688,10 @@ public class LWMergeMap extends LWMap {
         
         WeightAggregate weightAggregate = new WeightAggregate(cms);
         
-        addMergeNodesForMap(getBaseMap(),weightAggregate,nodeStyles);
+        if(!excludeNodesFromBaseMap)
+        {
+          addMergeNodesForMap(getBaseMap(),weightAggregate,nodeStyles);
+        }
         
         if(!getFilterOnBaseMap())
         {
@@ -632,7 +702,10 @@ public class LWMergeMap extends LWMap {
           while(maps.hasNext())
           {
             LWMap m = maps.next();
-            System.out.println("LWMergeMap: next map - " + m.getLabel());
+            if(DEBUG_LOCAL)
+            {
+              System.out.println("LWMergeMap: next map - " + m.getLabel());
+            }
             Boolean b = Boolean.TRUE;
             if(ci!=null && ci.hasNext())
             {    
@@ -640,12 +713,18 @@ public class LWMergeMap extends LWMap {
             }
             if(m!=baseMap && b.booleanValue())
             {
-                System.out.println("LWMergeMap: actually adding - " + m.getLabel());
+                if(DEBUG_LOCAL)
+                {    
+                  System.out.println("LWMergeMap: actually adding - " + m.getLabel());
+                }
                 addMergeNodesForMap(m,weightAggregate,nodeStyles);
             }
             else
             {
-                System.out.println("LWMergeMap: not adding - " + m.getLabel());
+                if(DEBUG_LOCAL)
+                {    
+                  System.out.println("LWMergeMap: not adding - " + m.getLabel());
+                }
             }
           }
         }
@@ -656,7 +735,10 @@ public class LWMergeMap extends LWMap {
         while(children.hasNext())
         {
              LWComponent comp = (LWComponent)children.next();
-             System.out.println("LWMergeMap, computing colors, next component - " + comp.getLabel());
+             if(DEBUG_LOCAL)
+             {    
+               System.out.println("LWMergeMap, computing colors, next component - " + comp.getLabel());
+             }
              if(comp instanceof LWNode)
              {
                   LWNode node = (LWNode)comp;
@@ -722,6 +804,5 @@ public class LWMergeMap extends LWMap {
            }
         }
     }
-
         
 }
