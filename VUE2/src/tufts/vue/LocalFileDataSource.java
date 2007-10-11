@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.18 2007-10-06 03:06:57 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.19 2007-10-11 03:56:33 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.18 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2007-10-11 03:56:33 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
@@ -73,7 +73,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
 
         if (this.getAddress().length() > 0) {
             osid.shared.Agent agent = null; //  This may cause problems later.
-            LocalCabinet rootNode = new LocalCabinet(this.getAddress(),agent,null);
+            LocalCabinet rootNode = LocalCabinet.instance(this.getAddress(),agent,null);
             CabinetResource res = CabinetResource.create(rootNode);
             cabVector.add(res);
         }
@@ -112,14 +112,14 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             for (int i = 0; i < dirs.length; i++) {
                 File dir = new File(home, dirs[i]);
                 if (dir.exists() && dir.canRead()) {
-                    CabinetResource r = CabinetResource.create(new LocalCabinet(dir.getPath(), agent, null));
+                    CabinetResource r = CabinetResource.create(LocalCabinet.instance(dir, agent, null));
                     r.setTitle(dirs[i]);
                     cabVector.add(r);
                     added++;
                 }
             }
             if (added == 0 || tufts.Util.isWindowsPlatform() == false) {
-                CabinetResource r = CabinetResource.create(new LocalCabinet(home.getPath(), agent, null));
+                CabinetResource r = CabinetResource.create(LocalCabinet.instance(home, agent, null));
                 String title = "Home";
                 String user = VUE.getSystemProperty("user.name");
                 if (user != null)
@@ -141,7 +141,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
                 File v = vols[i];
                 if (!v.canRead() || v.getName().startsWith("."))
                     continue;
-                CabinetResource r = CabinetResource.create(new LocalCabinet(v.getPath(), agent, null));
+                CabinetResource r = CabinetResource.create(LocalCabinet.instance(v, agent, null));
                 r.setTitle(v.getName());
                 try {
                     //r.setTitle(v.getName() + " (" + v.getCanonicalPath() + ")");
