@@ -21,6 +21,7 @@ package edu.tufts.vue.dsm.impl;
 /**
  * This class loads and saves Data Source content from an XML file
  */
+import edu.tufts.vue.dsm.DataSourceListener;
 import java.io.*;
 import java.util.*;
 import java.net.*;
@@ -44,6 +45,7 @@ public class VueDataSourceManager
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
     private static String  xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
     private static boolean marshalling = false;
+    private static List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners = new ArrayList<edu.tufts.vue.dsm.DataSourceListener>();
     public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
         return dataSourceManager;
     }
@@ -52,6 +54,7 @@ public class VueDataSourceManager
     }
     
    public  void save() {
+        notifyDataSourceListeners();
         marshall(new File(this.xmlFilename), this);
     }
     
@@ -61,6 +64,7 @@ public class VueDataSourceManager
             File f = new File(xmlFilename);
             if (f.exists()) {
                 dataSourceManager = unMarshall(f); 
+                dataSourceManager. notifyDataSourceListeners();
             } else {
                 System.out.println("Installed datasources not found");
             }
@@ -225,6 +229,20 @@ public class VueDataSourceManager
         dataSourceVector = dsv;
     }
     
+    public void addDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) {
+        dataSourceListeners.add(listener);
+    }
+    
+    public void removeDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) {
+        if(dataSourceListeners.contains(listener))
+            dataSourceListeners.remove(listener);
+    }
+    
+    public  void notifyDataSourceListeners() {
+        for(edu.tufts.vue.dsm.DataSourceListener listener: dataSourceListeners) {
+            listener.changed(getDataSources());
+        }
+    }
     public  static void marshall(File file,VueDataSourceManager dsm) {
     //    System.out.println("Marshalling: file -"+ file.getAbsolutePath());
         Marshaller marshaller = null;
