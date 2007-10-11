@@ -41,7 +41,7 @@ import tufts.vue.*;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = false;
+    private static final boolean DEBUG_LOCAL = true;
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -488,8 +488,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                System.out.println("MetadataEditor MetadataTableEditor - stop cell editing - set previousCurrent to current");
            }
            previousCurrent = current;
-           return true;
-       }
+           return super.stopCellEditing();
+       } 
         
        public java.awt.Component getTableCellEditorComponent(final JTable table,final Object value,boolean isSelected,final int row,final int col)
        {
