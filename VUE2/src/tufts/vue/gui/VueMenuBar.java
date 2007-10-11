@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-10-06 03:49:27 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-10-11 22:52:27 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -111,8 +111,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final SaveAction exportAction = new SaveAction("Export ...",true,true);
         final OpenAction openAction = new OpenAction("Open...");
         final ExitAction exitAction = new ExitAction("Quit");
-        final Publish publishAction = new Publish("Publish...");
+        final JMenu publishMenu = new VueMenu("Publish");
+        //final JMenu publishAction =  Publish.getPublishMenu();
         final RDFOpenAction rdfOpen = new RDFOpenAction();
+        
+        //final TextOpenAction textOpen = new TextOpenAction();
         final CreateCM createCMAction = new CreateCM("Connectivity Analysis...");
         final AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps...");
         final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
@@ -134,6 +137,24 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				
 			}
         	
+        });
+        
+        edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
+            public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
+                for(int i =0;i<dataSource.length;i++) {
+                 try {   
+                     if (dataSource[i].getRepository().getType().isEqual(Publisher.fedoraRepositoryType)) {
+                         publishMenu.add(new Publish(dataSource[i].toString())); 
+                     }
+                     } catch(org.osid.repository.RepositoryException ex) {
+                    ex.printStackTrace();
+                }
+                }
+                publishMenu.addSeparator();
+                publishMenu.add(new Publish("Fedora"));
+                publishMenu.add(new Publish("Sakai"));
+        
+            }
         });
         
         ////////////////////////////////////////////////////////////////////////////////////
@@ -185,8 +206,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(Actions.Revert);
         fileMenu.addSeparator();        
         fileMenu.add(rdfOpen);
+        //fileMenu.add(textOpen);
         fileMenu.add(exportAction);
-        fileMenu.add(publishAction);
+        fileMenu.add(publishMenu);
         JMenu pdfExportMenu = new JMenu("Create PDF");
         pdfExportMenu.add(Actions.MapAsPDF);
         pdfExportMenu.add(Actions.FullPageSlideNotes);
