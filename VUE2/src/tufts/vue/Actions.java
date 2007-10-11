@@ -330,8 +330,9 @@ public class Actions implements VueConstants
                   //tufts.vue.gui.DockWindow SearchWindow = tufts.vue.gui.GUI.createDockWindow(VueResources.getString("searchWindowTitle"));
                   //SearchWindow.setContent(new edu.tufts.vue.metadata.ui.MetadataSearchGUI());
                   SearchWindow.setContent(new edu.tufts.vue.metadata.ui.MetadataSearchGUI(edu.tufts.vue.metadata.ui.MetadataSearchGUI.MULTIPLE_FIELDS));
-                  SearchWindow.setLocation(200,200);
-                  SearchWindow.pack();
+                  SearchWindow.setLocation(350,100);
+                  //SearchWindow.pack();
+                  SearchWindow.setSize(300,250);
                   SearchWindow.setVisible(true);
                 }
             }
