@@ -59,6 +59,7 @@ public class FedoraPublisher {
     public static final String DC_MIME_TYPE_KEY = "%DC_MIME_TYPE%";
     public static final String DC_LABEL_KEY = "%DC_LABEL%";
     public static final String DC_ID_KEY = "%DC_ID%";
+    public static final String RELS_EXT_KEY  = "%RELS_EXT%";
     public static final String FORMAT = "foxml1.0";
     public static final String COMMENT = "Automatic Publish From VUE";
     public static final String VUE_MIME_TYPE ="application/vue";
@@ -73,7 +74,7 @@ public class FedoraPublisher {
     public static final String RESULT_FIELDS[] = {"pid"};
     public static final String FILE_PREFIX = "file://";
     public static final String DC_URL = VueResources.getString("metadata.dublincore.url");
-        
+    
     private static Map<String,String> foxmls = new HashMap<String,String>();
     static String foxml;
     /** Creates a new instance of FedoraExporter */
@@ -81,10 +82,10 @@ public class FedoraPublisher {
     }
     
     public static void uploadMap(String protocol, String host, int port, String userName, String password,LWMap map) {
-        String mapPid = "vue:"+map.getURIString().substring(map.getURIString().lastIndexOf("/")+1);
+        String mapPid = getFedoraPid(map);
         //TODO: Marchall Map before uploading it to repository
         File file =map.getFile();
-        uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.vue"),VUE_CM,(new MimetypesFileTypeMap().getContentType(file)),mapPid,file.getName(),MAP_DS,map);
+        uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.vue"),VUE_CM,(new MimetypesFileTypeMap().getContentType(file)),mapPid,file.getName(),MAP_DS,map,map);
     }
     
     public static void uploadMapAll(String protocol, String host, int port, String userName, String password,LWMap map) {
@@ -97,10 +98,10 @@ public class FedoraPublisher {
                     URLResource resource = (URLResource) component.getResource();
                     //   System.out.println("Component:"+component+"file:" +resource.getSpec()+" has file:"+resource.getSpec().startsWith(FILE_PREFIX));
                     if(resource.isLocalFile()) {
-                        String pid = "vue:"+component.getURIString().substring(map.getURIString().lastIndexOf("/")+1);
+                        String pid = getFedoraPid(component);
                         File file = new File(resource.getSpec());
                         System.out.println("LWComponent:"+component.getLabel() + "Resource: "+resource.getSpec()+"File:"+file+" exists:"+file.exists()+" MimeType"+new MimetypesFileTypeMap().getContentType(file));
-                        uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.other"),OTHER_CM,(new MimetypesFileTypeMap().getContentType(file)),pid,file.getName(),RESOURCE_DS,component);
+                        uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.other"),OTHER_CM,(new MimetypesFileTypeMap().getContentType(file)),pid,file.getName(),RESOURCE_DS,component,map);
                         //Replace the link for resouce in the map
                         String ingestUrl =  "http://"+host+":8080/fedora/get/"+pid+"/RESOURCE";
                         resource.setSpec(ingestUrl);
@@ -114,7 +115,7 @@ public class FedoraPublisher {
         }
     }
     
-    public static void uploadObjectToRepository(String protocol, String host, int port, String userName, String password,File file, File contentModel,String cm,String mimeType,String pid,String label,String dsName,LWComponent component) {
+    public static void uploadObjectToRepository(String protocol, String host, int port, String userName, String password,File file, File contentModel,String cm,String mimeType,String pid,String label,String dsName,LWComponent component,LWMap map) {
         try{
             System.setProperty("javax.net.ssl.trustStore", VueUtil.getDefaultUserFolder()+"\\truststore");
             System.setProperty("javax.net.ssl.trustStorePassword","tomcat");
@@ -145,13 +146,17 @@ public class FedoraPublisher {
                     while((line = r.readLine())!=null) {
                         foxml += line+"\n";
                     }
+                    foxmls.put(contentModel.toString(),foxml);
                 } else {
-                    foxml = foxmls.get(contentModel);
+                    foxml = foxmls.get(contentModel.toString());
                 }
+                
                 SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
                 Date currentTime = new Date();
                 String dateString = formatter.format(currentTime);
                 String ingestFoxml = foxml;
+                String relsExt =  getRels(ingestFoxml, cm,component,map);
+                ingestFoxml = ingestFoxml.replace(RELS_EXT_KEY,relsExt);
                 ingestFoxml = ingestFoxml.replace("%OWNER%",userName);
                 ingestFoxml = ingestFoxml.replaceAll("%CREATE_DATE%",dateString);
                 ingestFoxml = ingestFoxml.replaceAll("%PID%",pid);
@@ -164,9 +169,9 @@ public class FedoraPublisher {
                 ingestFoxml = ingestFoxml.replace("%DC_MIME_TYPE%",XML_MIME_TYPE);
                 ingestFoxml = ingestFoxml.replace("%MIME_TYPE%",mimeType);
                 System.out.println(ingestFoxml);
-                //BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
-                //writer.write(ingestFoxml);
-                //writer.close();
+                BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
+                writer.write(ingestFoxml);
+                writer.close();
                 StringBufferInputStream s = new StringBufferInputStream(ingestFoxml);
                 AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,FORMAT, COMMENT);
             }
@@ -174,20 +179,55 @@ public class FedoraPublisher {
             ex.printStackTrace();
         }
     }
-   
+    
     public static String getDC(LWComponent c,String title,String identifier) {
         String dc = new String();
         dc +="<oai_dc:dc xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\">";
         dc += "<dc:title>"+title+"</dc:title>";
         dc += "<dc:identifier>"+identifier+"</dc:identifier>";
-         for(VueMetadataElement element: c.getMetadataList().getMetadata()) {
-             if(element.getKey().contains(DC_URL)) {
+        for(VueMetadataElement element: c.getMetadataList().getMetadata()) {
+            if(element.getKey().contains(DC_URL)) {
                 String key = "dc:"+element.getKey().substring(DC_URL.length()+1);
                 
                 dc += "<"+key+">"+element.getValue()+"</"+key+">";
             }
         }
-         dc += "</oai_dc:dc>";
+        dc += "</oai_dc:dc>";
         return dc;
+    }
+    
+    
+    public static String getRels(String ingestFoxml, String cm, LWComponent comp, LWMap map) throws Exception {
+        String relsExt = new String();
+        File relsExtFile = VueResources.getFile("fedora.template.rels-ext");
+        if(!foxmls.containsKey(relsExtFile)) {
+            BufferedReader r = new BufferedReader(new FileReader(relsExtFile));
+            String line = new String();
+            relsExt = "";
+            while((line = r.readLine())!=null) {
+                relsExt += line+"\n";
+            }
+            foxmls.put(relsExtFile.toString(),relsExt);
+        } else  {
+            relsExt = foxmls.get(relsExtFile.toString());
+        }
+        
+        
+        String rels = new String();
+        String rdfDescription = new String();
+        if(cm.equals(VUE_CM)) {
+            return rels;
+        } else {
+            rdfDescription = "<rdf:Description rdf:about=\"info:fedora/"+getFedoraPid(comp)+"\">";
+            rdfDescription +=  "<rel:isPartOf rdf:resource=\"info:fedora/"+getFedoraPid(map)+"\" />";
+            rdfDescription += "</rdf:Description>";
+        }
+        rels = relsExt.replace("%RDF_DESCRIPTION%",rdfDescription);
+        return rels;
+        
+    }
+    
+    public static String getFedoraPid(LWComponent component) {
+        return "vue:"+component.getURIString().substring(component.getURIString().lastIndexOf("/")+1);
     }
 }
