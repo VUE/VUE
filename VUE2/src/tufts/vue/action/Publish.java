@@ -42,7 +42,6 @@ import fedora.server.utilities.StreamUtility;
  * @author  akumar03
  */
 public class Publish extends VueAction  {
-    public static final org.osid.shared.Type fedoraRepositoryType = new edu.tufts.vue.util.Type("tufts.edu","repository","fedora_2_2");
     private static JMenu menu;
     public static final String LABEL = "Publish";
     /** Creates a new instance of Publish */
@@ -58,18 +57,13 @@ public class Publish extends VueAction  {
     public Publish(String label) {
         super(label);
         this.label  = label;
-         //edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(this);
+   }
    
+    public Publish(edu.tufts.vue.dsm.DataSource dataSource) {
+        super(dataSource.getRepositoryDisplayName());
+        this.label = dataSource.getRepositoryDisplayName();
     }
     
-    
-    /*
-    public Publish(Frame owner,String label) {
-        super(label);
-        this.owner = owner;
-        this.label  = label;
-    }
-     */
     public void act() {
         try {
             Publisher publisher = new Publisher(VUE.getDialogParentAsFrame(), LABEL);

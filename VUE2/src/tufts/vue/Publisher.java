@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.59 $ / $Date: 2007-10-11 22:48:58 $ / $Author: anoop $
+ * @version $Revision: 1.60 $ / $Date: 2007-10-12 15:10:13 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -83,10 +83,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private int stage; // keep tracks of the screen
  
     //TODO: move it edu.tufts.vue.dsm
-    
-    public static final org.osid.shared.Type sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
-    public static final org.osid.shared.Type fedoraRepositoryType = new edu.tufts.vue.util.Type("tufts.edu","repository","fedora_2_2");
-    
+  
     
     int count = 0;
     
@@ -170,7 +167,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         //adding the repository list
         //TODO: Populate this with actual repositories
         repList = new JList();
-        repList.setModel(new DatasourceListModel(fedoraRepositoryType));
+        repList.setModel(new DatasourceListModel(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
         repList.setCellRenderer(new DatasourceListCellRenderer());
         JScrollPane repPane = new JScrollPane(repList);
         JPanel scrollPanel = new JPanel(new BorderLayout());
@@ -306,7 +303,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private void publishMapToDL() {
         try{
             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
-            if(ds.getRepository().getType().isEqual(fedoraRepositoryType)) {
+            if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
                 Properties properties = ds.getConfiguration();
                 if(publishMapRButton.isSelected())
                     FedoraPublisher.uploadMap("https",  properties.getProperty("fedora22Address"), 8443, properties.getProperty("fedora22UserName"),  properties.getProperty("fedora22Password"),VUE.getActiveMap());
