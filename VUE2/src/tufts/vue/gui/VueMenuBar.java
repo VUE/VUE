@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-10-12 15:10:24 $ / $Author: anoop $
+ * @version $Revision: 1.57 $ / $Date: 2007-10-12 15:48:29 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -144,15 +144,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 for(int i =0;i<dataSource.length;i++) {
                  try {   
                      if (dataSource[i].getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
-                         publishMenu.add(new Publish(dataSource[i])); 
+                         publishMenu.add(PublishActionFactory.createPublishAction(dataSource[i])); 
                      }
                      } catch(org.osid.repository.RepositoryException ex) {
                     ex.printStackTrace();
                 }
                 }
                 publishMenu.addSeparator();
-                publishMenu.add(new Publish("Fedora"));
-                publishMenu.add(new Publish("Sakai"));
+                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
         
             }
         });
