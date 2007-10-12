@@ -37,7 +37,7 @@ public class PublishDataSourceAction extends VueAction   {
     }
     public void act() {
         try {
-            Publisher publisher = new Publisher(VUE.getDialogParentAsFrame(), LABEL);
+            Publisher publisher = new Publisher(dataSource);
         } catch (Exception ex) {
             VueUtil.alert(null, ex.getMessage(), "Publish Error");
             ex.printStackTrace();

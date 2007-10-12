@@ -30,11 +30,22 @@ import tufts.vue.*;
 
 public class PublishDataSourceTypeAction extends VueAction{
     private static  Map<org.osid.shared.Type,String> typeLabelMap;
-    
+    org.osid.shared.Type type;
     PublishDataSourceTypeAction(org.osid.shared.Type type) {
         super(getTypeLabelMap().get(type));
+        this.type = type;
     }
-
+    
+    public void act() {
+        try {
+            Publisher publisher = new Publisher(type);
+        } catch (Exception ex) {
+            VueUtil.alert(null, ex.getMessage(), "Publish Error");
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
+        }
+    }
+    
     private static Map<org.osid.shared.Type,String> getTypeLabelMap() {
         if(typeLabelMap == null) {
             typeLabelMap = new HashMap<org.osid.shared.Type,String> ();

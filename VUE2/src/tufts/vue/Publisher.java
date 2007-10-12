@@ -53,13 +53,13 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.60 $ / $Date: 2007-10-12 15:10:13 $ / $Author: anoop $
+ * @version $Revision: 1.61 $ / $Date: 2007-10-12 19:23:16 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
     /** Creates a new instance of Publisher */
     //todo: Create an interface for datasources and have separate implementations for each type of datasource.
-    
+    public static final String TITLE = "Publisher";
     public static final String FILE_PREFIX = "file://";
     public static final int PUB_WIDTH = 500;
     public static final int PUB_HEIGHT = 250;
@@ -81,9 +81,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
- 
+    
     //TODO: move it edu.tufts.vue.dsm
-  
+    
     
     int count = 0;
     
@@ -119,16 +119,28 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     ButtonGroup modeButtons = new ButtonGroup();
     java.util.List<JRadioButton> modeRadioButtons;
     JList repList;
-    public Publisher(Frame owner,String title) {
-        //testing
-        super(owner,title,true);
-        initialize();
+    org.osid.shared.Type dataSourceType;
+    public Publisher(edu.tufts.vue.dsm.DataSource dataSource) {
+        super(VUE.getDialogParentAsFrame(),TITLE,true);
+        setUpButtonPanel();
+        repList = new JList();
+        repList.setModel(new DatasourceListModel(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+        repList.setSelectedValue(dataSource,false);
+        setUpModeSelectionPanel();
+        getContentPane().add(mPanel, BorderLayout.CENTER);
+        setLocation(X_LOCATION,Y_LOCATION);
+        setModal(true);
+        setSize(PUB_WIDTH, PUB_HEIGHT);
+        setResizable(false);
+        setVisible(true);
     }
     
-    public Publisher(Frame owner,String title,edu.tufts.vue.dsm.DataSource ds) {
-        this(owner,title);
-        repList.setSelectedValue(ds,false);
-        setUpModeSelectionPanel();
+    
+    
+    public Publisher(org.osid.shared.Type type) {
+        super(VUE.getDialogParentAsFrame(),TITLE,true);
+        this.dataSourceType = type;
+        initialize();
     }
     private void initialize() {
         
@@ -159,6 +171,17 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         setVisible(true);
     }
     
+    private void setUpButtonPanel() {
+        cancelButton.addActionListener(this);
+        nextButton.addActionListener(this);
+        publishButton.addActionListener(this);
+        buttonPanel = new JPanel();
+        buttonPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(7,7,7,7),BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(1,0,0,0,Color.DARK_GRAY),BorderFactory.createEmptyBorder(5,0,0,0))));
+        buttonPanel.setLayout(new BorderLayout());
+        buttonPanel.add(cancelButton,BorderLayout.WEST);
+        buttonPanel.add(nextButton,BorderLayout.EAST);
+        getContentPane().add(buttonPanel,BorderLayout.SOUTH);
+    }
     private void setUpRepositorySelectionPanel() {
         rPanel.setLayout(new BorderLayout());
         JLabel repositoryLabel = new JLabel("Select a FEDORA Instance");
@@ -167,7 +190,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         //adding the repository list
         //TODO: Populate this with actual repositories
         repList = new JList();
-        repList.setModel(new DatasourceListModel(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+        repList.setModel(new DatasourceListModel(dataSourceType));
         repList.setCellRenderer(new DatasourceListCellRenderer());
         JScrollPane repPane = new JScrollPane(repList);
         JPanel scrollPanel = new JPanel(new BorderLayout());
@@ -355,8 +378,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     class DatasourceListModel extends DefaultListModel {
         org.osid.shared.Type type;
-         public DatasourceListModel(org.osid.shared.Type type) {
-             this.type = type;
+        public DatasourceListModel(org.osid.shared.Type type) {
+            this.type = type;
         }
         public Object getElementAt(int index) {
             return(getResources().get(index));
@@ -376,17 +399,17 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public  static java.util.List<edu.tufts.vue.dsm.DataSource> getPublishableDatasources(org.osid.shared.Type type) {
         edu.tufts.vue.dsm.DataSource[] datasources = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
-         java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
-            for(int i=0;i<datasources.length;i++) {
-                try {
-                    if (datasources[i].getRepository().getType().isEqual(type)) {
-                        resourceList.add(datasources[i]);
-                    }
-                } catch(org.osid.repository.RepositoryException ex) {
-                    ex.printStackTrace();
+        java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
+        for(int i=0;i<datasources.length;i++) {
+            try {
+                if (datasources[i].getRepository().getType().isEqual(type)) {
+                    resourceList.add(datasources[i]);
                 }
+            } catch(org.osid.repository.RepositoryException ex) {
+                ex.printStackTrace();
             }
-            return resourceList;
+        }
+        return resourceList;
     }
     
 }
