@@ -242,6 +242,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         MetadataList.addListener(this);
         
+        setBorder(BorderFactory.createEmptyBorder(10,8,0,6));
+        scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        
         validate();
     }
     
