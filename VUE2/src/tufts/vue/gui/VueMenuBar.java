@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-10-12 15:48:29 $ / $Author: anoop $
+ * @version $Revision: 1.58 $ / $Date: 2007-10-12 19:13:56 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -141,6 +141,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
+                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
+                publishMenu.addSeparator();
                 for(int i =0;i<dataSource.length;i++) {
                  try {   
                      if (dataSource[i].getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
@@ -150,10 +153,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
                     ex.printStackTrace();
                 }
                 }
-                publishMenu.addSeparator();
-                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
-                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
-        
+
+                
             }
         });
         
