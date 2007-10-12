@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-10-11 22:52:27 $ / $Author: anoop $
+ * @version $Revision: 1.56 $ / $Date: 2007-10-12 15:10:24 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -143,8 +143,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
                 for(int i =0;i<dataSource.length;i++) {
                  try {   
-                     if (dataSource[i].getRepository().getType().isEqual(Publisher.fedoraRepositoryType)) {
-                         publishMenu.add(new Publish(dataSource[i].toString())); 
+                     if (dataSource[i].getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
+                         publishMenu.add(new Publish(dataSource[i])); 
                      }
                      } catch(org.osid.repository.RepositoryException ex) {
                     ex.printStackTrace();
