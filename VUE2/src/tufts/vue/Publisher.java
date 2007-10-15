@@ -26,6 +26,7 @@
 package tufts.vue;
 
 import javax.swing.*;
+import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.border.LineBorder;
@@ -53,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.62 $ / $Date: 2007-10-15 18:28:16 $ / $Author: anoop $
+ * @version $Revision: 1.63 $ / $Date: 2007-10-15 19:28:31 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -120,8 +121,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     ButtonGroup modeButtons = new ButtonGroup();
     java.util.List<JRadioButton> modeRadioButtons;
     JList repList;
-    JList wList; // list of workspaces
+    JTree wTree; // list of workspaces
     org.osid.shared.Type dataSourceType =edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
+    private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
+    
     public Publisher(edu.tufts.vue.dsm.DataSource dataSource) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
         setUpButtonPanel();
@@ -209,8 +212,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JLabel wLabel = new JLabel("Select a workspace in "+ repList.getSelectedValue().toString());
         wLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         wPanel.add(wLabel,BorderLayout.NORTH);
-        wList = new JList();
-        JScrollPane wPane = new JScrollPane(wList);
+        edu.tufts.vue.dsm.DataSource selectedDataSource = (edu.tufts.vue.dsm.DataSource) repList.getSelectedValue();
+        wTree= new JTree(getWorkSpaceTreeModel(selectedDataSource));
+        JScrollPane wPane = new JScrollPane(wTree);
         JPanel scrollPanel = new JPanel(new BorderLayout());
         scrollPanel.add(wPane);
         scrollPanel.setBorder(BorderFactory.createEmptyBorder(10,20,10,20));
@@ -301,12 +305,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }else if(e.getActionCommand().equals(NEXT)) {
             getContentPane().remove(rPanel);
             //validateTree();
-            if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
+            if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                 setUpWorkspaceSelectionPanel();
                 getContentPane().add(wPanel, BorderLayout.CENTER);
             } else {
-               setUpModeSelectionPanel();
-                getContentPane().add(wPanel, BorderLayout.CENTER);
+                setUpModeSelectionPanel();
+                getContentPane().add(mPanel, BorderLayout.CENTER);
             }
             getContentPane().validate();
             validateTree();
@@ -371,6 +375,33 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     
     
+    private DefaultTreeModel getWorkSpaceTreeModel(edu.tufts.vue.dsm.DataSource dataSource) {
+        String ROOT_LABEL = "Sites";
+        javax.swing.tree.DefaultMutableTreeNode root =    new javax.swing.tree.DefaultMutableTreeNode(ROOT_LABEL);
+        DefaultTreeModel treeModel = new   DefaultTreeModel(root);
+         try {
+            org.osid.repository.Repository repository = dataSource.getRepository();
+             org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
+             System.out.println("repository is " + repository.getDisplayName());
+				
+            while (assetIterator.hasNextAsset()) {
+                org.osid.repository.Asset asset = assetIterator.nextAsset();
+                 System.out.println("asset is " + asset.getDisplayName());
+					
+                SakaiSiteUserObject userObject = new SakaiSiteUserObject();
+                userObject.setId(asset.getId().getIdString());
+                userObject.setDisplayName(asset.getDisplayName());
+                System.out.println("another obj " + userObject);
+					
+                javax.swing.tree.DefaultMutableTreeNode nextTreeNode = new javax.swing.tree.DefaultMutableTreeNode(userObject);
+                treeModel.insertNodeInto(nextTreeNode,root,0);
+            }
+            
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        return treeModel;
+    }
     
     class DatasourceListCellRenderer extends   DefaultListCellRenderer  {
         
@@ -418,8 +449,17 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             
         }
     }
-    
-    
+    /**
+     * class  WorkSpaceTreeModel extends DefaultTreeModel {
+     * public static final String ROOT = "Sites";
+     * edu.tufts.vue.dsm.DataSource dataSource;
+     *
+     * public WorkSpaceTreeModel(edu.tufts.vue.dsm.DataSource dataSource) {
+     * super(new DefaultMutableTreeNode(ROOT));
+     * this.dataSource = dataSource;
+     * }
+     * }
+     */
     public  static java.util.List<edu.tufts.vue.dsm.DataSource> getPublishableDatasources(org.osid.shared.Type type) {
         edu.tufts.vue.dsm.DataSource[] datasources = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
         java.util.List<edu.tufts.vue.dsm.DataSource> resourceList = new ArrayList<edu.tufts.vue.dsm.DataSource>();
