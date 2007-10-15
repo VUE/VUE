@@ -26,7 +26,7 @@
 package edu.tufts.vue.metadata.gui;
 
 public class EditCategoryItem {
-    public static final String DEFAULT = "Edit";
+    public static final String DEFAULT = "Edit Categories";
     /** Creates a new instance of EditCategoryItem */
     public EditCategoryItem() {
     }
