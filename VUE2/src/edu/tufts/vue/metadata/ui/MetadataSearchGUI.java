@@ -68,6 +68,8 @@ public class MetadataSearchGUI extends JPanel {
     private List<List<URI>> finds = null;
     
     //TEXT FIELD BASED
+    private JPanel topPanel;
+    private JPanel innerTopPanel;
     private OptionsPanel optionsPanel;
     private String[] searchTypes = {"Basic","Categories","Advanced","All"};
     private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
@@ -75,6 +77,8 @@ public class MetadataSearchGUI extends JPanel {
     
     private JPanel fieldsPanel;
     private JTable searchTermsTable;
+    
+    private JPanel buttonPanel;
 
     private int buttonColumn = 1;
     private int categoryColumn = -1;
@@ -86,20 +90,23 @@ public class MetadataSearchGUI extends JPanel {
     private JButton advancedSearch;
     private JLabel optionsLabel;
     
-    private int optionsToggle;
+    private int optionsToggle = 1;
     
     private SearchAction termsAction;
     private boolean singleLine = false;
     private JTextField allSearchField = new JTextField();
     private SearchAction allSearch = new SearchAction(allSearchField);
     
+    private tufts.vue.gui.DockWindow dockWindow;
+    
     public MetadataSearchGUI() 
     {
         setUpOneLineSearch();      
     }
     
-    public MetadataSearchGUI(int type)
+    public MetadataSearchGUI(int type,tufts.vue.gui.DockWindow dockWindow)
     {
+        this.dockWindow = dockWindow;
         
         if(type == ONE_LINE)
         {
@@ -135,9 +142,8 @@ public class MetadataSearchGUI extends JPanel {
         
         setLayout(new BorderLayout());
         
-        JPanel topPanel = new JPanel(new BorderLayout());
-        
-        final JButton options = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
+        topPanel = new JPanel(new BorderLayout());
+        innerTopPanel = new JPanel(new BorderLayout());
         
         optionsPanel = new OptionsPanel();
         
@@ -222,15 +228,22 @@ public class MetadataSearchGUI extends JPanel {
            }
         };
         
+        JPanel advancedSearchPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
         optionsLabel = new JLabel("show options");
         advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
         advancedSearch.setBorder(BorderFactory.createEmptyBorder());
         advancedSearch.addActionListener(new ActionListener(){
            public void actionPerformed(ActionEvent e)
            {   
-               toggleCategorySearch();
+               toggleOptionsView();
            }
         });
+        advancedSearchPanel.add(optionsLabel);
+        advancedSearchPanel.add(advancedSearch);
+        innerTopPanel.add(advancedSearchPanel,BorderLayout.NORTH);
+        
+        //innerTopPanel.add(optionsPanel);
+        
         //optionsPanel.add(advancedSearch);
         //optionsPanel.add(optionsLabel);
        
@@ -278,14 +291,12 @@ public class MetadataSearchGUI extends JPanel {
         scroll.getViewport().setBackground(getBackground());
         fieldsPanel.add(scroll);
         
-        topPanel.add(optionsPanel,BorderLayout.NORTH);
-        //add(locationPanel);
-        //add(resultsTypePanel);
-        //add(lineLabel);
+        topPanel.add(innerTopPanel,BorderLayout.NORTH);
         fieldsPanel.add(linePanel,BorderLayout.NORTH);
         topPanel.add(fieldsPanel);
+        //topPanel.add(innerTopPanel,BorderLayout.NORTH);
         
-        JPanel buttonPanel = new JPanel(new BorderLayout());
+        buttonPanel = new JPanel(new BorderLayout());
         termsAction = new SearchAction(searchTerms);
         //SearchAction.revertGlobalSearchSelection();
         //termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
@@ -311,9 +322,14 @@ public class MetadataSearchGUI extends JPanel {
         //buttonPanel.add(resetButton);
         buttonPanel.add(BorderLayout.EAST,searchPanel);
         //add(BorderLayout.NORTH,searchField);
+        
+        /*
         add(topPanel);
         add(buttonPanel,BorderLayout.SOUTH);
+        */
         
+        setUpLayout();
+
         searchTermsTable.addMouseListener(new java.awt.event.MouseAdapter()
                {
                    public void mouseReleased(java.awt.event.MouseEvent evt)
@@ -334,17 +350,52 @@ public class MetadataSearchGUI extends JPanel {
         
     }
     
+    public void setUpLayout()
+    {
+        add(topPanel);
+        add(buttonPanel,BorderLayout.SOUTH);        
+    }
+    
     public void toggleOptionsView()
     {
         if(optionsToggle == SHOW_OPTIONS)
         {
+            
+           innerTopPanel.add(optionsPanel);
+           remove(topPanel);
+           remove(buttonPanel);
+           
+           setUpLayout();
+            
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
            optionsLabel.setText("hide options");
+           
+           validate();
+           
+           if(dockWindow != null)
+             dockWindow.pack();
+           
+           optionsToggle = HIDE_OPTIONS;
         }
         else if(optionsToggle == HIDE_OPTIONS)
         {
+           innerTopPanel.remove(optionsPanel);
+           remove(topPanel);
+           remove(buttonPanel);
+           
+           setUpLayout();
+            
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
-           optionsLabel.setText("show options"); 
+           optionsLabel.setText("show options");
+           
+           validate();
+           
+           if(dockWindow != null)
+           {
+              dockWindow.pack();
+           }
+           
+           optionsToggle = SHOW_OPTIONS;
         }
     }
 
