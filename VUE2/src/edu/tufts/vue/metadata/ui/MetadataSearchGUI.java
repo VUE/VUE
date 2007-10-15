@@ -22,6 +22,8 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.metadata.action.*;
 import edu.tufts.vue.ontology.OntType;
 import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.*;
 import java.net.*;
 import javax.swing.*;
@@ -113,6 +115,8 @@ public class MetadataSearchGUI extends JPanel {
            setUpFieldsSearch();
         }
         
+        setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
+        
     }
     
     public void setUpOneLineSearch()
@@ -133,13 +137,76 @@ public class MetadataSearchGUI extends JPanel {
     
     public void setUpFieldsSearch()
     {
-        setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-        optionsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        locationPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        resultsTypePanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+       // setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
+        
+        setLayout(new BorderLayout());
+        
+        JPanel topPanel = new JPanel(new BorderLayout());
+        
+        //setLayout(new GridBagLayout());
+        //GridbagConstraints c = new GridBagConstraints();
+        
+        final JButton options = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
+        
+        //optionsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        //locationPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        //resultsTypePanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        
+        //optionsPanel = new JPanel(new java.awt.GridLayout(3,2));
+        optionsPanel = new JPanel();
+        GridBagLayout optionsGrid = new GridBagLayout();
+        optionsPanel.setLayout(optionsGrid);
+        GridBagConstraints optionsConstraints = new GridBagConstraints();
+        
+        //linePanel 
+        
+        /*tufts.vue.PolygonIcon lineIcon = //new tufts.vue.PolygonIcon(java.awt.Color.BLACK);//new java.awt.Color(153,153,153))
+                                         new tufts.vue.PolygonIcon(new java.awt.Color(153,153,153))
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+                return new java.awt.Dimension(20,MetadataSearchGUI.this.getWidth()-20);
+            }
+        };*/
+        //lineIcon.setIconWidth(getWidth()-10);
+        //lineIcon.setIconWidth(50);
+        //lineIcon.setIconHeight(1);
+        //JLabel lineLabel = new JLabel(lineIcon);
+        //JLabel lineLabel = new JLabel("test");
+        
+        JPanel linePanel = new JPanel() {
+                protected void paintComponent(java.awt.Graphics g) {
+                    //g.setColor(java.awt.Color.WHITE);
+                    //g.fillRect(0,0,getWidth(),getHeight());
+                    g.setColor(java.awt.Color.DARK_GRAY);
+                    g.drawLine(5,getHeight()/2,/* this.getSize().width*/ MetadataSearchGUI.this.getWidth()-15, getHeight()/2);
+                }
+                
+                public java.awt.Dimension getMinimumSize()
+                {
+                        return new java.awt.Dimension(MetadataSearchGUI.this.getWidth(),30);
+                }
+        };
+        
+        //linePanel.setOpaque(true);
+        //linePanel.setMinimumSize(new java.awt.Dimension(300,30));
+        //linePanel.setBackground(java.awt.Color.BLUE);
+        
         fieldsPanel = new JPanel(new java.awt.BorderLayout());
         
-        searchTypesChoice = new JComboBox(searchTypes);
+        searchTypesChoice = new JComboBox(searchTypes)
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+                return new java.awt.Dimension(125,super.getHeight());
+            }
+        };
+        /*    
+            public java.awt.Dimension getPreferredSize()
+            {
+                return new java.awt.Dimension(250,super.getHeight());
+            }
+        };*/
         searchTypesChoice.addItemListener(new ItemListener()
         {
            public void itemStateChanged(ItemEvent ie)
@@ -170,7 +237,18 @@ public class MetadataSearchGUI extends JPanel {
            }
         });
         
-        locationChoice = new JComboBox(locationTypes);
+        locationChoice = new JComboBox(locationTypes)
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+                return new java.awt.Dimension(125,super.getHeight());
+            }
+        };  
+        /*    public java.awt.Dimension getPreferredSize()
+            {
+                return new java.awt.Dimension(250,super.getHeight());
+            }
+        };*/
         locationChoice.addItemListener(new ItemListener()
         {
            public void itemStateChanged(ItemEvent e)
@@ -193,7 +271,21 @@ public class MetadataSearchGUI extends JPanel {
            }
         });
         
-        resultsTypeChoice = new JComboBox(resultsTypes);
+        resultsTypeChoice = new JComboBox(resultsTypes)
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+                return new java.awt.Dimension(125,super.getHeight());
+            }
+        };
+        
+        //resultsTypes.setFont(tufts.vue.gui.GUI.LabelFace);
+       /*     
+            public java.awt.Dimension getPreferredSize()
+            {
+                return new java.awt.Dimension(250,super.getHeight());
+            }
+        };*/
         resultsTypeChoice.addItemListener(new ItemListener()
         {
            public void itemStateChanged(ItemEvent e)
@@ -218,20 +310,94 @@ public class MetadataSearchGUI extends JPanel {
         //optionsPanel.add(advancedSearch);
         //optionsPanel.add(optionsLabel);
         
-        JLabel searchTypeLabel = new JLabel("Search Type: ");
-        JLabel locationLabel = new JLabel("Location: ");
-        JLabel resultsTypeLabel = new JLabel("Results Type: ");
+        JLabel searchTypeLabel = new JLabel("Search Type: ",JLabel.RIGHT);
+        JLabel locationLabel = new JLabel("Location: ",JLabel.RIGHT);
+        JLabel resultsTypeLabel = new JLabel("Results Type: ",JLabel.RIGHT);
         
         searchTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         locationLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         resultsTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+
+                //SpringUtilities.makeCompactGrid(optionsPanel,3,2,5,5,5,5);
         
+        optionsConstraints.anchor = GridBagConstraints.EAST;
+        optionsConstraints.weightx = 0.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.gridwidth = 1; //GridBagConstraints.RELATIVE;
+        optionsGrid.setConstraints(searchTypeLabel,optionsConstraints);
         optionsPanel.add(searchTypeLabel);
+        optionsConstraints.anchor = GridBagConstraints.WEST;
+        optionsConstraints.weightx = 0.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+        optionsConstraints.gridwidth = 1;//GridBagConstraints.REMAINDER;
+        optionsGrid.setConstraints(searchTypesChoice,optionsConstraints);
         optionsPanel.add(searchTypesChoice);
-        locationPanel.add(locationLabel);
-        locationPanel.add(locationChoice);
-        resultsTypePanel.add(resultsTypeLabel);
-        resultsTypePanel.add(resultsTypeChoice);
+        
+        optionsConstraints.anchor = GridBagConstraints.WEST;
+        optionsConstraints.weightx = 1.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+        optionsConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        JPanel filler = new JPanel();
+        optionsGrid.setConstraints(filler,optionsConstraints);
+        optionsPanel.add(filler);
+        
+        optionsConstraints.anchor = GridBagConstraints.EAST;
+        optionsConstraints.weightx = 0.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.NONE;
+        optionsConstraints.gridwidth = 1; //GridBagConstraints.RELATIVE;
+        optionsGrid.setConstraints(locationLabel,optionsConstraints);
+        optionsPanel.add(locationLabel);
+        optionsConstraints.anchor = GridBagConstraints.WEST;
+        optionsConstraints.weightx = 0.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+        optionsConstraints.gridwidth = 1;//GridBagConstraints.NONE;
+        optionsGrid.setConstraints(locationChoice,optionsConstraints);
+        optionsPanel.add(locationChoice);
+        
+        optionsConstraints.anchor = GridBagConstraints.WEST;
+        optionsConstraints.weightx = 1.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+        optionsConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        JPanel filler2 = new JPanel();
+        optionsGrid.setConstraints(filler2,optionsConstraints);
+        optionsPanel.add(filler2);
+        
+        optionsConstraints.anchor = GridBagConstraints.EAST;
+        optionsConstraints.weightx = 0.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.NONE;
+        optionsConstraints.gridwidth = 1; //GridBagConstraints.RELATIVE;
+        optionsGrid.setConstraints(resultsTypeLabel,optionsConstraints);
+        optionsPanel.add(resultsTypeLabel);
+        optionsConstraints.anchor = GridBagConstraints.WEST;
+        optionsConstraints.weightx = 0.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+        optionsConstraints.gridwidth = 1;//GridBagConstraints.REMAINDER;
+        optionsGrid.setConstraints(resultsTypeChoice,optionsConstraints);
+        optionsPanel.add(resultsTypeChoice);       
+        
+        optionsConstraints.anchor = GridBagConstraints.WEST;
+        optionsConstraints.weightx = 1.0;
+        optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+        optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+        optionsConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        JPanel filler3 = new JPanel();
+        optionsGrid.setConstraints(filler3,optionsConstraints);
+        optionsPanel.add(filler3);
+        
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,20));
+
+        
+        //locationPanel.add(locationLabel);
+        //locationPanel.add(locationChoice);
+        //resultsTypePanel.add(resultsTypeLabel);
+        //resultsTypePanel.add(resultsTypeChoice);
         
         
         searchTermsTable = new JTable(new SearchTermsTableModel());
@@ -257,15 +423,23 @@ public class MetadataSearchGUI extends JPanel {
                }
            }
         });
-        JScrollPane scroll = new JScrollPane(searchTermsTable);
+        JScrollPane scroll = new JScrollPane(searchTermsTable)
+        {
+            public java.awt.Dimension getPreferredSize()
+            {
+                return new java.awt.Dimension(super.getWidth(),90);
+            }
+        };
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(getBackground());
         fieldsPanel.add(scroll);
         
-        add(optionsPanel);
-        add(locationPanel);
-        add(resultsTypePanel);
-        add(fieldsPanel);
+        topPanel.add(optionsPanel,BorderLayout.NORTH);
+        //add(locationPanel);
+        //add(resultsTypePanel);
+        //add(lineLabel);
+        fieldsPanel.add(linePanel,BorderLayout.NORTH);
+        topPanel.add(fieldsPanel);
         
         JPanel buttonPanel = new JPanel(new BorderLayout());
         termsAction = new SearchAction(searchTerms);
@@ -294,7 +468,8 @@ public class MetadataSearchGUI extends JPanel {
         //buttonPanel.add(resetButton);
         buttonPanel.add(BorderLayout.EAST,searchPanel);
         //add(BorderLayout.NORTH,searchField);
-        add(buttonPanel);
+        add(topPanel);
+        add(buttonPanel,BorderLayout.SOUTH);
         
         searchTermsTable.addMouseListener(new java.awt.event.MouseAdapter()
                {
