@@ -326,11 +326,7 @@ public class Actions implements VueConstants
                 }
                 else
                 {
-                  tufts.vue.gui.DockWindow searchWindow = tufts.vue.gui.GUI.createDockWindow("Search");
-                  searchWindow.setLocation(350,100);
-                  searchWindow.setContent(new edu.tufts.vue.metadata.ui.MetadataSearchGUI(
-                          edu.tufts.vue.metadata.ui.MetadataSearchGUI.MULTIPLE_FIELDS,searchWindow));
-                  searchWindow.pack();
+                  tufts.vue.gui.DockWindow searchWindow = edu.tufts.vue.metadata.ui.MetadataSearchGUI.getDockWindow();
                   searchWindow.setVisible(true);
                 }
             }
@@ -1673,7 +1669,6 @@ public class Actions implements VueConstants
         boolean undoable() { return false; }
         boolean enabled() { return true; }
         public void act() {
-            //System.out.println(VUE.getJMenuBar().getMenu(0).getPopupMenu().isLightWeightPopupEnabled());
             VUE.displayMap(new LWMap("New Map " + count++));
         }
     };

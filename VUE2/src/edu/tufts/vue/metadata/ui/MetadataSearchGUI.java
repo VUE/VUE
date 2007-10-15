@@ -97,17 +97,31 @@ public class MetadataSearchGUI extends JPanel {
     private JTextField allSearchField = new JTextField();
     private SearchAction allSearch = new SearchAction(allSearchField);
     
-    private tufts.vue.gui.DockWindow dockWindow;
+    private static tufts.vue.gui.DockWindow dockWindow;
+    
+    public static tufts.vue.gui.DockWindow getDockWindow()
+    {
+        if(dockWindow == null)
+        {
+            dockWindow = tufts.vue.gui.GUI.createDockWindow("Search");
+            dockWindow.setLocation(350,300);
+            
+            MetadataSearchGUI content = new MetadataSearchGUI(MULTIPLE_FIELDS);
+            dockWindow.setContent(content);
+            
+            dockWindow.pack();
+        }    
+        
+        return dockWindow;
+    }
     
     public MetadataSearchGUI() 
     {
         setUpOneLineSearch();      
     }
     
-    public MetadataSearchGUI(int type,tufts.vue.gui.DockWindow dockWindow)
-    {
-        this.dockWindow = dockWindow;
-        
+    public MetadataSearchGUI(int type)
+    {   
         if(type == ONE_LINE)
         {
            setUpOneLineSearch();
