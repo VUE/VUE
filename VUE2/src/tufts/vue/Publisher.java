@@ -53,7 +53,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.61 $ / $Date: 2007-10-12 19:23:16 $ / $Author: anoop $
+ * @version $Revision: 1.62 $ / $Date: 2007-10-15 18:28:16 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -106,6 +106,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JPanel rPanel  = new JPanel(); // repository panel
     JPanel mPanel  = new JPanel(); // Mode Selection Panel
     JPanel pPanel = new JPanel(); // publish panel
+    JPanel wPanel = new JPanel(); // workspace selection
     JButton nextButton = new JButton(NEXT);
     JButton cancelButton = new JButton(CANCEL);
     JButton publishButton = new JButton(PUBLISH);
@@ -119,10 +120,16 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     ButtonGroup modeButtons = new ButtonGroup();
     java.util.List<JRadioButton> modeRadioButtons;
     JList repList;
-    org.osid.shared.Type dataSourceType;
+    JList wList; // list of workspaces
+    org.osid.shared.Type dataSourceType =edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
     public Publisher(edu.tufts.vue.dsm.DataSource dataSource) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
         setUpButtonPanel();
+        try {
+            dataSourceType = dataSource.getRepository().getType();
+        } catch(Throwable t) {
+            t.printStackTrace();
+        }
         repList = new JList();
         repList.setModel(new DatasourceListModel(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
         repList.setSelectedValue(dataSource,false);
@@ -187,8 +194,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JLabel repositoryLabel = new JLabel("Select a FEDORA Instance");
         repositoryLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         rPanel.add(repositoryLabel,BorderLayout.NORTH);
-        //adding the repository list
-        //TODO: Populate this with actual repositories
         repList = new JList();
         repList.setModel(new DatasourceListModel(dataSourceType));
         repList.setCellRenderer(new DatasourceListCellRenderer());
@@ -197,6 +202,19 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         scrollPanel.add(repPane);
         scrollPanel.setBorder(BorderFactory.createEmptyBorder(10,20,10,20));
         rPanel.add(scrollPanel,BorderLayout.CENTER);
+    }
+    
+    private void setUpWorkspaceSelectionPanel() {
+        wPanel.setLayout(new BorderLayout());
+        JLabel wLabel = new JLabel("Select a workspace in "+ repList.getSelectedValue().toString());
+        wLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
+        wPanel.add(wLabel,BorderLayout.NORTH);
+        wList = new JList();
+        JScrollPane wPane = new JScrollPane(wList);
+        JPanel scrollPanel = new JPanel(new BorderLayout());
+        scrollPanel.add(wPane);
+        scrollPanel.setBorder(BorderFactory.createEmptyBorder(10,20,10,20));
+        wPanel.add(scrollPanel,BorderLayout.CENTER);
     }
     
     private void setUpModeSelectionPanel() {
@@ -283,8 +301,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }else if(e.getActionCommand().equals(NEXT)) {
             getContentPane().remove(rPanel);
             //validateTree();
-            setUpModeSelectionPanel();
-            getContentPane().add(mPanel, BorderLayout.CENTER);
+            if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
+                setUpWorkspaceSelectionPanel();
+                getContentPane().add(wPanel, BorderLayout.CENTER);
+            } else {
+               setUpModeSelectionPanel();
+                getContentPane().add(wPanel, BorderLayout.CENTER);
+            }
             getContentPane().validate();
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
