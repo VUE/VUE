@@ -68,7 +68,7 @@ public class MetadataSearchGUI extends JPanel {
     private List<List<URI>> finds = null;
     
     //TEXT FIELD BASED
-    private JPanel optionsPanel;
+    private OptionsPanel optionsPanel;
     private JPanel locationPanel;
     private JPanel resultsTypePanel;
     private JComboBox resultsTypeChoice;
@@ -148,31 +148,11 @@ public class MetadataSearchGUI extends JPanel {
         
         final JButton options = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         
-        //optionsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        //locationPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        //resultsTypePanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
-        
-        //optionsPanel = new JPanel(new java.awt.GridLayout(3,2));
-        optionsPanel = new JPanel();
-        GridBagLayout optionsGrid = new GridBagLayout();
-        optionsPanel.setLayout(optionsGrid);
-        GridBagConstraints optionsConstraints = new GridBagConstraints();
-        
-        //linePanel 
-        
-        /*tufts.vue.PolygonIcon lineIcon = //new tufts.vue.PolygonIcon(java.awt.Color.BLACK);//new java.awt.Color(153,153,153))
-                                         new tufts.vue.PolygonIcon(new java.awt.Color(153,153,153))
-        {
-            public java.awt.Dimension getMinimumSize()
-            {
-                return new java.awt.Dimension(20,MetadataSearchGUI.this.getWidth()-20);
-            }
-        };*/
-        //lineIcon.setIconWidth(getWidth()-10);
-        //lineIcon.setIconWidth(50);
-        //lineIcon.setIconHeight(1);
-        //JLabel lineLabel = new JLabel(lineIcon);
-        //JLabel lineLabel = new JLabel("test");
+        //optionsPanel = new JPanel();
+        //GridBagLayout optionsGrid = new GridBagLayout();
+        //optionsPanel.setLayout(optionsGrid);
+        //GridBagConstraints optionsConstraints = new GridBagConstraints();
+        optionsPanel = new OptionsPanel();
         
         JPanel linePanel = new JPanel() {
                 protected void paintComponent(java.awt.Graphics g) {
@@ -188,26 +168,9 @@ public class MetadataSearchGUI extends JPanel {
                 }
         };
         
-        //linePanel.setOpaque(true);
-        //linePanel.setMinimumSize(new java.awt.Dimension(300,30));
-        //linePanel.setBackground(java.awt.Color.BLUE);
-        
         fieldsPanel = new JPanel(new java.awt.BorderLayout());
-        
-        searchTypesChoice = new JComboBox(searchTypes)
-        {
-            public java.awt.Dimension getMinimumSize()
-            {
-                return new java.awt.Dimension(125,super.getHeight());
-            }
-        };
-        /*    
-            public java.awt.Dimension getPreferredSize()
-            {
-                return new java.awt.Dimension(250,super.getHeight());
-            }
-        };*/
-        searchTypesChoice.addItemListener(new ItemListener()
+
+        ItemListener searchTypesListener = new ItemListener()
         {
            public void itemStateChanged(ItemEvent ie)
            {
@@ -235,21 +198,64 @@ public class MetadataSearchGUI extends JPanel {
                    }
                }
            }
-        });
+        };
         
-        locationChoice = new JComboBox(locationTypes)
+        //really goes below now where layout is performed..
+        //optionsPanel.addCombo(searchTypes,searchTypesListener);
+        
+        /*searchTypesChoice = new JComboBox(searchTypes)
         {
             public java.awt.Dimension getMinimumSize()
             {
                 return new java.awt.Dimension(125,super.getHeight());
             }
-        };  
+        };*/
+
+       /* searchTypesChoice.addItemListener(new ItemListener()
+        {
+           public void itemStateChanged(ItemEvent ie)
+           {
+               if(ie.getStateChange() == ItemEvent.SELECTED)
+               {
+                   if(ie.getItem().equals("Basic"))
+                   {
+                       //System.out.println("Basic search selected");
+                       setBasicSearch();
+                   }
+                   if(ie.getItem().equals("Categories"))
+                   {
+                       //System.out.println("Category search selected");
+                       setCategorySearch();
+                   }
+                   if(ie.getItem().equals("Advanced"))
+                   {
+                       //System.out.println("Category search selected");
+                       setConditionSearch();
+                   }
+                   if(ie.getItem().equals("All"))
+                   {
+                       //System.out.println("All search selected");
+                       setAllSearch();
+                   }
+               }
+           }
+        }); */
+        
+        /*locationChoice = new JComboBox(locationTypes)
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+                return new java.awt.Dimension(125,super.getHeight());
+            }
+        };*/  
         /*    public java.awt.Dimension getPreferredSize()
             {
                 return new java.awt.Dimension(250,super.getHeight());
             }
         };*/
-        locationChoice.addItemListener(new ItemListener()
+        //locationChoice.addItemListener(new ItemListener()
+        
+        ItemListener locationChoiceListener = new ItemListener()
         {
            public void itemStateChanged(ItemEvent e)
            {
@@ -269,7 +275,7 @@ public class MetadataSearchGUI extends JPanel {
                  }    
                }
            }
-        });
+        };
         
         resultsTypeChoice = new JComboBox(resultsTypes)
         {
@@ -286,7 +292,9 @@ public class MetadataSearchGUI extends JPanel {
                 return new java.awt.Dimension(250,super.getHeight());
             }
         };*/
-        resultsTypeChoice.addItemListener(new ItemListener()
+        //resultsTypeChoice.addItemListener(new ItemListener()
+        
+        ItemListener resultsTypeListener = new ItemListener()
         {
            public void itemStateChanged(ItemEvent e)
            {
@@ -296,7 +304,7 @@ public class MetadataSearchGUI extends JPanel {
                  termsAction.setResultsType(resultsTypeChoice.getSelectedItem().toString());
                }
            }
-        });
+        };
         
         optionsLabel = new JLabel("show options");
         advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
@@ -310,17 +318,24 @@ public class MetadataSearchGUI extends JPanel {
         //optionsPanel.add(advancedSearch);
         //optionsPanel.add(optionsLabel);
         
-        JLabel searchTypeLabel = new JLabel("Search Type: ",JLabel.RIGHT);
-        JLabel locationLabel = new JLabel("Location: ",JLabel.RIGHT);
+        //JLabel searchTypeLabel = new JLabel("Search Type: ",JLabel.RIGHT);
+        //JLabel locationLabel = new JLabel("Location: ",JLabel.RIGHT);
         JLabel resultsTypeLabel = new JLabel("Results Type: ",JLabel.RIGHT);
         
-        searchTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        locationLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        //searchTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        //locationLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         resultsTypeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
 
-                //SpringUtilities.makeCompactGrid(optionsPanel,3,2,5,5,5,5);
+        optionsPanel.addLabel("Search Type:");
+        optionsPanel.addCombo(searchTypes,searchTypesListener);
         
-        optionsConstraints.anchor = GridBagConstraints.EAST;
+        optionsPanel.addLabel("Location:");
+        optionsPanel.addCombo(locationTypes,locationChoiceListener);
+        
+        optionsPanel.addLabel("Results Type:");
+        optionsPanel.addCombo(resultsTypes,resultsTypeListener);
+        
+        /*optionsConstraints.anchor = GridBagConstraints.EAST;
         optionsConstraints.weightx = 0.0;
         optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
         optionsConstraints.gridwidth = 1; //GridBagConstraints.RELATIVE;
@@ -341,9 +356,9 @@ public class MetadataSearchGUI extends JPanel {
         optionsConstraints.gridwidth = GridBagConstraints.REMAINDER;
         JPanel filler = new JPanel();
         optionsGrid.setConstraints(filler,optionsConstraints);
-        optionsPanel.add(filler);
+        optionsPanel.add(filler); */
         
-        optionsConstraints.anchor = GridBagConstraints.EAST;
+        /*optionsConstraints.anchor = GridBagConstraints.EAST;
         optionsConstraints.weightx = 0.0;
         optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
         optionsConstraints.fill = GridBagConstraints.NONE;
@@ -365,9 +380,9 @@ public class MetadataSearchGUI extends JPanel {
         optionsConstraints.gridwidth = GridBagConstraints.REMAINDER;
         JPanel filler2 = new JPanel();
         optionsGrid.setConstraints(filler2,optionsConstraints);
-        optionsPanel.add(filler2);
+        optionsPanel.add(filler2); */
         
-        optionsConstraints.anchor = GridBagConstraints.EAST;
+        /*optionsConstraints.anchor = GridBagConstraints.EAST;
         optionsConstraints.weightx = 0.0;
         optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
         optionsConstraints.fill = GridBagConstraints.NONE;
@@ -389,16 +404,9 @@ public class MetadataSearchGUI extends JPanel {
         optionsConstraints.gridwidth = GridBagConstraints.REMAINDER;
         JPanel filler3 = new JPanel();
         optionsGrid.setConstraints(filler3,optionsConstraints);
-        optionsPanel.add(filler3);
+        optionsPanel.add(filler3);*/
         
-        optionsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,20));
-
-        
-        //locationPanel.add(locationLabel);
-        //locationPanel.add(locationChoice);
-        //resultsTypePanel.add(resultsTypeLabel);
-        //resultsTypePanel.add(resultsTypeChoice);
-        
+        //optionsPanel.setBorder(BorderFactory.createEmptyBorder(5,5,5,20));
         
         searchTermsTable = new JTable(new SearchTermsTableModel());
         adjustColumnModel();
@@ -761,6 +769,98 @@ public class MetadataSearchGUI extends JPanel {
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
           
            return comp;
+    }
+    
+    class OptionsPanel extends JPanel
+    {
+       GridBagLayout optionsGrid;
+       GridBagConstraints optionsConstraints;
+
+       //in case easy access to the labels is ever needed:
+       //they can also be found in the layout
+       //List<JLabel> labels = new ArrayList<JLabel>();
+       
+       //in case easy access to the combo boxes is ever needed:
+       //they can also be found in the layout
+       //List<JComboBox> comboBoxes = new ArrayList<JComboBox>();
+       
+       OptionsPanel()
+       {
+           optionsGrid = new GridBagLayout();
+           optionsConstraints = new GridBagConstraints();
+           setLayout(optionsGrid);
+           setBorder(BorderFactory.createEmptyBorder(5,5,5,20));
+       }
+
+       /**
+        *
+        * adds the label to the layout and sets its Font
+        * and alignment
+        * 
+        * Precondition: ready for new line in layout
+        *   (beginning of layout or combo just added)
+        * Postcondition: ready to add a new combo box
+        *
+        **/
+       void addLabel(String name)
+       {
+          JLabel label = new JLabel(name,JLabel.RIGHT);
+          label.setFont(tufts.vue.gui.GUI.LabelFace);
+          
+          optionsConstraints.anchor = GridBagConstraints.EAST;
+          optionsConstraints.weightx = 0.0;
+          optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+          optionsConstraints.gridwidth = 1;
+          optionsGrid.setConstraints(label,optionsConstraints);
+          optionsPanel.add(label);
+          
+          //in case easy access to the label is needed:
+          //it can also be found in the layout
+          //labels.add(label); 
+       }
+       
+       /**
+        *
+        * adds the combo box to the layout and a filler
+        * component to fill out the label/combo line
+        * 
+        * Precondition: label has just been added
+        * Postcondition: ready to add a new label
+        *
+        **/
+       void addCombo(String[] choices,ItemListener listener)
+       {
+           JComboBox newCombo = new JComboBox(choices)
+           {
+             public java.awt.Dimension getMinimumSize()
+             {
+                return new java.awt.Dimension(125,super.getHeight());
+             }
+           };
+           newCombo.addItemListener(listener);
+           
+           optionsConstraints.anchor = GridBagConstraints.WEST;
+           optionsConstraints.weightx = 0.0;
+           optionsConstraints.insets = new java.awt.Insets(0,5,5,0);
+           optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+           optionsConstraints.gridwidth = 1;
+           optionsGrid.setConstraints(newCombo,optionsConstraints);
+           optionsPanel.add(newCombo);
+        
+           optionsConstraints.anchor = GridBagConstraints.WEST;
+           optionsConstraints.weightx = 1.0;
+           optionsConstraints.insets = new java.awt.Insets(0,0,5,0);
+           optionsConstraints.fill = GridBagConstraints.HORIZONTAL;
+           optionsConstraints.gridwidth = GridBagConstraints.REMAINDER;
+           JPanel filler = new JPanel();
+           optionsGrid.setConstraints(filler,optionsConstraints);
+           optionsPanel.add(filler);
+           
+           //in case easy access to the combo ever is needed:
+           //it can also be found in the layout
+           //comboBoxes.add(newCombo);            
+       }
+    
     }
     
     class SearchTermsTableHeaderRenderer extends DefaultTableCellRenderer
