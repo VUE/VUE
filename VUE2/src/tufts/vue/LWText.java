@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
+import java.awt.geom.Point2D.Float;
+
 import tufts.Util;
 
 
@@ -18,6 +20,9 @@ public class LWText extends LWComponent {
 											// children
 	public LWText() {
 		super();
+		
+		Float p = VUE.getActiveViewer().getLastMapMousePoint();
+		   setLocation(p.x, p.y);
                 super.label = label; // make sure label initially set for debugging
                 initText();
 	}
