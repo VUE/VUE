@@ -150,7 +150,10 @@ public class CategoryEditor extends JPanel
            setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
            JComponent comp = new JPanel();
            if(col == 0)
-               comp =  new JLabel("Categories:");
+           {    
+               comp =  new JLabel("Add Custom Categories:");
+               comp.setFont(tufts.vue.gui.GUI.LabelFace);
+           }
            else if(col == 1)
            {
                comp = new JLabel();

@@ -525,18 +525,32 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            categories.setModel(new CategoryComboBoxModel());
            categories.setRenderer(new CategoryComboBoxRenderer());
            
+           if(DEBUG_LOCAL)
+           {
+               System.out.println("MetadataEditor getTableCellEditorComponent -- about to add item listener -- ");
+           }
+           
            categories.addItemListener(new ItemListener() 
            {
                public void itemStateChanged(ItemEvent e) 
                {
+                   if(DEBUG_LOCAL)
+                   {    
+                      System.out.println("MetdataEditor categories item listener itemStateChanged: " + e);
+                   }
+                   
+                   
                    if(e.getStateChange() == ItemEvent.SELECTED)
-                   {
+                   {   
                        if(e.getItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
                        {
-                           //System.out.println("MetdataEditor edit item selected: " + e);
+                           if(DEBUG_LOCAL)
+                           {    
+                             System.out.println("MetdataEditor edit item selected: " + e);
+                           }
                            tufts.vue.gui.DockWindow ec = tufts.vue.gui.GUI.createDockWindow("Edit Categories", new CategoryEditor());
-                           //ec.setBounds(200,200,300,300);
-                           ec.pack();
+                           ec.setBounds(475,300,300,250);
+                           //ec.pack();
                            ec.setVisible(true);
                        }
                    }
