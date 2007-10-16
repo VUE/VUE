@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.64 $ / $Date: 2007-10-16 18:18:43 $ / $Author: anoop $
+ * @version $Revision: 1.65 $ / $Date: 2007-10-16 22:37:03 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -85,7 +85,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final String AC_SETUP_W = "AC_SETUP_W"; // workspace selection
     public static final String AC_SETUP_P = "AC_SETUP_P"; //  publish
     public static final String AC_SETUP_C = "AC_SETUP_C"; // confirm
-   
+    
     private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
@@ -146,9 +146,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
             setUpWorkspaceSelectionPanel();
             getContentPane().add(wPanel, BorderLayout.CENTER);
+            nextButton.setActionCommand(AC_SETUP_W);
         } else{
             setUpModeSelectionPanel();
             getContentPane().add(mPanel, BorderLayout.CENTER);
+            nextButton.setActionCommand(AC_SETUP_M);
         }
         setLocation(X_LOCATION,Y_LOCATION);
         setModal(true);
@@ -162,6 +164,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         super(VUE.getDialogParentAsFrame(),TITLE,true);
         this.dataSourceType = type;
         initialize();
+        if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+            nextButton.setActionCommand(AC_SETUP_W);
+        } else{
+            nextButton.setActionCommand(AC_SETUP_M);
+        }
     }
     private void initialize() {
         
@@ -231,6 +238,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         scrollPanel.add(wPane);
         scrollPanel.setBorder(BorderFactory.createEmptyBorder(10,20,10,20));
         wPanel.add(scrollPanel,BorderLayout.CENTER);
+        nextButton.setActionCommand(AC_SETUP_M);
     }
     
     private void setUpModeSelectionPanel() {
@@ -314,6 +322,32 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().equals(CANCEL)) {
             this.dispose();
+        } else if(e.getActionCommand().equals(AC_SETUP_W)) {
+            getContentPane().remove(rPanel);
+            setUpWorkspaceSelectionPanel();
+            getContentPane().add(wPanel, BorderLayout.CENTER);
+            getContentPane().validate();
+            validateTree();
+        }  else if(e.getActionCommand().equals(AC_SETUP_M)) {
+            if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                getContentPane().remove(wPanel);
+            } else {
+                getContentPane().remove(rPanel);
+            }
+            setUpModeSelectionPanel();
+            getContentPane().add(mPanel, BorderLayout.CENTER);
+            getContentPane().validate();
+            validateTree();
+        } else if(e.getActionCommand().equals(AC_SETUP_P)) {
+            getContentPane().remove(mPanel);
+            mPanel.remove(modeInfo);
+            getContentPane().remove(buttonPanel);
+            setUpPublishPanel();
+            getContentPane().add(pPanel,BorderLayout.WEST);
+            getContentPane().add(buttonPanel,BorderLayout.SOUTH);
+            validate();
+            repaint();
+            publishMapToDL();
         }else if(e.getActionCommand().equals(NEXT)) {
             getContentPane().remove(rPanel);
             //validateTree();
