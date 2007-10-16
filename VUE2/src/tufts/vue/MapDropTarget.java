@@ -47,11 +47,13 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.76 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $  
+ * @version $Revision: 1.77 $ / $Date: 2007-10-16 20:10:02 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapDropTarget.class);
+
     private static final boolean DropImagesAsNodes = true;
 
     private static final int DROP_FILE_LIST = 1;
@@ -66,6 +68,9 @@ class MapDropTarget
         //| DnDConstants.ACTION_MOVE      // 0x2
         | DnDConstants.ACTION_LINK      // 0x40000000
         ;
+
+    //public static final DataFlavor URLDataFlavor = GUI.makeDataFlavor(java.net.URL.class);
+    //public static final DataFlavor URLDataFlavor = GUI.makeDataFlavor("application/x-java-url");
     
     // Calls to acceptDrag / rejectDrag do absolutely nothing as far as I can tell
     // (at last on MacOSX).  The cursor certianly doesn't change, which is what we
@@ -185,15 +190,145 @@ class MapDropTarget
     // could tell us this (off for LWSlide, LWMap, LWGroup, LWText?), tho before doing
     // that, if we manage a fully dynamic property system, that might handle it for us.
     
+//     private static class DropData {
+//         final Transferable transfer;
+
+//         DataFlavor flavor;
+//         Object data;
+
+//         URL mainURL;
+//         URL iconURL;
+//         URL contextURL; // referrer page for search-engine light-tray results that provide them
+//         URL searchURL; // search engine this was found at
+//         List list;
+//         String text;
+        
+//         DropData(Transferable t) {
+//             transfer = t;
+//         }
+
+// //         void select(DataFlavor pickFlavor) {
+// //             this.flavor = pickFlavor;
+// //             this.data = extractData(transfer, pickFlavor);
+// //         }
+        
+//     }
+
+//     private static final Collection<DropHandler> DropHandlers = new java.util.ArrayList();
+
+//     private abstract static class DropHandler<T> {
+
+//         final DataFlavor flavor;
+
+//         T data;
+        
+//         DropHandler(DataFlavor f) {
+//             flavor = f;
+//             DropHandlers.add(this); // not threadsafe
+//         }
+
+//         // override for anything more complicated
+//         boolean accept(DropContext drop) {
+//             return drop.transfer.isDataFlavorSupported(flavor);
+//         }
+
+//         void processDrop(DropContext drop) {
+//             Object data = extractData(drop.transfer, flavor);
+//             process(drop, data); // just set data in drop context?
+//         }
+        
+//         abstract void process(DropContext drop, Object data);
+//     }
+    
+//     static {
+
+//         // may want to change impl to just adding anon inner class impls to a list...
+//         // how handle priorities?
+        
+//         new DropHandler(edu.tufts.vue.ontology.ui.TypeList.DataFlavor) {
+// //             boolean accept(DropContext drop) {
+// //                 return drop.dropAction == DnDConstants.ACTION_LINK && super.accept(drop);
+// //             }
+    
+//             void process(DropContext drop, Object data) {
+//                 //private boolean processDroppedOntologyType(DropContext drop,Object foundData)
+//                 edu.tufts.vue.metadata.VueMetadataElement ele = new edu.tufts.vue.metadata.VueMetadataElement();
+//                 ele.setObject(data);
+//                 drop.hit.getMetadataList().getMetadata().add(ele);
+//             }
+//         };
+
+
+//         new DropHandler(LWComponent.DataFlavor) {
+//             //private boolean processDroppedNodes(DropContext drop)
+//             void process(DropContext drop, Object data) {
+//                 final List<LWComponent> items = (List) data;
+        
+//                 // now add them to the map
+                
+//                 // Always to the set center, in case hitParent isn't something
+//                 // that is going to auto-layout the new children
+//                 setCenterAt(items, drop.location);
+                
+//                 if (drop.hitParent != null) {
+//                     drop.hitParent.addChildren(items);
+//                 } else {
+//                     drop.viewer.getFocal().addChildren(items);
+//                 }
+//                 drop.added.addAll(items);
+//             }
+//         };
+
+
+// //         // createNode needs to be made static / moved to this drop handler
+// //         new DropHandler(Resource.DataFlavor) {
+// //             //private boolean processDroppedResourceList(DropContext drop)
+// //             void process(DropContext drop, Object data)
+// //             {
+// //                 final List<Resource> items = (List) data;
+
+// //                 if (items.size() == 1 && drop.hit != null && drop.isLinkAction) {
+            
+// //                     // Only one item is in the list, and we've hit a component, and
+// //                     // it's a link-action drop: replace the hit component resource
+// //                     drop.hit.setResource(items.get(0));
+            
+// //                 } else {
+            
+// //                     for (Resource resource : items) {
+
+// //                         if (drop.hitParent != null && !drop.isLinkAction) {
+// //                             // create new node children of the hit node
+// //                             //drop.hitParent.addChild(createNode(drop, resource, null));
+// //                             drop.hitParent.addChild(createNode(drop, resource, drop.nextDropLocation()));
+// //                         } else {
+// //                             createNode(drop, resource, drop.nextDropLocation());
+// //                         }
+                        
+// //                     }
+// //                 }
+// //             } // end process
+// //         };
+
+        
+//     }
+        
+        
     private static class DropContext {
         final Transferable transfer;
         final Point2D.Float location;   // map location of the drop
-        final Collection items;         // bag of Objects in the drop
-        final List list;   // convience reference to items if it is a List
-        final String text;              // only one of items+list or text
+        final MapViewer viewer;          // we dropped into this component
         final LWComponent hit;          // we dropped into this component
         final LWContainer hitParent;    // we dropped into this component, and it can take children
         final boolean isLinkAction;     // user kbd modifiers down produced LINK drop action
+
+        // Data fields -- may not all be populated.
+        //final Collection items;         // bag of Objects in the drop
+        final List items;   // convience reference to items if it is a List
+        final String text;              // only one of items+list or text
+
+        //Object data;
+        
 
         private float nextX;
         private float nextY;
@@ -202,21 +337,23 @@ class MapDropTarget
         
         DropContext(Transferable t,
                     Point2D.Float mapLocation,
-                    Collection items,
+                    MapViewer viewer,
+                    List items,
                     String text,
                     LWComponent hit,
                     boolean isLinkAction)
         {
             this.transfer = t;
             this.location = mapLocation;
+            this.viewer = viewer;
             this.items = items;
             this.text = text;
             this.hit = hit;
 
-            if (items instanceof java.util.List)
-                list = (List) items;
-            else
-                list = null;
+//             if (items instanceof java.util.List)
+//                 list = (List) items;
+//             else
+//                 list = null;
             
             if (hit != null && hit.supportsChildren())
                 hitParent = (LWContainer) hit;
@@ -258,6 +395,19 @@ class MapDropTarget
 
     private static final Object DATA_FAILURE = new Object();
 
+    /** Extract data and auto-cast to the desired type.  If a type-mistmatch, reporting a warning and return null. */
+    // Altho tho the class information is normally stored in the flavor via it's represenation,
+    // we can't make use of generics to auto-cast and auto-report any errors w/out the 3rd explicit class object (type) argument.
+    private static <A> A extractData(Transferable transfer, DataFlavor flavor, Class<A> clazz) {
+        final Object data = extractData(transfer, flavor);
+        if (clazz.isInstance(data)) {
+            return clazz.cast(data);
+        } else {
+            Log.warn("Transfer data expecting type " + clazz + "; found: " + Util.tags(data));
+            return null;
+        }
+    }
+        
     private static Object extractData(Transferable transfer, DataFlavor flavor)
     {
         Object data = DATA_FAILURE;
@@ -280,6 +430,25 @@ class MapDropTarget
         
         return data;
     }
+
+
+    private static final Pattern HTML_Fragment
+        = Pattern.compile(".*<!--StartFragment-->(.*)<!--EndFragment-->",
+                          Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
+    private static final Pattern IMG_Tag
+        = Pattern.compile(".*<img\\s+.*\\bsrc=\"([^\"]*)",
+                          Pattern.MULTILINE|Pattern.DOTALL|Pattern.CASE_INSENSITIVE);
+
+    /** @return the string matched by the first group in the given Pattern, or null if no match */
+    private static final String extractText(Pattern pattern, String text) {
+        final Matcher m = pattern.matcher(text);
+        String s = null;
+        if (m.lookingAt())
+            return m.group(1);
+        else
+            return null;
+    }
+    
 
     /**
      * Process any transferrable: @param e can be null if don't have a drop event
@@ -353,25 +522,121 @@ class MapDropTarget
         DataFlavor foundFlavor = null;
         Object foundData = null;
         String dropText = null;
-        Collection dropItems = null;
+        List dropItems = null;
         
         int dropType = 0;
 
         if (DEBUG.DND) dumpFlavors(transfer);
 
+        // BTW, we could wait till after we check for all the local flavors which always take precedence
+        // before we bother to scan for these.
+
+        final DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+        final DataFlavor URLFlavor = findFlavor(dataFlavors, "application/x-java-url", java.net.URL.class);
+        final DataFlavor HTMLTextFlavor = findFlavor(dataFlavors, "text/html", java.lang.String.class);
+
+//         DataFlavor URLDataFlavor = null;
+//         try {
+//             URLDataFlavor = new DataFlavor("application/x-java-url; class=java.net.URL");
+//             if (transfer.isDataFlavorSupported(URLDataFlavor))
+//                 Log.info("GENERIC URL DATA FLAVOR SUPPORTED");
+//         } catch (Throwable t) {
+//             Util.printStackTrace(t);
+//         }
+        
+        
+        URL found_HTTP_URL = null;
+
+        // The fanciest we can ultimately do: search for text/html type that has
+        // <!--StartFragment-->..., and pull <img src=RealImageSource> out, which is
+        // especially handy for Wikipedia, and we'd stop trying to process
+        // wiki/Image:Ship.jpg crap, which is actually an HTML page.  Can also pull out
+        // title="foo" from <href> tag or alt="foo" from <img> tag.
+
+        // AND, we can always scan the unicode string for a second line of text for a
+        // title (firefox puts title info here).
+ 
+        // And actually, if on Windows, prioritize text/html over local file list (espec
+        // if size==1), == generically scanning for <!--StartFragment--> will pull out
+        // an IMG tag also, allowing us to get the real URL, as opposed to a damn local
+        // cache file...
+
+
+        // TODO: ALWAYS PRE-EXTRACT ACTUAL URL OBJECTS from URLFlavor, as well as any
+        // <img src=...> found in any fragment, as well as the unicode string flavor,
+        // including any second line with title info, so we can compare/contrast and
+        // make use of as needed below, as the logic is going to get pretty ad-hoc
+        // hairy...
+
+        // Also: split out the native types we can just check first w/out any
+        // of the ad-hoc mess.  Split out into methods that take and populate
+        // a drop-context, returning true if suceeded.
+
+        
+        if (HTMLTextFlavor != null) {
+
+            // The MAIN reason we want to attempt the fragment is in case the stock
+            // incoming URL is in fact a file reference to a local browser cache file,
+            // which we're really not interested in. Consider only using the fragment if
+            // the stock URL in fact points to a local file, when the fragment points to
+            // an HTTP url, as sometimes the fragment is actually less useful data than
+            // what's in the stock URL (e.g., google news images, tho there's another
+            // special decoding opportunity there -- they appear to embed the original
+            // source image as "imgurl=" in the query, tho w/out "http" at the front).
+            // A notable reverse case is Wikipedia, where often the stock URL actually
+            // points to an HTML page even tho it looks like an image link, but the
+            // fragment points to the real uploaded image.
+            
+            final String htmlText = extractData(transfer, HTMLTextFlavor, String.class);
+            if (htmlText != null) {
+                //Log.debug("FOUND HTML TEXT [" + htmlText + "]");
+                final String fragment = extractText(HTML_Fragment, htmlText);
+                if (fragment != null) {
+                    Log.debug("FOUND HTML FRAGMENT [" + fragment + "]");
+                    final String imgSrc = extractText(IMG_Tag, fragment);
+                    if (imgSrc != null) {
+                        Log.debug("FOUND IMG SRC=[" + imgSrc + "]");
+                        if (imgSrc != null && imgSrc.toLowerCase().startsWith("http")) {
+                            URL url = null;
+                            try {
+                                url = new java.net.URL(imgSrc);
+                            } catch (Throwable t) {
+                                Log.debug("invalid URL: " + imgSrc + "; " + t);
+                            }
+                            found_HTTP_URL = url;
+                        }
+                    }
+                }
+            }
+        }
+       
+        
         try {
+
+            if (URLFlavor != null && found_HTTP_URL == null) {
+                final URL url = extractData(transfer, URLFlavor, URL.class);
+                if (url != null) {
+                    if ("http".equals(url.getProtocol())) {
+                        // we especially don't want file: URL's, as then we might
+                        // try and process what is actually an entire list of locally
+                        // dropped files as a single URL drop.
+                        found_HTTP_URL = url;
+                        Log.debug("FOUND HTTP URL FLAVOR/DATA: " + URLFlavor + "; URL=" + url);
+                    }
+                }
+            }
 
             // We want to repeatedly do the casts below for each case
             // to make sure the data type we got is what we expected.
             // (Can be a problem if somebody creates a bad Transferable)
             
             if (transfer.isDataFlavorSupported(edu.tufts.vue.ontology.ui.TypeList.DataFlavor)
-            && (dropAction == DnDConstants.ACTION_LINK))
+                && (dropAction == DnDConstants.ACTION_LINK))
             {
                 dropType = DROP_ONTOLOGY_TYPE;
                 foundData = extractData(transfer, edu.tufts.vue.ontology.ui.TypeList.DataFlavor);
-            } else
-            if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
+                
+            } else if (transfer.isDataFlavorSupported(LWComponent.DataFlavor)) {
                 
                 foundFlavor = LWComponent.DataFlavor;
                 foundData = extractData(transfer, foundFlavor);
@@ -385,21 +650,39 @@ class MapDropTarget
                 dropType = DROP_RESOURCE_LIST;
                 dropItems = (List) foundData;
             
-                /*                
-            } else if (transfer.isDataFlavorSupported(MapResource.DataFlavor)) {
-                
-                foundFlavor = MapResource.DataFlavor;
-                foundData = extractData(transfer, foundFlavor);
-                dropType = DROP_RESOURCE_LIST;
-                dropItems = (List) foundData;
-                */
-                
+            } else if (found_HTTP_URL != null && !found_HTTP_URL.getHost().equals("images.google.com")) {
+                // don't use fragment URL if standard URL was from google image light-tray, as
+                // the fragment <img src=...> in this case is a reference to the internal google
+                // image icon stored at google, and we want the original image source...
+
+                dropType = DROP_TEXT;
+
+                final String http_url = found_HTTP_URL.toString();
+
+                if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                    final String txt = extractData(transfer, DataFlavor.stringFlavor, String.class);
+                    // If the found URL is the same as unicode string, but unicode string
+                    // is longer but same at head, it may contain a newline with title info
+                    // that can be parsed on processDroppedText (better: generically extract
+                    // a "title" during this process and set/pass on in the drop context)
+                    if (txt.length() > http_url.length() && txt.startsWith(http_url)) {
+                        foundData = txt;
+                        dropText = txt;
+                        foundFlavor = DataFlavor.stringFlavor;
+                    }
+                }
+                if (dropText == null) {
+                    foundFlavor = URLFlavor;
+                    foundData = found_HTTP_URL;
+                    dropText = http_url;
+                }
+
             } else if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
 
                 foundFlavor = DataFlavor.javaFileListFlavor;
                 foundData = extractData(transfer, foundFlavor);
                 dropType = DROP_FILE_LIST;
-                dropItems = (Collection) foundData;
+                dropItems = (List) foundData;
 
             } else if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                 
@@ -439,13 +722,14 @@ class MapDropTarget
                     bagType0 =   "\n\ttype[0]: " + bag.iterator().next().getClass();
                 
             }
-            System.out.println("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
-                               + "\n\t   type: " + Util.tag(foundData) + size
-                               + bagType0
-                               + "\n\t flavor: " + foundFlavor
-                               + "\n\t   data: [" + foundData + "]"
-                               //+ "\n\tdropptedText=[" + droppedText + "]"
-                               );
+            //Log.debug("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
+            Log.debug("TRANSFER: Found supported flavor " + foundFlavor
+                      + "\n\t   type: " + Util.tag(foundData) + size
+                      + bagType0
+                      + "\n\t flavor: " + foundFlavor
+                      + "\n\t   data: [" + foundData + "]"
+                      //+ "\n\tdropptedText=[" + droppedText + "]"
+                      );
         }
 
         final boolean isLinkAction = (dropAction == DnDConstants.ACTION_LINK);
@@ -454,6 +738,7 @@ class MapDropTarget
             new DropContext(transfer,
                             //dropLocation,
                             mapLocation,
+                            mViewer,
                             dropItems,
                             dropText,
                             dropTarget,
@@ -534,6 +819,8 @@ class MapDropTarget
             if (rows.length > 1) {
                 // Current version of Mozilla (at least on Windows XP, as of 2004-02-22)
                 // includes the HTML <title> as second row of text.
+                // TODO: pass this on to the Resource factory or actually handle
+                // this directly in the resource factory.
                 properties.put("title", rows[1]);
             }
         }
@@ -583,14 +870,14 @@ class MapDropTarget
 
         // Always to the set center, in case hitParent isn't something
         // that is going to auto-layout the new children
-        setCenterAt(drop.list, drop.location);
+        setCenterAt(drop.items, drop.location);
 
         if (drop.hitParent != null) {
-            drop.hitParent.addChildren(drop.list);
+            drop.hitParent.addChildren(drop.items);
         } else {
-            mViewer.getFocal().addChildren(drop.list);
+            mViewer.getFocal().addChildren(drop.items);
         }
-        drop.added.addAll(drop.list);
+        drop.added.addAll(drop.items);
             
         return true;
     }
@@ -599,15 +886,15 @@ class MapDropTarget
     {
         if (DEBUG.DND) out("processDroppedResourceList");
         
-        if (drop.list.size() == 1 && drop.hit != null && drop.isLinkAction) {
+        if (drop.items.size() == 1 && drop.hit != null && drop.isLinkAction) {
             
             // Only one item is in the list, and we've hit a component, and
             // it's a link-action drop: replace the hit component resource
-            drop.hit.setResource((Resource)drop.list.get(0));
+            drop.hit.setResource((Resource)drop.items.get(0));
             
         } else {
             
-            Iterator i = drop.list.iterator();
+            Iterator i = drop.items.iterator();
             while (i.hasNext()) {
                 Resource resource = (Resource) i.next();
 
@@ -776,12 +1063,12 @@ class MapDropTarget
     private static int MaxNodeTitleLen = VueResources.getInt("node.title.maxDefaultChars", 50);
     
     private LWComponent createNode(DropContext drop,
-                                   Resource resource,
-                                   Map properties,
-                                   Point2D where,
-                                   boolean newResource)
+                                          Resource resource,
+                                          Map properties,
+                                          Point2D where,
+                                          boolean newResource)
     {
-        if (DEBUG.DND) out("createNode " + resource + " " + properties + " where=" + where);
+        if (DEBUG.DND) Log.debug(drop + "; createNode " + resource + " " + properties + " where=" + where);
 
         if (properties == null)
             properties = Collections.EMPTY_MAP;
@@ -817,7 +1104,7 @@ class MapDropTarget
          * when Image Size is set to Off Images aren't added to the node. MK
          */
         if (resource.isImage() && LWImage.getMaxRenderSize() > 0) {
-            if (DEBUG.DND || DEBUG.IMAGE) out("IMAGE DROP " + resource + " " + properties);
+            if (DEBUG.DND || DEBUG.IMAGE) Log.debug(drop + "; IMAGE DROP " + resource + " " + properties);
             //node = new LWImage(resource, viewer.getMap().getUndoManager());
             lwImage = new LWImage();
             String ws = (String) properties.get("width");
@@ -906,33 +1193,47 @@ class MapDropTarget
     }
     
     // debug
-    private void dumpFlavors(Transferable transfer)
-    {
-        DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-
-        System.out.println("TRANSFERABLE: " + transfer + " has " + dataFlavors.length + " dataFlavors:");
+    private void dumpFlavors(Transferable transfer) {
+//         dumpFlavors(transfer.getTransferDataFlavors());
+//     }
+//     private void dumpFlavors(DataFlavor[] dataFlavors)
+//     {
+        final DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
+        
+        Log.debug("TRANSFERABLE: " + transfer + " has " + dataFlavors.length + " dataFlavors:");
         for (int i = 0; i < dataFlavors.length; i++) {
             DataFlavor flavor = dataFlavors[i];
             String name = flavor.getHumanPresentableName();
             if (flavor.getMimeType().toString().startsWith(name + ";"))
                 name = "";
             else
-                name = " \"" + name + "\"";
-            System.out.print("flavor " + (i<10?" ":"") + i
-                             + VueUtil.pad(17, name)
-                             + " " + flavor.getMimeType()
-                             );
+                name = "\"" + name + "\"";
+            System.out.format("flavor %2d %-16s %s", i, name, flavor.getMimeType());
+            //System.out.println("\tflavor:" + flavor);
             try {
                 Object data = transfer.getTransferData(flavor);
                 System.out.println(" [" + data + "]");
-                if (DEBUG.META)
+                if (DEBUG.META) {
                     if (flavor.getHumanPresentableName().equals("text/uri-list"))
                         readTextFlavor(flavor, transfer);
+                }
             } catch (Exception ex) {
                 System.out.println("\tEXCEPTION: getTransferData: " + ex);
             }
         }
     }
+
+    private DataFlavor findFlavor(DataFlavor[] dataFlavors, String mimeType, Class repClass)
+    {
+        for (DataFlavor flavor : dataFlavors) {
+            //System.out.println("MT " + Util.tags(flavor.getMimeType()) + " REPCLASS " + Util.tags(flavor.getRepresentationClass()));
+            if (flavor.isMimeTypeEqual(mimeType) && flavor.getRepresentationClass() == repClass)
+                return flavor;
+        }
+        return null;
+    }
+
+    
 
     /** attempt to make a URL from a string: return null if malformed */
     private static URL makeURL(String s) {
@@ -956,13 +1257,14 @@ class MapDropTarget
     {
         final String query = url.getQuery();
         // special case for google image search:
-        if (DEBUG.IMAGE || DEBUG.IO) System.out.println("host " + url.getHost() + " query " + url.getQuery());
+        if (DEBUG.IMAGE || DEBUG.IO || DEBUG.DND) Log.debug("DECODE QUERY: host " + url.getHost() + " query " + url.getQuery());
 
         Map data = VueUtil.getQueryData(query);
-        if (DEBUG.DND && DEBUG.META) {
+        //if (DEBUG.DND && DEBUG.META) {
+        if (DEBUG.DND) {
             String[] pairs = query.split("&");
             for (int i = 0; i < pairs.length; i++) {
-                System.out.println("query pair " + pairs[i]);
+                System.out.println("\tquery pair " + pairs[i]);
             }
             //System.out.println("data " + data);
         }
@@ -983,8 +1285,8 @@ class MapDropTarget
         if (imageURL == null)
             imageURL = (String) data.get("image_url"); // Lycos & Mamma(who are they?)
         // note: as of Aug 2005, excite gives us no option
-        if (imageURL == null && host.endsWith(".msn.com"))
-            imageURL = (String) data.get("iu"); // MSN search
+        if (imageURL == null && host.endsWith(".msn.com") || host.endsWith(".live.com"))
+            imageURL = (String) data.get("iu"); // MSN search / Live Search
         if (imageURL == null && host.endsWith(".netscape.com"))
             imageURL = (String) data.get("img"); // Netscape search
         if (imageURL == null && host.endsWith(".ask.com"))
@@ -1013,9 +1315,11 @@ class MapDropTarget
         
         // Attempt a default
             
-        if (imageURL != null &&
-            ("images.google.com".equals(host)
-             || "rds.yahoo.com".equals(host)
+        if (imageURL != null
+            && ("images.google.com".equals(host)
+             || "search.live.com".equals(host) // microsoft
+             || "images.search.yahoo.com".equals(host)
+             || "rds.yahoo.com".equals(host) // old
              || "search.lycos.com".equals(host)
              || "tm.ask.com".equals(host)
              || "search.msn.com".equals(host)
@@ -1038,13 +1342,13 @@ class MapDropTarget
             //imageURL = imageURL.replaceAll("%2F", "/");
             //-------------------------------------------------------
                     
-            if (DEBUG.IMAGE || DEBUG.IO) System.out.println("redirect to image search url " + imageURL);
+            if (DEBUG.IMAGE || DEBUG.IO || DEBUG.DND) Log.debug("redirect to image search url " + imageURL);
             if (imageURL.indexOf(':') < 0)
                 imageURL = "http://" + imageURL;
             redirectURL = makeURL(imageURL);
             if (redirectURL == null && !imageURL.startsWith("http://"))
                 redirectURL = makeURL("http://" + imageURL);
-            if (DEBUG.IMAGE || DEBUG.IO) System.out.println("redirect got URL " + redirectURL);
+            if (DEBUG.IMAGE || DEBUG.IO || DEBUG.DND) Log.debug("redirect got URL " + redirectURL);
                     
             if (url != null) {
                 String w = (String) data.get("w");              // Google & Yahoo
@@ -1076,8 +1380,8 @@ class MapDropTarget
     }
 
     
-
     private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
+
     private static String convertWindowsURLShortCutToURL(File file)
     {
         String url = null;
