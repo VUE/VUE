@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.78 $ / $Date: 2007-10-16 16:04:12 $ / $Author: anoop $
+ * @version $Revision: 1.79 $ / $Date: 2007-10-16 20:36:13 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -108,7 +108,8 @@ public class ActionUtil
          chooser.setFileFilter(new VueFileFilter(fileType)); 
         else if (fileType != null && fileType.equals("export"))
         {
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));  
+        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
+        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
         	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
         	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
         	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
@@ -123,7 +124,8 @@ public class ActionUtil
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter("PDF"));
             
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));  
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));
             //chooser.addChoosableFileFilter(new VueFileFilter("html"));
             

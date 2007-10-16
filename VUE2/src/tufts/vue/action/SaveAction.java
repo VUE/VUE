@@ -144,7 +144,8 @@ public class SaveAction extends VueAction
             }
             else if (name.endsWith(".jpeg") || name.endsWith(".jpg"))
                 ImageConversion.createActiveMapJpeg(file);
-            
+            else if (name.endsWith(".png"))
+                ImageConversion.createActiveMapPng(file);
             else if (name.endsWith(".svg"))
                 new SVGConversion().createSVG(file);
             

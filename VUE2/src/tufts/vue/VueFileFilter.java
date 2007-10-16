@@ -31,13 +31,15 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
 	public static final String VUE_DESCRIPTION=VueResources.getString("vueFileFilter.vue.text");
 	public static final String XML_DESCRIPTION=VueResources.getString("vueFileFilter.vue.text");
 	public static final String ZIP_DESCRIPTION=VueResources.getString("vueFileFilter.zip.text");
+	public static final String PNG_DESCRIPTION=VueResources.getString("vueFileFilter.png.text");
 
 	private String[]
         jpeg = {"jpeg", "jpg"},
         svg = {"svg"},
         pdf = {"pdf"},
         html = {"html","htm"},
-        imap = {"imap"}, 
+        imap = {"imap"},
+        png = {"png"},
         vue = {"vue", "xml"},
         rdf = {"rdf","owl","rdfs"},
         txt = {"txt"},
@@ -81,7 +83,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
           //extensions = imap;
             extensions = html;
         }
-        
+        else if (description.equals(PNG_DESCRIPTION))
+    			extensions = png;
         else if (description.equals(IMS_DESCRIPTION))
 			extensions = rli;
         
