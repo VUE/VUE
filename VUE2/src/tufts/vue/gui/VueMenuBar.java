@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.59 $ / $Date: 2007-10-15 19:28:51 $ / $Author: anoop $
+ * @version $Revision: 1.60 $ / $Date: 2007-10-16 16:04:25 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -108,7 +108,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 
         final SaveAction saveAction = new SaveAction("Save", false);
         final SaveAction saveAsAction = new SaveAction("Save As...");
-        final SaveAction exportAction = new SaveAction("Export ...",true,true);
+        //final SaveAction exportAction = new SaveAction("Export ...",true,true);
         final OpenAction openAction = new OpenAction("Open...");
         final ExitAction exitAction = new ExitAction("Quit");
         final JMenu publishMenu = new VueMenu("Publish");
@@ -141,6 +141,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
+                //publishMenu = new VueMenu("Publish");
                 publishMenu.removeAll();
                 publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
                 publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
@@ -207,10 +208,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
         fileMenu.add(Actions.Revert);
         fileMenu.addSeparator();        
-        fileMenu.add(rdfOpen);
         //fileMenu.add(textOpen);
-        fileMenu.add(exportAction);
+        //fileMenu.add(exportAction);
+        fileMenu.add(rdfOpen);
         fileMenu.add(publishMenu);
+        
         JMenu pdfExportMenu = new JMenu("Create PDF");
         pdfExportMenu.add(Actions.MapAsPDF);
         pdfExportMenu.add(Actions.FullPageSlideNotes);
