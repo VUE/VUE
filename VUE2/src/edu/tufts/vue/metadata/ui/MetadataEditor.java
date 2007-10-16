@@ -362,7 +362,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
          }
         
-         if(current.getMetadataList().getOntologyListSize() > 0)
+         if(current != null && current.getMetadataList().getOntologyListSize() > 0)
          {
              if(!ontologicalMembershipVisible)
              {
