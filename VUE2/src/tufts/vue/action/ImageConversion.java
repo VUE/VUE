@@ -27,7 +27,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.20 $ / $Date: 2007-09-06 17:49:55 $ / $Author: mike $ *
+ * @version $Revision: 1.21 $ / $Date: 2007-10-16 20:35:38 $ / $Author: mike $ *
  * @author  Daisuke Fujiwara
  */
 
@@ -51,7 +51,7 @@ public class ImageConversion extends VueAction {
         try
         {
             if (DEBUG.IO || DEBUG.IMAGE)
-                System.out.println("ImageIO.write " + image + " fmt=" + format + " to " + location);
+                System.out.println("ImageIO.write " + image + " fmt=" + format + " to " + location);        
             ImageIO.write(image, format, location);
         }
         catch (Exception e)
@@ -63,13 +63,13 @@ public class ImageConversion extends VueAction {
     /**A method which sets up for converting the active viewer to a Jpeg file*/
     public static void createActiveMapJpeg(File location)
     {
-        convert(VUE.getActiveMap().getAsImage(2.0), location, "jpeg");
+        convert(VUE.getActiveMap().getAsImage(1.0), location, "jpeg");
     }
     
     /**A method which sets up for converting the active viewer to a Jpeg file*/
     public static void createActiveMapPng(File location)
     {
-        convert(VUE.getActiveMap().getAsImage(2.0), location, "png");
+        convert(VUE.getActiveMap().getAsImage(1.0), location, "png");
     }
     
     public void act() {
