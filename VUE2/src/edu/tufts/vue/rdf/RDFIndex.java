@@ -37,7 +37,10 @@ import com.hp.hpl.jena.sparql.core.*;
 import com.hp.hpl.jena.graph.*;
 import com.hp.hpl.jena.query.*;
 
-public class RDFIndex extends ModelCom {
+public class RDFIndex extends ModelCom
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RDFIndex.class);
+    
     public static final int MAX_SIZE = VueResources.getInt("rdf.index.size");
     public static final boolean AUTO_INDEX= VueResources.getBool("rdf.index.auto");
     public static final String INDEX_FILE = VueUtil.getDefaultUserFolder()+File.separator+VueResources.getString("rdf.index.file");
@@ -56,6 +59,7 @@ public class RDFIndex extends ModelCom {
     private QueryExecution qe;
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
+        Log.debug("created from " + tufts.Util.tags(base));
     }
     
     public RDFIndex() {
@@ -68,6 +72,7 @@ public class RDFIndex extends ModelCom {
                 "      ?resource ?x ?keyword  } ";
         query = QueryFactory.create(queryString);
         qe = QueryExecutionFactory.create(query, this);
+        Log.debug("created");
     }
     public void index(LWMap map) {
         long t0 = System.currentTimeMillis();
