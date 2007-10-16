@@ -44,7 +44,7 @@ public class SaveAction extends VueAction
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SaveAction.class);
 
     private boolean saveAs = true;
-    private boolean export = false;
+    private boolean export = true;
     
     public SaveAction(String label, boolean saveType, boolean export){
         super(label, null, ":general/Save");
