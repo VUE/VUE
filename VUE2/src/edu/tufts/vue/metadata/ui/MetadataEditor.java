@@ -558,10 +558,19 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            {    
                              System.out.println("MetdataEditor edit item selected: " + e);
                            }
-                           tufts.vue.gui.DockWindow ec = tufts.vue.gui.GUI.createDockWindow("Edit Categories", new CategoryEditor());
-                           ec.setBounds(475,300,300,250);
+                           //tufts.vue.gui.DockWindow ec = tufts.vue.gui.GUI.createDockWindow("Edit Categories", new CategoryEditor());
+                           //ec.setBounds(475,300,300,250);
                            //ec.pack();
-                           ec.setVisible(true);
+                           //ec.setVisible(true);
+                           
+                           JDialog ecd = new JDialog(VUE.getApplicationFrame(),"Edit Categories");
+                           ecd.setModal(true);
+                           ecd.add(new CategoryEditor());
+                           ecd.setBounds(475,300,300,250);
+                           //ecd.pack();
+                           ecd.setVisible(true);
+                           
+                           //findCategory(currValue,row,col,n,categories)
                        }
                    }
                }
