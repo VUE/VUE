@@ -1105,7 +1105,8 @@ public class Actions implements VueConstants
     	}
         public void act() {        	
         	
-        	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
+        	//GUI.makeVisibleOnScreen(VUE.getInfoDock());
+        	VUE.getInfoDock().setVisible(true);
         	VUE.getInfoDock().setRolledUp(false,true);
         	VUE.getInfoDock().toFront();
         	VUE.getInspectorPane().showNotesView();
