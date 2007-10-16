@@ -46,7 +46,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     private static Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>();
     private edu.tufts.vue.ontology.Ontology customOntology;
     public CategoryModel() {
-        System.out.println("Creating Category Model");
+        Log.debug("Creating Category Model");
         Runnable ontologyLoader = new Runnable()
         {
           public void run()
