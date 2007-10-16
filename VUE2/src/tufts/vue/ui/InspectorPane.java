@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.ui.MetadataEditor;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-10-06 03:49:27 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-10-16 17:48:04 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -67,7 +67,8 @@ public class InspectorPane extends JPanel
     //private final NodeTree mNodeTree = new NodeTree();
     
     private Resource mResource; // the current resource
-
+    private WidgetStack stack = null;
+    
     public InspectorPane()
     {
         super(new BorderLayout());
@@ -75,12 +76,14 @@ public class InspectorPane extends JPanel
 
         mSummaryPane = new SummaryPane();
         //mResourceMetaData = new PropertiesEditor(false);
-        mResourceMetaData = new MetaDataPane();
+        mResourceMetaData = new MetaDataPane(false);
         mResourceMetaData.setName("contentInfo");
         mPreview = new ResourcePreview();
 
-        WidgetStack stack = new WidgetStack();
-
+         stack = new WidgetStack(getName());
+        
+        Widget.setWantsScroller(stack, true);
+        
         stack.addPane("Information",            mSummaryPane,           0f);
         stack.addPane("Content Preview",        mPreview,               0.3f);
         stack.addPane("Content Info",           mResourceMetaData,      1f);
@@ -100,7 +103,7 @@ public class InspectorPane extends JPanel
         //Widget.setExpanded(mResourceMetaData, false);
         //Widget.setExpanded(mNodeTree, false);
         
-        add(stack, BorderLayout.CENTER);
+       // add(stack, BorderLayout.CENTER);
 
         //VUE.getSelection().addListener(this);
         VUE.addActiveListener(LWComponent.class, this);
@@ -114,6 +117,10 @@ public class InspectorPane extends JPanel
         
     }
 
+    public WidgetStack getWidgetStack()
+    {
+    	return stack;
+    }
     public void resourceSelectionChanged(ResourceSelection.Event e)
     {    	
         if (e.selected == null)
@@ -130,12 +137,12 @@ public class InspectorPane extends JPanel
         if (c == null) {
             loadResource(null);
             this.setEnabled(false);
-            this.getParent().setEnabled(false);
+           // this.getParent().setEnabled(false);
             showNodePanes(false);
             showResourcePanes(false);
         } else {
             this.setEnabled(true);
-            this.getParent().setEnabled(true);
+            //this.getParent().setEnabled(true);
             if (c.hasResource()) {
                 loadResource(c.getResource());
                 showResourcePanes(true);
