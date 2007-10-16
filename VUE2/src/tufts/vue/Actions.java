@@ -382,7 +382,7 @@ public class Actions implements VueConstants
     	}
      };
      public static final Action PreviewOnMap =
-            new LWCAction("On Map") {
+            new LWCAction("Slide Edit") {
                 public void act(LWComponent c) {
                 	
                     final MapViewer viewer = VUE.getActiveViewer();

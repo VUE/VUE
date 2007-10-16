@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-10-16 16:04:25 $ / $Author: anoop $
+ * @version $Revision: 1.61 $ / $Date: 2007-10-16 20:42:05 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -92,7 +92,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu alignMenu = new VueMenu("Align");         
         final JMenu linkMenu = new VueMenu("Link");
         final JMenu helpMenu = add(new VueMenu("Help"));
-        final JMenu slidePreviewMenu = new JMenu("Slide preview");
+      //  final JMenu slidePreviewMenu = new JMenu("Slide preview");
         final JMenu notesMenu = new JMenu("Notes, Slides & Handouts");
         final JMenu playbackMenu = new JMenu("Playback Presentation");
         ////////////////////////////////////////////////////////////////////////////////////
@@ -350,9 +350,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         presentationMenu.add(Actions.MergeNodeSlide);
         presentationMenu.addSeparator();
         presentationMenu.add(Actions.MasterSlide);                
-        slidePreviewMenu.add(Actions.PreviewOnMap);
-        slidePreviewMenu.add(Actions.PreviewInViewer);
-        presentationMenu.add(slidePreviewMenu);
+        //slidePreviewMenu.add(Actions.PreviewOnMap);
+        presentationMenu.add(Actions.PreviewOnMap);
+       // slidePreviewMenu.add(Actions.PreviewInViewer);
+      //  presentationMenu.add(slidePreviewMenu);
    
         notesMenu.addMenuListener(new MenuListener()
         {
@@ -539,8 +540,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         windowMenu.add(Actions.KeywordAction);
         windowMenu.add(Actions.NotesAction);                    
         windowMenu.addSeparator();
-        if (VUE.getSlideDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getSlideDock(),KeyEvent.VK_8, "Slide Viewer"));
+      //  if (VUE.getSlideDock() !=null)	
+      //  	windowMenu.add(createWindowItem(VUE.getSlideDock(),KeyEvent.VK_8, "Slide Viewer"));
         if (VUE.getMapInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));        
         if (VUE.getPannerDock() !=null)	
