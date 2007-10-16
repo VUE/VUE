@@ -1179,7 +1179,7 @@ public class DataSourceViewer extends JPanel
         PropertyMap dsProps = buildPropertyMap(ds);
         
         final WidgetStack editInfoStack = new WidgetStack();
-        
+    // Widget.setWantsScroller(editInfoStack, true);
         if (editInfoDockWindow == null) {
             if (ds.hasConfiguration()) {
                 editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
@@ -1197,11 +1197,13 @@ public class DataSourceViewer extends JPanel
             //gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
             //gbConstraints.insets = new java.awt.Insets(10,12,10,12);
             //descriptionPanel.setLayout(gbLayout);
-            MetaDataPane metaDataPane = new MetaDataPane();
+            MetaDataPane metaDataPane = new MetaDataPane(true);
             metaDataPane.loadProperties(dsProps);
             //descriptionPanel.add(metaDataPane,gbConstraints);
             //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
             //editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
+           
+            
             editInfoStack.addPane("Content Description",metaDataPane);
             
             editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
@@ -1225,11 +1227,12 @@ public class DataSourceViewer extends JPanel
             //gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
             //gbConstraints.insets = new java.awt.Insets(10,12,10,12);
             //descriptionPanel.setLayout(new BorderLayout());
-            MetaDataPane metaDataPane = new MetaDataPane();
+            MetaDataPane metaDataPane = new MetaDataPane(true);
             metaDataPane.loadProperties(dsProps);
             metaDataPane.setPreferredSize(new Dimension(editInfoDockWindow.getWidth(),metaDataPane.getHeight()));
             //descriptionPanel.add(metaDataPane,BorderLayout.CENTER);
             //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
+            //Widget.setWantsScroller(editInfoStack, true);
             editInfoStack.addPane("Content Description",metaDataPane);
             
             editInfoDockWindow.setTitle(dockTitle);
@@ -1240,7 +1243,7 @@ public class DataSourceViewer extends JPanel
     private void refreshEditInfo(DataSource ds) {
         String dockTitle = ds.getDisplayName();
         final WidgetStack editInfoStack = new WidgetStack();
-        
+      //  Widget.setWantsScroller(editInfoStack, true);
         if (editInfoDockWindow == null) {
             editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
             editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
