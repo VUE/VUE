@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.20 $ / $Date: 2007-09-05 13:11:09 $ / $Author: jeff $
+* @version $Revision: 1.21 $ / $Date: 2007-10-16 23:22:11 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -205,7 +205,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             }
             
             listModel.removeAllElements();
-			
+            descriptionTextArea.setText("");
 			// find the ids of all providers in VUE
 			java.util.Vector installedProviderVector = new java.util.Vector();
 			edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
