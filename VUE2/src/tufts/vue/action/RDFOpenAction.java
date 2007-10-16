@@ -48,7 +48,7 @@ public class RDFOpenAction extends VueAction {
     }
     
     public RDFOpenAction() {
-        this("Import RDF file...");
+        this("Import...");
     }
     
     
@@ -62,7 +62,7 @@ public class RDFOpenAction extends VueAction {
             openUnderway = true;
         }
         try {
-            File file = ActionUtil.openFile("Open Map", "rdf");
+            File file = ActionUtil.openFile("Open Map", "RDF");
             displayMap(file);
             System.out.println("Action["+e.getActionCommand()+"] completed.");
         } finally {
