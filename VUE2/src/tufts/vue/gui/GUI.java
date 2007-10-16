@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.82 $ / $Date: 2007-10-11 03:58:32 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2007-10-16 20:07:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1456,6 +1456,16 @@ public class GUI
         }
         */
         
+    }
+    
+    public static DataFlavor makeDataFlavor(String mimeType) {
+        DataFlavor flavor = null;
+        try {
+            flavor = new DataFlavor(mimeType);
+        } catch (Throwable t) {
+            Util.printStackTrace(t);
+        }
+        return flavor;
     }
     
     // probably move this & LocalData to something like LWDataTransfer with MapViewer.LWTransfer
