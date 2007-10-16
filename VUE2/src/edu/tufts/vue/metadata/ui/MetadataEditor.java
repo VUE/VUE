@@ -268,11 +268,15 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         int editorWidth = MetadataEditor.this.getWidth();
         //if(MetadataEditor.this.getTopLevelAncestor() != null)
         //  editorWidth = MetadataEditor.this.getTopLevelAncestor().getWidth();
+        
+        if(metadataTable == null)
+            return;
+        
         if(metadataTable.getModel().getColumnCount() == 2)
         {
           metadataTable.getColumnModel().getColumn(0).setHeaderRenderer(new MetadataTableHeaderRenderer());
           metadataTable.getColumnModel().getColumn(1).setHeaderRenderer(new MetadataTableHeaderRenderer());
-          metadataTable.getColumnModel().getColumn(0).setMinWidth(editorWidth-BUTTON_COL_WIDTH);
+          metadataTable.getColumnModel().getColumn(0).setMaxWidth(editorWidth-BUTTON_COL_WIDTH);
           metadataTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH);   
         }
         else
@@ -284,6 +288,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
           metadataTable.getColumnModel().getColumn(1).setMaxWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
           metadataTable.getColumnModel().getColumn(2).setMaxWidth(BUTTON_COL_WIDTH); 
         }
+    }
+    
+    public void repaint()
+    {
+        super.repaint();
+        adjustColumnModel();
     }
     
     public void activeChanged(ActiveEvent e)
