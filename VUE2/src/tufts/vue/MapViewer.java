@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.453 $ / $Date: 2007-10-16 13:58:39 $ / $Author: mike $ 
+ * @version $Revision: 1.454 $ / $Date: 2007-10-16 14:00:59 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -106,7 +106,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static boolean autoZoomEnabled = PreferencesManager.getBooleanPrefValue(edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance());
 
     /** automatically zoom-fit to map contents on new map load */
-    private static final boolean AutoZoomToMapOnLoad = false;
+    private static final boolean AutoZoomToMapOnLoad = true;
     
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
@@ -1238,11 +1238,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mMap.setUndoManager(new UndoManager(mMap));
         }
 
-        if (AutoZoomToMapOnLoad) {
+        //if (AutoZoomToMapOnLoad || autoZoom) {
         if (fitToFocal) {
             fitToFocal(animate);
         }
-        }
+        
         if (focal == null)
             repaint();
     }
