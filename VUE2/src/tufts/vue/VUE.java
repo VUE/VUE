@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.493 $ / $Date: 2007-10-16 17:49:06 $ / $Author: mike $ 
+ * @version $Revision: 1.494 $ / $Date: 2007-10-16 20:49:51 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -106,24 +106,21 @@ public class VUE
     private static FloatingZoomPanel floatingZoomPanel; 
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
-    private static edu.tufts.vue.rdf.RDFIndex RDFIndex;
-    private static Object RDFIndexLock= new Object();
-    private static edu.tufts.vue.metadata.CategoryModel categoryModel;
-    //public static edu.tufts.vue.rdf.RDFIndex index = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
-    public static  edu.tufts.vue.metadata.CategoryModel getCategoryModel() {
-        if(categoryModel == null) {
-            categoryModel = new edu.tufts.vue.metadata.CategoryModel();
-        }
-        return categoryModel;
+
+    /** simplest form of threadsafe static lazy initializer: for CategoryModel */
+    private static final class HolderCM {
+        static final edu.tufts.vue.metadata.CategoryModel _CategoryModel = new edu.tufts.vue.metadata.CategoryModel();
     }
-    public static edu.tufts.vue.rdf.RDFIndex getIndex() {
-        if (RDFIndex == null && !SKIP_RDF_INDEX) {
-            synchronized (RDFIndexLock) {
-                if (RDFIndex == null)
-                    RDFIndex = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
-            }
-        }
-        return RDFIndex;
+    /** simplest form of threadsafe static lazy initializer: for RDFIndex */
+    private static final class HolderRDFIndex {
+        static final edu.tufts.vue.rdf.RDFIndex _RDFIndex = edu.tufts.vue.rdf.RDFIndex.getDefaultIndex();
+    }
+    
+    public static  edu.tufts.vue.metadata.CategoryModel getCategoryModel() {
+        return HolderCM._CategoryModel;
+    }
+    public static edu.tufts.vue.rdf.RDFIndex getRDFIndex() {
+        return SKIP_RDF_INDEX ? null : HolderRDFIndex._RDFIndex;
     }
 
    
@@ -644,13 +641,6 @@ public class VUE
 
     private static void initApplication()
     {
-        /*
-        if (VUE.TUFTS)
-            Log.debug("TUFTS features only (no MIT/development)");
-        else
-            Log.debug("MIT/development features enabled");
-        */
-
         final Window splashScreen;
 
         if (SKIP_DR || SKIP_SPLASH) {
@@ -659,23 +649,34 @@ public class VUE
         } else
             splashScreen = new SplashScreen();
         
+        //------------------------------------------------------------------
         // Make sure these classes are all fully loaded to establish
         // their Keys.  todo: can get all subclasses of LWComponent
         // and newInstance them just to be sure.  In any case, this
         // probably isn't even required, but it's helping debugging
         // while implementing the new Key & Property LWComponent
         // code. -- SMF
+
+        Log.debug("pre-constructing core LW types...");
         
         new LWComponent();
         new LWLink();
         new LWImage();
         new LWNode();
 
+        //------------------------------------------------------------------
+        
+        Log.debug("building interface...");
+        
         buildApplicationInterface();
 
+        Log.debug("interface built; splash down...");
+        
         if (splashScreen != null)
             splashScreen.setVisible(false);
 
+        //------------------------------------------------------------------
+        
         boolean openedUserMap = false;
 
         Log.debug("loading disk cache...");
