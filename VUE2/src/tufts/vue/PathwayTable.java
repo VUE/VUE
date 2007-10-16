@@ -63,7 +63,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.87 $ / $Date: 2007-09-13 01:57:48 $ / $Author: mike $
+ * @version $Revision: 1.88 $ / $Date: 2007-10-16 23:01:03 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -213,6 +213,14 @@ public class PathwayTable extends JTable
 //             });
 
         Singleton = this;
+    	renamePresentation.addActionListener(this);
+    	playbackPresentation.addActionListener(this);
+    	masterSlidePresentation.addActionListener(this);
+    	deletePresentation.addActionListener(this);
+    	editEntry.addActionListener(this);
+    	addNoteEntry.addActionListener(this);
+    	deleteEntry.addActionListener(this);
+    	deleteEntry.setVisible(false);
         // end of PathwayTable constructor
     }
 
@@ -1090,8 +1098,8 @@ public class PathwayTable extends JTable
 	//	System.out.println("dropactionchanged");
 	}
 	public void mouseClicked(MouseEvent arg0) {
-		
-    	if ((arg0.getModifiers() & MouseEvent.BUTTON3_MASK )!=0)
+		    	
+    		 if (GUI.isMenuPopup(arg0))
 				displayContextMenu(arg0);
 		
 		
@@ -1129,15 +1137,8 @@ public class PathwayTable extends JTable
             }});
 		}
 		else if (e.getSource().equals(masterSlidePresentation))
-		{
-			long now = System.currentTimeMillis();
-    		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
-    															MouseEvent.MOUSE_CLICKED,
-    															now,
-    															5,5,5,5,
-    															false));
-    		
-    		selectedEntry.pathway.getMasterSlide().doZoomingDoubleClick(mme);
+		{	
+			Actions.EditMasterSlide.act(selectedEntry.pathway.getMasterSlide());
 		}
 		else if (e.getSource().equals(deletePresentation))
 		{
@@ -1148,15 +1149,8 @@ public class PathwayTable extends JTable
 			Actions.NotesAction.actionPerformed(e);
 		}
 		else if (e.getSource().equals(editEntry))
-		{
-			long now = System.currentTimeMillis();
-    		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
-    															MouseEvent.MOUSE_CLICKED,
-    															now,
-    															5,5,5,5,
-    															false));
-    		
-    		selectedEntry.getSlide().doZoomingDoubleClick(mme);
+		{			
+			Actions.EditSlide.act(selectedEntry.getSlide());
 		}
 		else if (e.getSource().equals(deleteEntry))
 		{
@@ -1194,20 +1188,13 @@ public class PathwayTable extends JTable
 	    	m.add(masterSlidePresentation);
 	    	m.add(deletePresentation);
 	    	playbackPresentation.setVisible(false);
-	    	renamePresentation.addActionListener(this);
-	    	playbackPresentation.addActionListener(this);
-	    	masterSlidePresentation.addActionListener(this);
-	    	deletePresentation.addActionListener(this);
+
 	    }
 	    else
 	    {
 	    	m.add(editEntry);
 	    	m.add(addNoteEntry);
 	    	m.add(deleteEntry);
-	    	editEntry.addActionListener(this);
-	    	addNoteEntry.addActionListener(this);
-	    	deleteEntry.addActionListener(this);
-	    	deleteEntry.setVisible(false);
 	    }
 
 		return m;

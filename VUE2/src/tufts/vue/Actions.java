@@ -1016,7 +1016,8 @@ public class Actions implements VueConstants
             		 // update inspectors (optional -- may not actually want to do this, but
                     // currently required if you want up/down arrows to subsequently navigate
                     // the pathway)
-                    VUE.setActive(LWPathway.Entry.class, this, masterSlide.getEntry());
+            		
+                    VUE.setActive(tufts.vue.MasterSlide.class, this, masterSlide);
             	}
                 
             
@@ -1051,7 +1052,7 @@ public class Actions implements VueConstants
             		 // update inspectors (optional -- may not actually want to do this, but
                     // currently required if you want up/down arrows to subsequently navigate
                     // the pathway)
-            		VUE.setActive(LWPathway.Entry.class, this, slide);
+            		VUE.setActive(LWSlide.class, this, slide);
             	}
                 
             
