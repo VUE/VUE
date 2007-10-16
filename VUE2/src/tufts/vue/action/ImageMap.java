@@ -27,7 +27,7 @@ import java.awt.geom.Rectangle2D;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2007-05-02 16:02:36 $ / $Author: dan $ *
+ * @version $Revision: 1.13 $ / $Date: 2007-10-16 20:34:35 $ / $Author: mike $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -55,15 +55,15 @@ public class ImageMap extends VueAction {
        // html file will already not be overwritten
        //String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+"-for-image-map"+".jpeg";
        //String imageName = file.getName().substring(0, file.getName().length()-5)+"-for-image-map"+".jpeg";
-       String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".jpeg";
-       String imageName = file.getName().substring(0, file.getName().length()-5)+".jpeg";
+       String imageLocation = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".png";
+       String imageName = file.getName().substring(0, file.getName().length()-5)+".png";
        String fileName = file.getAbsolutePath().substring(0, file.getAbsolutePath().length()-5)+".html";
        
        File imageLocationFile = new File(imageLocation);
        
        if(imageLocationFile.exists())
        {
-          int confirm = VueUtil.confirm("jpeg image already exists, overwrite?","File Already Exists");
+          int confirm = VueUtil.confirm("png image already exists, overwrite?","File Already Exists");
           if(confirm == javax.swing.JOptionPane.NO_OPTION)
           {
               VueUtil.alert("Image map not saved","Image Map");
@@ -73,7 +73,7 @@ public class ImageMap extends VueAction {
        
        //createJpeg(imageLocation, "jpeg", currentMap, size);
        //ImageConversion.createActiveMapJpeg(new File(imageLocation));
-       ImageConversion.createActiveMapJpeg(imageLocationFile);
+       ImageConversion.createActiveMapPng(imageLocationFile);
        createHtml(imageName, fileName);
     }
     
@@ -138,7 +138,8 @@ public class ImageMap extends VueAction {
         String out = "<HTML><HEAD><TITLE>" + currentMap.getLabel();
         out += "</TITLE></HEAD><BODY>";
         out += "<img src=\""+imageName
-            +"\" border=0 usemap=\"#map\" HEIGHT="+size.height+" WIDTH="+size.width+">";
+        	+"\" border=0 usemap=\"#map\">";
+            //+"\" border=0 usemap=\"#map\" HEIGHT="+size.height+" WIDTH="+size.width+">";
         out += "<map name=\"map\">\n";
 
         out += computeImageMapArea(currentMap);
