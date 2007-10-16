@@ -22,6 +22,7 @@ import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.ontology.OntType;
 import edu.tufts.vue.rdf.RDFIndex;
+import java.awt.BorderLayout;
 import java.awt.event.FocusAdapter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -170,8 +171,16 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
             }
         }); */
 
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        add(scroll);
+        //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setLayout(new BorderLayout());
+        
+        JPanel metaPanel = new JPanel(new BorderLayout());
+        JPanel tablePanel = new JPanel(new BorderLayout());
+
+        //add(scroll);
+        tablePanel.add(metadataTable.getTableHeader(),BorderLayout.NORTH);
+        tablePanel.add(metadataTable);
+        metaPanel.add(tablePanel);
         
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
@@ -207,11 +216,15 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         });
         optionsPanel.add(advancedSearch);
         optionsPanel.add(optionsLabel);
-        add(optionsPanel);
+        metaPanel.add(optionsPanel,BorderLayout.SOUTH);
         
         JPanel ontologicalMembershipPane = new JPanel();
-        ontologicalMembershipPane.setAlignmentX(0.5f);
-        ontologicalMembershipPane.setLayout(new BoxLayout(ontologicalMembershipPane,BoxLayout.Y_AXIS));
+        
+        //ontologicalMembershipPane.setAlignmentX(0.5f);
+        
+        //ontologicalMembershipPane.setLayout(new BoxLayout(ontologicalMembershipPane,BoxLayout.Y_AXIS));
+        
+        ontologicalMembershipPane.setLayout(new BorderLayout());
         ontologicalMembershipPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
         ontologyTypeList = new JList(new OntologyTypeListModel());
         JScrollPane ontologyListScroll = new JScrollPane(ontologyTypeList);
@@ -219,14 +232,17 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         ontologyListScroll.getViewport().setOpaque(false);
         JLabel membershipLabel = new JLabel("Ontological Membership: ");
         membershipLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        ontologicalMembershipPane.add(membershipLabel);
-        ontologicalMembershipPane.add(ontologyListScroll);
-        ontologyListScroll.setAlignmentX(0.0f);
-        membershipLabel.setAlignmentX(0.0f);
+        ontologicalMembershipPane.add(membershipLabel,BorderLayout.NORTH);
+        //ontologicalMembershipPane.add(ontologyListScroll);
+        ontologicalMembershipPane.add(ontologyTypeList);
+        //ontologyListScroll.setAlignmentX(0.0f);
+        //membershipLabel.setAlignmentX(0.0f);
+        
+        add(metaPanel,BorderLayout.NORTH);
         
         if(showOntologicalMembership)
         {
-          add(ontologicalMembershipPane);
+          add(ontologicalMembershipPane/*,BorderLayout.SOUTH*/);
         }
         
         if(followAllActive)
@@ -238,7 +254,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
           tufts.vue.VUE.addActiveListener(tufts.vue.LWMap.class,this); 
         }
         
-        setMinimumSize(new java.awt.Dimension(getWidth(),200));
+        //setMinimumSize(new java.awt.Dimension(getWidth(),200));
         
         MetadataList.addListener(this);
         

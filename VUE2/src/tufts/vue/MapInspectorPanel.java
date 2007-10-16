@@ -36,7 +36,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-10-06 05:23:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.55 $ / $Date: 2007-10-16 19:23:10 $ / $Author: dan $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -66,9 +66,12 @@ public class MapInspectorPanel extends JPanel
     /** Metadata Panel **/
     //MetadataPanel metadataPanel = null; // metadata added to infoPanel
     MetadataEditor metadataPanel = null;
+    
+    private WidgetStack mapInfoStack = null;
+    
     public MapInspectorPanel(DockWindow w) {
         super();
-        WidgetStack mapInfoStack = new WidgetStack("Map Info");
+        mapInfoStack = new WidgetStack("Map Info");
         VUE.addActiveListener(LWMap.class, this);
         setMinimumSize( new Dimension( 180,200) );
         setLayout( new BorderLayout() );
@@ -92,10 +95,16 @@ public class MapInspectorPanel extends JPanel
        //   mTabbedPane.addTab(mFilterCreatePanel.getName(),mFilterCreatePanel);
        // }
         
+        Widget.setWantsScroller(mapInfoStack, true);
+        
         //mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
         mapInfoStack.addPane(mInfoPanel,0f);
         mapInfoStack.addPane(metadataPanel,0f);
+        
+        //Widget.setWantsScroller(mapInfoStack, true);
+        
         w.setContent(mapInfoStack);
+        w.setHeight(450);
       //  add( BorderLayout.CENTER, mTabbedPane );
       //  add(BorderLayout.SOUTH,metadataPanel);
         setMap(VUE.getActiveMap());
@@ -103,6 +112,10 @@ public class MapInspectorPanel extends JPanel
         setVisible(true);
     }
     
+    public WidgetStack getMapInfoStack()
+    {
+        return mapInfoStack;
+    }
     
     /**
      * setMap
