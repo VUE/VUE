@@ -49,24 +49,26 @@ public class MetaDataPane extends JPanel
    private JTextArea[] mValues;
    private final ScrollableGrid mGridBag;
    private final JScrollPane mScrollPane = new JScrollPane();   
+   private boolean scroll= false;
    
-   public MetaDataPane() {
+   public MetaDataPane(boolean scroll) {
        super(new BorderLayout());
-       
+       this.scroll = scroll;
        //setName("contentInfo");
        ensureSlots(20);
-
+       
        mLabels[0].setText("X"); // make sure label will know it's max height
        mGridBag = new ScrollableGrid(this, mLabels[0].getPreferredSize().height + 4);
        Insets insets = (Insets) GUI.WidgetInsets.clone();
        insets.top = insets.bottom = 0;
        insets.right = 1;
+       
        mGridBag.setBorder(new EmptyBorder(insets));
        //mGridBag.setBorder(new LineBorder(Color.red));
        
        addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
 
-       if (true) {
+       if (scroll) {
            mScrollPane.setViewportView(mGridBag);
            mScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
            mScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -216,6 +218,7 @@ public class MetaDataPane extends JPanel
                                           mScrollPane.getVerticalScrollBar().getModel())
                                          .getListeners(ChangeListener.class)));
 
+	if (scroll)
        mScrollPane.getVerticalScrollBar().setValueIsAdjusting(true);
 
        mGridBag.setPaintDisabled(true);
@@ -283,8 +286,10 @@ public class MetaDataPane extends JPanel
        try {
            // Always put the scroll-bar back at the top, as it defaults
            // to moving to the bottom.
+           if (scroll)
            mScrollPane.getVerticalScrollBar().setValue(0);
            // Now release all scroll-bar updates.
+           if (scroll)
            mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
            // Now allow the grid to repaint.
        } finally {
