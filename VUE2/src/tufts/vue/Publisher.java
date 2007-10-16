@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.63 $ / $Date: 2007-10-15 19:28:31 $ / $Author: anoop $
+ * @version $Revision: 1.64 $ / $Date: 2007-10-16 18:18:43 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -79,6 +79,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final String NEXT = "Next";
     public static final String CANCEL = "Cancel";
     public static final String PUBLISH = "Publish";
+    // action commands
+    public static final String AC_SETUP_R = "AC_SETUP_R"; // repository selection
+    public static final String AC_SETUP_M = "AC_SETUP_M"; // mode selection
+    public static final String AC_SETUP_W = "AC_SETUP_W"; // workspace selection
+    public static final String AC_SETUP_P = "AC_SETUP_P"; //  publish
+    public static final String AC_SETUP_C = "AC_SETUP_C"; // confirm
+   
     private int publishMode = Publishable.PUBLISH_MAP;
     
     private int stage; // keep tracks of the screen
@@ -134,17 +141,21 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             t.printStackTrace();
         }
         repList = new JList();
-        repList.setModel(new DatasourceListModel(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+        repList.setModel(new DatasourceListModel(dataSourceType));
         repList.setSelectedValue(dataSource,false);
-        setUpModeSelectionPanel();
-        getContentPane().add(mPanel, BorderLayout.CENTER);
+        if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+            setUpWorkspaceSelectionPanel();
+            getContentPane().add(wPanel, BorderLayout.CENTER);
+        } else{
+            setUpModeSelectionPanel();
+            getContentPane().add(mPanel, BorderLayout.CENTER);
+        }
         setLocation(X_LOCATION,Y_LOCATION);
         setModal(true);
         setSize(PUB_WIDTH, PUB_HEIGHT);
         setResizable(false);
         setVisible(true);
     }
-    
     
     
     public Publisher(org.osid.shared.Type type) {
@@ -203,6 +214,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JScrollPane repPane = new JScrollPane(repList);
         JPanel scrollPanel = new JPanel(new BorderLayout());
         scrollPanel.add(repPane);
+        // nextButton.setActionCommand(NEXT_SAKAI_WS);
         scrollPanel.setBorder(BorderFactory.createEmptyBorder(10,20,10,20));
         rPanel.add(scrollPanel,BorderLayout.CENTER);
     }
@@ -379,20 +391,20 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         String ROOT_LABEL = "Sites";
         javax.swing.tree.DefaultMutableTreeNode root =    new javax.swing.tree.DefaultMutableTreeNode(ROOT_LABEL);
         DefaultTreeModel treeModel = new   DefaultTreeModel(root);
-         try {
+        try {
             org.osid.repository.Repository repository = dataSource.getRepository();
-             org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
-             System.out.println("repository is " + repository.getDisplayName());
-				
+            org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
+            System.out.println("repository is " + repository.getDisplayName());
+            
             while (assetIterator.hasNextAsset()) {
                 org.osid.repository.Asset asset = assetIterator.nextAsset();
-                 System.out.println("asset is " + asset.getDisplayName());
-					
+                System.out.println("asset is " + asset.getDisplayName());
+                
                 SakaiSiteUserObject userObject = new SakaiSiteUserObject();
                 userObject.setId(asset.getId().getIdString());
                 userObject.setDisplayName(asset.getDisplayName());
                 System.out.println("another obj " + userObject);
-					
+                
                 javax.swing.tree.DefaultMutableTreeNode nextTreeNode = new javax.swing.tree.DefaultMutableTreeNode(userObject);
                 treeModel.insertNodeInto(nextTreeNode,root,0);
             }
@@ -407,7 +419,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         
         private JPanel composite = new JPanel(new BorderLayout());
         private JRadioButton radioButton;
-        
         public Component getListCellRendererComponent(
                 JList list, Object value, int index,
                 boolean isSelected, boolean cellHasFocus) {
