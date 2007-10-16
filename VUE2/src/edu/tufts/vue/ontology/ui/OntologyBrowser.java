@@ -228,6 +228,12 @@ public class OntologyBrowser extends JPanel {
                   resultsStack.setHidden(w,true);
                   resultsStack.remove(w);
                   widgetMap.remove(w);
+           
+                  if (widgetMap.size() <= 1)
+                  {
+                	  VueToolbarController.getController().hideOntologicalTools();
+                  }
+                  
                   //resultsStack.updateUI();
                 }
                 catch(java.net.MalformedURLException mue)

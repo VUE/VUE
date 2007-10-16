@@ -37,7 +37,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.70 $ / $Date: 2007-08-13 00:20:49 $ / $Author: mike $
+ * @version $Revision: 1.71 $ / $Date: 2007-10-16 22:04:37 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -141,40 +141,7 @@ public class VueToolbarController
         {
 
 			public void componentHidden(ComponentEvent arg0) {
-				Map buttons = getToolbar().getToolButtons();
-		        PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());		
-		        PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
-
-		        parentButton.removePopupComponent(ontologyNodeComponent);
-		        parentLinkButton.removePopupComponent(ontologyLinkComponent);
-		        
-		        VueTool tool = getToolbar().getSelectedTool();
-		        //System.out.println(nodeTool.getID());
-		        if (tool.getID().equals(nodeTool.getParentTool().getID()))
-		        {
-		        	getToolbar().setSelectedTool(linkTool);
-		        	getToolbar().setSelectedTool(nodeTool);
-		        	nodeTool.setSelectedSubTool(nodeTool);
-		        	setSelectedTool(nodeTool);		        
-		        }
-		        else if (tool.getID().equals(linkTool.getParentTool().getID()))
-		        {
-		        	getToolbar().setSelectedTool(nodeTool);
-		        	getToolbar().setSelectedTool(linkTool);
-		        	nodeTool.setSelectedSubTool(linkTool);
-		        	setSelectedTool(linkTool);
-		        }
-		        else
-		        {
-		        	getToolbar().setSelectedTool(nodeTool);
-		        	getToolbar().setSelectedTool(linkTool);
-		        	getToolbar().setSelectedTool(tool);
-		        }
-		        
-		        
-		        
-		        parentButton.repaint();
-		        parentLinkButton.repaint();
+				hideOntologicalTools();
 			}
 
 			public void componentShown(ComponentEvent arg0) {				
@@ -192,6 +159,56 @@ public class VueToolbarController
         	
         });
 
+    }
+    public void hideOntologicalTools()
+    {
+    	final VueTool nodeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
+        final VueTool linkTool = VueTool.getInstance(tufts.vue.LinkTool.LinkModeTool.class);
+        final Component ontologyNodeComponent;
+        final Component ontologyLinkComponent;
+        final int ONTOLOGY_NODE_POSITION=1;
+        final int ONTOLOGY_LINK_POSITION=1;
+        
+        Map buttons = getToolbar().getToolButtons();
+        PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());
+        PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
+        Component[] c = parentButton.mPopup.getComponents();
+        ontologyNodeComponent = c[ONTOLOGY_NODE_POSITION];
+        
+        c = parentLinkButton.mPopup.getComponents();
+        ontologyLinkComponent = c[ONTOLOGY_LINK_POSITION];
+        
+    	
+        parentButton.removePopupComponent(ontologyNodeComponent);
+        parentLinkButton.removePopupComponent(ontologyLinkComponent);
+        
+        VueTool tool = getToolbar().getSelectedTool();
+        //System.out.println(nodeTool.getID());
+        if (tool.getID().equals(nodeTool.getParentTool().getID()))
+        {
+        	getToolbar().setSelectedTool(linkTool);
+        	getToolbar().setSelectedTool(nodeTool);
+        	nodeTool.setSelectedSubTool(nodeTool);
+        	setSelectedTool(nodeTool);		        
+        }
+        else if (tool.getID().equals(linkTool.getParentTool().getID()))
+        {
+        	getToolbar().setSelectedTool(nodeTool);
+        	getToolbar().setSelectedTool(linkTool);
+        	nodeTool.setSelectedSubTool(linkTool);
+        	setSelectedTool(linkTool);
+        }
+        else
+        {
+        	getToolbar().setSelectedTool(nodeTool);
+        	getToolbar().setSelectedTool(linkTool);
+        	getToolbar().setSelectedTool(tool);
+        }
+        
+        
+        
+        parentButton.repaint();
+        parentLinkButton.repaint();
     }
     /**
      * A factory method to generate the toolbar.  Tools must already
