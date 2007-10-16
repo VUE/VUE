@@ -36,12 +36,14 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-10-16 19:23:10 $ / $Author: dan $ 
+ * @version $Revision: 1.56 $ / $Date: 2007-10-16 20:31:34 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
     implements ActiveListener<LWMap>
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapInspectorPanel.class);
+
     static public final int ANY_MODE = 0;
     static public final int ALL_MODE = 1;
     static public final int NOT_ANY_MODE = 2;
@@ -385,7 +387,7 @@ public class MapInspectorPanel extends JPanel
             mLocation.setText(path);
             mLocation.setToolTipText(path);
             propertiesEditor.setProperties(pMap.getMetadata(),true);
-            System.out.println(VUE.getActiveMap().getFillColor());
+            Log.debug(getClass().getSimpleName() + ".updatePanel: " + VUE.getActiveMap().getFillColor());
             mMapColor.setColor(VUE.getActiveMap().getFillColor());
         }
         

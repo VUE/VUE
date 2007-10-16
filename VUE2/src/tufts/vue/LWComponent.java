@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.348 $ / $Date: 2007-10-11 19:50:33 $ / $Author: dan $
+ * @version $Revision: 1.349 $ / $Date: 2007-10-16 20:28:23 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -254,8 +254,7 @@ public class LWComponent
     /** constructor */
     public LWComponent()
     {
-        if (DEBUG.PARENTING)
-            System.out.println("LWComponent construct of " + getClass().getName() + "." + Integer.toHexString(hashCode()));
+        if (DEBUG.PARENTING) Log.debug("construct of " + Util.tag(this));
         mSupportedPropertyKeys = Key.PropertyMaskForClass(getClass());
         if (mSupportedPropertyKeys == 0) {
             // this can happen during init before circular dependencies are resolved
@@ -1319,7 +1318,7 @@ u                    getSlot(c).setFromString((String)value);
         private java.util.Map<LWComponent,LWComponent> mOriginals = new java.util.HashMap();
 
         public LinkPatcher() {
-            if (DEBUG.DND) System.out.println("LinkPatcher: created");
+            if (DEBUG.DND) Log.debug("LinkPatcher: created");
         }
 
         public void reset() {
@@ -1329,7 +1328,7 @@ u                    getSlot(c).setFromString((String)value);
 
         public void track(LWComponent original, LWComponent copy)
         {
-            if (DEBUG.DND && DEBUG.META) System.out.println("LinkPatcher: tracking " + copy);
+            if (DEBUG.DND && DEBUG.META) Log.debug("LinkPatcher: tracking " + copy);
             mCopies.put(original, copy);
             mOriginals.put(copy, original);
         }
@@ -1353,10 +1352,10 @@ u                    getSlot(c).setFromString((String)value);
                 final LWComponent tailCopy = mCopies.get(linkOriginal.getTail());
                 
                 if (DEBUG.DND)
-                    System.out.println("LinkPatcher: reconnecting " + linkCopy + " endpoints:"
-                                       + "\n\t" + headCopy
-                                       + "\n\t" + tailCopy
-                                       );
+                    Log.debug("LinkPatcher: reconnecting " + linkCopy + " endpoints:"
+                              + "\n\t" + headCopy
+                              + "\n\t" + tailCopy
+                              );
                 
                 linkCopy.setHead(headCopy);
                 linkCopy.setTail(tailCopy);
