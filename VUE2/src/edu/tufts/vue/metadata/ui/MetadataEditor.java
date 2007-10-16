@@ -68,6 +68,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     private boolean showOntologicalMembership;
     
+    private boolean ontologicalMembershipVisible;
+    
+    private JPanel ontologicalMembershipPane;
+    
     private boolean focusToggle = false;
     
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
@@ -218,7 +222,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         optionsPanel.add(optionsLabel);
         metaPanel.add(optionsPanel,BorderLayout.SOUTH);
         
-        JPanel ontologicalMembershipPane = new JPanel();
+        ontologicalMembershipPane = new JPanel();
         
         //ontologicalMembershipPane.setAlignmentX(0.5f);
         
@@ -240,9 +244,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         add(metaPanel,BorderLayout.NORTH);
         
-        if(showOntologicalMembership)
+        if(showOntologicalMembership && current !=null && current.getMetadataList().getOntologyListSize() > 0)
         {
           add(ontologicalMembershipPane/*,BorderLayout.SOUTH*/);
+          ontologicalMembershipVisible = true;
         }
         
         if(followAllActive)
@@ -356,9 +361,28 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
 
            MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
          }
+        
+         if(current.getMetadataList().getOntologyListSize() > 0)
+         {
+             if(!ontologicalMembershipVisible)
+             {
+                add(ontologicalMembershipPane);
+                ontologicalMembershipVisible = true;
+             }
+         }
+         else
+         {
+             if(ontologicalMembershipVisible)
+             {
+                remove(ontologicalMembershipPane);
+                ontologicalMembershipVisible = false;
+             } 
+         }
+         
          
          ((MetadataTableModel)metadataTable.getModel()).refresh();
          ((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
+        
          
          //adjustColumnModel();
        }
