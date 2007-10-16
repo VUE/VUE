@@ -39,7 +39,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.30 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-10-16 20:10:51 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -308,7 +308,7 @@ public class CabinetResource extends URLResource
                 setSpec(((LocalCabinet)e).getUrl());
 
             final String spec = super.getSpec();
-            setProperty("URL", spec);
+            //setProperty("URL", spec);
             
             //final String title = getTitle();
             //if (title == null || title.length() == 0) {
