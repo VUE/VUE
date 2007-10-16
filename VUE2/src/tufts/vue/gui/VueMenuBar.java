@@ -28,7 +28,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.61 $ / $Date: 2007-10-16 20:42:05 $ / $Author: mike $
+ * @version $Revision: 1.62 $ / $Date: 2007-10-16 21:32:26 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -93,7 +93,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu linkMenu = new VueMenu("Link");
         final JMenu helpMenu = add(new VueMenu("Help"));
       //  final JMenu slidePreviewMenu = new JMenu("Slide preview");
-        final JMenu notesMenu = new JMenu("Notes, Slides & Handouts");
+        final JMenu notesMenu = new JMenu("Handouts and Notes");
         final JMenu playbackMenu = new JMenu("Playback Presentation");
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Actions
@@ -354,7 +354,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         presentationMenu.add(Actions.PreviewOnMap);
        // slidePreviewMenu.add(Actions.PreviewInViewer);
       //  presentationMenu.add(slidePreviewMenu);
-   
+   /*
         notesMenu.addMenuListener(new MenuListener()
         {
 
@@ -465,6 +465,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			}
         	
         });
+        */
         playbackMenu.addMenuListener(new MenuListener()
         {
 
@@ -518,6 +519,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			}
         	
         });
+        
+        notesMenu.add(Actions.MapAsPDF);
+        notesMenu.add(Actions.FullPageSlideNotes);
+        notesMenu.add(Actions.Slides8PerPage);
+        notesMenu.add(Actions.SpeakerNotes1);
+        notesMenu.add(Actions.SpeakerNotes4);
+        notesMenu.add(Actions.AudienceNotes);
+        notesMenu.add(Actions.SpeakerNotesOutline);   
+        
         presentationMenu.add(notesMenu);
         presentationMenu.addSeparator();
         presentationMenu.add(playbackMenu);
