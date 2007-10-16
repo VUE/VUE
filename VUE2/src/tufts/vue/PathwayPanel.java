@@ -26,6 +26,7 @@ import tufts.vue.gui.formattingpalette.ButtonlessComboBoxUI;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.TreeUI;
@@ -48,7 +49,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.108 $ / $Date: 2007-09-13 01:57:48 $ / $Author: mike $
+ * @version $Revision: 1.109 $ / $Date: 2007-10-16 21:02:29 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -914,13 +915,22 @@ public class PathwayPanel extends JPanel
             return;
         if (btn == btnPreview)
         {
-        	if (VUE.getSlideDock().isShowing())
+        	/*if (VUE.getSlideDock().isShowing())
         		VUE.getSlideDock().setVisible(false);
         	else
         	{
         		VUE.getSlideDock().setVisible(true);
         		VUE.getSlideViewer().showSlideMode();
-        	}
+        	}*/
+        	/*long now = System.currentTimeMillis();
+    		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
+    															MouseEvent.MOUSE_CLICKED,
+    															now,
+    															5,5,5,5,
+    															false));
+    		
+    		pathway.getCurrentEntry().getSlide().doZoomingDoubleClick(mme);*/
+        	Actions.PreviewOnMap.actionPerformed(e);
         }    
         else if (btn == btnPlay)
         {
