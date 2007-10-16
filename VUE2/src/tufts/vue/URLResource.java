@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.30 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-10-16 20:10:42 $ / $Author: sfraize $
  */
 
 // TODO: this class currently a humongous mess...
@@ -795,7 +795,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
 
         if (DEBUG.DR || DEBUG.RESOURCE) {
-            setProperty("@<spec>", spec);
+            //setProperty("@<spec>", spec);
             setProperty(BROWSE_KEY, "" + mURL_Browse);
         }
 
@@ -831,6 +831,16 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         //this.type = isLocalFile() ? Resource.FILE : Resource.URL;
 
         asURL();
+
+        if (isLocalFile()) {
+            if (spec.startsWith("file:"))
+                setProperty("File", spec.substring(5));
+            else
+                setProperty("File", spec);
+        } else
+            setProperty("URL", spec);
+
+        
         
         //this.preview = null;
     }
