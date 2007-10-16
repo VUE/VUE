@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.492 $ / $Date: 2007-10-11 04:00:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.493 $ / $Date: 2007-10-16 17:49:06 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -583,7 +583,7 @@ public class VUE
     public static void main(String[] args)
     {
         VUE.isStartupUnderway = true;
-
+        
         parseArgs(args);
 
         if (DEBUG.Enabled) {
@@ -993,9 +993,17 @@ public class VUE
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
         inspectorPane = new tufts.vue.ui.InspectorPane();
-        ObjectInspector = GUI.createDockWindow("Info",inspectorPane);
+        ObjectInspector = GUI.createDockWindow("Info");
+        ObjectInspector.setContent(inspectorPane.getWidgetStack());
+        
+        
         ObjectInspector.setMenuName("Info / Preview");
         ObjectInspector.setHeight(575);
+        
+        
+        //-----------------------------------------------------------------------------
+        // Slide Viewer
+        //-----------------------------------------------------------------------------
         slideViewer = new tufts.vue.ui.SlideViewer(null);
         slideDock = GUI.createDockWindow(slideViewer);
         slideDock.setLocation(100,100);
