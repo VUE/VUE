@@ -37,7 +37,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.68 $ / $Date: 2007-08-28 17:56:10 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-10-16 19:11:06 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -90,16 +90,16 @@ public class ZoomTool extends VueTool
   */  
     public boolean isZoomFullScreenMode()
     {
-    	   return getSelectedSubTool().getID().equals("zoomTool.zoomIn");
+    	   return getSelectedSubTool().getID().equals("zoomTool.zoomFullScreen");
     }
     public boolean isZoomOutMode() {
         return getSelectedSubTool().getID().equals("zoomTool.zoomOut");
     }
     
-    /*public boolean isZoomInMode() {
+    public boolean isZoomInMode() {
         return getSelectedSubTool().getID().equals("zoomTool.zoomIn");
     }
-*/
+
     public boolean supportsSelection() { return false; }
 
     public boolean supportsDraggedSelector(MapMouseEvent e)
@@ -166,7 +166,7 @@ public class ZoomTool extends VueTool
     
     
     // Classic simple version:
-
+    private boolean disableToggleZoom = false;
     @Override
     public boolean handleMousePressed(MapMouseEvent e) {
         super.handleMousePressed(e);
@@ -176,8 +176,7 @@ public class ZoomTool extends VueTool
 //                            +" isZoomFullScreen:"+isZoomFullScreenMode()
 //                            +" isZoomOutToMap:"+isZoomOutToMapMode());
 
-        //if (isZoomInMode() || isZoomOutMode())
-        if (isZoomOutMode())
+        if (isZoomInMode() || isZoomOutMode())
             return false;
         
         //if (isZoomOutToMapMode())
@@ -186,6 +185,15 @@ public class ZoomTool extends VueTool
         final LWComponent picked = e.getPicked();
         final MapViewer viewer = e.getViewer();
 
+        if (disableToggleZoom && !e.isShiftDown())
+        {
+        	disableToggleZoom = false;
+        }
+        
+        if (disableToggleZoom)
+        	return false;
+        
+        
         if (zoomedTo != null && !e.isShiftDown()) {
             // already zoomed into something: un-zoom us
             if (oldFocal != null) {
@@ -225,6 +233,26 @@ public class ZoomTool extends VueTool
                 else
                     zoomBounds = picked.getBounds();
                 
+                
+                
+                   Point2D.Double offset = new Point2D.Double();
+                double newZoom = computeZoomFit(viewer.getVisibleSize(),
+                                                0,
+                                                zoomBounds,
+                                                offset);
+             
+                double curZoom = viewer.getZoomFactor();
+                
+              //  System.out.println("New Zoom : " + newZoom);
+              //  System.out.println("Cur ZOOM : " + curZoom);
+                
+                if (newZoom == curZoom)
+                {                
+                	disableToggleZoom = true;
+                	return false;
+                }
+                
+               // System.out.println(e.getPicked().toString());
                 setZoomFitRegion(viewer,
                                  zoomBounds,
                                  0,
@@ -411,7 +439,7 @@ public class ZoomTool extends VueTool
         if (e.isShiftDown() || e.getButton() != MouseEvent.BUTTON1
             //|| toolKeyEvent != null && toolKeyEvent.isShiftDown()
             ) {
-            if (isZoomOutMode())
+            if (isZoomOutMode() || disableToggleZoom)
                 setZoomBigger(p);
         //    else if (isZoomOutToMapMode())
         //    	setZoom(1.0);
