@@ -109,7 +109,11 @@ public class MetadataSearchGUI extends JPanel {
             MetadataSearchGUI content = new MetadataSearchGUI(MULTIPLE_FIELDS);
             dockWindow.setContent(content);
             
-            dockWindow.pack();
+            content.adjustColumnModel();
+            
+            //todo: return to pack() on open when find initial layout bug
+            dockWindow.setSize(200,200);
+            //dockWindow.pack();
         }    
         
         return dockWindow;
@@ -129,6 +133,7 @@ public class MetadataSearchGUI extends JPanel {
         else
         {
            setUpFieldsSearch();
+           setBasicSearch();
         }
         
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
@@ -286,7 +291,7 @@ public class MetadataSearchGUI extends JPanel {
                if(e.getX()>searchTermsTable.getWidth()-BUTTON_COL_WIDTH)
                {
                  VueMetadataElement newElement = new VueMetadataElement();
-                 String statementObject[] = {"Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                 String statementObject[] = {"http://vue.tufts.edu/vue#Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
                  newElement.setObject(statementObject);
                  newElement.setType(VueMetadataElement.SEARCH_STATEMENT);
                  searchTerms.add(newElement);
@@ -368,6 +373,12 @@ public class MetadataSearchGUI extends JPanel {
     {
         add(topPanel);
         add(buttonPanel,BorderLayout.SOUTH);        
+    }
+    
+    public void repaint()
+    {
+        super.repaint();
+        adjustColumnModel();
     }
     
     public void toggleOptionsView()
@@ -503,12 +514,16 @@ public class MetadataSearchGUI extends JPanel {
     
     public void adjustColumnModel()
     {
+        
+        if(searchTermsTable == null)
+            return;
+        
         int editorWidth = this.getWidth();
         if(searchTermsTable.getModel().getColumnCount() == 2)
         {
           searchTermsTable.getColumnModel().getColumn(0).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
           searchTermsTable.getColumnModel().getColumn(1).setHeaderRenderer(new SearchTermsTableHeaderRenderer());
-          searchTermsTable.getColumnModel().getColumn(0).setMinWidth(editorWidth-BUTTON_COL_WIDTH);
+          searchTermsTable.getColumnModel().getColumn(0).setMaxWidth(editorWidth-BUTTON_COL_WIDTH);
           searchTermsTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH);   
         }
         else if(searchTermsTable.getModel().getColumnCount() == 3)
@@ -888,7 +903,7 @@ public class MetadataSearchGUI extends JPanel {
                 //String pairedValue[] = {"Tag","STARTS_WITH",""};
                 //vme.setObject(pairedValue);
                 
-                String statementObject[] = {"Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                String statementObject[] = {"http://vue.uit.tufts.edu#Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
                 vme.setObject(statementObject);
                 vme.setType(VueMetadataElement.SEARCH_STATEMENT);
                 
