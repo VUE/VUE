@@ -105,7 +105,7 @@ public class TypeList extends JList {
                     if(comp == null)
                         return;
                     
-                    // the try/catch produces an infinite loops of placements on the Viewer
+                    // unfortunately, this try/catch produces an infinite loops of placements on the Viewer
                     //try
                     //{        
                       if(comp!=null)
@@ -438,16 +438,24 @@ public class TypeList extends JList {
           loadingLabel.add(loadingLabelText);
              
           widget.add(loadingLabel,java.awt.BorderLayout.NORTH);
-             
-          if(cssURL !=null)
-          {
-            ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
+          
+          try
+          {        
+            if(cssURL !=null)
+            {
+              ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
                                                       cssURL,
                                                       ontType);
+            }
+            else
+            {
+              ontology = edu.tufts.vue.ontology.OntManager.getOntManager().readOntology(ontologyURL,ontType);
+            }
           }
-          else
+          catch(Exception fnfe)
           {
-            ontology = edu.tufts.vue.ontology.OntManager.getOntManager().readOntology(ontologyURL,ontType);
+              widget.remove(loadingLabel);
+              widget.add(new JLabel("File not found"));
           }
                     
           setModel(new OntologyTypeListModel(ontology));
