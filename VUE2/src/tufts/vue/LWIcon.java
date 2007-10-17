@@ -594,7 +594,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                 } else if (extension.length() > 3) {
                     extension = extension.substring(0,3);
                 }
-                Log.debug("EXTENSION["+extension+"]");
+                if (DEBUG.RESOURCE) Log.debug("EXTENSION["+extension+"]");
                 mTextRow = new TextRow(extension, FONT_ICON);
             }
             

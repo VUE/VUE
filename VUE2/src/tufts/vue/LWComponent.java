@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.349 $ / $Date: 2007-10-16 20:28:23 $ / $Author: sfraize $
+ * @version $Revision: 1.350 $ / $Date: 2007-10-17 16:08:55 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5716,16 +5716,17 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected void out(String s) {
-        if (DEBUG.THREAD) {
-            String thread = Thread.currentThread().toString().substring(6);
-            System.err.format("%-32s%s %s\n", thread, this, s);
-        } else {
-            System.err.println(this + " " + s);
-        }
+        if (DEBUG.Enabled) Log.debug(s);
+//         if (DEBUG.THREAD) {
+//             String thread = Thread.currentThread().toString().substring(6);
+//             System.err.format("%-32s%s %s\n", thread, this, s);
+//         } else {
+//             System.err.println(this + " " + s);
+//         }
     }
 
     protected void outf(String format, Object ... args) {
-	System.err.format(format + "\n", args);
+	Log.debug(String.format(format + "\n", args));
     }
     
     /*
