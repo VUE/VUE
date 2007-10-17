@@ -455,7 +455,9 @@ public class TypeList extends JList {
           catch(Exception fnfe)
           {
               widget.remove(loadingLabel);
-              widget.add(new JLabel("File not found"));
+              JLabel fileNotFound = new JLabel("File not found");
+              fileNotFound.setBorder(javax.swing.BorderFactory.createEmptyBorder(10,5,10,0));
+              widget.add(fileNotFound);
           }
                     
           setModel(new OntologyTypeListModel(ontology));
@@ -465,7 +467,10 @@ public class TypeList extends JList {
           widget.remove(loadingLabel);
           //repaint();
           //browser.addTypeList(TypeList.this,ontologyURL.getFile());
-          browser.getViewer().getList().setSelectedValue(ontology,true);
+          if(ontology != null)
+          {    
+            browser.getViewer().getList().setSelectedValue(ontology,true);
+          }
           //clearSelection();
           //setSelectedIndex(-1);
           try
