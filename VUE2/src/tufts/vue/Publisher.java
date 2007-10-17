@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.67 $ / $Date: 2007-10-17 16:20:57 $ / $Author: anoop $
+ * @version $Revision: 1.68 $ / $Date: 2007-10-17 18:17:44 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -364,21 +364,32 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().validate();
             validateTree();
         }else if(e.getActionCommand().equals(PUBLISH)) {
-            getContentPane().remove(mPanel);
-            mPanel.remove(modeInfo);
-            getContentPane().remove(buttonPanel);
-            setUpPublishPanel();
-            getContentPane().add(pPanel,BorderLayout.WEST);
-            getContentPane().add(buttonPanel,BorderLayout.SOUTH);
-            validate();
-            repaint();
-            Thread t = new Thread() {
+            
+            final Thread t = new Thread() {
                 public void run() {
-                    publishMapToDL();
-                    setUpConfirmPanel();
+                    getContentPane().remove(mPanel);
+                    mPanel.remove(modeInfo);
+                    getContentPane().remove(buttonPanel);
+                    setUpPublishPanel();
+                    
+                    getContentPane().add(pPanel,BorderLayout.WEST);
+                    getContentPane().add(buttonPanel,BorderLayout.SOUTH);
+                    validate();
+                    repaint();
                 }
             };
-            t.run();
+            Thread invokeThread = new Thread() {
+                public void run() {
+                    try {
+                        SwingUtilities.invokeAndWait(t);
+                        publishMapToDL();
+                        setUpConfirmPanel();
+                    }catch(Throwable tw) {
+                        tw.printStackTrace();
+                    }
+                }
+            };
+            invokeThread.start();
             
             
         }
