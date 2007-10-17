@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.65 $ / $Date: 2007-10-16 22:37:03 $ / $Author: anoop $
+ * @version $Revision: 1.66 $ / $Date: 2007-10-17 15:50:25 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -79,6 +79,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final String NEXT = "Next";
     public static final String CANCEL = "Cancel";
     public static final String PUBLISH = "Publish";
+    public static final String DONE = "Done";
     // action commands
     public static final String AC_SETUP_R = "AC_SETUP_R"; // repository selection
     public static final String AC_SETUP_M = "AC_SETUP_M"; // mode selection
@@ -103,11 +104,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JRadioButton publishMapRButton ;
     JRadioButton    publishMapAllRButton ;
     JRadioButton    publishZipRButton ;
-    
-    // JRadioButton publishCMapRButton;
     JRadioButton publishSakaiRButton;
     
-    // JRadioButton publishAllRButton;
     JTextArea informationArea;
     JPanel buttonPanel;
     JTextArea modeInfo  = new JTextArea(PUBLISH_INFORMATION[0]);
@@ -115,11 +113,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JPanel mPanel  = new JPanel(); // Mode Selection Panel
     JPanel pPanel = new JPanel(); // publish panel
     JPanel wPanel = new JPanel(); // workspace selection
+    JPanel cPanel = new JPanel(); // confirming publish
+    
     JButton nextButton = new JButton(NEXT);
     JButton cancelButton = new JButton(CANCEL);
     JButton publishButton = new JButton(PUBLISH);
-    //JButton modeNext = new JButton("Next");
-    JButton modeCancel = new JButton("Cancel");
+    JButton doneButton = new JButton(DONE);
     public static Vector resourceVector;
     File activeMapFile;
     public static JTable resourceTable;
@@ -228,7 +227,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     private void setUpWorkspaceSelectionPanel() {
         wPanel.setLayout(new BorderLayout());
-        JLabel wLabel = new JLabel("Select a workspace in "+ repList.getSelectedValue().toString());
+        JLabel wLabel = new JLabel("Select a workspace in "+ ((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName());
         wLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         wPanel.add(wLabel,BorderLayout.NORTH);
         edu.tufts.vue.dsm.DataSource selectedDataSource = (edu.tufts.vue.dsm.DataSource) repList.getSelectedValue();
@@ -315,14 +314,28 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         pLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         pPanel.add(pLabel);
         buttonPanel.remove(publishButton);
-        
+    }
+    
+    private void setUpConfirmPanel() {
+        JLabel cLabel = new JLabel("Publishing to "+((edu.tufts.vue.dsm.DataSource)repList.getSelectedValue()).getRepositoryDisplayName()+" was successful.");
+        cLabel.setBorder(BorderFactory.createEmptyBorder(80,10,0,0));
+        cPanel.add(cLabel);
+        buttonPanel.remove(cancelButton);
+        doneButton.addActionListener(this);
+        buttonPanel.add(doneButton,BorderLayout.EAST);
+        getContentPane().remove(pPanel);
+        getContentPane().add(cPanel, BorderLayout.CENTER);
+        getContentPane().validate();
+        validateTree();
     }
     
     
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().equals(CANCEL)) {
             this.dispose();
-        } else if(e.getActionCommand().equals(AC_SETUP_W)) {
+        } else if(e.getActionCommand().equals(DONE)) {
+            this.dispose();
+        }else if(e.getActionCommand().equals(AC_SETUP_W)) {
             getContentPane().remove(rPanel);
             setUpWorkspaceSelectionPanel();
             getContentPane().add(wPanel, BorderLayout.CENTER);
@@ -338,17 +351,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().add(mPanel, BorderLayout.CENTER);
             getContentPane().validate();
             validateTree();
-        } else if(e.getActionCommand().equals(AC_SETUP_P)) {
-            getContentPane().remove(mPanel);
-            mPanel.remove(modeInfo);
-            getContentPane().remove(buttonPanel);
-            setUpPublishPanel();
-            getContentPane().add(pPanel,BorderLayout.WEST);
-            getContentPane().add(buttonPanel,BorderLayout.SOUTH);
-            validate();
-            repaint();
-            publishMapToDL();
-        }else if(e.getActionCommand().equals(NEXT)) {
+        }  else if(e.getActionCommand().equals(NEXT)) {
             getContentPane().remove(rPanel);
             //validateTree();
             if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
@@ -369,8 +372,15 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().add(buttonPanel,BorderLayout.SOUTH);
             validate();
             repaint();
-            publishMapToDL();
-            dispose();
+            Thread t = new Thread() {
+                public void run() {
+                    publishMapToDL();
+                    setUpConfirmPanel();
+                }
+            };
+            t.run();
+            
+         
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
