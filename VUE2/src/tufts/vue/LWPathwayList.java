@@ -27,7 +27,7 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-06-19 18:06:34 $ / $Author: mike $
+ * @version $Revision: 1.32 $ / $Date: 2007-10-17 02:42:45 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -193,7 +193,12 @@ public class LWPathwayList implements LWComponent.Listener, Iterable<LWPathway>
                });
 
         if (mActive == p)
-            setActivePathway(getFirst());
+        {
+        	if (getFirst() == null)
+        		VUE.setActive(LWPathway.class, this, null);
+        	else
+        		setActivePathway(getFirst());
+        }
         if (mRevealer == p)
             setRevealer(null);
         
