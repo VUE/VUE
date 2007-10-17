@@ -19,6 +19,7 @@
       </foxml:xmlContent>
     </foxml:datastreamVersion>
   </foxml:datastream>
+    %RELS_EXT%
   <foxml:datastream CONTROL_GROUP="M" ID="map.vue" STATE="A" VERSIONABLE="true">
     <foxml:datastreamVersion CREATED="%CREATE_DATE%" FORMAT_URI="http://vue.tufts.edu/docs/vueformat/"
       ID="map.vue.0" LABEL="%TITLE%" MIMETYPE="application/vue">
