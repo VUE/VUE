@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.454 $ / $Date: 2007-10-16 14:00:59 $ / $Author: mike $ 
+ * @version $Revision: 1.455 $ / $Date: 2007-10-17 17:03:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -383,11 +383,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.FOCUS && VUE.getActiveViewer() == this) out("activateTool: " + tool.getID());
         
         if (tool == null) {
-            System.err.println(this + " *** toolSelected: NULL TOOL");
+            Log.warn(this + " *** toolSelected: NULL TOOL");
             return;
         }
         if (tool.getID() == null) {
-            System.err.println(this + " *** toolSelected: NULL ID IN TOOL!");
+            Log.warn(this + " *** toolSelected: NULL ID IN TOOL!");
             return;
         }
         
@@ -4562,7 +4562,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 } else
                     did = false;
                 if (did) {
-                    System.err.println("*** diagnostic '" + c + "' toggled (input=" + viewer + ")");
+                    Log.info("*** diagnostic '" + c + "' toggled (input=" + viewer + ")");
                     repaint();
                 }
             }
@@ -6555,13 +6555,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     protected void out(Object o) {
-        System.out.println(this + " " + (o==null?"null":o.toString()));
+        Log.debug(this + " " + (o==null?"null":o.toString()));
+        //System.out.println(this + " " + (o==null?"null":o.toString()));
     }
     
     protected void out(String method, Object msg) {
         if (method.charAt(0) == '@')
             tufts.Util.printStackTrace(method);
-        System.out.format("%s %12s: %s\n", this, method, msg);
+        Log.debug(String.format("%s %12s: %s", this, method, msg));
+        //System.out.format("%s %12s: %s\n", this, method, msg);
     }
 
     private String out(Point2D p) { return p==null?"<null Point2D>":(float)p.getX() + ", " + (float)p.getY(); }
