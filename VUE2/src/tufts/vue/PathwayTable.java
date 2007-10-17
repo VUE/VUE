@@ -63,7 +63,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.88 $ / $Date: 2007-10-16 23:01:03 $ / $Author: mike $
+ * @version $Revision: 1.89 $ / $Date: 2007-10-17 02:25:57 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -1098,10 +1098,7 @@ public class PathwayTable extends JTable
 	//	System.out.println("dropactionchanged");
 	}
 	public void mouseClicked(MouseEvent arg0) {
-		    	
-    		 if (GUI.isMenuPopup(arg0))
-				displayContextMenu(arg0);
-		
+		  
 		
 	}
 	private void displayContextMenu(MouseEvent e) {
@@ -1209,6 +1206,13 @@ public class PathwayTable extends JTable
 	}
     public void mousePressed(MouseEvent e) {
 		
+      	
+		 if (GUI.isMenuPopup(e))
+		 {
+			 displayContextMenu(e);
+			 return;
+		 }
+	
     	if ((e.getModifiers() & MouseEvent.BUTTON3_MASK )!=0)
     		return;
         int row = getSelectedRow();
