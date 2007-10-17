@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.83 $ / $Date: 2007-10-16 20:07:56 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2007-10-17 14:29:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -654,7 +654,8 @@ public class GUI
     
     public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
-        //if (true) return null;
+        if (ext == Resource.EXTENSION_HTTP)
+            ext = "htm";
         
         if (ext == null)
             return null;
