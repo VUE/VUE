@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.28 $ / $Date: 2007-10-06 03:49:25 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2007-10-17 14:27:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -127,9 +127,9 @@ public class Images
             if (DEBUG.IMAGE) out("new " + this);
         }
 
-        BufferedImage getImage() {
+        BufferedImage getCachedImage() {
 
-            // if don't even have a ref, this was for an init-time persitent cache file
+            // if don't even have a ref, this was for an init-time persistent cache file
             if (imageRef == null)
                 return null;
 
@@ -152,7 +152,7 @@ public class Images
         }
 
         public String toString() {
-            return "CacheEntry[" + tag(getImage()) + "; file=" + file + "]";
+            return "CacheEntry[" + tag(getCachedImage()) + "; file=" + file + "]";
         }
     }
 
@@ -601,7 +601,7 @@ public class Images
             // Note: theoretically, the GC could have cleared our SoftReference
             // betwen loading the cache and now, tho this may never happen.
             
-            cachedImage = ((CacheEntry)Cache.get(imageSRC.key)).getImage();
+            cachedImage = ((CacheEntry)Cache.get(imageSRC.key)).getCachedImage();
             if (cachedImage == null)
                 Log.warn("Zealous GC: image tossed immediately " + imageSRC);
 
@@ -676,7 +676,7 @@ public class Images
             // on disk.
 
             CacheEntry ce = (CacheEntry) entry;
-            BufferedImage cachedImage = ce.getImage();
+            BufferedImage cachedImage = ce.getCachedImage();
                      	
             // if we have the image, we're done (it was loaded this runtime, and not GC'd)
             // if not, either it was GC'd, or it's a cache file entry from the persistent
@@ -1283,7 +1283,8 @@ public class Images
     }
     
     private static void out(Object o) {
-        Log.debug("Images " + (o==null?"null":o.toString()));
+        Log.debug(o);
+        //Log.debug((o==null?"null":o.toString()));
 
         /*
         String s = "Images " + (""+System.currentTimeMillis()).substring(8);

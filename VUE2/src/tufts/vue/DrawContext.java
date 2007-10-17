@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.51 $ / $Date: 2007-10-03 22:42:06 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-10-17 14:27:23 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -171,7 +171,7 @@ public final class DrawContext
     }
     
     public void setBackgroundFill(Color c) {
-        if (DEBUG.IMAGE) out("setFill: " + c);
+        //if (DEBUG.IMAGE) out("setFill: " + c);
         fillColor = c;
     }
     
