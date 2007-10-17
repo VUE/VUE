@@ -42,7 +42,8 @@ public class GetAssetViaRepositoryTest extends TestCase
 					// check asset metadata, if specified
 					AssetMetadataTest amt = new AssetMetadataTest(asset,repositoryElement,"");
 				} catch (Throwable t) {
-					fail("ID Manager Failed");
+					t.printStackTrace();
+					fail("No Repository with the ID " + repositoryIdString + " or no Asset with ID " + assetIdString + " or ID Manager Failed");
 				}
 			}
 		}

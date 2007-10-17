@@ -74,6 +74,8 @@ public class OsidTester extends TestCase
 	public static final String VERSION_ATTR = "version";
 	public static final String VALUE_ATTR = "value";
 	
+	private static final String VERBOSE_KEY = "OSIDTester";
+	
 	private org.osid.repository.RepositoryManager _repositoryManager = null;
 	private org.w3c.dom.Document _document = null;
 	private String _packagename = null;
@@ -296,7 +298,14 @@ public class OsidTester extends TestCase
 					String key = el.getAttribute(KEY_ATTR);
 					// assume values are not encrypted
 					String value = el.getAttribute(VALUE_ATTR);
-					properties.setProperty(key,value);
+					// special case for verbose flag
+					if (key.equals(VERBOSE_KEY)) {
+						if (value.toLowerCase().trim().equals("verbose")) {
+							Utilities.setVerbose(true);
+						} 
+					} else {
+						properties.setProperty(key,value);
+					}
 				}		
 
 				nl = configurationElement.getElementsByTagName(CONTEXT_TAG);

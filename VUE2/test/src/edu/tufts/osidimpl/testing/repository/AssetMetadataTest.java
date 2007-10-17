@@ -30,7 +30,7 @@ public class AssetMetadataTest extends TestCase
 	{
 		String expected = Utilities.expectedValue(assetElement,OsidTester.DISPLAY_NAME_TAG);
 		if (expected != null) {
-			System.out.println(expected);
+			if (Utilities.isVerbose()) System.out.println(expected);
 			assertEquals("seeking display name " + expected,expected,nextAsset.getDisplayName());
 			System.out.println("PASSED: Asset's Display Name " + index + " " + expected);
 		}
@@ -46,7 +46,7 @@ public class AssetMetadataTest extends TestCase
 			org.osid.shared.Id id = nextAsset.getId();
 			try {
 				String idString = id.getIdString();
-				System.out.println("asset's id is " + idString);
+				if (Utilities.isVerbose()) System.out.println("asset's id is " + idString);
 				assertEquals("seeking identifier " + expected,expected,idString);
 				System.out.println("PASSED: Asset's Id " + index + " " + expected);
 			} catch (org.osid.shared.SharedException iex) {
@@ -96,6 +96,8 @@ public class AssetMetadataTest extends TestCase
 						partValue = (String)ser;
 					} else if (ser instanceof Integer) {
 						partValue = ((Integer)ser).toString();
+					} else if (ser instanceof Double) {
+						partValue = ((Double)ser).toString();
 					} else if (ser instanceof String[]) {
 						// create a string that is the concatenation of
 						// string values in the array; use semicolon as delimiter

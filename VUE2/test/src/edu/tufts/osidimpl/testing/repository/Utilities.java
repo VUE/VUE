@@ -21,6 +21,17 @@ package edu.tufts.osidimpl.testing.repository;
 public class Utilities
 {
 	private static org.osid.id.IdManager _idManager = null;
+	private static boolean _verbose = false;
+	
+	public static void setVerbose(boolean v)
+	{
+		_verbose = v;
+	}
+	
+	public static boolean isVerbose()
+	{
+		return _verbose;
+	}
 	
 	public static String typeToString(org.osid.shared.Type type) 
 	{

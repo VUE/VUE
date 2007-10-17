@@ -114,10 +114,12 @@ public class GetAssetsBySearchTest extends TestCase
 																				searchType,
 																				searchProperties);
 								}
-								org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
+								if (assetIterator.hasNextAsset()) {
+									org.osid.repository.Asset nextAsset = assetIterator.nextAsset();
 									
-								// check asset metadata, if specified
-								AssetMetadataTest amt = new AssetMetadataTest(nextAsset,assetElement,(new Integer(j)).toString());
+									// check asset metadata, if specified
+									AssetMetadataTest amt = new AssetMetadataTest(nextAsset,assetElement,(new Integer(j)).toString());
+								}
 							}
 						}
 					}
