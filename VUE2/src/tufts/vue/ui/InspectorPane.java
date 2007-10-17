@@ -40,7 +40,7 @@ import edu.tufts.vue.metadata.ui.MetadataEditor;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.48 $ / $Date: 2007-10-16 17:48:04 $ / $Author: mike $
+ * @version $Revision: 1.49 $ / $Date: 2007-10-17 14:00:08 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -86,7 +86,7 @@ public class InspectorPane extends JPanel
         
         stack.addPane("Information",            mSummaryPane,           0f);
         stack.addPane("Content Preview",        mPreview,               0.3f);
-        stack.addPane("Content Info",           mResourceMetaData,      1f);
+        stack.addPane("Content Info",           mResourceMetaData,      0f);
         stack.addPane("Notes",                  mNotePanel,             1f);
         if(META_VERSION == OLD)
         {
