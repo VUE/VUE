@@ -82,10 +82,8 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-10-16 20:10:42 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2007-10-17 14:29:06 $ / $Author: sfraize $
  */
-
-// TODO: this class currently a humongous mess...
 
 public class URLResource extends Resource implements XMLUnmarshalListener
 {
@@ -116,12 +114,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     /** if non-null, is local file */ // todo: FileResource...
     private File mFile;
-    
-//     /** the metadata property map **/
-//     final private PropertyMap mProperties = new PropertyMap();
-    
-//     /** property name cache **/
-//     private String [] mPropertyNames = null;
     
     /** an optional resource title */
     protected String mTitle;
@@ -175,13 +167,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
     }
 
-    @Override
-    public String getContentType() {
-        if (mURL_Browse != null)
-            return extractExtension(mURL_Browse);
-        else
-            return super.getContentType();
-    }
+//     @Override
+//     public String getContentType() {
+//         if (mURL_Browse != null)
+//             return extractExtension(mURL_Browse);
+//         else
+//             return super.getContentType();
+//     }
     
     // todo: rename relativeName, and add a "shortName", for what CabinetResource provides
     // (which will also translate ':' to '/' on the mac)
@@ -278,7 +270,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return null;
         }
 
-        Util.dumpURI(absURI, "ORIGINAL");
+        if (DEBUG.Enabled) Util.dumpURI(absURI, "ORIGINAL");
         final URI relativeURI = root.relativize(absURI);
 
         if (relativeURI == absURI) {
@@ -287,11 +279,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return null;
         }
         
-        if (relativeURI != absURI)
-            Util.dumpURI(relativeURI, "RELATIVE");
+        if (relativeURI != absURI) {
+            if (DEBUG.Enabled) Util.dumpURI(relativeURI, "RELATIVE");
+        }
 
-
-        System.out.println(TERM_GREEN+"FOUND RELATIVE: " + relativeURI + TERM_CLEAR);        
+        if (DEBUG.Enabled) System.out.println(TERM_GREEN+"FOUND RELATIVE: " + relativeURI + TERM_CLEAR);        
 
         return relativeURI;
 
@@ -404,7 +396,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     public static URI makeURI(File f) {
         URI uri = f.toURI();
-        Util.dumpURI(uri, "NEW FILE URI FROM " + f);
+        if (DEBUG.RESOURCE) Util.dumpURI(uri, "NEW FILE URI FROM " + f);
         if (uri.getPath().startsWith("/C:"))
             return makeURI(uri.getPath().substring(3));
         else
@@ -421,10 +413,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         } catch (java.net.URISyntaxException e) {
             Util.printStackTrace(e, s);
         }
-        if (uri != null && uri.toString().equals(s))
-            System.err.println("            MADE URI: " + uri);
-        else
-            System.err.println("            MADE URI: " + uri + " src=[" + s + "]");
+        if (DEBUG.RESOURCE) {
+            if (uri != null && uri.toString().equals(s))
+                System.err.println("            MADE URI: " + uri);
+            else
+                System.err.println("            MADE URI: " + uri + " src=[" + s + "]");
+        }
         
         return uri;
     }

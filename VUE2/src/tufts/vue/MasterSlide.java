@@ -31,10 +31,12 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.3 $ / $Date: 2007-09-18 22:32:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.4 $ / $Date: 2007-10-17 14:28:25 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MasterSlide.class);
+    
     final static String TitleLabel = "Slide Title Style";
     final static String TextLabel = "Slide Text Style";
     final static String URLLabel = "Link";
@@ -245,14 +247,14 @@ public final class MasterSlide extends LWSlide
         return headerStyle;
     }
     public void setTitleStyle(LWComponent style) {
-        System.err.println("headerStyle=" + style);
+        if (DEBUG.Enabled) Log.debug("setHeaderStyle " + style);
         headerStyle = style;
     }
     public LWComponent getTextStyle() {
         return textStyle;
     }
     public void setTextStyle(LWComponent style) {
-        System.err.println("textStyle=" + style);
+        if (DEBUG.Enabled) Log.debug("setTextStyle " + style);
         textStyle = style;
     }
 
@@ -262,7 +264,7 @@ public final class MasterSlide extends LWSlide
     }
     
     public void setLinkStyle(LWComponent style) {
-        System.err.println("linkStyle=" + style);
+        if (DEBUG.Enabled) Log.debug("setLinkStyle " + style);
         linkStyle = style;
     }
 
