@@ -19,7 +19,10 @@
 package tufts.vue.ui;
 import tufts.vue.DEBUG;
 
+import tufts.vue.LWPathway;
+import tufts.vue.PathwayTableModel;
 import tufts.vue.Resource;
+import tufts.vue.VUE;
 import tufts.vue.VueResources;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.WidgetStack;
@@ -28,6 +31,11 @@ import java.util.*;
 import java.awt.*;
 import java.awt.dnd.*;
 import java.awt.datatransfer.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
@@ -39,10 +47,10 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.10 $ / $Date: 2007-03-23 20:28:09 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2007-10-17 00:18:47 $ / $Author: mike $
  */
 public class ResourceList extends JList
-    implements DragGestureListener, tufts.vue.ResourceSelection.Listener
+    implements DragGestureListener, tufts.vue.ResourceSelection.Listener, MouseListener,ActionListener
 {
     public static final Color DividerColor = VueResources.getColor("ui.resourceList.dividerColor", 204,204,204);
     
@@ -126,7 +134,8 @@ public class ResourceList extends JList
         mName = name;
         setFixedCellHeight(RowHeight);
         setCellRenderer(new RowRenderer());
-        
+        addMouseListener(this);
+        launchResource.addActionListener(this);
         // Set up the data-model
 
         //final javax.swing.DefaultListModel model;
@@ -359,6 +368,62 @@ public class ResourceList extends JList
             return this;
         }
     }
+	private void displayContextMenu(MouseEvent e) {
+        getPopup(e).show(e.getComponent(), e.getX(), e.getY());
+	}
+	
+	JPopupMenu m = null;
+	private static final JMenuItem launchResource = new JMenuItem("Launch Resource");
+	
+	private JPopupMenu getPopup(MouseEvent e) 
+	{
+		m = new JPopupMenu("Resource Menu");
+		
+		m.add(launchResource);
+		return m;
+	}
+	Point lastMouseClick = null;
+	
+	public void mouseClicked(MouseEvent arg0) {
+		 if (GUI.isMenuPopup(arg0))
+		 {
+			 	lastMouseClick = arg0.getPoint();
+				displayContextMenu(arg0);
+		 }
+		
+	}
+	
+	public void actionPerformed(ActionEvent e)
+	{
+		if (e.getSource().equals(launchResource))
+		{
+			int index = this.locationToIndex(lastMouseClick);
+			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
+			o.getResource().displayContent();
+			//this.get
+			//System.out.println(o.toString());
+		}
+	}
+
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
     
 }
 
