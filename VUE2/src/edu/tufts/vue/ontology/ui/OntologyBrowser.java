@@ -41,7 +41,7 @@ public class OntologyBrowser extends JPanel {
     
     JPanel ontologiesPanel;
     
-    private HashMap<String,Widget> widgetMap = new HashMap<String,Widget>();
+    private HashMap<OntologyBrowserKey,Widget> widgetMap = new HashMap<OntologyBrowserKey,Widget>();
     
     final static DockWindow ontologyDock = tufts.vue.gui.GUI.createDockWindow("Ontologies");;
     DockWindow typeDock;
@@ -72,7 +72,7 @@ public class OntologyBrowser extends JPanel {
         return selectedOntology;
     }
     
-    public Widget addTypeList(final edu.tufts.vue.ontology.ui.TypeList list,String name) {
+    public Widget addTypeList(final edu.tufts.vue.ontology.ui.TypeList list,String name,URL url) {
         list.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent listSelectionEvent) {
                 selectedOntology = list;
@@ -80,12 +80,26 @@ public class OntologyBrowser extends JPanel {
             }
         });
         
-        Widget w = new Widget("Loading " + name);
+        String loadingString = "Loading " + name;
+        
+        Widget w = null;// new Widget("Loading " + name);
+        
+        OntologyBrowserKey key = new OntologyBrowserKey(name,url);
+        Widget old = widgetMap.get(key);
+        
+        
+        
+        if(old!=null)
+        {
+           old.setHidden(true);
+           widgetMap.remove(old);
+        }
+        
+        w = new Widget(loadingString);
         w.add(list);
-        
-        widgetMap.put(name,w);
-        
+        widgetMap.put(new OntologyBrowserKey(name,url),w);
         resultsStack.addPane(w);
+        
         list.revalidate();
         w.revalidate();
         resultsStack.revalidate();
@@ -128,11 +142,13 @@ public class OntologyBrowser extends JPanel {
         
         for( edu.tufts.vue.ontology.Ontology o: edu.tufts.vue.ontology.OntManager.getOntManager().getOntList()) {
             TypeList list = new TypeList();
-            tufts.vue.gui.Widget w =  addTypeList(list, o.getLabel());
+           
+            tufts.vue.gui.Widget w = null;  
             try {
+               w = addTypeList(list, o.getLabel(),new URL(o.getBase()));
                list.loadOntology(new URL(o.getBase()),o.getStyle(),OntologyChooser.getOntType(new URL(o.getBase())),this,w);
             } catch(Exception ex) {
-                System.out.println("OntologyBrowser.inililiazeBrowser: "+ex);
+                System.out.println("OntologyBrowser.initializeBrowser: "+ex);
             }
             
         }
@@ -220,11 +236,15 @@ public class OntologyBrowser extends JPanel {
                 
                 try
                 {
+                  
+                    
                   edu.tufts.vue.ontology.Ontology ont = (edu.tufts.vue.ontology.Ontology)getBrowser().getViewer().getList().getSelectedValue();
-                  OntManager.getOntManager().removeOntology(new java.net.URL(ont.getBase()));
+                  URL ontURL = new java.net.URL(ont.getBase());
+                  
+                  OntManager.getOntManager().removeOntology(ontURL);
                   edu.tufts.vue.ontology.OntManager.getOntManager().save();
                                   
-                  Widget w = widgetMap.get(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()));
+                  Widget w = widgetMap.get(new OntologyBrowserKey(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),ontURL));
                   resultsStack.setHidden(w,true);
                   resultsStack.remove(w);
                   widgetMap.remove(w);
@@ -330,6 +350,37 @@ public class OntologyBrowser extends JPanel {
         while(i.hasNext()) {
             OntologySelectionListener osl = i.next();
             osl.ontologySelected(new OntologySelectionEvent(selection));
+        }
+    }
+    
+    // note: plan is that eventually user will be able to change display name
+    public class OntologyBrowserKey
+    {
+        private String displayName;
+        private URL identifyingURL;
+        
+        public OntologyBrowserKey(String displayName,URL identifyingURL)
+        {
+            this.displayName = displayName;
+            this.identifyingURL = identifyingURL;
+        }
+        
+        // note: *must* be overidden to use as key for map - see above
+        public int hashCode()
+        {
+            return displayName.hashCode() + identifyingURL.toString().hashCode();
+        }
+        
+        public boolean equals(Object o)
+        {
+            if(!(o instanceof OntologyBrowserKey))
+                return false;
+            else
+            {
+              OntologyBrowserKey key = (OntologyBrowserKey)o;
+              return (displayName.equals(key.displayName) && identifyingURL.toString().equals(
+                        key.identifyingURL.toString()));
+            }
         }
     }
     

@@ -303,7 +303,7 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                if(ontURL!=null && (cssURL == null))
                {
                        //edu.tufts.vue.ontology.Ontology ontology = edu.tufts.vue.ontology.OntManager.getOntManager().readOntology(ontURL,OntologyType.OWL_TYPE);
-                       tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()));
+                       tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()),ontURL);
                        //edu.tufts.vue.ontology.Ontology ontology = edu.tufts.vue.ontology.OntManager.getOntManager().
                         //                                        readOntology(ontURL,getOntType(ontURL));
                        //list.setModel(new TypeList.OntologyTypeListModel(ontology));
@@ -317,7 +317,7 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
                }
                if(ontURL != null && cssURL!=null)
                {
-                       tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()));
+                       tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()),ontURL);
                       // browser.getViewer().getList().updateUI();
                        list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w); 
                }

@@ -62,6 +62,18 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
         styleChooser.showOpenDialog(tufts.vue.VUE.getActiveViewer());
         java.io.File styleFile = styleChooser.getSelectedFile();
         System.out.println("RDFSooa: file, stylefile: " + file + "," + styleFile);
+        
+        java.net.URL fileURL = null;
+        
+        try
+        {
+            fileURL = file.toURL();
+        }
+        catch(java.net.MalformedURLException ex)
+        {
+              System.out.println("Exception in rdfs ontology load, couldn't load file: " + ex);
+        }
+        
         if(file!=null && styleFile!=null )
         {
           TypeList typeList = new TypeList();
@@ -69,7 +81,7 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
           {
             //java.net.URL fileURL = new java.net.URL("file:////"+file.getAbsolutePath());
             //java.net.URL cssURL = new java.net.URL("file:////" + styleFile.getAbsolutePath());
-            java.net.URL fileURL = file.toURL();
+            //java.net.URL fileURL = file.toURL();
             java.net.URL cssURL = styleFile.toURL();
               
             System.out.println("RDFS open action: fileURL, cssURL: " + fileURL + "," + cssURL);
@@ -100,7 +112,10 @@ public class RDFSOntologyOpenAction extends tufts.vue.VueAction {
               //System.out.println("rdfsooa: getPopulatePane() " + viewer.getBrowser().getPopulatePane());
               
              // viewer.getBrowser().getPopulatePane().add(typeList);
-              viewer.getBrowser().addTypeList(typeList,chooser.getSelectedFile().getName());
+              if(fileURL !=null)
+              {    
+                viewer.getBrowser().addTypeList(typeList,chooser.getSelectedFile().getName(),fileURL);
+              }
               //viewer.revalidate();
               //viewer.getBrowser().revalidate();
               viewer.getList().updateUI();

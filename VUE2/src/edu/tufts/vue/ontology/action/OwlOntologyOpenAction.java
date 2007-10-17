@@ -60,6 +60,18 @@ public class OwlOntologyOpenAction extends tufts.vue.VueAction {
         styleChooser.showOpenDialog(tufts.vue.VUE.getActiveViewer());
         java.io.File styleFile = styleChooser.getSelectedFile();
         System.out.println("OWLooa: file, stylefile: " + file + "," + styleFile);
+        
+        java.net.URL fileURL = null;
+        
+        try
+        {
+            fileURL = file.toURL();
+        }
+        catch(java.net.MalformedURLException ex)
+        {
+            System.out.println("owl open action couldn't load ontology file " + ex);
+        }
+        
         if(file!=null && styleFile!=null )
         {
           TypeList typeList = new TypeList();
@@ -68,7 +80,7 @@ public class OwlOntologyOpenAction extends tufts.vue.VueAction {
             //java.net.URL fileURL = new java.net.URL("file:////"+file.getAbsolutePath());
             //java.net.URL cssURL = new java.net.URL("file:////" + styleFile.getAbsolutePath());
               
-            java.net.URL fileURL = file.toURL();
+            //fileURL = file.toURL();
             java.net.URL cssURL = styleFile.toURL();
               
             System.out.println("owl open action: fileURL, cssURL: " + fileURL + "," + cssURL);
@@ -96,7 +108,10 @@ public class OwlOntologyOpenAction extends tufts.vue.VueAction {
           {
               //viewer.add(typeList);
               //viewer.getBrowser().getPopulatePane().add(typeList);
-              viewer.getBrowser().addTypeList(typeList,chooser.getSelectedFile().getName());
+              if(fileURL != null)
+              {
+                viewer.getBrowser().addTypeList(typeList,chooser.getSelectedFile().getName(),fileURL);
+              }
               //viewer.revalidate();
               viewer.getList().updateUI();
           }

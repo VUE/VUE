@@ -436,6 +436,8 @@ public class TypeList extends JList {
           loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));;
           loadingLabel.add(loadingLabelImage);
           loadingLabel.add(loadingLabelText);
+          
+          //widget.removeAll();
              
           widget.add(loadingLabel,java.awt.BorderLayout.NORTH);
           
