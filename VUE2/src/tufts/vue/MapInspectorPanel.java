@@ -36,7 +36,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-10-16 20:31:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.57 $ / $Date: 2007-10-17 14:52:48 $ / $Author: dan $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -102,6 +102,8 @@ public class MapInspectorPanel extends JPanel
         //mTabbedPane.addTab(metadataPanel.getName(),metadataPanel);
         mapInfoStack.addPane(mInfoPanel,0f);
         mapInfoStack.addPane(metadataPanel,0f);
+        
+        metadataPanel.adjustColumnModel();
         
         //Widget.setWantsScroller(mapInfoStack, true);
         
