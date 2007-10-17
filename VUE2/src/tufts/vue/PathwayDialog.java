@@ -95,7 +95,8 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
                 dialog.setVisible(true);
             } else {
             	LWPathway path = new LWPathway(pathLabel);
-                VUE.getActiveMap().addPathway(path);                             
+                VUE.getActiveMap().addPathway(path);
+                VUE.setActive(LWPathway.class, this, path);
                 dispose();
             }
         }
