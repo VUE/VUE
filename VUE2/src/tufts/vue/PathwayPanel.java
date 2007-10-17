@@ -49,7 +49,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.109 $ / $Date: 2007-10-16 21:02:29 $ / $Author: mike $
+ * @version $Revision: 1.110 $ / $Date: 2007-10-17 03:24:53 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -828,6 +828,7 @@ public class PathwayPanel extends JPanel
      	//updateTextAreas(entry);
         // todo: don't need to always do this: can track if active entry has actually changed
         updateEnabledStates();
+        
     }
     
     public void activeChanged(ActiveEvent e, LWPathway pathway) {
@@ -964,7 +965,12 @@ public class PathwayPanel extends JPanel
         		VUE.getSlideViewer().showMasterSlideMode();
         	}
         }*/
-        else if (btn == btnAddSlide)  { pathway.add(VUE.getSelection().iterator()); }
+        else if (btn == btnAddSlide)  { 
+
+        	if (!pathway.isOpen())
+        		pathway.setOpen(true);
+        	pathway.add(VUE.getSelection().iterator());
+        	}
         else if (btn == btnMergeInto)  {
             final LWComponent node = pathway.createMergedNode(VUE.getSelection());
             node.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
