@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.79 $ / $Date: 2007-10-16 20:36:13 $ / $Author: mike $
+ * @version $Revision: 1.80 $ / $Date: 2007-10-17 15:40:17 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -880,7 +880,7 @@ public class ActionUtil
 
             final File file = new File(url.getFile());
             final String fileName = file.getName();
-            
+
             if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
                 VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
                                             + "\nThe data model in this map is #%d, and this version of VUE only understands up to model #%d.\n",
@@ -896,18 +896,23 @@ public class ActionUtil
 
                 map.setLabel(fileName + " (as available)");
                 // Skip setting the file: this will force save-as if they try to save.
-            } else {
-                // This setFile also sets the label name, so it appears as a modification in the map.
-                // So be sure to do completeXMLRestore last, as it will reset the modification count.
-                if (map.getModelVersion() < 1) {
-                    map.setLabel(file.getName());
-                    // force save as for old maps as they will no longer work in old stable versions of VUE (1.5 & prior)
-                    // if they're saved in this new version of VUE.
-                } else {
-                    map.setFile(file);
-                }
-                if (DEBUG.Enabled)
-                    map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
+            }
+
+            if (true) { // VUE-173: do this always
+
+                map.setFile(file);
+                
+//                 // This setFile also sets the label name, so it appears as a modification in the map.
+//                 // So be sure to do completeXMLRestore last, as it will reset the modification count.
+//                 if (map.getModelVersion() < 1) {
+//                     map.setLabel(file.getName());
+//                     // force save as for old maps as they will no longer work in old stable versions of VUE (1.5 & prior)
+//                     // if they're saved in this new version of VUE.
+//                 } else {
+//                     map.setFile(file);
+//                 }
+                
+                if (DEBUG.Enabled) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
                 
             }
 
