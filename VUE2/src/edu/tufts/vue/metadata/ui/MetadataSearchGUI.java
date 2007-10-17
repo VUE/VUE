@@ -655,7 +655,7 @@ public class MetadataSearchGUI extends JPanel {
            else
            if(col == conditionColumn)
            {
-               String [] conditions = {"STARTS_WITH","CONTAINS"};
+               String [] conditions = {"starts with","contains"};
                final JComboBox conditionCombo = new JComboBox(conditions);
                conditionCombo.addItemListener(new ItemListener()
                {
@@ -663,7 +663,17 @@ public class MetadataSearchGUI extends JPanel {
                   {
                       if(ie.getStateChange() == ItemEvent.SELECTED)
                       {
-                          String[] statement = {((String[])(searchTerms.get(row).getObject()))[0],searchTerms.get(row).getValue(),conditionCombo.getSelectedItem().toString()};
+                          String condition = conditionCombo.getSelectedItem().toString();
+                          if(condition.equals("starts with"))
+                          {
+                              condition = "STARTS_WITH";
+                          }    
+                          else
+                          {
+                              condition = "CONTAINS";
+                          }
+                          
+                          String[] statement = {((String[])(searchTerms.get(row).getObject()))[0],searchTerms.get(row).getValue(),condition};
                           VueMetadataElement ele = new VueMetadataElement();
                           ele.setObject(statement);
                           ele.setType(VueMetadataElement.SEARCH_STATEMENT);
