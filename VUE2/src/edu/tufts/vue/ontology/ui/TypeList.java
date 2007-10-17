@@ -375,7 +375,7 @@ public class TypeList extends JList {
                     //System.out.println("image icon: " + ii);
                     //p.add(new JLabel(ii));
                     //g.drawImage(ii.getImage(),200,10,40,40,null);
-                    g.drawImage(ii.getImage(),200,5,26,26,null);
+                    g.drawImage(ii.getImage(),OntologyBrowser.getBrowser().getWidth()-40,5,26,26,null);
                   }
                 }
         }
