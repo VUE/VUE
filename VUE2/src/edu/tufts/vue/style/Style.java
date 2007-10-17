@@ -31,7 +31,7 @@ import java.util.*;
 
 public abstract class Style {
     public static final String[] DEFAULT_FONT_KEYS = { "font-family","font-size","font-color"};
-    public static final String[] DEFAULT_FONT_VALUES = {"Arial","10pt","#000000"};
+    public static final String[] DEFAULT_FONT_VALUES = {"Arial","12pt","#000000"};
     public static final int DEFAULT_FONT_FAMILY_KEY = 0;
     public static final int DEFAULT_FONT_SIZE_KEY = 1;
     public static final String FONT_COLOR_KEY = "font-color";
