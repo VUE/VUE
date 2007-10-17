@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.23 $ / $Date: 2007-10-17 14:28:11 $ / $Author: dan $
+ * @version $Revision: 1.24 $ / $Date: 2007-10-17 20:35:58 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -344,8 +344,9 @@ public class MapsSelectionPanel extends JPanel  {
         });
         maps.setDefaultRenderer(Object.class,new MapTableCellRenderer());
         maps.getColumnModel().getColumn(0).setMinWidth(40);
-        maps.getColumnModel().getColumn(1).setMinWidth(310);
-        maps.getColumnModel().getColumn(2).setMinWidth(50);
+        maps.getColumnModel().getColumn(1).setMinWidth(270);
+        maps.getColumnModel().getColumn(2).setMinWidth(40);
+        maps.getColumnModel().getColumn(2).setMaxWidth(45);
         maps.getColumnModel().getColumn(3).setMinWidth(80);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
