@@ -33,8 +33,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
- * @author  akumar03
+ * @version $Revision: 1.50 $ / $Date: 2007-10-17 14:28:57 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -404,6 +403,7 @@ public abstract class Resource
 
     public static final String NO_EXTENSION = "";
     public static final String EXTENSION_DIR = "dir";
+    public static final String EXTENSION_HTTP = "web";
 
     /**
      * Return a filename extension / file type of this resource (if any) suitable for identify it
@@ -413,28 +413,36 @@ public abstract class Resource
     // TODO: cache / allow setting (e.g. special data sources might be able to indicate type that's otherwise unclear
     // e.g., a URL query part that requests "type=jpeg")
     public String getContentType() {
-        String type = null;
-        
-        if (getClientType() == DIRECTORY)
-            type = EXTENSION_DIR;
-        else
-            type = extractExtension(getSpec());
+//         String type = null;
+//         if (getClientType() == DIRECTORY)
+//             type = EXTENSION_DIR;
+//         else
+//             type = extractExtension(getSpec());
 
-        if (type == NO_EXTENSION) {
-            if (getClientType() == FILE) {
-                // todo: this really ought to be in a FileResource and/or a useful osid filing impl
-                type = EXTENSION_DIR;
-                // assume a directory for now...
-            } 
+        String ext = extractExtension(getSpec());
+
+        if (ext == null || ext == NO_EXTENSION || ext.length() == 0) {
+            if (getSpec().startsWith("http:")) // todo: https, etc...
+                ext = EXTENSION_HTTP;
+            else
+                ext = EXTENSION_DIR;
         }
+        
+//         if (type == NO_EXTENSION) {
+//             if (getClientType() == FILE) {
+//                 // todo: this really ought to be in a FileResource and/or a useful osid filing impl
+//                 type = EXTENSION_DIR;
+//                 // assume a directory for now...
+//             } 
+//         }
 
-        Log.debug(getSpec() + "; extType=[" + type + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
-        return type;
+        out(getSpec() + "; extType=[" + ext + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
+        return ext;
     }
     
 
     /** @return the likely extension for the given string, or NO_EXTENSION if none found */
-    protected static String extractExtension(String s) {
+    protected static String extractExtension(final String s) {
 
         final char lastChar = s.charAt(s.length()-1);
         String ext = NO_EXTENSION;
@@ -457,22 +465,23 @@ public abstract class Resource
             } // else ext = NO_EXTENSION;
         }
 
-        Log.debug(s + "; ext=[" + ext + "]");
+
+        Log.debug("extract[" + s + "]; ext=[" + ext + "]");
         return ext;
     }
 
-    protected static String extractExtension(java.net.URL url) {
-        // if HTTP, could check query for stuff like =jpeg at the end
-        final String ext = extractExtension(url.getPath());
-        if (ext == NO_EXTENSION && "http".equals(url.getProtocol()))
-            return "html"; // presume a web document
-        else
-            return ext;
-    }
+//     protected static String extractExtension(java.net.URL url) {
+//         // if HTTP, could check query for stuff like =jpeg at the end
+//         final String ext = extractExtension(url.getPath());
+//         if (ext == NO_EXTENSION && "http".equals(url.getProtocol()))
+//             return "html"; // presume a web document
+//         else
+//             return ext;
+//     }
 
-    protected static String extractExtension(java.net.URI uri) {
-        return extractExtension(uri.getPath());
-    }
+//     protected static String extractExtension(java.net.URI uri) {
+//         return extractExtension(uri.getPath());
+//     }
     
 
     // TODO: create a multi-sized generic smart icon class that can cache / create well-sampled standard
@@ -514,7 +523,7 @@ public abstract class Resource
         if (mLargeIcon != null)
             return mLargeIcon;
         
-        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getContentType(), 128);
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getContentType(), 32);
         if (image != null) {
             if (image.getWidth(null) > 128) {
                 image = image.getScaledInstance(128, 128, 0); //Image.SCALE_SMOOTH);
@@ -625,8 +634,7 @@ public abstract class Resource
 
     
     protected void out(String s) {
-        //Log.info(getClass().getSimpleName() + "@" + Integer.toHexString(hashCode()) + ": " + s);
-        Log.info(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+        Log.debug(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
 }
 
