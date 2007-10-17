@@ -49,8 +49,8 @@ public class TextRow
     /** default FontRenderContext: anti-alias=true and fractional-metrics=false */
     private static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, false);
     
-    private TextLayout row;
-    private Rectangle2D.Float bounds;
+    private final TextLayout row;
+    private final Rectangle2D.Float bounds;
 
     public final String text;
     public final float width;
@@ -74,7 +74,10 @@ public class TextRow
     {
         this(text, font, DefaultFontContext);
     }
-    
+
+//     public Rectangle2D getBounds() {
+//         return bounds;
+//     }
         
     private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
     //private static final BasicStroke BorderStroke = new BasicStroke(1);
