@@ -173,6 +173,7 @@ public class TypeList extends JList {
               //System.out.println("TypeList createLWComponent - node with ontology url: "  + ontType.getOntology().getURL() +"#" + ontType.getLabel() );
                 
               String image = style.getAttribute("background-image");
+              
               if(image != null)
               {
                  System.out.println("TypeList: image not null");
@@ -304,6 +305,10 @@ public class TypeList extends JList {
            // comp.draw(dc);
             java.awt.Color old = g.getColor();
             g.setColor(getBackground());
+            // LabelFace is currently 11pt and probably not right familly/style?
+            //g.setFont(tufts.vue.gui.GUI.LabelFace);
+            // already defaults to 12...
+           // g.setFont(g.getFont().deriveFont(12.0f));
             g.fillRect(0,0,getWidth(),getHeight());
             g.setColor(old);
             if(!isNode(type))
@@ -457,7 +462,14 @@ public class TypeList extends JList {
           catch(Exception fnfe)
           {
               widget.remove(loadingLabel);
+              
+              System.out.println("load failure -- " + ontologyURL);
+              
               JLabel fileNotFound = new JLabel("File not found");
+              if(!ontologyURL.toString().contains("file:"))
+              {
+                  fileNotFound.setText("Location not found");
+              }
               fileNotFound.setBorder(javax.swing.BorderFactory.createEmptyBorder(10,5,10,0));
               widget.add(fileNotFound);
           }
