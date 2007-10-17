@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.66 $ / $Date: 2007-10-17 15:50:25 $ / $Author: anoop $
+ * @version $Revision: 1.67 $ / $Date: 2007-10-17 16:20:57 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -380,7 +380,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             };
             t.run();
             
-         
+            
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
@@ -388,21 +388,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         if(e.getActionCommand().equals(MODE_LABELS[1])){
             modeInfo.setText(PUBLISH_INFORMATION[3]);
         }
-        
-    }
-    private void   testPublishActiveMapToVUEDL() {
-        //      System.out.println("Button: "+ publishMapRButton.getActionCommand()+"class:"+publishMapRButton+" is selected: "+publishMapRButton.isSelected()+" Mode:"+modeButtons.getSelection());
-        //        System.out.println("Button: "+ publishMapAllRButton.getActionCommand()+"class:"+publishMapAllRButton+" is selected: "+publishMapAllRButton.isSelected());
-        //System.out.println("Button: "+ publishZipRButton.getActionCommand()+"class:"+publishZipRButton+" is selected: "+publishZipRButton.isSelected());
-        
-        if(publishMapRButton.isSelected())
-            FedoraPublisher.uploadMap("https", "vue-dl.tccs.tufts.edu", 8443, "fedoraAdmin", "vuefedora",VUE.getActiveMap());
-        else if(publishMapAllRButton.isSelected())
-            FedoraPublisher.uploadMapAll("https", "vue-dl.tccs.tufts.edu", 8443, "fedoraAdmin", "vuefedora",VUE.getActiveMap());
-        else
-            alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
-        
-        System.out.println("Selected"+ repList.getSelectedValue()+ " Class of selected:"+repList.getSelectedValue().getClass());
         
     }
     
@@ -420,8 +405,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 
                 
             }
-        } catch(org.osid.repository.RepositoryException ex) {
-            ex.printStackTrace();
+        } catch(Throwable t) {
+            t.printStackTrace();
+            alert(this,"An error while publishing.","Publish Error");
+            this.dispose();
         }
     }
     
