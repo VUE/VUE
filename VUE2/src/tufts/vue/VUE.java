@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.494 $ / $Date: 2007-10-16 20:49:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.495 $ / $Date: 2007-10-17 16:46:06 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1005,35 +1005,37 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Slide Viewer
         //-----------------------------------------------------------------------------
-        slideViewer = new tufts.vue.ui.SlideViewer(null);
-        slideDock = GUI.createDockWindow(slideViewer);
-        slideDock.setLocation(100,100);
-        VueAction defSize;
-        slideDock.setMenuActions(new Action[] {
-                Actions.ZoomFit,
-                Actions.ZoomActual,
-                defSize = new VueAction("1/8 Screen") {
-                    public void act() {
-                        GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
-                        Rectangle screen = gc.getBounds();
-                        slideDock.setContentSize(screen.width / 4, screen.height / 4);
-                    }
-                },
-                new VueAction("1/4 Screen") {
-                    public void act() {
-                        GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
-                        Rectangle screen = gc.getBounds();
-                        slideDock.setContentSize(screen.width / 2, screen.height / 2);
-                    }
-                },
-                new VueAction("Maximize") {
-                    public void act() {
-                        slideDock.setBounds(GUI.getMaximumWindowBounds(slideDock));
-                    }
-                },
+        if (DEBUG.Enabled) {
+            slideViewer = new tufts.vue.ui.SlideViewer(null);
+            slideDock = GUI.createDockWindow(slideViewer);
+            slideDock.setLocation(100,100);
+            VueAction defSize;
+            slideDock.setMenuActions(new Action[] {
+                    Actions.ZoomFit,
+                    Actions.ZoomActual,
+                    defSize = new VueAction("1/8 Screen") {
+                            public void act() {
+                                GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
+                                Rectangle screen = gc.getBounds();
+                                slideDock.setContentSize(screen.width / 4, screen.height / 4);
+                            }
+                        },
+                    new VueAction("1/4 Screen") {
+                        public void act() {
+                            GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
+                            Rectangle screen = gc.getBounds();
+                            slideDock.setContentSize(screen.width / 2, screen.height / 2);
+                        }
+                    },
+                    new VueAction("Maximize") {
+                        public void act() {
+                            slideDock.setBounds(GUI.getMaximumWindowBounds(slideDock));
+                        }
+                    },
                 
-            });
-        defSize.act();
+                });
+            defSize.act();
+        }
         
         
         //-----------------------------------------------------------------------------
@@ -1364,8 +1366,9 @@ public class VUE
         pathwayDock.positionWindowFromProperties();
 
        	formatDock.positionWindowFromProperties();
-        
-        slideDock.positionWindowFromProperties();
+
+        if (slideDock != null)
+            slideDock.positionWindowFromProperties();
         pannerDock.positionWindowFromProperties();
         MapInspector.positionWindowFromProperties();
         ObjectInspector.positionWindowFromProperties();
@@ -1808,7 +1811,8 @@ public class VUE
         pathwayDock.saveWindowProperties();
         if (formatDock != null)
         	formatDock.saveWindowProperties();
-        slideDock.saveWindowProperties();
+        if (slideDock != null)
+            slideDock.saveWindowProperties();
         pannerDock.saveWindowProperties();
         MapInspector.saveWindowProperties();
         ObjectInspector.saveWindowProperties();
