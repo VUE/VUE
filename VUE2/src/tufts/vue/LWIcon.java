@@ -47,6 +47,8 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 public abstract class LWIcon extends Rectangle2D.Float
     implements VueConstants
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWIcon.class);
+    
     private static final float DefaultScale = 0.045f; // scale to apply to the absolute size of our vector based icons
     private static final Color DefaultColor = VueResources.getColor("node.icon.color.foreground");
     private static final Font FONT_ICON = VueResources.getFont("node.icon.font");
@@ -388,7 +390,9 @@ public abstract class LWIcon extends Rectangle2D.Float
         // On PC, two underscores look better than "---" in default Trebuchet font,
         // which leaves the dashes high in the box.
     
-        TextRow mTextRow;
+        private TextRow mTextRow;
+        private String extension;
+        private Rectangle2D.Float boxBounds;
         
         Resource(LWComponent lwc) { super(lwc); }
         Resource(LWComponent lwc, Color c) {
@@ -516,12 +520,97 @@ public abstract class LWIcon extends Rectangle2D.Float
 //             return ttResource;
 //         }
 
-        void layout()
+//         void draw(DrawContext dc)
+//         {
+//             super.draw(dc);
+
+//             if (mLWC.hasResource()) {
+
+//                 // Draw a small image icon instead of the text "extension" icon
+                
+//                 final Image image;
+
+//                 if (!dc.isInteractive() || dc.getAbsoluteScale() >= 2) {
+//                     // non-interative: eg, printing or image generating
+//                     image = mLWC.getResource().getLargeIconImage();
+//                 } else
+//                     image = mLWC.getResource().getTinyIconImage();
+                
+//                 if (image != null) {
+//                     final double iw = image.getWidth(null);
+//                     final double ih = image.getHeight(null);
+//                      final AffineTransform tx = AffineTransform.getTranslateInstance(getX() + (getWidth() - 16) / 2,
+//                                                                                      getY() + (getHeight() - 16) / 2);
+//                     //final AffineTransform tx = AffineTransform.getScaleInstance(1.0/8.0, 1.0/8.0);
+//                     //final AffineTransform tx = new AffineTransform();
+//                     if (iw > 16)
+//                         tx.scale(16 / iw, 16 / iw);
+//                     //tx.scale(1.0/8.0, 1.0/8.0);
+//                     dc.g.drawImage(image, tx, null);
+//                     //return;
+//                 }
+//             }
+
+//             if (mTextRow == null)
+//                 return;
+
+//             double _x = getX();
+//             double _y = getY();
+
+//             dc.g.translate(_x, _y);
+//             dc.g.setColor(mColor);
+//             dc.g.setFont(FONT_ICON);
+
+//             float xoff = (super.width - mTextRow.width) / 2;
+//             float yoff = (super.height - mTextRow.height) / 2;
+//             mTextRow.draw(dc.g, xoff, yoff);
+
+//             // an experiment in semantic zoom
+//             // (SansSerif point size 1 MinisculeFont get's garbled on mac, so we don't do it there)
+//             if (!VueUtil.isMacPlatform() && mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
+//                 dc.g.setFont(MinisculeFont);
+//                 dc.g.setColor(Color.gray);
+//                 dc.g.drawString(mLWC.getResource().toString(), 0, (int)(super.height));
+//             }
+
+//             dc.g.translate(-x, -y);
+//         }
+
+        void layout() {
+            extension = null;
+            internalLayout();
+        }
+
+        private static final Color BoxFill = new Color(238, 238, 238);
+        private static final Color BoxBorder = new Color(149, 149, 149);
+        
+        void internalLayout()
         {
-//             String extension = NoResource;
-//             if (mLWC.hasResource())
-//                 extension = mLWC.getResource().getExtension();
-//             mTextRow = new TextRow(extension, FONT_ICON);
+            if (extension == null) {
+                if (mLWC.hasResource()) 
+                    extension = mLWC.getResource().getContentType();
+                if (extension == null || extension.length() < 1) {
+                    extension = NoResource;
+                } else if (extension.length() > 3) {
+                    extension = extension.substring(0,3);
+                }
+                Log.debug("EXTENSION["+extension+"]");
+                mTextRow = new TextRow(extension, FONT_ICON);
+            }
+            
+            if (boxBounds == null)
+                boxBounds = new Rectangle2D.Float();
+            
+            // todo: should only have to do this once, but we need to fix init
+            // so that this doesn't get called till Rectangle2D.this is fully positioned
+            boxBounds.setRect(this);
+            final float insetW = 2;
+            final float insetH = 0.5f;
+            boxBounds.x += insetW;
+            boxBounds.y += insetH;
+            boxBounds.width -= insetW * 2;
+            boxBounds.height -= insetH * 2;
+
 //             // Resource icon special case can override parent set width:
 //             super.width = mTextRow.width;
 //             if (super.width < super.mMinWidth)
@@ -530,94 +619,49 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         void draw(DrawContext dc)
         {
+            if (true || extension == null) // TODO PERF: sometimes starts with boxBounds wrong...
+                internalLayout();
+            
             super.draw(dc);
 
-            if (mLWC.hasResource()) {
-
-                // Draw a small image icon instead of the text "extension" icon
-                
-                final Image image;
-
-                if (!dc.isInteractive() || dc.getAbsoluteScale() >= 2) {
-                    // non-interative: eg, printing or image generating
-                    image = mLWC.getResource().getLargeIconImage();
-                } else
-                    image = mLWC.getResource().getTinyIconImage();
-                
-                if (image != null) {
-                    final double iw = image.getWidth(null);
-                    final double ih = image.getHeight(null);
-                     final AffineTransform tx = AffineTransform.getTranslateInstance(getX() + (getWidth() - 16) / 2,
-                                                                                     getY() + (getHeight() - 16) / 2);
-                    //final AffineTransform tx = AffineTransform.getScaleInstance(1.0/8.0, 1.0/8.0);
-                    //final AffineTransform tx = new AffineTransform();
-                    if (iw > 16)
-                        tx.scale(16 / iw, 16 / iw);
-                    //tx.scale(1.0/8.0, 1.0/8.0);
-                    dc.g.drawImage(image, tx, null);
-                    //return;
-                }
-            }
-
-            if (mTextRow == null)
-                return;
-
-            double _x = getX();
-            double _y = getY();
-
-            dc.g.translate(_x, _y);
+            dc.g.setColor(BoxFill);
+            dc.g.fill(boxBounds);
+            dc.g.setColor(BoxBorder);
+            dc.g.setStroke(STROKE_HALF);
+            dc.g.draw(boxBounds);
             dc.g.setColor(mColor);
             dc.g.setFont(FONT_ICON);
+            
 
-            float xoff = (super.width - mTextRow.width) / 2;
-            float yoff = (super.height - mTextRow.height) / 2;
-            mTextRow.draw(dc.g, xoff, yoff);
-
-            // an experiment in semantic zoom
-            // (SansSerif point size 1 MinisculeFont get's garbled on mac, so we don't do it there)
-            if (!VueUtil.isMacPlatform() && mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
-                dc.g.setFont(MinisculeFont);
-                dc.g.setColor(Color.gray);
-                dc.g.drawString(mLWC.getResource().toString(), 0, (int)(super.height));
-            }
-
-            dc.g.translate(-x, -y);
-        }
-
-        /*        
-        void draw(DrawContext dc)
-        {
-            super.draw(dc);
-            //dc.g.setColor(Color.black);
-            dc.g.setColor(mColor);
-            dc.g.setFont(FONT_ICON);
-            String extension = NoResource;
-            if (mLWC.hasResource())
-                extension = mLWC.getResource().getExtension();
+//             String extension = NoResource;
+//             if (mLWC.hasResource())
+//                 extension = mLWC.getResource().getExtension();
             double x = getX();
             double y = getY();
             dc.g.translate(x, y);
 
+
+            
             // todo perf: listen for resource change & cache text row
-            TextRow row = new TextRow(extension, dc.g);
+            //TextRow row = new TextRow(extension, dc.g);
+            final TextRow row = mTextRow;
             // Resource icon special case can override parent set width:
             if (super.width < row.width)
                 super.width = row.width;
-            float xoff = (super.width - row.width) / 2;
-            float yoff = (super.height - row.height) / 2;
-            row.draw(xoff, yoff);
+            final float xoff = (super.width - row.width) / 2;
+            final float yoff = (super.height - row.height) / 2;
+            row.draw(dc.g, xoff, yoff);
 
-            // an experiment in semantic zoom
-            //if (dc.zoom >= 8.0 && mLWC.hasResource()) {
-            if (mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
-                dc.g.setFont(MinisculeFont);
-                dc.g.setColor(Color.gray);
-                dc.g.drawString(mLWC.getResource().toString(), 0, (int)(super.height));
-            }
+//             // an experiment in semantic zoom
+//             //if (dc.zoom >= 8.0 && mLWC.hasResource()) {
+//             if (mLWC.hasResource() && dc.g.getTransform().getScaleX() >= 8.0) {
+//                 dc.g.setFont(MinisculeFont);
+//                 dc.g.setColor(Color.gray);
+//                 dc.g.drawString(mLWC.getResource().toString(), 0, (int)(super.height));
+//             }
 
             dc.g.translate(-x, -y);
         }
-        */
         
     }
 
