@@ -39,7 +39,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-10-16 20:10:51 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2007-10-17 14:27:18 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -58,7 +58,7 @@ public class CabinetResource extends URLResource
     
     private osid.filing.CabinetEntry entry = null;  //  This is not marshalled.
     
-    private int type = Resource.FILE;           //  Resource type.
+    //private int type = Resource.FILE;           //  Resource type.
     private boolean selected = false;           //  Selection flag.
              //  Object specification, usually URL.
     private String extension = null;                  //  Extension.
@@ -70,7 +70,7 @@ public class CabinetResource extends URLResource
      */
     public CabinetResource () {
         this.entry = entry;
-        this.type = Resource.URL;
+        //this.type = Resource.URL;
         if (DEBUG.RESOURCE) out("RESTORED");
     }
     
@@ -363,14 +363,14 @@ public class CabinetResource extends URLResource
 //         return new String ("");
 //     }
     
-    /**
-     *  Return the resource type.
-     *
-     *  @author Mark Norton
-     */
-    public int getType() {
-        return this.type;
-    }
+//     /**
+//      *  Return the resource type.
+//      *
+//      *  @author Mark Norton
+//      */
+//     public int getType() {
+//         return this.type;
+//     }
     
     /**
      *  Return the selected flag.
