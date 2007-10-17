@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.22 $ / $Date: 2007-10-11 17:26:42 $ / $Author: dan $
+ * @version $Revision: 1.23 $ / $Date: 2007-10-17 14:28:11 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -192,47 +192,52 @@ public class MapsSelectionPanel extends JPanel  {
         });
 
         JLabel stepOneLabel = new JLabel(stepOneMessage);
+        stepOneLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         gridBag.setConstraints(stepOneLabel,gridBagConstraints);
         //stepOneLabel.setBorder(BorderFactory.createEmptyBorder(15,0,0,0));
-        stepOneLabel.setBorder(BorderFactory.createEmptyBorder(5 + 5,15,2 + 5,5));
+        stepOneLabel.setBorder(BorderFactory.createEmptyBorder(5+2,15,5+2,7));
         add(stepOneLabel);
         
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBagConstraints.weightx = 0.0;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         
-        gridBagConstraints.insets = new Insets(5,0,5,0);
+        //gridBagConstraints.insets = new Insets(3,0,0,0);
         
         //gridBagConstraints.gridwidth = 1;
         // //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(browseButton,gridBagConstraints);
         browseButton.setOpaque(false);
+        browseButton.setFont(tufts.vue.gui.GUI.LabelFace);
         add(browseButton);
         
         gridBagConstraints.insets = new Insets(0,0,0,0);
         
         JLabel stepTwoLabel = new JLabel(stepTwoMessage);
+        stepTwoLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(stepTwoLabel,gridBagConstraints);
-        stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(5,15,5,5));
+        stepTwoLabel.setBorder(BorderFactory.createEmptyBorder(5+2,15,5+2,5));
         add(stepTwoLabel);  
 
         JLabel stepThreeLabel = new JLabel(stepThreeMessage);
+        stepThreeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBagConstraints.gridwidth = 1;
         gridBag.setConstraints(stepThreeLabel,gridBagConstraints);
-        stepThreeLabel.setBorder(BorderFactory.createEmptyBorder(5 + 5,15,2 + 5,5));
+        stepThreeLabel.setBorder(BorderFactory.createEmptyBorder(5+2,15,5+2,7));
         add(stepThreeLabel);  
         
         mapFilterChoice = new JComboBox(mapFilterChoices);
+        mapFilterChoice.setFont(tufts.vue.gui.GUI.LabelFace);
         
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBagConstraints.weightx = 0.0;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         
-        gridBagConstraints.insets = new Insets(5,0,5,0);
+        //gridBagConstraints.insets = new Insets(15,5,15,5);
         
         //gridBagConstraints.gridwidth = 1;
         // //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
