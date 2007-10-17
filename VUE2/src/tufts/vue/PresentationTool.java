@@ -342,6 +342,7 @@ public class PresentationTool extends VueTool
     private final List<NavNode> mNavNodes = new java.util.ArrayList();
 
     private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
+    private static final Font NavFontBold = new Font("SansSerif", Font.BOLD, 16);
     private static final Color NavFillColor = new Color(154,154,154);
     //private static final Color NavFillColor = new Color(64,64,64,96);
     private static final Color NavStrokeColor = new Color(96,93,93);
@@ -356,14 +357,14 @@ public class PresentationTool extends VueTool
 
         NavNode(Page destinationPage) 
         {
-            this(destinationPage, 200);
+            this(destinationPage, false);
         }
         
-        NavNode(Page destinationPage, int buttonWidth)
+        NavNode(Page destinationPage, boolean isLastPathwayPage)
         {
             super(null);
 
-            if (DEBUG.WORK) out("new NavNode for page " + destinationPage + "; width=" + buttonWidth);
+            if (DEBUG.WORK) out("new NavNode for page " + destinationPage + "; isLastPathway=" + isLastPathwayPage);
             
 
 //             if (destination == null)
@@ -398,7 +399,7 @@ public class PresentationTool extends VueTool
             
             //label = "    " + label + " ";
             setLabel(label);
-            setFont(NavFont);
+            setFont(isLastPathwayPage ? NavFontBold : NavFont);
             setTextColor(NavTextColor);
         
             if (false && pathway != null) {
@@ -420,8 +421,10 @@ public class PresentationTool extends VueTool
             
             //setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
             //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20)); // is default
-            setAutoSized(false); 
-            //setSize(200, getHeight() + 6);
+            setAutoSized(false);
+
+            int buttonWidth = isLastPathwayPage ? 300 : 200;
+            
             setSize(buttonWidth + SlideRoom, getHeight() + 6);
         }
 
@@ -1770,7 +1773,7 @@ private static int OverviewMapSizeIndex = 5;
     {
         // always add the current pathway at the top
         if (mLastPathwayPage != null)
-            mNavNodes.add(createNavNode(mLastPathwayPage, 300));
+            mNavNodes.add(createNavNode(mLastPathwayPage, true));
 //         //if (node.inPathway(mPathway))
 //         if (page.onPathway(mPathway))
 //             mNavNodes.add(createNavNode(page));
@@ -1906,9 +1909,9 @@ private static int OverviewMapSizeIndex = 5;
         return new NavNode(page);
     }
 
-    private NavNode createNavNode(Page page, int buttonWidth) {
+    private NavNode createNavNode(Page page, boolean isLastPathwayPage) {
         //if (DEBUG.WORK) out("creating nav node for page " + page);
-        return new NavNode(page, buttonWidth);
+        return new NavNode(page, isLastPathwayPage);
     }
     
 
