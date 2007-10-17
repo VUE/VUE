@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Iterator;
 
 import tufts.vue.gui.GUI;
 
@@ -477,7 +478,7 @@ public class PresentationNotes {
         }
         finally
         {
-        	   GUI.activateWaitCursor();
+        	GUI.clearWaitCursor();
         }
         
         // step 5: we close the document
@@ -594,7 +595,7 @@ public class PresentationNotes {
         }
         finally
         {
-        	   GUI.activateWaitCursor();
+        	GUI.clearWaitCursor();
         }
         
         // step 5: we close the document
@@ -784,7 +785,7 @@ public class PresentationNotes {
         }
         finally
         {
-        	   GUI.activateWaitCursor();
+        	GUI.clearWaitCursor();
         }
         
         // step 5: we close the document
@@ -853,13 +854,93 @@ public class PresentationNotes {
         }
         finally
         {
-        	   GUI.activateWaitCursor();
+        	GUI.clearWaitCursor();
         }
         // step 5: we close the document
         document.close();
         
     }
 
+	public static void createNodeOutline(File file)
+	{
+		//page size notes:
+		//martin-top,left,right,bottom = 36
+		//widht :612
+		//height : 792
+		//usable space 540 x 720
+        // step 1: creation of a document-object					
+        Document document = new Document(PageSize.LETTER);
+        
+        try {
+        	   GUI.activateWaitCursor();
+            // step 2:
+            // we create a writer that listens to the document
+            // and directs a PDF-stream to a file            
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
+          //  writer.setDefaultColorspace(PdfName.DEFAULTRGB, null);
+           // writer.setStrictImageSequence(true);
+            
+            // step 3: we open the document
+            document.open();
+
+            Paragraph p1 = new Paragraph(VUE.getActiveMap().getLabel());
+            
+            p1.setSpacingAfter(15.0f);
+            Font f = p1.getFont();
+            f.setStyle(Font.BOLD);
+            p1.setFont(f);
+			document.add(p1);
+			
+			String n2 =VUE.getActiveMap().getNotes();
+			if (n2 != null && n2.length() > 0)
+			{
+				Paragraph p2 = new Paragraph(n2);
+				p2.setIndentationLeft(15.0f);
+				p2.setSpacingAfter(15.0f);
+				f = p2.getFont();
+				f.setSize(f.getSize()-2);
+				p2.setFont(f);
+				document.add(p2);
+			}
+            
+			int entryCount=1;
+            Iterator it = VUE.getActiveMap().getNodeIterator();
+            while (it.hasNext())            
+            {
+            	LWNode n = (LWNode)it.next();
+                String notes = n.getNotes();
+                Paragraph p = new Paragraph(entryCount + ".  " + n.getLabel());
+                f = p.getFont();
+                f.setStyle(Font.BOLD);
+                p.setFont(f);
+                Paragraph notesP = new Paragraph(notes);
+                f = notesP.getFont();
+				f.setSize(f.getSize()-2);
+				notesP.setFont(f);
+                notesP.setIndentationLeft(15.0f);                
+                notesP.setSpacingAfter(15.0f);
+                document.add(p);
+                document.add(notesP);
+                
+                
+                entryCount++;
+            }
+            
+        }
+        catch(DocumentException de) {
+            System.err.println(de.getMessage());
+        }
+        catch(IOException ioe) {
+            System.err.println(ioe.getMessage());
+        }
+        finally
+        {
+        	GUI.clearWaitCursor();
+        }
+        // step 5: we close the document
+        document.close();
+        
+    }
 }
 
 
