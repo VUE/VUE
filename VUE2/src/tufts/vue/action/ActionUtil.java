@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.81 $ / $Date: 2007-10-17 15:43:10 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2007-10-17 15:43:32 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -881,7 +881,7 @@ public class ActionUtil
             final File file = new File(url.getFile());
             final String fileName = file.getName();
 
-            map.setFile(file); // VUE-173: do this always:
+            map.setFile(file); // VUE-713: do this always:
 
             if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
                 VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
@@ -900,7 +900,7 @@ public class ActionUtil
                 // Skip setting the file: this will force save-as if they try to save.
             } else {
 
-// VUE-173: don't do this conditionallly
+// VUE-713: don't do this conditionallly
 //                 // This setFile also sets the label name, so it appears as a modification in the map.
 //                 // So be sure to do completeXMLRestore last, as it will reset the modification count.
 //                 if (map.getModelVersion() < 1) {
