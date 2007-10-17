@@ -47,7 +47,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.11 $ / $Date: 2007-10-17 00:18:47 $ / $Author: mike $
+ * @version $Revision: 1.12 $ / $Date: 2007-10-17 02:10:55 $ / $Author: mike $
  */
 public class ResourceList extends JList
     implements DragGestureListener, tufts.vue.ResourceSelection.Listener, MouseListener,ActionListener
@@ -385,11 +385,7 @@ public class ResourceList extends JList
 	Point lastMouseClick = null;
 	
 	public void mouseClicked(MouseEvent arg0) {
-		 if (GUI.isMenuPopup(arg0))
-		 {
-			 	lastMouseClick = arg0.getPoint();
-				displayContextMenu(arg0);
-		 }
+		 
 		
 	}
 	
@@ -416,13 +412,19 @@ public class ResourceList extends JList
 	}
 
 	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+		if (e.isPopupTrigger())
+		 {
+			 	lastMouseClick = e.getPoint();
+				displayContextMenu(e);
+		 }
 	}
 
 	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
+		if (e.isPopupTrigger())
+		 {
+			 	lastMouseClick = e.getPoint();
+				displayContextMenu(e);
+		 }
 	}
     
 }
