@@ -380,8 +380,10 @@ public class Actions implements VueConstants
      {
     	public void act()
     	{
+            if (VUE.getSlideDock() != null) {
     		VUE.getSlideDock().setVisible(true);
     		VUE.getSlideViewer().showMasterSlideMode();
+            }
     	}
      };
      public static final Action PreviewOnMap =
