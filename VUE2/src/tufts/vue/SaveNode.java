@@ -41,21 +41,21 @@ public class SaveNode {
     private Resource resource;
     private Vector children;
     
-    public SaveNode(){
-    }
+    public SaveNode() {}
     
-    public SaveNode(ResourceNode resourceNode){
-        Enumeration e = resourceNode.children();
-        this.setResource(resourceNode.getResource());
-        if (DEBUG.Enabled) Log.debug("created for " + resourceNode.getResource().asDebug());
-        if(resource.getClientType() != Resource.FILE) {
-            Vector v = new Vector();
+    public SaveNode(ResourceNode resourceNode) {
+        setResource(resourceNode.getResource());
+        if (DEBUG.Enabled) Log.debug("created for " + resource.asDebug());
+        if (resource.getClientType() != Resource.FILE) {
+      //if (!resource.isLocalFile()) {
+            final Enumeration e = resourceNode.children();
+            final Vector v = new Vector();
             while (e.hasMoreElements()) {
                 ResourceNode newResNode =(ResourceNode)e.nextElement();
                 SaveNode child = new SaveNode(newResNode);
                 v.add(child);
             }
-            this.setChildren(v);
+            setChildren(v);
         }
     }
     
