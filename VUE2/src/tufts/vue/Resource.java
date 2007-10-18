@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.51 $ / $Date: 2007-10-18 17:50:55 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2007-10-18 19:35:24 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -232,6 +232,8 @@ public abstract class Resource
     final protected PropertyMap mProperties = new PropertyMap();
 
     static final long SIZE_UNKNOWN = -1;
+
+    private int mType = Resource.NONE;
     
     private long mByteSize = SIZE_UNKNOWN;
     private long mReferenceCreated;
@@ -369,7 +371,16 @@ public abstract class Resource
     /** 
      * Return the resource type.  This should be one of the types defined above.
      */
-    public abstract int getClientType();
+    public int getClientType() {
+        return mType;
+    }
+    
+    /** TODO:  need to remove this -- if we keep any type at all, it should at least be inferred
+     * -- probably replace with a setClientType(Object) -- a general marker that clients / UI components can use
+     */
+    protected void setClientType(int type) {
+        mType = type;
+    }
     
     /**
      *  Display the content associated with the resource.  For example, call
@@ -436,7 +447,7 @@ public abstract class Resource
 //             } 
 //         }
 
-        out(getSpec() + "; extType=[" + ext + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
+        if (DEBUG.RESOURCE) out(getSpec() + "; extType=[" + ext + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
         return ext;
     }
     
@@ -466,7 +477,7 @@ public abstract class Resource
         }
 
 
-        Log.debug("extract[" + s + "]; ext=[" + ext + "]");
+        if (DEBUG.RESOURCE) Log.debug("extract[" + s + "]; ext=[" + ext + "]");
         return ext;
     }
 
@@ -639,6 +650,19 @@ public abstract class Resource
                              TYPE_NAMES[getClientType()],
                              getSpec());
     }
+
+    public String toString() {
+        return asDebug();
+    }
+    
+//     public String toString() {
+//         if (mProperties == null)
+//             return getSpec();
+//         else
+//             return getSpec();+ " " + mProperties;
+//     }
+
+
 
     
     protected void out(String s) {
