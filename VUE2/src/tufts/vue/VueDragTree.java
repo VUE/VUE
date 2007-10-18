@@ -50,7 +50,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.66 $ / $Date: 2007-10-11 03:59:55 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-10-18 19:37:01 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -73,10 +73,12 @@ public class VueDragTree extends JTree
 
     private static final boolean SlowStartup = VueUtil.isMacPlatform() && !DEBUG.Enabled;
     
-    public VueDragTree(Object  obj, String treeName) {
+    public VueDragTree(Object obj, String treeName) {
+        //Util.printStackTrace("NEW: " + getClass() + "; " + treeName + "; " + obj);
+        if (DEBUG.Enabled) Log.debug("NEW: " + treeName + "; " + obj);
         setModel(createTreeModel(obj, treeName));
         setName(treeName);
-        this.setRootVisible(true);
+        setRootVisible(true);
         if (SlowStartup) {
             this.expandRow(0);
             this.expandRow(1);
@@ -106,6 +108,22 @@ public class VueDragTree extends JTree
         if (DEBUG.SELECTION) Util.printStackTrace(GUI.namex(this) + " constructed from obj " + obj + " treeName " + treeName);
     }
     
+    public VueDragTree(FavoritesNode favoritesNode) {
+
+        //Util.printStackTrace("NEW: " + getClass() + "; " + favoritesNode + "; " + favoritesNode.getResource());
+        if (DEBUG.Enabled) Log.debug("NEW: " + favoritesNode + "; " + favoritesNode.getResource());;
+
+        setName(favoritesNode.toString());
+        setModel(new DefaultTreeModel(favoritesNode));
+        expandRow(0);
+        createPopupMenu();
+        implementDrag(this);
+        addTreeSelectionListener(this);
+
+        if (DEBUG.SELECTION) Util.printStackTrace(GUI.namex(this) + " constructed from FavoritesNode " + favoritesNode);
+        
+    }
+
     /*
     public VueDragTree(Object  obj,
                                            String treeName,
@@ -127,20 +145,7 @@ public class VueDragTree extends JTree
         addTreeSelectionListener(this);
     }
      */
-    
-    public VueDragTree(FavoritesNode favoritesNode) {
-        setModel(new DefaultTreeModel(favoritesNode));
-        
-        setName(favoritesNode.toString());
-        this.expandRow(0);
-        createPopupMenu();
-        
-        implementDrag(this);
-        addTreeSelectionListener(this);
 
-        if (DEBUG.SELECTION) Util.printStackTrace(GUI.namex(this) + " constructed from FavoritesNode " + favoritesNode);
-        
-    }
 
     public void addNotify() {
         super.addNotify();
@@ -227,6 +232,7 @@ public class VueDragTree extends JTree
             Iterator i = (Iterator)obj;
             while (i.hasNext()){
                 Object resource = i.next();
+                Log.info("\tchild: " + resource);
                 if (resource instanceof CabinetResource) {
                     CabinetResource cabRes = (CabinetResource) resource;
                     CabinetEntry entry = cabRes.getEntry();
@@ -538,6 +544,7 @@ class ResourceNode extends DefaultMutableTreeNode {
     public Resource getResource() {
         return resource;
     }
+    
     public String toString() {
         String title = resource.getTitle();
         if (title == null || title.length() == 0)
@@ -760,8 +767,8 @@ class FavoritesNode extends ResourceNode {
     private boolean explored = false;
     public FavoritesNode(Resource resource){
         super(resource);
-        
-        
+        // ensure is marked as favorites (some versions of VUE may have left marked as type NONE)
+        resource.setClientType(Resource.FAVORITES);
     }
     public boolean isExplored() { return explored; }
     /*
