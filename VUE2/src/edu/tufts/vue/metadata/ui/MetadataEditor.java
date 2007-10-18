@@ -55,7 +55,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     public final static boolean LIMITED_FOCUS = false;
     
-    public final static String TAG_ONT = tufts.vue.VueResources.getString("metadata.vue.url" + "#Tag");
+    public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
     
     private JTable metadataTable;
     private JScrollPane scroll;
