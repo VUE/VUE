@@ -82,15 +82,13 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.33 $ / $Date: 2007-10-18 19:34:54 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2007-10-18 21:32:47 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(URLResource.class);
     
-    public static final String SPEC_UNSET = "<spec-unset>";
-
     private static final String BROWSE_KEY = "@Browse";
     private static final String IMAGE_KEY = "@Image";
     private static final String THUMB_KEY = "@Thumb";
@@ -227,8 +225,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             pretty += nl + spec + " (spec)";
             if (mRelativeURI != null) 
                 pretty += nl + "URI-RELATIVE: " + mRelativeURI;
-            pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
-                + " impl=" + getClass().getName() + " ext=[" + getContentType() + "]";
+            pretty += nl + String.format("%s ext=[%s]", asDebug(), getContentType());
+//             pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
+//                 + " impl=" + getClass().getName() + " ext=[" + getContentType() + "]";
             if (isLocalFile())
                 pretty += " (isLocal)";
             //pretty += nl + "localFile=" + isLocalFile();
@@ -620,6 +619,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 */
     
     /** @see tufts.vue.Resource */
+    @Override
     public Object getImageSource() {
         if (mURL_Image != null)
             return mURL_Image;
@@ -761,7 +761,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             out("setSpec " + spec);
             //Util.printStackTrace("setSpec " + spec);
         }
-        
+
+        if (SPEC_UNSET.equals(spec)) {
+            this.spec = SPEC_UNSET;
+            return;
+        }
+
+                
         // TODO: will want generic ability to set the reference created
         // date lazily, as it doesn't make sense with CabinetResource, for example,
         // to set that until a user actually drag's one and makes use of it.
