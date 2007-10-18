@@ -64,7 +64,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     public static final String styleSheetMessage = "(*can be added later)";
     
     private static String lastDirectory;
-    private static String lastCSSDirectory;
+   // private static String lastCSSDirectory;
     
     private int ontologySelectionType;
     private int cssSelectionType;
@@ -637,11 +637,11 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         if(e.getSource() == cssBrowseButton)
         {
             JFileChooser cssChooser = new JFileChooser();
-            if(lastCSSDirectory !=null)
+            if(lastDirectory !=null)
             {
               try
               {
-                cssChooser.setSelectedFile(new File(lastCSSDirectory));
+                cssChooser.setSelectedFile(new File(lastDirectory));
               }
               catch(Exception exc)
               {
@@ -656,7 +656,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
             }
             if(cssSelectedFile!=null)
             {    
-              lastCSSDirectory = cssSelectedFile.getParent();
+              lastDirectory = cssSelectedFile.getParent();
             }
             if(cssSelectedFile!=null)
             {
