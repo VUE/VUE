@@ -201,6 +201,9 @@ public class OntologyBrowser extends JPanel {
                   edu.tufts.vue.ontology.OntManager.getOntManager().save();
                                   
                   Widget w = widgetMap.get(new OntologyBrowserKey(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),ontURL));
+                  
+                  System.out.println("TypeList remove w from key: " + w);
+                  
                   resultsStack.setHidden(w,true);
                   resultsStack.remove(w);
                   widgetMap.remove(w);
@@ -233,12 +236,15 @@ public class OntologyBrowser extends JPanel {
                 TypeList list = new TypeList();
                 URL ontURL = VueResources.getURL("fedora.ontology.rdf");
                 URL cssURL = VueResources.getURL("fedora.ontology.css");
-                tufts.vue.gui.Widget w = addTypeList(list,"Fedora Relationships",ontURL);
+                //tufts.vue.gui.Widget w = addTypeList(list,"Fedora Relationships",ontURL);
+                tufts.vue.gui.Widget w = addTypeList(list,edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()),ontURL);
                 list.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),OntologyBrowser.this,w);
+                TypeList list2 = new TypeList();
                 ontURL = VueResources.getURL("fedora.support.ontology.rdf");
                 cssURL = VueResources.getURL("fedora.support.ontology.css");
-                tufts.vue.gui.Widget w2 = addTypeList(list,"Fedora node",ontURL);
-                list.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),OntologyBrowser.this,w2);
+                //tufts.vue.gui.Widget w2 = addTypeList(list2,"Fedora node",ontURL);
+                tufts.vue.gui.Widget w2 = addTypeList(list2,edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()),ontURL);
+                list2.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),OntologyBrowser.this,w2);
             }
             
         };
