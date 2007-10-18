@@ -47,9 +47,6 @@ import tufts.vue.VueUtil;
  */
 public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.event.ActionListener {
     
-    public static final int FILE = 0;
-    public static final int URL = 1;
-    
     public static final int ONT_CHOOSER_WIDTH = 500;
     public static final int ONT_CHOOSER_HEIGHT = 420;
     public static final int ONT_CHOOSER_X_LOCATION = 300;
@@ -62,6 +59,11 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     public static final String cssFileMessage = "Select file:";
     public static final String typeURLMessage = "Type in a URL:";
     public static final String styleSheetMessage = "(*can be added later)";
+    
+    // change order of these values for URL first and 5 lines below
+    // (see comments)
+    public static final int BROWSE = 0;
+    public static final int URL = 1;
     
     private static String lastDirectory;
    // private static String lastCSSDirectory;
@@ -117,7 +119,9 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         setModal(true);
         setSize(ONT_CHOOSER_WIDTH,ONT_CHOOSER_HEIGHT);
         
-        String[] choices = {"on the web","in a local folder"};
+        //for URL first -- also change 4 lines below and order of constants above
+        //String[] choices = {"on the web","in a local folder"};
+        String[] choices = {"in a local folder","on the web"};
         
         cssChoice = new JComboBox(choices);
         ontChoice = new JComboBox(choices);
@@ -141,6 +145,9 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         
         getContentPane().setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         getContentPane().add(mainPanel);
+        
+        //ontChoice.setSelectedIndex(BROWSE);
+        //cssChoice.setSelectedIndex(BROWSE);
         
         setVisible(true);
     }
@@ -189,8 +196,11 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         mainPanel.add(ontChoicePanel);
         c.insets = new Insets(10,10,10,10);
 
-        gridBag.setConstraints(ontURLPanel,c);
-        mainPanel.add(ontURLPanel);
+        //for url first
+        //gridBag.setConstraints(ontURLPanel,c);
+        //mainPanel.add(ontURLPanel);
+        gridBag.setConstraints(ontBrowsePanel,c);
+        mainPanel.add(ontBrowsePanel);
         
         c.fill = GridBagConstraints.HORIZONTAL;
 
@@ -207,8 +217,11 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         gridBag.setConstraints(cssChoicePanel,c);
         mainPanel.add(cssChoicePanel);
         
-        gridBag.setConstraints(cssURLPanel,c);
-        mainPanel.add(cssURLPanel);
+        //for URL first
+        //gridBag.setConstraints(cssURLPanel,c);
+        //mainPanel.add(cssURLPanel);
+        gridBag.setConstraints(cssBrowsePanel,c);
+        mainPanel.add(cssBrowsePanel);
         
         //styleSheetMessageLabel.setText(styleSheetMessage);
         //gridBag.setConstraints(styleSheetMessageLabel,c);
@@ -388,7 +401,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     
     public void reLayoutStartingAtCSS(boolean keep)
     {
-            if(cssChoice.getSelectedIndex() == 0)
+            if(cssChoice.getSelectedIndex() == URL)
             {
                 if(!keep)
                 {
@@ -412,7 +425,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                 validate();
                 //repaint();
             }
-            if(cssChoice.getSelectedIndex() == 1)
+            if(cssChoice.getSelectedIndex() == BROWSE)
             {
                 if(!keep)
                 {
@@ -442,7 +455,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         if(e.getSource() == ontChoice)
         {
             c.anchor = GridBagConstraints.WEST;
-            if(ontChoice.getSelectedIndex() == 0)
+            if(ontChoice.getSelectedIndex() == URL)
             {
                 mainPanel.remove(buttonPanel);
                 mainPanel.remove(lineLabel2);
@@ -480,7 +493,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                 validate();
                 //repaint();
             }
-            if(ontChoice.getSelectedIndex() == 1)
+            if(ontChoice.getSelectedIndex() == BROWSE)
             {
                 mainPanel.remove(buttonPanel);
                 mainPanel.remove(lineLabel2);
@@ -522,7 +535,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         {
              
         
-            if(ontChoice.getSelectedIndex() == 0)
+            if(ontChoice.getSelectedIndex() == URL)
             {
                    try
                    {
@@ -535,7 +548,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                    }
             }
             
-            if(ontChoice.getSelectedIndex() == 1)
+            if(ontChoice.getSelectedIndex() == BROWSE)
             {
                    try
                    {
@@ -550,7 +563,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                    }
             }
             
-            if(cssChoice.getSelectedIndex() == 0)
+            if(cssChoice.getSelectedIndex() == URL)
             {
                    try
                    {
@@ -563,7 +576,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                    }
             }
             
-            if(ontChoice.getSelectedIndex() == 1)
+            if(ontChoice.getSelectedIndex() == BROWSE)
             {
                    try
                    {
