@@ -611,7 +611,9 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
             { 
               try
               {
-                ontChooser.setSelectedFile(new File(lastDirectory));
+                // note: this next line didn't work on windows xp!
+                //ontChooser.setSelectedFile(new File(lastDirectory));
+                ontChooser.setCurrentDirectory(new File(lastDirectory));
               }
               catch(Exception exc)
               {
@@ -641,7 +643,9 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
             {
               try
               {
-                cssChooser.setSelectedFile(new File(lastDirectory));
+                  // see note above for ontology chooser
+                  //cssChooser.setSelectedFile(new File(lastDirectory));
+                  cssChooser.setCurrentDirectory(new File(lastDirectory));
               }
               catch(Exception exc)
               {
@@ -655,7 +659,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
               cssSelectedFile = cssChooser.getSelectedFile();
             }
             if(cssSelectedFile!=null)
-            {    
+            {      
               lastDirectory = cssSelectedFile.getParent();
             }
             if(cssSelectedFile!=null)
