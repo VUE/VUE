@@ -42,6 +42,8 @@ import java.util.*;
  */
 public class MetadataSearchGUI extends JPanel {
     
+    private static final boolean DEBUG_LOCAL = true;
+    
     public static final int ONE_LINE = 0;
     public static final int MULTIPLE_FIELDS = 1;
     
@@ -291,7 +293,7 @@ public class MetadataSearchGUI extends JPanel {
                if(e.getX()>searchTermsTable.getWidth()-BUTTON_COL_WIDTH)
                {
                  VueMetadataElement newElement = new VueMetadataElement();
-                 String statementObject[] = {"http://vue.tufts.edu/vue#Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                 String statementObject[] = {MetadataEditor.TAG_ONT,"",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
                  newElement.setObject(statementObject);
                  newElement.setType(VueMetadataElement.SEARCH_STATEMENT);
                  searchTerms.add(newElement);
@@ -913,7 +915,7 @@ public class MetadataSearchGUI extends JPanel {
                 //String pairedValue[] = {"Tag","STARTS_WITH",""};
                 //vme.setObject(pairedValue);
                 
-                String statementObject[] = {"http://vue.uit.tufts.edu#Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                String statementObject[] = {MetadataEditor.TAG_ONT,"",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
                 vme.setObject(statementObject);
                 vme.setType(VueMetadataElement.SEARCH_STATEMENT);
                 
