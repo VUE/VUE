@@ -118,7 +118,7 @@ public class SearchPanel extends JPanel{
                System.out.println(r.getTitle()+" "+r.getUrl());
            } 
           
-                VueDragTree tree = new VueDragTree(resultVector.iterator(),"GoogleSearchResults");
+                VueDragTree tree = new VueDragTree(resultVector,"GoogleSearchResults");
                 tree.setEditable(true);
                 tree.setRootVisible(false);
               

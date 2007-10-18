@@ -46,7 +46,7 @@ import org.xml.sax.InputSource;
 
 /**
  * @author  RSaigal
- * @version $Revision: 1.20 $ / $Date: 2007-10-06 03:06:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.21 $ / $Date: 2007-10-18 20:46:27 $ / $Author: sfraize $ 
  */
 public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
     JTabbedPane googlePane;
@@ -232,7 +232,7 @@ public class TuftsGoogle extends JPanel implements ActionListener,KeyListener{
                     System.out.println(r.getTitle()+" "+r.getUrl());
                     
                 }
-                VueDragTree tree = new VueDragTree(resultVector.iterator(),"GoogleSearchResults");
+                VueDragTree tree = new VueDragTree(resultVector,"GoogleSearchResults");
                 tree.setEditable(true);
                 tree.setRootVisible(false);
                 googleResultsPanel.remove(jsp);

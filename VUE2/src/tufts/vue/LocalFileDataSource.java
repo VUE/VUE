@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.19 2007-10-11 03:56:33 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.20 2007-10-18 20:46:27 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.19 $ / $Date: 2007-10-11 03:56:33 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007-10-18 20:46:27 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
@@ -78,7 +78,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             cabVector.add(res);
         }
         
-        VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
+        VueDragTree fileTree = new VueDragTree(cabVector, this.getDisplayName());
         fileTree.setRootVisible(true);
         fileTree.setShowsRootHandles(true);
         fileTree.expandRow(0);

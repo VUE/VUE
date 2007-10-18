@@ -50,7 +50,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.68 $ / $Date: 2007-10-18 19:37:20 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-10-18 20:46:27 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -73,10 +73,10 @@ public class VueDragTree extends JTree
 
     private static final boolean SlowStartup = VueUtil.isMacPlatform() && !DEBUG.Enabled;
     
-    public VueDragTree(Object obj, String treeName) {
+    public VueDragTree(Iterable iterable, String treeName) {
         //Util.printStackTrace("NEW: " + getClass() + "; " + treeName + "; " + obj);
-        if (DEBUG.Enabled) Log.debug("NEW: " + treeName + "; " + obj);
-        setModel(createTreeModel(obj, treeName));
+        if (DEBUG.Enabled) Log.debug("NEW: " + treeName + "; " + Util.tags(iterable));
+        setModel(createTreeModel(iterable, treeName));
         setName(treeName);
         setRootVisible(true);
         if (SlowStartup) {
@@ -105,7 +105,7 @@ public class VueDragTree extends JTree
             }
         });
 
-        if (DEBUG.SELECTION) Util.printStackTrace(GUI.namex(this) + " constructed from obj " + obj + " treeName " + treeName);
+        if (DEBUG.SELECTION) Util.printStackTrace(GUI.namex(this) + " constructed from obj " + iterable + " treeName " + treeName);
     }
     
     public VueDragTree(FavoritesNode favoritesNode) {
@@ -226,10 +226,10 @@ public class VueDragTree extends JTree
     
     
     
-    private DefaultTreeModel createTreeModel(Object obj, String treeName ){
+    private DefaultTreeModel createTreeModel(Iterable iterable, String treeName) {
         ResourceNode root = new ResourceNode(Resource.getFactory().get(treeName));
-        if (obj instanceof Iterator){
-            Iterator i = (Iterator)obj;
+        if (iterable != null) {
+            Iterator i = iterable.iterator();
             while (i.hasNext()){
                 Object resource = i.next();
                 if (DEBUG.DR) Log.debug("\tchild: " + resource);

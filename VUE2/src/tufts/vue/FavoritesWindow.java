@@ -272,7 +272,8 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         int index = 0;
         JScrollPane jsp = new JScrollPane();
         String searchString = keywords.getText();
-        VueDragTree serResultTree = new VueDragTree("Search", "No Hits");
+        //VueDragTree serResultTree = new VueDragTree("Search", "No Hits");
+        VueDragTree serResultTree = new VueDragTree(null, "Search:No Hits"); // is this used anywhere???
         
         if (!searchString.equals("")){
             boolean foundit = false;

@@ -117,7 +117,7 @@ public class RemoteFileDataSource extends VueDataSource{
         }catch (Exception ex)  {
             throw new DataSourceException("RemoteFileDataSource.setResourceViewer:"+ex.getMessage());
         }
-        VueDragTree fileTree = new VueDragTree(cabVector.iterator(), this.getDisplayName());
+        VueDragTree fileTree = new VueDragTree(cabVector, this.getDisplayName());
         JScrollPane rSP = new JScrollPane(fileTree);
         JPanel localPanel = new JPanel();
         localPanel.setMinimumSize(new Dimension(290,100));
