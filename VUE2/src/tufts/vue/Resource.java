@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-10-18 19:35:24 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-10-18 21:33:17 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -113,6 +113,9 @@ public abstract class Resource
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(Resource.class);
+
+    public static final String SPEC_UNSET = "<spec-unset>";
+
 
     /**
      * Interface for Resource factories.  All methods are "get" based as opposed to "create"
@@ -415,6 +418,7 @@ public abstract class Resource
     public static final String NO_EXTENSION = "";
     public static final String EXTENSION_DIR = "dir";
     public static final String EXTENSION_HTTP = "web";
+    public static final String EXTENSION_UNKNOWN = "---";
 
     /**
      * Return a filename extension / file type of this resource (if any) suitable for identify it
@@ -433,7 +437,10 @@ public abstract class Resource
         String ext = extractExtension(getSpec());
 
         if (ext == null || ext == NO_EXTENSION || ext.length() == 0) {
-            if (getSpec().startsWith("http:")) // todo: https, etc...
+            final String spec = getSpec().trim();
+            if (spec == null || spec == SPEC_UNSET || spec.length() < 1)
+                ext = EXTENSION_UNKNOWN;
+            else if (spec.startsWith("http:")) // todo: https, etc...
                 ext = EXTENSION_HTTP;
             else
                 ext = EXTENSION_DIR;
