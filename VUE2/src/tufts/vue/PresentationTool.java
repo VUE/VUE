@@ -33,6 +33,7 @@ import java.awt.Dimension;
 import java.awt.AlphaComposite;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.event.*;
 import javax.swing.*;
@@ -351,27 +352,76 @@ public class PresentationTool extends VueTool
 
     private static final int SlideRoom = 30;
     
-    private class NavNode extends LWNode {
+    private static final int BoxSize = 20;
+    private static final int BoxGap = 5;
+
+    private static class PathwayBox extends Rectangle2D.Float 
+    {
+        final LWPathway.Entry entry;
+        final Color color;
+
+        PathwayBox(LWPathway.Entry e, float x, float y) 
+        {
+            entry = e;
+            color = Util.alphaMix(entry.pathway.getColor(), Color.white);
+            setFrame(x, y, BoxSize, BoxSize);
+        }
+
+        void draw(DrawContext dc) 
+        {
+            dc.g.setColor(color);
+            dc.g.fill(this);
+            dc.g.setColor(Color.darkGray);
+            dc.g.draw(this);
+        }
         
+    }
+    
+    
+    private static class NavNode extends LWNode
+    {
         final Page page; // destination page
+
+        final List<PathwayBox> mPathwayJumpBoxes;
 
         NavNode(Page destinationPage) 
         {
             this(destinationPage, false);
         }
+
+        private List<PathwayBox> createPathwayJumpBoxes(LWComponent node)
+        {
+            final List<LWPathway.Entry> entries = node.getEntries();
+            final List<PathwayBox> boxes = new ArrayList(entries.size());
+
+            float x = getWidth() - (BoxSize + BoxGap) * entries.size();
+
+            final float y = (getHeight() - BoxSize) / 2f;
+
+            x -= 10;
+            for (LWPathway.Entry e : entries) {
+                boxes.add(new PathwayBox(e, x, y));
+                x += BoxSize + BoxGap;
+            }
+
+            return boxes;
+
+        }
+        
         
         NavNode(Page destinationPage, boolean isLastPathwayPage)
         {
             super(null);
 
             if (DEBUG.WORK) out("new NavNode for page " + destinationPage + "; isLastPathway=" + isLastPathwayPage);
-            
 
 //             if (destination == null)
 //                 throw new IllegalArgumentException("destination can't be null");
             
             //this.page = new Page(destination);
             this.page = destinationPage;
+
+
             //this.pathway = pathway;
 
             final LWPathway pathway = null;
@@ -426,7 +476,32 @@ public class PresentationTool extends VueTool
             int buttonWidth = isLastPathwayPage ? 300 : 200;
             
             setSize(buttonWidth + SlideRoom, getHeight() + 6);
+
+
+            final LWComponent node = page.getOriginalMapNode();
+            if (node.inPathway()) {
+                mPathwayJumpBoxes = createPathwayJumpBoxes(node);
+            } else {
+                mPathwayJumpBoxes = null;
+            }
+            
+
+            
         }
+
+        Page hitPage(float x, float y) 
+        {
+            if (containsLocalCoord(x, y)) {
+                if (mPathwayJumpBoxes != null) {
+                    for (PathwayBox box : mPathwayJumpBoxes)
+                        if (box.contains(x, y))
+                            return new Page(box.entry);
+                }
+                return this.page;
+            } else
+                return null;
+        }
+        
 
         @Override
         public void draw(DrawContext dc) {
@@ -435,9 +510,11 @@ public class PresentationTool extends VueTool
 
             final LWComponent node = page.getOriginalMapNode();
 
-            if (node.inPathway()) {
+            //if (node.inPathway()) {
+            if (mPathwayJumpBoxes != null) {
                 drawZero(dc.push()); dc.pop();
-                drawPathwaySwatches(dc, node);
+                drawPathwayJumpBoxes(dc);
+                //drawPathwaySwatches(dc, node);
             } else {
                 drawZero(dc);
             }
@@ -448,30 +525,35 @@ public class PresentationTool extends VueTool
 //             }
         }
 
-        private static final int BoxSize = 20;
-        private static final int BoxGap = 5;
 
-        private void drawPathwaySwatches(DrawContext dc, LWComponent node)  
+        private void drawPathwayJumpBoxes(DrawContext dc)  
         {
-            final List<LWPathway> pathways = node.getPathways();
-
-            float x = getWidth() - (BoxSize + BoxGap) * pathways.size();
-
-            final float y = (getHeight() - BoxSize) / 2f;
-
-            x -= 10;
             dc.g.setStroke(STROKE_ONE);
-            for (LWPathway p : pathways) {
-                dc.g.setColor(Util.alphaMix(p.getColor(), Color.white));
-                //dc.g.setColor(p.getColor());
-                dc.g.fillRect((int)x, (int)y, BoxSize, BoxSize);
-                dc.g.setColor(Color.darkGray);
-                dc.g.drawRect((int)x, (int)y, BoxSize, BoxSize);
-                x += BoxSize + BoxGap;
-            }
-            
+            for (PathwayBox box : mPathwayJumpBoxes)
+                box.draw(dc);
         }
 
+//         private void drawPathwaySwatches(DrawContext dc, LWComponent node)  
+//         {
+//             final List<LWPathway> pathways = node.getPathways();
+
+//             float x = getWidth() - (BoxSize + BoxGap) * pathways.size();
+
+//             final float y = (getHeight() - BoxSize) / 2f;
+
+//             x -= 10;
+//             dc.g.setStroke(STROKE_ONE);
+//             for (LWPathway p : pathways) {
+//                 dc.g.setColor(Util.alphaMix(p.getColor(), Color.white));
+//                 //dc.g.setColor(p.getColor());
+//                 dc.g.fillRect((int)x, (int)y, BoxSize, BoxSize);
+//                 dc.g.setColor(Color.darkGray);
+//                 dc.g.drawRect((int)x, (int)y, BoxSize, BoxSize);
+//                 x += BoxSize + BoxGap;
+//             }
+            
+//         }
+        
         private void drawSlideIcon(DrawContext dc) {
             final LWSlide slide = page.entry.getSlide();
             final double scale = (getHeight()-10) / slide.getHeight();
@@ -1081,15 +1163,26 @@ private static int OverviewMapSizeIndex = 5;
         
         for (NavNode nav : mNavNodes) {
             if (DEBUG.PRESENT) System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
-            if (nav.containsLocalCoord(e.getX(), e.getY())) {
-                if (DEBUG.PRESENT) System.out.println("HIT " + nav);
-                if (nav.page.equals(mVisited.prev())) {
+            final Page hitPage = nav.hitPage(e.getX(), e.getY());
+            if (hitPage != null) {
+                if (DEBUG.PRESENT) out("HIT " + nav + "; page=" + hitPage);
+                if (hitPage.equals(mVisited.prev())) {
                     revisitPrior();
                 } else {
-                    setPage(nav.page);
+                    setPage(hitPage);
                 }
-                return true;
             }
+            
+            
+//             if (nav.containsLocalCoord(e.getX(), e.getY())) {
+//                 if (DEBUG.PRESENT) System.out.println("HIT " + nav);
+//                 if (nav.page.equals(mVisited.prev())) {
+//                     revisitPrior();
+//                 } else {
+//                     setPage(nav.page);
+//                 }
+//                 return true;
+//             }
         }
 
         return false;
