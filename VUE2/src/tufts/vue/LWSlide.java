@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.65 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-10-18 21:58:32 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -400,10 +400,10 @@ public class LWSlide extends LWContainer
                 final Resource r = c.getResource();
                 if (nodeUnique.contains(r)) {
                     nodeDupes.add(r);
-                    if (DEBUG.Enabled) outf("%50s: %s", "ALREADY ON NODE, IGNORE FOR SLIDE", Util.tags(r));
+                    if (DEBUG.Enabled) outf("%30s: %s", "ALREADY ON NODE, IGNORE FOR SLIDE", Util.tags(r));
                 } else {
                     if (slideUnique.add(r)) {
-                        if (DEBUG.Enabled) outf("%50s: %s", "ADDED UNIQUE SLIDE", Util.tags(r));
+                        if (DEBUG.Enabled) outf("%30s: %s", "ADDED UNIQUE SLIDE", Util.tags(r));
                     }
                 }
             }
@@ -427,7 +427,7 @@ public class LWSlide extends LWContainer
             if (r.isImage())
                 newNode = new LWImage(r);
             else
-                newNode = new LWNode(r.getTitle(), r);
+                newNode = new LWNode(r.getName(), r);
             this.addChild(newNode);
         }
 
