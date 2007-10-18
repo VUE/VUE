@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.16 $ / $Date: 2007-09-01 16:17:45 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2007-10-18 21:34:21 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -84,9 +84,9 @@ public class PropertyMap extends java.util.HashMap
      */
     public synchronized String addProperty(final String desiredKey, Object value) {
         String key = desiredKey;
-        int index = 10;
+        int index = 1;
         while (containsKey(key))
-            key = desiredKey + "." + index++;
+            key = String.format("%s.%02d", desiredKey, index++);
         put(key, value);
         return key;
     }
