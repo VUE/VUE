@@ -50,7 +50,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.67 $ / $Date: 2007-10-18 19:37:01 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2007-10-18 19:37:20 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -232,7 +232,7 @@ public class VueDragTree extends JTree
             Iterator i = (Iterator)obj;
             while (i.hasNext()){
                 Object resource = i.next();
-                Log.info("\tchild: " + resource);
+                if (DEBUG.DR) Log.debug("\tchild: " + resource);
                 if (resource instanceof CabinetResource) {
                     CabinetResource cabRes = (CabinetResource) resource;
                     CabinetEntry entry = cabRes.getEntry();
