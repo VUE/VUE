@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.32 $ / $Date: 2007-10-17 14:29:06 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-10-18 19:34:54 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -99,7 +99,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     //private long size = SIZE_UNKNOWN;
     private String spec = SPEC_UNSET;
-    private int type = Resource.NONE;
     //private JComponent preview;
     //private tufts.vue.ui.ResourceIcon mIcon;
     //private Object mPreview;
@@ -515,7 +514,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 return null;
             mURL_Browse = new java.net.URL(toURLString());
             if ("file".equals(mURL_Browse.getProtocol())) {
-                this.type = Resource.FILE;
+                setClientType(Resource.FILE);
                 if (mTitle == null) {
                     String title;
                     title = mURL_Browse.getPath();
@@ -531,7 +530,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                     }
                 }
             } else {
-                this.type = Resource.URL;
+                setClientType(Resource.URL);
             }
             setProperty("Content.type", java.net.URLConnection.guessContentTypeFromName(mURL_Browse.getPath()));
         }
@@ -1245,18 +1244,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         tufts.Util.printStackTrace("URLResource.setProperties: deprecated " + p);
     }
     
-    @Override
-    public int getClientType() {
-        return type;
-    }
-    
-    /** TODO:  need to remove this -- if we keep any type at all, it should at least be inferred
-     * -- probably replace with a setClientType(Object) -- a general marker that clients / UI components can use
-     */
-    protected void setClientType(int type) {
-        this.type = type;
-    }
-    
     /*
     public Map getPropertyMap() {
         System.out.println(this + " *** getPropertyMap " + mProperties);
@@ -1610,14 +1597,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         mIcon = i;
     }
     */
-
-    public String toString() {
-        if (mProperties == null)
-            return getSpec();
-        else
-            return getSpec();// + " " + mProperties;
-    }
-
 
     
     
