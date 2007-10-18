@@ -42,7 +42,10 @@ import osid.dr.*;
  * @author  Ranjani Saigal
  * Modified by Anoop Kumar 04/29/06
  */
-public class FavoritesWindow extends JPanel implements ActionListener, ItemListener,KeyListener {
+public class FavoritesWindow extends JPanel implements ActionListener, ItemListener,KeyListener
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FavoritesWindow.class);
+    
     public static final String NEW_FAVORITES = "New Favorites Folder";
     public static final String ADD_FAVORITES = "Add Favorites Folder";
     public static final String REMOVE_FAVORITES = "Remove Favorites Folder";
@@ -233,10 +236,14 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         Marshaller marshaller = null;
         Mapping mapping = new Mapping();
         try {
+            if (DEBUG.IO) Log.debug("writing " + file);
             FileWriter writer = new FileWriter(file);
             marshaller = new Marshaller(writer);
+            if (DEBUG.IO) Log.debug("got marshaller " + marshaller);
             marshaller.setMapping(ActionUtil.getDefaultMapping());
+            if (DEBUG.IO) Log.debug("marshalling " + favoritesTree + "...");
             marshaller.marshal(favoritesTree);
+            if (DEBUG.IO) Log.debug("marshalled " + favoritesTree);
             writer.flush();
             writer.close();
         } catch (Exception e) {

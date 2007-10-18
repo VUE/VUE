@@ -79,6 +79,8 @@ public class ExitAction extends VueAction
             tufts.Util.printStackTrace(t);
             System.exit(-1);
         }
+
+        Log.info("Exiting...");
         
         try {
             if (VUE.getRootWindow() != null)
