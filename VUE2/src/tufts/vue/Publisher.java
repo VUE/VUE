@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.68 $ / $Date: 2007-10-17 18:17:44 $ / $Author: anoop $
+ * @version $Revision: 1.69 $ / $Date: 2007-10-18 17:21:27 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -413,8 +413,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     FedoraPublisher.uploadMapAll("https",   properties.getProperty("fedora22Address"), 8443,  properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"),VUE.getActiveMap());
                 else
                     alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
-                
-                
+            } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                if(publishMapRButton.isSelected()) {
+                    
+                }else if(publishMapAllRButton.isSelected()){
+                    
+                }   else
+                    alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
             }
         } catch(Throwable t) {
             t.printStackTrace();
