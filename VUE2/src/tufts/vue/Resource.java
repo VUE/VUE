@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-10-18 21:33:17 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-10-18 21:58:16 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -360,7 +360,16 @@ public abstract class Resource
      *  (any length restrictions?)
      */
     public abstract String getTitle();
-    public abstract void setTitle(String title);    
+    public abstract void setTitle(String title);
+
+    /** @return some kind of reliable name: e.g., title if there is one, spec if not */
+    public String getName() {
+        final String title = getTitle();
+        if (title == null || title.trim().length() < 1)
+            return getSpec();
+        else
+            return title;
+    }
     
     //public abstract java.net.URL asURL();
     //public abstract long getSize();
@@ -437,8 +446,8 @@ public abstract class Resource
         String ext = extractExtension(getSpec());
 
         if (ext == null || ext == NO_EXTENSION || ext.length() == 0) {
-            final String spec = getSpec().trim();
-            if (spec == null || spec == SPEC_UNSET || spec.length() < 1)
+            final String spec = getSpec();
+            if (spec == null || spec == SPEC_UNSET || spec.trim().length() < 1)
                 ext = EXTENSION_UNKNOWN;
             else if (spec.startsWith("http:")) // todo: https, etc...
                 ext = EXTENSION_HTTP;
