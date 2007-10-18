@@ -227,7 +227,7 @@ public class OntologyBrowser extends JPanel {
             
         };
 
-        tufts.vue.VueAction addFedoraOntologies = new tufts.vue.VueAction() {
+        /*tufts.vue.VueAction addFedoraOntologies = new tufts.vue.VueAction() {
             {
                 setActionName("Add Fedora Ontologies");
             }
@@ -247,13 +247,13 @@ public class OntologyBrowser extends JPanel {
                 list2.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),OntologyBrowser.this,w2);
             }
             
-        };
+        }; */
         
         Action[] actions = {
             new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
             applyStyle,
             removeOntology,
-            addFedoraOntologies
+            new edu.tufts.vue.ontology.action.AddFedoraOntologies(this)
             // ,about this ontology
 
         };

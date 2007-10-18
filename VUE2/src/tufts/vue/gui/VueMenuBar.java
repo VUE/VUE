@@ -5,8 +5,6 @@ import tufts.vue.*;
 import tufts.vue.action.*;
 
 import edu.tufts.vue.ontology.action.OntologyControlsOpenAction;
-import edu.tufts.vue.ontology.action.OwlOntologyOpenAction;
-import edu.tufts.vue.ontology.action.RDFSOntologyOpenAction;
 
 import java.io.File;
 
@@ -28,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.63 $ / $Date: 2007-10-17 16:49:58 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2007-10-18 11:55:09 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
