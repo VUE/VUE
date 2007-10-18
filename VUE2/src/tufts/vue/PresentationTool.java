@@ -1161,18 +1161,27 @@ private static int OverviewMapSizeIndex = 5;
         if (!mShowNavNodes)
             return false;
         
+        Page hitPage = null;
+        
         for (NavNode nav : mNavNodes) {
-            if (DEBUG.PRESENT) System.out.println("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
-            final Page hitPage = nav.hitPage(e.getX(), e.getY());
+            if (DEBUG.PICK) out("pickCheck " + nav + " point=" + e.getPoint() + " mapPoint=" + e.getMapPoint());
+            hitPage = nav.hitPage(e.getX(), e.getY());
             if (hitPage != null) {
-                if (DEBUG.PRESENT) out("HIT " + nav + "; page=" + hitPage);
-                if (hitPage.equals(mVisited.prev())) {
-                    revisitPrior();
-                } else {
-                    setPage(hitPage);
-                }
+                if (DEBUG.PRESENT) out("HIT PAGE " + hitPage + "; on NavNode: " + nav);
+                break;
             }
-            
+        }
+        
+        if (hitPage != null) {
+            if (hitPage.equals(mVisited.prev())) {
+                revisitPrior();
+            } else {
+                setPage(hitPage);
+            }
+            return true;
+        } else
+            return false;
+        
             
 //             if (nav.containsLocalCoord(e.getX(), e.getY())) {
 //                 if (DEBUG.PRESENT) System.out.println("HIT " + nav);
@@ -1183,9 +1192,9 @@ private static int OverviewMapSizeIndex = 5;
 //                 }
 //                 return true;
 //             }
-        }
-
-        return false;
+//         }
+//         return false;
+        
     }
 
     
