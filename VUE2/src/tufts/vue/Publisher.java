@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.69 $ / $Date: 2007-10-18 17:21:27 $ / $Author: anoop $
+ * @version $Revision: 1.70 $ / $Date: 2007-10-18 20:24:04 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -89,17 +89,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     private int publishMode = Publishable.PUBLISH_MAP;
     
-    private int stage; // keep tracks of the screen
     
-    //TODO: move it edu.tufts.vue.dsm
-    
-    
-    int count = 0;
-    
-    JPanel modeSelectionPanel;
-    JPanel resourceSelectionPanel;
-    
-    JButton backButton;
+   JButton backButton;
     JButton finishButton;
     JRadioButton publishMapRButton ;
     JRadioButton    publishMapAllRButton ;
@@ -190,7 +181,6 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         buttonPanel.add(cancelButton,BorderLayout.WEST);
         buttonPanel.add(nextButton,BorderLayout.EAST);
         getContentPane().add(buttonPanel,BorderLayout.SOUTH);
-        stage = 1;
         setLocation(X_LOCATION,Y_LOCATION);
         setModal(true);
         setSize(PUB_WIDTH, PUB_HEIGHT);
@@ -241,15 +231,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     
     private void setUpModeSelectionPanel() {
-        //System.out.println("Counter: "+count);
-        //count++;
         SpringLayout layout = new SpringLayout();
         
         // adding the modes
         JPanel mainPanel = new JPanel();
         
-        //mainPanel.setLayout(new BoxLayout(mainPanel,BoxLayout.X_AXIS));
-        mainPanel.setLayout(layout);
+         mainPanel.setLayout(layout);
         JLabel publishLabel = new JLabel("Publish as");
         publishLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         mainPanel.add(publishLabel);
