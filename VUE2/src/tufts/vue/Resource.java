@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-10-17 14:28:57 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-10-18 17:50:55 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -631,6 +631,14 @@ public abstract class Resource
      *  Return tooltip information, if any.  Basic HTML tags are permitted.
      */
     public String getToolTipText() { return toString(); }
+
+    public String asDebug() {
+        return String.format("%s@%07x[type=%s; %s]",
+                             getClass().getSimpleName(),
+                             System.identityHashCode(this),
+                             TYPE_NAMES[getClientType()],
+                             getSpec());
+    }
 
     
     protected void out(String s) {

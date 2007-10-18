@@ -34,7 +34,9 @@ import javax.swing.*;
 import java.io.*;
 import java.util.Enumeration;
 
-public class SaveNode{
+public class SaveNode {
+    
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SaveNode.class);
     
     private Resource resource;
     private Vector children;
@@ -45,7 +47,7 @@ public class SaveNode{
     public SaveNode(ResourceNode resourceNode){
         Enumeration e = resourceNode.children();
         this.setResource(resourceNode.getResource());
-        System.out.println("Resource Node" + resourceNode.getResource());
+        if (DEBUG.Enabled) Log.debug("created for " + resourceNode.getResource().asDebug());
         if(resource.getClientType() != Resource.FILE) {
             Vector v = new Vector();
             while (e.hasMoreElements()) {
