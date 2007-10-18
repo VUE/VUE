@@ -210,6 +210,8 @@ public class SearchAction extends AbstractAction {
         }
         else if(searchType == QUERY)
         {
+            System.out.println("query result " + index.search(query) + " for query " + query.createSPARQLQuery());
+            
             finds.add(index.search(query));
         }
 
