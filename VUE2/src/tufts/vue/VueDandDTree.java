@@ -40,7 +40,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.31 $ / $Date: 2007-10-11 04:01:06 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2007-10-18 18:04:40 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -162,8 +162,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                     Resource resource = (Resource) iter.next();
                     if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getClientType()+ " resource class:"+resource.getClass());
                     ResourceNode newNode;
-                    if(resource.getClientType() == Resource.FILE){
-                        //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
+                    if(resource.getClientType() == Resource.FILE) {
+                    //if (resource.isLocalFile()) {
+                        //newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
                         newNode = new CabinetNode(resource,CabinetNode.LOCAL);
                         CabinetResource cr = (CabinetResource)newNode.getResource();
                         if(DEBUG.DND) System.out.println("CABINET RESOURCE: " + resource+ "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
