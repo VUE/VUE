@@ -46,8 +46,7 @@ public class SaveNode {
     public SaveNode(ResourceNode resourceNode) {
         setResource(resourceNode.getResource());
         if (DEBUG.Enabled) Log.debug("created for " + resource.asDebug());
-        if (resource.getClientType() != Resource.FILE) {
-      //if (!resource.isLocalFile()) {
+        if (resource.getClientType() == Resource.FAVORITES) {
             final Enumeration e = resourceNode.children();
             final Vector v = new Vector();
             while (e.hasMoreElements()) {
