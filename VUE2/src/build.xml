@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.144 $ / $Date: 2007-10-10 21:16:58 $ / $Author: peter $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.144 2007-10-10 21:16:58 peter Exp $ -->
+<!-- $Revision: 1.145 $ / $Date: 2007-10-18 14:35:08 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.145 2007-10-18 14:35:08 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -1153,8 +1153,6 @@ cclass Version {
                 <exclude name="**/*.zip"/>
              </zipfileset> 
          </zip>
-         <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
-          <checksum file="${basedir}/installer/VUE_Installer.zip" property="installerMD5"/>
          <echo file="${release.home}/checksum.txt" >
 VUE.zip - ${genericMD5}
 VUE.app.zip- ${macMD5}
@@ -1175,6 +1173,9 @@ VUE_Installer.zip - ${installerMD5}
            <zip destfile="${basedir}/installer/VUE_Installer.zip">
             <zipfileset dir="${basedir}/installer/" includes="vue.exe" filemode="755"/>
          </zip>
+         <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
+          <checksum file="${basedir}/installer/VUE_Installer.zip" property="installerMD5"/>
+         
     </target>
     
     <!-- ==================== Debugging tasks  ================================ -->
