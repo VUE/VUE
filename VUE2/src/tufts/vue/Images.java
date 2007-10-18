@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.29 $ / $Date: 2007-10-17 14:27:29 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2007-10-18 21:31:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -290,6 +290,9 @@ public class Images
             } else if (original instanceof java.net.URL) {
                 this.readable = (java.net.URL) original;
                 this.resource = null;
+            } else if (original instanceof BufferedImage) {
+                Util.printStackTrace("SEEING BUFFERED IMAGE: HANDLE PRIOR " + original);
+                this.resource = null;
             } else
                 this.resource = null;
 
@@ -335,7 +338,7 @@ public class Images
                 s += "; readable=[" + tag(readable) + "]";
             if (cacheFile != null)
                 s += "; cache=" + cacheFile;
-            return s;
+            return "ImageSource[" + s + "]";
         }
 
     }
@@ -552,6 +555,17 @@ public class Images
     private static BufferedImage getCachedOrLoad(Object _imageSRC, Images.Listener listener)
         throws java.io.IOException, java.lang.InterruptedException
     {
+        if (_imageSRC instanceof BufferedImage) {
+            final BufferedImage bi = (BufferedImage) _imageSRC;
+            if (DEBUG.IMAGE) Util.printStackTrace("image source was an instance of BufferedImage: " + bi);
+            if (listener != null)
+                listener.gotImage(bi,
+                                  bi,
+                                  bi.getWidth(),
+                                  bi.getHeight());
+            return (BufferedImage) _imageSRC;
+        }
+        
         final ImageSource imageSRC = new ImageSource(_imageSRC);
 
         if (DEBUG.IMAGE) {
