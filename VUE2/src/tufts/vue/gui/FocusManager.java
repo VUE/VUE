@@ -147,7 +147,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.16 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.17 $ / $Date: 2007-10-18 19:08:34 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -1198,16 +1198,25 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
     }
         
     private static void out(String s) {
-        String name;
+        final String state;
         if (mForcingFocus)
-            name = TERM_GREEN + "FocusManager " + TERM_CLEAR;
+            state = TERM_GREEN + "FORCING " + TERM_CLEAR;
         else
-            name = "FocusManager ";
-        System.err.println(name
-                           + (""+System.currentTimeMillis()).substring(9)
-                           + " " + s);
+            state = null;
+        Log.debug(state == null ? s : (state + s));
     }
 
+//     private static void out(String s) {
+//         String name;
+//         if (mForcingFocus)
+//             name = TERM_GREEN + "FocusManager " + TERM_CLEAR;
+//         else
+//             name = "FocusManager ";
+//         System.err.println(name
+//                            + (""+System.currentTimeMillis()).substring(9)
+//                            + " " + s);
+//     }
+    
     private static String name(Object c) {
         return GUI.name(c);
     }
