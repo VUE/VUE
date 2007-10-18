@@ -82,7 +82,7 @@ public class OntologyBrowser extends JPanel {
         
         String loadingString = "Loading " + name;
         
-        Widget w = null;// new Widget("Loading " + name);
+        Widget w = null;
         
         OntologyBrowserKey key = new OntologyBrowserKey(name,url);
         Widget old = widgetMap.get(key);
@@ -114,16 +114,6 @@ public class OntologyBrowser extends JPanel {
         return singleton;
     }
     
-   /* public static OntologyBrowser createBrowser(boolean delayedLoading,DockWindow ontologyDock,DockWindow typeDock)
-    {
-        if (singleton == null)
-                return new OntologyBrowser(delayedLoading,ontologyDock,typeDock);
-        else
-        {
-    
-        }
-    }
-    */
     
     private OntologyBrowser() {
         ontologiesPanel = this;
@@ -164,41 +154,7 @@ public class OntologyBrowser extends JPanel {
         ((Widget)populatePane).setTitleHidden(true);
         
         buildSingleDockWindow();
-        
-        /*tufts.vue.VueAction addRDFSToBrowser = new tufts.vue.VueAction()
-        {
-              {
-                  setActionName("Add RDFS Ontology");
-              }
-         
-              public void actionPerformed(java.awt.event.ActionEvent e)
-              {
-                 // actually this shows up in the title of the Ontology Browser Dock Window..
-                 //setName("Browser rdfs");
-                 edu.tufts.vue.ontology.action.RDFSOntologyOpenAction rdfsooa = new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("Browser - RDFS");
-                 rdfsooa.setViewer(ontologyViewer);
-                 rdfsooa.actionPerformed(e);
-                 rdfsooa.setViewer(null);
-              }
-        };
-         
-        tufts.vue.VueAction addOWLToBrowser = new tufts.vue.VueAction()
-        {
-              {
-                  setActionName("Add OWL Ontology");
-              }
-         
-              public void actionPerformed(java.awt.event.ActionEvent e)
-              {
-                 // shows up in Ontology Browser Dock Window title
-                 //setName("Browser owl");
-                 edu.tufts.vue.ontology.action.OwlOntologyOpenAction owlsooa = new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL - RDFS");
-                 owlsooa.setViewer(ontologyViewer);
-                 owlsooa.actionPerformed(e);
-                 owlsooa.setViewer(null);
-              }
-        }; */
-        
+                
         tufts.vue.VueAction applyStyle = new tufts.vue.VueAction() {
             {
                 setActionName("Import Style Sheet");
@@ -216,11 +172,11 @@ public class OntologyBrowser extends JPanel {
                     }
                     int selectedOntology = getViewer().getList().getSelectedIndex();
                     ((edu.tufts.vue.ontology.Ontology)(getViewer().getList().getModel().getElementAt(selectedOntology))).applyStyle(cssURL);
+                   
+                    //should be able to do better than this -- validate(), repaint() don't seem to work..
                     resultsStack.updateUI();
                     getViewer().getList().updateUI();
-                    // need getTypeList() method in order to refresh the typelist model...
-                    // also need a list of typelist that corresponds to the ont list .. or maybe
-                    // can just get the component at that location in the viewer?
+
                 }
             }
             
@@ -268,34 +224,38 @@ public class OntologyBrowser extends JPanel {
             
         };
 
+        tufts.vue.VueAction addFedoraOntologies = new tufts.vue.VueAction() {
+            {
+                setActionName("Add Fedora Ontologies");
+            }
+            
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                TypeList list = new TypeList();
+                URL ontURL = VueResources.getURL("fedora.ontology.rdf");
+                URL cssURL = VueResources.getURL("fedora.ontology.css");
+                tufts.vue.gui.Widget w = addTypeList(list,"Fedora Relationships",ontURL);
+                list.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),OntologyBrowser.this,w);
+                ontURL = VueResources.getURL("fedora.support.ontology.rdf");
+                cssURL = VueResources.getURL("fedora.support.ontology.css");
+                tufts.vue.gui.Widget w2 = addTypeList(list,"Fedora node",ontURL);
+                list.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),OntologyBrowser.this,w2);
+            }
+            
+        };
         
         Action[] actions = {
             new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
             applyStyle,
-            removeOntology
-                    //new edu.tufts.vue.ontology.action.RDFSOntologyOpenAction("RDFS"),
-                    //new edu.tufts.vue.ontology.action.OwlOntologyOpenAction("OWL"),
-                    //addRDFSToBrowser,
-                    //addOWLToBrowser
+            removeOntology,
+            addFedoraOntologies
+            // ,about this ontology
+
         };
         tufts.vue.gui.Widget.setMenuActions(this,actions);
         
-        // singleton = this;
+        //singleton = this;
         initialized = true;
         
-        /*TypeList list = new TypeList();
-        java.net.URL ontURL = VueResources.getURL("fedora.ontology.rdf");
-        java.net.URL cssURL = VueResources.getURL("fedora.ontology.css");
-        tufts.vue.gui.Widget w = addTypeList(list,"Fedora Ontology");//edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()));
-        //getViewer().getList().updateUI();
-        list.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,w);
-         
-        TypeList nodeList = new TypeList();
-        ontURL = VueResources.getURL("fedora.support.ontology.rdf");
-        cssURL = VueResources.getURL("fedora.support.ontology.css");
-        tufts.vue.gui.Widget wForNode = addTypeList(nodeList,"Fedora Node Ontology");//edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()));
-        //getViewer().getList().updateUI();
-        nodeList.loadOntology(ontURL,cssURL,OntologyChooser.getOntType(ontURL),this,wForNode); */
         
     }
     
