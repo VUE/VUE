@@ -722,6 +722,19 @@ public class DataSourceViewer extends JPanel
             label.setText(s);
         }
     }
+
+    private static String repositoryName(org.osid.repository.Repository r) {
+            
+        if (r == null)
+            return "<NULL-REPOSITORY>";
+        
+        try {
+            return r.getDisplayName();
+        } catch (Throwable t) {
+            Util.printStackTrace(t);
+            return "[RepositoryName: " + t + "]";
+        }
+    }
     
     private static int SearchCounter = 0;
     
@@ -744,7 +757,7 @@ public class DataSourceViewer extends JPanel
                 org.osid.shared.Type searchType,
                 org.osid.shared.Properties searchProperties)
                 throws org.osid.repository.RepositoryException {
-            super("VUE.Search" + (SearchCounter++) + " " + searchString + " in " + r.getDisplayName());
+            super("Search" + (SearchCounter++) + " " + searchString + " in " + repositoryName(r));
             setDaemon(true);
             
             mRepository = r;
@@ -753,7 +766,7 @@ public class DataSourceViewer extends JPanel
             mSearchType = searchType;
             mSearchProperties = searchProperties;
             
-            mRepositoryName = r.getDisplayName();
+            mRepositoryName = repositoryName(r);
             
             //If the naming convention of this were to change, note there would
             //need to be a change in WidgetStack to properly color code the widget.
