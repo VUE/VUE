@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.164 $ / $Date: 2007-10-11 05:22:49 $ / $Author: sfraize $
+ * @version $Revision: 1.165 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -793,7 +793,7 @@ public class LWMap extends LWContainer
             try {
                 c.getResource().relativize(root);
             } catch (Throwable t) {
-                Log.warn(this + "; relativiztion: " + t + "; " + c.getResource());
+                Log.warn(this + "; relativization: " + t + "; " + c.getResource());
             }
         }
         

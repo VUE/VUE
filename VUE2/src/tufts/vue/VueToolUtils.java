@@ -2,7 +2,9 @@ package tufts.vue;
 
 public class VueToolUtils 
 {
-	private static boolean sDebug = false;
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueToolUtils.class);
+
+    private static boolean sDebug = false;
 	 /**
      * This method loads a VueTool with the given name from the
      * vue properties file.
@@ -13,8 +15,7 @@ public class VueToolUtils
         final String className = VueResources.getString(classKey);
 
         if (className == null) {
-            System.err.println(VueToolUtils.class.getName() + " loadTool["
-                               + pName + "]; missing class key in resources: [" + classKey + "]");
+            Log.error("loadTool[" + pName + "]; missing class key in resources: [" + classKey + "]");
             return null;
         }
 		
@@ -24,13 +25,13 @@ public class VueToolUtils
             //if (DEBUG.Enabled) System.out.println("Loading tool class " + className);
             Class toolClass = ClassLoader.getSystemClassLoader().loadClass(className);
 
-            if (DEBUG.INIT) System.out.println("Loading tool " + pName + " " + toolClass);
+            if (DEBUG.INIT) Log.debug("Loading tool " + pName + " " + toolClass);
             
            	tool = (VueTool) toolClass.newInstance();            
         	setToolProperties(tool,pName);
             // set the tool's properties...
         } catch (Exception e) {
-            debug("loadTool() exception:");
+            Log.error("loadTool() exception: " + e);
             e.printStackTrace();
         }
     	        
@@ -55,7 +56,7 @@ public class VueToolUtils
              toolClass = ClassLoader.getSystemClassLoader().loadClass(className);
 
         } catch (Exception e) {
-            debug("loadTool() exception:");
+            Log.error("loadToolFromMap() exception: " + e);
             e.printStackTrace();
         }
         

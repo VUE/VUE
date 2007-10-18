@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.495 $ / $Date: 2007-10-17 16:46:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.496 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -334,7 +334,7 @@ public class VUE
             String prop;
             try {
                 prop = System.getProperty(name);
-                if (DEBUG.INIT) out("got property " + name);
+                if (DEBUG.INIT) Log.debug("fetched system property " + name + "=[" + prop + "]");
             } catch (java.security.AccessControlException e) {
                 System.err.println(e);
                 prop = null;

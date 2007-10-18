@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.107 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2007-10-18 16:58:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3299,10 +3299,11 @@ public class DockWindow extends javax.swing.JWindow
     }
     
     private void out(Object o) {
-        String s = "DockWindow " + (""+System.currentTimeMillis()).substring(9);
-        s += " [" + mTitle + "]";
+        Log.debug("(" + mTitle + ") " + o);
+//         String s = "DockWindow " + (""+System.currentTimeMillis()).substring(9);
+//         s += " [" + mTitle + "]";
         
-        System.err.println(s + " " + (o==null?"null":o.toString()));
+//         System.err.println(s + " " + (o==null?"null":o.toString()));
     }
 
     public String toString() {
@@ -3468,17 +3469,16 @@ public class DockWindow extends javax.swing.JWindow
             new EventRaiser<JComponent>(this, JComponent.class) {
                 protected void visit(Component c) {
 
-                    if (DEBUG.INIT == false) {
+                    if (DEBUG.INIT) {
+                        if (targetClass.isInstance(c)) {
+                            System.out.format("\tDockWindow(%s) making transparent: ", DockWindow.this.mTitle);
+                            dispatchSafely(c);
+                        } else
+                            System.out.print("              ");
+                        eoutln(GUI.name(c));
+                    } else {
                         super.visit(c);
-                        return;
                     }
-                        
-                    if (targetClass.isInstance(c)) {
-                        System.out.print("->TRANSPARENT ");
-                        dispatchSafely(c);
-                    } else
-                        System.out.print("              ");
-                    eoutln(GUI.name(c));
                 }
                 public void dispatch(JComponent c) {
                     if (c instanceof javax.swing.text.JTextComponent)

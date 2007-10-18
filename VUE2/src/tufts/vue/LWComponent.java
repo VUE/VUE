@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.350 $ / $Date: 2007-10-17 16:08:55 $ / $Author: sfraize $
+ * @version $Revision: 1.351 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -443,7 +443,7 @@ public class LWComponent
                 for (Class c = clazz; c != null; c = c.getSuperclass())
                     propMaskForClass |= PartialPropertyMaskForClass(c);
 
-                if (DEBUG.INIT) System.out.format("CACHED PROPERTY BITS for %s: %d\n", clazz, Long.bitCount(propMaskForClass));
+                if (DEBUG.INIT) Log.debug(String.format("CACHED PROPERTY BITS for %s: %d", clazz, Long.bitCount(propMaskForClass)));
                 ClassProperties.put(clazz, propMaskForClass);
 
                 return propMaskForClass;
@@ -503,15 +503,15 @@ public class LWComponent
             ClassProperties.put(clazz, propMaskForClass);
 
             if (DEBUG.INIT || DEBUG.STYLE)
-                System.out.printf("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties\n", 
-                              name,
-                              //isStyleProperty ? "STYLE;" : "",
-                              keyType,
-                              cssName == null ? "" : cssName,
-                              InstanceCount,
-                              clazz.getName(),
-                              Long.bitCount(propMaskForClass)
-                              );
+                Log.debug(String.format("KEY %-20s %-11s %-22s bit#%2d; %25s now has %2d properties", 
+                                        name,
+                                        //isStyleProperty ? "STYLE;" : "",
+                                        keyType,
+                                        cssName == null ? "" : cssName,
+                                        InstanceCount,
+                                        clazz.getName(),
+                                        Long.bitCount(propMaskForClass)
+                                        ));
             InstanceCount++;
 
             // Just referencing a class object won't load it's statics: must do a new instance.
@@ -2038,6 +2038,10 @@ u                    getSlot(c).setFromString((String)value);
 
     public int numEntries() {
         return mEntries == null ? 0 : mEntries.size();
+    }
+
+    public List<LWPathway.Entry> getEntries() {
+        return mEntries;
     }
     
 

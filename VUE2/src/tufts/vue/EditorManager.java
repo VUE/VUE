@@ -734,7 +734,7 @@ public class EditorManager
         }
         
         if (mEditors.add(editor)) {
-            if (DEBUG.TOOL || DEBUG.INIT) System.out.println("REGISTERED EDITOR: " + editor);
+            if (DEBUG.TOOL || DEBUG.INIT) out("REGISTERED EDITOR: " + editor);
             if (editor instanceof java.awt.Component)
                 ((java.awt.Component)editor).addPropertyChangeListener(singleton);
         } else

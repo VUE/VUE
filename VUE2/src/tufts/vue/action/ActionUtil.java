@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.82 $ / $Date: 2007-10-17 15:43:32 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -377,7 +377,7 @@ public class ActionUtil
         if (LoadedMappings.containsKey(mappingSource))
             return (Mapping) LoadedMappings.get(mappingSource);
         Mapping mapping = new Mapping();
-        if (DEBUG.IO || DEBUG.INIT) System.out.println("Loading mapping " + mappingSource + "...");
+        if (DEBUG.IO || DEBUG.INIT) Log.debug("Loading mapping " + mappingSource + "...");
         try {
             mapping.loadMapping(mappingSource);
         } catch (Exception e) { // MappingException or IOException
@@ -385,7 +385,7 @@ public class ActionUtil
             System.err.println("Failed to load mapping " + mappingSource);
             return e;
         }
-        if (DEBUG.IO || DEBUG.INIT) System.out.println("*Loaded mapping " + mappingSource);
+        if (DEBUG.IO || DEBUG.INIT) Log.debug("Loaded mapping " + mappingSource);
         LoadedMappings.put(mappingSource, mapping);
         return mapping;
     }

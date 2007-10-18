@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.47 $ / $Date: 2007-10-06 06:34:22 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -47,7 +47,7 @@ public class VueResources
     protected static Map Cache = new HashMap() {
             public Object put(Object key, Object value) {
                 if (value == null) return null;
-                if (DEBUG.INIT) System.out.println("VueResources.cached(" + key + ") = " + value + "");
+                if (DEBUG.INIT) Log.debug("cached(" + key + ") = " + value + "");
                 return super.put(key, value);
             }
         };
@@ -372,8 +372,7 @@ public class VueResources
         }
         if (DEBUG.INIT) {
             if (DEBUG.META || result != null)
-                System.out.println("VueResources.lookup(" + key + ") = "
-                                   + (result==null?"null":"\"" + result + "\""));
+                Log.debug("lookup(" + key + ") = " + (result==null?"null":"\"" + result + "\""));
         }
         return result;
     }
