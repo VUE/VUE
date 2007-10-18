@@ -150,7 +150,7 @@ public class RSSDataSource  extends VueDataSource{
             resourceList.add(res);
         }
         
-        VueDragTree fileTree = new VueDragTree(resourceList.iterator(), this.getDisplayName());
+        VueDragTree fileTree = new VueDragTree(resourceList, this.getDisplayName());
         fileTree.setRootVisible(true);
         fileTree.setShowsRootHandles(true);
         fileTree.expandRow(0);

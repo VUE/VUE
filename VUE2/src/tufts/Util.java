@@ -1638,8 +1638,12 @@ public class Util
             
         final String type = o.getClass().getName();
         String txt = null;
+
         try {
-            txt = o.toString();
+            if (o instanceof Collection)
+                txt = "size=" + ((Collection)o).size();
+            else
+                txt = o.toString();
         } catch (Throwable t) {
             txt = t.toString();
         }

@@ -206,7 +206,7 @@ public class ResourceViewer extends JPanel implements ActionListener,KeyListener
                 resourceVector.add(resource);
             }
             
-            VueDragTree tree = new VueDragTree(resourceVector.iterator(),"Google Results");
+            VueDragTree tree = new VueDragTree(resourceVector,"Google Results");
             JScrollPane jsp = new JScrollPane(tree);
             tree.setRootVisible(false);
             removeAll();
