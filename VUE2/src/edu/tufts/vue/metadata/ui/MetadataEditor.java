@@ -42,7 +42,7 @@ import tufts.vue.*;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = false;
+    private static final boolean DEBUG_LOCAL = true;
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -55,7 +55,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     public final static boolean LIMITED_FOCUS = false;
     
-    public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
+    public final static String TAG_ONT = tufts.vue.VueResources.getString("metadata.vue.url" + "#Tag");
     
     private JTable metadataTable;
     private JScrollPane scroll;
