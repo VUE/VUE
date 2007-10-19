@@ -63,10 +63,9 @@ public class OntType implements java.io.Serializable {
     public String getBase() {
         if(this.base.indexOf("/edu/tufts/vue/metadata/dces_1_1.rdf") != -1)
             return VueResources.getString("metadata.dublincore.url");
-        if(( this.base.indexOf("edu/tufts/vue/metadata/categories.rdfs") != -1) 
-             && (getLabel().equals("Tag")))
+        if( this.base.indexOf(edu.tufts.vue.metadata.CategoryModel.CUSTOM_METADATA_FILE) != -1)
         {
-            return edu.tufts.vue.metadata.ui.MetadataEditor.TAG_ONT;
+            return VueResources.getString("metadata.vue.url");
         }
         return this.base;
     }
