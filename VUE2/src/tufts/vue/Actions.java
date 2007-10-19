@@ -1898,7 +1898,7 @@ public class Actions implements VueConstants
         public void act() {
             final MapViewer viewer = VUE.getActiveViewer();
             final Point currentMouse = viewer.getLastMousePoint();
-            final Point2D newLocation = viewer.screenToMapPoint(currentMouse);
+            final Point2D newLocation = viewer.screenToFocalPoint(currentMouse);
             
             if (currentMouse.equals(lastMouse) && lastItem.getLocation().equals(lastLocation)) {
                 // would it be better to just put in a column instead of staggering?
