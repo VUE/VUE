@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.78 $ / $Date: 2007-10-19 17:39:59 $ / $Author: dan $  
+ * @version $Revision: 1.79 $ / $Date: 2007-10-19 19:06:31 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -122,7 +122,7 @@ class MapDropTarget
     {
         if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
 
-        final LWComponent over = mViewer.pickDropTarget(dropToMapLocation(e.getLocation()), null);
+        final LWComponent over = mViewer.pickDropTarget(dropToFocalLocation(e.getLocation()), null);
 
         if (over != null)
             mViewer.setIndicated(over);
@@ -156,11 +156,12 @@ class MapDropTarget
     /** DropTargetListener */
     public void drop(DropTargetDropEvent e)
     {
-        if (DEBUG.DND) out("DROP " + e
+        if (DEBUG.DND) out(Util.TERM_GREEN + "DROP " + e 
                            + "\n\t        dropAction: " + dropName(e.getDropAction())
                            + "\n\tdropActionOverride: " + dropName(dropActionOverride)
                            + "\n\t     sourceActions: " + dropName(e.getSourceActions())
                            + "\n\t          location: " + e.getLocation()
+                           + Util.TERM_CLEAR
                            );
 
         /* UnsupportedOperation (tring to discover key's being held down ourselves) try {
@@ -487,12 +488,13 @@ class MapDropTarget
                 dropAction = dropActionOverride;
             else
                 dropAction = e.getDropAction();
-            mapLocation = dropToMapLocation(dropLocation);
+            mapLocation = dropToFocalLocation(dropLocation);
+            //if (DEBUG.DND) out(Util.TERM_GREEN + "processTransferable: " + GUI.dropName(e) + Util.TERM_CLEAR
             if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e)
                                + "\n\t        dropAction: " + dropName(e.getDropAction())                               
                                + "\n\tdropActionOverride: " + dropName(dropActionOverride)
                                + "\n\t     dropScreenLoc: " + dropLocation
-                               + "\n\t        dropMapLoc: " + mapLocation
+                               + "\n\t      dropFocalLoc: " + mapLocation
                                );
         } else {
             if (DEBUG.DND) out("processTransferable: (no drop event) transfer=" + transfer);
@@ -515,7 +517,7 @@ class MapDropTarget
             // if no drop location (e.g., we did a "Paste") then assume where
             // they last clicked.
             dropLocation = mViewer.getLastMousePressPoint();
-            mapLocation = dropToMapLocation(dropLocation);
+            mapLocation = dropToFocalLocation(dropLocation);
         }
             
             
@@ -1435,14 +1437,14 @@ class MapDropTarget
         return url;
     }
 
-    private Point2D.Float dropToMapLocation(Point p)
+    private Point2D.Float dropToFocalLocation(Point p)
     {
-        return dropToMapLocation(p.x, p.y);
+        return dropToFocalLocation(p.x, p.y);
     }
 
-    private Point2D.Float dropToMapLocation(int x, int y)
+    private Point2D.Float dropToFocalLocation(int x, int y)
     {
-        final Point2D.Float mapLoc = mViewer.screenToMapPoint(x, y);
+        final Point2D.Float mapLoc = mViewer.screenToFocalPoint(x, y);
         //if (DEBUG.DND) out("dropToMapLocation " + x + "," + y + " = " + mapLoc);
         return mapLoc;
     }
@@ -1536,7 +1538,8 @@ class MapDropTarget
             name = mViewer.getFocal().getLabel();
         else
             name = mViewer.toString();
-        System.out.println("MapDropTarget(" + name + ") " + s);
+        Log.debug(String.format("(%s): %s", name, s));
+        //System.out.println("MapDropTarget(" + name + ") " + s);
     }
     
     

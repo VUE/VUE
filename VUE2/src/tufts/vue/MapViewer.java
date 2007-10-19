@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.458 $ / $Date: 2007-10-19 18:30:59 $ / $Author: dan $ 
+ * @version $Revision: 1.459 $ / $Date: 2007-10-19 19:06:31 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -643,6 +643,22 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return mOffset.y;
     }
 
+    protected Point2D.Float screenToFocalPoint(int x, int y) {
+        if (mFocal == mMap || mFocal == null) {
+            return screenToMapPoint(x, y);
+        } else {
+            Point2D.Float p = screenToMapPoint(x, y);
+            p.x -= mFocal.getMapX();
+            p.y -= mFocal.getMapY();
+            // TODO: deal properly with zoom when in focal...
+            //p.x *= mZoomFactor;
+            //p.y *= mZoomFactor;
+            return p;
+        }
+    }
+
+    
+
     //------------------------------------------------------------------
     // The core conversion routines: todo: rename "screen" to "canvas",
     // as "screen" no longer accurate if we're in a scroll-pane.
@@ -906,7 +922,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 super.processEvent(e);
                 return;
             }
-            if (DEBUG.VIEWER) out("MAPVIEWER: processEvent " + e);
+            if (DEBUG.VIEWER) out("processEvent " + e);
             super.processEvent(e);
         } catch (Throwable t) {
             Util.printStackTrace(t, "MapViewer failed processing event " + e);
@@ -6434,12 +6450,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     
-    public String toString() {
-        return "MapViewer<" + instanceName + ">"
-            + "[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
-        //+ "\'" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "\'";
-    }
-    
     //-------------------------------------------------------
     // debugging stuff
     //-------------------------------------------------------
@@ -6554,9 +6564,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         map.addNode(end);
     }
     
+    public String toString() {
+        return "MapViewer<" + instanceName + ">"
+            + "[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
+        //+ "\'" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "\'";
+    }
+    
     
     protected void out(Object o) {
-        Log.debug(this + " " + (o==null?"null":o.toString()));
+        Log.debug(String.format("<%s>[%s] %s",
+                                instanceName,
+                                mFocal == null ? "<NULL-FOCAL>" : mFocal.getDiagnosticLabel(),
+                                o));
         //System.out.println(this + " " + (o==null?"null":o.toString()));
     }
     
