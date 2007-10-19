@@ -19,7 +19,10 @@
 package edu.tufts.vue.ontology.ui;
 
 import edu.tufts.vue.ontology.OntManager;
+import edu.tufts.vue.ontology.action.OntologyOpenAction;
+
 import java.awt.*;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -120,6 +123,8 @@ public class OntologyBrowser extends JPanel {
         typeDock = null;
         ontologyDock.setResizeEnabled(false);
     }
+
+    private OntologyOpenAction ontologyOpenAction = new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this);
     
     public void initializeBrowser(boolean delayedLoading, DockWindow typeDock) {
         
@@ -250,7 +255,7 @@ public class OntologyBrowser extends JPanel {
         }; */
         
         Action[] actions = {
-            new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this),
+            ontologyOpenAction,
             applyStyle,
             removeOntology,
             new edu.tufts.vue.ontology.action.AddFedoraOntologies(this)
@@ -264,7 +269,7 @@ public class OntologyBrowser extends JPanel {
         
         
     }
-    
+   
     public static boolean isInitialized() {
         return initialized;
     }
@@ -294,10 +299,17 @@ public class OntologyBrowser extends JPanel {
         
         stack.addPane(ontologiesPanel, 0f);
         stack.addPane(populatePane,0f);
-        
+        Widget.setMiscAction(ontologiesPanel,new MiscWidgetAction() , "dockWindow.addButton");
         ontologyDock.setContent(stack);
     }
     
+    class MiscWidgetAction extends MouseAdapter
+    {
+    	public void mouseClicked(MouseEvent e)
+    	{    		    	
+    				ontologyOpenAction.actionPerformed(null);		    		    		 
+    	}
+    }
     /*public JComponent getPopulatePane()
     {
         return populatePane;
