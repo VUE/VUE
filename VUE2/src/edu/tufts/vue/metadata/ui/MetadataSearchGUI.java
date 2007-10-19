@@ -42,7 +42,7 @@ import java.util.*;
  */
 public class MetadataSearchGUI extends JPanel {
     
-    private static final boolean DEBUG_LOCAL = true;
+    private static final boolean DEBUG_LOCAL = false;
     
     public static final int ONE_LINE = 0;
     public static final int MULTIPLE_FIELDS = 1;
@@ -555,19 +555,33 @@ public class MetadataSearchGUI extends JPanel {
    
         //System.out.println("MetadataSearchGUI: find category");
         
+        if(!(currValue instanceof String))
+        {
+            if(DEBUG_LOCAL)
+            {
+                System.out.println("MetadataSearchGUI - findCategory - currValue not instance of String -- returning ");
+            }
+            return;
+        }    
+        
         int n = categories.getModel().getSize();
         for(int i=0;i<n;i++)
         {
                    
            Object item = categories.getModel().getElementAt(i);
-           String currLabel = "";
-           if(currValue instanceof OntType)
-              currLabel = ((OntType)currValue).getLabel();
-           else
-              currLabel = currValue.toString();
-                  
-                   
-           if(item instanceof OntType && ((OntType)item).getLabel().equals(currLabel))
+           
+           if(DEBUG_LOCAL)
+           {
+             System.out.println("i: " + i);  
+             if(item instanceof OntType)
+             {
+               System.out.println("MetadataSearchGUI - find category - item.getBase() and currValue  - " +"i :" + i + ":" + ((OntType)item).getBase() +"," + currValue);
+               System.out.println("MetadataSearchGUI - ((OntType)item).getBase() + # + ((OntType)item).getLabel() " + 
+                       ((OntType)item).getBase() + "#" + ((OntType)item).getLabel());
+             }
+           } 
+             
+           if(item instanceof OntType && ( ((OntType)item).getBase() + "#" + ((OntType)item).getLabel() ).equals(currValue))
            {
               //System.out.println("MetadataSearchGUI: find category - found - " + i);
               categories.setSelectedIndex(i);
@@ -627,9 +641,10 @@ public class MetadataSearchGUI extends JPanel {
                         
                         if(!(categories.getSelectedItem() instanceof OntType))
                             return;
+   
+                        OntType type = (OntType)categories.getSelectedItem();
+                        String[] statement = {type.getBase() + "#" + type.getLabel(),searchTerms.get(row).getValue(),((String[])(searchTerms.get(row).getObject()))[2]};
                         
-                        //String[] pairedObject = {searchTerms.get(row).getValue(),categories.getModel().getElementAt(row).toString()};
-                        String[] statement = {((OntType)categories.getSelectedItem()).getLabel(),searchTerms.get(row).getValue(),((String[])(searchTerms.get(row).getObject()))[2]};
                         VueMetadataElement ele = new VueMetadataElement();
                         ele.setObject(statement);
                         ele.setType(VueMetadataElement.SEARCH_STATEMENT);
@@ -642,7 +657,7 @@ public class MetadataSearchGUI extends JPanel {
              Object currValueObject = searchTerms.get(row).getObject();
              if(currValueObject instanceof String[])
              {    
-               findCategory(((String[])searchTerms.get(row).getObject())[0],row,col,categories);
+               findCategory(searchTerms.get(row).getKey(),row,col,categories);
              }
              
              comp.add(categories);
