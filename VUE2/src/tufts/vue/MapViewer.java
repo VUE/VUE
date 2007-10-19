@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.456 $ / $Date: 2007-10-18 19:35:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.457 $ / $Date: 2007-10-19 17:39:59 $ / $Author: dan $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4764,7 +4764,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // if a LWSlide picked, animate zoom into it, and then load as focal
                 mme.setPicked(hitComponent);
                 
+                // maybe only do this if hitComponent is null?
                 SearchAction.revertGlobalSearchSelection();
+                /*if(hitComponent == null)
+                {
+                    Widget.setHidden(OntologicalMembershipPane.getGlobal(),true);
+                }*/
                 
 //                 // this is a hack:
 //                 if (hitComponent instanceof LWSlide && mFocal instanceof LWMap) {

@@ -42,7 +42,7 @@ import tufts.vue.*;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = true;
+    private static final boolean DEBUG_LOCAL = false;
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -246,10 +246,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         if(showOntologicalMembership && current !=null && current.getMetadataList().getOntologyListSize() > 0)
         {
-          add(ontologicalMembershipPane/*,BorderLayout.SOUTH*/);
+          // this functionality is now in a seperate pane  
+          //add(ontologicalMembershipPane/*,BorderLayout.SOUTH*/);
           ontologicalMembershipVisible = true;
         }
         
+        // followAllActive needed for MapInspector
         if(followAllActive)
         {
           tufts.vue.VUE.addActiveListener(tufts.vue.LWComponent.class,this);
@@ -366,7 +368,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
          {
              if(!ontologicalMembershipVisible)
              {
-                add(ontologicalMembershipPane);
+                // this functionality is now in a seperate pane
+                //add(ontologicalMembershipPane);
                 ontologicalMembershipVisible = true;
              }
          }
@@ -374,7 +377,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
          {
              if(ontologicalMembershipVisible)
              {
-                remove(ontologicalMembershipPane);
+                // this functionality is now in a seperate pane
+                //remove(ontologicalMembershipPane);
                 ontologicalMembershipVisible = false;
              } 
          }

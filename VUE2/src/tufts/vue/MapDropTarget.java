@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.77 $ / $Date: 2007-10-16 20:10:02 $ / $Author: sfraize $  
+ * @version $Revision: 1.78 $ / $Date: 2007-10-19 17:39:59 $ / $Author: dan $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -920,6 +920,8 @@ class MapDropTarget
         edu.tufts.vue.metadata.VueMetadataElement ele = new edu.tufts.vue.metadata.VueMetadataElement();
         ele.setObject(foundData);
         drop.hit.getMetadataList().getMetadata().add(ele);
+
+        edu.tufts.vue.metadata.ui.OntologicalMembershipPane.getGlobal().refresh();
         
         return true;
     }

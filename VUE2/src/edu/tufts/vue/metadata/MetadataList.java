@@ -111,6 +111,11 @@ public class MetadataList {
         return size;
     }
     
+    public boolean hasOntologicalMetadata()
+    {
+        return (getOntologyListSize() > 0);
+    }
+    
     public class CategoryFirstList<E> extends java.util.ArrayList<E>
     {
         
