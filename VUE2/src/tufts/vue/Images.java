@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.30 $ / $Date: 2007-10-18 21:31:06 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2007-10-19 18:07:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -253,8 +253,7 @@ public class Images
             return new URI(java.net.URLDecoder.decode(name, "UTF-8"));
             //return new URL(java.net.URLDecoder.decode(name, "UTF-8"));
         } catch (Throwable t) {
-            if (DEBUG.Enabled)
-                tufts.Util.printStackTrace(t);
+            if (DEBUG.Enabled) tufts.Util.printStackTrace(t);
             return null;
         }
 
@@ -1102,9 +1101,13 @@ public class Images
                         imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile, listener);
                         success = true;
                     } catch (Images.DataException e) {
-                        Log.error(imageSRC + ": " + e);
+                        Log.warn(imageSRC + ": " + e);
                         if (++tries > 1) {
-                            tufts.Util.printStackTrace(e);
+                            final String msg = "Try #" + tries + ": " + e;
+                            if (DEBUG.Enabled)
+                                Util.printStackTrace(msg);
+                            else
+                                Log.warn(msg);
                             throw e;
                         } else {
                             Log.info("second try for " + imageSRC);
