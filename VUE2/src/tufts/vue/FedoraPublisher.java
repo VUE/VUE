@@ -90,15 +90,17 @@ public class FedoraPublisher {
         String mapPid = getFedoraPid(map);
         //TODO: Marchall Map before uploading it to repository
         File file =map.getFile();
-        uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.vue"),VUE_CM,(new MimetypesFileTypeMap().getContentType(file)),mapPid,file.getName(),MAP_DS,map,map);
+        uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.vue"),VUE_CM,(new MimetypesFileTypeMap().getContentType(file)),mapPid,map.getLabel(),MAP_DS,map,map);
     }
     
     public static void uploadMapAll(String protocol, String host, int port, String userName, String password,LWMap map) throws Exception{
-        Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        LWMap cloneMap = (LWMap)map.clone();
+        //cloneMap.setLabel(map.getLabel());
+        Iterator i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()) {
             LWComponent component = (LWComponent) i.next();
             System.out.println("Component:"+component+" has resource:"+component.hasResource());
-            if(component.hasResource() && (component.getResource() instanceof URLResource)){
+            if(component.hasResource() && (component instanceof LWNode || component instanceof LWLink) && (component.getResource() instanceof URLResource)){
                 URLResource resource = (URLResource) component.getResource();
                 System.out.println("Component:"+component+"file:" +resource.getSpec()+" has file:"+resource.getSpec().startsWith(FILE_PREFIX));
                 if(resource.isLocalFile()) {
@@ -106,7 +108,7 @@ public class FedoraPublisher {
                     
                     File file = new File(resource.getSpec().replace(FILE_PREFIX,""));
                     System.out.println("LWComponent:"+component.getLabel() + "Resource: "+resource.getSpec()+"File:"+file+" exists:"+file.exists()+" MimeType"+new MimetypesFileTypeMap().getContentType(file));
-                    uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.other"),OTHER_CM,(new MimetypesFileTypeMap().getContentType(file)),pid,file.getName(),RESOURCE_DS,component,map);
+                    uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.other"),OTHER_CM,(new MimetypesFileTypeMap().getContentType(file)),pid,file.getName(),RESOURCE_DS,component,cloneMap);
                     //Replace the link for resouce in the map
                     String ingestUrl =  "http://"+host+":8080/fedora/get/"+pid+"/RESOURCE";
                     resource.setSpec(ingestUrl);
@@ -114,12 +116,12 @@ public class FedoraPublisher {
             }
         }
         //upload the map
-        uploadMap( protocol,   host, port,   userName,   password,  map);
+        uploadMap( protocol,   host, port,   userName,   password,  cloneMap);
         
     }
     
     public static void uploadObjectToRepository(String protocol, String host, int port, String userName, String password,File file, File contentModel,String cm,String mimeType,String pid,String label,String dsName,LWComponent component,LWMap map) throws Exception {
-        System.setProperty("javax.net.ssl.trustStore", VueUtil.getDefaultUserFolder()+"\\truststore");
+        System.setProperty("javax.net.ssl.trustStore", VueUtil.getDefaultUserFolder()+File.separator+"truststore");
         System.setProperty("javax.net.ssl.trustStorePassword","tomcat");
         FedoraClient fc = new FedoraClient(protocol+"://"+host+":"+port+"/fedora/", userName, password);
         AutoFinder af = new AutoFinder(fc.getAPIA());
