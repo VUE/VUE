@@ -38,7 +38,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-10-19 19:13:37 $ / $Author: mike $
+ * @version $Revision: 1.39 $ / $Date: 2007-10-19 19:56:47 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -849,7 +849,16 @@ public class WidgetStack extends Widget
         }
 
 		public void mouseClicked(MouseEvent arg0) {
-			// TODO Auto-generated method stub
+			if (iconChar != null)
+			{
+				GUI.invokeAfterAWT(new Runnable()
+	    		{
+	    			public void run()
+	    			{
+	    				setIcon(VueResources.getImageIcon(iconChar+".raw"));		
+	    			}
+	    		});
+			}
 			
 		}
 
@@ -865,13 +874,31 @@ public class WidgetStack extends Widget
 
 		public void mouseEntered(MouseEvent arg0) {		
 			if (iconChar != null)
-				setIcon(VueResources.getImageIcon(iconChar+".hover"));
+			{
+				GUI.invokeAfterAWT(new Runnable()
+	    		{
+	    			public void run()
+	    			{
+	    				setIcon(VueResources.getImageIcon(iconChar+".hover"));		
+	    			}
+	    		});
+			}
+				
+			
 			
 		}
 
 		public void mouseExited(MouseEvent arg0) {
 			if (iconChar != null)
-				setIcon(VueResources.getImageIcon(iconChar+".raw"));
+			{
+				GUI.invokeAfterAWT(new Runnable()
+	    		{
+	    			public void run()
+	    			{
+	    				setIcon(VueResources.getImageIcon(iconChar+".raw"));		
+	    			}
+	    		});
+			}
 			
 		}                
     }
