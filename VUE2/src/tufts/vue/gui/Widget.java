@@ -20,10 +20,12 @@
 package tufts.vue.gui;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 
 import tufts.vue.DEBUG;
 
+import javax.swing.Icon;
 import javax.swing.JComponent;
 
 //import com.sun.xml.rpc.processor.modeler.j2ee.xml.javaXmlTypeMappingType;
@@ -43,7 +45,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.14 $ / $Date: 2007-05-21 06:34:42 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2007-10-19 19:13:37 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -51,6 +53,8 @@ public class Widget extends javax.swing.JPanel
     static final String EXPANSION_KEY = "widget.expand";
     static final String HIDDEN_KEY = "widget.hide";
     static final String MENU_ACTIONS_KEY = "widget.menuActions";
+    static final String MISC_ACTION_KEY = "widget.miscAction";
+    static final String MISC_ICON_KEY = "widget.miscIcon";
     static final String HELP_ACTION_KEY = "widget.helpAction";
     static final String REFRESH_ACTION_KEY = "widget.refreshAction";
     static final String WANTS_SCROLLER_KEY = "widget.wantsScroller";
@@ -135,6 +139,13 @@ public class Widget extends javax.swing.JPanel
     {
     //	if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setMenuAction " + action.toString());
         c.putClientProperty(REFRESH_ACTION_KEY, action);
+    }
+    
+    public static void setMiscAction(JComponent c, MouseListener action, String icon)
+    {
+    //	if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setMenuAction " + action.toString());
+        c.putClientProperty(MISC_ACTION_KEY, action);
+        c.putClientProperty(MISC_ICON_KEY, icon);
     }
     public static void setMenuActions(JComponent c, javax.swing.Action[] actions)
     {

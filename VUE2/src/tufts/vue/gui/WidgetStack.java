@@ -38,7 +38,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-10-11 04:00:10 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2007-10-19 19:13:37 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -294,6 +294,7 @@ public class WidgetStack extends Widget
         private final GUI.IconicLabel mIcon;
         private final RefreshButton refreshButton;
         private final HelpButton helpButton;
+        private final MiscActionButton miscActionButton;
         
         private final boolean isExpander;
 
@@ -370,11 +371,14 @@ public class WidgetStack extends Widget
             
             refreshButton = new RefreshButton("refreshButton",null);
             add(refreshButton);
+            
+            miscActionButton = new MiscActionButton();
+            add(miscActionButton);
         
             helpButton = new HelpButton(null);
             add(helpButton);
             
-            add(Box.createHorizontalStrut(isMac ? 1 : 2));
+        //    add(Box.createHorizontalStrut(isMac ? 1 : 2));
             
             mMenuButton = new MenuButton(null);
             add(mMenuButton);
@@ -461,6 +465,12 @@ public class WidgetStack extends Widget
 
             } else if (key == MENU_ACTIONS_KEY) {
                 mMenuButton.setMenuActions((Action[]) e.getNewValue());
+                
+            } else if (key == MISC_ACTION_KEY) {
+                miscActionButton.setAction((MouseListener)e.getNewValue());
+                                
+            } else if (key == MISC_ICON_KEY) {
+                miscActionButton.setIconPrefix((String)e.getNewValue());                
                 
             } else if (key == REFRESH_ACTION_KEY) {
                 refreshButton.setAction((MouseListener)e.getNewValue());
@@ -788,6 +798,80 @@ public class WidgetStack extends Widget
 
 		public void mouseExited(MouseEvent arg0) {
 			setIcon(VueResources.getImageIcon(iconChar+".raw"));
+			
+		}                
+    }
+
+    static class MiscActionButton extends JLabel implements MouseListener{
+    	
+    	private String iconChar;
+    	
+        MiscActionButton() {
+        	super();
+        	
+        	        	     
+        	Insets noInsets=new Insets(0,0,0,0);
+            setAlignmentY(0.5f);
+            setBorder(new javax.swing.border.EmptyBorder(3,0,3,5));
+            addMouseListener(this);
+            setAction(null);         
+            
+        }
+
+        public void setIconPrefix(String prefix)
+        {
+        	iconChar = prefix;
+        	if (iconChar != null)
+        		setIcon(VueResources.getImageIcon(iconChar+".raw")); 
+        }
+        public void setAction(MouseListener action) 
+        {
+            clearAction();
+
+            if (action == null) {
+                setVisible(false);
+                return;
+            }
+            else
+            {            	
+            	addMouseListener(this);
+            	addMouseListener(action);
+            	setVisible(true);
+            }
+
+        }
+
+        private void clearAction() {
+            MouseListener[] ml = getMouseListeners();
+            for (int i = 0; i < ml.length; i++) {                
+                    removeMouseListener(ml[i]);
+            }
+        }
+
+		public void mouseClicked(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mousePressed(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseReleased(MouseEvent arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseEntered(MouseEvent arg0) {		
+			if (iconChar != null)
+				setIcon(VueResources.getImageIcon(iconChar+".hover"));
+			
+		}
+
+		public void mouseExited(MouseEvent arg0) {
+			if (iconChar != null)
+				setIcon(VueResources.getImageIcon(iconChar+".raw"));
 			
 		}                
     }
