@@ -99,7 +99,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 	{
 		int index = keyVector.indexOf(osidLoadKey);
 		if (index != -1) {
-			return (org.osid.repository.RepositoryManager)managerVector.elementAt(index);
+			//return (org.osid.repository.RepositoryManager)managerVector.elementAt(index);
 		}
 		
 		org.osid.repository.RepositoryManager manager = null;
@@ -126,7 +126,7 @@ implements edu.tufts.vue.dsm.OsidFactory
 		String managerImplementation = edu.tufts.vue.util.Utilities.getManagerStringFromLoadKey(osidLoadKey);
 		int index = keyVector.indexOf(osidLoadKey);
 		if (index != -1) {
-			return (org.osid.repository.RepositoryManager)managerVector.elementAt(index);
+			//return (org.osid.repository.RepositoryManager)managerVector.elementAt(index);
 		}
 		org.osid.repository.RepositoryManager manager = null;
 		try {

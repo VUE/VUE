@@ -179,22 +179,23 @@ public class VueDataSource
     private void setRelatedValues()
     throws org.osid.provider.ProviderException {
         try {
-            this.repository = (factory.getRepositoryManagerInstance(this.osidLoadKey)).getRepository(this.repositoryId);
+            this.repository = this.repositoryManager.getRepository(this.repositoryId);
 //			System.out.println("got repository");
         } catch (Throwable t) {
             System.out.println("Load by key failed, " + this.osidLoadKey + " trying a check of all repositories");
             // special case for when the Manager implementation doesn't offer this method
             try {
-                org.osid.repository.RepositoryIterator repositoryIterator = repositoryManager.getRepositories();
+                org.osid.repository.RepositoryIterator repositoryIterator = this.repositoryManager.getRepositories();
                 while (repositoryIterator.hasNextRepository()) {
                     repository = repositoryIterator.nextRepository();
                     if (repositoryId.isEqual(repository.getId())) {
                         this.repository = repository;
+						//System.out.println("Set repository " + this.repository);
                     }
                 }
             } catch (Throwable t1) {
                 System.out.println("Load by check of all repositories failed");
-                throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
+                //throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
             }
         }
         // call Repository to answer these
@@ -493,6 +494,7 @@ public class VueDataSource
         try{
 			//System.out.println("properties " + p);
 			//System.out.println("manager " + this.repositoryManager);
+			//System.out.println("data source " + this);
             this.repositoryManager.assignConfiguration(p);
             setRelatedValues();
         } catch (Throwable t) {

@@ -126,6 +126,10 @@ public class VueDataSourceManager
                     return;
                 }
             }
+			try {				
+				System.out.println("Adding data source " + dataSource.getId().getIdString() + " " + dataSource.getRepository().getDisplayName());
+			} catch (Throwable t) {
+			}
             dataSourceVector.addElement(dataSource);
             if(!marshalling) save();
         } catch (Throwable t) {
@@ -174,6 +178,13 @@ public class VueDataSourceManager
         for (int i=0; i < size; i++) {
             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
             if (ds.isIncludedInSearch()) {
+				try {
+					System.out.println("Getting included data source0 " + ds.getId().getIdString());
+					System.out.println("Getting included data source1 " + ds.getRepository());
+					System.out.println("Getting included data source1 " + ds.getRepository().getDisplayName());
+					System.out.println("Getting included data source2 " + ds.getRepository().getId().getIdString());
+				} catch (Throwable t) {
+				}
                 results.addElement(ds.getRepository());
             }
         }
@@ -279,6 +290,19 @@ public class VueDataSourceManager
         marshalling = true;
         FileReader reader = new FileReader(file);
         VueDataSourceManager dsm = (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
+				
+		int size = dataSourceVector.size();
+        for (int i=0; i < size; i++) {
+            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+			try {
+				System.out.println("Getting included data source0 " + ds.getId().getIdString());
+				System.out.println("Getting included data source1 " + ds.getRepository());
+				System.out.println("Getting included data source1 " + ds.getRepository().getDisplayName());
+				System.out.println("Getting included data source2 " + ds.getRepository().getId().getIdString());
+			} catch (Throwable t) {
+			}
+		}
+		
         reader.close();
         marshalling = false;
         return dsm;
