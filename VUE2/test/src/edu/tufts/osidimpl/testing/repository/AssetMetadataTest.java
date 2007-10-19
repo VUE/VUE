@@ -98,6 +98,8 @@ public class AssetMetadataTest extends TestCase
 						partValue = ((Integer)ser).toString();
 					} else if (ser instanceof Double) {
 						partValue = ((Double)ser).toString();
+					} else if (ser instanceof Boolean) {
+						partValue = ((Boolean)ser).toString();
 					} else if (ser instanceof String[]) {
 						// create a string that is the concatenation of
 						// string values in the array; use semicolon as delimiter
