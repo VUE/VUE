@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.165 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $
+ * @version $Revision: 1.166 $ / $Date: 2007-10-19 13:31:23 $ / $Author: anoop $
  */
 
 public class LWMap extends LWContainer
@@ -1445,9 +1445,13 @@ public class LWMap extends LWContainer
         try {
             String prefix = "concept_map";
             String suffix = ".vue";
+            File file = this.getFile();
             File tempFile  = File.createTempFile(prefix,suffix,VueUtil.getDefaultUserFolder());
             tufts.vue.action.ActionUtil.marshallMap(tempFile, this);
-            return tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
+            LWMap cloneMap = tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
+            cloneMap.setLabel(this.getLabel());
+            tufts.vue.action.ActionUtil.marshallMap(file, this);
+             return cloneMap;
         }catch(Exception ex) {
             throw new CloneNotSupportedException(ex.getMessage());
         }

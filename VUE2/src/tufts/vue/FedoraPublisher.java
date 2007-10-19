@@ -95,7 +95,7 @@ public class FedoraPublisher {
     
     public static void uploadMapAll(String protocol, String host, int port, String userName, String password,LWMap map) throws Exception{
         LWMap cloneMap = (LWMap)map.clone();
-        //cloneMap.setLabel(map.getLabel());
+        cloneMap.setLabel(map.getLabel());
         Iterator i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()) {
             LWComponent component = (LWComponent) i.next();
