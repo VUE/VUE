@@ -171,12 +171,19 @@ public class DataSourceViewer extends JPanel
         
         Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));;
         Widget.setRefreshAction(new JButton("B"),new MouseAdapter());
+        Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), "dockWindow.addButton");
         Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
         Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
         Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
         GUI.clearWaitCursor();
     }
-    
+    class MiscActionMouseListener extends MouseAdapter
+    {
+    	public void mouseClicked(MouseEvent e)
+    	{
+    		addLibraryAction.actionPerformed(null);
+    	}
+    }
     private void addListeners() {
         dataSourceList.addKeyListener(this);
         // WORKING: commented out
