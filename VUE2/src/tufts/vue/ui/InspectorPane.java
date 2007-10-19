@@ -36,11 +36,12 @@ import javax.swing.border.*;
 import edu.tufts.vue.fsm.event.SearchEvent;
 import edu.tufts.vue.fsm.event.SearchListener;
 import edu.tufts.vue.metadata.ui.MetadataEditor;
+import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-10-17 14:00:08 $ / $Author: mike $
+ * @version $Revision: 1.50 $ / $Date: 2007-10-19 18:30:58 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -64,6 +65,7 @@ public class InspectorPane extends JPanel
     // Node panes
     private final NotePanel mNotePanel = new NotePanel();
     private final UserMetaData mUserMetaData = new UserMetaData();
+    private final OntologicalMembershipPane ontologicalMetadata = new OntologicalMembershipPane();
     //private final NodeTree mNodeTree = new NodeTree();
     
     private Resource mResource; // the current resource
@@ -97,8 +99,11 @@ public class InspectorPane extends JPanel
           // Previously experimented with "Tags" here
           stack.addPane("Keywords",               mUserMetaData,          1f);  
         }
+        stack.addPane("Ontological Membership",   ontologicalMetadata,    0f);
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
 
+        Widget.setHidden(ontologicalMetadata,true);
+        
         Widget.setExpanded(mUserMetaData, false);
         //Widget.setExpanded(mResourceMetaData, false);
         //Widget.setExpanded(mNodeTree, false);
@@ -140,6 +145,9 @@ public class InspectorPane extends JPanel
            // this.getParent().setEnabled(false);
             showNodePanes(false);
             showResourcePanes(false);
+            
+            // see comment in setNodePanes():
+            Widget.setHidden(ontologicalMetadata,true);
         } else {
             this.setEnabled(true);
             //this.getParent().setEnabled(true);
@@ -151,6 +159,9 @@ public class InspectorPane extends JPanel
             }
             mSummaryPane.load(c);
             mUserMetaData.load(c);
+            
+            //note: ontologicalMetadata hides itself in its own activeChanged
+            
             //mNodeTree.load(c);
 
             //setTypeName(mNotePanel, c, "Notes");
@@ -212,6 +223,10 @@ public class InspectorPane extends JPanel
         Widget.setHidden(mNotePanel, !visible);
         Widget.setHidden(mUserMetaData, !visible);
         //Widget.setHidden(mNodeTree, !visible);
+        
+        // do this instead in activeChanged -- ontologicalMetadata should not always
+        // be made visible and never if there is no selected component
+        //Widget.setHidden(ontologicalMetadata, !visible);
     }
     private void showResourcePanes(boolean visible) {
         Widget.setHidden(mResourceMetaData, !visible);
@@ -447,6 +462,7 @@ public class InspectorPane extends JPanel
                 {
                   setOpaque(false);
                   userMetadataEditor = new MetadataEditor(c,true,true);
+
                   add(userMetadataEditor,BorderLayout.CENTER);
                 }
             }
