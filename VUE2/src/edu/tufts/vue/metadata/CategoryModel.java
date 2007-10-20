@@ -40,7 +40,15 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     public static final String CUSTOM_METADATA_FILE = tufts.vue.VueUtil.getDefaultUserFolder()+File.separator+tufts.vue.VueResources.getString("metadata.custom.file");
     public static final String ONT_SEPARATOR = "#";
     
+    // note: the next two constants may not be in sync with the actual
+    // properties file -- see code in loader thread below
+    // which attempts to detect the problem (and prints a warning)
+    public static final int DUBLIN_CORE = 1;
+    public static final int VRA = 2;
+    
     private boolean ontologiesLoaded = false;
+    
+    private String[] defaultOntologyUrls;
     
     int ontTypesCount = 0;
     private static Map<URL,edu.tufts.vue.ontology.Ontology> ontCache = new HashMap<URL,edu.tufts.vue.ontology.Ontology>();
@@ -53,6 +61,13 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
           {
             loadDefaultVUEOntologies();
             loadCustomOntology(false);
+            
+            if(defaultOntologyUrls[VRA].toString().indexOf("/edu/tufts/vue/metadata/vra_core_3.rdf") == -1)
+            {
+                System.out.println("warning: may be removing incorrect VRA url " + defaultOntologyUrls[VRA] );
+            }
+            removeDefaultOntology(VRA);
+            
             ontologiesLoaded = true;
           }
         };
@@ -66,12 +81,12 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     }
     
     public void loadDefaultVUEOntologies() {
-        String[] ontologyUrls = tufts.vue.VueResources.getStringArray("metadata.load.files");
-        for(int i =0;i<ontologyUrls.length;i++) {
+        defaultOntologyUrls = tufts.vue.VueResources.getStringArray("metadata.load.files");
+        for(int i =0;i<defaultOntologyUrls.length;i++) {
             try {
-                loadOntology(tufts.vue.VueResources.getBundle().getClass().getResource(ontologyUrls[i]));
+                loadOntology(tufts.vue.VueResources.getBundle().getClass().getResource(defaultOntologyUrls[i]));
             } catch(Throwable t) {
-                Log.error("Problem loading metadata: "+ontologyUrls[i]+" Error:"+t.getMessage());
+                Log.error("Problem loading metadata: "+defaultOntologyUrls[i]+" Error:"+t.getMessage());
             }
         }
     }
@@ -101,6 +116,20 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     
     public void removeCustomCategory(OntType ontType) {
         customOntology.getOntTypes().remove(ontType);
+    }
+    
+    public void removeDefaultOntology(int location)
+    {
+        if(location == DUBLIN_CORE)
+        {
+            remove(defaultOntologyUrls[DUBLIN_CORE]);
+        }
+        
+        if(location == VRA)
+        {
+            edu.tufts.vue.ontology.Ontology vraOntology = ontCache.get(tufts.vue.VueResources.getBundle().getClass().getResource(defaultOntologyUrls[VRA]));
+            remove(vraOntology);
+        }
     }
     
     public edu.tufts.vue.ontology.Ontology getCustomOntology() {
