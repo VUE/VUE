@@ -89,7 +89,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.57 $ / $Date: 2007-09-01 21:37:19 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2007-10-21 21:06:03 $ / $Author: sfraize $
  *
  */
 
@@ -961,7 +961,7 @@ public class TextBox extends JTextPane
             if (lwc.getLabel().indexOf('\n') < 0) {
                 TextRow r = new TextRow(lwc.getLabel(), lwc.getFont(), dc.g.getFontRenderContext());
                 dc.g.setColor(Color.lightGray);
-                r.draw(dc.g, 0, 0);
+                r.draw(dc, 0, 0);
             }
         }
 
