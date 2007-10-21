@@ -595,7 +595,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                     extension = extension.substring(0,3);
                 }
                 if (DEBUG.RESOURCE) Log.debug("EXTENSION["+extension+"]");
-                mTextRow = new TextRow(extension, FONT_ICON);
+                mTextRow = TextRow.instance(extension, FONT_ICON);
             }
             
             if (boxBounds == null)
@@ -650,7 +650,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                 super.width = row.width;
             final float xoff = (super.width - row.width) / 2;
             final float yoff = (super.height - row.height) / 2;
-            row.draw(dc.g, xoff, yoff);
+            row.draw(dc, xoff, yoff);
 
 //             // an experiment in semantic zoom
 //             //if (dc.zoom >= 8.0 && mLWC.hasResource()) {
