@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.84 $ / $Date: 2007-10-17 14:29:36 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2007-10-21 21:06:35 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1119,9 +1119,9 @@ public class GUI
             // so we can see underlying diagnostic windows
             bounds.x += bounds.width / 4;
             //bounds.y += bounds.height / 16;
-            bounds.y += 100;
-            bounds.width /= 3;
-            bounds.height /= 3;
+            //bounds.y += 22;
+            bounds.width /= 2;
+            bounds.height /= 2;
         }
         //out("FSBounds: " + bounds);
         return bounds;
