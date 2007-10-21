@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import static tufts.vue.VueConstants.*;
+
 import tufts.Util;
 import tufts.macosx.MacOSX;
 import tufts.vue.gui.GUI;
@@ -30,6 +32,7 @@ import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Dimension;
+import java.awt.Graphics2D;
 import java.awt.AlphaComposite;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -52,7 +55,7 @@ public class PresentationTool extends VueTool
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PresentationTool.class);
     
-    private static final boolean AnimateAcrossMap = false;
+    private static final boolean AnimateAcrossMap = true;
     
     private static final String FORWARD = "FORWARD";
     private static final String BACKWARD = "BACKWARD";
@@ -185,8 +188,12 @@ public class PresentationTool extends VueTool
         public String getDisplayLabel() {
             if (node != null)
                 return node.getDisplayLabel();
-            else
+            else if (entry != null)
                 return entry.getLabel();
+            else {
+                Log.warn("Page with no node or entry");
+                return "<NO-NODE-OR-ENTRY!>";
+            }
         }
 
         public String toString() {
@@ -344,6 +351,9 @@ public class PresentationTool extends VueTool
 
     private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
     private static final Font NavFontBold = new Font("SansSerif", Font.BOLD, 16);
+    private static final Font NavFontDebug = new Font("SansSerif", Font.PLAIN, 10);
+    private static final Font NavFontBoldDebug = new Font("SansSerif", Font.BOLD, 10);
+    private static final Font NavBoxFont = new Font("SansSerif", Font.PLAIN, 12);
     private static final Color NavFillColor = new Color(154,154,154);
     //private static final Color NavFillColor = new Color(64,64,64,96);
     private static final Color NavStrokeColor = new Color(96,93,93);
@@ -355,39 +365,48 @@ public class PresentationTool extends VueTool
     private static final int BoxSize = 20;
     private static final int BoxGap = 5;
 
-    private static class PathwayBox extends Rectangle2D.Float 
+    private class PathwayBox extends java.awt.geom.RoundRectangle2D.Float
     {
         final LWPathway.Entry entry;
+        final TextRow txt;
         final Color color;
 
         PathwayBox(LWPathway.Entry e, float x, float y) 
         {
+            super(x, y, BoxSize, BoxSize, 5, 5);
             entry = e;
+            txt = TextRow.instance(Integer.toString(entry.index() + 1), NavBoxFont);
             color = Util.alphaMix(entry.pathway.getColor(), Color.white);
-            setFrame(x, y, BoxSize, BoxSize);
         }
 
         void draw(DrawContext dc) 
         {
             dc.g.setColor(color);
             dc.g.fill(this);
+            if (entry.pathway == mPathway)
+                dc.g.setStroke(STROKE_THREE);
+            else
+                dc.g.setStroke(STROKE_ONE);
             dc.g.setColor(Color.darkGray);
             dc.g.draw(this);
+            dc.g.setFont(NavBoxFont);
+            dc.g.setColor(color.darker());
+            txt.drawCenter(dc, this);
+        }
+
+        public String toString() {
+            return "Box[" + entry.toString() + "]";
         }
         
     }
     
     
-    private static class NavNode extends LWNode
+    private class NavNode extends LWNode
     {
         final Page page; // destination page
+        String debug;
 
         final List<PathwayBox> mPathwayJumpBoxes;
-
-        NavNode(Page destinationPage) 
-        {
-            this(destinationPage, false);
-        }
 
         private List<PathwayBox> createPathwayJumpBoxes(LWComponent node)
         {
@@ -409,6 +428,11 @@ public class PresentationTool extends VueTool
         }
         
         
+        NavNode(Page destinationPage) 
+        {
+            this(destinationPage, false);
+        }
+
         NavNode(Page destinationPage, boolean isLastPathwayPage)
         {
             super(null);
@@ -449,7 +473,10 @@ public class PresentationTool extends VueTool
             
             //label = "    " + label + " ";
             setLabel(label);
-            setFont(isLastPathwayPage ? NavFontBold : NavFont);
+            if (DEBUG.PRESENT)
+                setFont(isLastPathwayPage ? NavFontBoldDebug : NavFontDebug);
+            else
+                setFont(isLastPathwayPage ? NavFontBold : NavFont);
             setTextColor(NavTextColor);
         
             if (false && pathway != null) {
@@ -466,7 +493,7 @@ public class PresentationTool extends VueTool
             } else {
                 setStrokeColor(NavStrokeColor);
                 setFillColor(NavFillColor);
-                setStrokeWidth(2);
+                setStrokeWidth(1);
             }
             
             //setSyncSource(src); // TODO: these will never get GC'd, and will be updating for ever based on their source...
@@ -477,15 +504,17 @@ public class PresentationTool extends VueTool
             
             setSize(buttonWidth + SlideRoom, getHeight() + 6);
 
-
             final LWComponent node = page.getOriginalMapNode();
-            if (node.inPathway()) {
+            // pull node from entry if node is null?
+            if (node == null) {
+                //Log.warn("NULL NODE in " + this);
+                Util.printStackTrace("NULL NODE in " + this);
+                mPathwayJumpBoxes = null;
+            } else if (node.inPathway()) {
                 mPathwayJumpBoxes = createPathwayJumpBoxes(node);
             } else {
                 mPathwayJumpBoxes = null;
             }
-            
-
             
         }
 
@@ -493,9 +522,14 @@ public class PresentationTool extends VueTool
         {
             if (containsLocalCoord(x, y)) {
                 if (mPathwayJumpBoxes != null) {
-                    for (PathwayBox box : mPathwayJumpBoxes)
-                        if (box.contains(x, y))
+                    final float localX = x - getX();
+                    final float localY = y - getY();
+                    for (PathwayBox box : mPathwayJumpBoxes) {
+                        if (box.contains(localX, localY)) {
+                            if (DEBUG.PRESENT || DEBUG.PICK) Log.debug("hit entry box " + box);
                             return new Page(box.entry);
+                        }
+                    }
                 }
                 return this.page;
             } else
@@ -518,6 +552,22 @@ public class PresentationTool extends VueTool
             } else {
                 drawZero(dc);
             }
+
+            if (DEBUG.Enabled) {
+                dc.g.setFont(FONT_TINY);
+                dc.g.setColor(Color.white);
+                if (page.entry != null) {
+                    dc.g.drawString("Entry: " + page.entry, -100, 0);
+                    dc.g.drawString("Node: " + page.node, -100, 10);
+                } else {
+                    dc.g.drawString("Node: " + page.node, -100, 0);
+                    dc.g.drawString("Entry: " + page.entry, -100, 10);
+                }
+                           
+                if (debug != null)
+                    dc.g.drawString("Type: " + debug, -100, 20);
+                    
+            }
             
 //             // Draw slide icon if there is one:
 //             if (page.entry != null && page.entry.hasSlide()) {
@@ -528,7 +578,6 @@ public class PresentationTool extends VueTool
 
         private void drawPathwayJumpBoxes(DrawContext dc)  
         {
-            dc.g.setStroke(STROKE_ONE);
             for (PathwayBox box : mPathwayJumpBoxes)
                 box.draw(dc);
         }
@@ -890,8 +939,7 @@ public class PresentationTool extends VueTool
     //private boolean isPresenting() { return !mShowContext.isSelected(); }
     
     private static float[] OverviewMapScales = {8, 6, 4, 3, 2.5f, 2, 1.5f, 1};
-    //private static int OverviewMapSizeIndex = 2;
-private static int OverviewMapSizeIndex = 5;
+    private static int OverviewMapSizeIndex = 5;
     private float mNavMapX, mNavMapY; // location of the overview navigator map
     private DrawContext mNavMapDC;
 
@@ -917,12 +965,12 @@ private static int OverviewMapSizeIndex = 5;
 
         dc.g.translate(mNavMapX, mNavMapY);
 
-        // todo: black or white depending on brightess of the fill
-        dc.g.setColor(Color.gray);
+        dc.g.setColor(Color.gray); // black or white depending on brightess of the fill?
         dc.g.fill(panner);
 
         // clip in case borders that might extend outside the panner if the fit is tight to the raw map shapes        
         dc.g.clipRect(0,0, panner.width, panner.height);
+        //dc.setMasterClip(panner);
         
         //final LWComponent focused = mCurrentPage.isMapView() ? null : mCurrentPage.getOriginalMapNode();
 
@@ -936,66 +984,79 @@ private static int OverviewMapSizeIndex = 5;
 //         else if (mFocal instanceof LWMap == false)
 //             focused = mFocal;
 
+        final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
         
-        LWComponent focused = mCurrentPage.getOriginalMapNode();
+        //LWComponent focused = mCurrentPage.getOriginalMapNode();
+        LWComponent focused = mCurrentPage.getPresentationFocal();
 
-        // if we're nav-clicking within a slide, the original map node
-        // is totally uninteresting: it's just the node (e.g., an image)
-        // on the slide -- if slides we're really on the map tho, we could
-        // in fact zoom to it normally.
-        
         if (focused != null) {
-            final LWSlide slide = (LWSlide) focused.getAncestorOfType(LWSlide.class);
+
+            // if we're nav-clicking within a slide, the original map node is totally
+            // uninteresting: it's just the node (e.g., an image) on the slide -- if
+            // slides we're really on the map tho, we could in fact zoom to it normally.
+            
+            //final LWSlide slide = (LWSlide) focused.getAncestorOfType(LWSlide.class);
+            // TODO: Test using getParent v.s. getAncestor...
+            final LWSlide slide = (LWSlide) focused.getParentOfType(LWSlide.class);
             if (slide != null)
                 focused = slide.getSourceNode();
         }
 
-//         if (focused instanceof LWSlide) {
-//             tufts.Util.printStackTrace("FOCUSED IS FUCKING SLIDE");
-//             focused = null;
-//         }
+        dc.skipDraw = focused; // will be ignored!  We only pass GC into paintViewerIntoRectangle
 
-        dc.skipDraw = focused;
-
-
-        final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
+        //final LWMap map = viewer.getMap();
+        //dc.setDrawPathways(true);
+        //map.drawFit(dc.push(), panner, 10); dc.pop();
+        
+        final Graphics2D pannerGC = (Graphics2D) dc.g.create();
         mNavMapDC = MapPanner.paintViewerIntoRectangle(null,
-                                                       dc.g.create(),
+                                                       pannerGC,
                                                        viewer,
                                                        panner,
-                                                       false);
-                                                       //focused == null); // for panning to slide icon
-                                                       //false); //mCurrentPage.isMapView());
+                                                       false); // draw reticle
 
+        
+        
         if (focused != null) {
             dc.g.setColor(Color.black);
             dc.setAlpha(0.5);
             dc.g.fill(panner);
+
+            if (mCurrentPage.entry != null && mCurrentPage.entry.pathway != null) {
+                // redraw the current pathway so it's highlighted
+                mCurrentPage.entry.pathway.drawPathway(mNavMapDC);
+            }
             
             mNavMapDC.setAntiAlias(true);
             
-            if (false && mShowNavNodes) {
-                // Also highlight connectd nav nodes if non-linear nav overlay is showing:
-                for (NavNode nav : mNavNodes)
-                    if (nav.page.node != null && nav.page.node != focused)
-                        nav.page.node.draw(mNavMapDC.create());
-            }
+//             if (false && mShowNavNodes) {
+//                 // Also highlight connectd nav nodes if non-linear nav overlay is showing:
+//                 for (NavNode nav : mNavNodes) {
+//                     if (nav.page.node != null && nav.page.node != focused) {
+//                         nav.page.node.draw(dc.push()); dc.pop();
+//                     }
+//                 }
+//             }
 
             Rectangle2D bounds = null;
             
             if (viewer.getFocal() instanceof LWSlide) {
                 if (focused != null)
+                    //bounds = focused.getPaintBounds();
                     bounds = focused.getBounds(); // could grab node icon bounds if they're drawing...
             } else {
                 bounds = viewer.getVisibleMapBounds();
             }
                   
             
-            if (mCurrentPage.isMapView() && bounds != null) {
+            if (DEBUG.WORK) out("overview drawing focused: " + focused);
+            dc.setAlpha(1);            
+            focused.draw(mNavMapDC.push()); mNavMapDC.pop();
+            
+            if (!(focused instanceof LWSlide) && mCurrentPage.isMapView() && bounds != null) {
                 // redraw the reticle at full brightness:
                 
                 if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + bounds);
-                
                 mNavMapDC.g.setColor(mCurrentPage.getPresentationFocal().getMap().getFillColor());
                 mNavMapDC.setAlpha(0.333);
                 mNavMapDC.g.fill(bounds);
@@ -1005,10 +1066,10 @@ private static int OverviewMapSizeIndex = 5;
                 mNavMapDC.g.draw(bounds);
             }
             
-            if (DEBUG.WORK) out("overview drawing focused: " + focused);
-            focused.draw(mNavMapDC.create());
             
         }
+
+        pannerGC.dispose();
             
     }
 
@@ -1233,8 +1294,8 @@ private static int OverviewMapSizeIndex = 5;
     private boolean startUnderway;
     public void startPresentation()
     {
-        out(this + " startPresentation");
-        new Throwable("FYI: startPresentation (debug)").printStackTrace();
+        out("startPresentation");
+        //new Throwable("FYI: startPresentation (debug)").printStackTrace();
         
         //if (DEBUG.PRESENT && DEBUG.META) tufts.Util.printStackTrace("startPresentation");
         
@@ -1342,7 +1403,8 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     private void loadPathway(LWPathway pathway) {
-        if (DEBUG.PRESENT) new Throwable("FYI, loadPathway: " + pathway).printStackTrace();
+        //if (DEBUG.PRESENT) new Throwable("FYI, loadPathway: " + pathway).printStackTrace();
+        if (DEBUG.PRESENT) out("loadPathway " + pathway);
         LWComponent.swapLWCListener(this, mPathway, pathway);
         mPathway = pathway;
     }
@@ -1813,8 +1875,9 @@ private static int OverviewMapSizeIndex = 5;
         // Be sure to draw the navigator after the nav nodes, as navigator
         // display can depend on the current nav nodes, which are created
         // at draw time.
-        if (mShowNavigator)
-            drawOverviewMap(dc.create());
+        if (mShowNavigator) {
+            drawOverviewMap(dc.push()); dc.pop();
+        }
 
         
         if (DEBUG.NAV) {
@@ -1870,45 +1933,83 @@ private static int OverviewMapSizeIndex = 5;
     }
 
     private static final int NavNodeX = -10; // clip the left edge of the round-rect
-    
+
+    private class NavLayout {
+        final float rightSide;
+        int rightInset = -10;
+        float y;
+
+        final Object skip1, skip2;
+        
+        NavLayout(Rectangle frame, Object s1, Object s2) {
+            skip1 = s1;
+            skip2 = s2;
+            rightSide = frame.x + frame.width;
+            y = frame.y + 7;
+        }
+        
+        void addIfUnique(Page page, String debug) {
+            if (!page.equals(skip1) && !page.equals(skip2))
+                add(createNavNode(page), debug);
+        }
+
+        //void _add(NavNode nn) { _add(nn, null); }
+        
+        void add(NavNode nn, String debug) {
+            mNavNodes.add(nn);
+            if (DEBUG.Enabled && debug != null)
+                //nn.setLabel(debug + ": " + nn.getLabel());
+                nn.debug = debug;
+            nn.setLocation((rightSide - nn.getWidth()) - rightInset, y);            
+            y += nn.getHeight() + 7;
+        }
+        
+    }
+
     private void makeNavNodes(Page page, Rectangle frame)
     {
+        final NavLayout layout = new NavLayout(frame, mLastPage, mLastPathwayPage);
+        
+        if (mLastPage != null && mLastPage != NO_PAGE && !mLastPage.equals(mLastPathwayPage))
+            layout.add(createNavNode(mLastPage), "back");
+        
         // always add the current pathway at the top
         if (mLastPathwayPage != null)
-            mNavNodes.add(createNavNode(mLastPathwayPage, true));
+            layout.add(createNavNode(mLastPathwayPage, true), "last-path");
 //         //if (node.inPathway(mPathway))
 //         if (page.onPathway(mPathway))
 //             mNavNodes.add(createNavNode(page));
 
-        
-//         // tho having the order switch on the user kind of sucks...
-        final LWComponent mapNode = page.getOriginalMapNode();
-        
-//         for (LWPathway otherPath : mapNode.getPathways()) {
-//             //if (otherPath != mPathway && !otherPath.isFiltered())
-//             if (!otherPath.isFiltered() && otherPath != mPathway)
-//                 mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
+//         int rightInset = -10;
+//         for (NavNode nav : mNavNodes) {
+//             y += nav.getHeight() + 5;
+//             nav.setLocation((rightSide - nav.getWidth()) - rightInset, y);
 //         }
-
-        final float rightSide = frame.x + frame.width;
-        float y = frame.y;
-
-        if (DEBUG.NAV) {
-            // make room for diagnostics:
-            y += 200;
-        }
-
-        int rightInset = -10;
-        
-        for (NavNode nav : mNavNodes) {
-            y += nav.getHeight() + 5;
-            nav.setLocation((rightSide - nav.getWidth()) - rightInset, y);
-        }
         
         if (!mNavNodes.isEmpty())
-            y += 30;
+            layout.y += 30;
+        
+        layout.rightInset = 7;
+        
+        final LWComponent mapNode = page.getOriginalMapNode();
 
-        rightInset = 7;
+        if (page.entry != null) {
+            final LWPathway.Entry nextEntryThisPath = page.entry.next();
+            if (nextEntryThisPath != null)
+                layout.add(createNavNode(nextEntryThisPath), "next-path");
+        }
+        
+        for (LWPathway path : mapNode.getPathways()) {
+            if (!path.isFiltered() && path != mPathway) {
+                LWPathway.Entry pathEntry = path.getFirstEntry(mapNode);
+                LWPathway.Entry nextPathEntry = pathEntry.next();
+                if (nextPathEntry != null)
+                    layout.add(createNavNode(nextPathEntry), "other-path");
+            }
+        }
+
+        //if (DEBUG.NAV) { /*make room for diagnostics*/ y += 200; }
+
         
         NavNode nav;
         for (LWLink link : mapNode.getLinks()) {
@@ -1916,16 +2017,18 @@ private static int OverviewMapSizeIndex = 5;
             LWComponent farpoint = link.getFarPoint(mapNode);
             if (DEBUG.WORK) out(mapNode + " found farpoint " + farpoint);
             if (farpoint != null && farpoint.isDrawn()) {
-                if (false && link.hasLabel())
-                    nav = createNavNode(new Page(link));
-                //nav = createNavNode(link, null); // just need to set syncSource to the farpoint
-                else
-                    nav = createNavNode(new Page(farpoint));
-                //nav = createNavNode(farpoint, null);
-                mNavNodes.add(nav);
+//                 if (false && link.hasLabel())
+//                     nav = createNavNode(new Page(link));
+//                 //nav = createNavNode(link, null); // just need to set syncSource to the farpoint
+//                 else
+//                     nav = createNavNode(new Page(farpoint));
 
-                y += nav.getHeight() + 5;
-                nav.setLocation((rightSide - nav.getWidth()) - rightInset, y);
+                layout.addIfUnique(new Page(farpoint), "link");
+
+//                 //nav = createNavNode(farpoint, null);
+//                 mNavNodes.add(nav);
+//                 y += nav.getHeight() + 5;
+//                 nav.setLocation((rightSide - nav.getWidth()) - rightInset, y);
             }
         }
     }
@@ -2006,6 +2109,10 @@ private static int OverviewMapSizeIndex = 5;
 //     }
     
 
+    private NavNode createNavNode(LWPathway.Entry e) {
+        //if (DEBUG.WORK) out("creating nav node for page " + page);
+        return new NavNode(new Page(e));
+    }
     private NavNode createNavNode(Page page) {
         //if (DEBUG.WORK) out("creating nav node for page " + page);
         return new NavNode(page);
