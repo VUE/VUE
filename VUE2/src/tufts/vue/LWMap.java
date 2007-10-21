@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.166 $ / $Date: 2007-10-19 13:31:23 $ / $Author: anoop $
+ * @version $Revision: 1.167 $ / $Date: 2007-10-21 20:58:42 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -607,6 +607,9 @@ public class LWMap extends LWContainer
         }
     }
 
+    static final String NODE_INIT_LAYOUT = "completeXMLRestore:NODE";
+    static final String LINK_INIT_LAYOUT = "completeXMLRestore:LINK";
+
 
     public void completeXMLRestore()
     {
@@ -703,7 +706,7 @@ public class LWMap extends LWContainer
                 continue;
             if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT NODE: in " +  c.getParent() + ": " + c);
             try {
-                c.layout("completeXMLRestore:NODE");
+                c.layout(NODE_INIT_LAYOUT);
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t, "RESTORE LAYOUT NODE " + c);
             }
@@ -715,7 +718,7 @@ public class LWMap extends LWContainer
                 continue;
             if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT LINK: in " +  c.getParent() + ": " + c);
             try {
-                c.layout("completeXMLRestore:LINK");
+                c.layout(LINK_INIT_LAYOUT);
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t, "RESTORE LAYOUT LINK " + c);
             }
@@ -740,7 +743,6 @@ public class LWMap extends LWContainer
         //setEventsResumed();
         markAsSaved();
     }
-
 
     /*
       // no longer needed: we now use castor references to handle this for us
@@ -1206,6 +1208,13 @@ public class LWMap extends LWContainer
         }
         mChanges++;
     }
+
+    @Override
+    protected Rectangle2D.Float getZeroBounds() {
+        Util.printStackTrace("LWMap getZeroBounds " + this);
+        return getPaintBounds();
+    }
+    
     
 //     @Override
 //     public java.awt.geom.Rectangle2D.Float getBounds() {
@@ -1291,6 +1300,11 @@ public class LWMap extends LWContainer
         }
         return rect == null ? EmptyBounds : rect;
         //return rect == null ? new Rectangle2D.Float() : rect;
+    }
+
+    @Override
+    public Rectangle2D.Float getPaintBounds() {
+        return mChildren == null ? EmptyBounds : getPaintBounds(mChildren.iterator());
     }
 
     public static Rectangle2D.Float getPaintBounds(Iterator<LWComponent> i)
