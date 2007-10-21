@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.11 $ / $Date: 2007-10-10 18:55:23 $ / $Author: mike $
+ * @version $Revision: 1.12 $ / $Date: 2007-10-21 21:06:18 $ / $Author: sfraize $
  *
  */
 
@@ -1011,7 +1011,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             if (lwc.getLabel().indexOf('\n') < 0) {
                 TextRow r = new TextRow(lwc.getLabel(), lwc.getFont(), dc.g.getFontRenderContext());
                 dc.g.setColor(Color.lightGray);
-                r.draw(dc.g, 0, 0);
+                r.draw(dc, 0, 0);
             }
         }
 
