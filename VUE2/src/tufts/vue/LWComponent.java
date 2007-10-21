@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.352 $ / $Date: 2007-10-18 21:58:41 $ / $Author: sfraize $
+ * @version $Revision: 1.353 $ / $Date: 2007-10-21 20:59:09 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2228,6 +2228,9 @@ u                    getSlot(c).setFromString((String)value);
     final void layout(Object triggerKey) {
         if (mXMLRestoreUnderway == false) {
             layoutImpl(triggerKey);
+
+            if (triggerKey == LWMap.NODE_INIT_LAYOUT)
+                layoutSlideIcons(null);
             // need a reshape/reshapeImpl for this (size/location changes)
             //if (mSlideIconBounds != null)
             //    mSlideIconBounds.x = Float.NaN; // invalidate
@@ -3952,9 +3955,12 @@ u                    getSlot(c).setFromString((String)value);
      */
     public Rectangle2D.Float getPaintBounds()
     {
-        if (inDrawnPathway())
-            return addStrokeToBounds(getMapBounds(), LWPathway.PathBorderStrokeWidth);
-        else
+        if (inDrawnPathway()) {
+            Rectangle2D.Float b = addStrokeToBounds(getMapBounds(), LWPathway.PathBorderStrokeWidth);
+            if (farthestVisibleSlideCorner != null)
+                b.add(farthestVisibleSlideCorner);
+            return b;
+        } else
             return addStrokeToBounds(getMapBounds(), 0);
     }
 
@@ -4962,6 +4968,8 @@ u                    getSlot(c).setFromString((String)value);
         
         if (drawSlides && mEntries != null)
             drawSlideIconStack(dc);
+        //else
+        //farthestVisibleSlideCorner = null;
     }
 
 //     /** If there's a pathway entry we want to be showing, return it, otherwise, null */
@@ -4995,8 +5003,18 @@ u                    getSlot(c).setFromString((String)value);
 //     }
 
 
+    private Point2D.Float farthestVisibleSlideCorner;
+    
     
     /** @return a slide to be drawn last, or null if none in particular */
+    
+    // TODO: need to do this as part of layout: need to trigger layout if any pathway
+    // visibility or membership changes.  Currently, the paint bounds falls behind as
+    // farthestVisibleCorner doesn't update till draw time... We special case a call to
+    // this during the init (restore) layout, so at least auto-fit at startup works, but
+    // if we ever hava a viewer that's implementing a constant auto-fit feature, it will
+    // fall behind until we handle this in proper model/view split fashion.
+    
     private final void layoutSlideIcons(DrawContext dc) {
         if (mEntries == null)
             return;
@@ -5006,7 +5024,7 @@ u                    getSlot(c).setFromString((String)value);
         float xoff = corner.x;
         float yoff = corner.y;
 
-        if (false && dc.isPresenting()) {
+        if (false && dc != null && dc.isPresenting()) {
 
             // if presenting, let the position the active pathway slide as the last slide in the stack            
 
@@ -5019,15 +5037,29 @@ u                    getSlot(c).setFromString((String)value);
 
             // if NOT presenting, leave the slides arranged in the order
             // of the pathway list (TODO: entries order isn't synced with this...)
+
+            LWSlide lastSlide = null;
         
             for (LWPathway.Entry e : mEntries) {
                 if (e.hasVisibleSlide()) {
                     final LWSlide slide = e.getSlide();
+                    lastSlide = slide;
                     slide.takeLocation(xoff, yoff);
-                    yoff += slide.getLocalHeight() / 6;
-                    xoff += slide.getLocalWidth() / 6;
+                    final float scaledSlideWidth = slide.getLocalWidth();
+                    final float scaledSlideHeight = slide.getLocalHeight();
+                    yoff += scaledSlideWidth / 6;
+                    xoff += scaledSlideHeight / 6;
                 }
             }
+
+            if (lastSlide != null) {
+                corner.x = lastSlide.getMapX() + lastSlide.getLocalWidth();
+                corner.y = lastSlide.getMapY() + lastSlide.getLocalHeight();
+                farthestVisibleSlideCorner = corner;
+                //out("far corner: " + Util.fmt(corner));
+            } else
+                farthestVisibleSlideCorner = null;
+
 
             // Now just in case, layout all the non-visible ones after the visible, in case
             // they get manually selected via the pathway panel and temporarily shown
