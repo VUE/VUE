@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-10-17 14:27:23 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2007-10-21 20:57:29 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -324,6 +324,11 @@ public final class DrawContext
     public void setAlpha(double alpha) {
         setAlpha(alpha, AlphaComposite.SRC_OVER);
     }
+
+    public float getAlpha() {
+        return this.alpha;
+    }
+    
 
     public static final String[] AlphaRuleNames = {
         // Index based on coded values in java.awt.AlphaComposite.java @version 10 Feb 1997:
