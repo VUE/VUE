@@ -48,6 +48,7 @@ public class TextRow
     private static final boolean FunkyMacTextBounds = VueUtil.isMacPlatform() && VueUtil.getMacMRJVersion() < 232;
     /** default FontRenderContext: anti-alias=true and fractional-metrics=false */
     private static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, false);
+    //private static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, true);
     
     private final TextLayout row;
     private final Rectangle2D.Float bounds;
@@ -55,14 +56,58 @@ public class TextRow
     public final String text;
     public final float width;
     public final float height;
+
+    //private static final java.util.Map<String,TextRow> Cache = new java.util.HashMap();
+
+    /** factory method, in case impl may want to cache instances of common short strings (e.g., file extensions) */
+    public static TextRow instance(String txt, Font font) {
+
+        return new TextRow(txt, font);        
+        
+//         // Would need to also key on the font!
+//         if (txt.length() <= 3) {
+//             TextRow r = Cache.get(txt);
+//             if (r != null) {
+//                 return r;
+//             } else {
+//                 r = new TextRow(txt, font);
+//                 Cache.put(txt, r);
+//                 return r;
+//             }
+//         } else {
+//             return new TextRow(txt, font);
+//         }
+    }
+
+    private TextRow(String text, Font font, FontRenderContext frc, TextLayout _row, Rectangle2D _bounds) {
+        this.text = text;
+        if (_row == null)
+            this.row = new TextLayout(text, font, frc);
+        else
+            this.row = _row;
+
+        final Rectangle2D.Float closeBounds = (Rectangle2D.Float) row.getBounds();
+        
+        if (_bounds == null) {
+            this.bounds = closeBounds;
+            this.width = bounds.width;
+            this.height = bounds.height;
+        } else {
+            if (DEBUG.TEXT) System.out.println("TextRow[" + text + "] rowbnds=" + tufts.Util.fmt(row.getBounds()));
+            this.bounds = (Rectangle2D.Float) _bounds;
+            this.width = closeBounds.width; // take the more accurate width from the TextLayout
+            this.height = bounds.height; // take the less accurate, but more consistent height from the font bounds
+        }
+        if (DEBUG.TEXT) System.out.println("TextRow[" + text + "]  bounds=" + tufts.Util.fmt(bounds));
+    }
     
     public TextRow(String text, Font font, FontRenderContext frc)
     {
-        this.text = text;
-        this.row = new TextLayout(text, font, frc);
-        this.bounds = (Rectangle2D.Float) row.getBounds();
-        this.width = bounds.width;
-        this.height = bounds.height;
+        this(text,
+             font,
+             frc,
+             null,
+             null);
     }
 
     public TextRow(String text, Graphics g)
@@ -72,18 +117,26 @@ public class TextRow
 
     public TextRow(String text, Font font)
     {
-        this(text, font, DefaultFontContext);
+        // font.getStringBounds is less "precise", but more consistent for generating an
+        // even bounding box around the text if you want to align the text.
+        // E.g., TextLayout can report different pixel heights for strings as similar as "10", "11" and "12",
+        // whereas getStringBounds, while reporting a bigger overall box, reports a consistent line height.
+        
+        this(text, font, DefaultFontContext, null, font.getStringBounds(text, DefaultFontContext));
+        
     }
 
-//     public Rectangle2D getBounds() {
-//         return bounds;
-//     }
-        
-    private static final BasicStroke BorderStroke = new BasicStroke(0.05f);
-    //private static final BasicStroke BorderStroke = new BasicStroke(1);
-
-    public void draw(Graphics2D g2d, float xoff, float yoff)
+    public void drawCenter(tufts.vue.DrawContext dc, java.awt.geom.RectangularShape shape) {
+        //System.out.println("Height of [" + text + "]=" + height);
+        draw(dc,
+             (float) (shape.getX() + (shape.getWidth() - width) / 2),
+             (float) (shape.getY() + (shape.getHeight() - height) / 2));
+    }
+    
+    public void draw(tufts.vue.DrawContext dc, float xoff, float yoff)
     {
+        final Graphics2D g = dc.g;
+        
         // Mac & PC 1.4.1 implementations haved reversed baselines
         // and differ in how descents are factored into bounds offsets
         // Update: As of Mac java 1.4.2_09-232, it appears to use the
@@ -96,7 +149,7 @@ public class TextRow
             yoff += this.bounds.y;
             xoff += this.bounds.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
             
-            row.draw(g2d, xoff, yoff);
+            row.draw(g, xoff, yoff);
             
             if (DEBUG.BOXES) {
                 final Rectangle2D.Float tb = (Rectangle2D.Float) this.bounds.clone();
@@ -113,10 +166,11 @@ public class TextRow
                 tb.y = -tb.y;
                 tb.y += yoff;
                 tb.y -= tb.height;
-                Graphics2D g = (Graphics2D) g2d.create();
-                g.setStroke(BorderStroke);
-                g.setColor(Color.green);
-                g.draw(tb);
+                Graphics2D _g = (Graphics2D) g.create();
+                dc.setAbsoluteStroke(1);
+                _g.setColor(Color.green);
+                _g.draw(tb);
+                _g.dispose();
             }
                 
         } else {
@@ -124,7 +178,7 @@ public class TextRow
             // implementation is also cleaner, and worthy of being
             // the default case.
                 
-            row.draw(g2d, -bounds.x + xoff, -bounds.y + yoff);
+            row.draw(g, -bounds.x + xoff, -bounds.y + yoff);
             //baseline = yoff + tb.height;
 
             if (DEBUG.BOXES) {
@@ -132,9 +186,9 @@ public class TextRow
                 // draw a red bounding box for testing
                 tb.x = xoff;
                 tb.y = yoff;
-                g2d.setStroke(BorderStroke);
-                g2d.setColor(Color.green);
-                g2d.draw(tb);
+                dc.setAbsoluteStroke(1);
+                g.setColor(Color.green);
+                g.draw(tb);
             }
         }
     }
