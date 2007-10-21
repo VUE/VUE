@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.188 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.189 $ / $Date: 2007-10-21 21:05:24 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -137,6 +137,16 @@ public class LWPathway extends LWContainer
         /** for castor's use during restores */
         public Entry() {
             pathway = null;
+        }
+
+        /** @return next entry on this pathway, or null if at end */
+        public Entry next() {
+            return pathway.getEntry(pathway.getEntryIndex(this) + 1);
+        }
+        
+        /** @return prev entry on this pathway, or null if at beginning */
+        public Entry prev() {
+            return pathway.getEntry(pathway.getEntryIndex(this) - 1);
         }
         
         private final boolean restoreUnderway() {
@@ -701,6 +711,14 @@ public class LWPathway extends LWContainer
         else
             return mEntries.get(index);
     }
+
+    public int getEntryIndex(Entry e) {
+        if (e.pathway != this)
+            Log.warn("fetching entry index for non-member of ths pathway: " + e);
+        
+        return mEntries.indexOf(e);
+    }
+    
 
     public Entry getCurrentEntry() {
         return mCurrentIndex >= 0 ? getEntry(mCurrentIndex) : null;
@@ -1757,6 +1775,7 @@ public class LWPathway extends LWContainer
             dc.g.setStroke(ConnectorStroke);
             dc.g.setColor(getColor());
         }
+
         
         LWComponent last = null;
         for (Entry e : mEntries) {
@@ -1775,6 +1794,19 @@ public class LWPathway extends LWContainer
                 } else {
                     VueUtil.computeConnector(last, next, connector);
                 }
+
+
+
+
+//                 if (dc.isPresenting() && dc.getAlpha() != 1f && VUE.getActivePathway() == this) {
+//                     DrawContext _dc = dc.create();
+//                     Log.debug("REVERTING ALPHA");
+//                     _dc.setAlpha(1);
+//                     _dc.g.draw(connector);
+//                     _dc.dispose();
+//                 } else {
+//                     dc.g.draw(connector);
+//                 }
                 
                 dc.g.draw(connector);
                     
