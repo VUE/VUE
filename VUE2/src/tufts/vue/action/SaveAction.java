@@ -25,6 +25,7 @@
 package tufts.vue.action;
 
 import javax.swing.*;
+
 import java.awt.event.*;
 import java.io.*;
 import java.util.Iterator;
@@ -112,16 +113,26 @@ public class SaveAction extends VueAction
             return false;
         
         File file = map.getFile();
-
+        int response = 0;
         if (map.getSaveFileModelVersion() == 0) {
-            VueUtil.alert(String.format("Saving %s in this version of VUE will prevent older versions of VUE"
-                                        + "\nfrom displaying it properly.  You may wish to save this map under a new name.",
-                                        map.getLabel()),
-                          "Version Notice: " + map.getLabel());
-            
+
+        	final Object[] defaultOrderButtons = { "Save a copy","Save"};
+            response = JOptionPane.showOptionDialog
+            (VUE.getDialogParent(),
+        
+       		"Saving "+ map.getLabel()+ " Sin this version of VUE will prevent older versions of VUE" +       				
+              "\nfrom displaying it properly.  You may wish to save this map under a new name.",         
+             "Version Notice: " + map.getLabel(),
+             JOptionPane.YES_NO_OPTION,
+             JOptionPane.PLAIN_MESSAGE,
+             null,
+             defaultOrderButtons,             
+             "Save a copy"
+             );
         }
         
-        
+        if (response ==0)
+        	saveAs=true;
         if ((saveAs || file == null) && !export)
             //file = ActionUtil.selectFile("Save Map", "vue");
             file = ActionUtil.selectFile("Save Map", null);
