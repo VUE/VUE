@@ -87,7 +87,7 @@ public class TextRow
             mRow = row;
 
         final Rectangle2D.Float closeBounds = (Rectangle2D.Float) mRow.getBounds();
-        
+
         if (bounds == null) {
             mBounds = closeBounds;
         } else {
@@ -123,7 +123,8 @@ public class TextRow
         // E.g., TextLayout can report different pixel heights for strings as similar as "10", "11" and "12",
         // whereas getStringBounds, while reporting a bigger overall box, reports a consistent line height.
         
-        this(text, font, DefaultFontContext, null, font.getStringBounds(text, DefaultFontContext));
+        //this(text, font, DefaultFontContext, null, font.getStringBounds(text, DefaultFontContext));
+        this(text, font, DefaultFontContext, null, null); // turned off for now: leave node icons as before
         
     }
 
