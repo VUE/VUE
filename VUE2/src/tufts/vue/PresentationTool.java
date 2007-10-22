@@ -744,6 +744,7 @@ public class PresentationTool extends VueTool
     private void repaint() {
         repaint("");
     }
+    
     private void repaint(String msg) {
         if (DEBUG.WORK) out("repaint " + msg);
         VUE.getActiveViewer().repaint();
@@ -2168,6 +2169,9 @@ public class PresentationTool extends VueTool
         // always add the current pathway at the top
         if (mLastPathwayPage != null)
             layout.setLastPathway(mLastPathwayPage);
+
+        if (mCurrentPage.node != null && mCurrentPage.node.inVisiblePathway())
+            layout.add(new Page(mCurrentPage.node), "loop-back");
         
         layout.startIndentRegion();
 
