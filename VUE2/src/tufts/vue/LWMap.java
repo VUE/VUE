@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.167 $ / $Date: 2007-10-21 20:58:42 $ / $Author: sfraize $
+ * @version $Revision: 1.168 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -704,7 +704,7 @@ public class LWMap extends LWContainer
             c.mXMLRestoreUnderway = false;
             if (c instanceof LWLink)
                 continue;
-            if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT NODE: in " +  c.getParent() + ": " + c);
+            if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT NODE: in " +  c.getParent() + ": " + c);
             try {
                 c.layout(NODE_INIT_LAYOUT);
             } catch (Throwable t) {
@@ -716,7 +716,7 @@ public class LWMap extends LWContainer
         for (LWComponent c : allRestored) {
             if (c instanceof LWLink == false)
                 continue;
-            if (DEBUG.LAYOUT||DEBUG.WORK) System.out.println("LAYOUT LINK: in " +  c.getParent() + ": " + c);
+            if (DEBUG.LAYOUT||DEBUG.INIT) out("LAYOUT LINK: in " +  c.getParent() + ": " + c);
             try {
                 c.layout(LINK_INIT_LAYOUT);
             } catch (Throwable t) {

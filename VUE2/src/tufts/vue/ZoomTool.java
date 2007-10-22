@@ -37,13 +37,15 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.69 $ / $Date: 2007-10-16 19:11:06 $ / $Author: mike $
+ * @version $Revision: 1.70 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 public class ZoomTool extends VueTool
     implements VueConstants
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ZoomTool.class);
+    
     static private final int ZOOM_MANUAL = -1;
     static private final double[] ZoomDefaults = {
         1.0/100, 1.0/64, 1.0/48, 1.0/32, 1.0/24, 1.0/16, 1.0/12, 1.0/8, 1.0/6, 1.0/5, 1.0/4, 1.0/3, 1.0/2, 2.0/3, 0.75,
@@ -803,7 +805,11 @@ public class ZoomTool extends VueTool
             }
         }
         
-        if (DEBUG.PRESENT) System.out.format("ZoomTool: computed zoom of %7.2f%% for map bounds %s in viewport %s\n", newZoom * 100, Util.fmt(bounds), viewport);
+//         if (DEBUG.PRESENT) {
+//             Log.debug(String.format("computed zoom of %7.2f%% for map bounds %s in viewport %s",
+//                                     newZoom * 100, Util.fmt(bounds), viewport));
+//         }
+                      
         return newZoom < ZoomDefaults[0] ? ZoomDefaults[0] : newZoom; // never let us be less than min-zoom
     }
 

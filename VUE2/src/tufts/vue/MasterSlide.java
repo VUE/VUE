@@ -31,7 +31,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.4 $ / $Date: 2007-10-17 14:28:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.5 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -103,13 +103,13 @@ public final class MasterSlide extends LWSlide
                 
                 if ("Sample Text".equals(c.getLabel()) || label.startsWith("Slide Text")) {
                     textStyle = c;
-                    if (DEBUG.Enabled) out("FOUND OLD TEXT STYLE " + c);
+                    if (DEBUG.IO||DEBUG.PRESENT) out("FOUND OLD TEXT STYLE " + c);
                 } else if (label.startsWith("Slide Title")) {
                     //} else if ("Header Text".equals(label) || label.startsWith("Slide Title")) {
-                    if (DEBUG.Enabled) out("FOUND OLD TITLE STYLE " + c);
+                    if (DEBUG.IO||DEBUG.PRESENT) out("FOUND OLD TITLE STYLE " + c);
                     headerStyle = c;
                 } else if (label.startsWith("http:")) {
-                    if (DEBUG.Enabled) out("FOUND OLD URL STYLE " + c);
+                    if (DEBUG.IO||DEBUG.PRESENT) out("FOUND OLD URL STYLE " + c);
                     linkStyle = c;
                 } else if (c.isStyle()) {
                     Util.printStackTrace(this + "; Missed old-master-slide style object: " + c);
@@ -247,14 +247,14 @@ public final class MasterSlide extends LWSlide
         return headerStyle;
     }
     public void setTitleStyle(LWComponent style) {
-        if (DEBUG.Enabled) Log.debug("setHeaderStyle " + style);
+        if (DEBUG.IO||DEBUG.PRESENT) Log.debug("setHeaderStyle " + style);
         headerStyle = style;
     }
     public LWComponent getTextStyle() {
         return textStyle;
     }
     public void setTextStyle(LWComponent style) {
-        if (DEBUG.Enabled) Log.debug("setTextStyle " + style);
+        if (DEBUG.IO||DEBUG.PRESENT) Log.debug("setTextStyle " + style);
         textStyle = style;
     }
 
@@ -264,7 +264,7 @@ public final class MasterSlide extends LWSlide
     }
     
     public void setLinkStyle(LWComponent style) {
-        if (DEBUG.Enabled) Log.debug("setLinkStyle " + style);
+        if (DEBUG.IO||DEBUG.PRESENT) Log.debug("setLinkStyle " + style);
         linkStyle = style;
     }
 

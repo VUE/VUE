@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.83 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -966,7 +966,7 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
         //System.err.println("VOF ASKED FOR " + type + " argTypes=" + argTypes);
         //Object o = super.createInstance(type);
         final Object o = type.newInstance();
-        if (DEBUG.Enabled) {
+        if (DEBUG.IO || DEBUG.XML || DEBUG.CASTOR) {
             // don't use tags (allow toString to be called) -- unmarshalling can fail
             // if there are side-effects (!!!) due to calling it -- this happens
             // with a FavoritesDataSource in any case...

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.353 $ / $Date: 2007-10-21 20:59:09 $ / $Author: sfraize $
+ * @version $Revision: 1.354 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3364,7 +3364,7 @@ u                    getSlot(c).setFromString((String)value);
                 scale = parent.getMapScale(); // we move within the scale of our parent
             else
                 scale = 1.0;
-            if (DEBUG.WORK) out("notifyMapLocationChanged: using scale " + scale);
+            if (DEBUG.LAYOUT) out("notifyMapLocationChanged: using scale " + scale);
             notifyMapLocationChanged(this,
                                      (x - oldValue.x) * scale,
                                      (y - oldValue.y) * scale);
@@ -4934,7 +4934,7 @@ u                    getSlot(c).setFromString((String)value);
         final float totalBorder = getStrokeWidth()/2 + borderGap;
         final Size size = new Size(frame);
         final double zoom = ZoomTool.computeZoomFit(size, -totalBorder, getZeroBounds(), offset);
-        if (DEBUG.PRESENT || DEBUG.PDF) out("drawFit into " + fmt(frame) + " totalBorder " + totalBorder + " zoom " + zoom);
+        if (DEBUG.PDF) out("drawFit into " + fmt(frame) + " totalBorder " + totalBorder + " zoom " + zoom);
         dc.g.translate(-offset.x + frame.getX(),
                        -offset.y + frame.getY());
         dc.g.scale(zoom, zoom);
@@ -5752,7 +5752,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected void out(String s) {
-        if (DEBUG.Enabled) Log.debug(s);
+        if (DEBUG.Enabled) Log.debug(s + "; " + this);
 //         if (DEBUG.THREAD) {
 //             String thread = Thread.currentThread().toString().substring(6);
 //             System.err.format("%-32s%s %s\n", thread, this, s);
