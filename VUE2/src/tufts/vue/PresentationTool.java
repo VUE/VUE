@@ -57,6 +57,7 @@ public class PresentationTool extends VueTool
     
     private static final boolean AnimateAcrossMap = false;
     private static final boolean AnimateInOutMap = true;
+    private static final boolean AnimateTransitions = AnimateAcrossMap || AnimateInOutMap;
     
     private static final String FORWARD = "FORWARD";
     private static final String BACKWARD = "BACKWARD";
@@ -373,7 +374,9 @@ public class PresentationTool extends VueTool
         static final int MaxWidth = ActiveWidth;
         
         final Page page; // destination page
-        String debug;
+        final List<PathwayBox> mPathwayJumpBoxes;
+        final String type; // for debug
+        final boolean isOffEdge;
 
         private class PathwayBox extends java.awt.geom.RoundRectangle2D.Float
         {
@@ -401,8 +404,8 @@ public class PresentationTool extends VueTool
                 final Color faint = color.darker();
                 
                 if (entry.isLast()) {
-                    int left = (int) Math.round(super.x) + 3;
-                    int right = (int) Math.round(super.x + super.width) - 3;
+                    int left = (int) Math.round(super.x) + 4;
+                    int right = (int) Math.round(super.x + super.width) - 4;
                     int bottom = (int) Math.round(super.y + super.height) - 4;
                     dc.g.setStroke(STROKE_ONE);
                     dc.g.setColor(faint);
@@ -427,47 +430,43 @@ public class PresentationTool extends VueTool
         }
     
     
-        final List<PathwayBox> mPathwayJumpBoxes;
-
         private List<PathwayBox> createPathwayJumpBoxes(LWComponent node)
         {
             final List<LWPathway.Entry> entries = node.getEntries();
             final List<PathwayBox> boxes = new ArrayList(entries.size());
 
-            float x = getWidth() - (BoxSize + BoxGap) * entries.size();
+            //float x = getWidth() - (BoxSize + BoxGap) * entries.size();
+            float x = getWidth() - (BoxSize + BoxGap + 5);
+
+            if (isOffEdge)
+                x += (NavLayout.InsetOffEdge - NavLayout.InsetIndent);
 
             final float y = (getHeight() - BoxSize) / 2f;
 
-            x -= 10;
             for (LWPathway.Entry e : entries) {
-                boxes.add(new PathwayBox(e, x, y));
-                x += BoxSize + BoxGap;
+                if (e.pathway.isDrawn()) {
+                    boxes.add(new PathwayBox(e, x, y));
+                    x -= BoxSize + BoxGap;
+                }
             }
 
             return boxes;
 
         }
         
-        
-        NavNode(Page destinationPage) 
-        {
-            this(destinationPage, false);
-        }
-
-        NavNode(Page destinationPage, boolean isLastPathwayPage)
+        NavNode(Page destinationPage, boolean isOffEdge, boolean isLastPathwayPage, String type)
         {
             super(null);
 
-            if (DEBUG.WORK) out("new NavNode for page " + destinationPage + "; isLastPathway=" + isLastPathwayPage);
-
-//             if (destination == null)
-//                 throw new IllegalArgumentException("destination can't be null");
+            if (destinationPage == null)
+                throw new IllegalArgumentException(getClass() + "; destination page is null");
             
-            //this.page = new Page(destination);
             this.page = destinationPage;
+            this.isOffEdge = isOffEdge;
+            this.type = type;
 
+            //if (DEBUG.WORK) out("new NavNode for page " + destinationPage + "; isLastPathway=" + isLastPathwayPage);
 
-            //this.pathway = pathway;
 
             final LWPathway pathway = null;
             String label = page.getDisplayLabel();
@@ -477,14 +476,11 @@ public class PresentationTool extends VueTool
 //                 pathway = destinationPage.entry.pathway;
 //             else
 //                 pathway = null;
-            
 //             String label;
-
 //             if (pathway != null)
 //                 label = pathway.getLabel();
 //             else
 //                 label = page.getDisplayLabel();
-            
 //             if (pathway == null && destinationPage.equals(mVisited.prev()))
 //                 label = "<- " + label;
             
@@ -585,8 +581,7 @@ public class PresentationTool extends VueTool
                     dc.g.drawString("Entry: " + page.entry, -100, 10);
                 }
                            
-                if (debug != null)
-                    dc.g.drawString("Type: " + debug, -100, 20);
+                dc.g.drawString("Type: " + type, -100, 20);
                     
             }
             
@@ -1110,13 +1105,16 @@ public class PresentationTool extends VueTool
         final int MouseRightActivationPixel = width - 40;
         final int MouseRightClearAfterActivationPixel = width - NavNode.MaxWidth;
 
-        Log.debug(String.format("CURX %d; Max %d; On pixel: %d, off pixel %d",
-                                e.getX(),
-                                width,
-                                MouseRightActivationPixel, 
-                                MouseRightClearAfterActivationPixel
+        if (DEBUG.MOUSE) {
+            Log.debug(String.format("CURX %d; Max %d; On pixel: %d, off pixel %d",
+                                    e.getX(),
+                                    width,
+                                    MouseRightActivationPixel, 
+                                    MouseRightClearAfterActivationPixel
                                 ));
-        
+        }
+
+            
         boolean handled = false;
         if (DEBUG.PICK && mShowNavigator)
             handled = debugTrackNavMapMouseOver(e);
@@ -1124,17 +1122,16 @@ public class PresentationTool extends VueTool
         boolean oldShowNav = mShowNavNodes;
 
         if (e.getX() > MouseRightActivationPixel) {
-            Log.debug("nav nodes on at mouse " + e.getX());
+            if (DEBUG.MOUSE) Log.debug("nav nodes on at mouse " + e.getX());
             mShowNavNodes = true;
             mForceShowNavNodes = false;
-            if (oldShowNav)
-                Log.debug("nav nodes should already be visible");
+            if (DEBUG.MOUSE && oldShowNav) Log.debug("nav nodes should already be visible");
             
         } else {
             if (mShowNavNodes && !mForceShowNavNodes) {
                 if (e.getX() < MouseRightClearAfterActivationPixel) {
                     mShowNavNodes = false;
-                    Log.debug("nav nodes off " + e.getX());
+                    if (DEBUG.MOUSE) Log.debug("nav nodes off " + e.getX());
                 }
             }
         }
@@ -1380,6 +1377,9 @@ public class PresentationTool extends VueTool
         mVisited.clear();
 
         final LWPathway pathway = VUE.getActivePathway();
+
+        if (!pathway.isVisible())
+            pathway.setVisible(true);
 
         startUnderway = true;
 
@@ -1747,6 +1747,8 @@ public class PresentationTool extends VueTool
 //         final LWComponent thisSlideAncestor = newFocal.getAncestorOfType(LWSlide.class);
 
 
+        if (AnimateTransitions) {
+        
         LWComponent animatingFocal = null; // a TEMPORARY focal to animate across
 
 //         if (lastSlideAncestor == thisSlideAncestor && thisSlideAncestor != null) 
@@ -1794,15 +1796,13 @@ public class PresentationTool extends VueTool
         if (DEBUG.PRESENT) out("  animating focal: " + animatingFocal);
         if (DEBUG.PRESENT) out("destination focal: " + newFocal);
         
-
-//         if (newFocal instanceof LWSlide || oldFocal instanceof LWSlide)
-//          if (oldFocal instanceof LWSlide)
-//             ; // NO ANIMATION -- slides don't really exist on the map
-//         else
         if (animatingFocal instanceof LWSlide && newFocal == animatingFocal)
             animateToFocal(viewer, newFocal, true);
         else
             animateToFocal(viewer, newFocal, false);
+
+
+        }
             
         //if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor)
 
@@ -2026,9 +2026,15 @@ public class PresentationTool extends VueTool
     private static final int NavNodeX = -10; // clip the left edge of the round-rect
 
     private class NavLayout {
+        static final int InsetOffEdge = -10;
+        static final int InsetIndent = 7;
+        static final int VerticalGap = 7;
+        
         final float rightSide;
-        int rightInset = -10;
+        int rightInset = InsetOffEdge;
         float y;
+
+        boolean offEdgeNodes = true;
 
         final Object skip1, skip2;
         
@@ -2036,24 +2042,35 @@ public class PresentationTool extends VueTool
             skip1 = s1;
             skip2 = s2;
             rightSide = frame.x + frame.width;
-            y = frame.y + 7;
+            y = frame.y + VerticalGap;
         }
+
+        void startIndentRegion() {
+            offEdgeNodes = false;
+            y += 30;
+            rightInset = InsetIndent;
+        }
+            
         
         void addIfUnique(Page page, String debug) {
             if (!page.equals(skip1) && !page.equals(skip2))
-                add(createNavNode(page), debug);
+                add(new NavNode(page, offEdgeNodes, false, debug));
         }
 
-        //void _add(NavNode nn) { _add(nn, null); }
-        
-        void add(NavNode nn, String debug) {
+        void add(NavNode nn) {
             mNavNodes.add(nn);
-            if (DEBUG.Enabled && debug != null)
-                //nn.setLabel(debug + ": " + nn.getLabel());
-                nn.debug = debug;
             nn.setLocation((rightSide - nn.getWidth()) - rightInset, y);            
-            y += nn.getHeight() + 7;
+            y += nn.getHeight() + VerticalGap;
         }
+
+        void setLastPathway(Page page) {
+            add(new NavNode(page, offEdgeNodes, true, "last-path"));
+        }
+
+        private void add(Page page, String debug) {
+            add(new NavNode(page, offEdgeNodes, false, debug));
+        }
+        
         
     }
 
@@ -2062,40 +2079,28 @@ public class PresentationTool extends VueTool
         final NavLayout layout = new NavLayout(frame, mLastPage, mLastPathwayPage);
         
         if (mLastPage != null && mLastPage != NO_PAGE && !mLastPage.equals(mLastPathwayPage))
-            layout.add(createNavNode(mLastPage), "back");
+            layout.add(mLastPage, "back");
         
         // always add the current pathway at the top
         if (mLastPathwayPage != null)
-            layout.add(createNavNode(mLastPathwayPage, true), "last-path");
-//         //if (node.inPathway(mPathway))
-//         if (page.onPathway(mPathway))
-//             mNavNodes.add(createNavNode(page));
+            layout.setLastPathway(mLastPathwayPage);
+        
+        layout.startIndentRegion();
 
-//         int rightInset = -10;
-//         for (NavNode nav : mNavNodes) {
-//             y += nav.getHeight() + 5;
-//             nav.setLocation((rightSide - nav.getWidth()) - rightInset, y);
-//         }
-        
-        if (!mNavNodes.isEmpty())
-            layout.y += 30;
-        
-        layout.rightInset = 7;
-        
         final LWComponent mapNode = page.getOriginalMapNode();
 
         if (page.entry != null) {
             final LWPathway.Entry nextEntryThisPath = page.entry.next();
             if (nextEntryThisPath != null)
-                layout.add(createNavNode(nextEntryThisPath), "next-path");
+                layout.add(new Page(nextEntryThisPath), "next-path");
         }
         
         for (LWPathway path : mapNode.getPathways()) {
-            if (!path.isFiltered() && path != mPathway) {
+            if (path.isDrawn() && path != mPathway) {
                 LWPathway.Entry pathEntry = path.getFirstEntry(mapNode);
                 LWPathway.Entry nextPathEntry = pathEntry.next();
                 if (nextPathEntry != null)
-                    layout.add(createNavNode(nextPathEntry), "other-path");
+                    layout.add(new Page(nextPathEntry), "other-path");
             }
         }
 
@@ -2198,28 +2203,22 @@ public class PresentationTool extends VueTool
 //         }
 //         */
 //     }
-    
-
-    private NavNode createNavNode(LWPathway.Entry e) {
-        //if (DEBUG.WORK) out("creating nav node for page " + page);
-        return new NavNode(new Page(e));
-    }
-    private NavNode createNavNode(Page page) {
-        //if (DEBUG.WORK) out("creating nav node for page " + page);
-        return new NavNode(page);
-    }
-
-    private NavNode createNavNode(Page page, boolean isLastPathwayPage) {
-        //if (DEBUG.WORK) out("creating nav node for page " + page);
-        return new NavNode(page, isLastPathwayPage);
-    }
-    
-
+//     private NavNode createNavNode(LWPathway.Entry e) {
+//         //if (DEBUG.WORK) out("creating nav node for page " + page);
+//         return new NavNode(new Page(e));
+//     }
+//     private NavNode createNavNode(Page page) {
+//         //if (DEBUG.WORK) out("creating nav node for page " + page);
+//         return new NavNode(page);
+//     }
+//     private NavNode createNavNode(Page page, boolean isLastPathwayPage) {
+//         //if (DEBUG.WORK) out("creating nav node for page " + page);
+//         return new NavNode(page, isLastPathwayPage);
+//     }
 //     private NavNode createNavNode(LWPathway path) {
 //         //if (DEBUG.WORK) out("creating nav node for page " + page);
 //         return new NavNode(new Page(path.asEntry()), 300);
 //     }
-    
 //     private NavNode createNavNode(LWComponent src, LWPathway pathway) {
 //         return new NavNode(src, pathway);
 //     }
