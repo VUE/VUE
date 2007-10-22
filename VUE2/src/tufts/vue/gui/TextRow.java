@@ -50,8 +50,8 @@ public class TextRow
     private static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, false);
     //private static final FontRenderContext DefaultFontContext = new FontRenderContext(null, true, true);
     
-    private final TextLayout row;
-    private final Rectangle2D.Float bounds;
+    private final TextLayout mRow;
+    private final Rectangle2D.Float mBounds;
 
     public final String text;
     public final float width;
@@ -79,25 +79,26 @@ public class TextRow
 //         }
     }
 
-    private TextRow(String text, Font font, FontRenderContext frc, TextLayout _row, Rectangle2D _bounds) {
+    private TextRow(String text, Font font, FontRenderContext frc, TextLayout row, Rectangle2D bounds) {
         this.text = text;
-        if (_row == null)
-            this.row = new TextLayout(text, font, frc);
+        if (row == null)
+            mRow = new TextLayout(text, font, frc);
         else
-            this.row = _row;
+            mRow = row;
 
-        final Rectangle2D.Float closeBounds = (Rectangle2D.Float) row.getBounds();
+        final Rectangle2D.Float closeBounds = (Rectangle2D.Float) mRow.getBounds();
         
-        if (_bounds == null) {
-            this.bounds = closeBounds;
-            this.width = bounds.width;
-            this.height = bounds.height;
+        if (bounds == null) {
+            mBounds = closeBounds;
         } else {
             if (DEBUG.TEXT) System.out.println("TextRow[" + text + "] rowbnds=" + tufts.Util.fmt(row.getBounds()));
-            this.bounds = (Rectangle2D.Float) _bounds;
-            this.width = closeBounds.width; // take the more accurate width from the TextLayout
-            this.height = bounds.height; // take the less accurate, but more consistent height from the font bounds
+            mBounds = (Rectangle2D.Float) bounds;
+            mBounds.width = closeBounds.width; // take the more accurate width from the TextLayout
         }
+
+        this.width = mBounds.width;
+        this.height = mBounds.height;
+        
         if (DEBUG.TEXT) System.out.println("TextRow[" + text + "]  bounds=" + tufts.Util.fmt(bounds));
     }
     
@@ -146,13 +147,13 @@ public class TextRow
             //System.out.println("TextRow[" + text + "]@"+tb);
             
             yoff += this.height;
-            yoff += this.bounds.y;
-            xoff += this.bounds.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
+            yoff += mBounds.y;
+            xoff += mBounds.x; // FYI, tb.x always appears to be zero in Mac Java 1.4.1
             
-            row.draw(g, xoff, yoff);
+            mRow.draw(g, xoff, yoff);
             
             if (DEBUG.BOXES) {
-                final Rectangle2D.Float tb = (Rectangle2D.Float) this.bounds.clone();
+                final Rectangle2D.Float tb = (Rectangle2D.Float) mBounds.clone();
                 // draw a red bounding box for testing
                 tb.x += xoff;
                 // tb.y seems to default at to -1, and if
@@ -178,11 +179,11 @@ public class TextRow
             // implementation is also cleaner, and worthy of being
             // the default case.
                 
-            row.draw(g, -bounds.x + xoff, -bounds.y + yoff);
+            mRow.draw(g, -mBounds.x + xoff, -mBounds.y + yoff);
             //baseline = yoff + tb.height;
 
             if (DEBUG.BOXES) {
-                final Rectangle2D.Float tb = (Rectangle2D.Float) this.bounds.clone();
+                final Rectangle2D.Float tb = (Rectangle2D.Float) mBounds.clone();
                 // draw a red bounding box for testing
                 tb.x = xoff;
                 tb.y = yoff;
@@ -194,7 +195,7 @@ public class TextRow
     }
 
     public String toString() {
-        return "TextRow[" + text + " " + bounds + "]";
+        return "TextRow[" + text + " " + mBounds + "]";
     }
 
 
