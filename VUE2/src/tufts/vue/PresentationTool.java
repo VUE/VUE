@@ -370,24 +370,30 @@ public class PresentationTool extends VueTool
     private static final int BoxSize = 20;
     private static final int BoxGap = 5;
 
-    private class NavNode extends LWNode
+    private final class NavNode extends LWNode
     {
         static final int DefaultWidth = 200;
         static final int ActiveWidth = 300;
         static final int MaxWidth = ActiveWidth;
         
         final Page page; // destination page
-        final List<PathwayBox> mPathwayJumpBoxes;
         final String type; // for debug
         final boolean isOffEdge;
+        final List<JumpBox> mJumpBoxes;
 
-        private final class PathwayBox extends java.awt.geom.RoundRectangle2D.Float
+        /**
+         * A sub-NavNode hit region for jumping to another view of the given node.
+         * Generally this is a view of the node on another pathway, but also
+         * includes support for the special case of the off-pathway, in-map
+         * pure node.
+         */
+        private final class JumpBox extends java.awt.geom.RoundRectangle2D.Float
         {
             final LWPathway.Entry entry;
             final TextRow row;
             final Color color;
             
-            PathwayBox(LWPathway.Entry e, float x, float y) 
+            JumpBox(LWPathway.Entry e, float x, float y) 
             {
                 super(x, y, BoxSize, BoxSize, 5, 5);
                 entry = e;
@@ -454,10 +460,10 @@ public class PresentationTool extends VueTool
         }
     
     
-        private List<PathwayBox> createPathwayJumpBoxes(LWComponent node)
+        private List<JumpBox> createPathwayJumpBoxes(LWComponent node)
         {
             final List<LWPathway.Entry> entries = node.getEntries();
-            final List<PathwayBox> boxes = new ArrayList(entries.size());
+            final List<JumpBox> boxes = new ArrayList(entries.size());
 
             //float x = getWidth() - (BoxSize + BoxGap) * entries.size();
             float x = getWidth() - (BoxSize + BoxGap + 5);
@@ -467,13 +473,13 @@ public class PresentationTool extends VueTool
 
             final float y = (getHeight() - BoxSize) / 2f;
 
-            boxes.add(new PathwayBox(null, x, y)); // add the node-only pathway box
+            boxes.add(new JumpBox(null, x, y)); // add the node-only pathway box
             x -= BoxSize + BoxGap;
             
             for (ListIterator<Entry> i = entries.listIterator(entries.size()); i.hasPrevious();) {
                 final Entry e = i.previous();
                 if (e.pathway.isDrawn()) {
-                    boxes.add(new PathwayBox(e, x, y));
+                    boxes.add(new JumpBox(e, x, y));
                     x -= BoxSize + BoxGap;
                 }
             }
@@ -554,11 +560,11 @@ public class PresentationTool extends VueTool
             if (node == null) {
                 //Log.warn("NULL NODE in " + this);
                 Util.printStackTrace("NULL NODE in " + this);
-                mPathwayJumpBoxes = null;
+                mJumpBoxes = null;
             } else if (node.inPathway()) {
-                mPathwayJumpBoxes = createPathwayJumpBoxes(node);
+                mJumpBoxes = createPathwayJumpBoxes(node);
             } else {
-                mPathwayJumpBoxes = null;
+                mJumpBoxes = null;
             }
             
         }
@@ -566,10 +572,10 @@ public class PresentationTool extends VueTool
         Page hitPage(float x, float y) 
         {
             if (containsLocalCoord(x, y)) {
-                if (mPathwayJumpBoxes != null) {
+                if (mJumpBoxes != null) {
                     final float localX = x - getX();
                     final float localY = y - getY();
-                    for (PathwayBox box : mPathwayJumpBoxes) {
+                    for (JumpBox box : mJumpBoxes) {
                         if (box.contains(localX, localY)) {
                             if (DEBUG.PRESENT || DEBUG.PICK) Log.debug("hit entry box " + box);
                             return box.getPage();
@@ -590,7 +596,7 @@ public class PresentationTool extends VueTool
             final LWComponent node = page.getOriginalMapNode();
 
             //if (node.inPathway()) {
-            if (mPathwayJumpBoxes != null) {
+            if (mJumpBoxes != null) {
                 drawZero(dc.push()); dc.pop();
                 drawPathwayJumpBoxes(dc);
                 //drawPathwaySwatches(dc, node);
@@ -622,7 +628,7 @@ public class PresentationTool extends VueTool
 
         private void drawPathwayJumpBoxes(DrawContext dc)  
         {
-            for (PathwayBox box : mPathwayJumpBoxes)
+            for (JumpBox box : mJumpBoxes)
                 box.draw(dc);
         }
 
