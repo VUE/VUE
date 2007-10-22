@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.188 $ / $Date: 2007-09-01 16:10:08 $ / $Author: sfraize $
+ * @version $Revision: 1.189 $ / $Date: 2007-10-22 19:10:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2235,7 +2235,7 @@ public class LWNode extends LWContainer
     private static final int IconPadLeft = 2;
     private static final int IconPadRight = 0;
     private static final int IconWidth = IconGutterWidth - IconPadLeft; // 22 is min width that will fit "www" in our icon font
-    private static final int IconHeight = 12;
+    private static final int IconHeight = 14;
     
     //private static final int IconPadRight = 4;
     private static final int IconMargin = IconPadLeft + IconWidth + IconPadRight;
