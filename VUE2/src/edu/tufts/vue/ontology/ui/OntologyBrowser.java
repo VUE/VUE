@@ -41,6 +41,7 @@ import java.net.*;
  */
 public class OntologyBrowser extends JPanel {
     
+    private final static boolean DEBUG_LOCAL = false;
     
     JPanel ontologiesPanel;
     
@@ -78,7 +79,12 @@ public class OntologyBrowser extends JPanel {
     public Widget addTypeList(final edu.tufts.vue.ontology.ui.TypeList list,String name,URL url) {
         list.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent listSelectionEvent) {
+                TypeList oldSelection = selectedOntology;
                 selectedOntology = list;
+                if(oldSelection != null)
+                {
+                  oldSelection.repaint();
+                }
                 fireOntologySelectionChanged(list);
             }
         });
@@ -219,7 +225,10 @@ public class OntologyBrowser extends JPanel {
                                   
                   Widget w = widgetMap.get(new OntologyBrowserKey(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),ontURL));
                   
-                  System.out.println("TypeList remove w from key: " + w);
+                  if(DEBUG_LOCAL)
+                  {    
+                    System.out.println("TypeList remove w from key: " + w);
+                  }
                   
                   resultsStack.setHidden(w,true);
                   resultsStack.remove(w);
