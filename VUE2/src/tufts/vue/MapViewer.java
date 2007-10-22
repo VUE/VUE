@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.460 $ / $Date: 2007-10-19 19:26:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.461 $ / $Date: 2007-10-22 05:52:25 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -880,7 +880,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (c instanceof LWLink)
             return c.getFanBounds();
         else
-            return c.getPaintBounds();
+            return c.getFocalBounds();
     }
     
     private Rectangle2D.Float getFocalBounds() {
@@ -1191,9 +1191,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private static final boolean ScrollBarHiding = false;
 
+    public static final boolean FIT_FOCAL = true;
+    public static final boolean NO_FIT_FOCAL = false;
+    public static final boolean ANIMATE = true;
+    public static final boolean NO_ANIMATE = false;
+
     /** actualy load the new focal */
     public void loadFocal(LWComponent focal, boolean fitToFocal, boolean animate) {
         if (DEBUG.PRESENT || DEBUG.VIEWER || DEBUG.WORK) out("loadFocal", focal + "; autoFit=" + fitToFocal);
+
+        // todo: should we ever want to hande LWLink focals, what we want is to zoom to the focal
+        // bounds of the link (the fan bounds), but use the links parent (or map) as the actual
+        // focal;
+
         //if (focal == null) throw new IllegalArgumentException(this + " loadFocal: focal is null");
         if (mFocal == focal) {
             if (fitToFocal)
@@ -2260,13 +2270,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             } else
                 super.paint(g);
         } catch (Exception e) {
-            System.err.println("*paint* Exception painting in: " + this);
+            Util.printStackTrace(e, "Exception painting in: " + this);
+            //System.err.println("*paint* Exception painting in: " + this);
             System.err.println("*paint* VueSelection: " + VueSelection);
             if (VueSelection != null)
                 System.err.println("*paint* VueSelection.first: " + VueSelection.first());
             System.err.println("*paint* Graphics: " + g);
             System.err.println("*paint* Graphics transform: " + ((Graphics2D)g).getTransform());
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         if (paints == 0) {
             if (inScrollPane)
