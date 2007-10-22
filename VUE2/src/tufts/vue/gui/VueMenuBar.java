@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.64 $ / $Date: 2007-10-18 11:55:09 $ / $Author: dan $
+ * @version $Revision: 1.65 $ / $Date: 2007-10-22 03:45:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -681,15 +681,15 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (!e.isConsumed())
             super.processKeyEvent(e);
         else
-            System.out.println("VueMenuBar: processKeyEvent: already consumed " + e);
+            Log.debug("processKeyEvent: already consumed " + e);
     }
     
     void doProcessKeyEvent(KeyEvent e) {
         if (e != alreadyProcessed) {
-            if (DEBUG.KEYS) System.out.println("VueMenuBar: doProcessKeyEvent " + e);
+            if (DEBUG.KEYS) Log.debug("doProcessKeyEvent " + e);
             processKeyEvent(e);
         }
-        else if (DEBUG.KEYS) System.out.println("VueMenuBar: already processed " + e);
+        else if (DEBUG.KEYS) Log.debug("already processed " + e);
     }
     
     // todo: this doesn't work: safer if can get working instead of above
@@ -697,16 +697,16 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         if (e != alreadyProcessed) {
             //System.out.println("VueMenuBar: doProcessKeyPressEventToBinding " + e);
-            System.out.println("VueMenuBar: KEY->BIND " + e);
+            Log.debug("KEY->BIND " + e);
             KeyStroke ks = KeyStroke.getKeyStroke(e.getKeyCode(), e.getModifiers(), false);
             super.processKeyBinding(ks, e, WHEN_FOCUSED, true);
         }
-        else System.out.println("VueMenuBar: already processed " + e);
+        else Log.debug("already processed " + e);
     }
     
     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
         if (e.isConsumed())
-            System.out.println("VueMenuBar: GOT CONSUMED " + ks);
+            Log.debug("GOT CONSUMED " + ks);
 
         if (!pressed) // we only ever handle on key-press
             return false;
@@ -716,7 +716,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             String used = didAction ?
                 "CONSUMED " :
                 "NOACTION ";
-            System.out.println("VueMenuBar: processKeyBinding " + used + ks + " " + e.paramString());
+            Log.debug("processKeyBinding " + used + ks + " " + e.paramString());
         }
         if (didAction)
             e.consume();
