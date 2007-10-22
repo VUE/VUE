@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.192 $ / $Date: 2007-10-22 03:45:21 $ / $Author: sfraize $
+ * @version $Revision: 1.193 $ / $Date: 2007-10-22 19:30:47 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -529,9 +529,11 @@ public class LWPathway extends LWContainer
        
     }
 
+    private static final int PathwayAlpha = (int) (255f * (VueResources.getInt("pathway.alpha.percent", 50) / 100f) + 0.5);
+
     private void initPathway() {
         disablePropertyTypes(KeyType.STYLE);
-        mStrokeColor.setFixedAlpha(128);
+        mStrokeColor.setFixedAlpha(PathwayAlpha);
     }
     
 
