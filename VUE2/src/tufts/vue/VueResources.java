@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.48 $ / $Date: 2007-10-18 16:58:23 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2007-10-22 16:01:10 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -606,16 +606,17 @@ public class VueResources
         Color value = null;
 		
         try {
-            String s = getString(key);
-            if (s != null) {
-                s.trim();
-                if (s.indexOf(',') > 0) {
-                    int[] rgb = makeIntArray(s, 3);
-                    value = new Color(rgb[0], rgb[1], rgb[2]);
-                } else {
-                    value = makeColor(s);
-                }
-            } 
+            value = parseColor(getString(key));
+//             String s = getString(key);
+//             if (s != null) {
+//                 s.trim();
+//                 if (s.indexOf(',') > 0) {
+//                     int[] rgb = makeIntArray(s, 3);
+//                     value = new Color(rgb[0], rgb[1], rgb[2]);
+//                 } else {
+//                     value = makeColor(s);
+//                 }
+//             } 
         } catch (java.util.MissingResourceException e) {
             ; // will try and use default
         } catch (Throwable t) {
@@ -635,6 +636,36 @@ public class VueResources
         return value;
     }
 
+    public static Color parseColor(String txt) {
+        if (txt == null)
+            return null;
+        txt = txt.trim();
+        if (txt.indexOf(',') > 0)
+            return parseIntColor(txt);
+        else
+            return parseHexColor(txt);
+    }
+
+    static Color parseIntColor(String commaText) {
+        int[] rgb = makeIntArray(commaText, 3);
+
+        if (rgb.length > 3)
+            return new Color(rgb[0], rgb[1], rgb[2], rgb[3]);
+        else
+            return new Color(rgb[0], rgb[1], rgb[2]);
+
+    }
+    
+    static Color parseHexColor(String hex) {
+        if (hex.startsWith("#"))
+            hex = hex.substring(1);
+        boolean hasAlpha = hex.length() > 6;
+        int bits = Long.valueOf(hex, 16).intValue();
+        Color c = new Color(bits, hasAlpha);
+        //System.out.println("From " + hex + " made " + c + " alpha=" + c.getAlpha());
+        return c;
+    }
+    
     static public Color getColor(String key) {
         return getColor(key, null);
     }
@@ -647,15 +678,16 @@ public class VueResources
     }
     
 
-    static Color makeColor(String hex) {
-        if (hex.startsWith("#"))
-            hex = hex.substring(1);
-        boolean hasAlpha = hex.length() > 6;
-        int bits = Long.valueOf(hex, 16).intValue();
-        Color c = new Color(bits, hasAlpha);
-        //System.out.println("From " + hex + " made " + c + " alpha=" + c.getAlpha());
-        return c;
-    }
+    
+//     static Color makeColor(String hex) {
+//         if (hex.startsWith("#"))
+//             hex = hex.substring(1);
+//         boolean hasAlpha = hex.length() > 6;
+//         int bits = Long.valueOf(hex, 16).intValue();
+//         Color c = new Color(bits, hasAlpha);
+//         //System.out.println("From " + hex + " made " + c + " alpha=" + c.getAlpha());
+//         return c;
+//     }
 
 
     /**
@@ -679,7 +711,7 @@ public class VueResources
                 int len = strs.length;
                 value = new Color[len];
                 for (int i=0; i< len; i++) {
-                    value[i] = makeColor(strs[i]);
+                    value[i] = parseColor(strs[i]);
                 }
             }
         } catch (Exception e) {
