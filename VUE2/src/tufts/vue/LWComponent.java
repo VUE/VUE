@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.355 $ / $Date: 2007-10-22 05:51:53 $ / $Author: sfraize $
+ * @version $Revision: 1.356 $ / $Date: 2007-10-22 16:00:38 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1050,7 +1050,7 @@ u                    getSlot(c).setFromString((String)value);
         
         Color c = null;
         try {
-            c = VueResources.makeColor(s);
+            c = VueResources.parseColor(s);
         } catch (NumberFormatException e) {
             tufts.Util.printStackTrace(new Throwable(e), "LWComponent.StringToColor[" + s + "]");
         }
@@ -1975,6 +1975,16 @@ u                    getSlot(c).setFromString((String)value);
     {
         return mPathways != null && mPathways.size() > 0;
     }
+
+    public boolean inVisiblePathway()
+    {
+        if (inPathway())
+            for (LWPathway p : mPathways)
+                if (p.isDrawn())
+                    return true;
+        return false;
+    }
+    
 
 
     /** Is component in the given pathway? */
