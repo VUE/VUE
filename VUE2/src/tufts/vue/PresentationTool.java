@@ -20,6 +20,7 @@ package tufts.vue;
 
 import static tufts.vue.VueConstants.*;
 import static tufts.vue.LWPathway.Entry;
+import static tufts.vue.MapViewer.*;
 
 import tufts.Util;
 import tufts.macosx.MacOSX;
@@ -1061,10 +1062,10 @@ public class PresentationTool extends VueTool
             if (focused instanceof LWMap == false) {
                 final Rectangle2D.Float bounds = mCurrentPage.getOriginalMapNode().getPaintBounds();
 
-                bounds.x--;
-                bounds.y--;
-                bounds.width += 2;
-                bounds.height += 2;
+                bounds.x -= 2;
+                bounds.y -= 2;
+                bounds.width += 4;
+                bounds.height += 4;
                 
 //                 if (viewer.getFocal() instanceof LWSlide) {
 //                     if (focused != null)
@@ -1567,7 +1568,7 @@ public class PresentationTool extends VueTool
     
     
 
-    private boolean pageLoadingUnderway = false;
+    private volatile boolean pageLoadingUnderway = false;
     private void setPage(final Page page, boolean recordBackup)
     {
         if (page == null) { // for now
@@ -1583,8 +1584,6 @@ public class PresentationTool extends VueTool
         recordPageTransition(page, recordBackup);
 
         
-        
-        
 //         final boolean doSlideTransition;
 
 //         if (mCurrentPage != null && mCurrentPage.entry != null && page.entry != null)
@@ -1598,7 +1597,7 @@ public class PresentationTool extends VueTool
 
         pageLoadingUnderway = true;
         try {
-            // the viewer will shortly call us right back with handleFocalLoading:
+            // the viewer will shortly call us right back with handleFocalSwitch:
             viewer.switchFocal(page.getPresentationFocal());
         } finally {
             pageLoadingUnderway = false;
@@ -1664,35 +1663,7 @@ public class PresentationTool extends VueTool
     }
 
     private Rectangle2D.Float getFocalBounds(LWComponent c) {
-
         return MapViewer.getFocalBounds(c);
-        
-//         if (c instanceof LWSlide &&
-//             c.getParent() instanceof LWPathway
-//             //&& mFocal != c
-//             && (mFocal == null || !mFocal.hasAncestor(c))) // use the real bounds if we're within the slide
-//         {
-//             // hack for slide icons, as long as we're not the focal
-//             // (in which case, we need our REAL bounds to animate
-//             // amongst our contents: the slide contents)
-            
-//             LWComponent node = ((LWSlide)c).getSourceNode();
-
-// //             if (node != null && node.isDrawingSlideIcon())
-// //                 return ((LWSlide)c).getSourceNode().getMapSlideIconBounds();
-// //             else
-//                 if (node != null)
-//                 return node.getBounds();
-//             else {
-//                 // We're presumably on a "combo" node that's not on the map:
-//                 out("fallback to map bounds for focal bounds for " + c);
-//                 return c.getMap().getBounds();
-//             }
-//         } else {
-//             return MapViewer.getFocalBounds(c);
-//             //return c.getBounds();
-//         }
-        
     }
 
     // TODO: if we're currently animating a focal swith,
@@ -1711,42 +1682,55 @@ public class PresentationTool extends VueTool
         if (!pageLoadingUnderway)
             recordPageTransition(new Page(newFocal), true);
         
-        final boolean isSlideTransition;
+//         final boolean isSlideTransition;
+//         if (mCurrentPage != null && mLastPage.entry != null && mCurrentPage.entry != null)
+//             isSlideTransition = true;
+//         else
+//             isSlideTransition = false;
 
-        if (mCurrentPage != null && mLastPage.entry != null && mCurrentPage.entry != null)
-            isSlideTransition = true;
-        else
-            isSlideTransition = false;
-
-        if (isSlideTransition && mFadeEffect) {
-
-            // It case there was a tip visible, we need to make sure
-            // we wait for it to finish clearing before we move on, so
-            // we need to put the rest of this in the queue.  (if we
-            // don't do this, the screen fades out & comes back before
-            // the map has panned)
-            
+        mFocal = mCurrentPage.getPresentationFocal();
+        
+        if (mFadeEffect) {
             makeInvisible();
-            
-            VUE.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        //makeInvisible();
-                        mFocal = mCurrentPage.getPresentationFocal();
-                        viewer.loadFocal(mFocal, true, false);
-                        //zoomToFocal(page.getPresentationFocal(), false);
-                        //zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
-                        if (mScreenBlanked)
-                            makeVisibleLater();
-                    }
-                });
-
-            return true;
+            viewer.loadFocal(mFocal, FIT_FOCAL, NO_ANIMATE);
+            makeVisibleLater();
+        } else {
+            viewer.loadFocal(mFocal, FIT_FOCAL, NO_ANIMATE);
         }
+
+        if (true) return true;
+        
+        
+        
+
+
+//         if (isSlideTransition && mFadeEffect) {
+
+//             // It case there was a tip visible, we need to make sure
+//             // we wait for it to finish clearing before we move on, so
+//             // we need to put the rest of this in the queue.  (if we
+//             // don't do this, the screen fades out & comes back before
+//             // the map has panned)
+            
+//             VUE.invokeAfterAWT(new Runnable() {
+//                     public void run() {
+//                         makeInvisible();
+//                         mFocal = mCurrentPage.getPresentationFocal();
+//                         viewer.loadFocal(mFocal, true, false);
+//                         //zoomToFocal(page.getPresentationFocal(), false);
+//                         //zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
+//                         if (mScreenBlanked)
+//                             makeVisibleLater();
+//                     }
+//                 });
+
+//             return true;
+//         }
 
         if (startUnderway) {
             mFocal = newFocal;
             if (DEBUG.PRESENT) out("handleFocalSwitch: starting focal " + newFocal);
-            viewer.loadFocal(newFocal, true, false);
+            viewer.loadFocal(newFocal, FIT_FOCAL, NO_ANIMATE);
             return true;
         }
             
@@ -2393,3 +2377,171 @@ public class PresentationTool extends VueTool
 
     
 }
+
+
+
+
+//     @Override
+//     public boolean handleFocalSwitch(final MapViewer viewer,
+//                                      final LWComponent oldFocal,
+//                                      final LWComponent newFocal)
+//     {
+//         if (DEBUG.PRESENT) out("handleFocalSwitch in " + viewer
+//                                + "\n\tfrom: " + oldFocal
+//                                + "\n\t  to: " + newFocal);
+        
+//         if (!pageLoadingUnderway)
+//             recordPageTransition(new Page(newFocal), true);
+        
+//         final boolean isSlideTransition;
+
+//         if (mCurrentPage != null && mLastPage.entry != null && mCurrentPage.entry != null)
+//             isSlideTransition = true;
+//         else
+//             isSlideTransition = false;
+
+//         if (isSlideTransition && mFadeEffect) {
+//             makeInvisible();
+//             mFocal = mCurrentPage.getPresentationFocal();
+//             viewer.loadFocal(mFocal, FIT_FOCAL, NO_ANIMATE);
+//             makeVisibleLater();
+//             return true;
+//         }
+
+
+// //         if (isSlideTransition && mFadeEffect) {
+
+// //             // It case there was a tip visible, we need to make sure
+// //             // we wait for it to finish clearing before we move on, so
+// //             // we need to put the rest of this in the queue.  (if we
+// //             // don't do this, the screen fades out & comes back before
+// //             // the map has panned)
+            
+// //             VUE.invokeAfterAWT(new Runnable() {
+// //                     public void run() {
+// //                         makeInvisible();
+// //                         mFocal = mCurrentPage.getPresentationFocal();
+// //                         viewer.loadFocal(mFocal, true, false);
+// //                         //zoomToFocal(page.getPresentationFocal(), false);
+// //                         //zoomToFocal(page.getPresentationFocal(), !mFadeEffect);
+// //                         if (mScreenBlanked)
+// //                             makeVisibleLater();
+// //                     }
+// //                 });
+
+// //             return true;
+// //         }
+
+//         if (startUnderway) {
+//             mFocal = newFocal;
+//             if (DEBUG.PRESENT) out("handleFocalSwitch: starting focal " + newFocal);
+//             viewer.loadFocal(newFocal, FIT_FOCAL, NO_ANIMATE);
+//             return true;
+//         }
+            
+            
+        
+        
+//         // Figure out if this transition is across a continuous coordinate
+//         // region (so we can animate).  E.g., we're moving across the map,
+//         // or within a single slide.  Slides and the map they're a part of
+//         // exist in separate coordinate spaces, and we can't animate
+//         // across that boundary.
+// //         final LWComponent oldParent = oldFocal == null ? null : oldFocal.getParent();
+// //         final LWComponent newParent = newFocal.getParent();
+// //         final LWComponent lastSlideAncestor = oldFocal == null ? null : oldFocal.getAncestorOfType(LWSlide.class);
+// //         final LWComponent thisSlideAncestor = newFocal.getAncestorOfType(LWSlide.class);
+
+
+//         if (AnimateTransitions) {
+        
+//         LWComponent animatingFocal = null; // a TEMPORARY focal to animate across
+
+// //         if (lastSlideAncestor == thisSlideAncestor && thisSlideAncestor != null) 
+// //             animatingFocal = thisSlideAncestor;
+// //         else
+
+//         if (oldFocal.hasAncestor(newFocal)) {
+//             animatingFocal = newFocal;
+//         } else if (newFocal.hasAncestor(oldFocal)) {
+//             animatingFocal = oldFocal;
+//         } else if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
+//             animatingFocal = newFocal.getMap();
+        
+// //         if (oldFocal instanceof LWSlide || newFocal instanceof LWSlide)
+// //             animatingFocal = newFocal.getMap();
+// //         else if (oldFocal.hasAncestor(newFocal))
+// //             animatingFocal = newFocal;
+        
+
+//         boolean loaded = false;
+//         if (animatingFocal != null) {
+//             // if the new focal is a parent of old focal, first
+//             // load it (without auto-zooming), so we can pan across
+//             // it while we animate
+//             viewer.loadFocal(animatingFocal, false, false);
+//             mFocal = newFocal;
+//             if (animatingFocal == newFocal)
+//                 loaded = true;
+
+//             // now zoom to the current focal within the new parent focal: this should
+//             // have the effect of making the parent focal visible, while the viewer is
+//             // actually in the same place on the old focal within the new focal: (todo:
+//             // this would actually be good default MapViewer behavior: if load the focal
+//             // of any ancestor, leave is looking at the same absolute map location,
+//             // which means adjusting our offset within the new focal)
+            
+//             ZoomTool.setZoomFitRegion(viewer,
+//                                       getFocalBounds(oldFocal),
+//                                       oldFocal.getFocalMargin(),
+//                                       false);
+            
+
+//         }
+
+//         if (DEBUG.PRESENT) out("  animating focal: " + animatingFocal);
+//         if (DEBUG.PRESENT) out("destination focal: " + newFocal);
+        
+//         if (animatingFocal instanceof LWSlide && newFocal == animatingFocal)
+//             animateToFocal(viewer, newFocal, true);
+//         else
+//             animateToFocal(viewer, newFocal, false);
+
+
+//         }
+            
+//         //if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor)
+
+//         //if (!loaded) {
+//             if (true) { // just in case...
+//             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                 mFocal = newFocal; // TODO: THREADSAFE?
+//                 viewer.loadFocal(newFocal, true, false);
+//             }});
+//         }
+
+
+//         return true;
+        
+            
+// //         if (oldParent == newParent || lastSlideAncestor == thisSlideAncestor) {
+                
+// //             animate = true;
+            
+// //             //if (oldParent == newParent && newParent instanceof LWMap && !(newFocal instanceof LWPortal)) {
+// //             if (false && oldParent == newParent && newParent instanceof LWMap && !(newFocal instanceof LWPortal)) {
+// //                 // temporarily load the map as the focal so we can
+// //                 // see the animation across the map
+// //                 if (DEBUG.WORK) out("loadFocal of parent for x-zoom: " + newParent);
+// //                 viewer.loadFocal(newParent);
+// //             }
+// //         } else
+// //             animate = false;
+        
+// //         //GUI.invokeAfterAWT(new Runnable() { public void run() {
+// //         // don't invoke later: is allowing an overview map repaint in an intermediate state
+// //         animateToFocal(viewer, newFocal);
+// //         //}});
+// //        return false;
+//     }
+    
