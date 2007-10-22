@@ -50,7 +50,8 @@ public abstract class LWIcon extends Rectangle2D.Float
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWIcon.class);
     
     private static final float DefaultScale = 0.045f; // scale to apply to the absolute size of our vector based icons
-    private static final Color DefaultColor = VueResources.getColor("node.icon.color.foreground");
+    private static final Color TextColor = VueResources.getColor("node.icon.color.foreground");
+    private static final Color FillColor = VueResources.getColor("node.icon.color.fill");
     private static final Font FONT_ICON = VueResources.getFont("node.icon.font");
     
     protected LWComponent mLWC;
@@ -71,7 +72,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         mColor = c;
     }
     private LWIcon(LWComponent lwc) {
-        this(lwc, DefaultColor);
+        this(lwc, TextColor);
     }
 
     public static ShowIconsPreference getShowIconPreference()
@@ -148,7 +149,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                         //int coordStyle)
         {
             if (c == null)
-                c = DefaultColor;
+                c = TextColor;
 
             //mCoordsNodeLocal = (coordStyle >= COORDINATES_COMPONENT);
             //mCoordsNoShrink = (coordStyle == COORDINATES_COMPONENT_NO_SHRINK);
@@ -581,21 +582,24 @@ public abstract class LWIcon extends Rectangle2D.Float
             internalLayout();
         }
 
-        private static final Color BoxFill = new Color(238, 238, 238);
-        private static final Color BoxBorder = new Color(149, 149, 149);
+        //private static final Color BoxFill = new Color(238, 238, 238);
+        private static final Color BoxFill = FillColor;
+        //private static final Color BoxBorder = new Color(149, 149, 149);
         
         void internalLayout()
         {
             if (extension == null) {
                 if (mLWC.hasResource()) 
                     extension = mLWC.getResource().getContentType();
+                
                 if (extension == null || extension.length() < 1) {
                     extension = NoResource;
                 } else if (extension.length() > 3) {
                     extension = extension.substring(0,3);
                 }
+                
                 if (DEBUG.RESOURCE) Log.debug("EXTENSION["+extension+"]");
-                mTextRow = TextRow.instance(extension, FONT_ICON);
+                mTextRow = TextRow.instance(extension.toLowerCase(), FONT_ICON);
             }
             
             if (boxBounds == null)
@@ -605,7 +609,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             // so that this doesn't get called till Rectangle2D.this is fully positioned
             boxBounds.setRect(this);
             final float insetW = 2;
-            final float insetH = 0.5f;
+            final float insetH = 1;
             boxBounds.x += insetW;
             boxBounds.y += insetH;
             boxBounds.width -= insetW * 2;
@@ -626,7 +630,8 @@ public abstract class LWIcon extends Rectangle2D.Float
 
             dc.g.setColor(BoxFill);
             dc.g.fill(boxBounds);
-            dc.g.setColor(BoxBorder);
+            //dc.g.setColor(BoxBorder);
+            dc.g.setColor(mLWC.getRenderFillColor(dc).darker());
             dc.g.setStroke(STROKE_HALF);
             dc.g.draw(boxBounds);
             dc.g.setColor(mColor);
