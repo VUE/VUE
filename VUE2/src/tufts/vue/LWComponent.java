@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.354 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
+ * @version $Revision: 1.355 $ / $Date: 2007-10-22 05:51:53 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3963,6 +3963,13 @@ u                    getSlot(c).setFromString((String)value);
         } else
             return addStrokeToBounds(getMapBounds(), 0);
     }
+
+    /** @return bounds to use when this is the focal */
+    public Rectangle2D.Float getFocalBounds() {
+        // do not include any slide icons
+        return addStrokeToBounds(getMapBounds(), 0);
+    }
+    
 
     /**
      * Return absolute map bounds including any border stroke -- used by Groups.
