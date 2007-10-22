@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.40 $ / $Date: 2007-10-22 21:21:04 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2007-10-22 21:26:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -137,6 +137,8 @@ public class PrintAction extends tufts.vue.VueAction
         }
     }
 
+    private static volatile int JobCount = 1;
+
     private class PrintJob extends Thread implements Printable
     {
         private LWMap map;
@@ -145,7 +147,7 @@ public class PrintAction extends tufts.vue.VueAction
         private Rectangle2D bounds; // map bounds of print job
         
         private PrintJob(MapViewer viewer, boolean viewerPrint) {
-            super("VUE PrintJob");
+            super("PrintJob#" + JobCount++);
             this.map = viewer.getMap();
             this.jobName = map.getDisplayLabel();
             this.isPrintingView = viewerPrint;
