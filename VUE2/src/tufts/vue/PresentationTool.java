@@ -55,7 +55,8 @@ public class PresentationTool extends VueTool
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PresentationTool.class);
     
-    private static final boolean AnimateAcrossMap = true;
+    private static final boolean AnimateAcrossMap = false;
+    private static final boolean AnimateInOutMap = true;
     
     private static final String FORWARD = "FORWARD";
     private static final String BACKWARD = "BACKWARD";
@@ -365,47 +366,67 @@ public class PresentationTool extends VueTool
     private static final int BoxSize = 20;
     private static final int BoxGap = 5;
 
-    private class PathwayBox extends java.awt.geom.RoundRectangle2D.Float
-    {
-        final LWPathway.Entry entry;
-        final TextRow txt;
-        final Color color;
-
-        PathwayBox(LWPathway.Entry e, float x, float y) 
-        {
-            super(x, y, BoxSize, BoxSize, 5, 5);
-            entry = e;
-            txt = TextRow.instance(Integer.toString(entry.index() + 1), NavBoxFont);
-            color = Util.alphaMix(entry.pathway.getColor(), Color.white);
-        }
-
-        void draw(DrawContext dc) 
-        {
-            dc.g.setColor(color);
-            dc.g.fill(this);
-            if (entry.pathway == mPathway)
-                dc.g.setStroke(STROKE_THREE);
-            else
-                dc.g.setStroke(STROKE_ONE);
-            dc.g.setColor(Color.darkGray);
-            dc.g.draw(this);
-            dc.g.setFont(NavBoxFont);
-            dc.g.setColor(color.darker());
-            txt.drawCenter(dc, this);
-        }
-
-        public String toString() {
-            return "Box[" + entry.toString() + "]";
-        }
-        
-    }
-    
-    
     private class NavNode extends LWNode
     {
+        static final int DefaultWidth = 200;
+        static final int ActiveWidth = 300;
+        static final int MaxWidth = ActiveWidth;
+        
         final Page page; // destination page
         String debug;
 
+        private class PathwayBox extends java.awt.geom.RoundRectangle2D.Float
+        {
+            final LWPathway.Entry entry;
+            final TextRow row;
+            final Color color;
+            
+            PathwayBox(LWPathway.Entry e, float x, float y) 
+            {
+                super(x, y, BoxSize, BoxSize, 5, 5);
+                entry = e;
+                String text = Integer.toString(entry.index() + 1); // index's are zero-based, so add 1
+                //if (entry.isLast()) text = "(" + text + ")";
+                row = TextRow.instance(text, NavBoxFont);
+                color = Util.alphaMix(entry.pathway.getColor(), Color.white);
+            }
+            
+            void draw(DrawContext dc) 
+            {
+                dc.g.setColor(color);
+                dc.g.fill(this);
+                // page == NavNode.this.page
+                //if (entry.pathway == page.entry.pathway)
+                
+                final Color faint = color.darker();
+                
+                if (entry.isLast()) {
+                    int left = (int) Math.round(super.x) + 3;
+                    int right = (int) Math.round(super.x + super.width) - 3;
+                    int bottom = (int) Math.round(super.y + super.height) - 4;
+                    dc.g.setStroke(STROKE_ONE);
+                    dc.g.setColor(faint);
+                    dc.g.drawLine(left, bottom, right, bottom);
+                }
+                
+                if (page.entry != null && page.entry.pathway == entry.pathway)
+                    dc.g.setStroke(STROKE_THREE);
+                else
+                    dc.g.setStroke(STROKE_ONE);
+                dc.g.setColor(Color.darkGray);
+                dc.g.draw(this);
+                dc.g.setFont(NavBoxFont);
+                dc.g.setColor(faint);
+                row.drawCenter(dc, this);
+            }
+            
+            public String toString() {
+                return "Box[" + entry.toString() + "]";
+            }
+        
+        }
+    
+    
         final List<PathwayBox> mPathwayJumpBoxes;
 
         private List<PathwayBox> createPathwayJumpBoxes(LWComponent node)
@@ -500,7 +521,7 @@ public class PresentationTool extends VueTool
             //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20)); // is default
             setAutoSized(false);
 
-            int buttonWidth = isLastPathwayPage ? 300 : 200;
+            int buttonWidth = isLastPathwayPage ? ActiveWidth : DefaultWidth;
             
             setSize(buttonWidth + SlideRoom, getHeight() + 6);
 
@@ -1024,7 +1045,7 @@ public class PresentationTool extends VueTool
 
             if (mCurrentPage.entry != null && mCurrentPage.entry.pathway != null) {
                 // redraw the current pathway so it's highlighted
-                mCurrentPage.entry.pathway.drawPathway(mNavMapDC);
+                mCurrentPage.entry.pathway.drawPathwayWithDots(mNavMapDC);
             }
             
             mNavMapDC.setAntiAlias(true);
@@ -1073,36 +1094,88 @@ public class PresentationTool extends VueTool
             
     }
 
-    @Override
     /** @return true to disable rollovers on the map */
+    @Override
     public boolean handleMouseMoved(MapMouseEvent e)
     {
+        final MapViewer viewer = e.getViewer();
+
+        if (viewer.getFocal() instanceof LWMap) {
+            // never any nav nodes if a map is the focus
+            mShowNavNodes = false;
+            return true;
+        }
+        
+        final int width = viewer.getWidth();
+        final int MouseRightActivationPixel = width - 40;
+        final int MouseRightClearAfterActivationPixel = width - NavNode.MaxWidth;
+
+        Log.debug(String.format("CURX %d; Max %d; On pixel: %d, off pixel %d",
+                                e.getX(),
+                                width,
+                                MouseRightActivationPixel, 
+                                MouseRightClearAfterActivationPixel
+                                ));
+        
         boolean handled = false;
         if (DEBUG.PICK && mShowNavigator)
             handled = debugTrackNavMapMouseOver(e);
 
         boolean oldShowNav = mShowNavNodes;
 
-        //int maxHeight = e.getViewer().getVisibleBounds().height;
-        //if (e.getY() > maxHeight - 40) {
-        if (e.getX() < 40) {
-            //if (DEBUG.PRESENT) out("nav nodes on " + e.getY() + " max=" + maxHeight);
+        if (e.getX() > MouseRightActivationPixel) {
+            Log.debug("nav nodes on at mouse " + e.getX());
             mShowNavNodes = true;
             mForceShowNavNodes = false;
+            if (oldShowNav)
+                Log.debug("nav nodes should already be visible");
+            
         } else {
             if (mShowNavNodes && !mForceShowNavNodes) {
-                if (e.getX() > 200)
+                if (e.getX() < MouseRightClearAfterActivationPixel) {
                     mShowNavNodes = false;
+                    Log.debug("nav nodes off " + e.getX());
+                }
             }
-            //if (DEBUG.PRESENT) out("nav nodes off " + e.getY() + " max=" + maxHeight);
         }
 
         if (oldShowNav != mShowNavNodes)
             repaint("mouseMove nav display change");
-        //e.getViewer().repaint();
 
         return true;
     }
+
+//     /** @return true to disable rollovers on the map */
+//     @Override
+//     public boolean handleMouseMoved(MapMouseEvent e)
+//     {
+//         boolean handled = false;
+//         if (DEBUG.PICK && mShowNavigator)
+//             handled = debugTrackNavMapMouseOver(e);
+
+//         boolean oldShowNav = mShowNavNodes;
+
+//         //int maxHeight = e.getViewer().getVisibleBounds().height;
+//         //if (e.getY() > maxHeight - 40) {
+//         if (e.getX() < 40) {
+//             //if (DEBUG.PRESENT) out("nav nodes on " + e.getY() + " max=" + maxHeight);
+//             mShowNavNodes = true;
+//             mForceShowNavNodes = false;
+//         } else {
+//             if (mShowNavNodes && !mForceShowNavNodes) {
+//                 if (e.getX() > 200)
+//                     mShowNavNodes = false;
+//             }
+//             //if (DEBUG.PRESENT) out("nav nodes off " + e.getY() + " max=" + maxHeight);
+//         }
+
+//         if (oldShowNav != mShowNavNodes)
+//             repaint("mouseMove nav display change");
+//         //e.getViewer().repaint();
+
+//         return true;
+//     }
+    
 
     private boolean debugTrackNavMapMouseOver(MapMouseEvent e)
     {
@@ -1268,7 +1341,7 @@ public class PresentationTool extends VueTool
 //         } else
 //             VueAction.setAllActionsIgnored(false);
 //     }
-    
+
     @Override
     public void handleToolSelection(boolean selected, VueTool fromTool)
     {
@@ -1278,6 +1351,10 @@ public class PresentationTool extends VueTool
         
         if (!selected)
             return;
+
+        //GUI.refreshGraphicsInfo();
+        //MouseRightActivationPixel = GUI.GScreenWidth - 40;
+        //MouseRightClearAfterActivationPixel = GUI.GScreenWidth - 200;
 
         mCurrentPage = NO_PAGE;
         if (VUE.getSelection().size() == 1)
@@ -1482,6 +1559,11 @@ public class PresentationTool extends VueTool
             return;
         }
         
+        if (page.equals(mCurrentPage)) {
+            if (DEBUG.Enabled) Log.debug("current page matches new page: " + mCurrentPage + "; requested=" + page);
+            return;
+        }
+        
         recordPageTransition(page, recordBackup);
 
         
@@ -1566,31 +1648,35 @@ public class PresentationTool extends VueTool
     }
 
     private Rectangle2D.Float getFocalBounds(LWComponent c) {
-        if (c instanceof LWSlide &&
-            c.getParent() instanceof LWPathway
-            //&& mFocal != c
-            && (mFocal == null || !mFocal.hasAncestor(c))) // use the real bounds if we're within the slide
-        {
-            // hack for slide icons, as long as we're not the focal
-            // (in which case, we need our REAL bounds to animate
-            // amongst our contents: the slide contents)
-            
-            LWComponent node = ((LWSlide)c).getSourceNode();
 
-//             if (node != null && node.isDrawingSlideIcon())
-//                 return ((LWSlide)c).getSourceNode().getMapSlideIconBounds();
-//             else
-                if (node != null)
-                return node.getBounds();
-            else {
-                // We're presumably on a "combo" node that's not on the map:
-                out("fallback to map bounds for focal bounds for " + c);
-                return c.getMap().getBounds();
-            }
-        } else {
-            return MapViewer.getFocalBounds(c);
-            //return c.getBounds();
-        }
+        return MapViewer.getFocalBounds(c);
+        
+//         if (c instanceof LWSlide &&
+//             c.getParent() instanceof LWPathway
+//             //&& mFocal != c
+//             && (mFocal == null || !mFocal.hasAncestor(c))) // use the real bounds if we're within the slide
+//         {
+//             // hack for slide icons, as long as we're not the focal
+//             // (in which case, we need our REAL bounds to animate
+//             // amongst our contents: the slide contents)
+            
+//             LWComponent node = ((LWSlide)c).getSourceNode();
+
+// //             if (node != null && node.isDrawingSlideIcon())
+// //                 return ((LWSlide)c).getSourceNode().getMapSlideIconBounds();
+// //             else
+//                 if (node != null)
+//                 return node.getBounds();
+//             else {
+//                 // We're presumably on a "combo" node that's not on the map:
+//                 out("fallback to map bounds for focal bounds for " + c);
+//                 return c.getMap().getBounds();
+//             }
+//         } else {
+//             return MapViewer.getFocalBounds(c);
+//             //return c.getBounds();
+//         }
+        
     }
 
     // TODO: if we're currently animating a focal swith,
@@ -1764,6 +1850,11 @@ public class PresentationTool extends VueTool
             focalBounds = newFocal.getBounds();
         else
             focalBounds = getFocalBounds(newFocal);
+
+        final boolean animate;
+
+        
+        
 
         ZoomTool.setZoomFitRegion(viewer,
                                   //getFocalBounds(newFocal),
