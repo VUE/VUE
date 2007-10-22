@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.168 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
+ * @version $Revision: 1.169 $ / $Date: 2007-10-22 05:52:03 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1306,6 +1306,12 @@ public class LWMap extends LWContainer
     public Rectangle2D.Float getPaintBounds() {
         return mChildren == null ? EmptyBounds : getPaintBounds(mChildren.iterator());
     }
+
+    @Override
+    public Rectangle2D.Float getFocalBounds() {
+        return getPaintBounds();
+    }
+    
 
     public static Rectangle2D.Float getPaintBounds(Iterator<LWComponent> i)
     {
