@@ -126,6 +126,18 @@ public class OntologyBrowser extends JPanel {
 
     private OntologyOpenAction ontologyOpenAction = new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this);
     
+    public Widget getWidgetForOntology(edu.tufts.vue.ontology.Ontology o)
+    {
+        URL ontURL = null;
+		try {
+			ontURL = new java.net.URL(o.getBase());
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			//e.printStackTrace();
+		}
+    	return widgetMap.get(new OntologyBrowserKey(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(o.getBase()),ontURL));
+    }
+    
     public void initializeBrowser(boolean delayedLoading, DockWindow typeDock) {
         
         setLayout(new javax.swing.BoxLayout(this,javax.swing.BoxLayout.Y_AXIS));
@@ -367,4 +379,3 @@ public class OntologyBrowser extends JPanel {
     }
     
 }
-
