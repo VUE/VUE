@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.191 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
+ * @version $Revision: 1.192 $ / $Date: 2007-10-22 03:45:21 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1227,6 +1227,11 @@ public class LWPathway extends LWContainer
     }
 
 
+    /**
+     * A special type of slide used for generating "virtual" slides for viewing
+     * a single on-map node in a slide-like presentation.  These are not
+     * editable.
+     */
     static final class MapSlide extends LWSlide {
 
         MapSlide(Entry e) {
