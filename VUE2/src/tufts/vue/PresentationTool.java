@@ -865,10 +865,17 @@ public class PresentationTool extends VueTool
 
         switch (keyCode) {
         case KeyEvent.VK_ENTER:
+
+            // [2007-10-22:this comment still current? ]
             // MapViewer popFocal must have failed -- focal should be the map:
             // todo: all our VueTool handled calls that come from the MapViewer
             // should take a viewer as an argument...
-            if (mLastPathwayPage != null) {
+            
+            if (mFocal instanceof LWMap && mLastPage != null) {
+                setPage(mLastPage);
+            } else if (mVisited.hasPrev()) {
+                setPage(mVisited.prev());
+            } else if (mLastPathwayPage != null) {
                 setPage(mLastPathwayPage);
             } else {
                 // non-pathway navigation: just zoom back out to entire map
@@ -1569,11 +1576,13 @@ public class PresentationTool extends VueTool
 
         if (page == null) // for now
             return;
-        
+
+            
         // we're backing up:
 
         
         if (page.equals(mVisited.prev())) {
+            
             // [too aggressive: if click again ]
             // ANY time we record a page transtion to what's one back on
             // the queue, treat it as a rollback, even if recordBackup is true.
@@ -1581,7 +1590,10 @@ public class PresentationTool extends VueTool
             if (DEBUG.PRESENT) out("ROLLBACK");
             mVisited.rollBack();
         } else if (recordBackup) {
-            mVisited.push(page);
+            if (page.node instanceof LWMap)
+                ; // don't record map views
+            else
+                mVisited.push(page);
         }
 
 //         if (recordBackup) {
