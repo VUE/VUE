@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.109 $ / $Date: 2007-10-22 04:45:02 $ / $Author: sfraize $
+ * @version $Revision: 1.110 $ / $Date: 2007-10-22 17:32:31 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -2670,12 +2670,15 @@ public class DockWindow extends javax.swing.JWindow
         
         if (e.getSource().getClass() == ResizeCorner.class)
             return;
-        
-        if (e.getClickCount() != 0 && e.getClickCount() != 2 && titleBarHit(e)) {
+         
+        //On windows the click count kept growing if i I didn't move the mouse slightly between clicks so I put
+        //an extra test in here for clicks > 2 % 2 to test for additional double clicks seems to work
+        //well on windows i'll double check with mac.
+        if (/*e.getClickCount() != 0 &*/ (e.getClickCount() == 2 || (e.getClickCount() > 2 && (e.getClickCount() % 2 ==0))) && titleBarHit(e)) {
             // clickCount != 0 prevents action with long mouse down
             // clickCount != 2 allows double-click not undo what just happened on single click,
             // but rapid clicking for testing (clickCount keeps climbing) is allowed.
-
+        	e.consume();
             setRolledUp(!isRolledUp());
 
         } else {
@@ -4439,4 +4442,3 @@ public class DockWindow extends javax.swing.JWindow
     
     
 }
-
