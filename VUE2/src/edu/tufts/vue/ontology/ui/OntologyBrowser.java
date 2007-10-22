@@ -288,6 +288,10 @@ public class OntologyBrowser extends JPanel {
     
     public static Object getSelectedOntology() {
         Object value =  getBrowser().getViewer().getList().getSelectedValue();
+        
+        if(value == null)
+            return null;
+        
         return value + ":" + value.getClass();
     }
     
