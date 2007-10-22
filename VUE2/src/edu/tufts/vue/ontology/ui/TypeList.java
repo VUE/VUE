@@ -394,13 +394,46 @@ public class TypeList extends JList {
         
         public java.awt.Component getListCellRendererComponent(JList jList, Object value, int i, boolean isSelected, boolean hasFocus) 
         {            
-            if(value == getSelectedValue())
+            
+            java.awt.Color unselected = new java.awt.Color(255,255,255);
+            
+            boolean showSelectionStates = false;
+            
+            if(getSelectedValue() == null || OntologyBrowser.getSelectedOntology() == null)
+            {
+                if(showSelectionStates)
+                {    
+                  lwcv.setBackground(new java.awt.Color(150,0,0));
+                }
+                else
+                {
+                  lwcv.setBackground(unselected);
+                }
+            }
+            else if( OntologyBrowser.getSelectedOntology() == null)
+            {
+                //lwcv.setBackground(new java.awt.Color(0,0,150));
+                lwcv.setBackground(unselected);
+            }
+            else
+            //if(value == getSelectedValue() && (OntologyBrowser.getSelectedOntology()).equals(ontology.getBase() +":" + ontology.getClass()) ) 
+            //if(value == getSelectedValue() && (OntologyBrowser.getSelectedOntology()).equals(ontology +":" + ontology.getClass()) )
+            if(value == getSelectedValue() && (OntologyBrowser.getSelectedList() == TypeList.this ))    
             {
                 //lwcv.setBackground(new java.awt.Color(230,230,230));
                 lwcv.setBackground(tufts.vue.gui.GUI.getTextHighlightColor());
             }
+            else if(value == getSelectedValue())
+            {
+                //lwcv.setBackground(new java.awt.Color(0,150,0));
+                lwcv.setBackground(unselected);
+            }
             else
-                lwcv.setBackground(new java.awt.Color(255,255,255));
+            {
+                //lwcv.setBackground(new java.awt.Color(255,255,255));
+                lwcv.setBackground(unselected);
+            }
+            
             
             lwcv.setType((OntType)value);
             
