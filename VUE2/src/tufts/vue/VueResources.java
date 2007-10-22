@@ -1,4 +1,4 @@
- /*
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.49 $ / $Date: 2007-10-22 16:01:10 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-10-22 19:09:19 $ / $Author: sfraize $
  *
  */
 public class VueResources
@@ -284,7 +284,8 @@ public class VueResources
         try {
             i = Integer.parseInt(str);
         } catch (Exception e) {
-            System.err.println(e);
+            Log.warn("parseInt: " + e);
+            if (DEBUG.INIT) e.printStackTrace();
         }
         return i;
     }
@@ -621,6 +622,7 @@ public class VueResources
             ; // will try and use default
         } catch (Throwable t) {
             alert("getColor: " + key + " " + t);
+            if (DEBUG.INIT) t.printStackTrace();
         }
         
         if (value == null) {
@@ -656,13 +658,36 @@ public class VueResources
 
     }
     
-    static Color parseHexColor(String hex) {
+    static Color parseHexColor(final String _hex) {
+        String hex = _hex;
+        
         if (hex.startsWith("#"))
             hex = hex.substring(1);
-        boolean hasAlpha = hex.length() > 6;
+
+        int separateAlpha = -1;
+
+        int i;
+        if ((i=hex.indexOf('%')) > 0 && hex.length() > (i+1)) {
+            final String pctTxt = hex.substring(i + 1);
+            final int pctAlpha = parseInt(pctTxt, -1);
+            if (pctAlpha != -1) {
+                float pct = pctAlpha / 100f;
+                separateAlpha = (int) (pct * 255 + 0.5);
+            }
+            hex = hex.substring(0, i);
+        }
+
+        final boolean hasCombinedAlpha = separateAlpha >= 0 || hex.length() > 6;
         int bits = Long.valueOf(hex, 16).intValue();
-        Color c = new Color(bits, hasAlpha);
-        //System.out.println("From " + hex + " made " + c + " alpha=" + c.getAlpha());
+
+        if (separateAlpha > 0) {
+            // results undefined if any exitings alpha in bits (anything in 0xff000000)
+            bits &= 0xFFFFFF; // strip any alpha bits that were in the hex value
+            bits |= (separateAlpha << 24);
+        }
+            
+        final Color c = new Color(bits, hasCombinedAlpha);
+        //Log.debug(String.format("From [%s] (%s) made bits=%X, sepAlpha=%d, netAlpha=%d, %s", _hex, hex, bits, separateAlpha, c.getAlpha(), c));
         return c;
     }
     
