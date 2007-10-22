@@ -425,9 +425,6 @@ public class PresentationTool extends VueTool
                 } else
                     faint = null;
                 
-                // page == NavNode.this.page
-                //if (entry.pathway == page.entry.pathway)
-                
                 if (entry != null && entry.isLast()) {
                     int left = (int) Math.round(super.x) + 4;
                     int right = (int) Math.round(super.x + super.width) - 4;
@@ -1719,18 +1716,33 @@ public class PresentationTool extends VueTool
 //             isSlideTransition = false;
 
         mFocal = mCurrentPage.getPresentationFocal();
+
+        // MapViewer auto-animate will only work if the new focal
+        // is the map (it loads the focal, then does the anmiated transition).
+        // (this is a pop-focal)
         
-        if (mFadeEffect) {
+        // If we want to re-enable zoom-in animations, the below commented out code will
+        // need to be cleaned up to compute the animating focal, tho this should be
+        // simpler now that slide's are on the map as slide icons.
+        
+        final boolean animate = newFocal instanceof LWMap;
+        
+        if (mFadeEffect && !animate) {
             makeInvisible();
             viewer.loadFocal(mFocal, FIT_FOCAL, NO_ANIMATE);
             makeVisibleLater();
         } else {
-            viewer.loadFocal(mFocal, FIT_FOCAL, NO_ANIMATE);
+            viewer.loadFocal(mFocal, FIT_FOCAL, animate);
         }
 
+
         if (true) return true;
-        
-        
+
+        //-----------------------------------------------------------------------------
+        //
+        // Below code is currently all dead...
+        //
+        //-----------------------------------------------------------------------------
         
 
 
