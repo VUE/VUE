@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.39 $ / $Date: 2007-10-22 21:01:33 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2007-10-22 21:21:04 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -124,7 +124,7 @@ public class PrintAction extends tufts.vue.VueAction
         isPrintUnderway = true;
         setEnabled(false);
         try {
-            new PrintJob(VUE.getActiveViewer(), viewerPrint).runPrint();
+            new PrintJob(VUE.getActiveViewer(), viewerPrint).start();
 //             if (DEBUG.Enabled)
 //                 new PrintJob(VUE.getActiveViewer(), viewerPrint).start();
 //             else
@@ -191,7 +191,9 @@ public class PrintAction extends tufts.vue.VueAction
         {
             out("job starting for " + this.map);
             PrinterJob job = getPrinterJob();
+            out("got OS job: " + tufts.Util.tags(job));
             if (job.printDialog()) {
+                out("printDialog ran, waiting for format...");
                 //PageFormat format = getPageFormat(job, bounds);
                 PageFormat format = getPageFormatInteractive(job, bounds);
                 out("format: " + outpf(format));
@@ -207,6 +209,7 @@ public class PrintAction extends tufts.vue.VueAction
                     // the system print dialog...
                     //VUE.frame.toBack();
                     
+                    out("printing...");
                     job.print();
                 }
             }
