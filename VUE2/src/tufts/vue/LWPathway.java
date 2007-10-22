@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.189 $ / $Date: 2007-10-21 21:05:24 $ / $Author: sfraize $
+ * @version $Revision: 1.190 $ / $Date: 2007-10-22 01:00:01 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -148,6 +148,17 @@ public class LWPathway extends LWContainer
         public Entry prev() {
             return pathway.getEntry(pathway.getEntryIndex(this) - 1);
         }
+
+        /** @return true if this is the last entry on the pathway */
+        public boolean isLast() {
+            return pathway.getLast() == this;
+        }
+
+        /** @return true if this is the first entry on the pathway */
+        public boolean isFirst() {
+            return pathway.getFirst() == this;
+        }
+        
         
         private final boolean restoreUnderway() {
             return pathway == null;
@@ -1758,6 +1769,19 @@ public class LWPathway extends LWContainer
                    
     }
 
+    /** used for re-drawing an entire pathway with it's dots -- e.g., for hilighting it */
+    public void drawPathwayWithDots(DrawContext dc) {
+        drawPathway(dc.push()); dc.pop();
+        for (Entry e : getEntries()) {
+            if (e.node != null) {
+                DrawContext ndc = dc.push();
+                e.node.transformZero(ndc.g);
+                decorateOver(e.node, ndc);
+                dc.pop();
+            }
+        }
+    }
+    
     public void drawPathway(DrawContext dc)
     {
         final Line2D.Float connector = new Line2D.Float();
