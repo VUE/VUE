@@ -38,6 +38,8 @@ import org.xml.sax.InputSource;
 public class VueDataSourceManager
         implements edu.tufts.vue.dsm.DataSourceManager
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSourceManager.class);
+
     private static edu.tufts.vue.dsm.DataSourceManager dataSourceManager = new VueDataSourceManager();
     private static java.util.Vector dataSourceVector = new java.util.Vector();
     //private final static String XML_MAPPING_CURRENT_VERSION_ID = tufts.vue.VueResources.getString("mapping.lw.current_version");
@@ -66,12 +68,12 @@ public class VueDataSourceManager
                 dataSourceManager = unMarshall(f); 
                 dataSourceManager. notifyDataSourceListeners();
             } else {
-                System.out.println("Installed datasources not found");
+                debug("Installed datasources not found");
             }
         }  catch (Throwable t) {
 //			t.printStackTrace();
 //            tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
-			System.out.println("In load via Castor " + t.getMessage());
+            Log.warn("In load via Castor " + t.getMessage());
         }
     }
     
@@ -127,7 +129,7 @@ public class VueDataSourceManager
                 }
             }
 			try {				
-				System.out.println("Adding data source " + dataSource.getId().getIdString() + " " + dataSource.getRepository().getDisplayName());
+				Log.info("Adding data source " + dataSource.getId().getIdString() + " " + dataSource.getRepository().getDisplayName());
 			} catch (Throwable t) {
 			}
             dataSourceVector.addElement(dataSource);
@@ -179,10 +181,10 @@ public class VueDataSourceManager
             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
             if (ds.isIncludedInSearch()) {
 				try {
-					System.out.println("Getting included data source0 " + ds.getId().getIdString());
-					System.out.println("Getting included data source1 " + ds.getRepository());
-					System.out.println("Getting included data source1 " + ds.getRepository().getDisplayName());
-					System.out.println("Getting included data source2 " + ds.getRepository().getId().getIdString());
+					debug("Getting included data source0 " + ds.getId().getIdString());
+					debug("Getting included data source1 " + ds.getRepository());
+					debug("Getting included data source1 " + ds.getRepository().getDisplayName());
+					debug("Getting included data source2 " + ds.getRepository().getId().getIdString());
 				} catch (Throwable t) {
 				}
                 results.addElement(ds.getRepository());
@@ -194,6 +196,10 @@ public class VueDataSourceManager
             repositories[i] = (org.osid.repository.Repository)results.elementAt(i);
         }
         return repositories;
+    }
+
+    private static void debug(String s) {
+        Log.info(s);
     }
     
 	public edu.tufts.vue.dsm.DataSource[] getIncludedDataSources() {
@@ -295,10 +301,10 @@ public class VueDataSourceManager
         for (int i=0; i < size; i++) {
             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
 			try {
-				System.out.println("Getting included data source0 " + ds.getId().getIdString());
-				System.out.println("Getting included data source1 " + ds.getRepository());
-				System.out.println("Getting included data source1 " + ds.getRepository().getDisplayName());
-				System.out.println("Getting included data source2 " + ds.getRepository().getId().getIdString());
+				debug("Getting included data source0 " + ds.getId().getIdString());
+				debug("Getting included data source1 " + ds.getRepository());
+				debug("Getting included data source1 " + ds.getRepository().getDisplayName());
+				debug("Getting included data source2 " + ds.getRepository().getId().getIdString());
 			} catch (Throwable t) {
 			}
 		}
