@@ -45,6 +45,8 @@ abstract public class Ontology {
     public static final String ONT_PROPERTY_LINK = "link.OntProperty";
     public static final String DEFAULT_LINK = "link.default";
     public static final String DEFAULT_ONT_LABEL = "Ontology ";
+    private boolean enabled = true;
+    
     protected List<OntType> types = new ArrayList<OntType>();
     static int ONT_COUNTER  =0;
     URL cssUrl;
@@ -65,6 +67,17 @@ abstract public class Ontology {
         this.base = base;
         this.label = getLabelFromUrl(base);
     }
+    
+    public void setEnabled(boolean enable)
+    {
+    	this.enabled=enable;
+    }
+    
+    public boolean isEnabled()
+    {
+    	return enabled;
+    }
+    
     public String getLabel() {
         return this.label;
     }
