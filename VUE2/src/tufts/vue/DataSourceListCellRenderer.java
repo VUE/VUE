@@ -95,13 +95,13 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         // Set the checkbox, label & icon
         //-------------------------------------------------------
 
-        mCheckBox.invisible = true;
+        mCheckBox.setVisibility(true);
         
         String displayName = null;
         if (value instanceof edu.tufts.vue.dsm.DataSource) {
             edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
             displayName = datasource.getRepositoryDisplayName();
-            mCheckBox.invisible = false;
+            mCheckBox.setVisibility(false);
             mCheckBox.setSelected(datasource.isIncludedInSearch());
 			
 			// TODO: cache or maybe return a path in place of an image for getIcon16x16
@@ -161,37 +161,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
     }
 
 
-    private static class CheckBoxRenderer extends JCheckBox {
-
-        boolean invisible;
-
-        public CheckBoxRenderer() {
-            setBorderPainted(false);            
-        }
-
-        public void paint(Graphics g) {
-            if (!invisible)
-                super.paint(g);
-        }
-        
-        
-        public boolean isOpaque() { return false; }
-        public void validate() {}
-        public void invalidate() {}
-        public void repaint() {}
-        public void revalidate() {}
-        public void repaint(long tm, int x, int y, int width, int height) {}
-        public void repaint(Rectangle r) {}
-        protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {}
-        public void firePropertyChange(String propertyName, byte oldValue, byte newValue) {}
-        public void firePropertyChange(String propertyName, char oldValue, char newValue) {}
-        public void firePropertyChange(String propertyName, short oldValue, short newValue) {}
-        public void firePropertyChange(String propertyName, int oldValue, int newValue) {}
-        public void firePropertyChange(String propertyName, long oldValue, long newValue) {}
-        public void firePropertyChange(String propertyName, float oldValue, float newValue) {}
-        public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
-        public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {}
-    }
+    
 
 
         /*

@@ -1,0 +1,47 @@
+package tufts.vue.gui;
+
+import java.awt.Graphics;
+import java.awt.Rectangle;
+
+import javax.swing.JCheckBox;
+
+public class CheckBoxRenderer extends JCheckBox {
+
+    boolean invisible;
+
+    public CheckBoxRenderer() {
+        setBorderPainted(false);            
+    }
+
+    public void paint(Graphics g) {
+        if (!invisible)
+            super.paint(g);
+    }
+    
+    public boolean getVisibility()
+    {
+    	return invisible;
+    }
+    
+    public void setVisibility(boolean vis)
+    {
+    	invisible = vis;
+    }
+    
+    public boolean isOpaque() { return false; }
+    public void validate() {}
+    public void invalidate() {}
+    public void repaint() {}
+    public void revalidate() {}
+    public void repaint(long tm, int x, int y, int width, int height) {}
+    public void repaint(Rectangle r) {}
+    protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {}
+    public void firePropertyChange(String propertyName, byte oldValue, byte newValue) {}
+    public void firePropertyChange(String propertyName, char oldValue, char newValue) {}
+    public void firePropertyChange(String propertyName, short oldValue, short newValue) {}
+    public void firePropertyChange(String propertyName, int oldValue, int newValue) {}
+    public void firePropertyChange(String propertyName, long oldValue, long newValue) {}
+    public void firePropertyChange(String propertyName, float oldValue, float newValue) {}
+    public void firePropertyChange(String propertyName, double oldValue, double newValue) {}
+    public void firePropertyChange(String propertyName, boolean oldValue, boolean newValue) {}
+}
