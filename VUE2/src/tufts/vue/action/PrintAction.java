@@ -39,12 +39,14 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.38 $ / $Date: 2007-08-28 17:37:45 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2007-10-22 21:01:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class PrintAction extends tufts.vue.VueAction
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PrintAction.class);
+
     private static PrintAction singleton;
     public static PrintAction getPrintAction() {
         if (singleton == null)
@@ -122,13 +124,14 @@ public class PrintAction extends tufts.vue.VueAction
         isPrintUnderway = true;
         setEnabled(false);
         try {
-            if (DEBUG.Enabled)
-                new PrintJob(VUE.getActiveViewer(), viewerPrint).start();
-            else
-                new PrintJob(VUE.getActiveViewer(), viewerPrint).runPrint();
-        } catch (Exception e) {
-            out("exception creating or running PrintJob");
-            e.printStackTrace();
+            new PrintJob(VUE.getActiveViewer(), viewerPrint).runPrint();
+//             if (DEBUG.Enabled)
+//                 new PrintJob(VUE.getActiveViewer(), viewerPrint).start();
+//             else
+//                 new PrintJob(VUE.getActiveViewer(), viewerPrint).runPrint();
+        } catch (Throwable t) {
+            out("exception creating or running PrintJob: " + t);
+            t.printStackTrace();
             isPrintUnderway = false;
             setEnabled(true);
         }
@@ -285,7 +288,8 @@ public class PrintAction extends tufts.vue.VueAction
         }
 
         private void out(String s) {
-            System.out.println("PrintJob@" + Integer.toHexString(hashCode()) + "[" + jobName + "] " + s);
+            Log.info(String.format("PrintJob@%x[%s] %s", hashCode(), jobName, s));
+            //System.out.println("PrintJob@" + Integer.toHexString(hashCode()) + "[" + jobName + "] " + s);
         }
     }
 
