@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.108 $ / $Date: 2007-10-18 16:58:24 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2007-10-22 04:45:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -885,7 +885,7 @@ public class DockWindow extends javax.swing.JWindow
     }
     public synchronized static void ShowPreviouslyHiddenWindows() {
         if (VUE.inNativeFullScreen()) {
-            System.out.println(DockWindow.class + ": Ignoring show all windows: in native full screen");
+            Log.debug("Ignoring show all windows: in native full screen");
             // don't touch windows if in native full screen, as can
             // completely hang us on Mac OS X
             return;
