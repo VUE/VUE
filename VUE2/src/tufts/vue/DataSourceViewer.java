@@ -81,7 +81,7 @@ public class DataSourceViewer extends JPanel
     JButton optionButton = new VueButton("add");
     JButton searchButton = new JButton("Search");
     
-    public static Vector  allDataSources = new Vector();
+   // public static Vector  allDataSources = new Vector();
     public static DataSourceList dataSourceList;
     
     DockWindow resultSetDockWindow;
@@ -103,7 +103,7 @@ public class DataSourceViewer extends JPanel
     ImageIcon noImageIcon;
     
     private org.osid.OsidContext context = new org.osid.OsidContext();
-    org.osid.registry.Provider checked[];
+    //org.osid.registry.Provider checked[];
     
     private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
     
