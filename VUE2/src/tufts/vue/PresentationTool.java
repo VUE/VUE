@@ -144,7 +144,8 @@ public class PresentationTool extends VueTool
         /** @return true if this is a map-view node that's on a pathway */
         public boolean isMapViewNode() {
             if (entry == null)
-                return false;
+                return true; // changed 2007-10-22
+              //return false; 
             else
                 return entry.isMapView();
         }
@@ -771,10 +772,12 @@ public class PresentationTool extends VueTool
 
     private void revisitPrior() { revisitPrior(false); }
     private void revisitPrior(boolean allTheWay) {
+        if (DEBUG.PRESENT) out(String.format("revisitPrior%s", allTheWay ? " (AllTheWay)" : ""));
+        
         if (allTheWay)
             setPage(mVisited.jumpFirst());
         else if (mVisited.hasPrev())
-           setPage(mVisited.popPrev(), BACKING_UP);
+            setPage(mVisited.popPrev(), BACKING_UP);
     }
     
     private void revisitNext() { revisitNext(false); }
@@ -1254,6 +1257,8 @@ public class PresentationTool extends VueTool
     // and knowing if a new focal needs loading
     private void focusUp(MapMouseEvent e) 
     {
+        if (DEBUG.PRESENT) out("focusUp");
+        
         final boolean toMap = e.isShiftDown();
         final boolean toLinks = e.isAltDown();
         final MapViewer viewer = e.getViewer();
@@ -1319,7 +1324,18 @@ public class PresentationTool extends VueTool
             // OTHERWISE, if general "browse", pop the focal
             if (mCurrentPage.insideSlide() || mLastPathwayPage == null) {
                 focusUp(e);
-            } else {
+            } else if (mVisited.hasPrev()) {
+                
+                // TODO: ONLY DO THIS IF PREVIOUS IS AN ANCESTOR OF CURRENT
+                // (this could be tricky to figure out using pages tho...)
+                // E.g., only do this if delving into a slide.
+                // Current undesired behaviour: clicking on a map-view
+                // page is auto-backing up!
+
+                // 2007-10-22 For now: changed Page.isMapViewNode to return TRUE
+                // if entry is null, so this code is cut off above -- the only
+                // place isMapViewNode() is ever used.  
+                
                 revisitPrior();
             }
         } else {
@@ -1607,6 +1623,8 @@ public class PresentationTool extends VueTool
             if (DEBUG.Enabled) Log.debug("current page matches new page: " + mCurrentPage + "; requested=" + page);
             return;
         }
+
+        if (DEBUG.PRESENT) out("setPage " + page);
         
         recordPageTransition(page, recordBackup);
 
