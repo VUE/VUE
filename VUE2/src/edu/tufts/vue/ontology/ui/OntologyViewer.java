@@ -28,6 +28,7 @@ import edu.tufts.vue.ontology.Ontology;
 
 import tufts.vue.DEBUG;
 import tufts.vue.DataSource;
+import tufts.vue.VueToolbarController;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.Widget;
 
@@ -108,6 +109,21 @@ public class OntologyViewer extends javax.swing.JPanel implements MouseListener{
             	Widget w = OntologyBrowser.getBrowser().getWidgetForOntology(ont);            	
             	w.setHidden(!enabled);
             	
+            	int size = ontologyList.getModel().getSize();
+            	int enabledCount = 0;
+            	for (int i = 0; i < size; i++)
+            	{
+            		Ontology o2 = (Ontology)ontologyList.getModel().getElementAt(i);
+            		if (o2.isEnabled())
+            		{
+            			enabledCount++;
+            			break;
+            		}
+            	}
+            	if (enabledCount == 0)
+            		  VueToolbarController.getController().hideOntologicalTools();
+            	else
+            		  VueToolbarController.getController().showOntologicalTools();
                 w.validate();
             	ontologyList.repaint();
             }

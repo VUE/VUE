@@ -37,7 +37,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.71 $ / $Date: 2007-10-16 22:04:37 $ / $Author: mike $
+ * @version $Revision: 1.72 $ / $Date: 2007-10-22 20:33:57 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -114,14 +114,16 @@ public class VueToolbarController
      * there probably needs to be a better way.  But I'm not even sure this will stay around so this
      * is a bit of hack to allow it.
      */
+    private Component ontologyNodeComponent;
+    private Component ontologyLinkComponent;
+    
     private void configureOntologyTools()
     {
     	final VueTool nodeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
         final VueTool linkTool = VueTool.getInstance(tufts.vue.LinkTool.LinkModeTool.class);
         final VueTool ontologyNodeTool = VueTool.getInstance(tufts.vue.NodeTool.OntologyNodeTool.class);
         final VueTool ontologyLinkTool = VueTool.getInstance(tufts.vue.LinkTool.OntologyLinkModeTool.class);
-        final Component ontologyNodeComponent;
-        final Component ontologyLinkComponent;
+        
         final int ONTOLOGY_NODE_POSITION=1;
         final int ONTOLOGY_LINK_POSITION=1;
         
@@ -145,19 +147,27 @@ public class VueToolbarController
 			}
 
 			public void componentShown(ComponentEvent arg0) {				
-				Map buttons = getToolbar().getToolButtons();
-		        PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());		        
-		        PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
-
-		        parentButton.addPopupComponent(ontologyNodeComponent);
-		        parentLinkButton.addPopupComponent(ontologyLinkComponent);
-		        parentButton.repaint();
-		        parentLinkButton.repaint();
-
-				
+			
+				showOntologicalTools();
 			}
         	
         });
+
+    }
+    
+    public void showOntologicalTools()
+    {
+    	final VueTool nodeTool = VueTool.getInstance(tufts.vue.NodeTool.NodeModeTool.class);
+        final VueTool linkTool = VueTool.getInstance(tufts.vue.LinkTool.LinkModeTool.class);
+        
+    	Map buttons = getToolbar().getToolButtons();
+        PaletteButton parentButton = (PaletteButton)buttons.get(nodeTool.getParentTool().getID());		        
+        PaletteButton parentLinkButton = (PaletteButton)buttons.get(linkTool.getParentTool().getID());
+
+        parentButton.addPopupComponent(ontologyNodeComponent);
+        parentLinkButton.addPopupComponent(ontologyLinkComponent);
+        parentButton.repaint();
+        parentLinkButton.repaint();
 
     }
     public void hideOntologicalTools()
