@@ -21,8 +21,20 @@ public class LWText extends LWComponent {
 	public LWText() {
 		super();
 		
-		Float p = VUE.getActiveViewer().getLastMapMousePoint();
+                // VUE-747
+		Float p = null; 
+                 
+                if(VUE.getActiveViewer() != null)
+                {
+                       p =  VUE.getActiveViewer().getLastMapMousePoint();
+                }
+                
+                if(p!=null)
+                {    
 		   setLocation(p.x, p.y);
+                }
+                // end VUE-747 mods
+               
                 super.label = label; // make sure label initially set for debugging
                 initText();
 	}
