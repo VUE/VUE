@@ -33,7 +33,7 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.13 $ / $Date: 2007-08-31 01:11:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.14 $ / $Date: 2007-10-22 03:45:50 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -151,8 +151,10 @@ public class LWPortal extends LWNode
                 dc.g.setColor(Color.red);
                 dc.g.draw(getZeroShape());
             } else {
-                dc.setMasterClip(getMapShape());
-                getParent().draw(dc);
+                final DrawContext clipDC = dc.create();
+                clipDC.setMasterClip(getMapShape());
+                getParent().draw(clipDC);
+                clipDC.dispose();
             }
             
         } else if (dc.focal instanceof LWPortal) {
