@@ -19,6 +19,7 @@
 package tufts.vue;
 
 import static tufts.vue.VueConstants.*;
+import static tufts.vue.LWPathway.Entry;
 
 import tufts.Util;
 import tufts.macosx.MacOSX;
@@ -56,7 +57,7 @@ public class PresentationTool extends VueTool
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PresentationTool.class);
     
     private static final boolean AnimateAcrossMap = false;
-    private static final boolean AnimateInOutMap = true;
+    private static final boolean AnimateInOutMap = false;
     private static final boolean AnimateTransitions = AnimateAcrossMap || AnimateInOutMap;
     
     private static final String FORWARD = "FORWARD";
@@ -71,23 +72,24 @@ public class PresentationTool extends VueTool
     
     private final Page NO_PAGE = new Page((LWComponent)null);
     
-    private Page mCurrentPage = NO_PAGE;
-    private Page mLastPage = NO_PAGE;
-    private LWPathway mPathway;
-    private Page mLastPathwayPage;
-    private LWComponent mFocal; // sync'd with MapViewer focal
+    private volatile Page mCurrentPage = NO_PAGE;
+    private volatile Page mLastPage = NO_PAGE;
+    private volatile LWPathway mPathway;
+    private volatile Page mLastPathwayPage;
+    private volatile LWComponent mFocal; // sync'd with MapViewer focal
     
-    private LWComponent mNextPage; // is this really "startPage"?
+    private volatile LWComponent mNextPage; // is this really "startPage"?
     //private LWLink mLastFollowed;
     //private int mPathwayIndex = 0;
     //private LWPathway.Entry mEntry;
 
-    private boolean mFadeEffect = true;
-    private boolean mShowNavigator = DEBUG.NAV;
-    private boolean mShowNavNodes = false;
-    private boolean mForceShowNavNodes = false;
-    private boolean mDidAutoShowNavNodes = false;
-    private boolean mScreenBlanked = false;
+    private volatile boolean
+        mFadeEffect = true,
+        mShowNavigator = DEBUG.NAV,
+        mShowNavNodes,
+        mForceShowNavNodes,
+        mDidAutoShowNavNodes,
+        mScreenBlanked;
 
     /** a presentation moment (data for producing a single presentation screen) */
     private static class Page {
@@ -443,7 +445,8 @@ public class PresentationTool extends VueTool
 
             final float y = (getHeight() - BoxSize) / 2f;
 
-            for (LWPathway.Entry e : entries) {
+            for (ListIterator<Entry> i = entries.listIterator(entries.size()); i.hasPrevious();) {
+                final Entry e = i.previous();
                 if (e.pathway.isDrawn()) {
                     boxes.add(new PathwayBox(e, x, y));
                     x -= BoxSize + BoxGap;
@@ -856,8 +859,9 @@ public class PresentationTool extends VueTool
 
         case KeyEvent.VK_BACK_QUOTE:
             // toggle showing the non-linear nav options:
-            mForceShowNavNodes = mShowNavNodes = !mForceShowNavNodes;
-            repaint("toggleNav");
+            //mForceShowNavNodes = mShowNavNodes = !mForceShowNavNodes;
+            mForceShowNavNodes = mShowNavNodes = !mShowNavNodes;
+            repaint("toggleNav="+mShowNavNodes);
             break;
             
         case KeyEvent.VK_RIGHT:
@@ -1043,7 +1047,6 @@ public class PresentationTool extends VueTool
                 mCurrentPage.entry.pathway.drawPathwayWithDots(mNavMapDC);
             }
             
-            mNavMapDC.setAntiAlias(true);
             
 //             if (false && mShowNavNodes) {
 //                 // Also highlight connectd nav nodes if non-linear nav overlay is showing:
@@ -1054,37 +1057,46 @@ public class PresentationTool extends VueTool
 //                 }
 //             }
 
-            Rectangle2D bounds = null;
-            
-            if (viewer.getFocal() instanceof LWSlide) {
-                if (focused != null)
-                    //bounds = focused.getPaintBounds();
-                    bounds = focused.getBounds(); // could grab node icon bounds if they're drawing...
-            } else {
-                bounds = viewer.getVisibleMapBounds();
-            }
+            //if (!(focused instanceof LWSlide) && mCurrentPage.isMapView() && bounds != null) {
+            if (focused instanceof LWMap == false) {
+                final Rectangle2D.Float bounds = mCurrentPage.getOriginalMapNode().getPaintBounds();
+
+                bounds.x--;
+                bounds.y--;
+                bounds.width += 2;
+                bounds.height += 2;
+                
+//                 if (viewer.getFocal() instanceof LWSlide) {
+//                     if (focused != null)
+//                         //bounds = focused.getPaintBounds();
+//                         bounds = focused.getBounds(); // could grab node icon bounds if they're drawing...
+//                 } else {
+//                     bounds = viewer.getVisibleMapBounds();
+//                 }
+
                   
+                // redraw the reticle at full brightness:
+                mNavMapDC.setAntiAlias(true);
+                
+                if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + bounds);
+                //mNavMapDC.g.setColor(mCurrentPage.getPresentationFocal().getMap().getFillColor());
+                //mNavMapDC.setAlpha(0.25);
+                //mNavMapDC.g.fill(bounds);
+                mNavMapDC.setAlpha(1);
+                mNavMapDC.g.setColor(Color.red);
+                mNavMapDC.g.setStroke(VueConstants.STROKE_TWO);
+                mNavMapDC.g.draw(bounds);
+            }
+            
             
             if (DEBUG.WORK) out("overview drawing focused: " + focused);
             dc.setAlpha(1);            
             focused.draw(mNavMapDC.push()); mNavMapDC.pop();
             
-            if (!(focused instanceof LWSlide) && mCurrentPage.isMapView() && bounds != null) {
-                // redraw the reticle at full brightness:
-                
-                if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + bounds);
-                mNavMapDC.g.setColor(mCurrentPage.getPresentationFocal().getMap().getFillColor());
-                mNavMapDC.setAlpha(0.333);
-                mNavMapDC.g.fill(bounds);
-                mNavMapDC.setAlpha(1);
-                mNavMapDC.g.setColor(Color.red);
-                mNavMapDC.g.setStroke(VueConstants.STROKE_THREE);
-                mNavMapDC.g.draw(bounds);
-            }
-            
             
         }
 
+        mNavMapDC.dispose();
         pannerGC.dispose();
             
     }
@@ -1093,14 +1105,18 @@ public class PresentationTool extends VueTool
     @Override
     public boolean handleMouseMoved(MapMouseEvent e)
     {
-        final MapViewer viewer = e.getViewer();
+//         if (viewer.getFocal() instanceof LWMap) {
+//             // never any nav nodes if a map is the focus
+//             mShowNavNodes = false;
+//             return true;
+//         }
 
-        if (viewer.getFocal() instanceof LWMap) {
-            // never any nav nodes if a map is the focus
-            mShowNavNodes = false;
+        if (mForceShowNavNodes) {
+            // no state to change
             return true;
         }
         
+        final MapViewer viewer = e.getViewer();
         final int width = viewer.getWidth();
         final int MouseRightActivationPixel = width - 40;
         final int MouseRightClearAfterActivationPixel = width - NavNode.MaxWidth;
@@ -1493,7 +1509,7 @@ public class PresentationTool extends VueTool
     }
 
     public void out(String s) {
-        Log.debug(s);
+        if (DEBUG.Enabled) Log.debug(s);
     }
 
 
@@ -1703,17 +1719,18 @@ public class PresentationTool extends VueTool
             isSlideTransition = false;
 
         if (isSlideTransition && mFadeEffect) {
-        
+
             // It case there was a tip visible, we need to make sure
             // we wait for it to finish clearing before we move on, so
             // we need to put the rest of this in the queue.  (if we
             // don't do this, the screen fades out & comes back before
             // the map has panned)
             
+            makeInvisible();
+            
             VUE.invokeAfterAWT(new Runnable() {
                     public void run() {
-                        if (mFadeEffect)
-                            makeInvisible();
+                        //makeInvisible();
                         mFocal = mCurrentPage.getPresentationFocal();
                         viewer.loadFocal(mFocal, true, false);
                         //zoomToFocal(page.getPresentationFocal(), false);
@@ -1902,17 +1919,18 @@ public class PresentationTool extends VueTool
             dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
         return dc;
     }
+
+    private static final Color DefaultFill = new Color(32,32,32);
         
     
     @Override
     public void handlePreDraw(DrawContext dc, MapViewer viewer) {
 
         if (dc.focal instanceof LWMap) {
-            dc.fillBackground(Color.darkGray);
+            dc.fillBackground(DefaultFill);
             return;
         }
 
-        
         if (mPathway != null) {
             if (mCurrentPage != null) {
                 final LWSlide master = mPathway.getMasterSlide();
@@ -1940,6 +1958,7 @@ public class PresentationTool extends VueTool
     @Override
     public void handlePostDraw(DrawContext dc, MapViewer viewer)
     {
+        if (DEBUG.PRESENT) out("handlePostDraw " + viewer + "; showNav=" + mShowNavNodes);
 
         // TODO TODO: portal's are leaving a clip in place that can
         // prevent nav nodes / overview map from being seen / clip
@@ -1954,8 +1973,10 @@ public class PresentationTool extends VueTool
         
             //dc.g.setComposite(AlphaComposite.Src);
             if (dc.isInteractive()) {
-                drawNavNodes(dc.create());
-            }
+                drawNavNodes(dc.push()); dc.pop();
+            } else
+                out("NON-INTERACTIVE");
+            
             if (mDidAutoShowNavNodes) {
                 mShowNavNodes = mForceShowNavNodes = false;
                 mDidAutoShowNavNodes = false;
@@ -1966,7 +1987,7 @@ public class PresentationTool extends VueTool
         // Be sure to draw the navigator after the nav nodes, as navigator
         // display can depend on the current nav nodes, which are created
         // at draw time.
-        if (mShowNavigator) {
+        if (mShowNavigator && dc.focal instanceof LWMap == false) {
             drawOverviewMap(dc.push()); dc.pop();
         }
 
@@ -2010,11 +2031,13 @@ public class PresentationTool extends VueTool
 
         mNavNodes.clear();
         
-        if (node == null || (node.getLinks().size() == 0 && node.getPathways().size() < 2))
-            return;
+//         if (node == null || (node.getLinks().size() == 0 && node.getPathways().size() < 2))
+//             return;
         
         makeNavNodes(mCurrentPage, dc.getFrame());
 
+        if (DEBUG.PRESENT) out("drawing nav nodes " + mNavNodes.size());
+        
         dc.setDrawPathways(false);
         dc.setInteractive(false);
         for (LWComponent c : mNavNodes) {
@@ -2076,10 +2099,15 @@ public class PresentationTool extends VueTool
 
     private void makeNavNodes(Page page, Rectangle frame)
     {
-        final NavLayout layout = new NavLayout(frame, mLastPage, mLastPathwayPage);
+        if (DEBUG.PRESENT) out("makeNavNodes " + page);
         
-        if (mLastPage != null && mLastPage != NO_PAGE && !mLastPage.equals(mLastPathwayPage))
-            layout.add(mLastPage, "back");
+        //final Page prev = mLastPage;
+        final Page prev = mVisited.prev();
+        
+        final NavLayout layout = new NavLayout(frame, prev, mLastPathwayPage);
+
+        if (prev != null && prev != NO_PAGE && !prev.equals(mLastPathwayPage))
+            layout.add(prev, "back");
         
         // always add the current pathway at the top
         if (mLastPathwayPage != null)
