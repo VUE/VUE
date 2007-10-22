@@ -18,6 +18,14 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import java.awt.Font;
+
+import javax.swing.Box;
+
+import tufts.vue.VueConstants;
+import tufts.vue.gui.CheckBoxRenderer;
+import tufts.vue.gui.GUI;
+
 
 /*
  * OntologyList.java
@@ -27,7 +35,7 @@ package edu.tufts.vue.ontology.ui;
  * @author dhelle01
  */
 public class OntologyList extends javax.swing.JList {
-    
+	
     public OntologyList(OntologyViewer viewer)
     {
         super(new OntologyListModel());
@@ -71,10 +79,22 @@ public class OntologyList extends javax.swing.JList {
         private javax.swing.border.Border dividerBorder = new tufts.vue.gui.DashBorder(java.awt.Color.LIGHT_GRAY,false,true,false,false);
         private javax.swing.JLabel importLabel = new javax.swing.JLabel("Import Style Sheet");
         
+        private CheckBoxRenderer mCheckBox = new CheckBoxRenderer();
+        /*mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
+        mRow.add(mCheckBox);
+        mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
+        mRow.add(mLabel);
+        mRow.add(mIconLabel);
+        mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));*/
         public java.awt.Component getListCellRendererComponent(javax.swing.JList list,Object value,int index,boolean isSelected,boolean hasFocus)
         {
             //javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
             //javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
+        	Font f = importLabel.getFont();
+        	
+        		
+        	
+        	importLabel.setFont(VueConstants.FONT_NARROW);
             javax.swing.JPanel panel = new javax.swing.JPanel()
             {
                public java.awt.Dimension getPreferredSize()
@@ -105,13 +125,12 @@ public class OntologyList extends javax.swing.JList {
           */
             javax.swing.JLabel label = new javax.swing.JLabel(ontology.getLabel());
             
-            //mLabel.setText(ontology.getLabel());
-            //mLabel.setMinimumSize(new java.awt.Dimension(10, mLabel.getHeight()));
-            //mLabel.setPreferredSize(new java.awt.Dimension(Short.MAX_VALUE, mLabel.getHeight()));
-            
-            label.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,10,0,0));
+            mCheckBox.setSelected(ontology.isEnabled());
+            panel.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
+            panel.add(mCheckBox);           
+            panel.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
             panel.add(label);
-            
+     
             panel.setOpaque(true);
             if(value == list.getSelectedValue())
             {
