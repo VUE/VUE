@@ -56,7 +56,36 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         
         add(label);
         list = new javax.swing.JList(new OntologyTypeListModel());
+        list.setCellRenderer(new OntologyTypeListRenderer());
         add(list,java.awt.BorderLayout.SOUTH);
+        
+        list.addMouseListener(new java.awt.event.MouseAdapter() {
+            
+            int selected = 0;
+            
+            
+            public void mousePressed(java.awt.event.MouseEvent e)
+            {
+                //System.out.println(e);
+                int selected = list.locationToIndex(e.getPoint());
+                
+                if(list.getSelectedIndex() < 0 || !current.getMetadataList().hasOntologicalMetadata())
+                {
+                    return;
+                }
+                
+                if(e.getPoint().x < OntologicalMembershipPane.this.getWidth() - 40)
+                    return;
+                
+                int categoryIndex = ((edu.tufts.vue.metadata.MetadataList.CategoryFirstList)current.getMetadataList().getMetadata()).getCategoryEndIndex();
+                
+                //System.out.println("Mouse Pressed: getCategoryIndex() " + categoryIndex);
+                
+                current.getMetadataList().getMetadata().remove(categoryIndex + selected);
+                
+                OntologicalMembershipPane.this.validate();
+            }
+        });
         
         VUE.addActiveListener(LWComponent.class,this);
         
@@ -106,17 +135,42 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
             }
     }
     
+    class OntologyTypeListRenderer extends javax.swing.DefaultListCellRenderer
+    {
+        private javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.BorderLayout());
+        private javax.swing.JLabel deleteButton = new JLabel(); //= new javax.swing.JButton("-");
+        
+        public OntologyTypeListRenderer()
+        {
+            setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+            javax.swing.border.Border lineBorder = javax.swing.BorderFactory.createLineBorder(java.awt.Color.LIGHT_GRAY);
+            javax.swing.border.Border emptyBorder = javax.swing.BorderFactory.createEmptyBorder(5,5,5,5);
+            javax.swing.border.Border emptyBorder2 = javax.swing.BorderFactory.createEmptyBorder(5,5,5,5);
+            javax.swing.border.Border innerCompoundBorder = javax.swing.BorderFactory.createCompoundBorder(emptyBorder,lineBorder);
+            javax.swing.border.Border outerCompoundBorder = javax.swing.BorderFactory.createCompoundBorder(innerCompoundBorder,emptyBorder);
+            panel.setBorder(outerCompoundBorder);
+            
+            deleteButton.setIcon(tufts.vue.VueResources.getImageIcon("ontologicalmembership.delete.up"));
+        }
+        
+        public java.awt.Component getListCellRendererComponent(javax.swing.JList list,Object value,int index,boolean isSelected,boolean cellHasFocus)
+        {
+            String ontValue = ((edu.tufts.vue.metadata.VueMetadataElement)value).getValue();
+            if(ontValue == null)
+                return panel;
+            String label = ontValue.substring(ontValue.indexOf("#")+1,ontValue.length());
+            setText(label);
+            panel.add(this);
+            panel.add(deleteButton,java.awt.BorderLayout.EAST);
+            return panel;
+        }
+    }
+    
     class OntologyTypeListModel extends javax.swing.DefaultListModel
     {        
         public Object getElementAt(int i)
         {
-            Object ele = current.getMetadataList().getOntologyListElement(i).getObject();
-            if(ele != null && ele instanceof OntType)
-                return ((OntType)ele).getLabel();
-            else if(ele != null)
-                return ele.toString();
-            else
-                return "";
+           return (current.getMetadataList().getOntologyListElement(i)); 
         }
         
         public int getSize()

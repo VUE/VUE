@@ -163,22 +163,30 @@ public class MetadataList {
       
       public E remove(int i)
       {
-          if(i < categoryEndIndex)
+          if(i<0 || i >= size())
+              return null;
+          
+          
+          if(i < categoryEndIndex && i > 0)
           {
               categoryEndIndex--;
           }
           else if(i >= categoryEndIndex && i < ontologyEndIndex)
           {
-              categoryEndIndex--;
-              ontologyEndIndex--;
+              
+              if(ontologyEndIndex > 0)
+              {
+                  ontologyEndIndex--;
+              }
+              
           }
           else
           {
-              categoryEndIndex--;
-              ontologyEndIndex--;
+
           }
           
           fireListChanged();
+          
           
           return super.remove(i);
       }
