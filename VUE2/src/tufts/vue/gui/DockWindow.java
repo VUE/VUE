@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.110 $ / $Date: 2007-10-22 17:32:31 $ / $Author: mike $
+ * @version $Revision: 1.111 $ / $Date: 2007-10-22 17:44:37 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -2678,7 +2678,7 @@ public class DockWindow extends javax.swing.JWindow
             // clickCount != 0 prevents action with long mouse down
             // clickCount != 2 allows double-click not undo what just happened on single click,
             // but rapid clicking for testing (clickCount keeps climbing) is allowed.
-        	e.consume();
+        	
             setRolledUp(!isRolledUp());
 
         } else {
