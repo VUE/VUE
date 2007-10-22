@@ -381,7 +381,7 @@ public class PresentationTool extends VueTool
         final String type; // for debug
         final boolean isOffEdge;
 
-        private class PathwayBox extends java.awt.geom.RoundRectangle2D.Float
+        private final class PathwayBox extends java.awt.geom.RoundRectangle2D.Float
         {
             final LWPathway.Entry entry;
             final TextRow row;
@@ -391,22 +391,38 @@ public class PresentationTool extends VueTool
             {
                 super(x, y, BoxSize, BoxSize, 5, 5);
                 entry = e;
-                String text = Integer.toString(entry.index() + 1); // index's are zero-based, so add 1
-                //if (entry.isLast()) text = "(" + text + ")";
-                row = TextRow.instance(text, NavBoxFont);
-                color = Util.alphaMix(entry.pathway.getColor(), Color.white);
+                if (entry != null) {
+                    String text = Integer.toString(entry.index() + 1); // index's are zero-based, so add 1
+                    //if (entry.isLast()) text = "(" + text + ")";
+                    row = TextRow.instance(text, NavBoxFont);
+                    color = Util.alphaMix(entry.pathway.getColor(), Color.white);
+                } else {
+                    color = null;
+                    row = null;
+                }
+                
             }
+
+            Page getPage() {
+                return entry == null ? new Page(page.getOriginalMapNode()) : new Page(entry);
+            }
+            
             
             void draw(DrawContext dc) 
             {
-                dc.g.setColor(color);
-                dc.g.fill(this);
+                final Color faint;
+                
+                if (color != null) {
+                    dc.g.setColor(color);
+                    dc.g.fill(this);
+                    faint = color.darker();
+                } else
+                    faint = null;
+                
                 // page == NavNode.this.page
                 //if (entry.pathway == page.entry.pathway)
                 
-                final Color faint = color.darker();
-                
-                if (entry.isLast()) {
+                if (entry != null && entry.isLast()) {
                     int left = (int) Math.round(super.x) + 4;
                     int right = (int) Math.round(super.x + super.width) - 4;
                     int bottom = (int) Math.round(super.y + super.height) - 4;
@@ -415,15 +431,20 @@ public class PresentationTool extends VueTool
                     dc.g.drawLine(left, bottom, right, bottom);
                 }
                 
-                if (page.entry != null && page.entry.pathway == entry.pathway)
+                if (entry == null) {
+                    dc.g.setStroke(page.entry == null ? STROKE_THREE : STROKE_ONE);
+                } else if (page.entry != null && page.entry.pathway == entry.pathway)
                     dc.g.setStroke(STROKE_THREE);
                 else
                     dc.g.setStroke(STROKE_ONE);
                 dc.g.setColor(Color.darkGray);
                 dc.g.draw(this);
-                dc.g.setFont(NavBoxFont);
-                dc.g.setColor(faint);
-                row.drawCenter(dc, this);
+                if (row != null) {
+                    dc.g.setFont(NavBoxFont);
+                    dc.g.setColor(faint);
+                    row.drawCenter(dc, this);
+                }
+                
             }
             
             public String toString() {
@@ -446,6 +467,9 @@ public class PresentationTool extends VueTool
 
             final float y = (getHeight() - BoxSize) / 2f;
 
+            boxes.add(new PathwayBox(null, x, y)); // add the node-only pathway box
+            x -= BoxSize + BoxGap;
+            
             for (ListIterator<Entry> i = entries.listIterator(entries.size()); i.hasPrevious();) {
                 final Entry e = i.previous();
                 if (e.pathway.isDrawn()) {
@@ -548,7 +572,7 @@ public class PresentationTool extends VueTool
                     for (PathwayBox box : mPathwayJumpBoxes) {
                         if (box.contains(localX, localY)) {
                             if (DEBUG.PRESENT || DEBUG.PICK) Log.debug("hit entry box " + box);
-                            return new Page(box.entry);
+                            return box.getPage();
                         }
                     }
                 }
@@ -1971,7 +1995,7 @@ public class PresentationTool extends VueTool
         // Be sure to draw the navigator after the nav nodes, as navigator
         // display can depend on the current nav nodes, which are created
         // at draw time.
-        if (mShowNavigator && dc.focal instanceof LWMap == false) {
+        if (mShowNavigator && mFocal instanceof LWMap == false) {
             drawOverviewMap(dc.push()); dc.pop();
         }
 
