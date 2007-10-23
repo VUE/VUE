@@ -136,7 +136,7 @@ public class DataSourceViewer extends JPanel
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
-            t.printStackTrace();
+            Util.printStackTrace(t, "DataSourceViewer construct");
             VueUtil.alert("Error loading Resource","Error");
         }
         //org.apache.log4j.NDC.pop();
