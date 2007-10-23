@@ -73,7 +73,8 @@ public class MetadataSearchGUI extends JPanel {
     private JPanel topPanel;
     private JPanel innerTopPanel;
     private OptionsPanel optionsPanel;
-    private String[] searchTypes = {"Basic","Categories","Advanced","All"};
+    //private String[] searchTypes = {"Basic","Categories","Advanced","All"};
+    private String[] searchTypes = {"Basic","Categories","Advanced"};
     private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
     private String[] resultsTypes = {"Show","Hide","Select"};
     
@@ -825,8 +826,8 @@ public class MetadataSearchGUI extends JPanel {
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
         {
             
-            System.out.println("getTableCellRendererComponent - col,getColumnCount() " + col + "," + table.getModel().getColumnCount());
-            System.out.println("category column,valuecolumn,conditioncolumn" + categoryColumn + "," + valueColumn + "," + conditionColumn);
+            //System.out.println("getTableCellRendererComponent - col,getColumnCount() " + col + "," + table.getModel().getColumnCount());
+            //System.out.println("category column,valuecolumn,conditioncolumn" + categoryColumn + "," + valueColumn + "," + conditionColumn);
             
             JLabel comp = new JLabel();
             comp.setFont(tufts.vue.gui.GUI.LabelFace);
