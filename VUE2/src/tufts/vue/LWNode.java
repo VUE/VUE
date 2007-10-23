@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.190 $ / $Date: 2007-10-22 19:18:17 $ / $Author: sfraize $
+ * @version $Revision: 1.191 $ / $Date: 2007-10-23 21:07:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -457,6 +457,8 @@ public class LWNode extends LWContainer
         final float cy = localPoint.y;
 
         if (textBoxHit(cx, cy)) {
+            // TODO: refactor w/MapViewer mouse handing & VueTool handling code
+            // e.g.: this does NOT want to happen with the presentation tool.
             e.getViewer().activateLabelEdit(this);
         } else {
             if (!mIconBlock.handleDoubleClick(e)) {

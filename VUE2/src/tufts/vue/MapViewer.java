@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.462 $ / $Date: 2007-10-23 21:07:43 $ / $Author: sfraize $ 
+ * @version $Revision: 1.463 $ / $Date: 2007-10-23 21:10:30 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6130,6 +6130,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 activateLabelEdit(hitComponent);
                 handled = true;
             } else {
+                // TODO: nodes need to check this because they need to distinguish between
+                // a double-click on the text region for label editing, and a double-click
+                // on the resource icon / anything else for displaying context.
+                // Consider passing down some kind of VUE interaction event, or
+                // at least adding a requestEdit to MapMouseEvent, than can be understood
+                // to be overridable (as it is now if the presentation tool is active).
                 handled = hitComponent.handleDoubleClick(new MapMouseEvent(e, hitComponent));
             }
             
@@ -6137,7 +6143,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
             //}
                     
-            if (!handled && hitComponent.supportsUserLabel() && activeTool != ToolPresentation) {
+            if (!handled && hitComponent.supportsUserLabel()) {
                 activateLabelEdit(hitComponent);
             }
         }
