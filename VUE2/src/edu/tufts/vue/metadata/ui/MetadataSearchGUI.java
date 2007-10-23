@@ -74,7 +74,8 @@ public class MetadataSearchGUI extends JPanel {
     private JPanel innerTopPanel;
     private OptionsPanel optionsPanel;
     //private String[] searchTypes = {"Basic","Categories","Advanced","All"};
-    private String[] searchTypes = {"Basic","Categories","Advanced"};
+    //private String[] searchTypes = {"Basic","Categories","Advanced"};
+    private String[] searchTypes = {"Basic","Categories"};
     private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
     private String[] resultsTypes = {"Show","Hide","Select"};
     
@@ -125,7 +126,7 @@ public class MetadataSearchGUI extends JPanel {
             
             content.adjustColumnModel();
 
-            dockWindow.setSize(400,200); 
+            dockWindow.setSize(300,200); 
     }
     
     public MetadataSearchGUI() 
