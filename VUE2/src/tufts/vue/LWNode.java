@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.191 $ / $Date: 2007-10-23 21:07:50 $ / $Author: sfraize $
+ * @version $Revision: 1.192 $ / $Date: 2007-10-23 21:41:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2025,7 +2025,12 @@ public class LWNode extends LWContainer
         // Draw the generated icon
         //-------------------------------------------------------
 
-        drawNodeDecorations(dc);
+        try {
+            drawNodeDecorations(dc);
+        } catch (Throwable t) {
+            Log.error("decoration failed: " + this + " in + " + dc + "; " + t);
+            Util.printStackTrace(t);
+        }
 
         // todo: create drawLabel, drawBorder & drawBody
         // LWComponent methods so can automatically turn
