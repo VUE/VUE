@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.112 $ / $Date: 2007-10-23 14:16:16 $ / $Author: mike $
+ * @version $Revision: 1.113 $ / $Date: 2007-10-23 20:36:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -221,10 +221,12 @@ public class DockWindow extends javax.swing.JWindow
             //an old java verison since the dockwinow hadn't been used 
             //in toolbar mode in a while? -MK
             
-            if (VueUtil.isMacPlatform()) {
-                // SMF: seems better on mac -- re-enabled for mac 2007-08-30 
-                setFocusableWindowState(false); 
-            }
+            
+// SMF 2007-10-23 focusable is always enabled below, and we've been fine for a while -- turing this off again.
+//             if (VueUtil.isMacPlatform()) {
+//                 // SMF: seems better on mac -- re-enabled for mac 2007-08-30 
+//                 setFocusableWindowState(false); 
+//             }
 
         }
         mBaseTitle = title;
