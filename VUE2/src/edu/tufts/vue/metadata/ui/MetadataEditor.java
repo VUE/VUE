@@ -190,9 +190,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         
-        final JLabel optionsLabel = new JLabel("more options");
+        final JLabel optionsLabel = new JLabel("Show Categories");
         optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
+        //final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
+        final JCheckBox advancedSearch = new JCheckBox();
         advancedSearch.setBorder(BorderFactory.createEmptyBorder());
         advancedSearch.addActionListener(new java.awt.event.ActionListener(){
            public void actionPerformed(java.awt.event.ActionEvent e)
@@ -202,15 +203,17 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                {
                  buttonColumn = 2;
                  model.setColumns(3);
-                 advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
-                 optionsLabel.setText("less options");
+                 //advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
+                 advancedSearch.setSelected(true);
+                 //optionsLabel.setText("less options");
                }
                else
                {
                  buttonColumn = 1;
                  model.setColumns(2);
-                 advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
-                 optionsLabel.setText("more options");
+                 //advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
+                 advancedSearch.setSelected(false);
+                 //optionsLabel.setText("more options");
                }
                
                adjustColumnModel();
