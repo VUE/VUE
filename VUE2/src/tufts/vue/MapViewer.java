@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.464 $ / $Date: 2007-10-23 21:19:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.465 $ / $Date: 2007-10-23 21:21:02 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6156,7 +6156,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
 
-    protected void defaultDoubleClickAction(MouseEvent e) { 
+    protected void defaultDoubleClickAction(MouseEvent e) {
+        // TODO: refactor such that this shares code w/LWComponent.doZoomingDoubleClick,
+        // and we don't need the instanceof checks.
         if (mFocal instanceof LWSlide || mFocal instanceof LWGroup) {
             popFocal(POP_TO_TOP, ANIMATE);
         }
