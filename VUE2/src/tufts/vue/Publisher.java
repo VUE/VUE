@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.71 $ / $Date: 2007-10-23 21:18:36 $ / $Author: anoop $
+ * @version $Revision: 1.72 $ / $Date: 2007-10-23 21:37:11 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -239,6 +239,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
          mainPanel.setLayout(layout);
         JLabel publishLabel = new JLabel("Publish as");
         publishLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
+        publishLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         mainPanel.add(publishLabel);
         
         //adding the option Panel
@@ -272,9 +273,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         modeInfo.setLineWrap(true);
         modeInfo.setWrapStyleWord(true);
         modeInfo.setRows(7);
-        modeInfo.setColumns(30);
+        modeInfo.setColumns(25);
         modeInfo.setVisible(true);
         modeInfo.setFont(tufts.vue.gui.GUI.LabelFace);
+        modeInfo.setHighlighter(null);
         
         //modeInfo.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         modeInfo.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.DARK_GRAY),BorderFactory.createEmptyBorder(5,5,5,5)));
@@ -462,6 +464,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     list, (value instanceof edu.tufts.vue.dsm.DataSource? ((edu.tufts.vue.dsm.DataSource)value).getRepositoryDisplayName():value) , index, isSelected, cellHasFocus);
             label.setBackground(Color.WHITE);
             label.setBorder(null);
+            label.setFont(tufts.vue.gui.GUI.LabelFace);
             if(isSelected) {
                 label.setForeground(Color.BLACK);
             } else {
@@ -470,6 +473,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             if (composite.getComponentCount() == 0) {
                 radioButton = new JRadioButton();
                 radioButton.setBackground(Color.WHITE);
+    
                 composite.add(label, BorderLayout.CENTER);
                 composite.add(radioButton, BorderLayout.WEST);
             }
