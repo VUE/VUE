@@ -165,7 +165,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             mIcons[3] = new LWIcon.Pathway(lwc, c);
             mIcons[4] = new LWIcon.MetaData(lwc, c);
             mIcons[5] = new LWIcon.Hierarchy(lwc, c);
-
+            
             for (int i = 0; i < mIcons.length; i++) {
                 mIcons[i].setSize(iconWidth, iconHeight);
                 mIcons[i].setMinimumSize(iconWidth, iconHeight);
@@ -299,6 +299,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             float cx = localPoint.x;
             float cy = localPoint.y;
             
+            
             JComponent tipComponent = null;
             LWIcon tipIcon = null;
 
@@ -315,10 +316,24 @@ public abstract class LWIcon extends Rectangle2D.Float
                         cy *= zoom;
                     }
                 }
-                if (icon.contains(cx, cy)) {
+                if (icon instanceof LWIcon.Resource)
+                {
+                	if (icon.contains(cx, cy)) 
+                    {	
+                		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                    }
+                	else
+                		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                		
+                }
+                if (icon.contains(cx, cy)) 
+                {                	                	                                	
+                	
                     tipIcon = icon;
                     break;
                 }
+                else
+                	e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
             }
             
             // TODO: don't need to do this if there's already a tip showing!
@@ -348,7 +363,10 @@ public abstract class LWIcon extends Rectangle2D.Float
                     //avoidRegion = mLWC.getBounds();
                 }
                 
-                e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
+                if (!(tipIcon instanceof LWIcon.Resource))
+                {
+                    e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
+                }
             }
         }
 
