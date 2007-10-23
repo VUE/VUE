@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.356 $ / $Date: 2007-10-22 16:00:38 $ / $Author: sfraize $
+ * @version $Revision: 1.357 $ / $Date: 2007-10-23 21:19:42 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5697,7 +5697,7 @@ u                    getSlot(c).setFromString((String)value);
         final MapViewer viewer = e.getViewer();
 
         if (viewer.getFocal() == this) {
-            viewer.popFocal(true, true);
+            viewer.popFocal(MapViewer.POP_TO_TOP, MapViewer.ANIMATE);
             return true;
             //return false;
         }

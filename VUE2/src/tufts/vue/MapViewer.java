@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.463 $ / $Date: 2007-10-23 21:10:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.464 $ / $Date: 2007-10-23 21:19:42 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1288,6 +1288,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected boolean popFocal(boolean toTop) {
         return popFocal(toTop, false);
     }
+
+    public static final boolean POP_TO_TOP = true;
+    public static final boolean POP_ONE = false;
     
     /** refocus the viewer on the parent of the curent focal
      * @return true if we were able to change the focal
@@ -6121,31 +6124,41 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
               }
             */
                     
-        } else if (isDoubleClickEvent(e) && tempToolKeyDown == 0 && hitComponent != null) {
+        } else if (isDoubleClickEvent(e) && tempToolKeyDown == 0) {
             if (DEBUG.MOUSE) out("DOULBLE-CLICK on: " + hitComponent);
+            if (hitComponent != null) {
                     
-            boolean handled = false;
+                boolean handled = false;
                     
-            if (activeToolIsText()) {
-                activateLabelEdit(hitComponent);
-                handled = true;
+                if (activeToolIsText()) {
+                    activateLabelEdit(hitComponent);
+                    handled = true;
+                } else {
+                    // TODO: nodes need to check this because they need to distinguish between
+                    // a double-click on the text region for label editing, and a double-click
+                    // on the resource icon / anything else for displaying context.
+                    // Consider passing down some kind of VUE interaction event, or
+                    // at least adding a requestEdit to MapMouseEvent, than can be understood
+                    // to be overridable (as it is now if the presentation tool is active).
+                    handled = hitComponent.handleDoubleClick(new MapMouseEvent(e, hitComponent));
+                }
+                
+                //else if (hitComponent instanceof ClickHandler) {
+                //handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
+                //}
+                
+                if (!handled && hitComponent.supportsUserLabel()) {
+                    activateLabelEdit(hitComponent);
+                }
             } else {
-                // TODO: nodes need to check this because they need to distinguish between
-                // a double-click on the text region for label editing, and a double-click
-                // on the resource icon / anything else for displaying context.
-                // Consider passing down some kind of VUE interaction event, or
-                // at least adding a requestEdit to MapMouseEvent, than can be understood
-                // to be overridable (as it is now if the presentation tool is active).
-                handled = hitComponent.handleDoubleClick(new MapMouseEvent(e, hitComponent));
+                defaultDoubleClickAction(e);
             }
-            
-            //else if (hitComponent instanceof ClickHandler) {
-            //handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
-            //}
-                    
-            if (!handled && hitComponent.supportsUserLabel()) {
-                activateLabelEdit(hitComponent);
-            }
+        }
+    }
+
+    protected void defaultDoubleClickAction(MouseEvent e) { 
+        if (mFocal instanceof LWSlide || mFocal instanceof LWGroup) {
+            popFocal(POP_TO_TOP, ANIMATE);
         }
     }
     
