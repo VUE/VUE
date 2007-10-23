@@ -331,6 +331,7 @@ public class Actions implements VueConstants
                 {
                   tufts.vue.gui.DockWindow searchWindow = edu.tufts.vue.metadata.ui.MetadataSearchGUI.getDockWindow();
                   searchWindow.setVisible(true);
+                  edu.tufts.vue.metadata.ui.MetadataSearchGUI.afterDockVisible();
                 }
             }
         };
