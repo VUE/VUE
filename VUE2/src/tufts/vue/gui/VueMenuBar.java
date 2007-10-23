@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.65 $ / $Date: 2007-10-22 03:45:08 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2007-10-23 18:59:05 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -55,6 +55,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         VueMenu(String name) {
             super(name);
+            
+            /* on the mac this works fine on windows the menus paint behind the dockwindows
+             * so we'll install our own UI which creates heavyweight popups.
+             */
+            if (Util.isWindowsPlatform())
+            	this.getPopupMenu().setUI(new VuePopupMenuUI());
+            
+                       
         }
 
         public void addNotify() {
@@ -90,6 +98,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu alignMenu = new VueMenu("Align");         
         final JMenu linkMenu = new VueMenu("Link");
         final JMenu helpMenu = add(new VueMenu("Help"));
+        
+        
+        
       //  final JMenu slidePreviewMenu = new JMenu("Slide preview");
         final JMenu notesMenu = new JMenu("Handouts and Notes");
         final JMenu playbackMenu = new JMenu("Playback Presentation");
@@ -219,6 +230,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         pdfExportMenu.add(Actions.SpeakerNotes4);
         pdfExportMenu.add(Actions.AudienceNotes);
         pdfExportMenu.add(Actions.SpeakerNotesOutline);                                       
+      //  pdfExportMenu.add(Actions.NodeNotesOutline);
         fileMenu.addSeparator();
         fileMenu.add(printAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, metaMask));
         fileMenu.add(printAction).setText("Print Visible...");
@@ -599,7 +611,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         helpMenu.addSeparator();
         helpMenu.add(new ShowLogAction());
-        
+      
         ////////////////////////////////////////////////////////////////////////////////////
         // Build final main menu bar
         ////////////////////////////////////////////////////////////////////////////////////
