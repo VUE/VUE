@@ -628,6 +628,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             
             super.draw(dc);
 
+            // TODO PERF: if BoxFill has alpha, pre-mix it with node.getRenderFillColor()
             dc.g.setColor(BoxFill);
             dc.g.fill(boxBounds);
             //dc.g.setColor(BoxBorder);
