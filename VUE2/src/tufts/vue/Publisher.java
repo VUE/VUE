@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.72 $ / $Date: 2007-10-23 21:37:11 $ / $Author: anoop $
+ * @version $Revision: 1.73 $ / $Date: 2007-10-23 21:53:17 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -478,6 +478,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 composite.add(radioButton, BorderLayout.WEST);
             }
             radioButton.setSelected(isSelected);
+            radioButton.setFont(tufts.vue.gui.GUI.LabelFace);
             return composite;
         }
     }
