@@ -34,7 +34,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.28 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.29 $ / $Date: 2007-10-23 21:06:58 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -58,7 +58,7 @@ public class VueAction extends javax.swing.AbstractAction
     static void setAllActionsIgnored(boolean tv)
     {
         if (DEBUG.Enabled) {
-            System.out.println("VueAction: allIgnored=" + tv);
+            Log.debug("allIgnored=" + tv);
             if (DEBUG.META) tufts.Util.printStackTrace("ALL ACTIONS IGNORED: " + tv);
         }
         
@@ -180,13 +180,13 @@ public class VueAction extends javax.swing.AbstractAction
     public void actionPerformed(ActionEvent ae)
     {
         if (DEBUG.EVENTS)
-            System.out.println("\n-----------------------------------------------------------------------------\n"
-                               + this
-                               + " START OF actionPerformed: " + getClass().getName()
-                               + ";\n\tActionEvent: (" + ae.paramString()
-                               + ")\n\t     source: " + ae.getSource());
+            Log.debug("\n-----------------------------------------------------------------------------\n"
+                      + this
+                      + " START OF actionPerformed: " + getClass().getName()
+                      + ";\n\tActionEvent: (" + ae.paramString()
+                      + ")\n\t     source: " + ae.getSource());
         if (allIgnored && !isUserEnabled()) {
-            if (DEBUG.Enabled) System.out.println("ALL ACTIONS DISABLED; " + this + "; " + ae);
+            if (DEBUG.Enabled) Log.debug("ALL ACTIONS DISABLED; " + this + "; " + ae);
             return;
         }
 //         if (allEditIgnored && isEditAction()) {
@@ -229,7 +229,7 @@ public class VueAction extends javax.swing.AbstractAction
         }
         //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
         updateActionListeners();
-        if (DEBUG.EVENTS) System.out.println(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
+        if (DEBUG.EVENTS) Log.debug(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
         // normally handled by updateActionListeners, but if someone
         // has actually defined "enabled" instead of enabledFor, we'll
         // need this.
@@ -294,7 +294,7 @@ public class VueAction extends javax.swing.AbstractAction
     }
 
     protected void out(String s) {
-        System.out.println(this + ": " + s);
+        if (DEBUG.Enabled) Log.debug(this + ": " + s);
     }
 
     public String toString() {
