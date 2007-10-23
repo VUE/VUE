@@ -73,6 +73,8 @@ public class SearchAction extends AbstractAction {
     
     private static int searchResultsMaps = 1;
     
+    private boolean setBasic = true;
+    
     public SearchAction(JTextField searchInput) {
         super("Search");
         this.searchInput = searchInput;
@@ -86,6 +88,11 @@ public class SearchAction extends AbstractAction {
         runIndex();
         searchType = QUERY;
         this.searchTerms = searchTerms;
+    }
+    
+    public void setBasic(boolean basic)
+    {
+        setBasic = basic;
     }
     
     public void runIndex()
@@ -142,7 +149,15 @@ public class SearchAction extends AbstractAction {
             }
            // query.addCriteria(criteria.getKey(),criteria.getValue());
             String[] statement = (String[])(criteria.getObject());
-            query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
+            
+            if(setBasic != true) 
+            {    
+              query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
+            }
+            else
+            {
+              query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]);
+            }
         }
         
         if(DEBUG_LOCAL)

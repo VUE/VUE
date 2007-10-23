@@ -471,6 +471,7 @@ public class MetadataSearchGUI extends JPanel {
         model.setColumns(3);
         adjustColumnModel();
         //termsAction = new SearchAction(searchTerms);
+        termsAction.setBasic(false);
         searchButton.setAction(termsAction);
     }
     
@@ -485,6 +486,7 @@ public class MetadataSearchGUI extends JPanel {
         model.setColumns(2);
         adjustColumnModel();
         //termsAction = new SearchAction(searchTerms);
+        termsAction.setBasic(true);
         searchButton.setAction(termsAction);
     }
     
@@ -499,6 +501,7 @@ public class MetadataSearchGUI extends JPanel {
         model.setColumns(4);
         adjustColumnModel();
         //termsAction = new SearchAction(searchTerms);
+        termsAction.setBasic(false);
         searchButton.setAction(termsAction);
     }
     
