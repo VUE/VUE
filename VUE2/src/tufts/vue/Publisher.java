@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.70 $ / $Date: 2007-10-18 20:24:04 $ / $Author: anoop $
+ * @version $Revision: 1.71 $ / $Date: 2007-10-23 21:18:36 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -67,11 +67,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
-    public static final String[] PUBLISH_INFORMATION = {"The “Export” function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
-    "“Publish Map” saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
-    "“Publish IMSCP Map” embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
-    "“Publish All” creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
-    "“Publish IMSCP Map to Sakai” saves concept map in Sakai content hosting system.","Zips map with local resources."
+    public static final String[] PUBLISH_INFORMATION = {"The \"Export\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
+    "\"Publish Map\" saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
+    "\"Publish IMSCP Map\" embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
+    "\"Publish All\" creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
+    "\"Publish IMSCP Map to Sakai\" saves concept map in Sakai content hosting system.","Zips map with local resources."
     };
     public static final String[] MODE_LABELS = {"Map only","Map and resources","Zip bundle"};
     
@@ -274,6 +274,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         modeInfo.setRows(7);
         modeInfo.setColumns(30);
         modeInfo.setVisible(true);
+        modeInfo.setFont(tufts.vue.gui.GUI.LabelFace);
+        
         //modeInfo.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
         modeInfo.setBorder( BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.DARK_GRAY),BorderFactory.createEmptyBorder(5,5,5,5)));
         mainPanel.add(modeInfo);
@@ -282,7 +284,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         // setting up cnstraints
         layout.putConstraint(SpringLayout.WEST, publishLabel,10,SpringLayout.WEST, mainPanel);
         layout.putConstraint(SpringLayout.WEST, optionPanel,3,SpringLayout.EAST, publishLabel);
-        layout.putConstraint(SpringLayout.WEST,modeInfo,25,SpringLayout.EAST, optionPanel);
+        layout.putConstraint(SpringLayout.WEST,modeInfo,20,SpringLayout.EAST, optionPanel);
         layout.putConstraint(SpringLayout.NORTH, publishLabel,10,SpringLayout.NORTH, mainPanel);
         layout.putConstraint(SpringLayout.NORTH, optionPanel,10,SpringLayout.NORTH, mainPanel);
         layout.putConstraint(SpringLayout.NORTH, modeInfo,20,SpringLayout.NORTH, mainPanel);
