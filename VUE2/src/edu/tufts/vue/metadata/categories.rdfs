@@ -7,8 +7,8 @@
 <rdf:RDF xmlns:rdf="&rdf;"
 	 xmlns:ontology="&ontology;"
 	 xmlns:rdfs="&rdfs;">
-<rdfs:Class rdf:about="&ontology;Tag"
-	 rdfs:label="Tag">
+<rdfs:Class rdf:about="&ontology;none"
+	 rdfs:label="none">
 	<rdfs:subClassOf rdf:resource="&rdfs;Resource"/>
 </rdfs:Class>
 </rdf:RDF>

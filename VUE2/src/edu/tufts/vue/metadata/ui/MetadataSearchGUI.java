@@ -299,7 +299,7 @@ public class MetadataSearchGUI extends JPanel {
                if(e.getX()>searchTermsTable.getWidth()-BUTTON_COL_WIDTH)
                {
                  VueMetadataElement newElement = new VueMetadataElement();
-                 String statementObject[] = {VueResources.getString("metadata.vue.url") + "#Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                 String statementObject[] = {VueResources.getString("metadata.vue.url") + "#none","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
                  newElement.setObject(statementObject);
                  newElement.setType(VueMetadataElement.SEARCH_STATEMENT);
                  searchTerms.add(newElement);
@@ -946,7 +946,7 @@ public class MetadataSearchGUI extends JPanel {
                 //String pairedValue[] = {"Tag","STARTS_WITH",""};
                 //vme.setObject(pairedValue);
                 
-                String statementObject[] = {VueResources.getString("metadata.vue.url") +"#Tag","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                String statementObject[] = {VueResources.getString("metadata.vue.url") +"#none","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
                 vme.setObject(statementObject);
                 vme.setType(VueMetadataElement.SEARCH_STATEMENT);
                 

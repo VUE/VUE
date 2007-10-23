@@ -55,7 +55,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     public final static boolean LIMITED_FOCUS = false;
     
-    public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
+    //public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
+    public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none";
     
     private JTable metadataTable;
     private JScrollPane scroll;
@@ -101,7 +102,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            System.out.println("current at table header mouse press: " + MetadataEditor.this.current);
                          }
                          VueMetadataElement vme = new VueMetadataElement();
-                         String[] emptyEntry = {TAG_ONT,""};
+                         String[] emptyEntry = {NONE_ONT,""};
                          vme.setObject(emptyEntry);
                          vme.setType(VueMetadataElement.CATEGORY);
                          //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
@@ -357,7 +358,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
          if(current!=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
          {
            VueMetadataElement vme = new VueMetadataElement();
-           String[] emptyEntry = {TAG_ONT,""};
+           String[] emptyEntry = {NONE_ONT,""};
            vme.setObject(emptyEntry);
            vme.setType(VueMetadataElement.CATEGORY);
 
@@ -732,7 +733,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   if(currentVME==null)
                   {
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {TAG_ONT,""};
+                     String[] emptyEntry = {NONE_ONT,""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);  
                       
@@ -745,7 +746,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                     //vme.setObject(field.getText());
                       
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {TAG_ONT,""};
+                     String[] emptyEntry = {NONE_ONT,""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);
                   }
@@ -951,7 +952,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                 {
                   //System.out.println("MetadataEditor - creating new empty tag in getValueAt() ");
                   VueMetadataElement vme = new VueMetadataElement();
-                  String[] emptyEntry = {TAG_ONT,""};
+                  String[] emptyEntry = {NONE_ONT,""};
                   vme.setObject(emptyEntry);
                   vme.setType(VueMetadataElement.CATEGORY);
                   current.getMetadataList().getMetadata().add(vme);
@@ -1001,7 +1002,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                {
                   //System.out.println("MetadataEditor - creating new empty tag in getValueAt() from text field column ");
                   VueMetadataElement vme = new VueMetadataElement();
-                  String[] emptyEntry = {TAG_ONT,""};
+                  String[] emptyEntry = {NONE_ONT,""};
                   vme.setObject(emptyEntry);
                   vme.setType(VueMetadataElement.CATEGORY);
                   current.getMetadataList().getMetadata().add(vme);
