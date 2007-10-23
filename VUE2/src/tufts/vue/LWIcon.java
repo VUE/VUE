@@ -632,7 +632,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             dc.g.setColor(BoxFill);
             dc.g.fill(boxBounds);
             //dc.g.setColor(BoxBorder);
-            dc.g.setColor(mLWC.getRenderFillColor(dc).darker());
+            final Color c = mLWC.getRenderFillColor(dc); // todo: getContrastColor(dc)
+            dc.g.setColor(c == null ? Color.gray : c.darker());
             dc.g.setStroke(STROKE_HALF);
             dc.g.draw(boxBounds);
             dc.g.setColor(mColor);
