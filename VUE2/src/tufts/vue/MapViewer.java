@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.465 $ / $Date: 2007-10-23 21:21:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.466 $ / $Date: 2007-10-23 22:04:38 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5818,8 +5818,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //System.out.println("map " + hitRect);
                 
                 boolean handled = false;
-                if (draggedSelectorBox.width > 10 && draggedSelectorBox.height > 10)
-                    handled = activeTool.handleSelectorRelease(mme);
+                if (activeTool instanceof NodeTool.OntologyNodeTool)
+                {
+                	if (draggedSelectorBox.width > 0 || draggedSelectorBox.height > 0)
+                		handled = activeTool.handleSelectorRelease(mme);
+                }
+                else
+                {
+                	if (draggedSelectorBox.width > 10 && draggedSelectorBox.height > 10)
+                		handled = activeTool.handleSelectorRelease(mme);
+                }
                 
                 if (!handled && activeTool.supportsSelection()) {
                     // todo: e.isControlDown always false? only on mac? on the laptop?
