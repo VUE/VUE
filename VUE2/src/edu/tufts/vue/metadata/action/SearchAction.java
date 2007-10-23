@@ -37,7 +37,7 @@ import tufts.vue.*;
  */
 public class SearchAction extends AbstractAction {
    
-    private final static boolean DEBUG_LOCAL = false; 
+    private final static boolean DEBUG_LOCAL = true; 
     
     public static final int FIELD = 0;
     public static final int QUERY = 1;
@@ -74,6 +74,9 @@ public class SearchAction extends AbstractAction {
     private static int searchResultsMaps = 1;
     
     private boolean setBasic = true;
+    
+    private List<String> textToFind = new ArrayList<String>();
+    private boolean actualCriteriaAdded = false;
     
     public SearchAction(JTextField searchInput) {
         super("Search");
@@ -139,7 +142,9 @@ public class SearchAction extends AbstractAction {
     public void createQuery()
     {
         query = new Query();
+        textToFind = new ArrayList<String>();
         Iterator<VueMetadataElement> criterias = searchTerms.iterator();
+        actualCriteriaAdded = false;
         while(criterias.hasNext())
         {
             VueMetadataElement criteria = criterias.next();
@@ -151,12 +156,28 @@ public class SearchAction extends AbstractAction {
             String[] statement = (String[])(criteria.getObject());
             
             if(setBasic != true) 
-            {    
-              query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
+            {  
+              System.out.println("query setBasic != true");
+              System.out.println("criteria.getKey() " + criteria.getKey());
+              System.out.println("RDFIndex.VUE_ONTOLOGY+ none" + RDFIndex.VUE_ONTOLOGY+"none");
+              if(criteria.getKey().equals("http://vue.tufts.edu/vue.rdfs#"+"none"))
+              {
+                //System.out.println("adding criteria * ...");  
+                  
+                //query.addCriteria("*",criteria.getValue(),statement[2]);
+                textToFind.add(criteria.getValue());
+              }   
+              else
+              {    
+                query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
+                actualCriteriaAdded = true;
+              }
             }
             else
             {
+              System.out.println("query -- setBasic == true");
               query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]);
+              actualCriteriaAdded = true;
             }
         }
         
@@ -225,9 +246,31 @@ public class SearchAction extends AbstractAction {
         }
         else if(searchType == QUERY)
         {
-            System.out.println("query result " + index.search(query) + " for query " + query.createSPARQLQuery());
+            //System.out.println("query result " + index.search(query) + " for query " + query.createSPARQLQuery());
             
-            finds.add(index.search(query));
+            if(actualCriteriaAdded)
+            {    
+              finds.add(index.search(query));
+            }
+            
+            // may need to do AND by hand here...
+            // this is OR
+            if(textToFind.size() != 0)
+            {
+               Iterator<String> textIterator = textToFind.iterator(); 
+               while(textIterator.hasNext())
+               {
+                 loadKeywords(textIterator.next());
+                 for(int i=0;i<tags.size();i++)
+                 {    
+                   System.out.println("tags.get(i)" + tags.get(i));
+                   found = index.searchAllResources(tags.get(i)); 
+                   System.out.println("found " + found);
+                                    finds.add(found);
+                 }
+               }
+            }
+           
         }
 
         Iterator<List<URI>> findsIterator = finds.iterator();
