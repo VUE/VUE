@@ -183,8 +183,8 @@ public class VueDataSourceManager
 				try {
 					debug("Getting included data source0 " + ds.getId().getIdString());
 					debug("Getting included data source1 " + ds.getRepository());
-					debug("Getting included data source1 " + ds.getRepository().getDisplayName());
-					debug("Getting included data source2 " + ds.getRepository().getId().getIdString());
+					debug("Getting included data source2 " + ds.getRepository().getDisplayName());
+					debug("Getting included data source3 " + ds.getRepository().getId().getIdString());
 				} catch (Throwable t) {
 				}
                 results.addElement(ds.getRepository());
@@ -301,10 +301,10 @@ public class VueDataSourceManager
         for (int i=0; i < size; i++) {
             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
 			try {
-				debug("Getting included data source0 " + ds.getId().getIdString());
-				debug("Getting included data source1 " + ds.getRepository());
-				debug("Getting included data source1 " + ds.getRepository().getDisplayName());
-				debug("Getting included data source2 " + ds.getRepository().getId().getIdString());
+				debug("Unmarshalled data source0 " + ds.getId().getIdString());
+				debug("Unmarshalled data source1 " + ds.getRepository());
+				debug("Unmarshalled data source2 " + ds.getRepository().getDisplayName());
+				debug("Unmarshalled data source3 " + ds.getRepository().getId().getIdString());
 			} catch (Throwable t) {
 			}
 		}
