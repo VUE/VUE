@@ -1282,7 +1282,7 @@ public class Util
         
         return shape == null
             ? "<null-" + name + ">"
-            : String.format("%s@%x[%7.1f,%-7.1f %5.1fx%-5.1f]",
+            : String.format("%s@%07x[%7.1f,%-7.1f %5.1fx%-5.1f]",
                             name,
                             shape == null ? 0 : System.identityHashCode(shape),
                             r.getX(), r.getY(), r.getWidth(), r.getHeight());
@@ -1345,11 +1345,6 @@ public class Util
             return "<null Rectangle2D>";
         else
             return String.format("[%7.1f,%-7.1f %5.1fx%-5.1f]", r.getX(), r.getY(), r.getWidth(), r.getHeight());
-//         return ""
-//             + (float)r.getX() + "," + (float)r.getY()
-//             + " "
-//             + (float)r.getWidth() + "x" + (float)r.getHeight()
-//             ;
     }
 
     public static String out(java.awt.Rectangle r) {
@@ -1357,11 +1352,6 @@ public class Util
             return "<null Rectangle>";
         else
             return String.format("[%4d,%4d %-5dx%4d]", r.x, r.y, r.width, r.height);
-//         return ""
-//             + r.width + "x" + r.height
-//             + " "
-//             + r.x + "," + r.y
-//             ;
     }
     
     public static String out(java.awt.geom.RectangularShape r) {
