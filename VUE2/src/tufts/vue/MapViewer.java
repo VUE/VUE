@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.461 $ / $Date: 2007-10-22 05:52:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.462 $ / $Date: 2007-10-23 21:07:43 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2827,12 +2827,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     
     void activateLabelEdit(LWComponent lwc) {
+
         if (activeTextEdit != null && activeTextEdit.getLWC() == lwc)
             return;
         if (activeRichTextEdit != null && activeRichTextEdit.getLWC() == lwc)
             return;
         if (!lwc.supportsUserLabel() || !lwc.supportsProperty(LWKey.Label))
             return;
+
+        if (activeTool == ToolPresentation) {
+            if (DEBUG.Enabled) out("activateLabelEdit denied w/pres tool");
+            return;
+        }
+        
         if (activeTextEdit != null)
             remove(activeTextEdit);
         if (activeRichTextEdit != null)
@@ -5761,7 +5768,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         public void mouseReleased(MouseEvent e) {
             sDragUnderway = false;
-            if (DEBUG.MOUSE) System.out.println("[" + e.paramString() + "]");
+            if (DEBUG.MOUSE) out("[" + e.paramString() + "]");
             
             viewer.setAutoscrolls(true); // in case had been cleared for panning
             setLastMousePoint(e.getX(), e.getY());
@@ -6041,95 +6048,101 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         
         
-        public void mouseClicked(MouseEvent e) {
-            if (DEBUG.MOUSE) System.out.println("["
-                                                + e.paramString()
-                                                + (e.isPopupTrigger() ? " POP":"")
-                                                + (GUI.isMenuPopup(e) ? " MENU":"")
-                                                + "]");
-            
-            //if (activeTool != ArrowTool && activeTool != TextTool)
-            //return;  check supportsClick, and add such to node tool
+    /** MouseListener impl */
+    public void mouseClicked(MouseEvent e) {
+        if (DEBUG.MOUSE) out("["
+                             + e.paramString()
+                             + (e.isPopupTrigger() ? " POP":"")
+                             + (GUI.isMenuPopup(e) ? " MENU":"")
+                             + "]");
+        
+        //if (activeTool != ArrowTool && activeTool != TextTool)
+        //return;  check supportsClick, and add such to node tool
+        
+        if (hitOnSelectionHandle == false)
+            processMouseClick(e);
+        
+        hitOnSelectionHandle = false;
+        justSelected = null;
+    }
 
-            // TODO: we want to refactor the below very confusing code
-            // and delegate to the tools w/out naming them directly.
-            // To do this tho, the tools will need access to
-            // mLabelEditWasActiveAtMousePress, for dealing with the
-            // incredible subtlety of what happens when you click the
-            // mouse.
-            
-            if (!hitOnSelectionHandle) {
-                
-                if (isSingleClickEvent(e)) {
-                    if (DEBUG.MOUSE) System.out.println("\tSINGLE-CLICK on: " + hitComponent);
+    protected void processMouseClick(MouseEvent e)
+    {
+        // TODO: we want to refactor the below very confusing code and delegate to the
+        // tools w/out naming them directly.  To do this tho, the tools will need access
+        // to mLabelEditWasActiveAtMousePress, for dealing with the incredible subtlety
+        // of what happens when you click the mouse.
+
+        if (isSingleClickEvent(e)) {
+            if (DEBUG.MOUSE) out("SINGLE-CLICK on: " + hitComponent);
                     
-                    if (hitComponent != null && hitComponent != mFocal && !(hitComponent instanceof LWGroup)) {
+            if (hitComponent != null && hitComponent != mFocal && !(hitComponent instanceof LWGroup)) {
                         
-                        boolean handled = false;
-                        // move to arrow tool?
+                boolean handled = false;
+                // move to arrow tool?
                         
-                        if (activeToolIsText()) {
-                            activateLabelEdit(hitComponent);
-                            handled = true;
-                        } else {
-                            handled = hitComponent.handleSingleClick(new MapMouseEvent(e, hitComponent));
-                        }
-                        //else if (hitComponent instanceof ClickHandler) {
-                        //handled = ((ClickHandler)hitComponent).handleSingleClick(new MapMouseEvent(e, hitComponent));
-                        //}
-                        
-                        //todo: below not triggering under arrow tool if we just dragged the link --
-                        // justSelected must be inappropriately set to the dragged component
-                        if (!handled &&
-                            (activeToolIsText() || hitComponent.isSelected() && hitComponent != justSelected))
-                            activateLabelEdit(hitComponent);
-                        
-                    } else if (activeToolIsText() || activeTool == NodeModeTool) {
-                        
-                        // on mousePressed, we request focus, and if there was an
-                        // activeTextEdit TextBox, it lost focus and closed itself out
-                        // -- treat this click as an edit-cancel in case of node/text
-                        // tool so doesn't create a new item if they were just finishing
-                        // the edit via the click on the map
-                        
-                        if (!mLabelEditWasActiveAtMousePress) {
-                            if (activeTool == NodeModeTool && (oneClickNodePref.getValue() == Boolean.TRUE))
-                                Actions.NewNode.fire(MapViewer.this);
-                            else if (activeTool == TextTool)
-                                Actions.NewText.fire(MapViewer.this);
-                            else if (activeTool == RichTextTool)
-                            	Actions.NewRichText.fire(MapViewer.this);
-
-                        }
-                    }
-                /*
-                if (activeTool.supportsClick()) {
-                    //activeTool.handleClickEvent(e, hitComponent); send in mapxy
+                if (activeToolIsText()) {
+                    activateLabelEdit(hitComponent);
+                    handled = true;
+                } else {
+                    handled = hitComponent.handleSingleClick(new MapMouseEvent(e, hitComponent));
                 }
-                 */
-                    
-                } else if (isDoubleClickEvent(e) && tempToolKeyDown == 0 && hitComponent != null) {
-                    if (DEBUG.MOUSE) System.out.println("\tDOULBLE-CLICK on: " + hitComponent);
-                    
-                    boolean handled = false;
-                    
-                    if (activeToolIsText()) {
-                        activateLabelEdit(hitComponent);
-                        handled = true;
-                    } else {
-                        handled = hitComponent.handleDoubleClick(new MapMouseEvent(e, hitComponent));
-                    }
-                    //else if (hitComponent instanceof ClickHandler) {
-                    //handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
-                    //}
-                    
-                    if (!handled && hitComponent.supportsUserLabel())
-                        activateLabelEdit(hitComponent);
+                //else if (hitComponent instanceof ClickHandler) {
+                //handled = ((ClickHandler)hitComponent).handleSingleClick(new MapMouseEvent(e, hitComponent));
+                //}
+                        
+                //todo: below not triggering under arrow tool if we just dragged the link --
+                // justSelected must be inappropriately set to the dragged component
+                if (!handled &&
+                    (activeToolIsText() || hitComponent.isSelected() && hitComponent != justSelected))
+                    activateLabelEdit(hitComponent);
+                        
+            } else if (activeToolIsText() || activeTool == NodeModeTool) {
+                        
+                // on mousePressed, we request focus, and if there was an
+                // activeTextEdit TextBox, it lost focus and closed itself out
+                // -- treat this click as an edit-cancel in case of node/text
+                // tool so doesn't create a new item if they were just finishing
+                // the edit via the click on the map
+                        
+                if (!mLabelEditWasActiveAtMousePress) {
+                    if (activeTool == NodeModeTool && (oneClickNodePref.getValue() == Boolean.TRUE))
+                        Actions.NewNode.fire(MapViewer.this);
+                    else if (activeTool == TextTool)
+                        Actions.NewText.fire(MapViewer.this);
+                    else if (activeTool == RichTextTool)
+                        Actions.NewRichText.fire(MapViewer.this);
+
                 }
             }
-            hitOnSelectionHandle = false;
-            justSelected = null;
+            /*
+              if (activeTool.supportsClick()) {
+              //activeTool.handleClickEvent(e, hitComponent); send in mapxy
+              }
+            */
+                    
+        } else if (isDoubleClickEvent(e) && tempToolKeyDown == 0 && hitComponent != null) {
+            if (DEBUG.MOUSE) out("DOULBLE-CLICK on: " + hitComponent);
+                    
+            boolean handled = false;
+                    
+            if (activeToolIsText()) {
+                activateLabelEdit(hitComponent);
+                handled = true;
+            } else {
+                handled = hitComponent.handleDoubleClick(new MapMouseEvent(e, hitComponent));
+            }
+            
+            //else if (hitComponent instanceof ClickHandler) {
+            //handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
+            //}
+                    
+            if (!handled && hitComponent.supportsUserLabel() && activeTool != ToolPresentation) {
+                activateLabelEdit(hitComponent);
+            }
         }
+    }
+    
         
         
         /**
