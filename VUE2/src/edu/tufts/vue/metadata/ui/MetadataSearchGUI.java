@@ -824,6 +824,10 @@ public class MetadataSearchGUI extends JPanel {
     {
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
         {
+            
+            System.out.println("getTableCellRendererComponent - col,getColumnCount() " + col + "," + table.getModel().getColumnCount());
+            System.out.println("category column,valuecolumn,conditioncolumn" + categoryColumn + "," + valueColumn + "," + conditionColumn);
+            
             JLabel comp = new JLabel();
             comp.setFont(tufts.vue.gui.GUI.LabelFace);
             if(singleLine == true && (col == (valueColumn)))
@@ -837,12 +841,28 @@ public class MetadataSearchGUI extends JPanel {
             else
             if(col == buttonColumn && singleLine == false)
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-            else if(table.getModel().getColumnCount() == 2 || col == categoryColumn)
-              comp.setText("Keywords:");
+            else if( table.getModel().getColumnCount() == 2 && col == valueColumn)
+              comp.setText("Keyword:");
+            else if( (table.getModel().getColumnCount() == 3 || table.getModel().getColumnCount() == 4) && col == categoryColumn)
+            {
+              comp.setText("Category:");
+              //comp.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
+            }
+            else if( (table.getModel().getColumnCount() == 3  || table.getModel().getColumnCount() == 4 ) && col == valueColumn )
+              comp.setText("Keyword:");
+            else if(table.getModel().getColumnCount() == 4 && col == conditionColumn)
+              comp.setText("Operator");
             else
               comp.setText("");
-               
-            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
+            
+            if(comp.getText().equals("Category:") || comp.getText().equals("Operator"))
+            {    
+              comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,5+ROW_INSET,ROW_GAP,ROW_INSET-5));
+            }
+            else
+            {    
+              comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET-5));
+            }
             comp.setOpaque(true);
             comp.setBackground(MetadataSearchGUI.this.getBackground());
             return comp;
