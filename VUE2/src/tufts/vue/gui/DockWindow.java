@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.111 $ / $Date: 2007-10-22 17:44:37 $ / $Author: mike $
+ * @version $Revision: 1.112 $ / $Date: 2007-10-23 14:16:16 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -174,7 +174,18 @@ public class DockWindow extends javax.swing.JWindow
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar,boolean showCloseButton)
     {
         super(owner == null ? getHiddenFrame() : owner);
-
+        /* Black ghosts on windows...
+         * This is fixed in 1.6 as far as I can tell, but this has become an annoying
+         * problem on 1.5 that multiple people on the team have complained about.  The
+         * problem seems to be related to this issue:
+         * http://mindprod.com/jgloss/contentpane.html
+         * On a mac if you look closely you really do see the same problem as windows
+         * (at least on my pokey mac) but the background color by default on the mac 
+         * is light gray so its not as noticable.  
+         */
+        if (Util.isWindowsPlatform() && Util.getJavaVersion() < 1.6)
+        	setBackground(Color.lightGray);
+        
         if (CollapsedHeight == 0)
             staticInit();
         
