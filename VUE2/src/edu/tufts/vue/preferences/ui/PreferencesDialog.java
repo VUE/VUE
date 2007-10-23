@@ -69,11 +69,13 @@ public class PreferencesDialog extends JDialog {
 
 	private JSplitPane splitPane = null;
 	private DefaultMutableTreeNode rootNode = null;
+	private static PreferencesDialog dialog;
 	// private JTable editTable;
 
 		public PreferencesDialog(JFrame owner, String title, Class userObj,
 			boolean showUserPrefs, Object systemObj, boolean showSystemPrefs) {
 		super(owner, title);
+		dialog = this;
 		getContentPane().setLayout(new GridBagLayout());
 		setSize(640, 480);
 		Util.centerOnScreen(this);
@@ -136,6 +138,10 @@ public class PreferencesDialog extends JDialog {
 	        return null;
 	    }		
 
+	    public static PreferencesDialog getDialog()
+	    {
+	    	return dialog;
+	    }
 	private void createTree() {
 		rootNode = new DefaultMutableTreeNode(
 				"VUE Preferences");
