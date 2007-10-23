@@ -101,6 +101,8 @@ public class MetadataSearchGUI extends JPanel {
     
     private static tufts.vue.gui.DockWindow dockWindow;
     
+    private static MetadataSearchGUI content;
+    
     public static tufts.vue.gui.DockWindow getDockWindow()
     {
         if(dockWindow == null)
@@ -108,17 +110,21 @@ public class MetadataSearchGUI extends JPanel {
             dockWindow = tufts.vue.gui.GUI.createDockWindow("Search");
             dockWindow.setLocation(350,300);
             
-            MetadataSearchGUI content = new MetadataSearchGUI(MULTIPLE_FIELDS);
-            dockWindow.setContent(content);
-            
-            content.adjustColumnModel();
-            
-            //todo: return to pack() on open when find initial layout bug
-            dockWindow.setSize(200,200);
+            content = new MetadataSearchGUI(MULTIPLE_FIELDS);
+
             //dockWindow.pack();
         }    
         
         return dockWindow;
+    }
+    
+    public static void afterDockVisible()
+    {
+            dockWindow.setContent(content);
+            
+            content.adjustColumnModel();
+
+            dockWindow.setSize(400,200); 
     }
     
     public MetadataSearchGUI() 
@@ -396,6 +402,7 @@ public class MetadataSearchGUI extends JPanel {
             
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchLess.raw")));
            optionsLabel.setText("hide options");
+           optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
            
            validate();
            
@@ -601,6 +608,7 @@ public class MetadataSearchGUI extends JPanel {
            if(col == (valueColumn))
            {
              final JTextField field = new JTextField();
+             field.setFont(tufts.vue.gui.GUI.LabelFace);
              field.addFocusListener(new FocusAdapter(){
                 public void focusLost(FocusEvent fe)
                 {
@@ -630,6 +638,7 @@ public class MetadataSearchGUI extends JPanel {
            if(col == (categoryColumn))
            {           
              final JComboBox categories = new JComboBox();
+             categories.setFont(tufts.vue.gui.GUI.LabelFace);
              categories.setModel(new CategoryComboBoxModel());
              categories.setRenderer(new CategoryComboBoxRenderer());
              
@@ -674,6 +683,7 @@ public class MetadataSearchGUI extends JPanel {
            {
                String [] conditions = {"starts with","contains"};
                final JComboBox conditionCombo = new JComboBox(conditions);
+               conditionCombo.setFont(tufts.vue.gui.GUI.LabelFace);
                conditionCombo.addItemListener(new ItemListener()
                {
                   public void itemStateChanged(ItemEvent ie)
@@ -779,6 +789,8 @@ public class MetadataSearchGUI extends JPanel {
                 return new java.awt.Dimension(125,super.getHeight());
              }
            };
+           newCombo.setFont(tufts.vue.gui.GUI.LabelFace);
+           
            newCombo.addItemListener(listener);
            
            optionsConstraints.anchor = GridBagConstraints.WEST;
@@ -810,6 +822,7 @@ public class MetadataSearchGUI extends JPanel {
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row,int col)
         {
             JLabel comp = new JLabel();
+            comp.setFont(tufts.vue.gui.GUI.LabelFace);
             if(singleLine == true && (col == (valueColumn)))
             {
               comp.setText("Keywords:");
