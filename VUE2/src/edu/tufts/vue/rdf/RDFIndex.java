@@ -159,7 +159,7 @@ public class RDFIndex extends ModelCom
             if(component.getLabel() != null){
                 addProperty(r,labelOf,component.getLabel());
             }
-            if(component.getXMLfillColor() != null) {
+            if(VueResources.getString("rdf.rdfize.color").equals("TRUE") && component.getXMLfillColor() != null) {
                 addProperty(r,colorOf,component.getXMLfillColor());
             } 
             com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
