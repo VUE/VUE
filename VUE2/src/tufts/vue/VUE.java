@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.498 $ / $Date: 2007-10-23 20:02:54 $ / $Author: mike $ 
+ * @version $Revision: 1.499 $ / $Date: 2007-10-24 19:24:16 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -878,7 +878,7 @@ public class VUE
         //------------------------------
         // Set popups heavyweight throughout the application
         //-------------------------------
-        PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
+        //PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
         //-----------------------------------------------------------------------------
         // Man VUE Toolbar (map editing tool)
         //-----------------------------------------------------------------------------
