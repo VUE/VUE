@@ -113,7 +113,7 @@ public class SaveAction extends VueAction
             return false;
         
         File file = map.getFile();
-        int response = 0;
+        int response = -1;
         if (map.getSaveFileModelVersion() == 0) {
 
         	final Object[] defaultOrderButtons = { "Save a copy","Save"};
