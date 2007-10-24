@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.193 $ / $Date: 2007-10-22 19:30:47 $ / $Author: sfraize $
+ * @version $Revision: 1.194 $ / $Date: 2007-10-24 03:49:16 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1519,7 +1519,7 @@ public class LWPathway extends LWContainer
     
 
     private static final boolean PathwayAsDots = true;
-    private static final int ConnectorStrokeWidth = 5;
+    private static final int ConnectorStrokeWidth = VueResources.getInt("pathway.stroke.width", 5);
     public static final int PathBorderStrokeWidth = 9;
     // forcing this up no matter what ensure our paint clipping will always work -- can optimize later
     //public static final int BorderStrokeWidth = PathwayAsDots ? 0 : 8; // technically, this is half the stroke, but it's the visible stroke
