@@ -21,6 +21,9 @@ package edu.tufts.vue.metadata.ui;
 import edu.tufts.vue.metadata.*;
 import edu.tufts.vue.ontology.*;
 
+import tufts.vue.gui.GUI;
+
+import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +41,7 @@ import javax.swing.table.*;
  */
 public class CategoryEditor extends JPanel 
 {
+    private static final boolean DEBUG_LOCAL = false;
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -54,10 +58,17 @@ public class CategoryEditor extends JPanel
     private JPanel setPanel;
     private JPanel customPanel;
     
+    private JPanel buttonPanel;
+    private JButton cancelButton;
+    private JButton doneButton;
+    
     private boolean newCategoryRequested;
     
-    public CategoryEditor() 
+    private JDialog dialog;
+    
+    public CategoryEditor(JDialog dialog) 
     {
+        this.dialog = dialog;
         setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
         setPanel = new JPanel();
         metadataSetTable = new JTable(new FullMetadataSetTableModel());
@@ -138,9 +149,31 @@ public class CategoryEditor extends JPanel
         //add(setPanel);
         // todo: add separator
         add(customPanel);
+
+        if(DEBUG_LOCAL)
+        {    
+          System.out.println("scroll: " + scroll);
+          System.out.println("categoryTable: " + customCategoryTable);
+        }
         
-        System.out.println("scroll: " + scroll);
-        System.out.println("categoryTable: " + customCategoryTable);
+        buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0,0,10,0));
+        cancelButton = new JButton("Cancel");
+        cancelButton.setFont(GUI.LabelFace);
+        doneButton = new JButton("Done");
+        doneButton.setFont(GUI.LabelFace);
+        //buttonPanel.add(cancelButton);
+        buttonPanel.add(doneButton);
+        add(buttonPanel);
+        
+        doneButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent e)
+            {
+                CategoryEditor.this.dialog.dispose();
+            }
+        });
+        
     }
     
     class CustomCategoryTableHeaderRenderer extends DefaultTableCellRenderer
