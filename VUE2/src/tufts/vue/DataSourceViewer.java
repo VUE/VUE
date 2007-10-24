@@ -132,7 +132,7 @@ public class DataSourceViewer extends JPanel
             dataSources = dataSourceManager.getDataSources();
             Log.info("finished loading data sources.");
             for (int i=0; i < dataSources.length; i++) {
-                Log.info("adding data source to data source list UI: " + dataSources[i]);
+                Log.info("adding to the UI: " + dataSources[i]);
                 dataSourceList.addOrdered(dataSources[i]);
             }
         } catch (Throwable t) {
