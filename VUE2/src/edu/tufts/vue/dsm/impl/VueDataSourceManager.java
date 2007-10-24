@@ -144,9 +144,11 @@ public class VueDataSourceManager
         synchronized (DataSources) {
             boolean removed = false;
             try {
-                for (DataSource ds : DataSources) {
+                Iterator<DataSource> i = DataSources.iterator();
+                while (i.hasNext()) {
+                    DataSource ds = i.next();
                     if (id.isEqual(ds.getId())) {
-                        DataSources.remove(ds);
+                        i.remove();
                         if (removed)
                             Log.warn("removed again: " + ds);
                         else
@@ -288,6 +290,15 @@ public class VueDataSourceManager
         synchronized (DataSources) {
             dataSourceVector.addAll(DataSources);
         }
+
+        for (DataSource ds : dataSourceVector) {
+            try {
+                debug("Marshalling:  " + ds + "; RepositoryID=" + ds.getRepository().getId().getIdString());
+            } catch (Throwable t) {
+                Log.warn("Marshalling", t);
+            }
+        }
+        
 
         marshalling = true;
         try {
