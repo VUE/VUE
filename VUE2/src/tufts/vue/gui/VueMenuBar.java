@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.67 $ / $Date: 2007-10-24 19:35:17 $ / $Author: anoop $
+ * @version $Revision: 1.68 $ / $Date: 2007-10-24 22:05:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -156,17 +156,22 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
                 publishMenu.addSeparator();
                 for(int i =0;i<dataSource.length;i++) {
-                 try {   
-                     if (dataSource[i].getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE) || dataSource[i].getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                 try {
+                     final org.osid.repository.Repository r = dataSource[i].getRepository();
+                     if (r == null) {
+                         Log.warn("null repository in " + dataSource[i]);
+                         continue;
+                     }
+                     if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE) ||
+                         r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                          publishMenu.add(PublishActionFactory.createPublishAction(dataSource[i])); 
                      }
-                     } catch(org.osid.repository.RepositoryException ex) {
-                    ex.printStackTrace();
-                    }
+                 } catch(org.osid.repository.RepositoryException ex) {
+                     Log.error("changed:", ex);
+                 }
                 }
                 fileMenu.remove(publishMenu);
                 fileMenu.add(publishMenu,10);
-                
             }
         });
         
