@@ -28,9 +28,10 @@ package edu.tufts.vue.rss;
 
 import tufts.vue.*;
 
+import java.util.*;
+import java.io.*;
 import java.awt.*;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -41,62 +42,64 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
-
 public class RSSDataSource  extends VueDataSource{
     
     private JComponent resourceViewer;
     
-    public RSSDataSource() {        
+    public RSSDataSource() {
+        System.out.println("Created empty RSS feed");
     }
     
-    public RSSDataSource(String displayName, String address) throws DataSourceException
-    {
+    public RSSDataSource(String displayName, String address) throws DataSourceException {
         this.setDisplayName(displayName);
-        this.setAddress(address);    
+        this.setAddress(address);
     }
     
     public void setAddress(String address)  throws DataSourceException{
-        super.setAddress(address);
-        this.setResourceViewer();
+        try {
+            
+            System.out.println("Setting address for RSS feed: "+address);
+            super.setAddress(address);
+            this.setResourceViewer();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        
     }
     
     
-    public void setResourceViewer()
-    {
+    public void setResourceViewer() {
         URL address = null;
-                
-        try
-        {
-          address = new URL(getAddress());
-        }
-        catch(MalformedURLException mue)
-        {
+        
+        try {
+            address = new URL(getAddress());
+        } catch(MalformedURLException mue) {
             System.out.println("Malformed URL Exception while opening RSS Feed: " + mue);
         }
         
-        if(address == null)
-        {
+        if(address == null) {
             System.out.println("Null URL for RSS Feed, aborting.. ");
             return;
         }
-        
         SyndFeedInput feedBuilder = new SyndFeedInput();
         SyndFeed rssFeed = null;
-        try          
-        {        
-          rssFeed = feedBuilder.build(new XmlReader(address));
-        }
-        catch(FeedException fe)
-        {
+        try {
+            URLConnection conn = address.openConnection(); 
+            conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.8) Gecko/20071008 Firefox/2.0.0.8");
+            conn.connect(); 
+            XmlReader reader = new XmlReader(conn);
+            rssFeed = feedBuilder.build(reader);
+         } catch(FeedException fe) {
             System.out.println("FeedException while building RSS feed: " + fe);
-        }
-        catch(java.io.IOException io)
-        {
+            fe.printStackTrace();
+        } catch(java.io.IOException io) {
             System.out.println("IOException while building RSS feed: " + io);
+            io.printStackTrace();
+        } catch(Throwable t) {
+            t.printStackTrace();
         }
         
-        if(rssFeed == null)
-        {
+        if(rssFeed == null) {
             System.out.println("Null rssFeed, aborting... ");
             return;
         }
@@ -105,10 +108,10 @@ public class RSSDataSource  extends VueDataSource{
         
         List<Resource> resourceList = new ArrayList<Resource>();
         
-        // getUri did not work for Reuters (and Atom feeds in general?), 
+        // getUri did not work for Reuters (and Atom feeds in general?),
         // switched to getLink() instead (see below)
-        /*System.out.println("itemList length: " + itemList.size());
-        
+        System.out.println("itemList length: " + itemList.size());
+        /*
         for(int j=0;j<itemList.size();j++)
         {
             SyndEntry entry = itemList.get(j);
@@ -116,33 +119,29 @@ public class RSSDataSource  extends VueDataSource{
         }*/
         
         Iterator<SyndEntry> i = itemList.iterator();
-        while(i.hasNext())
-        {
+        while(i.hasNext()) {
             SyndEntry entry = i.next();
             Resource res = null;
-            try
-            {
-              //res = new URLResource(new URL(entry.getUri()));
-              //System.out.println("trying to create rss item resource entry is: " + entry);
-              String link = entry.getLink();
-              //System.out.println("trying to create rss resource - link:" + link);
-              URL url = new URL(link);
-              //System.out.println("trying to create rss resource - url:" + url);
-              /*link = *///java.net.URLDecoder.decode(link,"UTF-8");
-              //res = new URLResource(url);
-              res = Resource.getFactory().get(url);
+            try {
+                //res = new URLResource(new URL(entry.getUri()));
+                System.out.println("trying to create rss item resource entry is: " + entry);
+                String link = entry.getLink();
+                System.out.println("trying to create rss resource - link:" + link);
+                URL url = new URL(link);
+                System.out.println("trying to create rss resource - url:" + url);
+                /*link = *///java.net.URLDecoder.decode(link,"UTF-8");
+                //res = new URLResource(url);
+                res = Resource.getFactory().get(url);
             }
             /*catch(java.io.UnsupportedEncodingException uee)
             {
                 // for sun developer network...?
                 System.out.println("Unsupported Encoding Exception while creating RSS feed resource" + uee);
             }*/
-            catch(MalformedURLException mue)
-            {
+            catch(MalformedURLException mue) {
                 System.out.println("Malformed URL Exception while creating RSS feed resource: " + mue);
             }
-            if(res == null)
-            {
+            if(res == null) {
                 System.out.println("null resource created for rss feed, aborting... " + entry.getLink());
                 continue;
             }
@@ -155,7 +154,7 @@ public class RSSDataSource  extends VueDataSource{
         fileTree.setShowsRootHandles(true);
         fileTree.expandRow(0);
         fileTree.setRootVisible(false);
-
+        
         if (false) {
             JPanel localPanel = new JPanel();
             JScrollPane rSP = new JScrollPane(fileTree);
@@ -166,7 +165,7 @@ public class RSSDataSource  extends VueDataSource{
         } else {
             this.resourceViewer = fileTree;
         }
-            
+        
         //DataSourceViewer.refreshDataSourcePanel(this);
         
     }
