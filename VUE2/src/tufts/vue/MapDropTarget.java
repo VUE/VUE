@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.79 $ / $Date: 2007-10-19 19:06:31 $ / $Author: sfraize $  
+ * @version $Revision: 1.80 $ / $Date: 2007-10-24 03:50:25 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1444,7 +1444,7 @@ class MapDropTarget
 
     private Point2D.Float dropToFocalLocation(int x, int y)
     {
-        final Point2D.Float mapLoc = mViewer.screenToFocalPoint(x, y);
+        final Point2D.Float mapLoc = (Point2D.Float) mViewer.screenToFocalPoint(x, y);
         //if (DEBUG.DND) out("dropToMapLocation " + x + "," + y + " = " + mapLoc);
         return mapLoc;
     }
