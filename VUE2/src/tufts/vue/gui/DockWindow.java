@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.113 $ / $Date: 2007-10-23 20:36:24 $ / $Author: sfraize $
+ * @version $Revision: 1.114 $ / $Date: 2007-10-24 00:16:29 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -3775,7 +3775,7 @@ public class DockWindow extends javax.swing.JWindow
         private CloseButton mCloseButton;
         private GradientPaint mGradient;
         private JLabel mLabel;
-        private JLabel mOpenLabel; // for open/close icon
+     //   private JLabel mOpenLabel; // for open/close icon
         private boolean isVertical = false;
         private MenuButton mMenuButton; // null of has no menu
 
@@ -3817,14 +3817,14 @@ public class DockWindow extends javax.swing.JWindow
 
              mCloseButton = new CloseButton(DockWindow.this);
 
-             mOpenLabel = new GUI.IconicLabel(DownArrowChar,
+          /*   mOpenLabel = new GUI.IconicLabel(DownArrowChar,
                                               16, // point-size
                                               iconColor,
                                               15, // fixed width
                                               TitleHeight); // fixed height
-                     
+            */         
              //if (isMacAqua)
-                 mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
+           //      mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
              
              if (DEBUG.BOXES) {
                  mLabel.setBackground(Color.yellow);
@@ -3844,16 +3844,17 @@ public class DockWindow extends javax.swing.JWindow
                  // close button at left
                  add(Box.createHorizontalStrut(6));
                  add(mCloseButton);
-                 add(mOpenLabel);
+                 add(Box.createHorizontalStrut(4));
+               //  add(mOpenLabel);
                  add(mLabel);
                  add(Box.createGlue());
                  if (helpText != null)
                 	 add(helpButton);
              } else {
                  // close button at right
-                 add(Box.createHorizontalStrut(6));
-                 add(mOpenLabel);
-                 add(Box.createHorizontalStrut(2));
+                 add(Box.createHorizontalStrut(8));
+            //     add(mOpenLabel);
+              //   add(Box.createHorizontalStrut(2));
                  add(mLabel);
                  add(Box.createGlue());
                  if (helpText != null)
@@ -3875,7 +3876,7 @@ public class DockWindow extends javax.swing.JWindow
         void showAsOpen(boolean open) {
             //mOpenLabel.setIcon(open ? DownArrow : RightArrow);
             //mOpenLabel.setText(open ? DownArrow : RightArrow);
-            mOpenLabel.setText(open ? ""+DownArrowChar : ""+RightArrowChar);
+         //   mOpenLabel.setText(open ? ""+DownArrowChar : ""+RightArrowChar);
         }
 
         void setCloseButtonVisible(boolean visible) {
