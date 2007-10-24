@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.468 $ / $Date: 2007-10-24 07:39:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.469 $ / $Date: 2007-10-24 09:52:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3287,6 +3287,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     mapSelectionBounds.height += grow*2;
                 }
             }
+
+            if (selection.size() > 1 && mFocal instanceof LWSlide) {
+                // hack for broken multi-resize on slides -- provide no selection handles
+                resizeControl.active = false;
+            } else {
+                
+            
             //if (!sDragUnderway)
             //drawSelectionBoxHandles(g2, mapSelectionBounds);
             
@@ -3296,6 +3303,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 (selection.allHaveSameParentOfType(LWSlide.class) && first.getParent().isMoveable());
             
             setSelectionBoxResizeHandles(mapSelectionBounds);
+
             resizeControl.active = true;
             for (int i = 0; i < resizeControl.handles.length; i++) {
                 LWSelection.Controller cp = resizeControl.handles[i];
@@ -3304,6 +3312,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                             (float)cp.y,
                                             deepSelection ? COLOR_SELECTION : cp.getColor(),
                                             i);
+            }
             }
         }
         
