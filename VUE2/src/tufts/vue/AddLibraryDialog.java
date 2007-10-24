@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.66 $ / $Date: 2007-09-05 17:25:52 $ / $Author: mike $
+ * @version $Revision: 1.67 $ / $Date: 2007-10-24 19:22:07 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -41,6 +41,8 @@ import tufts.vue.gui.FocusManager;
 import edu.tufts.vue.rss.RSSDataSource;
 
 public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelectionListener, ActionListener {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(AddLibraryDialog.class);
     
     JPanel addLibraryPanel = new JPanel();
     JList addLibraryList;
@@ -422,16 +424,16 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         }
                     }
                     
-					System.out.println("In Add Library Dialog, checking if provider is installed");
+                    Log.info("checking if provider is installed");
                     if (proceed && (!provider.isInstalled())) {
-						System.out.println("In Add Library Dialog, provider not yet installed, installing...");
+                        Log.info("provider not yet installed, installing...");
                         factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
                         try {
                         	
                             GUI.activateWaitCursor();
                             factory.installProvider(provider.getId());                            
                         } catch (Throwable t1) {
-                            //System.out.println("install failed " + provider.getId().getIdString());
+                            Log.error("install failed " + provider.getId().getIdString());
                             VueUtil.alert(this,"Installation Failed","Error");
                             //cancelButton.requestFocus();
                             SwingUtilities.invokeLater(new Runnable() { 
@@ -444,13 +446,13 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             return;
                         } 
                     } else {
-						System.out.println("In Add Library Dialog, provider already installed");
+                        Log.info("provider already installed");
                     }
                     
                     if (proceed) {
                         // add to data sources list
                         try {
-                            System.out.println("creating data source");
+                            Log.info("creating data source");
                             ds = new edu.tufts.vue.dsm.impl.VueDataSource(factory.getIdManagerInstance().createId(),
                                     provider.getId(),
                                     true);
@@ -458,7 +460,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             VueUtil.alert(this,"Loading Manager Failed","Error");
                             return;
                         }
-                        System.out.println("created data source");
+                        Log.info("created data source");
                         
                         // show configuration, if needed
                         if (ds.hasConfiguration()) {
@@ -468,7 +470,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         }
 						
                         this.newDataSource = ds;
-						System.out.println("new data source is " + this.newDataSource);
+                        Log.info("new data source is " + this.newDataSource);
                     }
                 } catch (Throwable t) {
                     //System.out.println("configuration setup failed");
@@ -546,10 +548,10 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                                 try {
                                     synchronized (dataSourceManager) {
                                         dataSourceManager.save();
-										System.out.println("saved");
+                                        Log.info("saved");
                                     }
                                 } catch (Throwable t) {
-                                    System.out.println(t.getMessage());
+                                    Log.error(t);
                                 }
                             }});
                             
