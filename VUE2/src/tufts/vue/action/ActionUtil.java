@@ -61,7 +61,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.84 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2007-10-24 03:47:44 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -353,7 +353,7 @@ public class ActionUtil
         unmarshaller.setMapping(mapping);
 
         if (DEBUG.CASTOR || DEBUG.XML || DEBUG.IO)
-            Log.debug("got default unmarshaller for mapping " + mapping + " source " + sourceName + "\n\n");
+            Log.debug("got default unmarshaller for mapping " + mapping + " source " + sourceName);
 
         return unmarshaller;
     }

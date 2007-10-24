@@ -593,7 +593,7 @@ public class EditorManager
         //out("created new styleHolder for type token [" + token + "]: " + styleHolder); 
         //out("created " + styleHolder);
 
-        if (DEBUG.STYLE || DEBUG.WORK) out("created style holder " + style + "\t based on " + styleSource);
+        if (DEBUG.STYLE) out("created style holder " + style + "\t based on " + styleSource);
         return style;
     }
         
