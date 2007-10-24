@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.67 $ / $Date: 2007-10-24 19:22:07 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2007-10-24 21:23:54 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -470,7 +470,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         }
 						
                         this.newDataSource = ds;
-                        Log.info("new data source is " + this.newDataSource);
+                        Log.info("new data source:  " + this.newDataSource);
                     }
                 } catch (Throwable t) {
                     //System.out.println("configuration setup failed");
