@@ -20,8 +20,10 @@ package edu.tufts.vue.dsm.impl;
 
 import java.util.*;
 
-public class VueDataSource
-        implements edu.tufts.vue.dsm.DataSource {
+public class VueDataSource implements edu.tufts.vue.dsm.DataSource
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
+    
     private edu.tufts.vue.dsm.OsidFactory factory = null;
     private Vector _propertyList = null;
     private org.osid.shared.Id providerId = null;
@@ -182,7 +184,7 @@ public class VueDataSource
             this.repository = this.repositoryManager.getRepository(this.repositoryId);
 //			System.out.println("got repository");
         } catch (Throwable t) {
-            System.out.println("Load by key failed, " + this.osidLoadKey + " trying a check of all repositories");
+            Log.warn("Load by key failed, " + this.osidLoadKey + " trying a check of all repositories; " + t);
             // special case for when the Manager implementation doesn't offer this method
             try {
                 org.osid.repository.RepositoryIterator repositoryIterator = this.repositoryManager.getRepositories();
@@ -503,6 +505,15 @@ public class VueDataSource
         }
     }
     public String toString() {
-        return super.toString() + "[" + getRepositoryDisplayName() + "]";
+        try {
+            return String.format("%s@%06x[%37s; %-30s; %s]",
+                                 getClass().getSimpleName(),
+                                 System.identityHashCode(this),
+                                 getId().getIdString(),
+                                 '"' + getRepositoryDisplayName() + '"',
+                                 getRepository());
+        } catch (Throwable t) {
+            return "VueDataSource[" + t + "]";
+        }
     }
 }
