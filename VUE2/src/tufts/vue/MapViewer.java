@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.467 $ / $Date: 2007-10-24 03:50:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.468 $ / $Date: 2007-10-24 07:39:46 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1784,6 +1784,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             pc.dropping = dropping;
         LWComponent hit = LWTraversal.PointPick.pick(pc);
         if (hit != null && hit.supportsChildren()) {
+
+            if (hit instanceof LWSlide && hit != mFocal)
+                hit = null; // disable slide icon dropping for now
+
             if (dropping instanceof LWComponent)
                 return ((LWComponent)dropping).supportsReparenting() ? hit : null;
             else
