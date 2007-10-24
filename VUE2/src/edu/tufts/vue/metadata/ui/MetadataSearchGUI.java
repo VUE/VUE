@@ -105,15 +105,33 @@ public class MetadataSearchGUI extends JPanel {
     
     private static MetadataSearchGUI content;
     
+    //reenable for side scroll
+    //private static tufts.vue.gui.WidgetStack stack;
+    
+    //reenable for side scroll method 2
+   // private static JScrollPane pane = null;
+    
     public static tufts.vue.gui.DockWindow getDockWindow()
     {
         if(dockWindow == null)
         {
             dockWindow = tufts.vue.gui.GUI.createDockWindow("Search");
+            
             dockWindow.setLocation(350,300);
             
             content = new MetadataSearchGUI(MULTIPLE_FIELDS);
 
+            //reenable for side-scrollbar
+            //stack = new tufts.vue.gui.WidgetStack();
+            
+            //stack.setLayout(new BorderLayout());
+            //stack.setWantsScroller(true);
+            
+            //stack.add(content);
+            
+            //pane = new JScrollPane(content,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+            //                              JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            
             //dockWindow.pack();
         }    
         
@@ -122,11 +140,18 @@ public class MetadataSearchGUI extends JPanel {
     
     public static void afterDockVisible()
     {
+        
+
+        
             dockWindow.setContent(content);
             
-            content.adjustColumnModel();
+            //re-enable for side-scrollbar
+            //dockWindow.setContent(pane);
+            //dockWindow.setContent(stack);
+            
+            //content.adjustColumnModel();
 
-            dockWindow.setSize(300,200); 
+            dockWindow.setSize(300,250); 
     }
     
     public MetadataSearchGUI() 
@@ -316,9 +341,21 @@ public class MetadataSearchGUI extends JPanel {
                 return new java.awt.Dimension(super.getWidth(),90);
             }
         };
+        JPanel corner = new JPanel();
+        corner.setOpaque(true);
+        corner.setBackground(getBackground());
+        //corner.setPreferredSize(100,100);
+        scroll.setCorner(JScrollPane.UPPER_RIGHT_CORNER,corner);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(getBackground());
         fieldsPanel.add(scroll);
+        
+        //JPanel fieldsInnerPanel = new JPanel(new BorderLayout());
+        //fieldsInnerPanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
+        //fieldsInnerPanel.add(searchTermsTable);
+
+        
+        //fieldsPanel.add(fieldsInnerPanel);
         
         topPanel.add(innerTopPanel,BorderLayout.NORTH);
         fieldsPanel.add(linePanel,BorderLayout.NORTH);
@@ -396,6 +433,10 @@ public class MetadataSearchGUI extends JPanel {
         if(optionsToggle == SHOW_OPTIONS)
         {
             
+           //dockWindow.setSize(300,250 + optionsPanel.getHeight()); 
+           
+           dockWindow.validate();
+            
            innerTopPanel.add(optionsPanel);
            remove(topPanel);
            remove(buttonPanel);
@@ -406,10 +447,22 @@ public class MetadataSearchGUI extends JPanel {
            optionsLabel.setText("hide options");
            optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
            
-           validate();
+           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + optionsPanel.getHeight());
+
+           //dockWindow.setSize(300,200 + optionsPanel.getHeight());
            
-           if(dockWindow != null)
-             dockWindow.pack();
+
+           
+           dockWindow.validate();
+           
+           dockWindow.setSize(300,250 + optionsPanel.getHeight());
+           
+           dockWindow.validate();
+           
+           //dockWindow.setSize(300,200 + optionsPanel.getHeight());
+           
+           //if(dockWindow != null)
+           //  dockWindow.pack();
            
            optionsToggle = HIDE_OPTIONS;
         }
@@ -424,12 +477,16 @@ public class MetadataSearchGUI extends JPanel {
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
            optionsLabel.setText("show options");
            
+          // dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - optionsPanel.getHeight());
+           
+           dockWindow.setSize(300,250);
+           
            validate();
            
-           if(dockWindow != null)
+           /*if(dockWindow != null)
            {
               dockWindow.pack();
-           }
+           }*/
            
            optionsToggle = SHOW_OPTIONS;
         }
@@ -461,7 +518,7 @@ public class MetadataSearchGUI extends JPanel {
                
         adjustColumnModel(); 
     }
-    
+ 
     public void setCategorySearch()
     {
         singleLine = false;
@@ -844,7 +901,7 @@ public class MetadataSearchGUI extends JPanel {
             if(col == buttonColumn && singleLine == false)
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
             else if( table.getModel().getColumnCount() == 2 && col == valueColumn)
-              comp.setText("Keyword:");
+              comp.setText("Label:");
             else if( (table.getModel().getColumnCount() == 3 || table.getModel().getColumnCount() == 4) && col == categoryColumn)
             {
               comp.setText("Category:");
