@@ -320,7 +320,9 @@ public abstract class LWIcon extends Rectangle2D.Float
                 {
                 	if (icon.contains(cx, cy)) 
                     {	
+                		e.getViewer().clearTip();
                 		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                		
                     }
                 	else
                 		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
