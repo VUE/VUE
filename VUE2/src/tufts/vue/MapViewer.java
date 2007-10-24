@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.466 $ / $Date: 2007-10-23 22:04:38 $ / $Author: mike $ 
+ * @version $Revision: 1.467 $ / $Date: 2007-10-24 03:50:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -643,21 +643,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return mOffset.y;
     }
 
-    protected Point2D.Float screenToFocalPoint(Point p) {
+    protected Point2D screenToFocalPoint(Point p) {
         return screenToFocalPoint(p.x, p.y);
     }
     
-    protected Point2D.Float screenToFocalPoint(int x, int y) {
+    protected Point2D screenToFocalPoint(int x, int y) {
         if (mFocal == mMap || mFocal == null) {
             return screenToMapPoint(x, y);
         } else {
             Point2D.Float p = screenToMapPoint(x, y);
-            p.x -= mFocal.getMapX();
-            p.y -= mFocal.getMapY();
-            // TODO: deal properly with zoom when in focal...
-            //p.x *= mZoomFactor;
-            //p.y *= mZoomFactor;
-            return p;
+            return mFocal.transformMapToZeroPoint(p, p);
         }
     }
 
@@ -2501,7 +2496,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         if (DEBUG.VIEWER) {
-            drawViewerDebug(dc.create());
+            try {
+                drawViewerDebug(dc.push()); dc.pop();
+            } catch (Throwable t) {
+                Util.printStackTrace(t, "viewer debug failure");
+            }
         }
 
         // If there's an active text edit, draw it:
@@ -6084,6 +6083,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // to mLabelEditWasActiveAtMousePress, for dealing with the incredible subtlety
         // of what happens when you click the mouse.
 
+        // TODO: hitComponent in presentation mode when anything other than the map
+        // is the focal should always default to the focal, never null (maybe
+        // only if the focal is a slide tho?)
+
         if (isSingleClickEvent(e)) {
             if (DEBUG.MOUSE) out("SINGLE-CLICK on: " + hitComponent);
                     
@@ -6169,6 +6172,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // and we don't need the instanceof checks.
         if (mFocal instanceof LWSlide || mFocal instanceof LWGroup) {
             popFocal(POP_TO_TOP, ANIMATE);
+
+// This applies to SINGLE CLICK:
+//             if (activeTool == ToolPresentation) {
+//                 // in presentation mode, the entire display is considered the object
+//                 mFocal.handleDoubleClick(new MapMouseEvent(e, hitComponent));
+//             } else {
+//                 popFocal(POP_TO_TOP, ANIMATE);
+//             }
         }
     }
     
