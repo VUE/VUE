@@ -1305,6 +1305,12 @@ public class Util
         else
             return String.format("%.1f,%.1f", p.getX(), p.getY());
     }
+    public static String fmt(java.awt.Point p) {
+        if (p == null)
+            return "<null-Point>";
+        else
+            return String.format("%d,%d", p.x, p.y);
+    }
 
     public static String fmt(java.awt.geom.Line2D l) {
         if (l == null)
