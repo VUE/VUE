@@ -179,7 +179,13 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     }
     
     private void setRelatedValues()
-    throws org.osid.provider.ProviderException {
+    throws org.osid.provider.ProviderException
+    {
+        if (this.repositoryManager == null) {
+            Log.error("setRelatedValues: null repositoryManager; aborting init of " + this);
+            return;
+        }
+        
         try {
             this.repository = this.repositoryManager.getRepository(this.repositoryId);
 //			System.out.println("got repository");
@@ -196,9 +202,13 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
                     }
                 }
             } catch (Throwable t1) {
-                System.out.println("Load by check of all repositories failed");
+                Log.error("Load by check of all repositories failed:", t);
                 //throw new org.osid.provider.ProviderException(org.osid.shared.SharedException.UNKNOWN_ID);
             }
+        }
+        if (this.repository == null) {
+            Log.error("setRelatedValues: null repository; aborting init of " + this);
+            return;
         }
         // call Repository to answer these
         try {
@@ -395,12 +405,13 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     
     public void setProviderIdString(String providerIdString) {
         try {
-			providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
+            providerId =  edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance().getIdManagerInstance().getId(providerIdString);
             setProviderValues(); // must come first
             setRepositoryManager();
         } catch (Throwable t) {
-            edu.tufts.vue.util.Logger.log(t,"loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
-            System.out.println("Error loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
+            Log.error("loading data sources from XML.  Cannot locate Provider with Id [" + providerIdString + "];", t);
+            //edu.tufts.vue.util.Logger.log(t,"loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
+            //System.out.println("Error loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
         }
     }
     
@@ -409,7 +420,8 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             try {
                 return dataSourceId.getIdString();
             } catch (Throwable t) {
-                edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
+                Log.error("loading data sources from XML; dataSourceId[" + dataSourceId + "];", t);
+                //edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
             }
         }
         return dataSourceIdString;
@@ -421,7 +433,8 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             setProviderValues(); // must come first
             setRepositoryManager();
         } catch (Throwable t) {
-            edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
+            Log.error("loading data sources from XML; dataSourceIdString[" + dataSourceIdString + "];", t);
+            //edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
         }
     }
     
@@ -494,10 +507,15 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             dataSourceManager.add(this);
         }
         try{
-			//System.out.println("properties " + p);
-			//System.out.println("manager " + this.repositoryManager);
-			//System.out.println("data source " + this);
-            this.repositoryManager.assignConfiguration(p);
+            //System.out.println("properties " + p);
+            //System.out.println("manager " + this.repositoryManager);
+            //System.out.println("data source " + this);
+
+            if (this.repositoryManager == null) {
+                Log.error("setDone: null repositoryManager unmarshalling " + this + "; skipping assignConfiguration.");
+            } else {
+                this.repositoryManager.assignConfiguration(p);
+            }
             setRelatedValues();
         } catch (Throwable t) {
             edu.tufts.vue.util.Logger.log(t);
