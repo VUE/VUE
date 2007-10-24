@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-10-18 21:32:47 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-10-24 07:42:42 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -890,7 +890,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     void scanForMetaData(final LWComponent c, boolean setLabelFromTitle) {
 
         if (true) {
-            System.out.println("SKIPPING META-DATA SCAN " + this);
+            //System.out.println("SKIPPING META-DATA SCAN " + this);
             return;
         }
         
