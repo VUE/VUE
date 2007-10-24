@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.169 $ / $Date: 2007-10-22 05:52:03 $ / $Author: sfraize $
+ * @version $Revision: 1.170 $ / $Date: 2007-10-24 07:42:26 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1436,14 +1436,18 @@ public class LWMap extends LWContainer
     public void transformZero(final Graphics2D g) {}
     
     /** optimized LWMap noop: remove if/when embed maps in maps
-     * Just copies mapPoint to nodePoint.
-     * @return mapPoint
+     * Just copies mapPoint to zeroPoint if zeroPoint is non null.
+     * @return mapPoint if zeroPoint is null, zeroPoint otherwise
      */
     @Override
-    public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float nodePoint) {
-        nodePoint.x = mapPoint.x;
-        nodePoint.y = mapPoint.y;
-        return mapPoint;
+    public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float zeroPoint) {
+        if (zeroPoint == null) {
+            return mapPoint;
+        } else {
+            zeroPoint.x = mapPoint.x;
+            zeroPoint.y = mapPoint.y;
+            return zeroPoint;
+        }
     }
     
     
