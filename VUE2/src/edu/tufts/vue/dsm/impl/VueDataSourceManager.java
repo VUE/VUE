@@ -21,10 +21,15 @@ package edu.tufts.vue.dsm.impl;
 /**
  * This class loads and saves Data Source content from an XML file
  */
-import edu.tufts.vue.dsm.DataSourceListener;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+
+import tufts.Util;
+
+import org.osid.repository.Repository;
+import edu.tufts.vue.dsm.DataSource;
+import edu.tufts.vue.dsm.DataSourceListener;
 
 //classes to support marshalling and unmarshalling
 import org.exolab.castor.xml.Marshaller;
@@ -36,137 +41,141 @@ import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 
 public class VueDataSourceManager
-        implements edu.tufts.vue.dsm.DataSourceManager
+    implements edu.tufts.vue.dsm.DataSourceManager
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSourceManager.class);
 
+    /**
+     * This set will only maintain uniqueness based on the hashCode, which is currently
+     * defaulting to the System.identityHashCode for known implemented data sources
+     * (VueDataSource's).  This is fine for our purposes now, tho a more complete impl
+     * would require DataSource.hashCode() to return the getId().getIdString() (and then
+     * we could also use a HashMap for referencing by ID string).
+     *
+     * We need a set because upon creation, VueDataSources always attempt to add
+     * themselves to the global data source list (in setDone, called by castor during
+     * unmarshalling).  Don't know if we need that behavior, but this impl allows that
+     * to happen w/out putting duplicates in the global list.
+     *
+     * -- SMF 10/2007
+     */
+    
+    private static final Set<DataSource> DataSources = new HashSet();
+
+    /** This is only used marshalling and unmarshalling */
+    private static final Vector<DataSource> dataSourceVector = new Vector();
+    
     private static edu.tufts.vue.dsm.DataSourceManager dataSourceManager = new VueDataSourceManager();
-    private static java.util.Vector dataSourceVector = new java.util.Vector();
-    //private final static String XML_MAPPING_CURRENT_VERSION_ID = tufts.vue.VueResources.getString("mapping.lw.current_version");
-    //private final static URL XML_MAPPING_DEFAULT = tufts.vue.VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
+
     private static final File userFolder = tufts.vue.VueUtil.getDefaultUserFolder();
-    private static String  xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
-    private static boolean marshalling = false;
-    private static List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners = new ArrayList<edu.tufts.vue.dsm.DataSourceListener>();
+    private static final String xmlFilename  = userFolder.getAbsolutePath() + "/" + tufts.vue.VueResources.getString("dataSourceSaveToXmlFilename");
+    private static final List<edu.tufts.vue.dsm.DataSourceListener> dataSourceListeners = new ArrayList<edu.tufts.vue.dsm.DataSourceListener>();
+    
+    private static volatile boolean marshalling = false;
+    
     public static edu.tufts.vue.dsm.DataSourceManager getInstance() {
         return dataSourceManager;
     }
     
-    public VueDataSourceManager() {
-    }
+    /** this is public for castor persistance support only */
+    public VueDataSourceManager() {}
     
-   public  void save() {
+    public void save() {
         notifyDataSourceListeners();
         marshall(new File(this.xmlFilename), this);
     }
     
     public static void load() {
         try {
-			dataSourceVector = new java.util.Vector();
             File f = new File(xmlFilename);
             if (f.exists()) {
+
+                // Note: this class has no member variables, so assigning the new
+                // dataSourceManager here has no effect -- it might as well be a final
+                // constant for now (e.g., getInstance() isn't needed at the moment).
+                // However, should member variables be added in the future, we'll need
+                // the existing semantics.
+                
                 dataSourceManager = unMarshall(f); 
-                dataSourceManager. notifyDataSourceListeners();
+                dataSourceManager.notifyDataSourceListeners();
             } else {
                 debug("Installed datasources not found");
             }
         }  catch (Throwable t) {
-//			t.printStackTrace();
-//            tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
-            Log.warn("In load via Castor " + t.getMessage());
+            tufts.vue.VueUtil.alert("Error instantiating Provider support","Error");
+            Log.warn("In load via Castor", t);
         }
     }
     
-	private void removeDuplicatesFromVector()
-	{
-		try {
-			java.util.Vector v = new java.util.Vector();
-			java.util.Vector idStringVector = new java.util.Vector();
-			for (int i = 0; i < dataSourceVector.size(); i++) 
-			{
-				edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-				String idString = ds.getId().getIdString();
-				if (!idStringVector.contains(idString)) {
-					v.addElement(ds);
-					idStringVector.addElement(idString);
-				}
-			}
-			dataSourceVector = v;
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
-	
     public edu.tufts.vue.dsm.DataSource[] getDataSources() {
-		// There appears to be a bug that causes duplicates in the vector
-		// no idea why.  Calling a method to clear those out.
-		removeDuplicatesFromVector();
-        int size = dataSourceVector.size();
-        edu.tufts.vue.dsm.DataSource dataSources[] = new edu.tufts.vue.dsm.DataSource[size];
-		try {
-			for (int i=0; i < size; i++) 
-			{
-				dataSources[i] = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-			}
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-        return dataSources;
+        synchronized (DataSources) {
+            return DataSources.toArray(new DataSource[DataSources.size()]);
+        }
     }
     
     /**
+     * Add the given data source to the global list if it isn't already there.
+     * Will immediately save if it was added.
      */
     public void add(edu.tufts.vue.dsm.DataSource dataSource) {
-        try {
-            // we have to worry about duplicates
-            org.osid.shared.Id dataSourceId = dataSource.getId();
-            for (int i=0, size = dataSourceVector.size(); i < size; i++) {
-                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-                if (dataSourceId.isEqual(ds.getId())) {
-                    // duplicate, no error
-                    edu.tufts.vue.util.Logger.log("cannot add a data source with an id already in use");
-                    return;
-                }
+
+        synchronized (DataSources) {
+            if (DataSources.add(dataSource)) {
+                Log.info("add data src: " + dataSource);
+                //Log.info("added data source: " + dataSource);
+                if (!marshalling)
+                    save();
             }
-			try {				
-				Log.info("Adding data source " + dataSource.getId().getIdString() + " " + dataSource.getRepository().getDisplayName());
-			} catch (Throwable t) {
-			}
-            dataSourceVector.addElement(dataSource);
-            if(!marshalling) save();
-        } catch (Throwable t) {
-            t.printStackTrace();
         }
     }
     
     /**
+     * Add the given data source to the global list if it's there (any matching the id, tho there should be only one).
+     * Will immediately save if anything was removed.
      */
-    public void remove(org.osid.shared.Id dataSourceId) {
-        try {
-            for (int i=0, size = dataSourceVector.size(); i < size; i++) {
-                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-                if (dataSourceId.isEqual(ds.getId())) {
-                    dataSourceVector.removeElementAt(i);
-                    if(!marshalling) save();
+
+    public void remove(org.osid.shared.Id id) {
+
+        if (id == null) {
+            Util.printStackTrace(this + ".remove: null id");
+            return;
+        }
+
+        synchronized (DataSources) {
+            boolean removed = false;
+            try {
+                for (DataSource ds : DataSources) {
+                    if (id.isEqual(ds.getId())) {
+                        DataSources.remove(ds);
+                        if (removed)
+                            Log.warn("removed again: " + ds);
+                        else
+                            Log.info("removed: " + ds);
+                        removed = true;
+                        // should be able to break, but just in case different instances have same ID..
+                    }
                 }
+            } catch (Throwable t) {
+                Log.error("remove " + Util.tags(id), t);
             }
-        } catch (Throwable t) {
-            
+
+            if (removed && !marshalling)
+                save();
         }
     }
     
     /**
      */
     public edu.tufts.vue.dsm.DataSource getDataSource(org.osid.shared.Id dataSourceId) {
+
         try {
-            for (int i=0, size = dataSourceVector.size(); i < size; i++) {
-                edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-                if (dataSourceId.isEqual(ds.getId())) {
-                    return ds;
-                }
+            synchronized (DataSources) {
+                for (DataSource ds : DataSources)
+                    if (dataSourceId.isEqual(ds.getId()))
+                        return ds;
             }
         } catch (Throwable t) {
-            edu.tufts.vue.util.Logger.log("no datasource with id found");
+            Log.warn("found no DataSource with id " + Util.tags(dataSourceId));
         }
         return null;
     }
@@ -174,51 +183,59 @@ public class VueDataSourceManager
     /**
      */
     public org.osid.repository.Repository[] getIncludedRepositories() {
-		removeDuplicatesFromVector();
-        java.util.Vector results = new java.util.Vector();
-        int size = dataSourceVector.size();
-        for (int i=0; i < size; i++) {
-            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-            if (ds.isIncludedInSearch()) {
-				try {
-					debug("Getting included data source0 " + ds.getId().getIdString());
-					debug("Getting included data source1 " + ds.getRepository());
-					debug("Getting included data source2 " + ds.getRepository().getDisplayName());
-					debug("Getting included data source3 " + ds.getRepository().getId().getIdString());
-				} catch (Throwable t) {
-				}
-                results.addElement(ds.getRepository());
-            }
-        }
-        size = results.size();
-        org.osid.repository.Repository repositories[] = new org.osid.repository.Repository[size];
-        for (int i=0; i < size; i++) {
-            repositories[i] = (org.osid.repository.Repository)results.elementAt(i);
-        }
-        return repositories;
+
+        final List<Repository> included = new ArrayList();
+
+        for (DataSource ds : DataSources)
+            if (ds.isIncludedInSearch())
+                included.add(ds.getRepository());
+
+        return included.toArray(new Repository[included.size()]);
+        
+//         removeDuplicatesFromVector();
+//         java.util.Vector results = new java.util.Vector();
+//         int size = dataSourceVector.size();
+//         for (int i=0; i < size; i++) {
+//             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+//             if (ds.isIncludedInSearch()) {
+//                 try {
+//                     debug("Getting included data sourceA " + tufts.Util.tag(ds));
+//                     debug("Getting included data sourceB " + tufts.Util.tags(ds.getId()));
+//                     debug("Getting included data source0 " + ds.getId().getIdString());
+//                     debug("Getting included data source1 " + ds.getRepository());
+//                     debug("Getting included data source2 " + ds.getRepository().getDisplayName());
+//                     debug("Getting included data source3 " + ds.getRepository().getId().getIdString());
+//                 } catch (Throwable t) {
+//                 }
+//                 results.addElement(ds.getRepository());
+//             }
+//         }
+//         size = results.size();
+//         org.osid.repository.Repository repositories[] = new org.osid.repository.Repository[size];
+//         for (int i=0; i < size; i++) {
+//             repositories[i] = (org.osid.repository.Repository)results.elementAt(i);
+//         }
+//         return repositories;
+        
     }
 
     private static void debug(String s) {
         Log.info(s);
     }
     
-	public edu.tufts.vue.dsm.DataSource[] getIncludedDataSources() {
-		removeDuplicatesFromVector();
-        java.util.Vector results = new java.util.Vector();
-        int size = dataSourceVector.size();
-        for (int i=0; i < size; i++) {
-            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-			if (ds.isIncludedInSearch()) {
-                results.addElement(ds);
-            }
+    public edu.tufts.vue.dsm.DataSource[] getIncludedDataSources() {
+
+        final List<DataSource> included = new ArrayList();
+
+        synchronized (DataSources) {
+            for (DataSource ds : DataSources)
+                if (ds.isIncludedInSearch())
+                    included.add(ds);
         }
-        size = results.size();
-        edu.tufts.vue.dsm.DataSource dataSources[] = new edu.tufts.vue.dsm.DataSource[size];
-        for (int i=0; i < size; i++) {
-            dataSources[i] = (edu.tufts.vue.dsm.DataSource)results.elementAt(i);
-        }
-        return dataSources;
-	}
+
+        return included.toArray(new DataSource[included.size()]);
+    }
+    
     
 	/**
      */
@@ -238,13 +255,15 @@ public class VueDataSourceManager
         return null;
     }
     
+    /** for castor persistance only -- should not be used for fetching the data source list
+     * This will normally return null except during marshalling */
     public Vector getDataSourceVector() {
-        return dataSourceVector;
+        return marshalling ? dataSourceVector : null;
     }
     
-    public void setDataSourceVector(Vector dsv) {
-        dataSourceVector = dsv;
-    }
+//     public void setDataSourceVector(Vector dsv) {
+//         dataSourceVector = dsv;
+//     }
     
     public void addDataSourceListener(edu.tufts.vue.dsm.DataSourceListener listener) {
         dataSourceListeners.add(listener);
@@ -260,58 +279,88 @@ public class VueDataSourceManager
             listener.changed(getDataSources());
         }
     }
-    public  static void marshall(File file,VueDataSourceManager dsm) {
-    //    System.out.println("Marshalling: file -"+ file.getAbsolutePath());
-        Marshaller marshaller = null;
-        //Mapping mapping = new Mapping();
-        Mapping mapping = tufts.vue.action.ActionUtil.getDefaultMapping();
+    
+    public static synchronized void marshall(File file,VueDataSourceManager dsm)
+    {
+        //System.out.println("Marshalling: file -"+ file.getAbsolutePath());
+
+        dataSourceVector.clear();
+        synchronized (DataSources) {
+            dataSourceVector.addAll(DataSources);
+        }
+
         marshalling = true;
         try {
+            Mapping mapping = tufts.vue.action.ActionUtil.getDefaultMapping();
             FileWriter writer = new FileWriter(file);
-            marshaller = new Marshaller(writer);
-            //mapping.loadMapping(XML_MAPPING_DEFAULT);
+            Marshaller marshaller = new Marshaller(writer);
             marshaller.setMapping(mapping);
+            Log.debug("Marshalling to " + file + "...");
             marshaller.marshal(dsm);
             writer.flush();
             writer.close();
+            Log.info(" Marshalled to " + file);
         } catch (Throwable t) {
-            t.printStackTrace();
-            System.err.println("VueDataSourceManager.marshall " + t.getMessage());
+            Log.error("marshall to " + file, t);
+        } finally {
+            marshalling = false;
         }
-        marshalling = false;
     }
     
-    public static  VueDataSourceManager unMarshall(File file) throws java.io.IOException, org.exolab.castor.xml.MarshalException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException {
-     // System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
+    public static synchronized VueDataSourceManager unMarshall(File file)
+        throws java.io.IOException, org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.mapping.MappingException,
+               org.exolab.castor.xml.ValidationException
+    {
+        //System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
-        /*
-        Unmarshaller unmarshaller = null;
-        Mapping mapping = new Mapping();
-        unmarshaller = new Unmarshaller();
-        unmarshaller.setIgnoreExtraElements(true);
-        mapping.loadMapping(XML_MAPPING_DEFAULT);
-        unmarshaller.setMapping(mapping);
-        */
+        
+        VueDataSourceManager dsm = null;
         marshalling = true;
-        FileReader reader = new FileReader(file);
-        VueDataSourceManager dsm = (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
-				
-		int size = dataSourceVector.size();
-        for (int i=0; i < size; i++) {
-            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
-			try {
-				debug("Unmarshalled data source0 " + ds.getId().getIdString());
-				debug("Unmarshalled data source1 " + ds.getRepository());
-				debug("Unmarshalled data source2 " + ds.getRepository().getDisplayName());
-				debug("Unmarshalled data source3 " + ds.getRepository().getId().getIdString());
-			} catch (Throwable t) {
-			}
-		}
-		
-        reader.close();
-        marshalling = false;
+        try {
+            
+            final FileReader reader = new FileReader(file);
+            dataSourceVector.clear();
+            dsm = (VueDataSourceManager) unmarshaller.unmarshal(new InputSource(reader));
+            reader.close();
+
+            // Note that we do NOT clear DataSources here -- thus multiple unmarshalls
+            // may load DataSources with multiple instances (as we're currently
+            // only unique via identity hash code) -- this was the old behavior.
+            // Si if we were ever to unmarshall more than once during a runtime, the impl
+            // will need to handle full uniqueness based on ID, or again we'll
+            // get repeats, even in the DataSources set.
+            
+            synchronized (DataSources) {
+                for (DataSource ds : dataSourceVector) {
+                    try {
+                        debug("Unmarshalled: " + ds + "; RepositoryID=" + ds.getRepository().getId().getIdString());
+                    } catch (Throwable t) {
+                        Log.warn("Unmarshalling", t);
+                    }
+                    DataSources.add(ds);
+                }
+            }
+        } finally {
+            marshalling = false;
+        }
+        
+//         int size = dataSourceVector.size();
+//         for (int i=0; i < size; i++) {
+//             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)dataSourceVector.elementAt(i);
+//             try {
+//                 debug("Unmarshalled data sourceA #" + i + " " + tufts.Util.tag(ds));
+//                 debug("Unmarshalled data sourceB " + tufts.Util.tags(ds.getId()));
+//                 debug("Unmarshalled data source0 " + ds.getId().getIdString());
+//                 debug("Unmarshalled data source1 " + ds.getRepository());
+//                 debug("Unmarshalled data source2 " + ds.getRepository().getDisplayName());
+//                 debug("Unmarshalled data source3 " + ds.getRepository().getId().getIdString());
+//             } catch (Throwable t) {
+//             }
+//         }
+	
         return dsm;
     }
-    
+
 }
