@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.80 $ / $Date: 2007-10-24 03:50:25 $ / $Author: sfraize $  
+ * @version $Revision: 1.81 $ / $Date: 2007-10-24 07:40:43 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -122,7 +122,7 @@ class MapDropTarget
     {
         if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
 
-        final LWComponent over = mViewer.pickDropTarget(dropToFocalLocation(e.getLocation()), null);
+        LWComponent over = mViewer.pickDropTarget(dropToMapLocation(e.getLocation()), null);
 
         if (over != null)
             mViewer.setIndicated(over);
@@ -366,10 +366,9 @@ class MapDropTarget
             nextX = mapLocation.x;
             nextY = mapLocation.y;
 
-            if (DEBUG.DND) System.out.println("DropContext:"
-                                              + "\n\t   mapLoc: " + mapLocation
-                                              + "\n\t      hit: " + hit
-                                              + "\n\thitParent: " + hitParent
+            if (DEBUG.DND) System.out.println(  "DropContext: loc: " + Util.fmt(mapLocation)
+                                              + "\n             hit: " + hit
+                                              + "\n       hitParent: " + hitParent
                                               );
         }
 
@@ -461,6 +460,7 @@ class MapDropTarget
     {
         Point dropLocation = null;
         Point2D.Float mapLocation = null;
+        //Point2D.Float focalLocation = null;
         int dropAction = DnDConstants.ACTION_COPY; // default action, in case no DropTargetDropEvent
 
         // On current JVM's on Mac and PC, default action for dragging a desktop item is
@@ -488,23 +488,30 @@ class MapDropTarget
                 dropAction = dropActionOverride;
             else
                 dropAction = e.getDropAction();
-            mapLocation = dropToFocalLocation(dropLocation);
+            mapLocation = dropToMapLocation(dropLocation);
+            //focalLocation = dropToFocalLocation(dropLocation);
             //if (DEBUG.DND) out(Util.TERM_GREEN + "processTransferable: " + GUI.dropName(e) + Util.TERM_CLEAR
             if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e)
                                + "\n\t        dropAction: " + dropName(e.getDropAction())                               
                                + "\n\tdropActionOverride: " + dropName(dropActionOverride)
-                               + "\n\t     dropScreenLoc: " + dropLocation
-                               + "\n\t      dropFocalLoc: " + mapLocation
+                               + "\n\t     dropScreenLoc: " + Util.fmt(dropLocation)
+                               + "\n\t        dropMapLoc: " + Util.fmt(mapLocation)
+                               //+ "\n\t      dropFocalLoc: " + Util.fmt(focalLocation)
                                );
         } else {
             if (DEBUG.DND) out("processTransferable: (no drop event) transfer=" + transfer);
         }
 
         LWComponent dropTarget = null;
+        Point2D.Float hitLocation = null;
 
         if (dropLocation != null) {
             dropTarget = mViewer.pickDropTarget(mapLocation, null);
             if (DEBUG.DND) out("dropTarget=" + dropTarget + " in " + mViewer);
+            if (dropTarget != null) {
+                hitLocation = mapToLocalLocation(mapLocation, dropTarget);
+                if (DEBUG.DND) out("dropTarget hit location: " + Util.fmt(hitLocation));
+            }
             /*
               // handle via traversal picking code:
             if (dropTarget instanceof LWImage) { // todo: does LWComponent accept drop events...
@@ -519,6 +526,9 @@ class MapDropTarget
             dropLocation = mViewer.getLastMousePressPoint();
             mapLocation = dropToFocalLocation(dropLocation);
         }
+
+        if (hitLocation == null)
+            hitLocation = mapLocation;
             
             
         DataFlavor foundFlavor = null;
@@ -528,7 +538,7 @@ class MapDropTarget
         
         int dropType = 0;
 
-        if (DEBUG.DND) dumpFlavors(transfer);
+        if (DEBUG.DND && DEBUG.META) dumpFlavors(transfer);
 
         // BTW, we could wait till after we check for all the local flavors which always take precedence
         // before we bother to scan for these.
@@ -739,7 +749,9 @@ class MapDropTarget
         DropContext drop =
             new DropContext(transfer,
                             //dropLocation,
-                            mapLocation,
+                            //mapLocation,
+                            //focalLocation,
+                            hitLocation,
                             mViewer,
                             dropItems,
                             dropText,
@@ -870,9 +882,12 @@ class MapDropTarget
         
         // now add them to the map
 
-        // Always to the set center, in case hitParent isn't something
+        // We'd like to always to the set center, in case hitParent isn't something
         // that is going to auto-layout the new children
-        setCenterAt(drop.items, drop.location);
+        if (CenterNodesOnDrop)
+            setCenterAt(drop.items, drop.location);
+        else
+            setLocation(drop.items, drop.location);
 
         if (drop.hitParent != null) {
             drop.hitParent.addChildren(drop.items);
@@ -1442,12 +1457,25 @@ class MapDropTarget
         return dropToFocalLocation(p.x, p.y);
     }
 
+    private Point2D.Float mapToLocalLocation(Point2D.Float mapLocation, LWComponent local)
+    {
+        return (Point2D.Float) local.transformMapToZeroPoint(mapLocation, new Point2D.Float());
+    }
+    
     private Point2D.Float dropToFocalLocation(int x, int y)
     {
         final Point2D.Float mapLoc = (Point2D.Float) mViewer.screenToFocalPoint(x, y);
         //if (DEBUG.DND) out("dropToMapLocation " + x + "," + y + " = " + mapLoc);
         return mapLoc;
     }
+
+    private Point2D.Float dropToMapLocation(Point p)
+    {
+        final Point2D.Float mapLoc =  mViewer.screenToMapPoint(p.x, p.y);
+        //if (DEBUG.DND) out("dropToMapLocation " + x + "," + y + " = " + mapLoc);
+        return mapLoc;
+    }
+    
 
     
     // TODO: this should be here: move to URLResource.java
@@ -1494,34 +1522,40 @@ class MapDropTarget
     /**
      * Given a collection of LWComponent's, center them as a groupp at the given map location.
      */
-    public static void setCenterAt(Collection nodes, Point2D.Float mapLocation)
+    public static void setCenterAt(List<LWComponent> nodes, Point2D.Float mapLocation)
     {
-        java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
+        if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + nodes);
+        setLocation(nodes, mapLocation);
+//         java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
 
-        float dx = mapLocation.x - (bounds.x + bounds.width/2);
-        float dy = mapLocation.y - (bounds.y + bounds.height/2);
+//         float dx = mapLocation.x - (bounds.x + bounds.width/2);
+//         float dy = mapLocation.y - (bounds.y + bounds.height/2);
 
-        translate(nodes, dx, dy);
+//         translate(nodes, dx, dy);
     }
 
     /**
      * Given a collection of LWComponent's, place the upper left hand corner of the group at the given location.
      */
-    public static void setLocation(Collection nodes, Point2D.Float mapLocation)
+    public static void setLocation(List<LWComponent> nodes, Point2D.Float mapLocation)
     {
-        java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
-
-        float dx = mapLocation.x - bounds.x;
-        float dy = mapLocation.y - bounds.y;
-
-        translate(nodes, dx, dy);
+        if (nodes.size() == 1) {
+            if (nodes.get(0).getParent() == null)
+                nodes.get(0).setLocation(mapLocation);
+        } else {
+        
+            java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
+            
+            float dx = mapLocation.x - bounds.x;
+            float dy = mapLocation.y - bounds.y;
+            
+            translate(nodes, dx, dy);
+        }
     }
 
-    private static void translate(Collection nodes, float dx, float dy)
+    private static void translate(List<LWComponent>nodes, float dx, float dy)
     {
-        java.util.Iterator i = nodes.iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : nodes) {
             // If parent and some child both in selection and you drag (normally
             // only the parent get's selected), the child will have it's
             // location updated by the parent, so only set the location
@@ -1533,12 +1567,13 @@ class MapDropTarget
     }
 
     private void out(String s) {
-        final String name;
-        if (mViewer.getFocal() != null)
-            name = mViewer.getFocal().getLabel();
-        else
-            name = mViewer.toString();
-        Log.debug(String.format("(%s): %s", name, s));
+        Log.debug(s);
+//         final String name;
+//         if (mViewer.getFocal() != null)
+//             name = mViewer.getFocal().getLabel();
+//         else
+//             name = mViewer.toString();
+//         Log.debug(String.format("(%s): %s", name, s));
         //System.out.println("MapDropTarget(" + name + ") " + s);
     }
     
