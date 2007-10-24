@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.82 $ / $Date: 2007-10-24 07:44:54 $ / $Author: sfraize $  
+ * @version $Revision: 1.83 $ / $Date: 2007-10-24 19:12:58 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -509,8 +509,31 @@ class MapDropTarget
             dropTarget = mViewer.pickDropTarget(mapLocation, null);
             if (DEBUG.DND) out("dropTarget=" + dropTarget + " in " + mViewer);
             if (dropTarget != null) {
+                if (!dropTarget.supportsChildren()) {
+                    
+                    // this SHOULD be preventing drops onto MapSlides, but dropTarget is
+                    // coming back null because pickDropTarget is checking
+                    // supportsChildren itself (and returning null) -- we might want to
+                    // have a special DROP_DENIED return value from pickDropTarget, or
+                    // change semantics to return NULL only when denied, and return the
+                    // actual map/focal we want to hit/added to, but that value thread
+                    // down through the DropContext to tons of code below that we need
+                    // to check.  In any case, code down below denying based on the
+                    // focal being non-map when there's no target found handles this for
+                    // now.
+                    
+                    if (DEBUG.DND) out("dropTarget: doesn't support children: " + dropTarget);
+                    return false;
+                }
                 hitLocation = mapToLocalLocation(mapLocation, dropTarget);
                 if (DEBUG.DND) out("dropTarget hit location: " + Util.fmt(hitLocation));
+            } else {
+                // drop target is null
+                if (mViewer.getFocal() instanceof LWMap == false) {
+                    // this prevents drops on MapSlides, and off-slide when real slides are the focal
+                    if (DEBUG.DND) out("null dropTarget: default drop denied to non-map focal");
+                    return false;
+                }
             }
             /*
               // handle via traversal picking code:
