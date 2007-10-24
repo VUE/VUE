@@ -1428,9 +1428,7 @@ public class PresentationTool extends VueTool
             mNextPage = null;
 
         VUE.getSelection().clear();
-
-        //handleSelectionChange(VUE.getSelection());
-        //mStartButton.requestFocus();
+        //repaint();
     }
 
     private boolean startUnderway;
@@ -1970,10 +1968,12 @@ public class PresentationTool extends VueTool
         //        if (mCurrentPage != null)
         //            dc.setDrawPathways(mCurrentPage.node instanceof LWMap);
 
-        dc.setDrawPathways(dc.isAnimating() || mCurrentPage.node instanceof LWMap);
+        //out("getDrawContext");
+
+        dc.setDrawPathways(dc.isAnimating() || mCurrentPage == null || mCurrentPage.node instanceof LWMap);
         
-        if (false &&mShowNavNodes)
-            dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
+        //if (mShowNavNodes) dc.g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC, 0.5f));
+
         return dc;
     }
 
@@ -1992,7 +1992,7 @@ public class PresentationTool extends VueTool
             if (mCurrentPage != null) {
                 final LWSlide master = mPathway.getMasterSlide();
                 boolean drawMaster = false;
-                out("FILLING FOR ENTRY " + mCurrentPage.entry);
+                if (DEBUG.PRESENT) out("handlePreDraw: FILLING FOR ENTRY: " + mCurrentPage.entry);
                 if (mCurrentPage.entry != null) {
                     dc.fillBackground(mCurrentPage.entry.getFullScreenFillColor(dc));
                     if (!mCurrentPage.entry.hasSlide())
@@ -2004,7 +2004,7 @@ public class PresentationTool extends VueTool
                     drawMaster = false;
                 }
                 if (drawMaster) {
-                    out("DRAWING MASTER " + master);
+                    if (DEBUG.PRESENT) out("handlePreDraw: DRAWING MASTER " + master);
                     master.drawFit(dc.create(), 0);
                     //master.drawIntoFrame(dc);
                 }
