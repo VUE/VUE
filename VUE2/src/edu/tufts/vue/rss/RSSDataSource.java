@@ -124,20 +124,15 @@ public class RSSDataSource  extends VueDataSource{
             Resource res = null;
             try {
                 //res = new URLResource(new URL(entry.getUri()));
-                System.out.println("trying to create rss item resource entry is: " + entry);
+                //System.out.println("trying to create rss item resource entry is: " + entry);
                 String link = entry.getLink();
-                System.out.println("trying to create rss resource - link:" + link);
+                //System.out.println("trying to create rss resource - link:" + link);
                 URL url = new URL(link);
-                System.out.println("trying to create rss resource - url:" + url);
+                //System.out.println("trying to create rss resource - url:" + url);
                 /*link = *///java.net.URLDecoder.decode(link,"UTF-8");
                 //res = new URLResource(url);
                 res = Resource.getFactory().get(url);
             }
-            /*catch(java.io.UnsupportedEncodingException uee)
-            {
-                // for sun developer network...?
-                System.out.println("Unsupported Encoding Exception while creating RSS feed resource" + uee);
-            }*/
             catch(MalformedURLException mue) {
                 System.out.println("Malformed URL Exception while creating RSS feed resource: " + mue);
             }
@@ -166,8 +161,7 @@ public class RSSDataSource  extends VueDataSource{
             this.resourceViewer = fileTree;
         }
         
-        //DataSourceViewer.refreshDataSourcePanel(this);
-        
+      
     }
     
     public JComponent getResourceViewer(){
