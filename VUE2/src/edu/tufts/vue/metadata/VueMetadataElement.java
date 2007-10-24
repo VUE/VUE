@@ -32,6 +32,8 @@ import java.net.*;
  */
 public class VueMetadataElement {
     
+   private static final boolean DEBUG_LOCAL = false; 
+    
    private String value;
    private String key;
    private Object obj;
@@ -53,6 +55,12 @@ public class VueMetadataElement {
    
    public void setObject(Object obj)
    {
+       
+       if(DEBUG_LOCAL)
+       {
+           System.out.println("VueMetadataElement setObject -, key,value " + obj +"," + key + "," + value);
+       }
+       
        this.obj = obj;
        if(obj instanceof String)
        {    
@@ -105,8 +113,14 @@ public class VueMetadataElement {
    
    public void setType(int type)
    {
+       
+       if(DEBUG_LOCAL)
+       {
+           System.out.println("VueMetadataElement setType -, key,value " + type +"," + key + "," + value);
+       }
+       
        this.type = type;
-       if( (type == CATEGORY) && (obj == null) )
+       if( ( (type == CATEGORY) || (type == ONTO_TYPE) ) && (obj == null) )
        {
            int len = (VUE_ONT + "#").length();
            if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());

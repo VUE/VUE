@@ -37,6 +37,8 @@ import java.util.List;
  */
 public class MetadataList {
     
+    private final static boolean DEBUG_LOCAL = false;
+    
     private List<VueMetadataElement> metadataList = new CategoryFirstList<VueMetadataElement>();
     
     private static List<MetadataListListener> listeners = new ArrayList<MetadataListListener>();
@@ -62,6 +64,11 @@ public class MetadataList {
     
     public void addElement(VueMetadataElement element)
     {
+      if(DEBUG_LOCAL)
+      {
+          System.out.println("MetadataList addElement - " + element);
+      }
+        
       metadataList.add(element);
       fireListChanged();
     }
@@ -132,19 +139,68 @@ public class MetadataList {
       
       public boolean add(E o)
       {
+          
+          if(DEBUG_LOCAL)
+          {
+            if(o instanceof VueMetadataElement)
+            {    
+              VueMetadataElement e = (VueMetadataElement)o;
+              System.out.println("MetadataList adding object -- o.getObject() (may need set type) " + e.getObject()); 
+              System.out.println("MetadataList adding object -- o.getObject() type " + e.getType());
+            }
+            else
+            {
+              System.out.println("MetadataList non vme added to category first list " + o.getClass());
+            }
+              
+            System.out.println("MetadataList categoryFirstList add - categoryEndIndex, ontologyEndIndex, size - " + o +"," +
+                  categoryEndIndex + "," + ontologyEndIndex + "," + size());
+          }
+          
           VueMetadataElement vme = null;
           if(!(o instanceof VueMetadataElement))
               return false;
           else
               vme = (VueMetadataElement)o;
           
-          if(vme.getObject() instanceof OntType)
+          if(vme.getObject() == null)
+          {
+              
+              if(DEBUG_LOCAL)
+              {
+                  System.out.println("Metadatalist categoryfirstindex add - setting type " + vme.getType());
+              }
+              
+              vme.setType(vme.getType());
+          }
+          
+          if(DEBUG_LOCAL)
+          {
+             
+            System.out.println("MetadataList - categoryfirstList add - after set type check " );  
+              
+            if(o instanceof VueMetadataElement)
+            {    
+              VueMetadataElement e = (VueMetadataElement)o;
+              System.out.println("MetadataList adding object -- o.getObject() (may need set type) " + e.getObject()); 
+              System.out.println("MetadataList adding object -- o.getObject() type " + e.getType());
+            }
+            else
+            {
+              System.out.println("MetadataList non vme added to category first list " + o.getClass());
+            }
+              
+            System.out.println("MetadataList categoryFirstList add - categoryEndIndex, ontologyEndIndex, size - " + o +"," +
+                  categoryEndIndex + "," + ontologyEndIndex + "," + size());
+          }
+          
+          if(vme.getObject() instanceof OntType || vme.getType() == VueMetadataElement.ONTO_TYPE ) 
           {
               otherEndIndex++;
               add(ontologyEndIndex++,(E)vme);
           }
           else
-          if(vme.getObject() instanceof String[])
+          if(vme.getObject() instanceof String[] || vme.getType() == VueMetadataElement.CATEGORY )
           {
               ontologyEndIndex++;
               otherEndIndex++;
