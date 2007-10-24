@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.66 $ / $Date: 2007-10-23 18:59:05 $ / $Author: mike $
+ * @version $Revision: 1.67 $ / $Date: 2007-10-24 19:35:17 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -150,7 +150,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
-                //publishMenu = new VueMenu("Publish");
+               
                 publishMenu.removeAll();
                 publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
                 publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
@@ -162,9 +162,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
                      }
                      } catch(org.osid.repository.RepositoryException ex) {
                     ex.printStackTrace();
+                    }
                 }
-                }
-
+                fileMenu.remove(publishMenu);
+                fileMenu.add(publishMenu,10);
                 
             }
         });
