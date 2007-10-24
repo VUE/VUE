@@ -613,7 +613,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            
                            JDialog ecd = new JDialog(VUE.getApplicationFrame(),"Edit Categories");
                            ecd.setModal(true);
-                           ecd.add(new CategoryEditor());
+                           ecd.add(new CategoryEditor(ecd));
                            ecd.setBounds(475,300,300,250);
                            //ecd.pack();
                            ecd.setVisible(true);
@@ -969,6 +969,15 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                MetadataList.CategoryFirstList cfList = (MetadataList.CategoryFirstList)list;
                if(row!=0 || cfList.getCategoryEndIndex() > 0)  
                {
+                 /*if(list.size() == 0)
+                 {
+                   VueMetadataElement vme = new VueMetadataElement();
+                   String[] emptyEntry = {NONE_ONT,""};
+                   vme.setObject(emptyEntry);
+                   vme.setType(VueMetadataElement.CATEGORY);
+                   current.getMetadataList().getMetadata().add(vme);
+                   return vme;
+                 }*/
                  VueMetadataElement ele = list.get(row);
                  /*if(ele.getObject()!=null)
                  {    
