@@ -105,9 +105,6 @@ public class MetadataList {
     public int getOntologyListSize()
     {
         int size = ((CategoryFirstList)metadataList).getOntologyEndIndex() - ((CategoryFirstList)metadataList).getCategoryEndIndex();
-        if(size < 0)
-            return 0;
-        //System.out.println("MetadataList getOntologyList size - " + size);
         return size;
     }
     
@@ -163,31 +160,42 @@ public class MetadataList {
       
       public E remove(int i)
       {
-          if(i<0 || i >= size())
-              return null;
-          
-          
-          if(i < categoryEndIndex && i > 0)
+          if(i < categoryEndIndex)
+
+
+
+
           {
               categoryEndIndex--;
+              if(ontologyEndIndex > 0)
+              {    
+                ontologyEndIndex--;
+              }
+              if(otherEndIndex > 0)
+              {
+                otherEndIndex--;
+              }
           }
           else if(i >= categoryEndIndex && i < ontologyEndIndex)
           {
-              
-              if(ontologyEndIndex > 0)
-              {
-                  ontologyEndIndex--;
-              }
-              
+              //categoryEndIndex--;
+
+
+              ontologyEndIndex--;
+              otherEndIndex--;
           }
+
+
           else
           {
-
+              //categoryEndIndex--;
+              //ontologyEndIndex--;
+              otherEndIndex--;
           }
           
           fireListChanged();
           
-          
+
           return super.remove(i);
       }
             
