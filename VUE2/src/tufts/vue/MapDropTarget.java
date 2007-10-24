@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.81 $ / $Date: 2007-10-24 07:40:43 $ / $Author: sfraize $  
+ * @version $Revision: 1.82 $ / $Date: 2007-10-24 07:44:54 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1522,16 +1522,16 @@ class MapDropTarget
     /**
      * Given a collection of LWComponent's, center them as a groupp at the given map location.
      */
-    public static void setCenterAt(List<LWComponent> nodes, Point2D.Float mapLocation)
+    public static void setCenterAt(Collection<LWComponent> nodes, Point2D.Float mapLocation)
     {
-        if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + nodes);
-        setLocation(nodes, mapLocation);
-//         java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
+        //if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + nodes);
+        //setLocation(nodes, mapLocation);
+        java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
 
-//         float dx = mapLocation.x - (bounds.x + bounds.width/2);
-//         float dy = mapLocation.y - (bounds.y + bounds.height/2);
+        float dx = mapLocation.x - (bounds.x + bounds.width/2);
+        float dy = mapLocation.y - (bounds.y + bounds.height/2);
 
-//         translate(nodes, dx, dy);
+        translate(nodes, dx, dy);
     }
 
     /**
@@ -1553,7 +1553,7 @@ class MapDropTarget
         }
     }
 
-    private static void translate(List<LWComponent>nodes, float dx, float dy)
+    private static void translate(Collection<LWComponent>nodes, float dx, float dy)
     {
         for (LWComponent c : nodes) {
             // If parent and some child both in selection and you drag (normally
