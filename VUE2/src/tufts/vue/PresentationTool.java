@@ -1,4 +1,4 @@
- /*
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -399,9 +399,12 @@ public class PresentationTool extends VueTool
                 super(x, y, BoxSize, BoxSize, 5, 5);
                 entry = e;
                 if (entry != null) {
-                    String text = Integer.toString(entry.index() + 1); // index's are zero-based, so add 1
-                    //if (entry.isLast()) text = "(" + text + ")";
-                    row = TextRow.instance(text, NavBoxFont);
+                    if (DEBUG.Enabled) {
+                        String text = Integer.toString(entry.index() + 1); // index's are zero-based, so add 1
+                        //if (entry.isLast()) text = "(" + text + ")";
+                        row = TextRow.instance(text, NavBoxFont);
+                    } else
+                        row = null;
                     color = Util.alphaMix(entry.pathway.getColor(), Color.white);
                 } else {
                     color = null;
@@ -426,7 +429,7 @@ public class PresentationTool extends VueTool
                 } else
                     faint = null;
                 
-                if (entry != null && entry.isLast()) {
+                if (DEBUG.Enabled && entry != null && entry.isLast()) {
                     int left = (int) Math.round(super.x) + 4;
                     int right = (int) Math.round(super.x + super.width) - 4;
                     int bottom = (int) Math.round(super.y + super.height) - 4;
