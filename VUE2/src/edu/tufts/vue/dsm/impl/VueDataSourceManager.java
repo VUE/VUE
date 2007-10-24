@@ -346,9 +346,15 @@ public class VueDataSourceManager
             synchronized (DataSources) {
                 for (DataSource ds : dataSourceVector) {
                     try {
-                        debug("Unmarshalled: " + ds + "; RepositoryID=" + ds.getRepository().getId().getIdString());
+                        final Repository r = ds.getRepository();
+                        final String id;
+                        if (r == null)
+                            id = "<null-repository>";
+                        else
+                            id = r.getId().getIdString();
+                        debug("Unmarshalled: " + ds + "; RepositoryID=" + id);
                     } catch (Throwable t) {
-                        Log.warn("Unmarshalling", t);
+                        Log.warn("Unmarshalling:", t);
                     }
                     DataSources.add(ds);
                 }
@@ -356,6 +362,7 @@ public class VueDataSourceManager
         } finally {
             marshalling = false;
         }
+        Log.debug("unmarshall: done.");
         
 //         int size = dataSourceVector.size();
 //         for (int i=0; i < size; i++) {
