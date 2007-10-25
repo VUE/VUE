@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.35 $ / $Date: 2007-10-24 07:42:42 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2007-10-25 21:22:19 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1545,19 +1545,38 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     {
         if (url == null || !"http".equals(url.getProtocol()))
             return null;
-        
+
         final String thumbShotURL = "http://open.thumbshots.org/image.pxf?url=" + url;
         final URL thumbShot = makeURL(thumbShotURL);
 
         if (thumbShot == null)
             return null;
 
-         Image image = null;
+        // TODO: if we're currently on the AWT event thread, this should NOT run synchronously...
+        // We should spawn a thread for this.  Otherwise, any delay in accessing thumbshots.org
+        // will result in the UI locking up until it responds with a result/error.
+
+        final boolean inUI_Thread = SwingUtilities.isEventDispatchThread();
+
+        if (inUI_Thread) {
+             Log.warn("fetching thumbshot in AWT; may lock UI: " + thumbShot);
+             if (DEBUG.Enabled && DEBUG.META) Util.printStackTrace("fetchThumbshot " + thumbShot);
+        } else {
+            if (DEBUG.IO) Log.debug("attempting thumbshot: " + thumbShot);
+        }
+
+        Image image = null;
          try {
              image = ImageIO.read(thumbShot);
          } catch (Throwable t) {
+             if (inUI_Thread)
+                 Log.warn("fetching thumbshot in AWT;   got error: " + thumbShot + "; " + t);
              if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
          }
+         if (inUI_Thread)
+             Log.warn("fetching thumbshot in AWT;         got: " + thumbShot);
+
+         
          
          if (image == null) {
              if (DEBUG.WEBSHOTS) out("Didn't get a valid return from webshots : " + thumbShot);
