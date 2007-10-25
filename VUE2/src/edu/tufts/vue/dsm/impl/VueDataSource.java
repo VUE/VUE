@@ -55,7 +55,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     private String repositoryDisplayName = null;
     private String repositoryDescription = null;
     private boolean repositorySupportsUpdate = false;
-	private boolean repositorySupportsSearch = false;
+    private boolean repositorySupportsSearch = false;
     private org.osid.shared.TypeIterator repositoryAssetTypes = null;
     private org.osid.shared.TypeIterator repositorySearchTypes = null;
     
@@ -333,7 +333,13 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     }
     
     public String getRepositoryDisplayName() {
-        return this.repositoryDisplayName;
+        if (this.repositoryDisplayName == null || this.repositoryDisplayName.trim().length() < 1) {
+            if (this.providerDisplayName == null) {
+                return "(Repository Name Unknown)";
+            } else
+                return "(Name Unknown; Provider: " + providerDisplayName + ")";
+        } else
+            return this.repositoryDisplayName;
     }
     
     public String getRepositoryDescription() {
