@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.114 $ / $Date: 2007-10-24 00:16:29 $ / $Author: mike $
+ * @version $Revision: 1.115 $ / $Date: 2007-10-25 15:53:46 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -314,7 +314,7 @@ public class DockWindow extends javax.swing.JWindow
 
         mMinContentSize = c.getMinimumSize();
         if (DEBUG.DOCK) GUI.dumpSizes(c, this + ":setContent");
-        mContentPane.setWidget(c, Widget.wantsScroller(c));
+        mContentPane.setWidget(c, Widget.wantsScroller(c),Widget.wantsScrollerAsNeeded(c));
 
         Component toListen = null;
         if (c instanceof JScrollPane)
@@ -3512,7 +3512,7 @@ public class DockWindow extends javax.swing.JWindow
             
         }
 
-        void setWidget(JComponent widget, boolean scrolled) {
+        void setWidget(JComponent widget, boolean scrolled, boolean scrollAlways) {
             mContent.removeAll();
 
             //if (GUI.isMacBrushedMetal() && isToolbar)
@@ -3525,7 +3525,7 @@ public class DockWindow extends javax.swing.JWindow
 
             if (scrolled && mScroller == null) {
                 mScroller = new JScrollPane(null,
-                                            JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                            scrollAlways ? JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED : JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
                 mScroller.setOpaque(false);
                 mScroller.getViewport().setOpaque(false);
