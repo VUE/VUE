@@ -86,13 +86,20 @@ public class FedoraPublisher {
     public FedoraPublisher() {
     }
     
+    public static void uploadMap(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception {
+        Properties properties = ds.getConfiguration();
+        FedoraPublisher.uploadMap("https",  properties.getProperty("fedora22Address"), 8443, properties.getProperty("fedora22UserName"),  properties.getProperty("fedora22Password"),map);
+    }
     public static void uploadMap(String protocol, String host, int port, String userName, String password,LWMap map) throws Exception{
         String mapPid = getFedoraPid(map);
         //TODO: Marchall Map before uploading it to repository
         File file =map.getFile();
         uploadObjectToRepository(protocol,host,port, userName,password,file, VueResources.getFile("fedora.cm.vue"),VUE_CM,(new MimetypesFileTypeMap().getContentType(file)),mapPid,map.getLabel(),MAP_DS,map,map);
     }
-    
+    public static void uploadMapAll(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception{
+        Properties properties = ds.getConfiguration();
+        FedoraPublisher.uploadMapAll("https",   properties.getProperty("fedora22Address"), 8443,  properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"),map);
+    }
     public static void uploadMapAll(String protocol, String host, int port, String userName, String password,LWMap map) throws Exception{
         LWMap cloneMap = (LWMap)map.clone();
         cloneMap.setLabel(map.getLabel());

@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.73 $ / $Date: 2007-10-23 21:53:17 $ / $Author: anoop $
+ * @version $Revision: 1.74 $ / $Date: 2007-10-25 18:34:55 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -397,12 +397,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         try{
             edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
             if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
-                Properties properties = ds.getConfiguration();
-                if(publishMapRButton.isSelected())
-                    FedoraPublisher.uploadMap("https",  properties.getProperty("fedora22Address"), 8443, properties.getProperty("fedora22UserName"),  properties.getProperty("fedora22Password"),VUE.getActiveMap());
-                else if(publishMapAllRButton.isSelected())
-                    FedoraPublisher.uploadMapAll("https",   properties.getProperty("fedora22Address"), 8443,  properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"),VUE.getActiveMap());
-                else
+                 if(publishMapRButton.isSelected())
+                    FedoraPublisher.uploadMap(ds,VUE.getActiveMap());
+                 else if(publishMapAllRButton.isSelected())
+                    FedoraPublisher.uploadMapAll(ds,VUE.getActiveMap());
+                 else
                     alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                 if(publishMapRButton.isSelected()) {
