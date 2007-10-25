@@ -190,8 +190,13 @@ public class VueDataSourceManager
 
         synchronized (DataSources) {
             for (DataSource ds : DataSources)
-                if (ds.isIncludedInSearch())
-                    included.add(ds.getRepository());
+                if (ds.isIncludedInSearch()) {
+                    Repository r = ds.getRepository();
+                    if (r == null)
+                        Log.warn("data source has no repository: not included in search: " + ds);
+                    else
+                        included.add(r);
+                }
         }
 
         return included.toArray(new Repository[included.size()]);
