@@ -45,7 +45,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.15 $ / $Date: 2007-10-19 19:13:37 $ / $Author: mike $
+ * @version $Revision: 1.16 $ / $Date: 2007-10-25 15:53:14 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -58,6 +58,7 @@ public class Widget extends javax.swing.JPanel
     static final String HELP_ACTION_KEY = "widget.helpAction";
     static final String REFRESH_ACTION_KEY = "widget.refreshAction";
     static final String WANTS_SCROLLER_KEY = "widget.wantsScroller";
+    static final String WANTS_SCROLLERALWAYS_KEY = "widget.wantsScrollerAlways";
     static final String TITLE_HIDDEN_KEY = "widget.titleHidden";
 
     public static void setTitle(JComponent c, String title) {
@@ -90,6 +91,11 @@ public class Widget extends javax.swing.JPanel
     public static void setWantsScroller(JComponent c, boolean scroller) {
         if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setWantsScroller " + scroller);
         setBoolean(c, WANTS_SCROLLER_KEY, scroller);
+    }
+    
+    public static void setWantsScrollerAsNeeded(JComponent c, boolean scroller) {
+        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setWantsScrollerAlways " + scroller);
+        setBoolean(c, WANTS_SCROLLERALWAYS_KEY, scroller);
     }
     
     
@@ -160,6 +166,10 @@ public class Widget extends javax.swing.JPanel
     public static boolean wantsScroller(JComponent c) {
         return isBooleanTrue(c, WANTS_SCROLLER_KEY);
     }
+    
+    public static boolean wantsScrollerAsNeeded(JComponent c) {
+        return isBooleanTrue(c, WANTS_SCROLLERALWAYS_KEY);
+    }
 
     /** only set property if not already set
      * @return true if the value changed
@@ -181,6 +191,7 @@ public class Widget extends javax.swing.JPanel
         return boolProp != null && boolProp.booleanValue();
     }
     
+  
     // instance methods for when used as a subclassed wrapper of JPanel:
     
     /** Create a new empty Widget JPanel, with a default layout of BorderLayout */
@@ -218,7 +229,6 @@ public class Widget extends javax.swing.JPanel
     
     public final void setWantsScroller(boolean scroller) {
         setWantsScroller(this, scroller);
-    }
-    
+    }	    
     
 }
