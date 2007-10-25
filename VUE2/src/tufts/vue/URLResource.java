@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-10-25 21:22:19 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2007-10-25 21:48:04 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1566,27 +1566,28 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
 
         Image image = null;
-         try {
-             image = ImageIO.read(thumbShot);
-         } catch (Throwable t) {
-             if (inUI_Thread)
-                 Log.warn("fetching thumbshot in AWT;   got error: " + thumbShot + "; " + t);
-             if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
-         }
-         if (inUI_Thread)
-             Log.warn("fetching thumbshot in AWT;         got: " + thumbShot);
+        boolean gotError = false;
+        try {
+            image = ImageIO.read(thumbShot);
+        } catch (Throwable t) {
+            if (inUI_Thread) {
+                gotError = true;
+                Log.warn("fetching thumbshot in AWT;   got error: " + thumbShot + "; " + t);
+            }
+            if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
+        }
+        if (inUI_Thread && !gotError)
+            Log.warn("fetching thumbshot in AWT;         got: " + thumbShot);
 
-         
-         
-         if (image == null) {
-             if (DEBUG.WEBSHOTS) out("Didn't get a valid return from webshots : " + thumbShot);
-         } else if (image.getHeight(null) <= 1 || image.getWidth(null) <= 1) {
-             if (DEBUG.WEBSHOTS) out("This was a valid URL but there is no webshot available : " + thumbShot);
-             return null;
-         }
-        	
+        if (image == null) {
+            if (DEBUG.WEBSHOTS) out("Didn't get a valid return from webshots : " + thumbShot);
+        } else if (image.getHeight(null) <= 1 || image.getWidth(null) <= 1) {
+            if (DEBUG.WEBSHOTS) out("This was a valid URL but there is no webshot available : " + thumbShot);
+            return null;
+        }
+        
         if (DEBUG.WEBSHOTS) out("Returning webshot image " + image);
-
+        
         return image;
     }
 
