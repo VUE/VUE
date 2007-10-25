@@ -6,10 +6,12 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
+import java.util.StringTokenizer;
 
 import javax.swing.DefaultBoundedRangeModel;
 import javax.swing.JComponent;
@@ -22,7 +24,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableModel;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
+import javax.swing.text.View;
 
 import tufts.vue.DEBUG;
 import tufts.vue.PropertyMap;
@@ -194,10 +198,41 @@ public class MetaDataPane extends JPanel
    }
 
    public void loadResource(Resource r) {
+	   if (DEBUG.RESOURCE) out("MetaDataPane : loadResource :" + r.getName());
        loadProperties(r.getProperties());
    }
    
+   private Dimension size = new Dimension(200,100);
+   
+  // int height = 5;
+   
+   public Dimension getMinimumSize()
+   {
+	   int height = 5;
+	   int lines = 1;
+	   for (int i = 0; i < mValues.length; i++)
+	   {
+	    	 lines = getWrappedLines(mValues[i]);
+	    	 if (mValues[i].isVisible())
+	    	 {
+	    		 FontMetrics fm = mValues[i].getFontMetrics(mValues[i].getFont());
+	    		 height +=((lines * fm.getHeight()) + topPad + botPad);
+	    	 }
+	   }
+           
+	   if (height > size.getHeight())
+		   return new Dimension(200,height);
+	   else
+		   return size;    	
+   }
+   
+   public Dimension getPreferredSize()
+   {
+	   return getMinimumSize();
+   }
+   
    private PropertyMap mRsrcProps;
+   
    public synchronized void propertyMapChanged(PropertyMap source) {
        if (mRsrcProps == source)
            loadProperties(source);
@@ -302,6 +337,7 @@ public class MetaDataPane extends JPanel
    private void loadAllRows(TableModel model) {
        int rows = model.getRowCount();
        int row;
+   //    height=5;
        for (row = 0; row < rows; row++) {
            String label = model.getValueAt(row, 0).toString();
            String value = "" + model.getValueAt(row, 1);
@@ -326,7 +362,7 @@ public class MetaDataPane extends JPanel
            }
            
            loadRow(row, label, value);
-           
+       
            
        }
        for (; row < mLabels.length; row++) {
@@ -375,7 +411,7 @@ public class MetaDataPane extends JPanel
        // if the field value is a wrapping JTextPane (thus gets taller as window
        // gets narrower), the first line of text rises slightly and is no longer
        // in line with it's label.
-       
+
        GridBagConstraints c = new GridBagConstraints();
        c.anchor = GridBagConstraints.EAST;
        c.weighty = 0;
@@ -436,7 +472,7 @@ public class MetaDataPane extends JPanel
            c.insets = fieldInsets;
            c.weightx = 1.0; // field value expands horizontally to use all space
            gridBag.add(field, c);
-
+        
        }
 
        // add a default vertical expander to take up extra space
@@ -456,6 +492,54 @@ public class MetaDataPane extends JPanel
        } else
            defaultExpander.setOpaque(false);
        gridBag.add(defaultExpander, c);
+       
+     return; 
    }
+   /*
+	**  Return the number of lines of text, including wrapped lines.
+	*/
+   public static int getWrappedLines(JTextComponent c)
+   {
+	   int len = c.getDocument().getLength();
+	   int offset = 0;
+
+	   //    	Increase 10% for extra newlines
+	   StringBuffer buf = new StringBuffer((int) (len * 1.10));
+
+	   try
+	   {
+		   while (offset < len)
+		   {
+			   int end = javax.swing.text.Utilities.getRowEnd(c, offset);
+			   if (end < 0)
+			   {
+				   break;
+			   }
+
+			   //    	Include the last character on the line
+			   end = Math.min(end + 1, len);
+			   
+			   String s = c.getDocument().getText(offset, end - offset);
+			   buf.append(s);
+
+			   //    	Add a newline if s does not have one
+			   if (!s.endsWith("\n"))
+			   {
+				   buf.append('\n');
+			   }
+			   offset = end;
+		   }
+	   }
+	   catch (BadLocationException e)
+	   {
+	   }
+	   StringTokenizer token = new StringTokenizer(buf.toString(), "\n");
+	   int linesOfText = token.countTokens();
+	   
+	   if (linesOfText == 0)
+		   linesOfText =1;
+	   return linesOfText;
+   	}
+
    
 }
