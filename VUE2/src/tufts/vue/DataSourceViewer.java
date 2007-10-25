@@ -834,27 +834,25 @@ public class DataSourceViewer extends JPanel
                 Util.printStackTrace(t);
                 if (stopped())
                     return;
-                mResultPane.setTitle("Results: " + mRepositoryName);
-                mResultPane.removeAll();
                 final JTextArea textArea;
-                if (DEBUG.Enabled)
+                if (DEBUG.Enabled) {
                     textArea = new JTextArea(mRepositoryName + ": Search Error: " + t);
-                else
-                {
-                	String msg;
-                	
-                	msg = translateRepositoryException(t.getLocalizedMessage());
-                	
-                	textArea = new JTextArea(mRepositoryName + ": Search Error: " + msg);
+                } else {
+                    String msg = translateRepositoryException(t.getLocalizedMessage());
+                    textArea = new JTextArea(mRepositoryName + ": Search Error: " + msg);
                 }
-                	
                 
                 textArea.setBorder(new EmptyBorder(4,22,6,0));
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
                 textArea.setEditable(false);
                 textArea.setOpaque(false);
-                mResultPane.add(textArea);
+                	
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    mResultPane.setTitle("Results: " + mRepositoryName);
+                    mResultPane.removeAll();
+                    mResultPane.add(textArea);
+                }});
             }
 
             if (stopped()) {
@@ -866,7 +864,7 @@ public class DataSourceViewer extends JPanel
             if (DEBUG.DR) Log.debug("RUN COMPLETED, stillActive=" + mSearchThreads.size());
             
             // must call revalidate because we're coming from another thread:
-            mResultPane.revalidate();
+            //mResultPane.revalidate();
 
             if (mSearchThreads.size() == 0) {
                 // If we were stopped, the DefaultQueryEditor will have handled
@@ -971,15 +969,19 @@ public class DataSourceViewer extends JPanel
             
             if (stopped())
                 return;
+
+            final String title = name;
             
-            mResultPane.setTitle(name);
-            mResultPane.removeAll();
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                mResultPane.setTitle(title);
+                mResultPane.removeAll();
+                if (resourceList.size() == 0) {
+                    mResultPane.add(new StatusLabel("No results for " + mSearchString, false, false));
+                } else {
+                    mResultPane.add(new ResourceList(resourceList, title));
+                }
+            }});
             
-            if (resourceList.size() == 0) {
-                mResultPane.add(new StatusLabel("No results for " + mSearchString, false, false));
-            } else {
-                mResultPane.add(new ResourceList(resourceList, name));
-            }
         }
     }
     
