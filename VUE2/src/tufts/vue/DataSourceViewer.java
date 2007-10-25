@@ -913,9 +913,11 @@ public class DataSourceViewer extends JPanel
         public void interrupt() {
             if (DEBUG.DR) Log.debug("INTERRUPTED " + this);
             super.interrupt();
-            mResultPane.setTitle(mRepositoryName + " (Stopped)");
-            mStatusLabel.removeIcon();
-            mStatusLabel.setText("Search stopped.");
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                mResultPane.setTitle(mRepositoryName + " (Stopped)");
+                mStatusLabel.removeIcon();
+                mStatusLabel.setText("Search stopped.");
+            }});
         }
         
         private void adjustQuery()
