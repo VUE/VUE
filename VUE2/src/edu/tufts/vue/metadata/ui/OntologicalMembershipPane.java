@@ -53,13 +53,18 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         setLayout(new BorderLayout());
         
         //todo: adjust font (html handles the text wrapping)
-        JLabel label = new JLabel("<html>Ontological Terms associated with this node:</html>");
+        //JLabel label = new JLabel("<html>Ontological Terms associated with this node:</html>");
+        JLabel label = new JLabel("Ontological Terms associated with this node:",JLabel.LEFT);
+        label.setFont(tufts.vue.gui.GUI.LabelFace);
+        label.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         
-        add(label);
+        add(label,BorderLayout.NORTH);
         list = new javax.swing.JList(new OntologyTypeListModel());
         list.setCellRenderer(new OntologyTypeListRenderer());
-        add(list,java.awt.BorderLayout.SOUTH);
-        setPreferredSize(new Dimension(200,200));
+        list.setOpaque(true);
+        list.setBackground(getBackground());
+        add(list);//,java.awt.BorderLayout.SOUTH);
+        setPreferredSize(new Dimension(200,100));
         list.addMouseListener(new java.awt.event.MouseAdapter() {
             
             int selected = 0;
