@@ -19,7 +19,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.18 $ / $Date: 2007-10-16 17:49:30 $ / $Author: mike $
+ * @version $Revision: 1.19 $ / $Date: 2007-10-25 15:54:18 $ / $Author: mike $
  */
 
 package tufts.vue;
@@ -43,7 +43,7 @@ public class NotePanel extends JPanel
 		
         JScrollPane scrollPane = new JScrollPane();
 	
-        scrollPane.setPreferredSize(new Dimension( 200, 250));
+
         //scrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         //scrollPane.setLocation(new Point(8, 9));
@@ -53,7 +53,16 @@ public class NotePanel extends JPanel
 
         VUE.addActiveListener(LWComponent.class, this);
     }
-	
+    
+    public Dimension getMinimumSize()
+    {
+    	return new Dimension(200,200);    	
+    }
+    
+    public Dimension getPreferredSize()
+    {
+    	return new Dimension(200,200);
+    }
     public VueTextPane getTextPane()
     {
     	return mTextPane;
