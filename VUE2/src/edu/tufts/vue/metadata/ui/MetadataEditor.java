@@ -194,7 +194,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         final JCheckBox advancedSearch = new JCheckBox();
-        advancedSearch.setBorder(BorderFactory.createEmptyBorder());
+        //advancedSearch.setBorder(BorderFactory.createEmptyBorder(0,0,15,0));
         advancedSearch.addActionListener(new java.awt.event.ActionListener(){
            public void actionPerformed(java.awt.event.ActionEvent e)
            {
@@ -269,7 +269,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         MetadataList.addListener(this);
         
-        setBorder(BorderFactory.createEmptyBorder(10,8,0,6));
+        setBorder(BorderFactory.createEmptyBorder(10,8,15,6));
         scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         
         validate();
