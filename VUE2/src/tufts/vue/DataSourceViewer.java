@@ -959,7 +959,15 @@ public class DataSourceViewer extends JPanel
                         org.osid.repository.Asset asset = assetIterator.nextAsset();
                         if (++resultCount > maxResult)
                             continue;
-                        resourceList.add(Resource.instance(mRepository, asset, DataSourceViewer.this.context));
+                        if (asset == null) {
+                            Log.warn("null asset in " + mRepositoryName + "; " + assetIterator);
+                            continue;
+                        }
+                        try {
+                            resourceList.add(Resource.instance(mRepository, asset, DataSourceViewer.this.context));
+                        } catch (Throwable t) {
+                            Log.warn("Failed to create resource for asset: " + Util.tags(asset), t);
+                        }
                     }
                 } catch (Throwable t) {
                     if (resourceList.size() < 1) {
