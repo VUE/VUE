@@ -656,18 +656,20 @@ public class DataSourceViewer extends JPanel
         
         Widget.setExpanded(DRB.browsePane, false);
         if (DEBUG.DR) {
-            System.out.println("\n");
-            Log.debug("Search includes:");
-            edu.tufts.vue.dsm.DataSource dataSources[] = dataSourceManager.getDataSources();
-            for (int i = 0; i < dataSources.length; i++) {
-                edu.tufts.vue.dsm.DataSource ds = dataSources[i];
-                System.out.print("\t");
-                if (ds.isIncludedInSearch()) {
-                    System.out.print("+ ");
-                } else {
-                    System.out.print("- ");
+            try {
+                System.out.println("\n");
+                Log.debug("Search includes:");
+                for (edu.tufts.vue.dsm.DataSource ds : dataSourceManager.getDataSources()) {
+                    System.out.print("\t");
+                    if (ds.isIncludedInSearch()) {
+                        System.out.print("+ ");
+                    } else {
+                        System.out.print("- ");
+                    }
+                    System.out.println(ds + "; Provider=" + ds.getProviderDisplayName());
                 }
-                System.out.println(ds.getProviderDisplayName() + " \t" + ds);
+            } catch (Throwable t) {
+                Util.printStackTrace(t, this + "; debug code");
             }
         }
         
@@ -737,7 +739,6 @@ public class DataSourceViewer extends JPanel
     }
 
     private static String repositoryName(org.osid.repository.Repository r) {
-            
         if (r == null)
             return "<NULL-REPOSITORY>";
         
