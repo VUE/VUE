@@ -971,15 +971,18 @@ public class DataSourceViewer extends JPanel
                 return;
 
             final String title = name;
+            final JComponent results;
+            
+            if (resourceList.size() == 0) {
+                results = new StatusLabel("No results for " + mSearchString, false, false);
+            } else {
+                results = new ResourceList(resourceList, title);
+            }
             
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 mResultPane.setTitle(title);
                 mResultPane.removeAll();
-                if (resourceList.size() == 0) {
-                    mResultPane.add(new StatusLabel("No results for " + mSearchString, false, false));
-                } else {
-                    mResultPane.add(new ResourceList(resourceList, title));
-                }
+                mResultPane.add(results);
             }});
             
         }
