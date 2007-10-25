@@ -293,9 +293,9 @@ public class VueDataSourceManager
 
         for (DataSource ds : dataSourceVector) {
             try {
-                debug("Marshalling:  " + ds + "; RepositoryID=" + ds.getRepository().getId().getIdString());
+                debug("Marshalling:  " + ds + "; RepositoryID=" + getRepositoryID(ds));
             } catch (Throwable t) {
-                Log.warn("Marshalling", t);
+                Log.warn("Marshalling:", t);
             }
         }
         
@@ -317,6 +317,20 @@ public class VueDataSourceManager
             marshalling = false;
         }
     }
+
+    public static String getRepositoryID(DataSource ds) {
+        final Repository r = ds.getRepository();
+        String id = "<null-repository>";
+        if (r != null) {
+            try {
+                id = r.getId().getIdString();
+            } catch (Throwable t) {
+                id = "<repositoryID:" + t + ">";
+            }
+        }
+        return id;
+    }
+        
     
     public static synchronized VueDataSourceManager unMarshall(File file)
         throws java.io.IOException, org.exolab.castor.xml.MarshalException,
@@ -346,13 +360,7 @@ public class VueDataSourceManager
             synchronized (DataSources) {
                 for (DataSource ds : dataSourceVector) {
                     try {
-                        final Repository r = ds.getRepository();
-                        final String id;
-                        if (r == null)
-                            id = "<null-repository>";
-                        else
-                            id = r.getId().getIdString();
-                        debug("Unmarshalled: " + ds + "; RepositoryID=" + id);
+                        debug("Unmarshalled: " + ds + "; RepositoryID=" + getRepositoryID(ds));
                     } catch (Throwable t) {
                         Log.warn("Unmarshalling:", t);
                     }
