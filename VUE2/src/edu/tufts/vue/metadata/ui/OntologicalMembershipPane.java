@@ -19,6 +19,7 @@
 package edu.tufts.vue.metadata.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 import javax.swing.JLabel;
 
@@ -58,7 +59,7 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         list = new javax.swing.JList(new OntologyTypeListModel());
         list.setCellRenderer(new OntologyTypeListRenderer());
         add(list,java.awt.BorderLayout.SOUTH);
-        
+        setPreferredSize(new Dimension(200,200));
         list.addMouseListener(new java.awt.event.MouseAdapter() {
             
             int selected = 0;
