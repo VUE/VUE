@@ -243,7 +243,9 @@ public class SaveAction extends VueAction
                {    
                  index.index(VUE.getActiveMap());
                }  
-               index.write(new FileWriter(file));
+               FileWriter writer = new FileWriter(file);
+               index.write(writer);
+               writer.close();
             }
             
 
