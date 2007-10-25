@@ -403,7 +403,8 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             try {
                 return providerId.getIdString();
             } catch (Throwable t) {
-                edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
+                Log.error("getProviderIdString; loading data sources from XML", t);
+                //edu.tufts.vue.util.Logger.log(t,"loading data sources from XML");
             }
         }
         return providerIdString;
@@ -415,7 +416,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             setProviderValues(); // must come first
             setRepositoryManager();
         } catch (Throwable t) {
-            Log.error("loading data sources from XML.  Cannot locate Provider with Id [" + providerIdString + "];", t);
+            Log.error("loading data sources from XML.  Cannot locate Provider with Id [" + providerId + "; XML=" + providerIdString + "];", t);
             //edu.tufts.vue.util.Logger.log(t,"loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
             //System.out.println("Error loading data sources from XML.  Cannot locate Provider with Id " + providerIdString);
         }
