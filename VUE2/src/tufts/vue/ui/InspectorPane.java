@@ -41,7 +41,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.51 $ / $Date: 2007-10-25 15:52:07 $ / $Author: mike $
+ * @version $Revision: 1.52 $ / $Date: 2007-10-25 17:24:05 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -119,7 +119,14 @@ public class InspectorPane extends JPanel
         Widget.setHelpAction(mResourceMetaData,VueResources.getString("dockWindow.Info.resourcePane.helpText"));;
         Widget.setHelpAction(mNotePanel,VueResources.getString("dockWindow.Info.notesPane.helpText"));;
         Widget.setHelpAction(mUserMetaData,VueResources.getString("dockWindow.Info.userPane.helpText"));;
-        
+
+        //Set the default state of the inspector pane to completely empty as nothign 
+        //is selected and its misleading to have the widgets on there.
+        loadResource(null);
+        this.setEnabled(false);
+        showNodePanes(false);
+        showResourcePanes(false);       
+        Widget.setHidden(ontologicalMetadata,true);
     }
 
     public WidgetStack getWidgetStack()
