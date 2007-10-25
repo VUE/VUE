@@ -41,7 +41,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-10-19 18:30:58 $ / $Author: dan $
+ * @version $Revision: 1.51 $ / $Date: 2007-10-25 15:52:07 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -83,23 +83,23 @@ public class InspectorPane extends JPanel
         mPreview = new ResourcePreview();
 
          stack = new WidgetStack(getName());
-        
+        Widget.setWantsScrollerAsNeeded(stack,true);
         Widget.setWantsScroller(stack, true);
         
         stack.addPane("Information",            mSummaryPane,           0f);
         stack.addPane("Content Preview",        mPreview,               0.3f);
-        stack.addPane("Content Info",           mResourceMetaData,      0f);
+        stack.addPane("Content Info",           mResourceMetaData,      1f);
         stack.addPane("Notes",                  mNotePanel,             1f);
         if(META_VERSION == OLD)
         {
-          stack.addPane("Keywords",               mUserMetaData,          1f);
+          stack.addPane("Keywords",               mUserMetaData,          0f);
         }
         else
         {
           // Previously experimented with "Tags" here
           stack.addPane("Keywords",               mUserMetaData,          1f);  
         }
-        stack.addPane("Ontological Membership",   ontologicalMetadata,    0f);
+        stack.addPane("Ontological Membership",   ontologicalMetadata,    1f);
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
 
         Widget.setHidden(ontologicalMetadata,true);
@@ -219,7 +219,7 @@ public class InspectorPane extends JPanel
     }
     
     private void showNodePanes(boolean visible) {
-        Widget.setHidden(mSummaryPane, !visible);
+        Widget.setHidden(mSummaryPane, !visible);        
         Widget.setHidden(mNotePanel, !visible);
         Widget.setHidden(mUserMetaData, !visible);
         //Widget.setHidden(mNodeTree, !visible);
@@ -287,6 +287,16 @@ public class InspectorPane extends JPanel
                 title = "Content Preview";
             Widget.setTitle(this, title);
             setToolTipText(title);
+        }
+        
+        public Dimension getMinimumSize()
+        {
+        	return new Dimension(200,120);    	
+        }
+        
+        public Dimension getPreferredSize()
+        {
+        	return new Dimension(200,120);
         }
     }
     private class InlineTitleResourcePreview extends tufts.vue.ui.PreviewPane
@@ -427,7 +437,7 @@ public class InspectorPane extends JPanel
         public UserMetaData()
         {
             super(new BorderLayout());
-            
+          
             if(META_VERSION == NEW)
                 setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
             //setBorder( BorderFactory.createEmptyBorder(10,10,10,6));
@@ -437,7 +447,7 @@ public class InspectorPane extends JPanel
             // userMetaDataEditor = new NodeFilterEditor(mNode.getNodeFilter(),true);
             // add(userMetaDataEditor);
         }
-
+     
         void load(LWComponent c) {
             //setTypeName(this, c, "Keywords");
             if(META_VERSION == OLD)
@@ -535,7 +545,15 @@ public class InspectorPane extends JPanel
             labelScrollBar.setValueIsAdjusting(false);
         }
 
-
+        public Dimension getMinimumSize()
+        {
+        	return new Dimension(200,80);    	
+        }
+        
+        public Dimension getPreferredSize()
+        {
+        	return new Dimension(200,80);
+        }
         void load(LWComponent c) {
             setTypeName(this, c, "Information");
 
