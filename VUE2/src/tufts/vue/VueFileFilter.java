@@ -62,10 +62,10 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         super();
         this.description = description;
         
-        if (description.equals(JPEG_DESCRIPTION))
+        if (description.equalsIgnoreCase(JPEG_DESCRIPTION))
           extensions = jpeg;
         
-        else if (description.equals(SVG_DESCRIPTION))
+        else if (description.equalsIgnoreCase(SVG_DESCRIPTION))
           extensions = svg;
         
         //else if (description.equals("pdf"))
@@ -74,26 +74,26 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         //else if (description.equals("html"))
         //  extensions = html;
         
-        else if (description.equals("rdf"))
+        else if (description.equalsIgnoreCase("rdf")) 
             extensions = rdf;
-        else if (description.equals(ZIP_DESCRIPTION))
+        else if (description.equalsIgnoreCase(ZIP_DESCRIPTION))
         	extensions=zip;
-        else if (description.equals(IMAGEMAP_DESCRIPTION))
+        else if (description.equalsIgnoreCase(IMAGEMAP_DESCRIPTION))
         {
           //extensions = imap;
             extensions = html;
         }
-        else if (description.equals(PNG_DESCRIPTION))
+        else if (description.equalsIgnoreCase(PNG_DESCRIPTION))
     			extensions = png;
-        else if (description.equals(IMS_DESCRIPTION))
+        else if (description.equalsIgnoreCase(IMS_DESCRIPTION))
 			extensions = rli;
         
-        else if (description.equals(VUE_DESCRIPTION) || description.equals(XML_DESCRIPTION)) {
+        else if (description.equalsIgnoreCase(VUE_DESCRIPTION) || description.equalsIgnoreCase(XML_DESCRIPTION)) {
             extensions = vue;
             description = "VUE Files";
-        } else if (description.equals("zip")) {
+        } else if (description.equalsIgnoreCase("zip")) {
             this.extensions = zip;
-        } else if( description.equals("txt")) {
+        } else if( description.equalsIgnoreCase("txt")) {
             this.extensions = txt;
         } else
             extensions = null;
