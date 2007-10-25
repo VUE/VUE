@@ -37,7 +37,7 @@ import tufts.vue.*;
  */
 public class SearchAction extends AbstractAction {
    
-    private final static boolean DEBUG_LOCAL = true; 
+    private final static boolean DEBUG_LOCAL = false; 
     
     public static final int FIELD = 0;
     public static final int QUERY = 1;
@@ -78,6 +78,10 @@ public class SearchAction extends AbstractAction {
     private List<String> textToFind = new ArrayList<String>();
     private boolean actualCriteriaAdded = false;
     
+    private boolean treatNoneSpecially = false;
+    private boolean textOnly = false;
+    private boolean metadataOnly = false;
+    
     public SearchAction(JTextField searchInput) {
         super("Search");
         this.searchInput = searchInput;
@@ -98,6 +102,22 @@ public class SearchAction extends AbstractAction {
         setBasic = basic;
     }
     
+    public void setNoneIsSpecial(boolean set)
+    {
+        treatNoneSpecially = set;
+    }
+    
+    // runs special index with only metadata
+    public void setMetadataOnly(boolean set)
+    {
+        metadataOnly = set;
+    }
+    
+    public void setTextOnly(boolean set)
+    {
+        textOnly = set;
+    }
+    
     public void runIndex()
     {
         Thread t = new Thread() {
@@ -115,13 +135,13 @@ public class SearchAction extends AbstractAction {
           
                     Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
                     while(maps.hasNext())
-                    {
-                       index.index(maps.next());
+                    {    
+                         index.index(maps.next(),metadataOnly);
                     }
              }    
              else // default is SEARCH_SELECTED_MAP
              {    
-                    index.index(VUE.getActiveMap());
+                    index.index(VUE.getActiveMap(),metadataOnly);
              }
                 
             }
@@ -157,16 +177,25 @@ public class SearchAction extends AbstractAction {
             
             if(setBasic != true) 
             {  
-              System.out.println("query setBasic != true");
-              System.out.println("criteria.getKey() " + criteria.getKey());
-              System.out.println("RDFIndex.VUE_ONTOLOGY+ none" + RDFIndex.VUE_ONTOLOGY+"none");
-              if(criteria.getKey().equals("http://vue.tufts.edu/vue.rdfs#"+"none"))
+                
+              if(DEBUG_LOCAL)
+              {    
+                System.out.println("query setBasic != true");
+                System.out.println("criteria.getKey() " + criteria.getKey());
+                System.out.println("RDFIndex.VUE_ONTOLOGY+ none " + RDFIndex.VUE_ONTOLOGY+"none");
+                System.out.println("text only = " + textOnly);
+              }
+              if(criteria.getKey().equals("http://vue.tufts.edu/vue.rdfs#"+"none") && treatNoneSpecially)
               {
                 //System.out.println("adding criteria * ...");  
                   
                 //query.addCriteria("*",criteria.getValue(),statement[2]);
                 textToFind.add(criteria.getValue());
               }   
+              else if(textOnly)
+              {
+                textToFind.add(criteria.getValue()); 
+              }
               else
               {    
                 query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
@@ -215,12 +244,12 @@ public class SearchAction extends AbstractAction {
           Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
           while(maps.hasNext())
           {
-              index.index(maps.next());
+              index.index(maps.next(),metadataOnly);
           }
         }    
         else // default is SEARCH_SELECTED_MAP
         {    
-          index.index(VUE.getActiveMap());
+          index.index(VUE.getActiveMap(),metadataOnly);
         }
         
         
@@ -260,15 +289,34 @@ public class SearchAction extends AbstractAction {
                Iterator<String> textIterator = textToFind.iterator(); 
                while(textIterator.hasNext())
                {
-                 loadKeywords(textIterator.next());
-                 for(int i=0;i<tags.size();i++)
-                 {    
-                   System.out.println("tags.get(i)" + tags.get(i));
-                   found = index.searchAllResources(tags.get(i)); 
-                   System.out.println("found " + found);
-                                    finds.add(found);
-                 }
+                   String text = textIterator.next();
+                   
+                   if(DEBUG_LOCAL)
+                   {    
+                     System.out.println("\n\n**********\n Searching all resources for: " + text );
+                   }
+                   
+                   found = index.searchAllResources(text);
+                   
+                   
+                   
+                   finds.add(found);
+                 //}
                }
+               
+               /*
+               while(textIterator.hasNext())
+               {
+                 //loadKeywords(textIterator.next());
+                 //for(int i=0;i<tags.size();i++)
+                 //{    
+                   //System.out.println("tags.get(i)" + tags.get(i));
+                   //found = index.searchAllResources(tags.get(i));
+                   found = index.searchAllResources(textIterator.next());
+                   //System.out.println("found " + found);
+                   //finds.add(found);
+                 //}
+               }*/
             }
            
         }

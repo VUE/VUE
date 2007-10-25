@@ -59,8 +59,23 @@ public class MetadataSearchGUI extends JPanel {
     public final static int SHOW_OPTIONS = 1;
     public final static int HIDE_OPTIONS = 0;
     
-    public final static String SELECTED_MAP_STRING = "Selected Map";
+    // search types
+    public final static int EVERYTHING = 0;
+    public final static int LABEL = 1;
+    public final static int KEYWORD = 2;
+    
+    public final static String SELECTED_MAP_STRING = "Current Map";
     public final static String ALL_MAPS_STRING = "All Open Maps";
+    
+    public final static String SEARCH_EVERYTHING = "Search everything:";
+    public final static String SEARCH_LABELS_ONLY = "Labels";
+    public final static String SEARCH_ALL_KEYWORDS = "Keywords";
+    public final static String SEARCH_CATEGORIES_AND_KEYWORDS = "Categories + Keywords";
+    
+    // combo box numbers within optionsPanel
+    public final static int TYPES = 0;
+    public final static int LOCATIONS = 1;
+    public final static int RESULTS = 2;
     
     //ONE_LINE
     private JTextField searchField;
@@ -75,10 +90,16 @@ public class MetadataSearchGUI extends JPanel {
     private OptionsPanel optionsPanel;
     //private String[] searchTypes = {"Basic","Categories","Advanced","All"};
     //private String[] searchTypes = {"Basic","Categories","Advanced"};
-    private String[] searchTypes = {"Basic","Categories"};
-    private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
-    private String[] resultsTypes = {"Show","Hide","Select"};
+    //private String[] searchTypes = {"Basic","Categories"};
     
+    private String[] searchTypes = {SEARCH_EVERYTHING,SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
+            
+    private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
+    
+    private String[] currentMapResultsTypes = {"Show","Hide","Select","Copy to new map"};
+   // private String[] allOpenMapsResultsTypes = {"new map(tile)","new map(overlay)"};
+    private String[] allOpenMapsResultsTypes = {"new map"};
+   
     private JPanel fieldsPanel;
     private JTable searchTermsTable;
     
@@ -101,9 +122,13 @@ public class MetadataSearchGUI extends JPanel {
     private JTextField allSearchField = new JTextField();
     private SearchAction allSearch = new SearchAction(allSearchField);
     
+    private boolean treatNoneSpecially = false;
+    
     private static tufts.vue.gui.DockWindow dockWindow;
     
     private static MetadataSearchGUI content;
+    
+    private int searchType = EVERYTHING;
     
     //reenable for side scroll
     //private static tufts.vue.gui.WidgetStack stack;
@@ -168,7 +193,7 @@ public class MetadataSearchGUI extends JPanel {
         else
         {
            setUpFieldsSearch();
-           setBasicSearch();
+           setEverythingSearch();
         }
         
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
@@ -223,6 +248,7 @@ public class MetadataSearchGUI extends JPanel {
            {
                if(ie.getStateChange() == ItemEvent.SELECTED)
                {
+                   // currently not in use -- see menu items above
                    if(ie.getItem().equals("Basic"))
                    {
                        //System.out.println("Basic search selected");
@@ -231,7 +257,8 @@ public class MetadataSearchGUI extends JPanel {
                    if(ie.getItem().equals("Categories"))
                    {
                        //System.out.println("Category search selected");
-                       setCategorySearch();
+                       setCategorySearchWithNoneCase();
+                       //setCategorySearch();
                    }
                    if(ie.getItem().equals("Advanced"))
                    {
@@ -243,6 +270,26 @@ public class MetadataSearchGUI extends JPanel {
                        //System.out.println("All search selected");
                        setAllSearch();
                    }
+                   // end currently not in use
+                   
+                   if(ie.getItem().equals(SEARCH_EVERYTHING))
+                   {
+                       setEverythingSearch();
+                   }
+                   if(ie.getItem().equals(SEARCH_LABELS_ONLY))
+                   {
+                       //setBasicSearch();
+                       setLabelSearch();
+                   }
+                   if(ie.getItem().equals(SEARCH_ALL_KEYWORDS))
+                   {
+                       setAllMetadataSearch();
+                   }
+                   if(ie.getItem().equals(SEARCH_CATEGORIES_AND_KEYWORDS))
+                   {
+                       setCategorySearch();
+                   }
+                   
                }
            }
         };
@@ -253,17 +300,19 @@ public class MetadataSearchGUI extends JPanel {
            {
                if(e.getStateChange() == ItemEvent.SELECTED)
                {
-                 String type = e.getItem().toString(); //locationChoice.getSelectedItem().toString();
+                 String type = e.getItem().toString(); 
                  
                  if(type.equals(ALL_MAPS_STRING))
                  {    
                    allSearch.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
                    termsAction.setLocationType(SearchAction.SEARCH_ALL_OPEN_MAPS);
+                   optionsPanel.switchChoices(RESULTS,allOpenMapsResultsTypes);
                  }
                  else // SELECTED_MAP_STRING as current default
                  {
                    allSearch.setLocationType(SearchAction.SEARCH_SELECTED_MAP); 
                    termsAction.setLocationType(SearchAction.SEARCH_SELECTED_MAP);
+                   optionsPanel.switchChoices(RESULTS,currentMapResultsTypes);
                  }    
                }
            }
@@ -276,8 +325,12 @@ public class MetadataSearchGUI extends JPanel {
                if(e.getStateChange() == ItemEvent.SELECTED)
                {
                  String resultsTypeChoice = e.getItem().toString();
-                 allSearch.setResultsType(resultsTypeChoice);
-                 termsAction.setResultsType(resultsTypeChoice);
+                 /*if(resultsTypeChoice != null && allSearch != null && termsAction != null)
+                 {
+                   allSearch.setResultsType(resultsTypeChoice);
+                   termsAction.setResultsType(resultsTypeChoice);
+                 }*/
+                 setResultsTypeInActions(resultsTypeChoice);
                }
            }
         };
@@ -305,11 +358,11 @@ public class MetadataSearchGUI extends JPanel {
         optionsPanel.addLabel("Search Type:");
         optionsPanel.addCombo(searchTypes,searchTypesListener);
         
-        optionsPanel.addLabel("Location:");
+        optionsPanel.addLabel("Maps:");
         optionsPanel.addCombo(locationTypes,locationChoiceListener);
         
-        optionsPanel.addLabel("Results Type:");
-        optionsPanel.addCombo(resultsTypes,resultsTypeListener);
+        optionsPanel.addLabel("Results:");
+        optionsPanel.addCombo(currentMapResultsTypes,resultsTypeListener);
         
         searchTermsTable = new JTable(new SearchTermsTableModel());
         adjustColumnModel();
@@ -414,6 +467,18 @@ public class MetadataSearchGUI extends JPanel {
                    }
         });
         
+        setResultsTypeInActions("Select");
+        
+    }
+    
+    public void setResultsTypeInActions(String resultsTypeChoice)
+    {
+        // String resultsTypeChoice = e.getItem().toString();
+         if(resultsTypeChoice != null && allSearch != null && termsAction != null)
+         {
+                   allSearch.setResultsType(resultsTypeChoice);
+                   termsAction.setResultsType(resultsTypeChoice);
+         }
     }
     
     public void setUpLayout()
@@ -519,6 +584,28 @@ public class MetadataSearchGUI extends JPanel {
         adjustColumnModel(); 
     }
  
+    public void setCategorySearchWithNoneCase()
+    {
+        singleLine = false;
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 2;
+        valueColumn = 1;
+        categoryColumn = 0;
+        conditionColumn = -1;
+        model.setColumns(3);
+        adjustColumnModel();
+        
+        //termsAction = new SearchAction(searchTerms);
+        
+        treatNoneSpecially = true;
+        termsAction.setNoneIsSpecial(true);
+        
+        termsAction.setTextOnly(false);
+        termsAction.setBasic(false);
+        termsAction.setMetadataOnly(false);
+        searchButton.setAction(termsAction);
+    }
+    
     public void setCategorySearch()
     {
         singleLine = false;
@@ -529,8 +616,33 @@ public class MetadataSearchGUI extends JPanel {
         conditionColumn = -1;
         model.setColumns(3);
         adjustColumnModel();
+        
         //termsAction = new SearchAction(searchTerms);
+        
         termsAction.setBasic(false);
+        termsAction.setTextOnly(false);
+        termsAction.setMetadataOnly(false);
+        searchButton.setAction(termsAction);
+    }
+    
+    public void setEverythingSearch()
+    {
+        searchType = EVERYTHING;
+        
+        singleLine = false;
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 1;
+        valueColumn = 0;
+        categoryColumn = -1;
+        conditionColumn = -1;
+        model.setColumns(2);
+        adjustColumnModel();
+        
+        //termsAction = new SearchAction(searchTerms);
+        
+        termsAction.setBasic(false);
+        termsAction.setTextOnly(true);
+        termsAction.setMetadataOnly(false);
         searchButton.setAction(termsAction);
     }
     
@@ -546,6 +658,48 @@ public class MetadataSearchGUI extends JPanel {
         adjustColumnModel();
         //termsAction = new SearchAction(searchTerms);
         termsAction.setBasic(true);
+        termsAction.setTextOnly(false);
+        termsAction.setMetadataOnly(false);
+        searchButton.setAction(termsAction);
+    }
+    
+    public void setLabelSearch()
+    {
+        searchType = LABEL;
+        
+        singleLine = false;
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 1;
+        valueColumn = 0;
+        categoryColumn = -1;
+        conditionColumn = -1;
+        model.setColumns(2);
+        adjustColumnModel();
+        //termsAction = new SearchAction(searchTerms);
+        termsAction.setBasic(true);
+        termsAction.setTextOnly(false);
+        termsAction.setMetadataOnly(false);
+        searchButton.setAction(termsAction);
+    }
+    
+    public void setAllMetadataSearch()
+    {
+        searchType = KEYWORD;
+        
+        singleLine = false;
+        SearchTermsTableModel model = (SearchTermsTableModel)searchTermsTable.getModel();
+        buttonColumn = 1;
+        valueColumn = 0;
+        categoryColumn = -1;
+        conditionColumn = -1;
+        model.setColumns(2);
+        adjustColumnModel();
+        //termsAction = new SearchAction(searchTerms);
+        
+        // !!!! what does this do? (waiting for setting for special index on only metadata/keywords)
+        termsAction.setBasic(false);
+        termsAction.setTextOnly(true);
+        termsAction.setMetadataOnly(true);
         searchButton.setAction(termsAction);
     }
     
@@ -561,6 +715,8 @@ public class MetadataSearchGUI extends JPanel {
         adjustColumnModel();
         //termsAction = new SearchAction(searchTerms);
         termsAction.setBasic(false);
+        termsAction.setTextOnly(false);
+        termsAction.setMetadataOnly(false);
         searchButton.setAction(termsAction);
     }
     
@@ -796,7 +952,9 @@ public class MetadataSearchGUI extends JPanel {
        
        //in case easy access to the combo boxes is ever needed:
        //they can also be found in the layout
-       //List<JComboBox> comboBoxes = new ArrayList<JComboBox>();
+       // ** now needed for switching choices in the results combo
+       // on location switch
+       List<JComboBox> comboBoxes = new ArrayList<JComboBox>();
        
        OptionsPanel()
        {
@@ -874,7 +1032,31 @@ public class MetadataSearchGUI extends JPanel {
            
            //in case easy access to the combo ever is needed:
            //it can also be found in the layout
-           //comboBoxes.add(newCombo);            
+           comboBoxes.add(newCombo);            
+           
+           if(choices.length > 2 && choices[2].equals("Select"))
+           {
+               newCombo.setSelectedIndex(2);
+           }
+       }
+       
+       public void switchChoices(int i,String[] choices)
+       {
+           JComboBox box = comboBoxes.get(i);
+           box.removeAllItems();
+           for(int j=0;j<choices.length;j++)
+           {
+               box.addItem(choices[j]);
+           }
+           
+           if(choices.length > 2 && i==RESULTS)
+           {
+               box.setSelectedIndex(2);
+           }
+           else if(choices.length > 1)
+           {
+               box.setSelectedItem(0);
+           }
        }
     
     }
@@ -901,7 +1083,23 @@ public class MetadataSearchGUI extends JPanel {
             if(col == buttonColumn && singleLine == false)
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
             else if( table.getModel().getColumnCount() == 2 && col == valueColumn)
-              comp.setText("Label:");
+            {    
+              if(searchType == EVERYTHING)
+              {
+                comp.setText("Search everything:");                  
+              }
+              
+              if(searchType == LABEL)
+              {
+                comp.setText("Labels:");                  
+              }
+                
+              if(searchType == KEYWORD)
+              {
+                comp.setText("Keywords:"); 
+              }
+
+            }
             else if( (table.getModel().getColumnCount() == 3 || table.getModel().getColumnCount() == 4) && col == categoryColumn)
             {
               comp.setText("Category:");
@@ -1025,7 +1223,7 @@ public class MetadataSearchGUI extends JPanel {
                 //String pairedValue[] = {"Tag","STARTS_WITH",""};
                 //vme.setObject(pairedValue);
                 
-                String statementObject[] = {VueResources.getString("metadata.vue.url") +"#none","",edu.tufts.vue.rdf.Query.Qualifier.STARTS_WITH.toString()};
+                String statementObject[] = {VueResources.getString("metadata.vue.url") +"#none","",edu.tufts.vue.rdf.Query.Qualifier.CONTAINS.toString()};
                 vme.setObject(statementObject);
                 vme.setType(VueMetadataElement.SEARCH_STATEMENT);
                 

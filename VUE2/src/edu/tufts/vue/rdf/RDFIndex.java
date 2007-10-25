@@ -74,7 +74,13 @@ public class RDFIndex extends ModelCom
         qe = QueryExecutionFactory.create(query, this);
         Log.debug("created");
     }
-    public void index(LWMap map) {
+    
+    public void index(LWMap map)
+    {
+        index(map,false);
+    }
+    
+    public void index(LWMap map,boolean metadataOnly) {
         long t0 = System.currentTimeMillis();
         if(DEBUG.RDF)System.out.println("INDEX - begin index: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         
@@ -91,7 +97,16 @@ public class RDFIndex extends ModelCom
             if(DEBUG.RDF) System.out.println("INDEX - added properties for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
             
             for(LWComponent comp: map.getAllDescendents())
-                rdfize(comp,mapR);
+            {
+                if(metadataOnly)
+                {
+                  rdfize(comp,mapR,true);   
+                }
+                else
+                {    
+                  rdfize(comp,mapR);
+                }
+            }    
             
             if(DEBUG.RDF)System.out.println("INDEX - after indexing all components: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
             
@@ -134,6 +149,9 @@ public class RDFIndex extends ModelCom
                 "SELECT ?resource ?keyword " +
                 "WHERE{" +
                 "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
+        
+        System.out.println("searchAllResources query string: " + queryString);
+        
         return search(queryString);
     }
     
@@ -152,20 +170,31 @@ public class RDFIndex extends ModelCom
         
     }
     
-    public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR) {
+    public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR)
+    {
+        rdfize(component,mapR,false);
+    }
+    
+    public void rdfize(LWComponent component,com.hp.hpl.jena.rdf.model.Resource mapR,boolean metadataOnly) {
         com.hp.hpl.jena.rdf.model.Resource r = this.createResource(component.getURI().toString());
         try {
-            addProperty(r,idOf,component.getID());
-            if(component.getLabel() != null){
-                addProperty(r,labelOf,component.getLabel());
+            
+            if(!metadataOnly)
+            {    
+              addProperty(r,idOf,component.getID());
+              if(component.getLabel() != null){
+                  addProperty(r,labelOf,component.getLabel());
+              }
+              if(VueResources.getString("rdf.rdfize.color").equals("TRUE") && component.getXMLfillColor() != null) {
+                  addProperty(r,colorOf,component.getXMLfillColor());
+              } 
             }
-            if(VueResources.getString("rdf.rdfize.color").equals("TRUE") && component.getXMLfillColor() != null) {
-                addProperty(r,colorOf,component.getXMLfillColor());
-            } 
+            
             com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
             
             addStatement(statement);
-            List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
+            
+           List<VueMetadataElement> metadata = component.getMetadataList().getMetadata();
             Iterator<VueMetadataElement> i = metadata.iterator();
             while(i.hasNext()) {
                 VueMetadataElement element = i.next();
