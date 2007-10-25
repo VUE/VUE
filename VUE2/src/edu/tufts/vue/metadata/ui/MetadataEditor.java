@@ -190,7 +190,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         
-        final JLabel optionsLabel = new JLabel("Show Categories");
+        final JLabel optionsLabel = new JLabel("Assign Categories");
         optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         final JCheckBox advancedSearch = new JCheckBox();
