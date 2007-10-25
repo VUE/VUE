@@ -188,9 +188,11 @@ public class VueDataSourceManager
 
         final List<Repository> included = new ArrayList();
 
-        for (DataSource ds : DataSources)
-            if (ds.isIncludedInSearch())
-                included.add(ds.getRepository());
+        synchronized (DataSources) {
+            for (DataSource ds : DataSources)
+                if (ds.isIncludedInSearch())
+                    included.add(ds.getRepository());
+        }
 
         return included.toArray(new Repository[included.size()]);
         
