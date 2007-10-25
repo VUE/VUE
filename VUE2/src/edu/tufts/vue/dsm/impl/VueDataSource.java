@@ -337,7 +337,8 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             if (this.providerDisplayName == null) {
                 return "(Repository Name Unknown)";
             } else
-                return "(Name Unknown; Provider: " + providerDisplayName + ")";
+                return "(" + providerDisplayName + ": unconfigured)";
+            //return "(Name Unknown; Provider: " + providerDisplayName + ")";
         } else
             return this.repositoryDisplayName;
     }
