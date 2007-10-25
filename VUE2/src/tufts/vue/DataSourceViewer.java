@@ -37,6 +37,9 @@ import java.io.*;
 import java.util.*;
 import java.net.URL;
 
+import org.osid.repository.Repository;
+import org.osid.repository.RepositoryException;
+
 // castor classes
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.Unmarshaller;
@@ -939,24 +942,39 @@ public class DataSourceViewer extends JPanel
         }
         
         private void processResultsAndDisplay(org.osid.repository.AssetIterator assetIterator)
-        throws org.osid.repository.RepositoryException {
+            throws org.osid.repository.RepositoryException
+        {
             if (stopped())
                 return;
             
-            if (DEBUG.DR) Log.debug("processing AssetIterator...");
-            
+            if (DEBUG.DR) Log.debug("processing AssetIterator: " + Util.tags(assetIterator));
+
             final java.util.List resourceList = new java.util.ArrayList();
             
             final int maxResult = 10000;
             int resultCount = 0;
-            while (assetIterator.hasNextAsset()) {
-                org.osid.repository.Asset asset = assetIterator.nextAsset();
-                if (++resultCount > maxResult)
-                    continue;
-                resourceList.add(Resource.instance(mRepository, asset, DataSourceViewer.this.context));
-            }
+            if (assetIterator != null) {
+                try {
+                    while (assetIterator.hasNextAsset()) {
+                        org.osid.repository.Asset asset = assetIterator.nextAsset();
+                        if (++resultCount > maxResult)
+                            continue;
+                        resourceList.add(Resource.instance(mRepository, asset, DataSourceViewer.this.context));
+                    }
+                } catch (Throwable t) {
+                    if (resourceList.size() < 1) {
+                        if (t instanceof RepositoryException)
+                            throw (RepositoryException) t;
+                        else
+                            throw new RuntimeException("processing assets for " + mRepositoryName, t);
+                    } else {
+                        // we have at least one result: dump exception and continue
+                        Util.printStackTrace(t, "processing asset iterator for " + mRepositoryName);
+                    }
+                }
             
-            if (DEBUG.DR) Log.debug("done processing AssetIterator; count=" + resultCount);
+                if (DEBUG.DR) Log.debug("done processing AssetIterator; count=" + resultCount);
+            }
             
             String name = "Results: " + mRepositoryName;
             
@@ -976,7 +994,10 @@ public class DataSourceViewer extends JPanel
             final JComponent results;
             
             if (resourceList.size() == 0) {
-                results = new StatusLabel("No results for " + mSearchString, false, false);
+                if (assetIterator == null)
+                    results = new StatusLabel("Empty results for " + mSearchString, false, false);
+                else
+                    results = new StatusLabel("No results for " + mSearchString, false, false);
             } else {
                 results = new ResourceList(resourceList, title);
             }
