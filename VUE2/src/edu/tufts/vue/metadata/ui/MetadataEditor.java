@@ -408,7 +408,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            else if(col == buttonColumn)
            {
-               comp = new JLabel();
+               comp = new JLabel();    
                ((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
            }
            else
@@ -527,7 +527,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            else if(col == buttonColumn)               
            {
                JLabel buttonLabel = new JLabel();
-               buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
+               if(row!=0)
+               {    
+                 buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
+               }
                comp.add(buttonLabel);
            }
            
