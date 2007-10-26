@@ -522,8 +522,9 @@ public class TypeList extends JList {
           //setSelectedIndex(-1);
           try
           {
-            browser.getViewer().getList().updateUI();
+           // browser.getViewer().getList().updateUI();
            //   browser.getViewer().getList().repaint();
+              browser.getViewer().getList().refresh();
           }
           catch(Exception e)
           {
