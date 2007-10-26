@@ -168,8 +168,8 @@ public class TypeList extends JList {
             if(isNode(ontType))  
             {
                 
-              System.out.println("TypeList createLWComponent - node with ontology string: "  + ontType.toString());  
-              System.out.println("TypeList createLWComponent - node with ontology id: "  + ontType.getId());
+              //System.out.println("TypeList createLWComponent - node with ontology string: "  + ontType.toString());  
+              //System.out.println("TypeList createLWComponent - node with ontology id: "  + ontType.getId());
               //System.out.println("TypeList createLWComponent - node with ontology url: "  + ontType.getOntology().getURL() +"#" + ontType.getLabel() );
                 
               String image = style.getAttribute("background-image");
@@ -218,8 +218,8 @@ public class TypeList extends JList {
             else
             {
               LWLink r = new LWLink();
-              r.setHeadPoint(20,20);
-              r.setTailPoint(80,30);
+              r.setHeadPoint(15,5);
+              r.setTailPoint(85,45);
               r.setLabel(ontType.getLabel());
               compFor = r;
             }
@@ -523,6 +523,7 @@ public class TypeList extends JList {
           try
           {
             browser.getViewer().getList().updateUI();
+           //   browser.getViewer().getList().repaint();
           }
           catch(Exception e)
           {
