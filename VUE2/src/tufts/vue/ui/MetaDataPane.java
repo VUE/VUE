@@ -208,6 +208,9 @@ public class MetaDataPane extends JPanel
    
    public Dimension getMinimumSize()
    {
+	   if (scroll)
+		   return super.getMinimumSize();
+	   
 	   int height = 5;
 	   int lines = 1;
 	   for (int i = 0; i < mValues.length; i++)
@@ -228,6 +231,9 @@ public class MetaDataPane extends JPanel
    
    public Dimension getPreferredSize()
    {
+	   if (scroll)
+		   return super.getMinimumSize();
+	   
 	   return getMinimumSize();
    }
    
