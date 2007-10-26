@@ -122,10 +122,12 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
     	for (int i=0;i<roots.length;i++)
     		list.add(roots[i]);
     }
+    
+    
     private void initializeRoots() throws osid.filing.FilingException {
         final String[] drives = {"C","D","E","F","G","H","I","J","K","L","M","N",
                                  "O","P","Q","R","S","T","U","V","W","X","Y","Z"};
-        
+
         //  Create  dummy owner.
         osid.shared.Agent agent = null;
         try {
@@ -137,32 +139,59 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         
         //  If there are no roots, then scan the PC drive letters and try to open each.
         //  If files exist, then add that drive as a root.
-        if(rootCabinets.size() == 0) {
-            for (int i = 0; i < drives.length; i++) {
+        if (!tufts.Util.isWindowsPlatform())
+        {
+        	if(rootCabinets.size() == 0) 
+        	{
+        		for (int i = 0; i < drives.length; i++) {
             	  
-            	File file = new File(drives[i]+":" + java.io.File.separator);
+        			File file = new File(drives[i]+":" + java.io.File.separator);
             	
-            	 //* Trying out a test for removable disks here...
+        			//	* Trying out a test for removable disks here...
      
-            	boolean isRemovableDisk = false;
-            	if (list.contains(file))
-            	{
-            	 	isRemovableDisk = FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
-            	}
+        			boolean isRemovableDisk = false;
             	
-            	//isRemovableDisk = !FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
+        			//f (list.contains(file))
+        			//{
+            		
+            		
+            	 	//isRemovableDisk = view.getSystemTypeDescription(file).equals("Removable Disk");
+        			//	System.out.println("is removable disk : " + isRemovableDisk);
+        			//}
+            	
+        			//isRemovableDisk = !FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
                 
-            	if(!isRemovableDisk && file.exists()){
-                    String idStr = drives[i]+":" + java.io.File.separator;
-                    //this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
-                    LocalCabinet newRoot = LocalCabinet.instance(idStr, agent, null);
-                    //LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
-                    rootCabinets.add (newRoot);
-                    if (drives[i].compareTo("C:") == 0)
+        			if(!isRemovableDisk && file.exists()){
+        				String idStr = drives[i]+":" + java.io.File.separator;
+        				//this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
+        				LocalCabinet newRoot = LocalCabinet.instance(idStr, agent, null);
+                    //	LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
+        				rootCabinets.add (newRoot);
+        				if (drives[i].compareTo("C:") == 0)
                         cwd = newRoot;
-                }                
-            } 
+        			}                
+        		}
+        	}
         }
+        else
+        {
+        	if(rootCabinets.size() == 0) 
+        	{
+        		File[] f = File.listRoots();
+        		for (int i=0;i<f.length;i++)
+        		{
+        			File file = f[i];
+        			        			
+        				LocalCabinet newRoot = LocalCabinet.instance(file.toString(), agent, null);
+        				rootCabinets.add (newRoot);
+        				if (drives[i].compareTo("C:") == 0)
+                        cwd = newRoot;
+        			
+        			}
+        		}
+        		
+        	
+        	}
         
         //  If this is not a PC environment, drive letters won't likely work, so try to
         //  open a Unix root, "/".  This is likely to work for Mac OS-X as well.

@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.20 2007-10-18 20:46:27 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.21 2007-10-26 15:20:32 mike Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.20 $ / $Date: 2007-10-18 20:46:27 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2007-10-26 15:20:32 $ / $Author: mike $
  * @author  rsaigal
  */
 
@@ -81,7 +81,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         VueDragTree fileTree = new VueDragTree(cabVector, this.getDisplayName());
         fileTree.setRootVisible(true);
         fileTree.setShowsRootHandles(true);
-        fileTree.expandRow(0);
+        fileTree.expandRow(1);        
         fileTree.setRootVisible(false);
 
         if (false) {
@@ -107,13 +107,13 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         if (home.exists() && home.canRead()) {
             // This might be better handled via addRoot on the LocalFilingManager, but
             // we can't set the label (title) for it that way. -- SMF
-            String[] dirs = { "Desktop", "My Documents", "Documents", "Pictures", "My Pictures", "Photos", "My Photos"};
+            String[] dirs = { "Desktop", "My Documents", "Documents", "Pictures", "My Documents\\My Pictures", "Photos", "My Documents\\My Photos","Music", "My Documents\\My Music"};
             int added = 0;
             for (int i = 0; i < dirs.length; i++) {
                 File dir = new File(home, dirs[i]);
                 if (dir.exists() && dir.canRead()) {
                     CabinetResource r = CabinetResource.create(LocalCabinet.instance(dir, agent, null));
-                    r.setTitle(dirs[i]);
+                    r.setTitle(dirs[i].substring(dirs[i].lastIndexOf("\\") == -1 ? 0 : dirs[i].lastIndexOf("\\")+1, dirs[i].length()));
                     cabVector.add(r);
                     added++;
                 }
@@ -154,8 +154,26 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             }
         }
 
+		/*
+		  I mentioned that at home VUE takes over 10 minutes to start up for me.  
+  		  I've located the problem, its not particularly widespread.  The problem 
+          is I have 6-7 tufts network shares that are still connected when I go 
+          home even though I can't actually reach them off of Tufts network.  The 
+          timeouts to reach these shares is what slows Vue to a crawl when starting 
+          up. Specifically the call to get the name of the volume like:"xdrive on 
+          'tftmwins1' or 'mkorcy01 on Titan\home-tccs$'.  If we're willing to scrap 
+          the volume names on windows and just put drive letters "C:\" , "P:\" I can 
+          get it from about 12 minutes to <10 seconds.  The calls to .exists() on
+          the disconnected drives in LocalFilingManager also sent VUE into a similar
+          long timeout waiting period.
+		*/
         try {
-            final FileSystemView fsview = FileSystemView.getFileSystemView();
+        	
+            FileSystemView fsview = null;
+            
+            if (!tufts.Util.isWindowsPlatform())
+            	fsview = FileSystemView.getFileSystemView();
+            
             final LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                 
             LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots();
@@ -170,7 +188,14 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
                     } catch (Exception e) {
                         System.err.println(e);
                     }
-                    String sysName = fsview.getSystemDisplayName(f);
+            
+                    String sysName = null;
+                    if (!tufts.Util.isWindowsPlatform())
+                    	sysName = fsview.getSystemDisplayName(f);
+                    else
+                    	sysName = f.toString();
+                    
+                    //System.out.println("SysName : " + sysName);
                     if (sysName != null)
                         res.setTitle(sysName);
                 }
