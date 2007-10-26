@@ -48,6 +48,15 @@ import fedora.server.types.gen.Condition;
 import fedora.server.types.gen.ComparisonOperator;
 
 public class FedoraPublisher {
+    public static final String HTTPS = "https";
+    public static final String FEDORA_URL_PATH = "/fedora/";
+    public static final String COMMENT = "Object published through VUE";
+    public static final boolean VERSIONABLE  = true;
+    
+    public static final String RESOURCE_DS = "RESOURCE";
+    public static final String DC_DS = "DC";
+    public static final String VUE_DS = "map.vue";
+    
     public static final String PID_KEY = "%PID";
     public static final String CM_KEY = "%CONTENT_MODEL%";
     public static final String CREATE_DATE_KEY = "%CREATE_DATE%";
@@ -61,19 +70,17 @@ public class FedoraPublisher {
     public static final String DC_ID_KEY = "%DC_ID%";
     public static final String RELS_EXT_KEY  = "%RELS_EXT%";
     public static final String FORMAT = "foxml1.0";
-    public static final String COMMENT = "Automatic Publish From VUE";
     public static final String VUE_MIME_TYPE ="application/vue";
     public static final String XML_MIME_TYPE ="text/xml";
     public static final String DC_LABEL = "Dublin Core Metadata";
     public static final String RELS_LABEL ="Relationships to other objects";
     public static final String VUE_FORMAT_URL = "http://vue.tufts.edu/docs/vueformat/";
     public static final String MAP_DS = "map.vue";
-    public static final String RESOURCE_DS = "RESOURCE";
-    public static final String DC_DS = "DC";
     public static final String RELS_DS = "RELS-EXT";
     
     public static final String VUE_CM =  "tufts/vue/map/generic";
     public static final String OTHER_CM = "tufts/vue/other";
+    public static final String REMOTE_CM = "tufts/vue/remote";
     public static final String RESULT_FIELDS[] = {"pid"};
     public static final String FILE_PREFIX = "file://";
     public static final String ONT_TYPE_METADATA = "http://vue.tufts.edu/ontology/vue.rdfs#ontoType";
@@ -87,8 +94,9 @@ public class FedoraPublisher {
     }
     
     public static void uploadMap(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception {
-        Properties properties = ds.getConfiguration();
-        FedoraPublisher.uploadMap("https",  properties.getProperty("fedora22Address"), 8443, properties.getProperty("fedora22UserName"),  properties.getProperty("fedora22Password"),map);
+        addObjectToRepository(ds,VUE_CM,map.getFile(),map,map);
+        //Properties properties = ds.getConfiguration();
+        // FedoraPublisher.uploadMap("https",  properties.getProperty("fedora22Address"), 8443, properties.getProperty("fedora22UserName"),  properties.getProperty("fedora22Password"),map);
     }
     public static void uploadMap(String protocol, String host, int port, String userName, String password,LWMap map) throws Exception{
         String mapPid = getFedoraPid(map);
@@ -130,6 +138,9 @@ public class FedoraPublisher {
     public static void uploadObjectToRepository(String protocol, String host, int port, String userName, String password,File file, File contentModel,String cm,String mimeType,String pid,String label,String dsName,LWComponent component,LWMap map) throws Exception {
         System.setProperty("javax.net.ssl.trustStore", VueUtil.getDefaultUserFolder()+File.separator+"truststore");
         System.setProperty("javax.net.ssl.trustStorePassword","tomcat");
+        System.out.println("Trustore path(UOR):"+System.getProperty("javax.net.ssl.trustStore"));
+        System.out.println("Trustore password(UOR):"+System.getProperty("javax.net.ssl.trustStorePassword"));
+        
         FedoraClient fc = new FedoraClient(protocol+"://"+host+":"+port+"/fedora/", userName, password);
         AutoFinder af = new AutoFinder(fc.getAPIA());
         FieldSearchQuery query =  new FieldSearchQuery();
@@ -194,6 +205,134 @@ public class FedoraPublisher {
         }
     }
     
+    private static void  addObjectToRepository(edu.tufts.vue.dsm.DataSource ds,String cModel,File file,LWComponent comp,LWMap map) throws Exception{
+        Properties properties = ds.getConfiguration();
+        // System.setProperty("javax.net.ssl.trustStore", VueUtil.getDefaultUserFolder()+File.separator+"trustore");
+        // System.setProperty("javax.net.ssl.trustStorePassword","tomcat");
+        
+        System.setProperty("javax.net.ssl.trustStore", properties.getProperty("fedora22TrustStore"));
+        System.setProperty("javax.net.ssl.trustStorePassword",properties.getProperty("fedora22TrustStorePassword"));
+        System.out.println("Trustore path:"+System.getProperty("javax.net.ssl.trustStore"));
+        System.out.println("Trustore password:"+System.getProperty("javax.net.ssl.trustStorePassword"));
+        System.out.println("FEDORA URL: "+HTTPS+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22SecurePort")+FEDORA_URL_PATH);
+        FedoraClient fc = new FedoraClient(HTTPS+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22SecurePort")+FEDORA_URL_PATH, properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"));
+        String pid = getFedoraPid(comp);
+        AutoFinder af = new AutoFinder(fc.getAPIA());
+        FieldSearchQuery query =  new FieldSearchQuery();
+        Condition conds[] = new Condition[1];
+        conds[0] = new  Condition(); //"pid",ComparisonOperator.eq,mapPid);
+        conds[0].setProperty("pid");
+        conds[0].setOperator(ComparisonOperator.eq);
+        conds[0].setValue(pid);
+        query.setConditions(conds);
+        FieldSearchResult result = af.findObjects(RESULT_FIELDS,1,query);
+        if(result.getResultList().length  >0 ) {
+            modifyObject(fc,properties,cModel,file,comp,map);
+        } else {
+            addObject(fc,properties,cModel,file,comp,map);
+        }
+    }
+    
+    private static void addObject(FedoraClient fc,Properties p, String cModel,File file,LWComponent comp,LWMap map) throws Exception{
+        String ingestFoxml =  getDigitalObjectXML(p,comp,map,cModel,file);
+        BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
+        writer.write(ingestFoxml);
+        writer.close();
+        System.out.println("INGEST XML:\n"+ingestFoxml);
+        StringBufferInputStream s = new StringBufferInputStream(ingestFoxml);
+        AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,FORMAT, COMMENT);
+    }
+    private static void modifyObject(FedoraClient fc,Properties p, String cModel,File file,LWComponent comp,LWMap map) throws Exception{
+        String pid = getFedoraPid(comp);
+        String dsName = RESOURCE_DS;
+        String mimeType = (new MimetypesFileTypeMap().getContentType(file));
+        if(cModel.equals(VUE_CM)) {
+            dsName = VUE_DS;
+            mimeType =VUE_MIME_TYPE;
+        }
+        String dcXML= getDC(comp,comp.getLabel(),pid);
+        fc.getAPIM().modifyDatastreamByValue(pid,DC_DS,null,DC_LABEL,XML_MIME_TYPE,DC_URL,dcXML.getBytes(),null,null,COMMENT,true);
+        
+        if(cModel.equals(REMOTE_CM)){
+        }else {
+            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
+            String uploadId = uploader.upload(file);
+            fc.getAPIM().modifyDatastreamByReference(pid, dsName,  null,comp.getLabel(), mimeType, VUE_FORMAT_URL, uploadId, null,null,  COMMENT,true);
+            
+        }
+    }
+    private static String getDigitalObjectXML(Properties p,LWComponent comp,LWMap map,String cModel,File file) throws Exception{
+        String pid = getFedoraPid(comp);
+        String label = comp.getLabel();
+        StringBuffer xml = new StringBuffer();
+        xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        xml.append("<foxml:digitalObject xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+        xml.append("           xmlns:foxml=\"info:fedora/fedora-system:def/foxml#\"\n");
+        xml.append("           xsi:schemaLocation=\"info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-0.xsd\"");
+        xml.append("\n           PID=\""+ pid + "\">\n");
+        xml.append("  <foxml:objectProperties>\n");
+        xml.append("    <foxml:property NAME=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\" VALUE=\"FedoraObject\"/>\n");
+        xml.append("    <foxml:property NAME=\"info:fedora/fedora-system:def/model#label\" VALUE=\""
+                + label + "\"/>\n");
+        xml.append("    <foxml:property NAME=\"info:fedora/fedora-system:def/model#contentModel\" VALUE=\""
+                + cModel + "\"/>\n");
+        xml.append("    <foxml:property NAME=\"info:fedora/fedora-system:def/model#ownerId\" VALUE=\""+p.getProperty("fedora22UserName")+"\"/>");
+        xml.append("  </foxml:objectProperties>\n");
+        xml.append(getDCXML(comp));
+        if(!cModel.equals(VUE_CM)) {
+            xml.append( getRels(cModel,comp,map));
+        }
+        xml.append(getOjectDSXML(p,comp,cModel,file));
+        xml.append("</foxml:digitalObject>");
+        String objXML = xml.toString();
+        return objXML;
+    }
+    
+    private static String getOjectDSXML(Properties p,LWComponent comp,String cModel, File file) throws Exception {
+        SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
+        Date currentTime = new Date();
+        String dateString = formatter.format(currentTime);
+        String uploadId = new String();
+        String pid = getFedoraPid(comp);
+        String dsName = RESOURCE_DS;
+        String mimeType = (new MimetypesFileTypeMap().getContentType(file));
+        String controlGroup = "M";
+        String contentLocationType = "INTERNAL_ID";
+        if(cModel.equals(VUE_CM)) {
+            dsName = VUE_DS;
+            mimeType =VUE_MIME_TYPE;
+        }
+        if(!cModel.equals(REMOTE_CM)){
+            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
+            uploadId = uploader.upload(file);
+        } else {
+            controlGroup = "E";
+            contentLocationType = "URL";
+        }
+        
+        StringBuffer xml = new StringBuffer();
+        xml.append("<foxml:datastream CONTROL_GROUP=\""+controlGroup+"\" ID=\""+dsName+"\" STATE=\"A\" VERSIONABLE=\"true\">\n");
+        xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" FORMAT_URI=\"http://vue.tufts.edu/docs/vueformat/\"");
+        xml.append(" ID=\""+dsName+".0\" LABEL=\""+comp.getLabel()+"\" MIMETYPE=\""+mimeType+"\">\n");
+        xml.append("<foxml:contentDigest DIGEST=\"none\" TYPE=\"DISABLED\"/>\n");
+        xml.append("<foxml:contentLocation  REF=\""+uploadId+"\" TYPE=\""+contentLocationType+"\"/>\n");
+        xml.append("</foxml:datastreamVersion></foxml:datastream>\n");
+        return xml.toString();
+    }
+    
+    private static String getDCXML(LWComponent comp) {
+        SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
+        Date currentTime = new Date();
+        String dateString = formatter.format(currentTime);
+        StringBuffer xml = new StringBuffer();
+        xml.append("<foxml:datastream CONTROL_GROUP=\"X\" ID=\"DC\" STATE=\"A\" VERSIONABLE=\"true\">\n");
+        xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" ID=\"DC1.0\" LABEL=\"Dublin Core Metadata\" MIMETYPE=\"text/xml\">\n");
+        xml.append("<foxml:contentDigest DIGEST=\"none\" TYPE=\"DISABLED\"/>\n");
+        xml.append(" <foxml:xmlContent>\n");
+        xml.append(getDC(comp,comp.getLabel(),getFedoraPid(comp)));
+        xml.append("</foxml:xmlContent></foxml:datastreamVersion></foxml:datastream>\n");
+        return xml.toString();
+    }
     public static String getDC(LWComponent c,String title,String identifier) {
         String dc = new String();
         dc +="<oai_dc:dc xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\">";
