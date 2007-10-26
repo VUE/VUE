@@ -43,10 +43,15 @@ public class OntologyList extends javax.swing.JList {
         setCellRenderer(new OntologyListRenderer());
     }
     
-    public static class OntologyListModel implements javax.swing.ListModel
+    public void refresh()
+    {
+        ((OntologyListModel)getModel()).refresh();
+    }
+    
+    public static class OntologyListModel extends javax.swing.DefaultListModel
     {
         
-        public void addListDataListener(javax.swing.event.ListDataListener listener)
+       /* public void addListDataListener(javax.swing.event.ListDataListener listener)
         {
             
         }
@@ -54,7 +59,7 @@ public class OntologyList extends javax.swing.JList {
         public void removeListDataListener(javax.swing.event.ListDataListener listener)
         {
             
-        }
+        }*/
         
         public Object getElementAt(int index)
         {
@@ -69,6 +74,11 @@ public class OntologyList extends javax.swing.JList {
         public int getSize()
         {
             return edu.tufts.vue.ontology.OntManager.getOntManager().getOntList().size();
+        }
+        
+        public void refresh()
+        {
+            fireContentsChanged(this,0,getSize());
         }
         
     }
