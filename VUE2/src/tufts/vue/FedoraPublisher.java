@@ -213,9 +213,7 @@ public class FedoraPublisher {
         System.setProperty("javax.net.ssl.trustStore", properties.getProperty("fedora22TrustStore"));
         System.setProperty("javax.net.ssl.trustStorePassword",properties.getProperty("fedora22TrustStorePassword"));
         System.out.println("Trustore path:"+System.getProperty("javax.net.ssl.trustStore"));
-        System.out.println("Trustore password:"+System.getProperty("javax.net.ssl.trustStorePassword"));
-        System.out.println("FEDORA URL: "+HTTPS+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22SecurePort")+FEDORA_URL_PATH);
-        FedoraClient fc = new FedoraClient(HTTPS+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22SecurePort")+FEDORA_URL_PATH, properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"));
+         FedoraClient fc = new FedoraClient(HTTPS+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22SecurePort")+FEDORA_URL_PATH, properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"));
         String pid = getFedoraPid(comp);
         AutoFinder af = new AutoFinder(fc.getAPIA());
         FieldSearchQuery query =  new FieldSearchQuery();
@@ -235,10 +233,10 @@ public class FedoraPublisher {
     
     private static void addObject(FedoraClient fc,Properties p, String cModel,File file,LWComponent comp,LWMap map) throws Exception{
         String ingestFoxml =  getDigitalObjectXML(p,comp,map,cModel,file);
-        BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
-        writer.write(ingestFoxml);
-        writer.close();
-        System.out.println("INGEST XML:\n"+ingestFoxml);
+        //BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
+        //writer.write(ingestFoxml);
+        //writer.close();
+        //System.out.println("INGEST XML:\n"+ingestFoxml);
         StringBufferInputStream s = new StringBufferInputStream(ingestFoxml);
         AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,FORMAT, COMMENT);
     }
