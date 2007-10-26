@@ -1257,22 +1257,36 @@ public class DataSourceViewer extends JPanel
         String dockTitle = ds.getRepositoryDisplayName();
         PropertyMap dsProps = buildPropertyMap(ds);
         
-        final WidgetStack editInfoStack = new WidgetStack();
-    // Widget.setWantsScroller(editInfoStack, true);
+       // final WidgetStack editInfoStack = new WidgetStack();
+        WidgetStack editInfoStack = null;
+
+        
+        	editInfoStack = new WidgetStack();
+        
         if (editInfoDockWindow == null) {
             if (ds.hasConfiguration()) {
-                editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
+                editInfoStack.addPane("Configuration",new EditLibraryPanel(this,ds));
             } else {
-                JPanel jc = new JPanel();
+            	JPanel jc = new JPanel(){
+                	public Dimension getPreferredSize()
+                	{
+                		return new Dimension(300,100);
+                	}
+                	public Dimension getMinimumSize()
+                	{
+                		return new Dimension(300,100);
+                	}
+                };
                 jc.add(new JLabel("None"));
+                jc.setPreferredSize(new Dimension(200,20));
                 editInfoStack.addPane("Configuration",jc);
                 Widget.setExpanded(jc,false);
             }
             
             
             //JPanel descriptionPanel = new JPanel();
-            java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
-            java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+       //     java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
+        //    java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
             //gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
             //gbConstraints.insets = new java.awt.Insets(10,12,10,12);
             //descriptionPanel.setLayout(gbLayout);
@@ -1285,17 +1299,32 @@ public class DataSourceViewer extends JPanel
             
             editInfoStack.addPane("Content Description",metaDataPane);
             
-            editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
-            editInfoDockWindow.setWidth(300);
+            editInfoDockWindow = GUI.createDockWindow(dockTitle);
+       //     Widget.setWantsScroller(editInfoStack, true);
+            editInfoDockWindow.setContent(editInfoStack);
+            
+           editInfoDockWindow.setWidth(300);
             editInfoDockWindow.setHeight(300);
             editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
                     DRB.dockWindow.getY());
             editInfoDockWindow.setTitle(dockTitle);
         } else if (editInfoDockWindow.isVisible() || (!dockTitle.equals(editInfoDockWindow.getTitle()))) {
+        	editInfoStack.removeAll();
+       // 	editInfoDockWindow.setVisible(false);	
             if (ds.hasConfiguration()) {
-                editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
+                editInfoStack.addPane("Configuration", new EditLibraryPanel(this,ds));
             } else {
-                JPanel jc = new JPanel();
+                JPanel jc = new JPanel(){
+                	public Dimension getPreferredSize()
+                	{
+                		return new Dimension(300,100);
+                	}
+                	public Dimension getMinimumSize()
+                	{
+                		return new Dimension(300,100);
+                	}
+                };
+                
                 jc.add(new JLabel("None"));
                 editInfoStack.addPane("Configuration",jc);
                 Widget.setExpanded(jc,false);
@@ -1308,33 +1337,48 @@ public class DataSourceViewer extends JPanel
             //descriptionPanel.setLayout(new BorderLayout());
             MetaDataPane metaDataPane = new MetaDataPane(true);
             metaDataPane.loadProperties(dsProps);
-            metaDataPane.setPreferredSize(new Dimension(editInfoDockWindow.getWidth(),metaDataPane.getHeight()));
+       //     metaDataPane.setPreferredSize(new Dimension(editInfoDockWindow.getWidth(),metaDataPane.getHeight()));
             //descriptionPanel.add(metaDataPane,BorderLayout.CENTER);
             //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
             //Widget.setWantsScroller(editInfoStack, true);
             editInfoStack.addPane("Content Description",metaDataPane);
             
             editInfoDockWindow.setTitle(dockTitle);
+       //     Widget.setWantsScroller(editInfoStack, true);
             editInfoDockWindow.setContent(editInfoStack);
+       //     editInfoDockWindow.setVisible(true);	
+            
         }
     }
     
     private void refreshEditInfo(DataSource ds) {
         String dockTitle = ds.getDisplayName();
-        final WidgetStack editInfoStack = new WidgetStack();
+        
+        WidgetStack editInfoStack = null;
+        
+        
+        	editInfoStack = new WidgetStack();
       //  Widget.setWantsScroller(editInfoStack, true);
         if (editInfoDockWindow == null) {
-            editInfoStack.addPane("Configuration",new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
-            editInfoDockWindow = GUI.createDockWindow(dockTitle, editInfoStack);
+            editInfoStack.addPane("Configuration",new EditLibraryPanel(this,ds));
+            editInfoDockWindow = GUI.createDockWindow(dockTitle);
+        //    Widget.setWantsScroller(editInfoStack, true);
+            editInfoDockWindow.setContent(editInfoStack);
+            
             editInfoDockWindow.setWidth(300);
             editInfoDockWindow.setHeight(300);
             editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
                     DRB.dockWindow.getY());
             editInfoDockWindow.setTitle(dockTitle);
         } else if (editInfoDockWindow.isVisible() || (!dockTitle.equals(editInfoDockWindow.getTitle()))) {
-            editInfoStack.addPane("Configuration", new javax.swing.JScrollPane(new EditLibraryPanel(this,ds)));
+     //   	editInfoDockWindow.setVisible(false);	
+            editInfoStack.addPane("Configuration",new EditLibraryPanel(this,ds));
             editInfoDockWindow.setTitle(dockTitle);
+          //  editInfoDockWindow.setWidth(300);
+          //  editInfoDockWindow.setHeight(300);
+         //   Widget.setWantsScroller(editInfoStack, true);
             editInfoDockWindow.setContent(editInfoStack);
+         //   editInfoDockWindow.setVisible(true);	
         }
     }
     
