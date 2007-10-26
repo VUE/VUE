@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.68 $ / $Date: 2007-10-24 22:05:59 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-10-26 14:48:53 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -150,7 +150,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
-               
+           
+                int count = 0;
                 publishMenu.removeAll();
                 publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
                 publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
@@ -165,13 +166,20 @@ public class VueMenuBar extends javax.swing.JMenuBar
                      if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE) ||
                          r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                          publishMenu.add(PublishActionFactory.createPublishAction(dataSource[i])); 
+                         count++;
                      }
                  } catch(org.osid.repository.RepositoryException ex) {
                      Log.error("changed:", ex);
                  }
                 }
                 fileMenu.remove(publishMenu);
+                
                 fileMenu.add(publishMenu,10);
+                if(count > 0) {
+                    publishMenu.setEnabled(true);
+                } else {
+                    publishMenu.setEnabled(false);
+                }
             }
         });
         
@@ -226,6 +234,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //fileMenu.add(textOpen);
         //fileMenu.add(exportAction);
         fileMenu.add(rdfOpen);
+        publishMenu.setEnabled(false);
         fileMenu.add(publishMenu);
         
         JMenu pdfExportMenu = new JMenu("Create PDF");
