@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.469 $ / $Date: 2007-10-24 09:52:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.470 $ / $Date: 2007-10-26 05:42:18 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4362,8 +4362,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     repaint();
                 } else if (VUE.inFullScreen()) { // todo: can now more cleanly just handle this in FullScreen.FSWindow
                     VUE.toggleFullScreen(false, true);
-                    if (mFocal != null)
-                        loadFocal(mFocal.getMap()); // make sure top-level map is displayed
+
+                    // THE BELOW NOW DOES NOTHING AS THE VIEWER INSTANCE IS DIFFERENT!
+                    //if (mFocal != null)
+                    //    loadFocal(mFocal.getMap()); // make sure top-level map is displayed
+
+                    
                     if (activeTool instanceof PresentationTool) // todo: need to do this in a more centralized location...
                         activateTool(VueTool.getInstance(SelectionTool.class));
                 } else
