@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.13 $ / $Date: 2007-10-10 18:26:12 $ / $Author: dan $
+ * @version $Revision: 1.14 $ / $Date: 2007-10-26 14:35:16 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -178,6 +178,9 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
                 gridBagConstraints.insets = new java.awt.Insets(0,0,60,0);
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(votePanel,gridBagConstraints);
+                
+                getTopLevelAncestor().setSize(new java.awt.Dimension(535,535));
+                
                 add(votePanel);
                 //add(bottomPanel);
                 getRootPane().setSize(new java.awt.Dimension(535,535));
@@ -203,14 +206,20 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
                 gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
                 gridBag.setConstraints(weightPanel,gridBagConstraints);
 
+                getTopLevelAncestor().setSize(new java.awt.Dimension(535,535));
                 
                 add(weightPanel);
                 //add(bottomPanel);
                 //getTopLevelAncestor().setSize(new java.awt.Dimension(535,540));
                // getTopLevelAncestor().revalidate();
+                
+                getRootPane().setSize(new java.awt.Dimension(535,535));
+                getRootPane().revalidate();
+                getRootPane().repaint();
+                
                 getTopLevelAncestor().repaint();
-                System.out.println("VSP: rootpane class: " + getRootPane().getClass());
-                System.out.println("VSP: top level ancestor: " + getTopLevelAncestor().getClass());
+                //System.out.println("VSP: rootpane class: " + getRootPane().getClass());
+                //System.out.println("VSP: top level ancestor: " + getTopLevelAncestor().getClass());
                 revalidate();
                 repaint();
             }
