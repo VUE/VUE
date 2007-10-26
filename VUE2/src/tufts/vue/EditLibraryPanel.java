@@ -25,7 +25,7 @@ import java.awt.*;
 
 public class EditLibraryPanel extends JPanel implements ActionListener
 {
-	JButton updateButton = new JButton("Update");
+	JButton updateButton = new JButton("Save");
 	JTextField fields[] = null;
 	edu.tufts.vue.dsm.DataSource dataSource = null;
 	DataSource oldDataSource = null;
@@ -48,21 +48,36 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			// layout container
 			GridBagLayout gridbag = new GridBagLayout();
 			GridBagConstraints gbConstraints = new GridBagConstraints();
-			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+			gbConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+			gbConstraints.ipadx=110;
+			gbConstraints.fill = java.awt.GridBagConstraints.BOTH;
 			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
 			gbConstraints.gridx = 0;
 			gbConstraints.gridy = 0;
 			setLayout(gridbag);
-			
+			//cui.setBorder(BorderFactory.createLineBorder(Color.black));
+		//	this.setBorder(BorderFactory.createLineBorder(Color.red));
 			add(cui,gbConstraints);
 			updateButton.addActionListener(this);
+			gbConstraints.ipadx=15;
 			gbConstraints.gridy = 1;
+			gbConstraints.anchor=GridBagConstraints.NORTHEAST;
+			gbConstraints.fill=GridBagConstraints.NONE;
 			add(updateButton,gbConstraints);
+			gbConstraints.ipadx=0;
+			gbConstraints.gridx=1;
+			gbConstraints.gridy=0;
+			gbConstraints.weightx=1;
+			gbConstraints.weighty=1;
+			gbConstraints.gridheight=2;
+			gbConstraints.fill=GridBagConstraints.HORIZONTAL;
+			add(new JPanel(),gbConstraints);
+			
 		} catch (Throwable t) {
 			
 		}
 	}
-
+	
 	public EditLibraryPanel(DataSourceViewer dsv,
 							DataSource dataSource)
 	{
@@ -118,14 +133,27 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
 			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
 			gbConstraints.gridx = 0;
-			gbConstraints.fill= java.awt.GridBagConstraints.NONE;
+			gbConstraints.ipadx=110;
+			gbConstraints.fill = java.awt.GridBagConstraints.BOTH;
 			gbConstraints.gridy = 0;
 			setLayout(gridbag);
-			cui.setPreferredSize(new Dimension(280,(int)cui.getPreferredSize().getHeight()));
+			//cui.setBorder(BorderFactory.createLineBorder(Color.green));
+			//this.setBorder(BorderFactory.createLineBorder(Color.red));
 			add(cui,gbConstraints);
 			updateButton.addActionListener(this);
 			gbConstraints.gridy = 1;
+			gbConstraints.ipadx=15;
+			gbConstraints.anchor=GridBagConstraints.NORTHEAST;
+			gbConstraints.fill=GridBagConstraints.NONE;
 			add(updateButton,gbConstraints);
+			gbConstraints.gridx=1;
+			gbConstraints.ipadx=0;
+			gbConstraints.gridy=0;
+			gbConstraints.weightx=1;
+			gbConstraints.weighty=1;
+			gbConstraints.gridheight=2;
+			gbConstraints.fill=GridBagConstraints.REMAINDER;
+			add(new JPanel(),gbConstraints);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
