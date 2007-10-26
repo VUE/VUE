@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.12 $ / $Date: 2007-10-21 21:06:18 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2007-10-26 20:54:20 $ / $Author: mike $
  *
  */
 
@@ -108,7 +108,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 // todo: duplicate not working[? for wrap only? ]
 
     private static final boolean WrapText = LWNode.WrapText;
-    private static final Color SelectionColor = VueResources.getColor("mapViewer.textBox.selection.color");
+    private static final Color SelectionColor =GUI.getTextHighlightColor();// VueResources.getColor("mapViewer.textBox.selection.color");
     
     private static boolean TestDebug = false;
     private static boolean TestHarness = false;
@@ -166,7 +166,8 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         setSize(getPreferredSize());
         if (VueUtil.isWindowsPlatform() && SelectionColor != null)
             setSelectionColor(SelectionColor);
-
+        if (VueUtil.isWindowsPlatform() && SelectionColor != null)
+        	setSelectedTextColor(Color.black);
         mBounds.x = Float.NaN; // mark as uninitialized
         mBounds.y = Float.NaN; // mark as uninitialized
         
