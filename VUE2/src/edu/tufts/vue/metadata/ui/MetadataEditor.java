@@ -403,7 +403,23 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            JComponent comp = new JPanel();
            if(col == 0)
            {
-               comp =  new JLabel("Keywords:");
+               
+               if(((MetadataTableModel)table.getModel()).getColumnCount() == 2)
+               {    
+                 comp =  new JLabel("Keywords:");
+               }
+               else
+               {
+                 comp = new JLabel("Categories:");
+               }
+               comp.setFont(tufts.vue.gui.GUI.LabelFace);
+           }
+           else if(col == 1 && col != buttonColumn)
+           {
+               if(((MetadataTableModel)table.getModel()).getColumnCount() == 3)
+               {    
+                 comp =  new JLabel("Keywords:");
+               }
                comp.setFont(tufts.vue.gui.GUI.LabelFace);
            }
            else if(col == buttonColumn)
