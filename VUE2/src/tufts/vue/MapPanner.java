@@ -28,7 +28,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.61 $ / $Date: 2007-05-18 10:04:44 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2007-10-27 21:02:22 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -41,6 +41,8 @@ public class MapPanner extends javax.swing.JPanel
                MouseMotionListener,
                MouseWheelListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapPanner.class);
+    
     private MapViewer mapViewer; // active MapViewer
     private double zoomFactor; // zoomFactor that will fit entire map in the panner
     private Point dragStart; // where mouse was at mouse press
@@ -326,6 +328,11 @@ public class MapPanner extends javax.swing.JPanel
         }
 
         final LWMap map = viewer.getMap();
+
+        if (map == null) {
+            Log.error("null map for viewer " + viewer);
+            return null;
+        }
         
         final Rectangle2D allComponentBounds = map.getBounds();
         final Rectangle2D canvasRect = viewer.getCanvasMapBounds();
