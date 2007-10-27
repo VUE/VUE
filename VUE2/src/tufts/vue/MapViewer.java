@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.470 $ / $Date: 2007-10-26 05:42:18 $ / $Author: sfraize $ 
+ * @version $Revision: 1.471 $ / $Date: 2007-10-27 21:02:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2554,7 +2554,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (inScrollPane){
                 g.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
             }
-            g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
+            if (getMap() != null)
+                g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
             g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
             g.drawString("    canvas-size " + out(getSize()), x, y+=15);
             g.drawString("          frame " + out(dc.getFrame()), x, y+=15);
