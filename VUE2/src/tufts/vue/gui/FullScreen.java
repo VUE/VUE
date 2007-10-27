@@ -8,6 +8,8 @@ import tufts.vue.MapViewer;
 import tufts.vue.VueTool;
 import tufts.vue.VueToolbarController;
 
+import tufts.macosx.MacOSX;
+
 import java.awt.*;
 import javax.swing.JFrame;
 import javax.swing.JWindow;
@@ -16,7 +18,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.8 $ / $Date: 2007-10-06 03:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-10-27 21:04:58 $ / $Author: sfraize $
  *
  */
 
@@ -35,21 +37,16 @@ public class FullScreen
     private static boolean fullScreenMode = false;
     private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
     private static boolean nativeModeHidAllDockWindows;
-    //private static Window fullScreenWindow;
-    //private static Window cachedFSW;
     private static FSWindow FullScreenWindow;
     private static MapViewer FullScreenViewer;
     private static MapViewer FullScreenLastActiveViewer;
-    //private static Container fullScreenOldParent = null;
-    //private static Point fullScreenOldVUELocation;
-    //private static Dimension fullScreenOldVUESize;
-    //private static javax.swing.JComponent fullScreenContent;
 
     private static final String FULLSCREEN_NAME = "*FULLSCREEN*";
 
     public static final String VIEWER_NAME = "FULL";
 
-    //private static Frame cachedFSWnative = null;
+    //private static final boolean ExtraDockWindowHiding = !Util.isMacPlatform(); // must be done on WinXP
+    private static final boolean ExtraDockWindowHiding = true;
 
 
     /**
@@ -58,6 +55,7 @@ public class FullScreen
     public static class FSWindow extends javax.swing.JWindow
     {
         private VueMenuBar mainMenuBar;
+        private boolean isHidden = false;
         
         FSWindow() {
             super(VUE.getApplicationFrame());
@@ -85,6 +83,68 @@ public class FullScreen
             if (fullScreenMode)
                 FullScreenViewer.loadFocal(map);
         }
+
+        @Override
+        public void paint(Graphics g) {
+            if (DEBUG.Enabled) Log.debug("paint " + this);
+            super.paint(g);
+
+            if (isHidden) {
+                // wait for paint to finish, then fade us up
+                fadeUp();
+            }
+        }
+
+
+        private void fadeUp()
+        {
+            isHidden = false;
+            if (Util.isMacPlatform()) {
+                if (DEBUG.Enabled) Log.debug("requesting fadeup");
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    doFadeUp();
+                }});
+            }
+        }
+        
+        private void doFadeUp()
+        {
+            if (DEBUG.Enabled) Log.debug("fadeup invoked");
+            if (Util.isMacPlatform()) {
+                try {
+                    //if (MacOSX.isMainInvisible())
+                    MacOSX.fadeUpMainWindow();
+                } catch (Throwable t) {
+                    Log.error(t);
+                }
+            }
+            isHidden = false;
+        }
+
+        void makeInvisible() {
+            if (!isHidden && Util.isMacPlatform()) {
+                isHidden = true;
+                MacOSX.setAlpha(this, 0);
+            }
+        }
+
+//         void makeVisible() {
+//             if (isHidden) {
+//                 isHidden = false;
+//                 //MacOSX.cycleAlpha(this, 0f, 1f);
+//                 MacOSX.setAlpha(this, 1f);
+//             }
+//         }
+
+//         void makeVisibleLater() {
+//             if (isHidden) {
+//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                     makeVisible();
+//                 }});
+//             }
+//         }
+        
+        
 
         private javax.swing.JMenuBar getMainMenuBar() {
             if (mainMenuBar == null) {
@@ -149,11 +209,50 @@ public class FullScreen
             else 
                 GUI.setOffScreen(this);
 
-            if (show) // just in case
-                DockWindow.raiseAll();
+            if (show && !inNativeFullScreen()) 
+                DockWindow.raiseAll(); // just in case
         }
         
     }
+
+    private static void goBlack() {
+        if (Util.isMacPlatform()) {
+            try {
+                MacOSX.goBlack();
+            } catch (Error e) {
+                Log.error(e);
+            }
+        }
+    }
+
+    private static void fadeFromBlack() {
+        if (Util.isMacPlatform()) {
+            try {
+                MacOSX.fadeFromBlack();
+            } catch (Error e) {
+                Log.error(e);
+            }
+        }
+    }
+    
+//     public static void fadeToBlack() {
+//         // None of the MacOSX utils that use a separate NSWindow drawn
+//         // black on top of everything else work in full-screen native
+//         // mode -- the full screen window itself always stays on-top,
+//         // even if we order the special NSWindow to the front.
+        
+// //         if (Util.isMacPlatform()) {
+// //             try {
+// //                 MacOSX.fadeToBlack();
+// //             } catch (Error e) {
+// //                 Log.error(e);
+// //             }
+// //         }
+//     }
+
+    
+
+    
     
     public static boolean inFullScreen() {
         return fullScreenMode || fullScreenNative;
@@ -171,8 +270,9 @@ public class FullScreen
         toggleFullScreen(false);
     }
     
-    public static synchronized void toggleFullScreen(final boolean goNative)
+    public static synchronized void toggleFullScreen(boolean goNative)
     {
+        //agoNative=false;
         // TODO: getMapAt in MapTabbedPane fails returning null when, of course, MapViewer is parented out!
                 
         // On the mac, the order in which the tool windows are shown (go from hidden to visible) is the
@@ -196,9 +296,9 @@ public class FullScreen
         // What about using a JDialog instead of a JFrame?  JDialog's can have
         // a parent frame AND a JMenuBar...
 
-        boolean doBlack = (goNative || inNativeFullScreen());
-        if (doBlack)
-            tufts.Util.screenToBlack();
+//         final boolean doBlack = (goNative || inNativeFullScreen());
+//         if (doBlack)
+//             goBlack();
 
         if (fullScreenMode) {
             if (goNative && !inNativeFullScreen())
@@ -229,15 +329,17 @@ public class FullScreen
         ////ToolWindow.adjustMacWindows();
         VueMenuBar.toggleFullScreenTools();
 
-        if (doBlack)
-            VUE.invokeAfterAWT(new Runnable() {
-                    public void run() { tufts.Util.screenFadeFromBlack();}
-                });
+//         if (doBlack)
+//             VUE.invokeAfterAWT(new Runnable() {
+//                     public void run() { tufts.Util.screenFadeFromBlack();}
+//                 });
     }
 
     private synchronized static void enterFullScreenMode(final boolean goNative)
     {
         NDC.push("[FS->]");
+
+        //if (goNative) goBlack();
 
         final LWMap activeMap = VUE.getActiveMap();
 
@@ -272,7 +374,6 @@ public class FullScreen
         fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
 
-
         if (goNative) {
 
             // Try and prevent us from flashing a big white screen while we load.
@@ -283,6 +384,7 @@ public class FullScreen
             // On Mac, must use native full-screen to get the window over
             // the mac menu bar.
                     
+            FullScreenWindow.makeInvisible();
             device.setFullScreenWindow(FullScreenWindow);
 
             // We run into a serious problem using the special java full-screen mode on the mac: if
@@ -291,7 +393,7 @@ public class FullScreen
             // but just leaves you at a fully blank screen that you can sometimes never recover from
             // without powering off!  This true as of java version "1.4.2_05-141.3", Mac OS X 10.3.5/6.
 
-            if (!DockWindow.AllWindowsHidden()) {
+            if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
                 nativeModeHidAllDockWindows = true;
                 DockWindow.HideAllWindows();
             }
@@ -329,7 +431,9 @@ public class FullScreen
             activeTool.handleFullScreen(true, goNative);
             NDC.pop();
         }});
-        
+
+        //FullScreenWindow.makeVisibleLater();
+
     }
 
     
@@ -340,8 +444,18 @@ public class FullScreen
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();
-        
+
         Log.debug("Exiting full screen mode; inNative=" + wasNative);
+
+        final boolean fadeBack = wasNative && Util.isMacPlatform();
+
+        if (fadeBack) {
+            // For Mac: this won't be visible till full-screen is torn down (nothing
+            // can go over the FSW), but it will be there all full and black once
+            // the java FSW *is* torn down, then we can fade that out to reveal
+            // the desktop.
+            goBlack();
+        }
 
         //javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(true);
         
@@ -361,10 +475,16 @@ public class FullScreen
         fullScreenMode = false;
         fullScreenNative = false;
 
-        if (nativeModeHidAllDockWindows) {
+        if (ExtraDockWindowHiding && nativeModeHidAllDockWindows) {
             nativeModeHidAllDockWindows = false;
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 DockWindow.ShowPreviouslyHiddenWindows();
+                if (Util.isMacPlatform()) {
+                    // Only need to do this on mac, as we can't
+                    // hide what's happening on WinXP by fading
+                    // to/from black anyway.
+                    DockWindow.ImmediatelyRepaintAllWindows();
+                }
             }});
         }
         GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -375,10 +495,31 @@ public class FullScreen
             VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
             //Log.debug("activeTool.handleFullScreen " + VueToolbarController.getActiveTool());
             //VUE.getActiveViewer().popToMapFocal(); // old active viewer shouldn't have changed...
-            NDC.pop();
         }});
 
+
+        if (fadeBack) {
+
+            // note: if the DockWindows were hidden, and requested to be shown above,
+            // this fadeFromBlack still gets into the AWT EDT queue before those paints
+            // complete (paints have special low priority?) -- even if we try cascading
+            // the queue requests as much as four times!
+            
+            if (DEBUG.Enabled) Log.debug("requesting fadeFromBlack");
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                fadeFromBlack();
+            }});
+        }
+
+
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            NDC.pop();
+        }});
+        
     }
+
+
+
 
 
     /*
