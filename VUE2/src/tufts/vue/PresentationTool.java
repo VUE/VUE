@@ -2232,8 +2232,20 @@ public class PresentationTool extends VueTool
             
         
         void addIfUnique(Page page, String debug) {
-            if (!page.equals(skip1) && !page.equals(skip2))
-                add(new NavNode(page, offEdgeNodes, false, debug));
+            boolean repeat = false;
+            for (NavNode nn : mNavNodes) {
+                if (page.getOriginalMapNode() == nn.page.getOriginalMapNode()) {
+                    repeat = true;
+                    break;
+                }
+            }
+            //if (!page.equals(skip1) && !page.equals(skip2))
+            if (!repeat || DEBUG.PRESENT) {
+                final NavNode nn = new NavNode(page, offEdgeNodes, false, debug);
+                add(nn);
+                if (DEBUG.PRESENT && repeat)
+                    nn.setFillColor(null);
+            }
         }
 
         void add(NavNode nn) {
@@ -2290,7 +2302,7 @@ public class PresentationTool extends VueTool
                 LWPathway.Entry pathEntry = path.getFirstEntry(mapNode);
                 LWPathway.Entry nextPathEntry = pathEntry.next();
                 if (nextPathEntry != null)
-                    layout.add(new Page(nextPathEntry), "other-path");
+                    layout.addIfUnique(new Page(nextPathEntry), "other-path");
             }
         }
 
