@@ -526,7 +526,7 @@ public class PresentationTool extends VueTool
             }
             
             public String toString() {
-                return "Box[" + entry.toString() + "]";
+                return "Box[" + entry + "]";
             }
         
         }
