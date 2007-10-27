@@ -49,12 +49,14 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.110 $ / $Date: 2007-10-17 03:24:53 $ / $Author: mike $
+ * @version $Revision: 1.111 $ / $Date: 2007-10-27 21:00:48 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
     implements ActionListener
 {    
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PathwayPanel.class);
+
     private Frame mParentFrame;
     
     private final VueButton btnAddSlide = new VueButton("presentationDialog.button.makeSlides",this);
@@ -936,9 +938,6 @@ public class PathwayPanel extends JPanel
         else if (btn == btnPlay)
         {
             final PresentationTool presTool = PresentationTool.getTool();
-            //final PresentationTool tool = VueTool.getInstance(PresentationTool.class);
-
-            //VUE.setActive(VueTool.class, this, presTool);
             
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 VUE.toggleFullScreen(true);
@@ -988,7 +987,7 @@ public class PathwayPanel extends JPanel
 
         else if (btn == btnPresentationDelete)   
         {
-        	System.out.println("Current " + pathway.getCurrentEntry());
+        	Log.info("Current " + pathway.getCurrentEntry());
         	if (pathway.getCurrentEntry() == null)
         	{
         		//delete the pathway
@@ -1034,7 +1033,7 @@ public class PathwayPanel extends JPanel
             btnShowSlides.setSelected(btnShowSlides2.isSelected());
         }*/
         else {
-            System.out.println(this + ": Unhandled action: " + e);
+            Log.warn(this + ": Unhandled action: " + e);
         }
 
         VUE.getUndoManager().mark();
