@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.115 $ / $Date: 2007-10-25 15:53:46 $ / $Author: mike $
+ * @version $Revision: 1.116 $ / $Date: 2007-10-27 21:03:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -889,6 +889,7 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     public synchronized static void HideAllWindows() {
+        if (DEBUG.Enabled) Log.debug("hide all");
         AllVisible = false;
         for (DockWindow dw : AllWindows) {
             dw.mWasVisible = dw.isVisible();
@@ -896,7 +897,26 @@ public class DockWindow extends javax.swing.JWindow
                 dw.superSetVisible(false);
         }
     }
+
+    public synchronized static void ImmediatelyRepaintAllWindows() {
+        if (DEBUG.Enabled) Log.debug("repaint all synchronously");
+        for (DockWindow dw : AllWindows) {
+            if (dw.isVisible()) {
+                Rectangle bounds = dw.getContentPanel().getBounds();
+                // adjust bounds to force repainting of the entire window contents
+                bounds.x = -50;
+                bounds.y = -50;
+                bounds.width += 100;
+                bounds.height += 100;
+                if (DEBUG.PAINT) Log.debug("repaint " + dw + "; " + bounds);
+                dw.getContentPanel().paintImmediately(bounds);
+            }
+        }
+    }
+    
+    
     public synchronized static void ShowPreviouslyHiddenWindows() {
+        if (DEBUG.Enabled) Log.debug("show all");
         if (VUE.inNativeFullScreen()) {
             Log.debug("Ignoring show all windows: in native full screen");
             // don't touch windows if in native full screen, as can
