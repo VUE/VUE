@@ -434,9 +434,20 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
             //if (repositioned && !c.hasAbsoluteMapLocation()) {
             if (repositioned) {
-                c_new_x -= c.getParent().getMapX();
-                c_new_y -= c.getParent().getMapY();
-                if (DEBUG.WORK) System.out.println("new relative loc: " + c_new_x + "," + c_new_y + " for " + c);
+                final LWComponent parent = c.getParent();
+
+                if (DEBUG.WORK) System.out.format("new absolute loc: %6.1f,%6.1f for %s\n", c_new_x, c_new_y, c);
+                if (parent instanceof LWMap) {
+                    // no adjustment needed
+                } else {
+                    // TODO: not working...
+                    //Point2D.Float p = c.getParent().transformMapToZeroPoint(new Point2D.Float(c_new_x, c_new_y));
+                    //c_new_x -= p.x;
+                    //c_new_y -= p.y;
+                    c_new_x -= parent.getMapX();
+                    c_new_y -= parent.getMapY();
+                    if (DEBUG.WORK) System.out.format("new relative loc: %6.1f,%6.1f for %s\n", c_new_x, c_new_y, c);
+                }
             }
 
 
