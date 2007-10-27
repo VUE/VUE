@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.85 $ / $Date: 2007-10-21 21:06:35 $ / $Author: sfraize $
+ * @version $Revision: 1.86 $ / $Date: 2007-10-27 20:41:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2049,8 +2049,11 @@ public class GUI
     public static void startRecognizedDrag(DragGestureEvent e, Resource resource, DragSourceListener dsl)
     {
         final Image dragImage = resource.getDragImage();
-        final int offX = -dragImage.getWidth(null) / 2;
-        final int offY = -dragImage.getHeight(null) / 2;
+        int offX = 0, offY = 0;
+        if (dragImage != null) {
+            offX = -dragImage.getWidth(null) / 2;
+            offY = -dragImage.getHeight(null) / 2;
+        }
         e.startDrag(DragSource.DefaultCopyDrop, // cursor
                     dragImage, // drag image
                     new Point(offX,offY), // drag image offset
