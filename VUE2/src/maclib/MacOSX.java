@@ -25,15 +25,17 @@ import java.awt.image.BufferedImage;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.11 $ / $Date: 2007-10-06 02:57:39 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2007-10-27 21:07:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
 {
-    protected static NSWindow sFullScreen;
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MacOSX.class);
+    
+    protected static volatile NSWindow sFullScreen;
     protected static boolean DEBUG = false;
 
-    private static int DefaultColorCycleSteps = 8; // old was 32
+    private static int DefaultColorCycleSteps = 10; // old was 32, then 8
 
     static {
         if (System.getProperty("tufts.macosx.debug") != null)
@@ -165,60 +167,90 @@ public class MacOSX
     public static void goBlack() {
         goBlack(getFullScreenWindow());
     }
+
     
     public static void goBlack(NSWindow w) {
-        w.setAlphaValue(1);
-        //w.setBackgroundColor(NSColor.redColor());
+        if (DEBUG) out(w + " goBlack");
+        w.setAlphaValue(1f);
         w.orderFrontRegardless();
         //w.orderFront(w);
+
+        //out("Sleeping..."); try { Thread.currentThread().sleep(1000); } catch (Throwable t) {}
+
     }
     
-    public static void goClear() {
-        getFullScreenWindow().setAlphaValue(0);
+    public static void hideFSW() {
+        final NSWindow w = getFullScreenWindow();
+        if (DEBUG) out(w + " hiding (closing)");
+        w.close();
+        //getFullScreenWindow().setAlphaValue(0);
     }
 
     public static void fadeToBlack() {
         NSWindow w = getFullScreenWindow();
-        w.setAlphaValue(0);
-        w.orderFront(w);
+        if (DEBUG) out(w + " fadeToBlack");
+        //w.setAlphaValue(0);
+        w.orderFrontRegardless();
         cycleAlpha(0, 1);
+        //cycleAlpha(0, .5f);
+        //cycleAlpha(1, 0);
     }
 
     public static void fadeFromBlack() {
+        if (DEBUG) out("fadeFromBlack");
         fadeFromBlack(getFullScreenWindow());
     }
     
     public static void fadeFromBlack(NSWindow w) {
+        if (DEBUG) out(w + " fadeFromBlack");
         goBlack(w);
         cycleAlpha(w, 1, 0);
-        w.close();  // bus-error of we haven't called setReleasedWhenClosed(false)
+
+        // calling close is how the window becomes fully hidden (not just invisible),
+        // tho setReleasedWhenClosed(false) must have been called prior or we can get a bus-error
+        // accessing this again, as it may have been free'd.
+        w.close();
     }
 
+    public static void cycleAlpha(Window w, float start, float end) {
+        cycleAlpha(getWindow(w), start, end, DefaultColorCycleSteps);
+    }
+    
     private static void cycleAlpha(float start, float end) {
         cycleAlpha(getFullScreenWindow(), start, end, DefaultColorCycleSteps);
     }
     
+    
     private static void cycleAlpha(NSWindow w, float start, float end) {
         cycleAlpha(w, start, end, DefaultColorCycleSteps);
     }
-    
+
     private static void cycleAlpha(NSWindow w, float start, float end, final int steps) {
-        if (DEBUG) out("cycleAlpha " + start + " -> " + end + " in " + steps + " steps");
+        if (DEBUG) out(w + " cycleAlpha: " + start + " -> " + end + " in " + steps + " steps");
+        //new Throwable("CYCLEALPHA").printStackTrace();
         float alpha;
         float delta = end - start;
         float inc = delta / steps;
         for (int i = 0; i < steps; i++) {
             alpha = start + inc * i;
             w.setAlphaValue(alpha);
-            if (DEBUG) out("alpha=" + alpha);
-            //try { Thread.sleep(500); } catch (Exception e) {} // give CPU a break
+            if (DEBUG) {
+                out("alpha=" + alpha);
+                try { Thread.sleep(100); } catch (Exception e) {} // let us watch the reps
+            }
+            //Thread.yield();
+            try { Thread.sleep(8); } catch (Exception e) {} // 8ms wait = 125fps with theoretical render time of 0
+
         }
-        // if end value isn't 0, and you don't manuall close the window,
-        // it will grab all mouse events, locking out everything below it!
-        //if (DEBUG) { if (end == 0) end=.1f; }
         w.setAlphaValue(end);
+
+        // NOTE: if end value is NOT zero (it's at least slightly visible), and you
+        // don't manually call w.close() on the window to hide it, it will grab all
+        // mouse events, locking out everything below it.  Callers of cycleAlpha are
+        // currently responsible for sorting that ...
+        
         if (DEBUG) {
-            out("cycleAlpha complete");
+            out("alpha=" + end + "; cycle complete");
             //java.awt.Toolkit.getDefaultToolkit().beep();
         }
             
@@ -226,14 +258,24 @@ public class MacOSX
 
     private static NSWindow getFullScreenWindow() {
         if (sFullScreen == null) {
-            Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
-            sFullScreen = new NSWindow(new NSRect(0,0,screen.width,screen.height),
-                                       0,
-                                       //NSWindow.Retained,
-                                       NSWindow.NonRetained,
-                                       //NSWindow.Buffered,
-                                       true);
-            sFullScreen.setBackgroundColor(NSColor.blackColor());
+            if (DEBUG) out("creating FSW:");
+            final Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+            final NSRect size;
+            if (DEBUG)
+                size = new NSRect(200,200,screen.width/2,screen.height/2);
+            else
+                size = new NSRect(0,0,screen.width,screen.height);
+            sFullScreen =
+                new NSWindow(size,
+                             0,
+                             //NSWindow.Retained,
+                             //NSWindow.NonRetained,
+                             NSWindow.Buffered, // WINDOW IS ALWAYS WHITE UNLESS WE USED BUFFERED
+                             true);
+            if (DEBUG)
+                sFullScreen.setBackgroundColor(NSColor.redColor());
+            else
+                sFullScreen.setBackgroundColor(NSColor.blackColor());
 //            sFullScreen.setBackgroundColor(NSColor.redColor());
 //            out(" RED COLOR " + NSColor.redColor());
 //            out("FILL COLOR " + sFullScreen.backgroundColor());
@@ -241,11 +283,12 @@ public class MacOSX
 //                 sFullScreen.setBackgroundColor(NSColor.redColor());
 //             else
 //                 sFullScreen.setBackgroundColor(NSColor.blackColor());
-            sFullScreen.setLevel(NSWindow.ScreenSaverWindowLevel); // this allows it over the  mac menu bar
             sFullScreen.setHasShadow(false);
             sFullScreen.setIgnoresMouseEvents(true);
             sFullScreen.setReleasedWhenClosed(false);
             sFullScreen.setTitle("_mac_full_screen_fader"); // make sure starts with "_" (see keepWindowsOnTop)
+            sFullScreen.setLevel(NSWindow.ScreenSaverWindowLevel); // this allows it over the  mac menu bar
+            if (DEBUG) out(sFullScreen + "; created");
         }
         return sFullScreen;
     }
@@ -511,11 +554,20 @@ public class MacOSX
      * operating system windows bleed through.
      */
     public static void setAlpha(Window w, float alpha) {
-        NSWindow nsw = getWindow(w);
-        if (nsw != null) {
-            nsw.setAlphaValue(alpha);
-        }
+        if (DEBUG) out("setAlpha " + alpha + " on " + w);
+        setAlpha(getWindow(w), alpha);
+//         NSWindow nsw = getWindow(w);
+//         if (nsw != null) {
+//             nsw.setAlphaValue(alpha);
+//         }
     }
+
+    private static void setAlpha(NSWindow w, float alpha) {
+        if (DEBUG) out(w + " setAlpha " + alpha);
+        if (w != null)
+            w.setAlphaValue(alpha);
+    }
+    
 
     /**
      * Set the title on the underlying NSWindow.  This
@@ -688,7 +740,7 @@ public class MacOSX
             out("failed to find NSWindow for: " + name(javaWindow));
             dumpWindows();
         }
-            
+
         return macWindow;
 
     }
@@ -807,7 +859,9 @@ public class MacOSX
     }
     
     public static void makeMainInvisible() {
-        getMainWindow().setAlphaValue(0);
+        final NSWindow w = getMainWindow();
+        if (DEBUG) out(w + " making main invisible");
+        w.setAlphaValue(0);
     }
 
     public static boolean isMainInvisible() {
@@ -815,11 +869,15 @@ public class MacOSX
     }
     
     public static void fadeUpMainWindow() {
-        cycleAlpha(getMainWindow(), 0, 1);
+        final NSWindow w = getMainWindow();
+        if (DEBUG) out(w + " fadeUp main window");
+        cycleAlpha(w, 0, 1);
     }
     
     public static void setMainAlpha(float alpha) {
-        getMainWindow().setAlphaValue(alpha);
+        final NSWindow w = getMainWindow();
+        if (DEBUG) out(w + " setMainAlpha " + alpha);
+        w.setAlphaValue(alpha);
     }
 
     private static void eout(LinkageError e) {
@@ -846,11 +904,13 @@ public class MacOSX
     }
 
     protected static void out(String s) {
-        System.out.println("MacOSX lib: " + s);
+        //System.out.println("MacOSX lib: " + s);
+        Log.debug(s);
     }
 
     protected static void errout(String s) {
-        System.err.println("MacOSX lib: " + s);
+        //System.err.println("MacOSX lib: " + s);
+        Log.warn(s);
     }
     
 
