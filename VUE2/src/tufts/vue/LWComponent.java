@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.357 $ / $Date: 2007-10-23 21:19:42 $ / $Author: sfraize $
+ * @version $Revision: 1.358 $ / $Date: 2007-10-27 21:02:08 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4270,6 +4270,10 @@ u                    getSlot(c).setFromString((String)value);
 
     }
 
+    public Point2D.Float transformMapToZeroPoint(Point2D.Float mapPoint) {
+        return (Point2D.Float) transformMapToZeroPoint(mapPoint, mapPoint);
+    }
+    
     /**
      * @param mapPoint, a point in map coordinates to transform to local coordinates
      * @param zeroPoint the destination Point2D to place the resulting transformed coordinate -- may be
