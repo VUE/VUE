@@ -65,6 +65,19 @@ public class PresentationTool extends VueTool
     private static final String BACKWARD = "BACKWARD";
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
+
+    private final ImageButton ExitButton = new ImageButton(VueResources.getImageIcon("pathwayTool.exitImageIcon")) {
+            void doAction() {
+                if (VUE.inFullScreen())
+                    VUE.toggleFullScreen(false, true);
+                VUE.setActive(VueTool.class, this, VueTool.getInstance(SelectionTool.class));
+            }
+            void trackVisible(MouseEvent e) {
+                // set us visible if the given mouse even is between us and the lower right hand corner of the screen
+                setVisible(e.getX() < (x+width) && e.getY() > y);
+            }
+            
+        };
     
     private JButton mStartButton;
     private final JCheckBox mShowContext = new JCheckBox("Show Context");
@@ -84,13 +97,71 @@ public class PresentationTool extends VueTool
     //private int mPathwayIndex = 0;
     //private LWPathway.Entry mEntry;
 
-    private volatile boolean
+    private static volatile boolean
         mFadeEffect = true,
         mShowNavigator = DEBUG.NAV,
         mShowNavNodes,
         mForceShowNavNodes,
         mDidAutoShowNavNodes,
         mScreenBlanked;
+
+    private class ImageButton {
+
+        final ImageIcon icon;
+        final int width, height;
+
+        int x, y;
+        boolean visible;
+
+        ImageButton(ImageIcon icon) {
+            this.icon = icon;
+            width = icon.getIconWidth();
+            height = icon.getIconHeight();
+        }
+
+        boolean isVisible() { return visible; }
+
+        /**
+         * set us visible if the given mouse (motion) event is somewhere on the screen
+         * such that we want to appear.  Default always makes the button visible.
+         */
+        void trackVisible(MouseEvent e) {
+            setVisible(true);
+        }
+        
+        void setVisible(boolean t) {
+            if (visible != t) {
+                visible = t;
+                PresentationTool.this.repaint();
+            }
+        }
+
+        void setLocation(int x, int y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        void draw(DrawContext dc) {
+            dc.g.drawImage(icon.getImage(), x, y, null);
+        }
+
+        boolean contains(MouseEvent e) {
+            return visible ? contains(e.getX(), e.getY()) : false;
+        }
+        
+        boolean contains(int x, int y) {
+
+            if (!visible)
+                return false;
+            
+            return x >= this.x
+                && y >= this.y
+                && x <= this.x + width
+                && y <= this.y + height;
+        }
+
+        void doAction() {}
+    }
 
     /** a presentation moment (data for producing a single presentation screen) */
     private static class Page {
@@ -1152,6 +1223,8 @@ public class PresentationTool extends VueTool
 //             mShowNavNodes = false;
 //             return true;
 //         }
+        
+        ExitButton.trackVisible(e);
 
         if (mForceShowNavNodes) {
             // no state to change
@@ -1296,6 +1369,11 @@ public class PresentationTool extends VueTool
     @Override
     public boolean handleMousePressed(MapMouseEvent e)
     {
+        if (ExitButton.contains(e)) {
+            ExitButton.doAction();
+            return true;
+        }
+        
         if (checkForNavNodeClick(e))
             return true;
 
@@ -1420,6 +1498,8 @@ public class PresentationTool extends VueTool
         if (!selected)
             return;
 
+        ExitButton.setVisible(true);
+
         //GUI.refreshGraphicsInfo();
         //MouseRightActivationPixel = GUI.GScreenWidth - 40;
         //MouseRightClearAfterActivationPixel = GUI.GScreenWidth - 200;
@@ -1444,6 +1524,8 @@ public class PresentationTool extends VueTool
         
         //mShowContext.setSelected(false);
         mVisited.clear();
+
+        //makeInvisible();        
 
         final LWPathway pathway = VUE.getActivePathway();
 
@@ -1476,7 +1558,12 @@ public class PresentationTool extends VueTool
         } finally {
             startUnderway = false;
         }
+
+        if (DEBUG.Enabled) out("startPresentation: completed");
+
+        //makeVisibleLater();
     }
+    
 
     
     /** @param direction either 1 or -1 */
@@ -1760,9 +1847,11 @@ public class PresentationTool extends VueTool
         final boolean animate = newFocal instanceof LWMap;
         
         if (mFadeEffect && !animate) {
-            makeInvisible();
+            if (!startUnderway)
+                makeInvisible();
             viewer.loadFocal(mFocal, FIT_FOCAL, NO_ANIMATE);
-            makeVisibleLater();
+            if (!startUnderway)
+                fadeUpLater();
         } else {
             viewer.loadFocal(mFocal, FIT_FOCAL, animate);
         }
@@ -1986,7 +2075,7 @@ public class PresentationTool extends VueTool
     @Override
     public void handlePreDraw(DrawContext dc, MapViewer viewer) {
 
-        if (dc.focal instanceof LWMap) {
+        if (dc.focal instanceof LWMap || mPathway == null) {
             dc.fillBackground(DefaultFill);
             return;
         }
@@ -2035,7 +2124,7 @@ public class PresentationTool extends VueTool
             if (dc.isInteractive()) {
                 drawNavNodes(dc.push()); dc.pop();
             } else
-                out("NON-INTERACTIVE");
+                out("NON-INTERACTIVE (no NavNodes)");
             
             if (mDidAutoShowNavNodes) {
                 mShowNavNodes = mForceShowNavNodes = false;
@@ -2051,6 +2140,13 @@ public class PresentationTool extends VueTool
             drawOverviewMap(dc.push()); dc.pop();
         }
 
+        if (dc.isInteractive() && ExitButton.isVisible()) {
+            dc.setFrameDrawing();
+            // only really need to set location when this tool actives, but just
+            // in case the screen size should change...
+            ExitButton.setLocation(30, dc.frame.height - (ExitButton.height+20)); 
+            ExitButton.draw(dc);
+        }
         
         if (DEBUG.NAV) {
             dc.setFrameDrawing();
@@ -2185,6 +2281,9 @@ public class PresentationTool extends VueTool
             if (nextEntryThisPath != null)
                 layout.add(new Page(nextEntryThisPath), "next-path");
         }
+
+        if (mapNode == null)
+            return;
         
         for (LWPathway path : mapNode.getPathways()) {
             if (path.isDrawn() && path != mPathway) {
@@ -2222,114 +2321,27 @@ public class PresentationTool extends VueTool
 
 
 
-// Left handed original style nav-nodes:
-//     private void makeNavNodes(Page page, Rectangle frame)
-//     {
-//         // always add the current pathway at the top
-//         //if (node.inPathway(mPathway))
-//         if (page.onPathway(mPathway))
-//             mNavNodes.add(createNavNode(page));
-//         // tho having the order switch on the user kind of sucks...
+    public static void makeInvisible() {
 
-//         final LWComponent mapNode = page.getOriginalMapNode();
+        // TODO: Would be best to route these through full-screen code so it can ignore these
+        // requests while in a transition to full-screen, waiting for the first paint to
+        // happen, tho checking for startUnderway where these are called works for us now.
         
-//         for (LWPathway otherPath : mapNode.getPathways()) {
-//             //if (otherPath != mPathway && !otherPath.isFiltered())
-//             if (!otherPath.isFiltered() && otherPath != mPathway)
-//                 mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
-//         }
-
-
-//         float x = NavNodeX, y = frame.y;
-
-//         if (DEBUG.NAV) {
-//             // make room for diagnostics:
-//             y += 200;
-//         }
-
-        
-//         for (NavNode nav : mNavNodes) {
-//             y += nav.getHeight() + 5;
-//             nav.setLocation(x, y);
-//         }
-        
-//         if (!mNavNodes.isEmpty())
-//             y += 30;
-
-        
-//         NavNode nav;
-//         for (LWLink link : mapNode.getLinks()) {
-//             // LWComponent farpoint = link.getFarNavPoint(mapNode); // adjust for arrow directionality
-//             LWComponent farpoint = link.getFarPoint(mapNode);
-//             if (DEBUG.WORK) out(mapNode + " found farpoint " + farpoint);
-//             if (farpoint != null && farpoint.isDrawn()) {
-//                 if (false && link.hasLabel())
-//                     nav = createNavNode(new Page(link));
-//                 //nav = createNavNode(link, null); // just need to set syncSource to the farpoint
-//                 else
-//                     nav = createNavNode(new Page(farpoint));
-//                 //nav = createNavNode(farpoint, null);
-//                 mNavNodes.add(nav);
-
-//                 y += nav.getHeight() + 5;
-//                 nav.setLocation(x, y);
-//             }
-//         }
-
-//         /*
-//         float spacePerNode = frame.width;
-//         if (mShowNavigator)
-//             spacePerNode -= (frame.width / OverviewMapFraction);
-//         spacePerNode /= mNavNodes.size();
-//         int cnt = 0;
-//         float x, y;
-//         //out("frame " + frame);
-//         for (LWComponent c : mNavNodes) {
-//             x = cnt * spacePerNode + spacePerNode / 2;
-//             x -= c.getWidth() / 2;
-//             y = frame.height - c.getHeight();
-//             c.setLocation(x, y);
-//             //out("location set to " + x + "," + y);
-//             cnt++;
-//         }
-//         */
-//     }
-//     private NavNode createNavNode(LWPathway.Entry e) {
-//         //if (DEBUG.WORK) out("creating nav node for page " + page);
-//         return new NavNode(new Page(e));
-//     }
-//     private NavNode createNavNode(Page page) {
-//         //if (DEBUG.WORK) out("creating nav node for page " + page);
-//         return new NavNode(page);
-//     }
-//     private NavNode createNavNode(Page page, boolean isLastPathwayPage) {
-//         //if (DEBUG.WORK) out("creating nav node for page " + page);
-//         return new NavNode(page, isLastPathwayPage);
-//     }
-//     private NavNode createNavNode(LWPathway path) {
-//         //if (DEBUG.WORK) out("creating nav node for page " + page);
-//         return new NavNode(new Page(path.asEntry()), 300);
-//     }
-//     private NavNode createNavNode(LWComponent src, LWPathway pathway) {
-//         return new NavNode(src, pathway);
-//     }
-    
-    private void makeInvisible() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
             //out("makeInvisible");
             try {
                 MacOSX.makeMainInvisible();
                 mScreenBlanked = true;
             } catch (Error e) {
-                System.err.println(e);
+                Log.error(e);
             }
         }
     }
-    private void makeVisible() {
+    public static void fadeUp() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
-            //out("makeVisible");
             try {
-                if (MacOSX.isMainInvisible())
+                if (DEBUG.PRESENT) Log.debug("fadeUp");
+                //if (MacOSX.isMainInvisible())
                     MacOSX.fadeUpMainWindow();
                 mScreenBlanked = false;
             } catch (Error e) {
@@ -2337,15 +2349,12 @@ public class PresentationTool extends VueTool
             }
         }
     }
-    private void makeVisibleLater() {
+    public static void fadeUpLater() {
         if (VueUtil.isMacPlatform() && VUE.inNativeFullScreen()) {
-            VUE.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        //out("makeVisibleLater");
-                        //if (invisible)
-                        makeVisible();
-                    }
-                });
+            if (DEBUG.PRESENT) Log.debug("requesting fadeUp");
+            VUE.invokeAfterAWT(new Runnable() { public void run() {
+                fadeUp();
+            }});
         }
     }
 
@@ -2458,6 +2467,99 @@ public class PresentationTool extends VueTool
 }
 
 
+// Left handed original style nav-nodes:
+//     private void makeNavNodes(Page page, Rectangle frame)
+//     {
+//         // always add the current pathway at the top
+//         //if (node.inPathway(mPathway))
+//         if (page.onPathway(mPathway))
+//             mNavNodes.add(createNavNode(page));
+//         // tho having the order switch on the user kind of sucks...
+
+//         final LWComponent mapNode = page.getOriginalMapNode();
+        
+//         for (LWPathway otherPath : mapNode.getPathways()) {
+//             //if (otherPath != mPathway && !otherPath.isFiltered())
+//             if (!otherPath.isFiltered() && otherPath != mPathway)
+//                 mNavNodes.add(createNavNode(new Page(otherPath.getFirstEntry(mapNode))));
+//         }
+
+
+//         float x = NavNodeX, y = frame.y;
+
+//         if (DEBUG.NAV) {
+//             // make room for diagnostics:
+//             y += 200;
+//         }
+
+        
+//         for (NavNode nav : mNavNodes) {
+//             y += nav.getHeight() + 5;
+//             nav.setLocation(x, y);
+//         }
+        
+//         if (!mNavNodes.isEmpty())
+//             y += 30;
+
+        
+//         NavNode nav;
+//         for (LWLink link : mapNode.getLinks()) {
+//             // LWComponent farpoint = link.getFarNavPoint(mapNode); // adjust for arrow directionality
+//             LWComponent farpoint = link.getFarPoint(mapNode);
+//             if (DEBUG.WORK) out(mapNode + " found farpoint " + farpoint);
+//             if (farpoint != null && farpoint.isDrawn()) {
+//                 if (false && link.hasLabel())
+//                     nav = createNavNode(new Page(link));
+//                 //nav = createNavNode(link, null); // just need to set syncSource to the farpoint
+//                 else
+//                     nav = createNavNode(new Page(farpoint));
+//                 //nav = createNavNode(farpoint, null);
+//                 mNavNodes.add(nav);
+
+//                 y += nav.getHeight() + 5;
+//                 nav.setLocation(x, y);
+//             }
+//         }
+
+//         /*
+//         float spacePerNode = frame.width;
+//         if (mShowNavigator)
+//             spacePerNode -= (frame.width / OverviewMapFraction);
+//         spacePerNode /= mNavNodes.size();
+//         int cnt = 0;
+//         float x, y;
+//         //out("frame " + frame);
+//         for (LWComponent c : mNavNodes) {
+//             x = cnt * spacePerNode + spacePerNode / 2;
+//             x -= c.getWidth() / 2;
+//             y = frame.height - c.getHeight();
+//             c.setLocation(x, y);
+//             //out("location set to " + x + "," + y);
+//             cnt++;
+//         }
+//         */
+//     }
+//     private NavNode createNavNode(LWPathway.Entry e) {
+//         //if (DEBUG.WORK) out("creating nav node for page " + page);
+//         return new NavNode(new Page(e));
+//     }
+//     private NavNode createNavNode(Page page) {
+//         //if (DEBUG.WORK) out("creating nav node for page " + page);
+//         return new NavNode(page);
+//     }
+//     private NavNode createNavNode(Page page, boolean isLastPathwayPage) {
+//         //if (DEBUG.WORK) out("creating nav node for page " + page);
+//         return new NavNode(page, isLastPathwayPage);
+//     }
+//     private NavNode createNavNode(LWPathway path) {
+//         //if (DEBUG.WORK) out("creating nav node for page " + page);
+//         return new NavNode(new Page(path.asEntry()), 300);
+//     }
+//     private NavNode createNavNode(LWComponent src, LWPathway pathway) {
+//         return new NavNode(src, pathway);
+//     }
+    
+    
 
 
 //     @Override
