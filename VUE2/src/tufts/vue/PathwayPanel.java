@@ -49,7 +49,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.111 $ / $Date: 2007-10-27 21:00:48 $ / $Author: sfraize $
+ * @version $Revision: 1.112 $ / $Date: 2007-10-28 19:14:07 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -990,8 +990,26 @@ public class PathwayPanel extends JPanel
         	Log.info("Current " + pathway.getCurrentEntry());
         	if (pathway.getCurrentEntry() == null)
         	{
-        		//delete the pathway
-        		deletePathway(pathway);
+        			final Object[] defaultOrderButtons = { "Cancel","Delete"};
+        			
+        			final Object[]	macOrderButtons = {"Delete","Cancel"};
+        			
+        		   int response = JOptionPane.showOptionDialog
+                   (VUE.getDialogParent(),
+               
+                    "Are you sure you want to delete this presentation?" ,         
+                    "Delete presentation",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    (Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons),             
+                    "Cancel"
+                    );
+        		if (Util.isMacPlatform() ? response == 0 : response == 1)
+        		{
+        			//delete the pathway
+        			deletePathway(pathway);
+        		}
         	}
         	else
         	{
