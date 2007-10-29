@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.74 $ / $Date: 2007-10-25 18:34:55 $ / $Author: anoop $
+ * @version $Revision: 1.75 $ / $Date: 2007-10-29 15:24:05 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -343,6 +343,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().validate();
             validateTree();
         }  else if(e.getActionCommand().equals(NEXT)) {
+            System.out.println("Selected Repository: "+repList.getSelectedValue());
+             if(repList.getSelectedValue() == null) {
+                alert(this,"No repository is selectd. Please  select a repository","Publish Error");
+                return;
+            }
             getContentPane().remove(rPanel);
             //validateTree();
             if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
@@ -394,8 +399,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     
     private void publishMapToDL() {
+        if(repList.getSelectedValue() == null) {
+             alert(this,"No repository is selectd. Please go back and select a repository","Publish Error");  
+        }
+        edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
         try{
-            edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
             if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
                  if(publishMapRButton.isSelected())
                     FedoraPublisher.uploadMap(ds,VUE.getActiveMap());
@@ -413,7 +421,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             }
         } catch(Throwable t) {
             t.printStackTrace();
-            alert(this,"An error while publishing.","Publish Error");
+            alert(this,"You are not authorized to publish map to "+ds.getRepositoryDisplayName()+". Error message: "+t.getMessage(),"Publish Error");
             this.dispose();
         }
     }
