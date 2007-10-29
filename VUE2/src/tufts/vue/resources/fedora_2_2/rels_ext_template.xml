@@ -1,7 +1,0 @@
-<foxml:datastream CONTROL_GROUP="X" ID="RELS-EXT" STATE="A" VERSIONABLE="true">
-    <foxml:datastreamVersion CREATED="%CREATE_DATE%" ID="RELS-EXT.0" LABEL="Relationships to other objects" MIMETYPE="text/xml">
-      <foxml:xmlContent>
-          %RDF_DESCRIPTION%
-      </foxml:xmlContent>
-    </foxml:datastreamVersion>
- </foxml:datastream>
