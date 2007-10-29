@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.194 $ / $Date: 2007-10-24 03:49:16 $ / $Author: sfraize $
+ * @version $Revision: 1.195 $ / $Date: 2007-10-29 16:35:11 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -169,11 +169,25 @@ public class LWPathway extends LWContainer
                 node.addEntryRef(this);
         }
 
-        private void removeModelRefs() {
-            if (node != null) {
-                node.removeEntryRef(this);
-                pathway.removeMemberRefs(node);
-            }
+        /** Make sure the pathway is listening to the given LWComponent, and that our node knows it knows it's in this pathway / has this entry */
+        private void ensureModel() {
+            if (node == null)
+                return;
+            if (DEBUG.UNDO && DEBUG.META) pathway.out("ensureModel " + this);
+            node.addEntryRef(this);
+            node.addLWCListener(pathway, LWKey.Deleting, LWKey.Label, LWKey.Hidden);
+        }
+    
+        /** Stop the pathway from listening to the given LWComponent, and tell it it's no longer in this pathway / has this entry */
+        private void removeFromModel() {
+            if (node == null)
+                return;
+            if (DEBUG.UNDO && DEBUG.META) pathway.out("removeFromModel " + this);
+            node.removeEntryRef(this);
+            node.removeLWCListener(pathway);
+            // TODO: do we still need to listen to each of our members?
+            // if slides stay as children of LWPathway, could handle
+            // via broadcastChildEvent
         }
         
         public String getLabel() {
@@ -839,27 +853,29 @@ public class LWPathway extends LWContainer
     }
 
 
-    /** make sure we're listening to the given LWComponent, and that it knows it's in this pathway */
-    private void ensureMemberRefs(LWComponent c) {
-        if (c == null)
-            return;
-        if (DEBUG.UNDO && DEBUG.META) out("ensureMemberRefs " + c);
-        c.addPathwayRef(this);
-        c.addLWCListener(this, LWKey.Deleting, LWKey.Label, LWKey.Hidden);
-    }
+//     /** make sure we're listening to the given LWComponent, and that it knows it's in this pathway */
+//     private void ensureMemberRefs(Entry e) {
+//         if (e.node == null)
+//             return;
+//         if (DEBUG.UNDO && DEBUG.META) out("ensureMemberRefs " + e);
+//         e.node.addPathwayRef(this);
+//         e.node.addEntryRef(e);
+//         e.node.addLWCListener(this, LWKey.Deleting, LWKey.Label, LWKey.Hidden);
+//     }
     
-    /** Stop listening to the given LWComponent, and tell it it's no longer in this pathway */
-    // TODO: merge with entry.removeModelRefs
-    private void removeMemberRefs(LWComponent c) {
-        if (c == null)
-            return;
-        if (DEBUG.UNDO && DEBUG.META) out("removeMemberRefs " + c);
-        c.removePathwayRef(this);
-        c.removeLWCListener(this);
-        // TODO: do we still need to listen to each of our members?
-        // if slides stay as children of LWPathway, could handle
-        // via broadcastChildEvent
-    }
+//     /** Stop listening to the given LWComponent, and tell it it's no longer in this pathway */
+//     // TODO: merge with entry.removeModelRefs
+//     private void removeMemberRefs(Entry e) {
+//         if (e.node == null)
+//             return;
+//         if (DEBUG.UNDO && DEBUG.META) out("removeMemberRefs " + e);
+//         e.node.removePathwayRef(this);
+//         e.node.removeEntryRef(e);
+//         e.node.removeLWCListener(this);
+//         // TODO: do we still need to listen to each of our members?
+//         // if slides stay as children of LWPathway, could handle
+//         // via broadcastChildEvent
+//     }
     
     /** and an entry for the given component at the end of the pathway */
     public void add(LWComponent c) {
@@ -1049,11 +1065,10 @@ public class LWPathway extends LWContainer
         
         for (Entry e : oldEntries)
             if (!newEntries.contains(e))
-                e.removeModelRefs();
-        //removeMemberRefs(e.node);
+                e.removeFromModel();
 
         for (Entry e : newEntries)
-            ensureMemberRefs(e.node);
+            e.ensureModel();
 
         final int oldIndex = mCurrentIndex;
 
@@ -1179,14 +1194,16 @@ public class LWPathway extends LWContainer
     {
         super.removeFromModel();
         for (Entry e : mEntries)
-            removeMemberRefs(e.node);
+            e.removeFromModel();
+        //removeMemberRefs(e);
     }
 
     protected void restoreToModel()
     {
         super.restoreToModel();
         for (Entry e : mEntries)
-            ensureMemberRefs(e.node);
+            e.ensureModel();
+        //ensureMemberRefs(e);
     }
     
     public MasterSlide getMasterSlide() {
