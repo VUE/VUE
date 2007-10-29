@@ -1148,9 +1148,10 @@ public class PresentationTool extends VueTool
                                                        panner,
                                                        false); // draw reticle
 
-        
-        
-        if (focused != null) {
+
+        if (mNavMapDC == null) {
+            Log.error("null nav map GC for viewer " + viewer);
+        } else if (focused != null) {
             dc.g.setColor(Color.black);
             dc.setAlpha(0.5);
             dc.g.fill(panner);
@@ -1209,7 +1210,8 @@ public class PresentationTool extends VueTool
             
         }
 
-        mNavMapDC.dispose();
+        if (mNavMapDC != null)
+            mNavMapDC.dispose();
         pannerGC.dispose();
             
     }
