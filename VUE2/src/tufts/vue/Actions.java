@@ -1418,16 +1418,19 @@ public class Actions implements VueConstants
 
         boolean enabledFor(LWSelection s) {
             return s.size() >= 2
-                || (s.size() == 1 && s.first().getParent() instanceof LWSlide); // TODO: hack -- have capability check
+                || (s.size() == 1 && s.first().getParent() instanceof LWSlide); // todo: a have capability check (free-layout?  !isLaidOut() ?)
         }
 
         boolean supportsSingleMover() { return true; }
         
         void act(LWSelection selection) {
             LWComponent singleMover = null;
-            if (supportsSingleMover() && selection.size() == 1 && selection.first().getParent() instanceof LWSlide) {
+            
+            Rectangle2D.Float r = null; // will be the total bounds area we're going to layout into
+
+            if (supportsSingleMover() && selection.size() == 1 && selection.first().getParent() instanceof LWSlide) { // todo: capability check
                 singleMover = selection.first();
-                selection.add(selection.first().getParent());
+                r = singleMover.getParent().getZeroBounds();
             } else if (!selection.allOfType(LWLink.class)) {
                 Iterator<LWComponent> i = selection.iterator();
                 while (i.hasNext()) {
@@ -1438,14 +1441,18 @@ public class Actions implements VueConstants
                     // remove all children of nodes or groups, who's parent handles their layout
                     //if (!(c.getParent() instanceof LWMap)) // really: c.isLaidOut()
                     // need to allow for in-group components now.
-                    // todo: unser unexpected behaviour if some in-group and some not?
+                    // todo: unexpected behaviour if some in-group and some not?
                     if (c.getParent() instanceof LWNode) // really: c.isLaidOut()
                         i.remove();
                 }
             }
-            
-            Rectangle2D.Float r = (Rectangle2D.Float) selection.getBounds();
-            //out(selection + " bounds=" + r);
+
+            if (!selection.allHaveSameParent())
+                throw new DeniedException("all must have same parent");
+
+            if (r == null)
+                r = LWMap.getLocalBounds(selection);
+
             minX = r.x;
             minY = r.y;
             maxX = r.x + r.width;
@@ -1458,21 +1465,22 @@ public class Actions implements VueConstants
                 totalWidth += c.getWidth();
                 totalHeight += c.getHeight();
             }
-            
+
             if (singleMover != null) {
                 // If we're a single selected object laying out in a parent,
                 // only bother to arrange that one object -- make sure
-                // we can never touch the parent, as it was added to
-                // the selection above only to compute our total bounds.
+                // we can never touch the parent (it used to be added to
+                // the selection above to compute our total bounds, tho we do
+                // that manually now).
                 arrange(singleMover);
             } else {
                 arrange(selection);
             }
         }
+        
         void arrange(LWSelection selection) {
-            Iterator i = selection.iterator();
-            while (i.hasNext())
-                arrange((LWComponent) i.next());
+            for (LWComponent c : selection)
+                arrange(c);
         }
         void arrange(LWComponent c) { throw new RuntimeException("unimplemented arrange action"); }
         

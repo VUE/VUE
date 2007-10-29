@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.471 $ / $Date: 2007-10-27 21:02:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.472 $ / $Date: 2007-10-29 08:20:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4296,13 +4296,44 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
          * origin of the current dragComponent when the mouse was
          * pressed down. */
         Point2D.Float dragOffset = new Point2D.Float();
+
+    private void kdebug(String where, KeyEvent e) {
+        Log.debug(String.format("%25s:%s %07x:%s",
+                                where,
+                                e.isConsumed() ? " CONSUMED" : "",
+                                System.identityHashCode(e),
+                                e.paramString()));
+    }
+
+//     @Override
+//     protected void processKeyEvent(KeyEvent e) {
+//         kdebug("processKeyEvent", e);
+//         if (e.isConsumed()) {
+//             if (DEBUG.KEYS) out("processKeyEvent; already consumed: " + e.paramString());
+//         } else {
+//             super.processKeyEvent(e);
+//         }
+//     }
+
+//     @Override
+//     protected void processComponentKeyEvent(KeyEvent e) {
+//         kdebug("processComponentKeyEvent", e);
+//         super.processComponentKeyEvent(e);
+//     }
+    
+//     @Override
+//     protected boolean processKeyBinding(KeyStroke ks, KeyEvent e, int condition, boolean pressed) {
+//         kdebug("processKeyBinding", e);
+//         return super.processKeyBinding(ks, e, condition, pressed);
+//     }
+    
         
         private int kk = 0;
         private static DockWindow DebugInspector;
         private static DockWindow DebugIntrospector;
         private DockWindow debugPanner;
         public void keyPressed(KeyEvent e) {
-            if (DEBUG.KEYS) out("[" + e.paramString() + "] consumed=" + e.isConsumed());
+            if (DEBUG.KEYS) kdebug("keyPressed", e);
             
             viewer.clearTip();
             
@@ -4315,7 +4346,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // todo: we'll probably want to change this to a general tool-activation
             // scheme, and the active tool class will handle setting the cursor.  e.g.,
             // dispatchToolKeyPress(e);
-            
             
             final int keyCode = e.getKeyCode();
             final char keyChar = e.getKeyChar();
@@ -4333,14 +4363,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 break;
 
             case KeyEvent.VK_ENTER:
-                if (!(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
+                if (!Actions.Rename.isUserEnabled() && // messy: encoding that we know Rename uses ENTER here...
+                    !(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
                     handled = popFocal(e.isShiftDown());
-                } else if (Actions.Rename.isUserEnabled()) {
-                    // since removing this action from the main menu, we have to fire it manually
-                    // todo: handle this kind of thing generically (make sure all action key bindings installed)
-                    Actions.Rename.fire(this);
                 } else
                     handled = false;
+
+//                 if (!(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
+//                     handled = popFocal(e.isShiftDown());
+//                 } else if (Actions.Rename.isUserEnabled()) {
+//                     // since removing this action from the main menu, we have to fire it manually [NO LONGER NEEDED 2007-10-29]
+//                     // todo: handle this kind of thing generically (make sure all action key bindings installed)
+//                     Actions.Rename.fire(this);
+//                 } else
+//                     handled = false;
+                
                 break;
                 
             case KeyEvent.VK_ESCAPE: // general abort
@@ -4395,17 +4432,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             default:
                 handled = false;
             }
+            
+            //if (DEBUG.KEYS) kdebug("keyPressed;handled=" + handled, e);
 
             if (!handled) {
                 handled = activeTool.handleKeyPressed(e);
                 if (handled) {
                     if (DEBUG.KEYS) out(e.paramString() + "; key handled by current tool: " + activeTool);
-                    e.consume();
-                    return;
                 }
+
             }
-            
-            handled = true;
+
+            if (handled) {
+                e.consume();
+                return;
+            }
 
             if (isPathwayEntryMode() && VueSelection != null && (VueSelection.isEmpty() || VueSelection.first() == mFocal)) {
 
@@ -4448,6 +4489,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             if (handled) {
                 e.consume();
+                //kdebug("keyPressed-consumed", e);
                 return;
             }
             
@@ -4629,7 +4671,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         
         public void keyReleased(KeyEvent e) {
-            if (DEBUG.KEYS) out("[" + e.paramString() + "]");
+            //if (DEBUG.KEYS) out("[" + e.paramString() + "]");
+            if (DEBUG.KEYS) kdebug("keyReleased", e);
             
             if (activeTool.handleKeyReleased(e))
                 return;

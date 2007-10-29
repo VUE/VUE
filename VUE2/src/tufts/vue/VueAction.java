@@ -34,7 +34,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.29 $ / $Date: 2007-10-23 21:06:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.30 $ / $Date: 2007-10-29 08:20:27 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -49,6 +49,10 @@ public class VueAction extends javax.swing.AbstractAction
     private static boolean allEditIgnored = false;
 
     private final String permanentName;
+
+    static class DeniedException extends RuntimeException {
+        DeniedException(String msg) { super(msg); }
+    }
 
     /** Set's all action events to be temporarily ignored.
         E.g., used while a TextBox edit is active */
@@ -208,6 +212,8 @@ public class VueAction extends javax.swing.AbstractAction
                 java.awt.Toolkit.getDefaultToolkit().beep();
                 System.err.println(getActionName() + ": Not currently enabled");
             }
+        } catch (DeniedException e) {
+            Log.info("Denied: " + this + "; " + e.getMessage());
         } catch (Throwable t) {
             synchronized (System.err) {
                 System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
