@@ -746,7 +746,7 @@ public class Actions implements VueConstants
             
             final MapViewer viewer = VUE.getActiveViewer();
             final Collection pasted = duplicatePreservingLinks(ScratchBuffer);
-            final Point2D.Float mouseLocation = viewer.getLastMapMousePoint();
+            final Point2D.Float mouseLocation = viewer.getLastFocalMousePoint();
             final Point2D.Float pasteLocation;
 
             if (mouseLocation.equals(lastMouseLocation) && lastPasteLocation != null) {

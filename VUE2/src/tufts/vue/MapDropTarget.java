@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.83 $ / $Date: 2007-10-24 19:12:58 $ / $Author: sfraize $  
+ * @version $Revision: 1.84 $ / $Date: 2007-10-29 08:55:31 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1543,13 +1543,13 @@ class MapDropTarget
 
 
     /**
-     * Given a collection of LWComponent's, center them as a groupp at the given map location.
+     * Given a collection of LWComponent's, center them as a group at the given map location.
      */
     public static void setCenterAt(Collection<LWComponent> nodes, Point2D.Float mapLocation)
     {
         //if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + nodes);
-        //setLocation(nodes, mapLocation);
         java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
+        //java.awt.geom.Rectangle2D.Float bounds = LWMap.getLocalBounds(nodes);
 
         float dx = mapLocation.x - (bounds.x + bounds.width/2);
         float dy = mapLocation.y - (bounds.y + bounds.height/2);

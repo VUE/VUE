@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.472 $ / $Date: 2007-10-29 08:20:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.473 $ / $Date: 2007-10-29 08:55:31 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -643,16 +643,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return mOffset.y;
     }
 
-    protected Point2D screenToFocalPoint(Point p) {
+    protected Point2D.Float screenToFocalPoint(Point p) {
         return screenToFocalPoint(p.x, p.y);
     }
     
-    protected Point2D screenToFocalPoint(int x, int y) {
+    protected Point2D.Float screenToFocalPoint(int x, int y) {
         if (mFocal == mMap || mFocal == null) {
             return screenToMapPoint(x, y);
         } else {
             Point2D.Float p = screenToMapPoint(x, y);
-            return mFocal.transformMapToZeroPoint(p, p);
+            return (Point2D.Float) mFocal.transformMapToZeroPoint(p, p);
         }
     }
 
@@ -1141,6 +1141,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public Point2D.Float getLastMapMousePoint() {
         return screenToMapPoint(getLastMousePoint());
     }
+
+    /** last place mouse was either pressed or released (focal coordinates -- should probably replace the map version entirely) */
+    public Point2D.Float getLastFocalMousePoint() {
+        return screenToFocalPoint(getLastMousePoint());
+    }
+    
     
     public LWMap getMap() {// TODO: make PRIVATE and then clean up to use focals instead as needed (e.g., for drops)
         return mMap == null ? (mFocal == null ? null : mFocal.getMap()) : mMap;
@@ -2584,6 +2590,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
 
     protected static final Color DefaultFillColor = Color.white;
+    protected static final Color DefaultFocalFillColor = Color.darkGray;
     protected Color getBackgroundFillColor(DrawContext dc)
     {
         final Color bgFill;
@@ -2605,8 +2612,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // item or a portal), we won't know what to use...
             
         } else {
-            if (mMap == null || mFocal != mMap)
+            if (mMap == null)
                 bgFill = DefaultFillColor;
+            else if (mFocal != mMap)
+                bgFill = DefaultFocalFillColor;
             else
                 bgFill = mMap.getFillColor();
         }
