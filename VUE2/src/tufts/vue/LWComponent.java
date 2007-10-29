@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.358 $ / $Date: 2007-10-27 21:02:08 $ / $Author: sfraize $
+ * @version $Revision: 1.359 $ / $Date: 2007-10-29 16:35:37 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2062,6 +2062,7 @@ u                    getSlot(c).setFromString((String)value);
         }
         if (!mEntries.contains(e))
             mEntries.add(e);
+        addPathwayRef(e.pathway);
     }
 
     protected void removeEntryRef(LWPathway.Entry e) {
@@ -2071,11 +2072,11 @@ u                    getSlot(c).setFromString((String)value);
         }
         if (!mEntries.remove(e))
             Util.printStackTrace(this + "; Warning: didn't contain entry " + e);
+        removePathwayRef(e.pathway);
     }
     
     
-    // TODO: merge with addEntryRef/removeEntryRef
-    protected void addPathwayRef(LWPathway p)
+    private void addPathwayRef(LWPathway p)
     {
         if (mPathways == null)
             mPathways = new ArrayList();
@@ -2085,7 +2086,7 @@ u                    getSlot(c).setFromString((String)value);
         }
         //notify("pathway.add");
     }
-    protected void removePathwayRef(LWPathway p)
+    private void removePathwayRef(LWPathway p)
     {
         if (mPathways == null) {
             if (DEBUG.META) tufts.Util.printStackTrace("attempt to remove non-existent pathwayRef to " + p + " in " + this);
