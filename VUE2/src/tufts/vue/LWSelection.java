@@ -31,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.79 $ / $Date: 2007-09-17 02:38:07 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2007-10-29 16:34:37 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -42,6 +42,8 @@ import java.awt.geom.RectangularShape;
 // instead of always adding and removing from the individual objects.
 public class LWSelection extends java.util.ArrayList<LWComponent>
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWSelection.class);
+    
     public interface Acceptor extends tufts.vue.Acceptor<LWComponent> {
         /** @return true if the given object acceptable for selection  */
         public boolean accept(LWComponent c);
@@ -157,13 +159,13 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private void addControlListener(ControlListener listener)
     {
-        if (DEBUG.SELECTION) System.out.println(this + " adding control listener " + listener);
+        if (DEBUG.SELECTION) debug("adding control listener " + listener);
         controlListeners.add(listener);
     }
     
     private void removeControlListener(ControlListener listener)
     {
-        if (DEBUG.SELECTION) System.out.println(this + " removing control listener " + listener);
+        if (DEBUG.SELECTION) debug("removing control listener " + listener);
         if (!controlListeners.remove(listener))
             throw new IllegalStateException(this + " didn't contain control listener " + listener);
     }
@@ -175,12 +177,12 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     public synchronized void addListener(Listener l)
     {
-        if (DEBUG.SELECTION&&DEBUG.META) System.out.println(this + " adding listener   " + l);
+        if (DEBUG.SELECTION&&DEBUG.META) debug("adding listener   " + l);
         listeners.add(l);
     }
     public synchronized void removeListener(Listener l)
     {
-        if (DEBUG.SELECTION&&DEBUG.META) System.out.println(this + " removing listener " + l);
+        if (DEBUG.SELECTION&&DEBUG.META) debug("removing listener " + l);
         listeners.remove(l);
     }
 
@@ -203,13 +205,13 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             if (DEBUG.SELECTION || DEBUG.EVENTS) {
                 if (DEBUG.SELECTION)
                     System.out.println("\n-----------------------------------------------------------------------------");
-                System.out.println(this + " NOTIFYING " + listeners.size() + " LISTENERS from " + Thread.currentThread());
+                debug("NOTIFYING " + listeners.size() + " LISTENERS");
             }
             Listener[] listener_iter = (Listener[]) listeners.toArray(listener_buf);
             int nlistener = listeners.size();
             long start = 0;
             for (int i = 0; i < nlistener; i++) {
-                if (DEBUG.SELECTION && DEBUG.META) System.out.print(this + " notifying: #" + (i+1) + " " + (i<9?" ":""));
+                if (DEBUG.SELECTION && DEBUG.META) debug("notifying: #" + (i+1) + " " + (i<9?" ":""));
                 Listener l = listener_iter[i];
                 try {
                     if (DEBUG.SELECTION) {
@@ -288,7 +290,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             if (addSilent(c) && !isClone)
                 notifyListeners();
         } else {
-            if (DEBUG.SELECTION) System.out.println(this + " addToSelection(already): " + c);
+            if (DEBUG.SELECTION) debug("addToSelection(already): " + c);
             return false;
         }
         return true;
@@ -345,7 +347,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     private synchronized boolean addSilent(LWComponent c)
     {
-        if (DEBUG.SELECTION && DEBUG.META || DEBUG.EVENTS) System.out.println(this + " addSilent " + c + " src=" + source);
+        if (DEBUG.SELECTION && DEBUG.META || DEBUG.EVENTS) debug("addSilent " + c + " src=" + source);
 
         if (c == null) {
             tufts.Util.printStackTrace("can't add null to a selection");
@@ -369,7 +371,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 return false; // don't add
         }
 
-        if (DEBUG.SELECTION) System.out.println(this + " add " + c);
+        if (DEBUG.SELECTION) debug("add " + c);
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
@@ -391,7 +393,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private synchronized void removeSilent(LWComponent c)
     {
-        if (DEBUG.SELECTION) System.out.println(this + " remove " + c);
+        if (DEBUG.SELECTION) debug("remove " + c);
         if (notifyUnderway())
             return;
         if (!isClone) c.setSelected(false);
@@ -411,7 +413,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
      **/
     public synchronized void clearAndNotify() {
     	clearSilent();
-        if (DEBUG.SELECTION) System.out.println(this + " clearAndNotify: forced notification after clear");
+        if (DEBUG.SELECTION) debug("clearAndNotify: forced notification after clear");
     	notifyListeners();
     }
     
@@ -438,7 +440,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (notifyUnderway())
             return false;
 
-        if (DEBUG.SELECTION) System.out.println(this + " clearSilent");
+        if (DEBUG.SELECTION) debug("clearSilent");
 
         if (!isClone) {
             for (LWComponent c : this)
@@ -455,14 +457,14 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     /** Remove from selection anything that's been deleted */
     synchronized void clearDeleted()
     {
-        if (DEBUG.SELECTION) System.out.println(this + " clearDeleted");
+        if (DEBUG.SELECTION) debug("clearDeleted");
         boolean removed = false;
         LWComponent[] elements = new LWComponent[size()];
         toArray(elements);
         for (int i = 0; i < elements.length; i++) {
             LWComponent c = elements[i];
             if (c.isDeleted()) {
-                if (DEBUG.SELECTION) System.out.println(this + " clearDeleted: clearing " + c);
+                if (DEBUG.SELECTION) debug("clearDeleted: clearing " + c);
                 removeSilent(c);
                 removed = true;
             }
@@ -623,17 +625,29 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return copy;
     }
 
-    public String toString()
+    private void debug(String s) {
+        Log.debug(String.format("[%s] %s", paramString(), s));
+    }
+
+    private String paramString()
     {
         String content = (size() != 1 ? "" : " (" + first().toString() + ")");
-        return "LWSelection["
-            + size()
-            + " src=" + source
-            + 
-            (isClone
-             ? " CLONE]"
-             : ("]" + content)
-             );
+
+        return String.format("%d src=%s%s", size(), source, isClone ? " CLONE" : content);
+                             
+//         return "LWSelection["
+//             + size()
+//             + " src=" + source
+//             + 
+//             (isClone
+//              ? " CLONE]"
+//              : ("]" + content)
+//              );
     }
+
+    public String toString() {
+        return "LWSelection[" + paramString() + "]";
+    }
+    
     
 }
