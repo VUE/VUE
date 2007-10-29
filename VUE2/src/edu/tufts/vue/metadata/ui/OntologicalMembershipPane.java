@@ -18,15 +18,23 @@
 
 package edu.tufts.vue.metadata.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 import tufts.vue.*;
 import tufts.vue.gui.Widget;
 
+import edu.tufts.vue.metadata.*;
 import edu.tufts.vue.ontology.*;
+import edu.tufts.vue.ontology.ui.*;
 
 /*
  * OntologicalMembershipPane.java
@@ -58,13 +66,15 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         label.setFont(tufts.vue.gui.GUI.LabelFace);
         label.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         
-        add(label,BorderLayout.NORTH);
+        JPanel listPanel = new JPanel(new BorderLayout());
+        
+        listPanel.add(label,BorderLayout.NORTH);
         list = new javax.swing.JList(new OntologyTypeListModel());
         list.setCellRenderer(new OntologyTypeListRenderer());
         list.setOpaque(true);
         list.setBackground(getBackground());
-        add(list);//,java.awt.BorderLayout.SOUTH);
-        setPreferredSize(new Dimension(200,100));
+        listPanel.add(list);//,java.awt.BorderLayout.SOUTH);
+        //setPreferredSize(new Dimension(200,100));
         list.addMouseListener(new java.awt.event.MouseAdapter() {
             
             int selected = 0;
@@ -93,6 +103,35 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
             }
         });
         
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton addSelectedTerm = new JButton("Add selected term");
+        
+        addSelectedTerm.addActionListener(new ActionListener(){
+           public void actionPerformed(ActionEvent e)
+           {
+               TypeList selectedList = OntologyBrowser.getBrowser().getSelectedList();
+               if(selectedList !=null)
+               {
+                   Object type = selectedList.getSelectedValue();
+                   if(type != null)
+                   {
+                       VueMetadataElement vme = new VueMetadataElement();
+                       vme.setObject(type);
+                       current.getMetadataList().getMetadata().add(vme);
+                       refresh();
+                       repaint();
+                   }
+               }
+           }
+        });
+        
+        buttonPanel.add(addSelectedTerm);
+        
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(15,0,10,0));
+        
+        add(listPanel);
+        add(buttonPanel,BorderLayout.SOUTH);
+        
         VUE.addActiveListener(LWComponent.class,this);
         
         if(global == null)
@@ -117,7 +156,7 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
             
             ((OntologyTypeListModel)list.getModel()).refresh();
             
-            adjustVisibility();
+            //adjustVisibility();
 
         }
     }
