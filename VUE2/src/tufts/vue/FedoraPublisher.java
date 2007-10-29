@@ -58,38 +58,34 @@ public class FedoraPublisher {
     public static final String DC_DS = "DC";
     public static final String VUE_DS = "map.vue";
     
-    public static final String PID_KEY = "%PID";
-    public static final String CM_KEY = "%CONTENT_MODEL%";
-    public static final String CREATE_DATE_KEY = "%CREATE_DATE%";
-    public static final String DC_KEY ="%DC%";
-    public static final String UPLOAD_KEY ="%UPLOAD%";
-    public static final String OWNER_KEY  = "%OWNER%";
-    public static final String TITLE_KEY = "%TITLE%";
-    public static final String MIME_TYPE = "%MIME_TYPE%";
-    public static final String DC_MIME_TYPE_KEY = "%DC_MIME_TYPE%";
-    public static final String DC_LABEL_KEY = "%DC_LABEL%";
-    public static final String DC_ID_KEY = "%DC_ID%";
-    public static final String RELS_EXT_KEY  = "%RELS_EXT%";
+
     public static final String FORMAT = "foxml1.0";
+    public static final String VUE_FORMAT_URL = "http://vue.tufts.edu/docs/vueformat/";
+    public static final String ONT_TYPE_METADATA = "http://vue.tufts.edu/ontology/vue.rdfs#ontoType";
+    public static final String FEDORA_ONTOLOGY = "http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs#";
+    public static final String DC_URL = VueResources.getString("metadata.dublincore.url");
+    public static final String RELS_URL ="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    
+    
     public static final String VUE_MIME_TYPE ="application/vue";
     public static final String XML_MIME_TYPE ="text/xml";
+    
     public static final String DC_LABEL = "Dublin Core Metadata";
     public static final String RELS_LABEL ="Relationships to other objects";
-    public static final String VUE_FORMAT_URL = "http://vue.tufts.edu/docs/vueformat/";
+    
+
     public static final String MAP_DS = "map.vue";
     public static final String RELS_DS = "RELS-EXT";
     
     public static final String VUE_CM =  "tufts/vue/map/generic";
     public static final String OTHER_CM = "tufts/vue/other";
     public static final String REMOTE_CM = "tufts/vue/remote";
+    
     public static final String RESULT_FIELDS[] = {"pid"};
+    
     public static final String FILE_PREFIX = "file://";
-    public static final String ONT_TYPE_METADATA = "http://vue.tufts.edu/ontology/vue.rdfs#ontoType";
-    public static final String FEDORA_ONTOLOGY = "http://www.fedora.info/definitions/1/0/fedora-relsext-ontology.rdfs#";
-    public static final String DC_URL = VueResources.getString("metadata.dublincore.url");
-    public static final String RELS_URL ="http://www.w3.org/1999/02/22-rdf-syntax-ns#";
-    private static Map<String,String> foxmls = new HashMap<String,String>();
-    static String foxml;
+    
+ 
     /** Creates a new instance of FedoraExporter */
     public FedoraPublisher() {
     }
@@ -116,77 +112,6 @@ public class FedoraPublisher {
             }
         }
         uploadMap(ds,map);
-    }
-    
-    
-    public static void uploadObjectToRepository(String protocol, String host, int port, String userName, String password,File file, File contentModel,String cm,String mimeType,String pid,String label,String dsName,LWComponent component,LWMap map) throws Exception {
-        System.setProperty("javax.net.ssl.trustStore", VueUtil.getDefaultUserFolder()+File.separator+"truststore");
-        System.setProperty("javax.net.ssl.trustStorePassword","tomcat");
-        System.out.println("Trustore path(UOR):"+System.getProperty("javax.net.ssl.trustStore"));
-        System.out.println("Trustore password(UOR):"+System.getProperty("javax.net.ssl.trustStorePassword"));
-        
-        FedoraClient fc = new FedoraClient(protocol+"://"+host+":"+port+"/fedora/", userName, password);
-        AutoFinder af = new AutoFinder(fc.getAPIA());
-        FieldSearchQuery query =  new FieldSearchQuery();
-        Condition conds[] = new Condition[1];
-        conds[0] = new  Condition(); //"pid",ComparisonOperator.eq,mapPid);
-        conds[0].setProperty("pid");
-        conds[0].setOperator(ComparisonOperator.eq);
-        conds[0].setValue(pid);
-        query.setConditions(conds);
-        String dcXML= getDC(component,label,pid);
-        FieldSearchResult result = af.findObjects(RESULT_FIELDS,1,query);
-        Uploader uploader = new Uploader(protocol, host, port, userName, password);
-        String uploadId = uploader.upload(file);
-        if(result.getResultList().length  >0 ) {
-            // updating the content
-            fc.getAPIM().modifyDatastreamByReference(pid, dsName,  null,label, mimeType, VUE_FORMAT_URL, uploadId, null,null,  COMMENT,true);
-            //updating the DC metadata
-            fc.getAPIM().modifyDatastreamByValue(pid,DC_DS,null,DC_LABEL,XML_MIME_TYPE,DC_URL,dcXML.getBytes(),null,null,COMMENT,true);
-            //update the rels stream
-            if(!cm.equals(VUE_CM)) {
-                System.out.println("RDF: "+getRDFDescriptionForLWComponent(component,map));
-                fc.getAPIM().modifyDatastreamByValue(pid,RELS_DS,null,RELS_LABEL,XML_MIME_TYPE,RELS_URL, getRDFDescriptionForLWComponent(component,map).getBytes(),null,null,COMMENT,true);
-            }
-        } else {
-            // reading the foxml if it doesn't exist
-            if(!foxmls.containsKey(contentModel)) {
-                BufferedReader r = new BufferedReader(new FileReader(contentModel));
-                String line = new String();
-                foxml = "";
-                while((line = r.readLine())!=null) {
-                    foxml += line+"\n";
-                }
-                foxmls.put(contentModel.toString(),foxml);
-            } else {
-                foxml = foxmls.get(contentModel.toString());
-            }
-            
-            SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
-            Date currentTime = new Date();
-            String dateString = formatter.format(currentTime);
-            String ingestFoxml = foxml;
-            String relsExt = "";// getRels(cm,component,map);
-            ingestFoxml = ingestFoxml.replace(RELS_EXT_KEY,relsExt);
-            ingestFoxml = ingestFoxml.replace("%OWNER%",userName);
-            ingestFoxml = ingestFoxml.replaceAll("%CREATE_DATE%",dateString);
-            ingestFoxml = ingestFoxml.replaceAll("%PID%",pid);
-            ingestFoxml = ingestFoxml.replace("%TITLE%",label);
-            ingestFoxml = ingestFoxml.replace("%CONTENT_MODEL%",cm);
-            ingestFoxml = ingestFoxml.replace("%UPLOAD%",uploadId);
-            ingestFoxml = ingestFoxml.replace("%DC%",dcXML);
-            ingestFoxml = ingestFoxml.replace("%DC_ID%",DC_DS);
-            ingestFoxml = ingestFoxml.replace("%DC_LABEL%",DC_LABEL);
-            ingestFoxml = ingestFoxml.replace("%DC_MIME_TYPE%",XML_MIME_TYPE);
-            ingestFoxml = ingestFoxml.replace("%MIME_TYPE%",mimeType);
-            System.out.println(ingestFoxml);
-            //BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
-            //writer.write(ingestFoxml);
-            //writer.close();
-            StringBufferInputStream s = new StringBufferInputStream(ingestFoxml);
-            AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,FORMAT, COMMENT);
-            
-        }
     }
     
     private static void  addObjectToRepository(edu.tufts.vue.dsm.DataSource ds,String cModel,File file,LWComponent comp,LWMap map) throws Exception{
