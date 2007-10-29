@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.195 $ / $Date: 2007-10-29 16:35:11 $ / $Author: sfraize $
+ * @version $Revision: 1.196 $ / $Date: 2007-10-29 16:38:25 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1195,7 +1195,6 @@ public class LWPathway extends LWContainer
         super.removeFromModel();
         for (Entry e : mEntries)
             e.removeFromModel();
-        //removeMemberRefs(e);
     }
 
     protected void restoreToModel()
@@ -1203,7 +1202,6 @@ public class LWPathway extends LWContainer
         super.restoreToModel();
         for (Entry e : mEntries)
             e.ensureModel();
-        //ensureMemberRefs(e);
     }
     
     public MasterSlide getMasterSlide() {
