@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.359 $ / $Date: 2007-10-29 16:35:37 $ / $Author: sfraize $
+ * @version $Revision: 1.360 $ / $Date: 2007-10-29 16:40:17 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -210,7 +210,7 @@ public class LWComponent
     /** list of links that contain us as an endpoint */
     private transient List<LWLink> mLinks;
     /** list of pathways that we are a member of */
-    protected transient List<LWPathway> mPathways;
+    private transient List<LWPathway> mPathways;
     /** list of all pathway entries that refer to us (one for each time we appear on an individual pathway) */
     protected transient List<LWPathway.Entry> mEntries;
     
