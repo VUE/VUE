@@ -58,7 +58,7 @@ public class FedoraPublisher {
     public static final String DC_DS = "DC";
     public static final String VUE_DS = "map.vue";
     
-
+    
     public static final String FORMAT = "foxml1.0";
     public static final String VUE_FORMAT_URL = "http://vue.tufts.edu/docs/vueformat/";
     public static final String ONT_TYPE_METADATA = "http://vue.tufts.edu/ontology/vue.rdfs#ontoType";
@@ -73,7 +73,7 @@ public class FedoraPublisher {
     public static final String DC_LABEL = "Dublin Core Metadata";
     public static final String RELS_LABEL ="Relationships to other objects";
     
-
+    
     public static final String MAP_DS = "map.vue";
     public static final String RELS_DS = "RELS-EXT";
     
@@ -85,7 +85,7 @@ public class FedoraPublisher {
     
     public static final String FILE_PREFIX = "file://";
     
- 
+    
     /** Creates a new instance of FedoraExporter */
     public FedoraPublisher() {
     }
@@ -103,12 +103,14 @@ public class FedoraPublisher {
             LWComponent component = (LWComponent) i.next();
             if(component.hasResource() && (component instanceof LWNode || component instanceof LWLink) && (component.getResource() instanceof URLResource)){
                 URLResource resource = (URLResource) component.getResource();
+                String pid = getFedoraPid(component);
                 if(resource.isLocalFile()) {
-                    String pid = getFedoraPid(component);
                     File file = new File(resource.getSpec().replace(FILE_PREFIX,""));
                     addObjectToRepository(ds,OTHER_CM, file,  component, map);
-                    String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
+                } else {
+                    addObjectToRepository(ds,REMOTE_CM,null,component,map);
                 }
+                String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
             }
         }
         uploadMap(ds,map);
@@ -148,19 +150,23 @@ public class FedoraPublisher {
     private static void modifyObject(FedoraClient fc,Properties p, String cModel,File file,LWComponent comp,LWMap map) throws Exception{
         String pid = getFedoraPid(comp);
         String dsName = RESOURCE_DS;
-        String mimeType = (new MimetypesFileTypeMap().getContentType(file));
-        if(cModel.equals(VUE_CM)) {
+        String mimeType = "text/html";
+        if(file!= null) {
+            mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
+        } else{
+            mimeType =  new MimetypesFileTypeMap().getContentType(comp.getResource().getSpec());
+        }if(cModel.equals(VUE_CM)) {
             dsName = VUE_DS;
             mimeType =VUE_MIME_TYPE;
         }
         String dcXML= getDC(comp,comp.getLabel(),pid);
         fc.getAPIM().modifyDatastreamByValue(pid,DC_DS,null,DC_LABEL,XML_MIME_TYPE,DC_URL,dcXML.getBytes(),null,null,COMMENT,true);
-        
         // modifying rels-ext for non VUE_CM
         if(!cModel.equals(VUE_CM)){
             fc.getAPIM().modifyDatastreamByValue(pid,RELS_DS,null,RELS_LABEL,XML_MIME_TYPE,RELS_URL, getRDFDescriptionForLWComponent(comp,map).getBytes(),null,null,COMMENT,true);
         }
         if(cModel.equals(REMOTE_CM)){
+            fc.getAPIM().modifyDatastreamByReference(pid, dsName,  null,comp.getLabel(), mimeType, VUE_FORMAT_URL, comp.getResource().getSpec(), null,null,  COMMENT,true);
         }else {
             Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
             String uploadId = uploader.upload(file);
@@ -202,7 +208,12 @@ public class FedoraPublisher {
         String uploadId = new String();
         String pid = getFedoraPid(comp);
         String dsName = RESOURCE_DS;
-        String mimeType = (new MimetypesFileTypeMap().getContentType(file));
+        String mimeType = "text/html";
+        if(file!= null) {
+            mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
+        } else{
+            mimeType =  new MimetypesFileTypeMap().getContentType(comp.getResource().getSpec());
+        }
         String controlGroup = "M";
         String contentLocationType = "INTERNAL_ID";
         if(cModel.equals(VUE_CM)) {
@@ -215,6 +226,7 @@ public class FedoraPublisher {
         } else {
             controlGroup = "E";
             contentLocationType = "URL";
+            uploadId = comp.getResource().getSpec();
         }
         
         StringBuffer xml = new StringBuffer();
@@ -276,12 +288,14 @@ public class FedoraPublisher {
         rdfDescription += "<rdf:Description rdf:about=\"info:fedora/"+getFedoraPid(comp)+"\">";
         for(LWComponent c: map.getAllDescendents(LWComponent.ChildKind.PROPER)) {
             for(VueMetadataElement element: c.getMetadataList().getMetadata()) {
+                if(DEBUG.RDF) System.out.println("METADATA: "+element.getValue()+" key:  "+element.getKey()+" LWComponent: "+comp.getLabel() );
                 if(element.getKey().equals(ONT_TYPE_METADATA) && element.getValue().startsWith(FEDORA_ONTOLOGY) && c instanceof LWLink){
                     LWLink link = (LWLink)c;
                     LWComponent head = link.getHead();
-                    if(head == comp) {
+                    if(getFedoraPid(head).equals(getFedoraPid(comp))) {
+                        if(DEBUG.RDF) System.out.println("METADATA MATCH COMPONENT: "+element.getValue()+" key:  "+element.getKey()+" LWComponent: "+comp.getLabel() +" Link:"+link);
                         LWComponent tail = link.getTail();
-                        rdfDescription +=  "<rel:"+getFedoraOntologyTerm(element.getValue())+" rdf:resource=\"info:fedora/"+getFedoraPid(tail)+"\" />";
+                        rdfDescription +=  "<rel:"+getFedoraOntologyTerm(element.getValue())+" rdf:resource=\"info:fedora/"+getFedoraPid(tail)+"\" />\n";
                     }
                 }
             }
