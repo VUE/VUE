@@ -85,6 +85,7 @@ public class FedoraPublisher {
     
     public static final String FILE_PREFIX = "file://";
     
+    static SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
     
     /** Creates a new instance of FedoraExporter */
     public FedoraPublisher() {
@@ -150,12 +151,8 @@ public class FedoraPublisher {
     private static void modifyObject(FedoraClient fc,Properties p, String cModel,File file,LWComponent comp,LWMap map) throws Exception{
         String pid = getFedoraPid(comp);
         String dsName = RESOURCE_DS;
-        String mimeType = "text/html";
-        if(file!= null) {
-            mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
-        } else{
-            mimeType =  new MimetypesFileTypeMap().getContentType(comp.getResource().getSpec());
-        }if(cModel.equals(VUE_CM)) {
+        String mimeType =getMimeType(file,comp);
+        if(cModel.equals(VUE_CM)) {
             dsName = VUE_DS;
             mimeType =VUE_MIME_TYPE;
         }
@@ -202,18 +199,11 @@ public class FedoraPublisher {
     }
     
     private static String getOjectDSXML(Properties p,LWComponent comp,String cModel, File file) throws Exception {
-        SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
-        Date currentTime = new Date();
-        String dateString = formatter.format(currentTime);
+        String dateString = getDateString();
         String uploadId = new String();
         String pid = getFedoraPid(comp);
         String dsName = RESOURCE_DS;
-        String mimeType = "text/html";
-        if(file!= null) {
-            mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
-        } else{
-            mimeType =  new MimetypesFileTypeMap().getContentType(comp.getResource().getSpec());
-        }
+        String mimeType = getMimeType(file,comp);
         String controlGroup = "M";
         String contentLocationType = "INTERNAL_ID";
         if(cModel.equals(VUE_CM)) {
@@ -240,9 +230,7 @@ public class FedoraPublisher {
     }
     
     private static String getDCXML(LWComponent comp) {
-        SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
-        Date currentTime = new Date();
-        String dateString = formatter.format(currentTime);
+        String dateString = getDateString();
         StringBuffer xml = new StringBuffer();
         xml.append("<foxml:datastream CONTROL_GROUP=\"X\" ID=\"DC\" STATE=\"A\" VERSIONABLE=\"true\">\n");
         xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" ID=\"DC1.0\" LABEL=\"Dublin Core Metadata\" MIMETYPE=\"text/xml\">\n");
@@ -252,7 +240,8 @@ public class FedoraPublisher {
         xml.append("</foxml:xmlContent></foxml:datastreamVersion></foxml:datastream>\n");
         return xml.toString();
     }
-    public static String getDC(LWComponent c,String title,String identifier) {
+    
+    private static String getDC(LWComponent c,String title,String identifier) {
         String dc = new String();
         dc +="<oai_dc:dc xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\">";
         dc += "<dc:title>"+title+"</dc:title>";
@@ -267,10 +256,8 @@ public class FedoraPublisher {
         return dc;
     }
     
-    public static String getRelsXML(LWComponent comp,LWMap map) throws Exception  {
-        SimpleDateFormat  formatter =  new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.000Z'");
-        Date currentTime = new Date();
-        String dateString = formatter.format(currentTime);
+    private static String getRelsXML(LWComponent comp,LWMap map) throws Exception  {
+        String dateString = getDateString();
         StringBuffer xml = new StringBuffer();
         xml.append("<foxml:datastream CONTROL_GROUP=\"X\" ID=\"RELS-EXT\" STATE=\"A\" VERSIONABLE=\"true\">\n");
         xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" ID=\"RELS-EXT.0\" LABEL=\"Relationships to other objects\" MIMETYPE=\"text/xml\">\n");
@@ -282,7 +269,7 @@ public class FedoraPublisher {
     }
     
     
-    public static String getRDFDescriptionForLWComponent(LWComponent comp,LWMap map) {
+    private static String getRDFDescriptionForLWComponent(LWComponent comp,LWMap map) {
         String rdfDescription = new String();
         rdfDescription = "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rel=\"info:fedora/fedora-system:def/relations-external#\">";
         rdfDescription += "<rdf:Description rdf:about=\"info:fedora/"+getFedoraPid(comp)+"\">";
@@ -306,14 +293,30 @@ public class FedoraPublisher {
         return rdfDescription;
     }
     
-    public static String getFedoraPid(LWComponent component) {
+    private static String getFedoraPid(LWComponent component) {
         return "vue:"+component.getURIString().substring(component.getURIString().lastIndexOf("/")+1);
     }
     
-    public static String getFedoraOntologyTerm(String value) {
+    private static String getFedoraOntologyTerm(String value) {
         String term = new String();
         term = value.substring(FEDORA_ONTOLOGY.length());
         term = term.replaceAll(" ","");
         return term;
     }
+    
+    private static String getDateString() {
+        Date currentTime = new Date();
+        return formatter.format(currentTime);
+    }
+    
+    private static String getMimeType(File file, LWComponent comp) {
+        String mimeType = "text/html";
+        if(file!= null) {
+            mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
+        } else{
+            mimeType =  new MimetypesFileTypeMap().getContentType(comp.getResource().getSpec());
+        }
+        return mimeType;
+    }
+    
 }
