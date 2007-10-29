@@ -41,7 +41,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.52 $ / $Date: 2007-10-25 17:24:05 $ / $Author: mike $
+ * @version $Revision: 1.53 $ / $Date: 2007-10-29 06:12:17 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -102,7 +102,6 @@ public class InspectorPane extends JPanel
         stack.addPane("Ontological Membership",   ontologicalMetadata,    1f);
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
 
-        Widget.setHidden(ontologicalMetadata,true);
         
         Widget.setExpanded(mUserMetaData, false);
         //Widget.setExpanded(mResourceMetaData, false);
@@ -126,7 +125,6 @@ public class InspectorPane extends JPanel
         this.setEnabled(false);
         showNodePanes(false);
         showResourcePanes(false);       
-        Widget.setHidden(ontologicalMetadata,true);
     }
 
     public WidgetStack getWidgetStack()
@@ -152,9 +150,6 @@ public class InspectorPane extends JPanel
            // this.getParent().setEnabled(false);
             showNodePanes(false);
             showResourcePanes(false);
-            
-            // see comment in setNodePanes():
-            Widget.setHidden(ontologicalMetadata,true);
         } else {
             this.setEnabled(true);
             //this.getParent().setEnabled(true);
@@ -166,8 +161,6 @@ public class InspectorPane extends JPanel
             }
             mSummaryPane.load(c);
             mUserMetaData.load(c);
-            
-            //note: ontologicalMetadata hides itself in its own activeChanged
             
             //mNodeTree.load(c);
 
@@ -230,10 +223,7 @@ public class InspectorPane extends JPanel
         Widget.setHidden(mNotePanel, !visible);
         Widget.setHidden(mUserMetaData, !visible);
         //Widget.setHidden(mNodeTree, !visible);
-        
-        // do this instead in activeChanged -- ontologicalMetadata should not always
-        // be made visible and never if there is no selected component
-        //Widget.setHidden(ontologicalMetadata, !visible);
+        Widget.setHidden(ontologicalMetadata, !visible);
     }
     private void showResourcePanes(boolean visible) {
         Widget.setHidden(mResourceMetaData, !visible);
