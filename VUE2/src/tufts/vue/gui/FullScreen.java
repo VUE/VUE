@@ -18,7 +18,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.10 $ / $Date: 2007-10-27 21:16:10 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2007-10-29 09:51:34 $ / $Author: sfraize $
  *
  */
 
@@ -34,7 +34,7 @@ public class FullScreen
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(FullScreen.class);
     
-    private static boolean fullScreenMode = false;
+    private static boolean fullScreenWorking = false;
     private static boolean fullScreenNative = false; // using native full-screen mode, that hides even mac menu bar?
     private static boolean nativeModeHidAllDockWindows;
     private static FSWindow FullScreenWindow;
@@ -80,7 +80,7 @@ public class FullScreen
         }
 
         public void activeChanged(tufts.vue.ActiveEvent e, tufts.vue.LWMap map) {
-            if (fullScreenMode)
+            if (fullScreenWorking)
                 FullScreenViewer.loadFocal(map);
         }
 
@@ -225,6 +225,17 @@ public class FullScreen
         }
     }
 
+    private static void goClear() {
+        if (Util.isMacPlatform()) {
+            try {
+                MacOSX.hideFSW();
+            } catch (Error e) {
+                Log.error(e);
+            }
+        }
+    }
+    
+
     private static void fadeFromBlack() {
         if (Util.isMacPlatform()) {
             try {
@@ -255,11 +266,11 @@ public class FullScreen
     
     
     public static boolean inFullScreen() {
-        return fullScreenMode || fullScreenNative;
+        return fullScreenWorking || fullScreenNative;
     }
 
     public static boolean inWorkingFullScreen() {
-        return fullScreenMode;
+        return fullScreenWorking;
     }
     public static boolean inNativeFullScreen() {
         return fullScreenNative;
@@ -300,7 +311,7 @@ public class FullScreen
 //         if (doBlack)
 //             goBlack();
 
-        if (fullScreenMode) {
+        if (fullScreenWorking) {
             if (goNative && !inNativeFullScreen())
                 enterFullScreenMode(true);
             else           
@@ -339,7 +350,18 @@ public class FullScreen
     {
         NDC.push("[FS->]");
 
-        //if (goNative) goBlack();
+        boolean wentBlack = false;
+        if (goNative && inWorkingFullScreen()) {
+            // as the working full-screen window is the same window as the native
+            // full-screen window, we need to show the black window when transitioning
+            // from working full-screen to native full-screen, otherwise we see the
+            // working full-screen tear-down and the underlying VUE app/desktop before
+            // seeing the black screen of the initial native window at 0 alpha.
+            // Okay to leave this up while in native, as it'll be torn down automatically
+            // on exit, tho it safer to tear it down just in case.
+            goBlack();
+            wentBlack = true;
+        }
 
         final LWMap activeMap = VUE.getActiveMap();
 
@@ -371,7 +393,7 @@ public class FullScreen
                 
         FullScreenWindow.setMenuBarEnabled(!goNative);
         // FullScreenViewer.loadFocal(VUE.getActiveMap()); // can't do till we're sure it has a size!
-        fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
+        fullScreenWorking = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
 
         if (goNative) {
@@ -425,6 +447,7 @@ public class FullScreen
 //             if (DEBUG.PRESENT) Log.debug("AWT thread full-screen viewer loading map " + activeMap);
 //             FullScreenViewer.loadFocal(activeMap);
 //         }});
+
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             if (DEBUG.PRESENT) Log.debug("AWT thread activeTool.handleFullScreen for " + activeTool);
@@ -432,6 +455,14 @@ public class FullScreen
             NDC.pop();
         }});
 
+        if (wentBlack) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                // shouldn't ever be able to see this happen, as the native full-screen should be
+                // on top of us, but just in case we make sure to clear it out behind us...
+                goClear();
+            }});
+        }
+        
         //FullScreenWindow.makeVisibleLater();
 
     }
@@ -472,7 +503,7 @@ public class FullScreen
         }
         FullScreenWindow.setVisible(false);
         FullScreenViewer.loadFocal(null);
-        fullScreenMode = false;
+        fullScreenWorking = false;
         fullScreenNative = false;
 
         if (ExtraDockWindowHiding && nativeModeHidAllDockWindows) {
@@ -547,7 +578,7 @@ public class FullScreen
             // it flashes a small window briefly in the upper left.
         }
         fullScreenWindow.setVisible(false);
-        fullScreenMode = false;
+        fullScreenWorking = false;
         fullScreenNative = false;
         if (fullScreenWindow != VUE.getMainWindow()) {
             Log.debug("re-attaching prior extracted viewer content " + fullScreenContent);
@@ -690,7 +721,7 @@ public class FullScreen
             //fullScreenWindow.getContentPane().add(MapViewer.this.getParent().getParent()); // add with scroll bars
         }
                 
-        fullScreenMode = true; // we're in the mode as soon as the add completes (no going back then)
+        fullScreenWorking = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
         
 //         if (VUE.getMainWindow() != null) {
