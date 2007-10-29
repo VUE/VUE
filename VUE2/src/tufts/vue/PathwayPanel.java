@@ -49,7 +49,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.112 $ / $Date: 2007-10-28 19:14:07 $ / $Author: mike $
+ * @version $Revision: 1.113 $ / $Date: 2007-10-29 18:02:53 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -160,7 +160,7 @@ public class PathwayPanel extends JPanel
         //Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
         final Font defaultFont = getFont();
         final Font boldFont = defaultFont.deriveFont(Font.BOLD);
-        final Font smallFont = defaultFont.deriveFont((float) boldFont.getSize()-1);
+        final Font smallFont = defaultFont.deriveFont((float) boldFont.getSize()-2);
         final Font smallBoldFont = smallFont.deriveFont(Font.BOLD);
     
         mParentFrame = parent;
@@ -222,8 +222,8 @@ public class PathwayPanel extends JPanel
         GridBagLayout bag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         setLayout(bag);
-        
-        c.insets = new Insets(1,30,1,1);                
+                        
+        c.insets = new Insets(1,35,1,1);                
         c.weightx = 1.0; // make sure everything can fill to width
         c.anchor=GridBagConstraints.WEST;
         c.gridx=0;
@@ -256,7 +256,7 @@ public class PathwayPanel extends JPanel
         lblPlay.setLabelFor(btnPlay);
         
         add(btnPlay,c);
-        c.insets = new Insets(1,1,1,30);        
+        c.insets = new Insets(1,1,1,35);        
         c.gridwidth = GridBagConstraints.REMAINDER; // put everything in one column
         c.weightx = 1.0; // make sure everything can fill to width
         c.anchor=GridBagConstraints.EAST;        
@@ -267,6 +267,7 @@ public class PathwayPanel extends JPanel
         lblPlay.setFont(smallFont);
         add(lblPlay,c);
         
+       
         c.anchor=GridBagConstraints.CENTER;
         //-------------------------------------------------------
         // add pathway create/delete/lock control panel
@@ -519,26 +520,31 @@ public class PathwayPanel extends JPanel
         gbConstraints.gridheight = 1;
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.NORTHWEST;
+        
         viewPanel.add(lblViewSlide,gbConstraints);
         
-        
+        gbConstraints.insets = new Insets(0,0,0,3);
         gbConstraints.gridx=0;
         gbConstraints.gridy=1;
         gbConstraints.gridwidth = 1;
-        gbConstraints.gridheight = 1;        
+        gbConstraints.gridheight = 1;
+                
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
         viewPanel.add(btnPathwayOnly,gbConstraints);     
         
         
+        gbConstraints.insets = new Insets(0,3,0,0);
         gbConstraints.gridx=1;
         gbConstraints.gridy=1;
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
+        
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
         viewPanel.add(btnShowSlides,gbConstraints);        
         //END MASTER PANEL
+        gbConstraints.insets = new Insets(0,0,0,0);
         
         //START NEW PANEL        
         
