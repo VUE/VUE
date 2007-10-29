@@ -2456,8 +2456,8 @@ public class PresentationTool extends VueTool
     }
     */
     
-    /** @return true */
-    public boolean supportsSelection() { return true; }
+    /** @return false */
+    public boolean supportsSelection() { return false; }
     /** @return false */
     public boolean supportsResizeControls() { return false; }
     /** @return false */
