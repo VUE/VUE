@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-10-27 21:07:03 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2007-10-30 00:40:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -553,16 +553,12 @@ public class MacOSX
      * render with the given alpha, letting underlying
      * operating system windows bleed through.
      */
-    public static void setAlpha(Window w, float alpha) {
+    public static void setWindowAlpha(Window w, float alpha) {
         if (DEBUG) out("setAlpha " + alpha + " on " + w);
-        setAlpha(getWindow(w), alpha);
-//         NSWindow nsw = getWindow(w);
-//         if (nsw != null) {
-//             nsw.setAlphaValue(alpha);
-//         }
+        setNSAlpha(getWindow(w), alpha);
     }
 
-    private static void setAlpha(NSWindow w, float alpha) {
+    private static void setNSAlpha(NSWindow w, float alpha) {
         if (DEBUG) out(w + " setAlpha " + alpha);
         if (w != null)
             w.setAlphaValue(alpha);
