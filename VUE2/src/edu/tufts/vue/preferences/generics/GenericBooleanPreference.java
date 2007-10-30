@@ -91,7 +91,13 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
 		JLabel titleLabel = new JLabel(getTitle());
 		Font f = titleLabel.getFont().deriveFont(Font.BOLD);
 		titleLabel.setFont(f);
-		JLabel descLabel = new JLabel(getDescription());
+		//JLabel descLabel = new JLabel(getDescription());
+		JTextArea messageArea = new JTextArea(getDescription());
+		final Font defaultFont = panel.getFont();
+		messageArea.setFont(defaultFont);
+	        messageArea.setColumns(30);
+	        messageArea.setLineWrap(true);
+	        messageArea.setWrapStyleWord(true);
 		GridBagConstraints gbConstraints = new GridBagConstraints();
 	    
 		gbConstraints.gridx = 0;
@@ -107,7 +113,7 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
     
 		gbConstraints.gridx = 0;
 		gbConstraints.gridy = 1;
-		panel.add(descLabel, gbConstraints);
+		panel.add(messageArea, gbConstraints);
 		
 		gbConstraints.gridx=0;
 		gbConstraints.gridy=2;
@@ -122,6 +128,7 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
         value.setBackground(Color.WHITE);
         
         booleanPanel.add(value);
+        
         booleanPanel.add(new JLabel(getMessage()));
         getCheckBox().addItemListener(this);
         getCheckBox().setSelected(((Boolean)getValue()).booleanValue());

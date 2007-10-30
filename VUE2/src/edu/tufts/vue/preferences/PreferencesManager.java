@@ -38,6 +38,8 @@ public class PreferencesManager {
 	  {
 		  PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.ImageSizePreference.class);
 		  PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.AutoZoomPreference.class);  		
+		  if (tufts.Util.isWindowsPlatform())
+			  PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.EnhancedFileChooserPreference.class);
 		  //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.WindowPropertiesPreference.class);
 		
 		categories.add(PreferenceConstants.MAPDISPLAY_CATEGORY);
