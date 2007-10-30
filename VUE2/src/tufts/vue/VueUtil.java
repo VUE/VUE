@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.87 $ / $Date: 2007-10-24 18:42:16 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2007-10-30 00:10:49 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -40,8 +40,8 @@ public class VueUtil extends tufts.Util
     
     public static final String DEFAULT_WINDOWS_FOLDER = "vue_2";
     public static final String DEFAULT_MAC_FOLDER = ".vue_2";
+    private static final String VueExtension = VueResources.getString("vue.extension", ".vue");
     private static String currentDirectoryPath = "";
-    private static String VueExtension = null;
     
     public static void openURL(String platformURL)
         throws java.io.IOException
@@ -61,14 +61,6 @@ public class VueUtil extends tufts.Util
 
         if (!isWindowsPlatform() && VUE.inNativeFullScreen())
             VUE.toggleFullScreen();
-
-        if (VueExtension == null) {
-            VueExtension = VueResources.getString("vue.extension");
-            if (VueExtension == null)
-                VueExtension = ".vue";
-            else
-                VueExtension = VueExtension.toLowerCase();
-        }
 
         // todo: spawn this in another thread just in case it hangs
         
