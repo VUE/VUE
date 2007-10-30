@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.473 $ / $Date: 2007-10-29 08:55:31 $ / $Author: sfraize $ 
+ * @version $Revision: 1.474 $ / $Date: 2007-10-30 00:37:06 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5712,10 +5712,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     clearIndicated();
                 }
                 if (over != null && isDropRequest(e)) { 
-                    if (isValidParentTarget(VueSelection, over))
+                    if (isValidParentTarget(VueSelection, over)) {
                         setIndicated(over);
-                    else if (isValidParentTarget(VueSelection, over.getParent()))
+                    } else if (over instanceof LWSlide == false && isValidParentTarget(VueSelection, over.getParent())) {
+                        // if we're here and over is a slide, it must have been a map slide, which we don't want to drop
+                        // on for now...
                         setIndicated(over.getParent());
+                    }
                     //repaintRegion.add(over.getBounds());
                 } else
                     clearIndicated();
@@ -6277,6 +6280,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //if (s.first().getParent() == parentTarget) // it's already the parent: don't bother indicating a parent change
                       //return false; // oops -- is leading to DE-parenting
                 // todo: rework so can get away with not indicating the existing parent
+            }
+            if (parentTarget instanceof LWSlide && (mFocal != parentTarget || !parentTarget.isPathwayOwned())) {
+                // don't allow dropping onto slide icons
+                return false;
             }
             return parentTarget.supportsChildren();
         }
