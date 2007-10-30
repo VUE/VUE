@@ -268,7 +268,7 @@ public class PresentationTool extends VueTool
                 return entry.getLabel();
             else {
                 Log.warn("Page with no node or entry");
-                return "<NO-NODE-OR-ENTRY!>";
+                return "<NO-NODE-OR-ENTRY>";
             }
         }
 
@@ -645,8 +645,8 @@ public class PresentationTool extends VueTool
             final LWComponent node = page.getOriginalMapNode();
             // pull node from entry if node is null?
             if (node == null) {
-                //Log.warn("NULL NODE in " + this);
-                Util.printStackTrace("NULL NODE in " + this);
+                Log.debug("null node in " + this);
+                //Util.printStackTrace("NULL NODE in " + this);
                 mJumpBoxes = null;
             } else if (node.inVisiblePathway()) {
                 mJumpBoxes = createPathwayJumpBoxes(node);
@@ -1553,14 +1553,18 @@ public class PresentationTool extends VueTool
         mLastPathwayPage = null;
         mLastStartPathwayPage = null;
 
-        final LWPathway pathway = VUE.getActivePathway();
+        LWPathway pathway = VUE.getActivePathway();
 
-        if (!pathway.isVisible() && !pathway.isLocked())
-            pathway.setVisible(true);
+        if (!pathway.isVisible()) {
+            if (!pathway.isLocked())
+                pathway.setVisible(true);
+            else
+                pathway = null; // non-pathway presentation mode
+        }
 
         mStartPathway = pathway;
         startUnderway = true;
-
+        
         try {
         
             if (pathway != null && pathway.length() > 0) {
@@ -2301,6 +2305,9 @@ public class PresentationTool extends VueTool
     private void makeNavNodes(Rectangle frame)
     {
         if (DEBUG.PRESENT) out("makeNavNodes " + mCurrentPage);
+
+        if (mCurrentPage == NO_PAGE || mCurrentPage == null)
+            return;
         
         final NavLayout layout = new NavLayout(frame);
 
