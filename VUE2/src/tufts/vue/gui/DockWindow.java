@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.116 $ / $Date: 2007-10-27 21:03:40 $ / $Author: sfraize $
+ * @version $Revision: 1.117 $ / $Date: 2007-10-30 00:33:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -222,11 +222,14 @@ public class DockWindow extends javax.swing.JWindow
             //in toolbar mode in a while? -MK
             
             
-// SMF 2007-10-23 focusable is always enabled below, and we've been fine for a while -- turing this off again.
-//             if (VueUtil.isMacPlatform()) {
-//                 // SMF: seems better on mac -- re-enabled for mac 2007-08-30 
-//                 setFocusableWindowState(false); 
-//             }
+            if (VueUtil.isMacPlatform()) {
+                // SMF: seems better on mac -- re-enabled for mac 2007-10-29
+                // In particular, very narrow drop-downs are problematic w/out doing
+                // this: as soon as you roll off them, they dissapear.  E.g., makes changing
+                // the font via the font-size drop-down very problematic.  Worth not
+                // having rollovers for this.
+                setFocusableWindowState(false); 
+            }
 
         }
         mBaseTitle = title;
