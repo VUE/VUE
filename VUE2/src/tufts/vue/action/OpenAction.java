@@ -37,6 +37,8 @@ import tufts.vue.*;
 
 public class OpenAction extends VueAction
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(OpenAction.class);
+    
     public static final String ZIP_IMPORT_LABEL ="Imported";
     public OpenAction(String label) {
         super(label, null, ":general/Open");
@@ -64,7 +66,7 @@ public class OpenAction extends VueAction
             
             for (int i=0;i<file.length;i++)
             	displayMap(file[i]);            
-            System.out.println("Action["+e.getActionCommand()+"] completed.");
+            Log.info(e.getActionCommand() + ": completed.");
         } finally {
             openUnderway = false;
             
@@ -116,13 +118,13 @@ public class OpenAction extends VueAction
             return doLoadMap(filename);
         } catch (FileNotFoundException e) {
             // maybe move all exception code here, taking the file-not-found handling
-            System.err.println("OpenAction.loadMap[" + filename + "]: " + e);
+            Log.error("loadMap[" + filename + "]: " + e);
             VueUtil.alert(null, "\"" + filename + "\": file not found.", "Map Not Found");
         } catch (Throwable t) {
             // out of the Open File dialog box.
-            System.err.println("OpenAction.loadMap[" + filename + "]: " + t);
+            Log.error("loadMap[" + filename + "]: " + t);
             VueUtil.alert(null, "\"" + filename + "\" cannot be opened in this version of VUE.", "Map Open Error");
-            t.printStackTrace();
+            tufts.Util.printStackTrace(t);
         }
         return null;
     }
@@ -132,7 +134,7 @@ public class OpenAction extends VueAction
                java.util.zip.ZipException,
                java.io.IOException
     {
-        if (DEBUG.CASTOR || DEBUG.IO) System.err.println("\nloadMap " + filename);
+        if (DEBUG.CASTOR || DEBUG.IO) Log.debug("doLoadMap: name=" + filename);
         File file = new File(filename);
 
         //int dotIndex = file.getName().lastIndexOf('.');
@@ -203,14 +205,14 @@ public class OpenAction extends VueAction
     
     public static LWMap loadMap(java.net.URL url) {
         try {
-            if (DEBUG.CASTOR) System.err.println("\nUnmarshalling from " + url);
+            if (DEBUG.CASTOR) Log.debug("Unmarshalling from " + url);
             LWMap map = ActionUtil.unmarshallMap(url);
             return map;
         }
         catch (Exception e) {
             VueUtil.alert(null, "The following map can't be opened in current version of VUE.","Map Open Error");
-            System.err.println("OpenAction.loadMap[" + url + "]: " + e);
-            e.printStackTrace();
+            Log.error("loadMap: url=[" + url + "]: " + e);
+            tufts.Util.printStackTrace(e);
             return null;
         }
     }
