@@ -28,6 +28,7 @@ import java.util.jar.*;
 import java.util.prefs.*;
 import java.awt.*;
 import java.awt.geom.*;
+import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
@@ -1175,25 +1176,25 @@ public class Util
         return colorChosen ? colorChooser.getColor() : null;
     }
 
-    public static void screenToBlack() {
-        if (!isMacPlatform())
-            return;
-        try {
-            MacOSX.goBlack();    
-        } catch (LinkageError e) {
-            eout(e);
-        }
-    }
+//     public static void screenToBlack() {
+//         if (!isMacPlatform())
+//             return;
+//         try {
+//             MacOSX.goBlack();    
+//         } catch (LinkageError e) {
+//             eout(e);
+//         }
+//     }
     
-    public static void screenFadeFromBlack() {
-        if (isMacPlatform()) {
-            try {
-                MacOSX.fadeFromBlack();
-            } catch (LinkageError e) {
-                eout(e);
-            }
-        }
-    }
+//     public static void screenFadeFromBlack() {
+//         if (isMacPlatform()) {
+//             try {
+//                 MacOSX.fadeFromBlack();
+//             } catch (LinkageError e) {
+//                 eout(e);
+//             }
+//         }
+//     }
 
     /** For mac platform: to keep tool windows that are frames on top
      * of the main app window, you need to go to "native" java/cocoa code.
@@ -1633,29 +1634,44 @@ public class Util
         }
             
         final String type = o.getClass().getName();
+        final String simpleType = o.getClass().getSimpleName();
+        final int ident = System.identityHashCode(o);
         String txt = null;
 
         try {
-            if (o instanceof Collection)
+            if (o instanceof Collection) {
                 txt = "size=" + ((Collection)o).size();
-            else
+            } else if (o instanceof java.awt.image.BufferedImage) {
+                BufferedImage bi = (BufferedImage) o;
+                return String.format("BufferedImage@%07x[%dx%d]", ident, bi.getWidth(), bi.getHeight());
+            } else {
                 txt = o.toString();
+                
+                final String stdShortTag = String.format("%s@%x", simpleType, ident); 
+                final String stdShortTag0 = String.format("%s@%07x", simpleType, ident);
+                final String stdLongTag = String.format("%s@%x", type, ident); // default java object toString
+                final String stdLongTag0 = String.format("%s@%07x", type, ident);
+                
+                // remove redunant type info from toString:
+                
+                if (txt.startsWith(stdLongTag) || txt.startsWith(stdLongTag0)) {
+                    return txt;
+                } else if (txt.startsWith(stdShortTag)) {
+                    txt = txt.substring(stdShortTag.length());
+                } else if (txt.startsWith(stdShortTag0)) {
+                    txt = txt.substring(stdShortTag0.length());
+                }
+            }
         } catch (Throwable t) {
             txt = t.toString();
         }
 
-        final int ident = System.identityHashCode(o);
-        final String pureTag = String.format("%s@%x", type, ident); // default java object toString
-
-        if (txt.startsWith(pureTag)) {
-            // remove redunant type info from toString
-            txt = txt.substring(pureTag.length());
-        } else {
-            final String shortTag = String.format("%s@%x", o.getClass().getSimpleName(), ident);
-            // remove redunant (short) type info from toString
-            if (txt.startsWith(shortTag))
-                txt = txt.substring(shortTag.length());
-        }
+//         else {
+//             final String shortTag = String.format("%s@%x", simpleType, ident);
+//             // remove redunant (short) type info from toString
+//             if (txt.startsWith(shortTag))
+//                 txt = txt.substring(shortTag.length());
+//         }
         
         final String s;
         if (txt.length() > 0)

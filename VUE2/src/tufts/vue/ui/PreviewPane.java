@@ -34,13 +34,15 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.17 $ / $Date: 2007-09-19 03:26:59 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2007-10-30 00:35:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class PreviewPane extends JPanel
     implements Images.Listener, Runnable
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PreviewPane.class);
+    
     private final Image NoImage = VueResources.getImage("/icon_noimage64.gif");
     
     private static boolean FirstPreview = true;
@@ -227,13 +229,13 @@ public class PreviewPane extends JPanel
     */
 
     private void displayImage(Image image) {
-        if (DEBUG.RESOURCE || DEBUG.IMAGE) out("displayImage " + Util.tag(image));
+        if (DEBUG.RESOURCE || DEBUG.IMAGE) out("displayImage " + Util.tags(image));
 
         mImage = image;
         if (mImage != null) {
             mImageWidth = mImage.getWidth(null);
             mImageHeight = mImage.getHeight(null);
-            if (DEBUG.IMAGE) out("displayImage " + mImageWidth + "x" + mImageHeight);
+            if (DEBUG.IMAGE) out("displayImage " + Util.tags(image) + "; " + mImageWidth + "x" + mImageHeight);
         }
 
         clearStatus();
@@ -245,7 +247,7 @@ public class PreviewPane extends JPanel
     }
 
     private void out(String s) {
-        System.out.println("PreviewPane: " + s);
+        Log.debug(s);
     }
         
 

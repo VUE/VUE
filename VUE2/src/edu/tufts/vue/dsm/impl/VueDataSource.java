@@ -532,7 +532,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     }
     public String toString() {
         try {
-            return String.format("%s@%06x[%37s; %-30s; %s]",
+            return String.format("%s@%07x[%38s; %-30s; %s]",
                                  getClass().getSimpleName(),
                                  System.identityHashCode(this),
                                  getId().getIdString(),

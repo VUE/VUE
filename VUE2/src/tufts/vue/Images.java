@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.31 $ / $Date: 2007-10-19 18:07:31 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2007-10-30 00:38:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -502,7 +502,7 @@ public class Images
             if (errorMsg != null) 
                 l.gotImageError(imageSRC.original, errorMsg);
 
-            if (DEBUG.IMAGE) out("DONE DELIVERING PARTIAL RESULTS TO: " + tag(l));
+            if (DEBUG.IMAGE) out(" DELIVERED PARTIAL RESULTS TO: " + tag(l));
             
         }
 
@@ -525,7 +525,8 @@ public class Images
          * @param resource - if this is tied to a resource to update with meta-data after loading
          */
         Loader(ImageSource imageSRC, Listener l) {
-            super("VUE-ImageLoader" + LoaderCount++);
+            super("ImgLoader-" + LoaderCount++);
+            //super(String.format("VUE-ImgLoader-%02d", LoaderCount++));
             if (l == null)
                 Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
             this.imageSRC = imageSRC;
@@ -568,7 +569,7 @@ public class Images
         final ImageSource imageSRC = new ImageSource(_imageSRC);
 
         if (DEBUG.IMAGE) {
-            System.out.println("\n");
+            System.out.println("");
             out("FETCHING IMAGE SOURCE " + imageSRC + " for " + tag(listener));
         }
 
@@ -1284,19 +1285,22 @@ public class Images
     private static String tag(Object o) {
         if (o instanceof java.awt.Component)
             return tufts.vue.gui.GUI.name(o);
-        if (o instanceof LWComponent)
-            return ((LWComponent)o).getDiagnosticLabel();
+        else if (o instanceof LWComponent)
+            return o.toString();
+        //return ((LWComponent)o).getDiagnosticLabel();
+        else
+            return Util.tags(o);
         
-        String s = Util.tag(o);
-        s += "[";
-        if (o instanceof Thread) {
-            s += ((Thread)o).getName();
-        } else if (o instanceof BufferedImage) {
-            BufferedImage bi = (BufferedImage) o;
-            s += bi.getWidth() + "x" + bi.getHeight();
-        } else if (o != null)
-            s += o.toString();
-        return s + "]";
+//         String s = Util.tag(o);
+//         s += "[";
+//         if (o instanceof Thread) {
+//             s += ((Thread)o).getName();
+//         } else if (o instanceof BufferedImage) {
+//             BufferedImage bi = (BufferedImage) o;
+//             s += bi.getWidth() + "x" + bi.getHeight();
+//         } else if (o != null)
+//             s += o.toString();
+//         return s + "]";
     }
     
     private static void out(Object o) {
