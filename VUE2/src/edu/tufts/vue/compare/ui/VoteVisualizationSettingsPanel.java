@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:08 PM
  *
- * @version $Revision: 1.10 $ / $Date: 2007-10-30 15:54:52 $ / $Author: dan $
+ * @version $Revision: 1.11 $ / $Date: 2007-10-30 16:01:25 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -160,7 +160,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         JLabel linkPanel = new JLabel("Links:");
         linkPanel.setFont(tufts.vue.gui.GUI.LabelFace);
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        voteConstraints.insets= new java.awt.Insets(30,40,5,0);
+        voteConstraints.insets= new java.awt.Insets(20,40,5,0);
 
         voteLayout.setConstraints(linkPanel,voteConstraints);
         add(linkPanel);
