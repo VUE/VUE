@@ -41,13 +41,14 @@ import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 import javax.swing.JTree.*;
 import javax.swing.tree.*;
-import javax.swing.tree.TreePath;
 import java.io.*;
 import tufts.vue.*;
+import tufts.vue.Actions.LWCAction;
+
 import java.util.Vector;
 
 
-public class ExitAction extends VueAction
+public class ExitAction extends AbstractAction
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ExitAction.class);
     
@@ -55,15 +56,13 @@ public class ExitAction extends VueAction
     private static String  DATASOURCES_MAPPING;
     
     /** Creates a new instance of exitAction */
-    public ExitAction() {}
-    
-    public ExitAction(String label) {
-        super(label);
+    public ExitAction(String s) 
+    {
+    	super(s);    
     }
     
-    public boolean enabled() { return true; }
-    
-    public void act() {
+   
+    public void actionPerformed(ActionEvent e) {
         exitVue();
     }
     
