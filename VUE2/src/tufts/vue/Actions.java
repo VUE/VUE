@@ -78,9 +78,21 @@ public class Actions implements VueConstants
         return keyStroke(vk, 0);
     }
     
+    
     //--------------------------------------------------
     // PDF Export Notes Actions
     //--------------------------------------------------
+    
+    public static final VueAction NodeNotesOutline =
+    	new VueAction("Node notes outline") {
+		public void act() 
+		{
+			File pdfFile = getFileForActiveMap();
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createNodeOutline(pdfFile);
+		}
+    };
+    
     private static final File getFileForPresentation()
     {
     	if (VUE.getActivePathway() == null || VUE.getActivePathway().getEntries().isEmpty())
@@ -218,18 +230,33 @@ public class Actions implements VueConstants
 		}
     };
    
+    //------------------------------------------------------------
+    // Preference Action
+    //------------------------------------------------------------
+    public static class PreferenceAction extends AbstractAction
+    {
+    	
+    	public PreferenceAction()
+    	{
+    	    
+                putValue(SHORT_DESCRIPTION, "Preferences");
+            
+                      putValue(ACCELERATOR_KEY, keyStroke(KeyEvent.VK_COMMA, COMMAND));
+    		
+    	}
+    	
+        public void actionPerformed(ActionEvent e) {
+        	PreferencesDialog dialog = new PreferencesDialog(null, "Vue Preferences",
+				      edu.tufts.vue.preferences.PreferencesManager.class, true, null, false);
+			dialog.setVisible(true);
+        }
+    };
     //-------------------------------------------------------
     // Selection actions
     //-------------------------------------------------------
     
-    public static final VueAction Preferences = 
-    	new VueAction("Preferences",keyStroke(KeyEvent.VK_COMMA, COMMAND)) {
-    		public void act() {
-    			PreferencesDialog dialog = new PreferencesDialog(null, "Vue Preferences",
-    				      edu.tufts.vue.preferences.PreferencesManager.class, true, null, false);
-    			dialog.setVisible(true);
-    		}
-    };
+    public static final Action Preferences = new PreferenceAction(); 
+    	
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         public void act() {

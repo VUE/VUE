@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.503 $ / $Date: 2007-10-30 21:38:22 $ / $Author: mike $ 
+ * @version $Revision: 1.504 $ / $Date: 2007-10-30 22:11:08 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -842,7 +842,7 @@ public class VUE
                 }
                 public boolean handlePreferences() {
                     VUE.Log.debug("OSX PREFERENCES");
-                    Actions.Preferences.act();
+                    Actions.Preferences.actionPerformed(null);
                     return true;
                 }
                 
