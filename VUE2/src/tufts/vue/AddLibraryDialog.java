@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.68 $ / $Date: 2007-10-24 21:23:54 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-10-30 22:54:42 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -129,6 +129,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             addLibraryList.setCellRenderer(providerListRenderer);
             
             descriptionTextArea = new JTextArea();
+            descriptionTextArea.setEditable(false);
             descriptionTextArea.setMargin(new Insets(4,4,4,4));
             descriptionTextArea.setLineWrap(true);
             descriptionTextArea.setWrapStyleWord(true);                              

@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.21 $ / $Date: 2007-10-16 23:22:11 $ / $Author: mike $
+* @version $Revision: 1.22 $ / $Date: 2007-10-30 22:55:35 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -94,6 +94,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             addLibraryList.setCellRenderer(providerListRenderer);
             
             descriptionTextArea = new JTextArea();
+            descriptionTextArea.setEditable(false);
             descriptionTextArea.setMargin(new Insets(4,4,4,4));
             descriptionTextArea.setLineWrap(true);
             descriptionTextArea.setWrapStyleWord(true);
