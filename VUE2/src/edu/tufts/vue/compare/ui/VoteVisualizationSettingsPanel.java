@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:08 PM
  *
- * @version $Revision: 1.9 $ / $Date: 2007-10-30 15:41:37 $ / $Author: dan $
+ * @version $Revision: 1.10 $ / $Date: 2007-10-30 15:54:52 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -104,7 +104,12 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         nodeThresholdSlider.setPaintTicks(true);
         nodeThresholdSlider.setMajorTickSpacing(10);
         nodeThresholdSlider.setPaintLabels(true);
-        nodeThresholdSlider.setBackground(getBackground());
+       // nodeThresholdSlider.setOpaque(true);
+        if(tufts.Util.isWindowsPlatform())
+        {    
+          nodeThresholdSlider.setBackground(java.awt.Color.WHITE);//getBackground());
+        }
+        
         java.util.Dictionary labels = nodeThresholdSlider.getLabelTable();
         java.util.Enumeration e = labels.elements();
         while(e.hasMoreElements())
@@ -133,7 +138,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
    
         voteConstraints.fill = GridBagConstraints.NONE;
         voteConstraints.anchor = GridBagConstraints.WEST;
-        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
+        voteConstraints.insets= new java.awt.Insets(0,40,5,0);
         voteConstraints.gridwidth = 1;
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         voteLayout.setConstraints(nodeLabel,voteConstraints);
@@ -155,7 +160,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         JLabel linkPanel = new JLabel("Links:");
         linkPanel.setFont(tufts.vue.gui.GUI.LabelFace);
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
-        voteConstraints.insets= new java.awt.Insets(30,40,0,0);
+        voteConstraints.insets= new java.awt.Insets(30,40,5,0);
 
         voteLayout.setConstraints(linkPanel,voteConstraints);
         add(linkPanel);
@@ -166,7 +171,11 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         linkThresholdSlider.setPaintTicks(true);
         linkThresholdSlider.setMajorTickSpacing(10);
         linkThresholdSlider.setPaintLabels(true);
-        linkThresholdSlider.setBackground(getBackground());
+        //linkThresholdSlider.setBackground(getBackground());
+        if(tufts.Util.isWindowsPlatform())
+        {
+            linkThresholdSlider.setBackground(java.awt.Color.WHITE);
+        }
         java.util.Dictionary linkLabels = linkThresholdSlider.getLabelTable();
         java.util.Enumeration le = linkLabels.elements();
         while(le.hasMoreElements())
