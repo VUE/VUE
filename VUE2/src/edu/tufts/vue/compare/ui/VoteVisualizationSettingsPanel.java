@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:08 PM
  *
- * @version $Revision: 1.7 $ / $Date: 2007-06-04 14:45:26 $ / $Author: dan $
+ * @version $Revision: 1.8 $ / $Date: 2007-10-30 15:02:23 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -59,6 +59,8 @@ public class VoteVisualizationSettingsPanel extends JPanel {
     public VoteVisualizationSettingsPanel() 
     {
         setOpaque(false);
+        
+        //setBorder(BorderFactory.createEmptyBorder(100,0,0,15));
         
         GridBagLayout voteLayout = new GridBagLayout();
         GridBagConstraints voteConstraints = new GridBagConstraints();

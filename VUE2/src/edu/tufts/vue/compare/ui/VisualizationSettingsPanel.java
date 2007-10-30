@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.14 $ / $Date: 2007-10-26 14:35:16 $ / $Author: dan $
+ * @version $Revision: 1.15 $ / $Date: 2007-10-30 15:02:23 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -79,10 +79,20 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     public VisualizationSettingsPanel() 
     {
         
+        setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        
         weightPanel = new WeightVisualizationSettingsPanel(weightParameterChoiceDisplayedHere);
+        //weightPanel.setBorder(BorderFactory.createEmptyBorder(15,0,0,0));
         weightParameterChoice = weightPanel.getParameterCombo();
         
         setOpaque(false);
+        
+        if(tufts.Util.isWindowsPlatform())
+        {
+            setOpaque(true);
+            setBackground(java.awt.Color.WHITE);
+        }
+        
         gridBag = new GridBagLayout();
         gridBagConstraints = new GridBagConstraints();
         
@@ -91,11 +101,20 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         setLayout(gridBag);
         
         
-        String[] choices = {"Weight","Vote"};
-        visualizationChoice = new JComboBox(choices);
+        final String[] choices = {"Weight","Vote"};
+        visualizationChoice = new JComboBox(choices)
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+               return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/70,
+                                             super.getPreferredSize().height);      
+            }
+        };
+        visualizationChoice.setFont(tufts.vue.gui.GUI.LabelFace);
         visualizationChoice.addActionListener(this);
         
         JLabel visualizationSettingsChoiceLabel = new JLabel(visualizationSettingsChoiceMessage);
+        visualizationSettingsChoiceLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         
         gridBagConstraints.weightx = 0.5;
         
@@ -110,6 +129,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBagConstraints.weightx = 0.5;
         gridBagConstraints.anchor = GridBagConstraints.WEST;
         //gridBagConstraints.anchor = GridBagConstraints.CENTER;
+        //gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(visualizationChoice,gridBagConstraints);
         add(visualizationChoice);
@@ -130,6 +150,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         gridBagConstraints.weighty = 0.0;
         gridBagConstraints.gridwidth = GridBagConstraints.RELATIVE;;
         weightParameterChoiceLabel = new JLabel("Set parameters for:");
+        weightParameterChoiceLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //gridBagConstraints.anchor = GridBagConstraints.NORTHWEST;
         gridBagConstraints.anchor = GridBagConstraints.EAST;
         gridBagConstraints.insets = new java.awt.Insets(15,10,15,8);
@@ -143,6 +164,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         //gridBagConstraints.anchor = GridBagConstraints.CENTER;
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(weightParameterChoice,gridBagConstraints);
+        weightParameterChoice.setFont(tufts.vue.gui.GUI.LabelFace);
         add(weightParameterChoice); 
     }
     

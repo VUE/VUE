@@ -19,7 +19,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.25 $ / $Date: 2007-10-10 18:26:12 $ / $Author: dan $
+ * @version $Revision: 1.26 $ / $Date: 2007-10-30 15:02:23 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -161,7 +161,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         lineIcon.setIconWidth(500);
         lineIcon.setIconHeight(1);
         
-        parameterChoice = new JComboBox(parameterChoices);
+        parameterChoice = new JComboBox(parameterChoices)
+        {
+            public java.awt.Dimension getMinimumSize()
+            {
+               return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/70,
+                                             super.getPreferredSize().height);      
+            }
+        };
         JLabel intervalNumberChoiceMessage = new JLabel(intervalChoiceMessageString,JLabel.RIGHT);
         Integer[] intervalNumberChoices = {3,4,5,6,7,8,9,10};
         intervalNumberChoice = new JComboBox(intervalNumberChoices)
@@ -173,6 +180,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         };
         intervalNumberChoice.setSelectedItem(5);
         JLabel paletteChoiceMessage = new JLabel(paletteChoiceMessageString,JLabel.RIGHT);
+        paletteChoiceMessage.setFont(tufts.vue.gui.GUI.LabelFace);
         Colors[] colors = {Colors.one,Colors.two,Colors.three,Colors.four,Colors.five,Colors.six};
         paletteChoice = new JComboBox(colors);
         paletteChoice.setRenderer(new ColorsComboBoxRenderer());

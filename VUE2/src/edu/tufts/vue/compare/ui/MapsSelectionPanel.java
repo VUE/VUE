@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.24 $ / $Date: 2007-10-17 20:35:58 $ / $Author: dan $
+ * @version $Revision: 1.25 $ / $Date: 2007-10-30 15:02:23 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -97,6 +97,13 @@ public class MapsSelectionPanel extends JPanel  {
     private MapsSelectionPanel() 
     {
         setOpaque(false);
+        
+        if(tufts.Util.isWindowsPlatform())
+        {
+            setOpaque(true);
+            setBackground(java.awt.Color.WHITE);
+        }
+        
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         setLayout(gridBag);
@@ -343,10 +350,11 @@ public class MapsSelectionPanel extends JPanel  {
           
         });
         maps.setDefaultRenderer(Object.class,new MapTableCellRenderer());
-        maps.getColumnModel().getColumn(0).setMinWidth(40);
-        maps.getColumnModel().getColumn(1).setMinWidth(270);
-        maps.getColumnModel().getColumn(2).setMinWidth(40);
-        maps.getColumnModel().getColumn(2).setMaxWidth(45);
+        maps.getColumnModel().getColumn(0).setMinWidth(35);
+        maps.getColumnModel().getColumn(0).setMaxWidth(35);
+        maps.getColumnModel().getColumn(1).setMinWidth(250);
+        maps.getColumnModel().getColumn(2).setMinWidth(35);
+        //maps.getColumnModel().getColumn(2).setMaxWidth(45);
         maps.getColumnModel().getColumn(3).setMinWidth(80);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
