@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.360 $ / $Date: 2007-10-29 16:40:17 $ / $Author: sfraize $
+ * @version $Revision: 1.361 $ / $Date: 2007-10-30 00:37:53 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1385,6 +1385,10 @@ u                    getSlot(c).setFromString((String)value);
                 patcher.reconnectLinks();
         }
     }
+
+    protected void copySupportedProperties(LWComponent c) {
+        mSupportedPropertyKeys = c.mSupportedPropertyKeys;
+    }
     
     
     /**
@@ -1408,9 +1412,7 @@ u                    getSlot(c).setFromString((String)value);
             return null;
         }
 
-        //c.isMoveable = this.isMoveable;
-        c.mSupportedPropertyKeys = this.mSupportedPropertyKeys;
-        //c.mParentStyle = this.mParentStyle;
+        c.copySupportedProperties(this);
         
         c.x = this.x;
         c.y = this.y;
@@ -6173,7 +6175,7 @@ u                    getSlot(c).setFromString((String)value);
         if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
         if (mFlags != 0) s += " " + getDescriptionOfSetBits(Flag.class, mFlags);
         if (getResource() != null)
-            s += " " + getResource();
+            s += " " + getResource().getSpec();
         //s += " <" + getResource() + ">";
         s += "]";
         return s;
