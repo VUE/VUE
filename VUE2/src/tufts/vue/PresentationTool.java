@@ -88,14 +88,13 @@ public class PresentationTool extends VueTool
     
     private volatile Page mCurrentPage = NO_PAGE;
     private volatile Page mLastPage = NO_PAGE;
-    private volatile LWPathway mPathway;
+    private volatile LWPathway mPathway; // current pathway (last pathway we were on)
+    private volatile LWPathway mStartPathway; // pathway when started presentation
     private volatile Page mLastPathwayPage;
+    private volatile Page mLastStartPathwayPage;
     private volatile LWComponent mFocal; // sync'd with MapViewer focal
     
     private volatile LWComponent mNextPage; // is this really "startPage"?
-    //private LWLink mLastFollowed;
-    //private int mPathwayIndex = 0;
-    //private LWPathway.Entry mEntry;
 
     private static volatile boolean
         mFadeEffect = true,
@@ -428,6 +427,7 @@ public class PresentationTool extends VueTool
 
     private static final Font NavFont = new Font("SansSerif", Font.PLAIN, 16);
     private static final Font NavFontBold = new Font("SansSerif", Font.BOLD, 16);
+    private static final Font NavFontItalic = new Font("SansSerif", Font.ITALIC, 16);
     private static final Font NavFontDebug = new Font("SansSerif", Font.PLAIN, 10);
     private static final Font NavFontBoldDebug = new Font("SansSerif", Font.BOLD, 10);
     private static final Font NavBoxFont = new Font("SansSerif", Font.PLAIN, 12);
@@ -559,10 +559,16 @@ public class PresentationTool extends VueTool
             return boxes;
 
         }
+
+        static final String STANDOUT = "standout";
+        static final String NORMAL = "normal";
+        static final String ITALIC = "italic";
         
-        NavNode(Page destinationPage, boolean isOffEdge, boolean isLastPathwayPage, String type)
+        NavNode(Page destinationPage, boolean isOffEdge, String style, String type)
         {
             super(null);
+
+            final boolean isStandout = (style == STANDOUT);
 
             if (destinationPage == null)
                 throw new IllegalArgumentException(getClass() + "; destination page is null");
@@ -596,10 +602,19 @@ public class PresentationTool extends VueTool
             
             //label = "    " + label + " ";
             setLabel(label);
-            if (DEBUG.PRESENT)
-                setFont(isLastPathwayPage ? NavFontBoldDebug : NavFontDebug);
-            else
-                setFont(isLastPathwayPage ? NavFontBold : NavFont);
+
+            if (style == STANDOUT)
+                setFont(NavFontBold);
+            else if (style == ITALIC)
+                setFont(NavFontItalic);
+            else // style == NORMAL
+                setFont(NavFont);
+                
+//             if (DEBUG.PRESENT)
+//                 setFont(isStandout ? NavFontBoldDebug : NavFontDebug);
+//             else
+//                 setFont(isStandout ? NavFontBold : NavFont);
+            
             setTextColor(NavTextColor);
         
             if (false && pathway != null) {
@@ -623,7 +638,7 @@ public class PresentationTool extends VueTool
             //setShape(new RoundRectangle2D.Float(0,0, 10,10, 20,20)); // is default
             setAutoSized(false);
 
-            int buttonWidth = isLastPathwayPage ? ActiveWidth : DefaultWidth;
+            int buttonWidth = isStandout ? ActiveWidth : DefaultWidth;
             
             setSize(buttonWidth + SlideRoom, getHeight() + 6);
 
@@ -679,15 +694,18 @@ public class PresentationTool extends VueTool
             if (DEBUG.Enabled) {
                 dc.g.setFont(FONT_TINY);
                 dc.g.setColor(Color.white);
+                int y = -10;
                 if (page.entry != null) {
-                    dc.g.drawString("Entry: " + page.entry, -100, 0);
-                    dc.g.drawString("Node: " + page.node, -100, 10);
+                    dc.g.drawString("Entry: " + page.entry, -100, y+=10);
+                    if (page.node != null)
+                        dc.g.drawString("NODE: " + page.node, -100, y+=10);
                 } else {
-                    dc.g.drawString("Node: " + page.node, -100, 0);
-                    dc.g.drawString("Entry: " + page.entry, -100, 10);
+                    dc.g.drawString("Node: " + page.node, -100, y+=10);
+                    if (page.entry != null)
+                        dc.g.drawString("ENTRY: " + page.entry, -100, y+=10);
                 }
                            
-                dc.g.drawString("Type: " + type, -100, 20);
+                dc.g.drawString("Type: " + type, -100, y+=10);
                     
             }
             
@@ -964,7 +982,8 @@ public class PresentationTool extends VueTool
             break;
 
         case KeyEvent.VK_SPACE:
-            if (mLastPathwayPage != null && mCurrentPage.node instanceof LWMap)
+            //if (mLastPathwayPage != null && mCurrentPage.node instanceof LWMap)
+            if (mLastPathwayPage != null && mCurrentPage.entry == null)
                 setPage(mLastPathwayPage);
             else
                 goForward(SINGLE_STEP, GUESSING);
@@ -1527,13 +1546,18 @@ public class PresentationTool extends VueTool
         //mShowContext.setSelected(false);
         mVisited.clear();
 
-        //makeInvisible();        
+        mLastPage = NO_PAGE;
+        mPathway = null;
+        mStartPathway = null;
+        mLastPathwayPage = null;
+        mLastStartPathwayPage = null;
 
         final LWPathway pathway = VUE.getActivePathway();
 
         if (!pathway.isVisible())
             pathway.setVisible(true);
 
+        mStartPathway = pathway;
         startUnderway = true;
 
         try {
@@ -1562,8 +1586,6 @@ public class PresentationTool extends VueTool
         }
 
         if (DEBUG.Enabled) out("startPresentation: completed");
-
-        //makeVisibleLater();
     }
     
 
@@ -1574,14 +1596,18 @@ public class PresentationTool extends VueTool
         if (mLastPathwayPage == null)
             return null;
 
-        int index = mLastPathwayPage.entry.index();
-
         if (direction == FORWARD)
-            index++;
+            return mLastPathwayPage.entry.next();
         else
-            index--;
+            return mLastPathwayPage.entry.prev();
+        
 
-        return mLastPathwayPage.entry.pathway.getEntry(index);
+//         int index = mLastPathwayPage.entry.index();
+//         if (direction == FORWARD)
+//             index++;
+//         else
+//             index--;
+//         return mLastPathwayPage.entry.pathway.getEntry(index);
         
         
         /*
@@ -1703,9 +1729,15 @@ public class PresentationTool extends VueTool
             if (page.pathway() != mPathway)
                 loadPathway(page.pathway());
             //if (!VUE.inNativeFullScreen()) // don't send any events just in case
-                VUE.setActive(LWPathway.Entry.class, this, page.entry);
+            VUE.setActive(LWPathway.Entry.class, this, page.entry);
+                
             mLastPathwayPage = page;
-            //mPathwayIndex = page.entry.index();
+            if (page.pathway() == mStartPathway && mStartPathway != null) {
+                // // this now only ever changes if it was the pathway we were
+                // // on when the presentation started (the active pathway then)
+                // // SMF as per Melanie 10/29/07
+                mLastStartPathwayPage = page;
+            }
         }
         
         mNextPage = null;
@@ -2161,7 +2193,9 @@ public class PresentationTool extends VueTool
             dc.g.drawString("       Frame: " + tufts.Util.out(dc.frame), 10, y+=15);
             dc.g.drawString("        Page: " + mCurrentPage, 10, y+=15);
             dc.g.drawString("      OnPath: " + onCurrentPathway(), 10, y+=15);
-            dc.g.drawString("     Pathway: " + mPathway, 10, y+=15);
+            dc.g.drawString("StartPathway: " + mStartPathway, 10, y+=15);
+            dc.g.drawString("LstStrtPPage: " + mLastStartPathwayPage, 10, y+=15);
+            dc.g.drawString(" LastPathway: " + mPathway, 10, y+=15);
             dc.g.drawString("LastPathPage: " + mLastPathwayPage, 10, y+=15);
             dc.g.drawString("CurPageFocal: " + mCurrentPage.getPresentationFocal(), 10, y+=15);
             y+=5;
@@ -2192,7 +2226,7 @@ public class PresentationTool extends VueTool
 //         if (node == null || (node.getLinks().size() == 0 && node.getPathways().size() < 2))
 //             return;
         
-        makeNavNodes(mCurrentPage, dc.getFrame());
+        makeNavNodes(dc.getFrame());
 
         if (DEBUG.PRESENT) out("drawing nav nodes " + mNavNodes.size());
         
@@ -2217,13 +2251,23 @@ public class PresentationTool extends VueTool
 
         boolean offEdgeNodes = true;
 
-        final Object skip1, skip2;
-        
-        NavLayout(Rectangle frame, Object s1, Object s2) {
-            skip1 = s1;
-            skip2 = s2;
+        final Set<LWComponent> unique = new HashSet();
+
+        //final Object skip1, skip2;
+        //NavLayout(Rectangle frame, Object s1, Object s2) {
+        NavLayout(Rectangle frame) {
+            //skip1 = s1; skip2 = s2;
             rightSide = frame.x + frame.width;
             y = frame.y + VerticalGap;
+        }
+
+        void recordUnique(Page page) {
+            if (page != null)
+                recordUnique(page.getOriginalMapNode());
+        }
+        void recordUnique(LWComponent c) {
+            if (c != null)
+                unique.add(c);
         }
 
         void startIndentRegion() {
@@ -2234,16 +2278,17 @@ public class PresentationTool extends VueTool
             
         
         void addIfUnique(Page page, String debug) {
-            boolean repeat = false;
-            for (NavNode nn : mNavNodes) {
-                if (page.getOriginalMapNode() == nn.page.getOriginalMapNode()) {
-                    repeat = true;
-                    break;
-                }
-            }
+            boolean repeat = unique.contains(page.getOriginalMapNode());
+//             boolean repeat = false;
+//             for (NavNode nn : mNavNodes) {
+//                 if (page.getOriginalMapNode() == nn.page.getOriginalMapNode()) {
+//                     repeat = true;
+//                     break;
+//                 }
+//             }
             //if (!page.equals(skip1) && !page.equals(skip2))
             if (!repeat || DEBUG.PRESENT) {
-                final NavNode nn = new NavNode(page, offEdgeNodes, false, debug);
+                final NavNode nn = new NavNode(page, offEdgeNodes, NavNode.NORMAL, debug);
                 add(nn);
                 if (DEBUG.PRESENT && repeat)
                     nn.setFillColor(null);
@@ -2252,46 +2297,70 @@ public class PresentationTool extends VueTool
 
         void add(NavNode nn) {
             mNavNodes.add(nn);
+            recordUnique(nn.page);
             nn.setLocation((rightSide - nn.getWidth()) - rightInset, y);            
             y += nn.getHeight() + VerticalGap;
         }
 
         void setLastPathway(Page page) {
-            add(new NavNode(page, offEdgeNodes, true, "last-path"));
+            //addIfUnique(page, "last-start-path");
+            add(new NavNode(page, offEdgeNodes, NavNode.ITALIC, "last-start-path"));
         }
 
+        void setCurrentPage(Page page) {
+            add(new NavNode(page, offEdgeNodes, NavNode.STANDOUT, "cur-page"));
+        }
+        
+
         private void add(Page page, String debug) {
-            add(new NavNode(page, offEdgeNodes, false, debug));
+            add(new NavNode(page, offEdgeNodes, NavNode.NORMAL, debug));
         }
         
         
     }
 
-    private void makeNavNodes(Page page, Rectangle frame)
+    private void makeNavNodes(Rectangle frame)
     {
-        if (DEBUG.PRESENT) out("makeNavNodes " + page);
+        if (DEBUG.PRESENT) out("makeNavNodes " + mCurrentPage);
         
-        //final Page prev = mLastPage;
-        final Page prev = mVisited.prev();
-        
-        final NavLayout layout = new NavLayout(frame, prev, mLastPathwayPage);
+        final NavLayout layout = new NavLayout(frame);
 
-        if (prev != null && prev != NO_PAGE && !prev.equals(mLastPathwayPage))
-            layout.add(prev, "back");
-        
+        // pre-load these, as they're always forced added, and want to
+        // push any others out:
+        //layout.recordUnique(mLastStartPathwayPage);
+        layout.recordUnique(mCurrentPage);
+
+//         // SMF 2007-10-29: back node removed as per Melanie
+//         final Page prev = mVisited.prev();
+//         if (prev != null && prev != NO_PAGE && !prev.equals(mLastPathwayPage))
+//             layout.add(prev, "back");
+
+        final Page prev;
+        final Entry curEntry = mCurrentPage.entry;
+
+        if (curEntry != null && curEntry.prev() != null)
+            prev = new Page(curEntry.prev());
+        else
+            prev = null;
+
         // always add the current pathway at the top
-        if (mLastPathwayPage != null)
-            layout.setLastPathway(mLastPathwayPage);
+        if (mLastStartPathwayPage != null && mLastStartPathwayPage.entry != mCurrentPage.entry)
+            layout.setLastPathway(mLastStartPathwayPage);
 
-        if (mCurrentPage.node != null && mCurrentPage.node.inVisiblePathway())
-            layout.add(new Page(mCurrentPage.node), "loop-back");
+        if (prev != null && !prev.equals(mLastStartPathwayPage) && !prev.equals(mCurrentPage))
+            layout.addIfUnique(prev, "path-prior");
         
+//         if (mCurrentPage.node != null && mCurrentPage.node.inVisiblePathway())
+//             layout.add(new Page(mCurrentPage.node), "loop-back");
+
+        layout.setCurrentPage(mCurrentPage);
+            
         layout.startIndentRegion();
 
-        final LWComponent mapNode = page.getOriginalMapNode();
+        final LWComponent mapNode = mCurrentPage.getOriginalMapNode();
 
-        if (page.entry != null) {
-            final LWPathway.Entry nextEntryThisPath = page.entry.next();
+        if (curEntry != null) {
+            final Entry nextEntryThisPath = curEntry.next();
             if (nextEntryThisPath != null)
                 layout.add(new Page(nextEntryThisPath), "next-path");
         }
