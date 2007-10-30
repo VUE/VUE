@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.196 $ / $Date: 2007-10-29 16:38:25 $ / $Author: sfraize $
+ * @version $Revision: 1.197 $ / $Date: 2007-10-30 00:37:31 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -550,6 +550,11 @@ public class LWPathway extends LWContainer
         mStrokeColor.setFixedAlpha(PathwayAlpha);
     }
     
+    /** @return null -- will prevent participating in auto-styling system */
+    @Override
+    public Object getTypeToken() {
+        return null;
+    }
 
     /** @return false: pathways can't be selected with anything else */
     public boolean supportsMultiSelection() {
