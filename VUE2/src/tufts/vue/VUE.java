@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.501 $ / $Date: 2007-10-30 00:36:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.502 $ / $Date: 2007-10-30 18:58:00 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1183,8 +1183,10 @@ public class VUE
         if (wpframe.isEnabled() && !wpframe.isAllValuesDefaults() &&
         	ApplicationFrame.isPointFullyOnScreen(pos,sz))
         {
-        	
-        	ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
+        	if ((sz.getWidth() < 100) || (sz.getHeight() < 100))
+        		ApplicationFrame.setSize((int)appWidth, (int)appHeight);
+        	else        		
+        		ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
 
         	ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());        	
         }
