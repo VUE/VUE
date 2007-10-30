@@ -118,12 +118,12 @@ public class Colors {
     public Colors(int intervals,int numColors,int scheme)
     {
         
-        System.out.println("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
+        //System.out.println("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
         name = VueResources.getString("merge.weight.colorscheme." + intervals + "." + numColors + "." + scheme);
         
         colors = new ArrayList();
         
-        System.out.println("merge.weight.colors." + intervals + "." + numColors + "." + scheme);
+        //System.out.println("merge.weight.colors." + intervals + "." + numColors + "." + scheme);
         Color[] arr = VueResources.getColorArray("merge.weight.colors." + intervals + "." + numColors + "." + scheme);
         
         for(int i=0;i<intervals;i++)
