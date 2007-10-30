@@ -29,6 +29,8 @@ import java.awt.GridLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.beans.PropertyChangeEvent;
@@ -41,7 +43,6 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 //import com.sun.codemodel.JLabel;
@@ -52,7 +53,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.18 $ / $Date: 2007-10-05 18:25:44 $ / $Author: mike $
+ * @version $Revision: 1.19 $ / $Date: 2007-10-30 21:03:21 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -79,6 +80,7 @@ implements ActionListener, tufts.vue.LWEditor
      *
      * @param pItems  an array of ColorMenuButtonItems for the menu.
      **/
+ 
     public ColorMenuButton(Color[] pColors, boolean pHasCustom) {
         // create default color swatch icon: override with setButtonIcon if want different
         setButtonIcon(new BlobIcon(16,16, true)); // can we live with no default? clean up init style...
@@ -87,22 +89,44 @@ implements ActionListener, tufts.vue.LWEditor
         addActionListener(this);
         // add components to main panel
         
-        
-
+ 
         // use frame
         popupWindow = new JFrame();
         popupWindow.setName(COLOR_POPUP_NAME);
         popupWindow.setUndecorated(true);
-        popupWindow.setAlwaysOnTop(true);
+    //    popupWindow.setAlwaysOnTop(true);
 
+        Component c = popupWindow.getGlassPane();
+        c.setVisible(true);
+        c.addMouseListener(new MouseAdapter()
+        {                 
+            
+            
+        	public void mouseEntered(final MouseEvent e)
+        	{
+        		//System.out.println("ENTERED");        	
+        			
+        	}
+        //	boolean removeWindow = false;
+        	public void mouseExited(final MouseEvent e)
+        	{        		
+        		SwingUtilities.invokeLater(new Runnable() {
+                    public void run() {
+                        if (popupWindow.isVisible())
+                            doClick();
+                    }
+                });
+        	}
+        });
         popupWindow.addWindowFocusListener(new WindowFocusListener() {
             public void windowGainedFocus(WindowEvent e) {
 
             }
 
             public void windowLostFocus(WindowEvent e) {
-            	System.out.println("Opposite component" + e.getOppositeWindow().getClass().toString());
-            	if (e.getOppositeWindow().getClass() == VueFrame.class)
+            //	System.out.println("Opposite component" + e.getOppositeWindow().getClass().toString());
+            	
+            	if (e.getOppositeWindow() != null && e.getOppositeWindow().getClass() == VueFrame.class)
             	{            		
             		return;
             	}
