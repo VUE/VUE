@@ -39,7 +39,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.swing.Action;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 import javax.swing.AbstractAction;
@@ -47,6 +46,7 @@ import javax.swing.Icon;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
 import tufts.vue.action.SaveAction;
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.VueFileChooser;
 import tufts.vue.gui.WindowDisplayAction;
 
 /**
@@ -100,11 +100,11 @@ public class Actions implements VueConstants
 			VueUtil.alert(null,"There is no presentation selected or the presentation selected contains no slides, please select a valid presentation.", "Invalid Active Presentation");
 			return null;
     	}
-		JFileChooser chooser = new JFileChooser();
+		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
 		
         int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save as");
-        if (option == JFileChooser.APPROVE_OPTION) 
+        if (option == VueFileChooser.APPROVE_OPTION) 
         {
             pdfFileName = chooser.getSelectedFile();
 
@@ -133,11 +133,11 @@ public class Actions implements VueConstants
 			VueUtil.alert(null,"There is no active map, please open a valid map.", "Invalid Map");
 			return null;
     	}
-		JFileChooser chooser = new JFileChooser();
+		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
 		
         int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save as");
-        if (option == JFileChooser.APPROVE_OPTION) 
+        if (option == VueFileChooser.APPROVE_OPTION) 
         {
             pdfFileName = chooser.getSelectedFile();
 
@@ -826,11 +826,11 @@ public class Actions implements VueConstants
     public static final LWCAction AddImageAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addImage.label")) {
         public void act(LWComponent c) 
         {
-        	JFileChooser chooser = new JFileChooser();
+        	VueFileChooser chooser = new VueFileChooser();
     		File fileName = null;
     		
             int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
-            if (option == JFileChooser.APPROVE_OPTION) 
+            if (option == VueFileChooser.APPROVE_OPTION) 
             {
                 fileName = chooser.getSelectedFile();
 
@@ -858,11 +858,11 @@ public class Actions implements VueConstants
     public static final LWCAction AddFileAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addFile.label")) {
         public void act(LWComponent c) 
         {
-        	JFileChooser chooser = new JFileChooser();
+        	VueFileChooser chooser = new VueFileChooser();
     		File fileName = null;
     		
             int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
-            if (option == JFileChooser.APPROVE_OPTION) 
+            if (option == VueFileChooser.APPROVE_OPTION) 
             {
                 fileName = chooser.getSelectedFile();
 
@@ -913,7 +913,6 @@ public class Actions implements VueConstants
     public static final LWCAction AddURLAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addURL.label")) {
             public void act(LWComponent c) 
             {
-        	//JFileChooser chooser = new JFileChooser();
     		File fileName = null;
     		final Object[] defaultButtons = { "OK","Cancel"};
     		String option = (String)JOptionPane.showInputDialog((Component)VUE.getApplicationFrame(), 

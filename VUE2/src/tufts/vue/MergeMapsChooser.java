@@ -31,6 +31,7 @@ import java.awt.geom.Point2D;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.gui.VueButton;
 import tufts.vue.gui.DockWindow;
+import tufts.vue.gui.VueFileChooser;
 
 import edu.tufts.vue.compare.ConnectivityMatrix;
 import edu.tufts.vue.compare.VoteAggregate;
@@ -62,7 +63,6 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -976,7 +976,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         }
         if(e.getSource() == baseBrowseButton)
         {
-            JFileChooser choose = new JFileChooser();
+            VueFileChooser choose = new VueFileChooser();
             choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
             choose.showDialog(this,"Set Base Map");
             selectedBaseFile = choose.getSelectedFile();
@@ -1855,7 +1855,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             }
             if(e.getSource() == browseButton)
             {
-                JFileChooser fileChooser = new JFileChooser();
+                VueFileChooser fileChooser = new VueFileChooser();
                 fileChooser.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
                 fileChooser.showDialog(this,"Add Map");
                 selectedFile = fileChooser.getSelectedFile();       

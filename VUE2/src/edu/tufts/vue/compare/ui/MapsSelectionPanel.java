@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.25 $ / $Date: 2007-10-30 15:02:23 $ / $Author: dan $
+ * @version $Revision: 1.26 $ / $Date: 2007-10-30 23:56:50 $ / $Author: mike $
  * @author dhelle01
  *
  *
@@ -52,6 +52,7 @@ import javax.swing.table.*;
 
 import tufts.vue.*;
 import tufts.vue.action.ActionUtil;
+import tufts.vue.gui.VueFileChooser;
 
 public class MapsSelectionPanel extends JPanel  {
     
@@ -114,14 +115,14 @@ public class MapsSelectionPanel extends JPanel  {
         {
            public void actionPerformed(ActionEvent e)
            {
-               JFileChooser choose = new JFileChooser();
+               VueFileChooser choose = new VueFileChooser();
                if(lastDirectory!=null)
                    choose.setCurrentDirectory(lastDirectory);
                VueFileFilter vff = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
                choose.setFileFilter(vff);
-               choose.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+               choose.setFileSelectionMode(VueFileChooser.FILES_AND_DIRECTORIES);
                int cancel = choose.showOpenDialog(MapsSelectionPanel.this);
-               if(cancel == JFileChooser.CANCEL_OPTION)
+               if(cancel == VueFileChooser.CANCEL_OPTION)
                    return;
                File choice = choose.getSelectedFile();
                if(choose.getSelectedFile().getParentFile().isDirectory())

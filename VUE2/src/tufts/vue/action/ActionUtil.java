@@ -26,6 +26,7 @@ import tufts.vue.VueFileFilter;
 import tufts.vue.VueResources;
 import tufts.vue.XMLUnmarshalListener;
 import tufts.vue.DEBUG;
+import tufts.vue.gui.VueFileChooser;
 
 import org.exolab.castor.xml.Marshaller;
 import org.exolab.castor.xml.MarshalListener;
@@ -40,13 +41,14 @@ import org.exolab.castor.mapping.MappingException;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import edu.tufts.vue.preferences.PreferencesManager;
+
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 
@@ -61,7 +63,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.86 $ / $Date: 2007-10-29 19:59:12 $ / $Author: mike $
+ * @version $Revision: 1.87 $ / $Date: 2007-10-30 23:56:49 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -80,7 +82,7 @@ public class ActionUtil
     private final static String DEFAULT_WINDOWS_ENCODING = "windows-1252"; // (a.k.a Cp1252) for reading pre ASCII enforced save files from Windows
     private final static String DEFAULT_MAC_ENCODING = "UTF-8"; // "MacRoman" not supported on Windows platform
     private final static String DEFAULT_INPUT_ENCODING = "UTF-8"; // safest default input encoding
-
+    
     // Note: the encoding format of the incoming file will normally either be UTF-8 for
     // older VUE save files, or US-ASCII for newer files.  In any case, the encoding is
     // indicated in the <?xml> tag at the top of the file, and castor handles adjusting
@@ -97,7 +99,9 @@ public class ActionUtil
     public static File selectFile(String title, String fileType)
     {
         File picked = null;
-        JFileChooser chooser = new JFileChooser();
+        VueFileChooser chooser = new VueFileChooser();
+        
+        
         chooser.setDialogTitle(title);
         chooser.setAcceptAllFileFilterUsed(false);    
         
@@ -150,7 +154,7 @@ public class ActionUtil
         
         int option = chooser.showDialog(VUE.getDialogParent(), "Save");
         
-        if (option == JFileChooser.APPROVE_OPTION) 
+        if (option == VueFileChooser.APPROVE_OPTION) 
         {
             picked = chooser.getSelectedFile();
             
@@ -186,17 +190,13 @@ public class ActionUtil
     
     public static File openFile(String title, String extension)
     {
-        File file = null;
+        File file = null;              
         
-        //JFileChooser chooser = new JFileChooser();        
-        //chooser.setDialogTitle(title);
-        //chooser.setFileFilter(new VueFileFilter(extension));
-        
-        JFileChooser chooser = null;//new JFileChooser();        
+        VueFileChooser chooser = null;        
     	
     	if (!Util.isMacPlatform())
     	{
-    		chooser = new JFileChooser();
+    		chooser = new VueFileChooser();
     		if (VueUtil.isCurrentDirectoryPathSet()) 
     			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
     	}
@@ -211,16 +211,16 @@ public class ActionUtil
     			 * setCurrentDirectory fails to do anything but cause the
     			 * top bar and the panels to be out of sync.... -MK 10/29
     			 */
-    			chooser = new JFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
+    			chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
     		}
     		else
-    			chooser = new JFileChooser();
+    			chooser = new VueFileChooser();
 
     	}  
         
         int option = chooser.showOpenDialog(VUE.getDialogParent());
         
-        if (option == JFileChooser.APPROVE_OPTION) {
+        if (option == VueFileChooser.APPROVE_OPTION) {
             final File chooserFile = chooser.getSelectedFile();
             if (chooserFile == null)
                 return null;
@@ -261,11 +261,11 @@ public class ActionUtil
     {
     	File file = null;
      
-    	JFileChooser chooser = null;//new JFileChooser();        
+    	VueFileChooser chooser = null;        
     	
     	if (!Util.isMacPlatform())
     	{
-    		chooser = new JFileChooser();
+    		chooser = new VueFileChooser();
     		if (VueUtil.isCurrentDirectoryPathSet()) 
     			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
     	}
@@ -280,10 +280,10 @@ public class ActionUtil
     			 * setCurrentDirectory fails to do anything but cause the
     			 * top bar and the panels to be out of sync.... -MK 10/29
     			 */
-    			chooser = new JFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
+    			chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
     		}
     		else
-    			chooser = new JFileChooser();
+    			chooser = new VueFileChooser();
 
     	}
     	chooser.setDialogTitle(title);
@@ -292,7 +292,7 @@ public class ActionUtil
      
     	int option = chooser.showOpenDialog(VUE.getDialogParent());
      
-    	if (option == JFileChooser.APPROVE_OPTION) {
+    	if (option == VueFileChooser.APPROVE_OPTION) {
          final File[] chooserFile = chooser.getSelectedFiles();
          if (chooserFile == null)
              return null;

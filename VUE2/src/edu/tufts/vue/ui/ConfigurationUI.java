@@ -9,11 +9,11 @@ import java.awt.event.ActionListener;
 import java.util.Vector;
 
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 
 import tufts.vue.VueResources;
 import tufts.vue.gui.VueButton;
+import tufts.vue.gui.VueFileChooser;
 
 /*
  * -----------------------------------------------------------------------------
@@ -417,11 +417,11 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         
                         chooserActionListener = new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
-                                JFileChooser fileChooser = new JFileChooser();
+                                VueFileChooser fileChooser = new VueFileChooser();
                                 fileChooser.setCurrentDirectory(new java.io.File("."));
                                 fileChooser.setDialogTitle(VueResources.getString("resourceInstallation.chooserTitle"));
-                                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                                if (fileChooser.showOpenDialog(chooser) == JFileChooser.APPROVE_OPTION) {
+                                fileChooser.setFileSelectionMode(VueFileChooser.DIRECTORIES_ONLY);
+                                if (fileChooser.showOpenDialog(chooser) == VueFileChooser.APPROVE_OPTION) {
                                     textField8.setText(fileChooser.getSelectedFile().toString());
                                 }
                             }

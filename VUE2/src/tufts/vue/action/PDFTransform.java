@@ -45,7 +45,6 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import org.xml.sax.SAXException;
 import org.xml.sax.InputSource;
 
-import javax.swing.JFileChooser;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 

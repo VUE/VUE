@@ -31,6 +31,7 @@ import java.awt.*;
 import javax.swing.*;
 
 import tufts.vue.*;
+import tufts.vue.gui.VueFileChooser;
 
 
 /**
@@ -81,10 +82,10 @@ public class PDFConversion extends AbstractAction {
         String label = VUE.getActiveMap().getLabel();
         try {
             
-            JFileChooser chooser = new JFileChooser();
+            VueFileChooser chooser = new VueFileChooser();
             chooser.setDialogTitle("Save as PDF");
             int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save");
-            if (option == JFileChooser.APPROVE_OPTION) {
+            if (option == VueFileChooser.APPROVE_OPTION) {
                 pdfFileName = chooser.getSelectedFile().getAbsolutePath();
                 if(!pdfFileName.endsWith(".pdf")) pdfFileName += ".pdf";
             }

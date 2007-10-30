@@ -28,12 +28,12 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import tufts.vue.VueUtil;
+import tufts.vue.gui.VueFileChooser;
 
 /*
  * OntologyChooser.java
@@ -352,7 +352,7 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         }
         if(e.getSource() == browseButton)
         {
-            JFileChooser chooser = new JFileChooser();
+            VueFileChooser chooser = new VueFileChooser();
             chooser.showOpenDialog(tufts.vue.VUE.getDialogParentAsFrame());
             File selectedFile = chooser.getSelectedFile();
             if(selectedFile!=null)

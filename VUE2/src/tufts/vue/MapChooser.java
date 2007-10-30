@@ -28,6 +28,7 @@ package tufts.vue;
 
 //import junit.extensions.ActiveTestSuite;
 import tufts.vue.action.ActionUtil;
+import tufts.vue.gui.VueFileChooser;
 
 
 import edu.tufts.vue.compare.ConnectivityMatrix;
@@ -51,7 +52,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -372,7 +372,7 @@ public class MapChooser extends JDialog implements ActionListener{
             {
               file.setText("");
               generateButton.setEnabled(false);
-              JFileChooser chooseFile = new JFileChooser();
+              VueFileChooser chooseFile = new VueFileChooser();
               chooseFile.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
               chooseFile.showDialog(this,"Select");
               selectedFile = chooseFile.getSelectedFile();
