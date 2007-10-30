@@ -24,7 +24,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.17 $ / $Date: 2007-10-18 21:34:21 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2007-10-30 00:36:34 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -277,10 +277,16 @@ public class PropertyMap extends java.util.HashMap
                 tufts.Util.printStackTrace("SortedMapModel has only " + mEntries.length + " entries, attempt to access row " + row);
                 return "<empty>";
             }
-            if (col == 0)
-                return mEntries[row].key;
+
+            final Entry entry = mEntries[row];
+
+            if (entry == null) {
+                tufts.Util.printStackTrace(getClass().getName() + ": null entry at row " + row);
+                return null;
+            } else if (col == 0)
+                return entry.key;
             else
-                return mEntries[row].value;
+                return entry.value;
         }
 
         public int getColumnCount() { return 2; }
