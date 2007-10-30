@@ -16,6 +16,9 @@
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
+ *
+ * @author  akumar03
+ * @version $Revision: 1.2 $ / $Date: 2007-10-30 15:04:20 $ / $Author: peter $
  */
 
 /**
@@ -27,6 +30,7 @@ package edu.tufts.vue.dsm;
 public class DataSourceTypes {
     public static final org.osid.shared.Type FEDORA_REPOSITORY_TYPE = new edu.tufts.vue.util.Type("tufts.edu","repository","fedora_2_2");
     public static final org.osid.shared.Type SAKAI_REPOSITORY_TYPE = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
+    public static final org.osid.shared.Type SAKAI_COLLECTION_ASSET_TYPE = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
    
     
 }
