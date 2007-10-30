@@ -14,6 +14,9 @@
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
+ *
+ * @author  akumar03
+ * @version $Revision: 1.2 $ / $Date: 2007-10-30 16:44:25 $ / $Author: peter $
  */
 package tufts.vue;
 
