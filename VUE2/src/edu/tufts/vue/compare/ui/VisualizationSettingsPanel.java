@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.15 $ / $Date: 2007-10-30 15:02:23 $ / $Author: dan $
+ * @version $Revision: 1.16 $ / $Date: 2007-10-30 15:41:37 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -106,7 +106,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         {
             public java.awt.Dimension getMinimumSize()
             {
-               return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/70,
+               return new java.awt.Dimension(/*getGraphics().getFontMetrics().charsWidth(choices[0].toCharArray(),0,choices[0].length())+*/80,
                                              super.getPreferredSize().height);      
             }
         };

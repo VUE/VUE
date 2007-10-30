@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:08 PM
  *
- * @version $Revision: 1.8 $ / $Date: 2007-10-30 15:02:23 $ / $Author: dan $
+ * @version $Revision: 1.9 $ / $Date: 2007-10-30 15:41:37 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -70,12 +70,13 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         lineIcon.setIconWidth(500);
         lineIcon.setIconHeight(1);
         JLabel iconLabel = new JLabel(lineIcon);
-        voteConstraints.insets = new Insets(35,0,0,0);
+        voteConstraints.insets = new Insets(40,0,0,0);
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         voteLayout.setConstraints(iconLabel,voteConstraints);
         add(iconLabel);
         
         JLabel defineThresholdMessageLabel = new JLabel(defineThresholdMessage);
+        defineThresholdMessageLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         nodeThresholdSlider = new JSlider(0,100,tufts.vue.LWMergeMap.THRESHOLD_DEFAULT);
         nodeThresholdSlider.addChangeListener(new ChangeListener()
         {
@@ -103,6 +104,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         nodeThresholdSlider.setPaintTicks(true);
         nodeThresholdSlider.setMajorTickSpacing(10);
         nodeThresholdSlider.setPaintLabels(true);
+        nodeThresholdSlider.setBackground(getBackground());
         java.util.Dictionary labels = nodeThresholdSlider.getLabelTable();
         java.util.Enumeration e = labels.elements();
         while(e.hasMoreElements())
@@ -110,13 +112,14 @@ public class VoteVisualizationSettingsPanel extends JPanel {
             Object label = e.nextElement();
             if(label instanceof javax.swing.JComponent)
             {
-                ((javax.swing.JComponent)label).setFont(new Font("Courier",Font.PLAIN,9));
+                ((javax.swing.JComponent)label).setFont(tufts.vue.gui.GUI.LabelFace);//(new Font("Courier",Font.PLAIN,9));
             }
         }
         
         nodeThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
         
         JLabel nodeLabel = new JLabel("Nodes:");
+        nodeLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         
         voteConstraints.anchor = GridBagConstraints.WEST;
         voteConstraints.insets = new Insets(40,15,20,0);
@@ -136,15 +139,21 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         voteLayout.setConstraints(nodeLabel,voteConstraints);
         add(nodeLabel);
 
-        voteLayout.setConstraints(nodeThresholdSlider,voteConstraints);
-
         percentageDisplay = new JLabel("Nodes that are on at least " + nodeThresholdSlider.getValue() + "% of the maps will be included");
+        percentageDisplay.setFont(tufts.vue.gui.GUI.LabelFace);
         
         voteLayout.setConstraints(percentageDisplay,voteConstraints);
         add(percentageDisplay);
+        
+        
+        voteConstraints.fill = GridBagConstraints.HORIZONTAL;
+        voteConstraints.insets= new java.awt.Insets(0,40,0,35);
+        voteLayout.setConstraints(nodeThresholdSlider,voteConstraints);
         add(nodeThresholdSlider);
-
+        voteConstraints.fill = GridBagConstraints.NONE;
+        
         JLabel linkPanel = new JLabel("Links:");
+        linkPanel.setFont(tufts.vue.gui.GUI.LabelFace);
         voteConstraints.gridwidth = GridBagConstraints.REMAINDER;
         voteConstraints.insets= new java.awt.Insets(30,40,0,0);
 
@@ -157,6 +166,7 @@ public class VoteVisualizationSettingsPanel extends JPanel {
         linkThresholdSlider.setPaintTicks(true);
         linkThresholdSlider.setMajorTickSpacing(10);
         linkThresholdSlider.setPaintLabels(true);
+        linkThresholdSlider.setBackground(getBackground());
         java.util.Dictionary linkLabels = linkThresholdSlider.getLabelTable();
         java.util.Enumeration le = linkLabels.elements();
         while(le.hasMoreElements())
@@ -164,17 +174,19 @@ public class VoteVisualizationSettingsPanel extends JPanel {
             Object linkLabel = le.nextElement();
             if(linkLabel instanceof javax.swing.JComponent)
             {
-                ((javax.swing.JComponent)linkLabel).setFont(new Font("Courier",Font.PLAIN,9));
+                ((javax.swing.JComponent)linkLabel).setFont(tufts.vue.gui.GUI.LabelFace);//new Font("Courier",Font.PLAIN,9));
             }
         }
         
         linkThresholdSlider.setBorder(javax.swing.BorderFactory.createEmptyBorder(5,5,5,5));
 
         linkPercentageDisplay = new JLabel("Links that are on at least " + linkThresholdSlider.getValue()+"% of the maps will be included");
+        linkPercentageDisplay.setFont(tufts.vue.gui.GUI.LabelFace);
         voteLayout.setConstraints(linkPercentageDisplay,voteConstraints);
         add(linkPercentageDisplay);
-        voteConstraints.insets= new java.awt.Insets(0,40,0,0);
+        voteConstraints.insets= new java.awt.Insets(0,40,0,35);
         voteConstraints.anchor = GridBagConstraints.NORTHWEST;
+        voteConstraints.fill = GridBagConstraints.HORIZONTAL;
         voteLayout.setConstraints(linkThresholdSlider,voteConstraints);
         add(linkThresholdSlider);
         
