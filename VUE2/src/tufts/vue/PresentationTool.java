@@ -889,7 +889,7 @@ public class PresentationTool extends VueTool
                 // adding more to the end!
                 setEntry(mPathway.getFirst());
             } else {
-                setEntry(nextPathwayEntry(BACKWARD), BACKING_UP);
+                setEntry(nextPathwayEntry(BACKWARD, allTheWay), BACKING_UP);
             }
         } else {
             revisitPrior(allTheWay);
@@ -914,7 +914,7 @@ public class PresentationTool extends VueTool
                 // out of maintaining a sane seeming backlist...
                 setEntry(mPathway.getLast());
             } else {
-                setEntry(nextPathwayEntry(FORWARD));
+                setEntry(nextPathwayEntry(FORWARD, allTheWay));
             }
         } else {
             if (guessing) {
@@ -989,33 +989,34 @@ public class PresentationTool extends VueTool
                 goForward(SINGLE_STEP, GUESSING);
             break;            
 
-        case KeyEvent.VK_BACK_QUOTE:
-            // toggle showing the non-linear nav options:
-            //mForceShowNavNodes = mShowNavNodes = !mForceShowNavNodes;
-            mForceShowNavNodes = mShowNavNodes = !mShowNavNodes;
-            repaint("toggleNav="+mShowNavNodes);
-            break;
-            
-        case KeyEvent.VK_RIGHT:
-            goForward(amplified);
-            break;
-        case KeyEvent.VK_LEFT:
-            goBackward(amplified);
-            break;
-        case KeyEvent.VK_UP:
-            if (DEBUG.Enabled) 
-                revisitPrior(amplified);
-            else
-                handled = false;
-            break;
         case KeyEvent.VK_DOWN:
             if (DEBUG.Enabled) {
                 if (mVisited.hasNext())
                     revisitNext(amplified);
                 else
                     goForward(amplified);
-            } else
-                handled = false;
+                break;
+            } // else fallthru to RIGHT
+            
+        case KeyEvent.VK_RIGHT:
+            goForward(amplified);
+            break;
+            
+        case KeyEvent.VK_UP:
+            if (DEBUG.Enabled) {
+                revisitPrior(amplified);
+                break;
+            } // else fallthru to LEFT
+            
+        case KeyEvent.VK_LEFT:
+            goBackward(amplified);
+            break;
+            
+        case KeyEvent.VK_BACK_QUOTE:
+            // toggle showing the non-linear nav options:
+            //mForceShowNavNodes = mShowNavNodes = !mForceShowNavNodes;
+            mForceShowNavNodes = mShowNavNodes = !mShowNavNodes;
+            repaint("toggleNav="+mShowNavNodes);
             break;
             
         default:
@@ -1590,47 +1591,25 @@ public class PresentationTool extends VueTool
     
 
     
-    /** @param direction either 1 or -1 */
-    private LWPathway.Entry nextPathwayEntry(String direction)
+    /** @param direction either FORWARD or BACKWARD */
+    private LWPathway.Entry nextPathwayEntry(String direction, boolean allTheWay)
     {
         if (mLastPathwayPage == null)
             return null;
-
-        if (direction == FORWARD)
-            return mLastPathwayPage.entry.next();
-        else
-            return mLastPathwayPage.entry.prev();
         
+        final Entry entry = mLastPathwayPage.entry;
 
-//         int index = mLastPathwayPage.entry.index();
-//         if (direction == FORWARD)
-//             index++;
-//         else
-//             index--;
-//         return mLastPathwayPage.entry.pathway.getEntry(index);
-        
-        
-        /*
-        //out("nextPathwayEntry " + direction);
-        if (direction == BACKWARD && mPathwayIndex == 0)
-            return null;
-        
-        if (direction == FORWARD)
-            mPathwayIndex++;
-        else
-            mPathwayIndex--;
-
-        final LWPathway.Entry nextEntry = mPathway.getEntry(mPathwayIndex);
-        //out("Next pathway index: #" + mPathwayIndex + " = " + nextEntry);
-
-        if (nextEntry == null) {
-            //nextEntry = mPathway.getFirstEntry(nextPathwayNode);
-            mPathwayIndex -= (direction == FORWARD ? 1 : -1);
+        if (direction == FORWARD) {
+            if (allTheWay)
+                return entry.pathway.getLast();
+            else
+                return entry.next();
+        } else { // direction == BACKWARD
+            if (allTheWay)
+                return entry.pathway.getFirst();
+            else
+                return entry.prev();
         }
-        //out("Next pathway slide/focal: " + nextEntry);
-        return nextEntry;
-        */
-        
     }
     
     //private LWComponent guessNextPage() { return null; }
