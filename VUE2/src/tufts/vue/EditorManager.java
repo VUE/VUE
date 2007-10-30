@@ -529,7 +529,7 @@ public class EditorManager
     private static void applyPropertyValue(Object source, Object key, Object newValue, LWComponent target) {
         //if (DEBUG.STYLE) System.out.println("APPLY " + source + " " + key + "[" + newValue + "] -> " + target);
         if (target.supportsProperty(key)) {
-            if (DEBUG.STYLE) System.out.format(singleton + ": APPLY %s %-15s %-40s -> %s\n", source, key, "(" + newValue + ")", target);
+            if (DEBUG.STYLE) out(String.format("APPLY %s %-15s %-40s -> %s", source, key, "(" + newValue + ")", target));
             try {
                 target.setProperty(key, newValue);
                 //} catch (LWComponent.PropertyValueVeto ex) {
@@ -573,8 +573,21 @@ public class EditorManager
         // As any LWComponent can be used as a style source,
         // we can just dupe whatever we've got (a handy
         // way to instance another component with the same typeToken)
-        final LWComponent style = styleSource.duplicate(DUPE_WITHOUT_CHILDREN);
+        //final LWComponent style = styleSource.duplicate(DUPE_WITHOUT_CHILDREN);
+        // Too risky: e.g., styles getting image updates?  Not fatal, but messy
+        // / confusing to debug.
 
+        LWComponent style = null;
+
+        try {
+            style = styleSource.getClass().newInstance();
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "newInstance " + styleSource.getClass());
+            return null;
+        }
+        
+        style.copySupportedProperties(styleSource);
+        style.copyStyle(styleSource);
         style.setPersistIsStyle(Boolean.TRUE); // mark as a style: e.g., so if link, can know not to recompute
 
         //-----------------------------------------------------------------------------
@@ -584,16 +597,16 @@ public class EditorManager
         // just copying the style from the style to using it as a base for
         // duplication, we have to leave the original bits in place.
         style.setLabel("<" + version + ":" + typeToken + ">"); 
-        style.setResource((Resource)null); // clear out any resource if it had it
-        style.setNotes(null);
-        style.takeLocation(0,0);
-        style.takeSize(100,100);
+//         style.setResource((Resource)null); // clear out any resource if it had it
+//         style.setNotes(null);
+//         style.takeLocation(0,0);
+//         style.takeSize(100,100);
         //-----------------------------------------------------------------------------
 
         //out("created new styleHolder for type token [" + token + "]: " + styleHolder); 
         //out("created " + styleHolder);
 
-        if (DEBUG.STYLE) out("created style holder " + style + "\t based on " + styleSource);
+        if (DEBUG.STYLE) out("made style " + style + " based on " + styleSource);
         return style;
     }
         
