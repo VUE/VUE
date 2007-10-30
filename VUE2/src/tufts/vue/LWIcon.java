@@ -90,6 +90,23 @@ public abstract class LWIcon extends Rectangle2D.Float
         super.width = w;
         super.height = h;
     }
+    
+    /**
+     * do we contain coords x,y?
+     * Coords may be component local or map local or
+     * whataver -- depends on what was handed to us
+     * via @see setLocation
+     */
+    public boolean contains(float x, float y)
+    {
+        if (isShowing() && super.width > 0 && super.height > 0) {
+            return x >= super.x+4
+                && y >= super.y+4
+                && x <= (super.x + super.width -4)
+                && y <= (super.y + super.height -4);
+        }
+        return false;
+    }
 
     public void setMinimumSize(float w, float h)
     {
@@ -208,8 +225,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             if (isShowing() && super.width > 0 && super.height > 0) {
                 return x >= super.x
                     && y >= super.y
-                    && x <= super.x + super.width
-                    && y <= super.y + super.height;
+                    && x <= (super.x + super.width)
+                    && y <= (super.y + super.height);
             }
             return false;
         }
@@ -309,6 +326,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                     continue;
 
                 if (mNoShrink) {
+                	
                     // TODO: this probably no longer quite right given local coords...
                     double zoom = e.getViewer().getZoomFactor();
                     if (zoom < 1) {
@@ -317,15 +335,17 @@ public abstract class LWIcon extends Rectangle2D.Float
                     }
                 }
                 if (icon instanceof LWIcon.Resource)
-                {
+                { 
                 	if (icon.contains(cx, cy)) 
                     {	
-                		e.getViewer().clearTip();
+                		e.getViewer().clearTip();                
                 		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 		
                     }
                 	else
-                		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                	{
+                		e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());                		                		
+                	}
                 		
                 }
                 if (icon.contains(cx, cy)) 
@@ -335,7 +355,10 @@ public abstract class LWIcon extends Rectangle2D.Float
                     break;
                 }
                 else
-                	e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                {                	
+                	e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());        
+                }
+                	
             }
             
             // TODO: don't need to do this if there's already a tip showing!
@@ -371,7 +394,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                 }
             }
         }
-
+        
         boolean handleDoubleClick(MapMouseEvent e)
         {
             boolean handled = false;
