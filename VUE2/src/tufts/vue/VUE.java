@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.502 $ / $Date: 2007-10-30 18:58:00 $ / $Author: mike $ 
+ * @version $Revision: 1.503 $ / $Date: 2007-10-30 21:38:22 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1159,12 +1159,13 @@ public class VUE
         ApplicationFrame.validate();
         //if (DEBUG.INIT) out("frame validated");
 
-        int appWidth = (int) (GUI.GScreenWidth * 0.75);
-        int appHeight = (int) (GUI.GScreenHeight * 0.75);
+        //int appWidth = (int) (GUI.GScreenWidth * 0.75);
+        //int appHeight = (int) (GUI.GScreenHeight * 0.75);
 
         // If you've got a wide screen, leave at least 600
         // pixels at the right for two full 300pix DockWindow's
-        if (GUI.GScreenWidth >= 1600) { 
+       /* VUE-795 replaces the default screen sizing logic...
+        * if (GUI.GScreenWidth >= 1600) { 
             int maxWidth = GUI.GScreenWidth - (GUI.GInsets.left + DockWindow.DefaultWidth * 2);
             if (appWidth > maxWidth)
                 appWidth = maxWidth;
@@ -1174,7 +1175,19 @@ public class VUE
             appWidth = 1600;
         if (appHeight > 1024)
             appHeight = 1024;
+        */
+        
+        int appWidth = (int) (GUI.GScreenWidth * 0.90);
+        int appHeight = (int) (GUI.GScreenHeight * 0.90);
+        
+        
+        if (GUI.GScreenWidth > 1280) {             
+        	appWidth = (int) (GUI.GScreenWidth * 0.75);
+        	appHeight = (int) (GUI.GScreenHeight * 0.90);
+        }
 
+        
+        
         WindowPropertiesPreference wpframe = ApplicationFrame.getWindowProperties();
         
         Dimension sz = wpframe.getWindowSize();
