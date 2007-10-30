@@ -65,6 +65,8 @@ public class LWImage extends
                Images.Listener,
                edu.tufts.vue.preferences.VuePrefListener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
+    
     static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
     //private static VueIntegerPreference PrefImageSize = ImageSizePreference.getInstance(); // is failing for some reason
     //static int MaxRenderSize = PrefImageSize.getValue();
@@ -73,7 +75,7 @@ public class LWImage extends
     private final static int MinWidth = 32;
     private final static int MinHeight = 32;
 
-    enum Status { UNLOADED, LOADING, LOADED, ERROR };
+    enum Status { UNLOADED, LOADING, LOADED, ERROR, EMPTY };
 
     // May want move most of this code to be done generically in URLResource, (e.g.,
     // bytes size, byte progress & status are somewhat generic for all content), and
@@ -122,6 +124,10 @@ public class LWImage extends
     	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
         setFillColor(null);
         setResource(r);
+    }
+
+    protected void out(String s) {
+        Log.debug(s);
     }
     
     
@@ -250,7 +256,7 @@ public class LWImage extends
     private void updateNodeIconStatus(LWContainer parent) {
 
         //tufts.Util.printStackTrace("updateNodeIconStatus, mImage=" + mImage + " parent=" + parent);
-        if (DEBUG.IMAGE) out("updateNodeIconStatus, mImage=" + mImage + " parent=" + parent);
+        if (DEBUG.IMAGE) out("updateNodeIconStatus, mImage=" + Util.tags(mImage) + " parent=" + parent);
 
         if (parent == null)
             return;
@@ -296,6 +302,7 @@ public class LWImage extends
     }        
     
 
+    @Override
     public void layoutImpl(Object triggerKey) {
         if (getClass().isAssignableFrom(LWNode.class))
             super.layoutImpl(triggerKey);
@@ -308,6 +315,8 @@ public class LWImage extends
     // update, as it doesn't get selected.  This depends on
     // how me might redo image support in maps tho, so
     // wait on that...
+    
+    @Override
     public void setSelected(boolean selected) {
         boolean wasSelected = this.selected;
         super.setSelected(selected);
@@ -322,14 +331,17 @@ public class LWImage extends
         }
     }
     
+    @Override
     public void setResource(Resource r) {
         if (r == null) {
             //if (DEBUG.Enabled) out("nulling out LWImage resource: should only happen if it's creation is being undone");
             if (DEBUG.Enabled) out("resource set to null");
+            //if (DEBUG.Enabled) Util.printStackTrace("RESOURCE SET NULL " + this);
             mImage = null;
             mImageWidth = -1;
             mImageHeight = -1;
-            mImageStatus = Status.UNLOADED;
+            mImageStatus = Status.EMPTY;
+            //mImageStatus = Status.UNLOADED;
             super.setResource(r);
         } else if (mXMLRestoreUnderway) {
             super.setResource(r);
@@ -369,6 +381,9 @@ public class LWImage extends
             // place in undo key for changes that happen due to the image
             // arriving.  We sync to be certian the key is set before
             // we can get any image callbacks.
+
+            //Util.printStackTrace("GET IMAGE IN " + this);
+            
             if (!Images.getImage(r, this))
                 mUndoMarkForThread = UndoManager.getKeyForNextMark(this);
             else
@@ -462,12 +477,15 @@ public class LWImage extends
         updateNodeIconStatus(getParent());
         
         if (mUndoMarkForThread == null) {
-            notify(LWKey.RepaintAsync);
+            //notify(LWKey.RepaintAsync);
         } else {
             // in case this thread get's re-used:
             UndoManager.detachCurrentThread(mUndoMarkForThread);
             mUndoMarkForThread = null;
         }
+
+        notify(LWKey.RepaintAsync);
+        
 
         // Any problem using the Image Fetcher thread to do this?
         //if (getResource() instanceof MapResource)
@@ -493,15 +511,15 @@ public class LWImage extends
         setSize(mImageWidth, mImageHeight);
     }
 
-    public void X_setSize(float w, float h) {
-        super.setSize(w, h);
-        // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
-        // They can still crop down if they like, but this prevents them from making it any bigger.
-        if (mImageWidth < 0)
-            mImageWidth = (int) getWidth();
-        if (mImageHeight < 0)
-            mImageHeight = (int) getHeight();
-    }
+//     public void X_setSize(float w, float h) {
+//         super.setSize(w, h);
+//         // Even if we don't have an image yet, we need to keep these set in case user attemps to resize the frame.
+//         // They can still crop down if they like, but this prevents them from making it any bigger.
+//         if (mImageWidth < 0)
+//             mImageWidth = (int) getWidth();
+//         if (mImageHeight < 0)
+//             mImageHeight = (int) getHeight();
+//     }
 
     /** record the actual pixel dimensions of the underlying raw image */
     void setImageSize(int w, int h)
@@ -511,7 +529,17 @@ public class LWImage extends
         mImageAspect = ((float)w) / ((float)h);
         // todo: may want to just always update the node status here -- covers most cases, plus better when the drop code calls this?
         if (DEBUG.IMAGE) out("setImageSize " + w + "x" + h + " aspect=" + mImageAspect);
+
+        autoShapeToAspect();
+        
         //setAspect(aspect); // LWComponent too paternal for us right now
+    }
+
+    private void autoShapeToAspect() {
+        if (mImageAspect > 0) {
+            Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            setSize(newSize.width, newSize.height);
+        }
     }
 
     /**
@@ -526,11 +554,10 @@ public class LWImage extends
             // Unconstrained aspect ration scaling
             super.userSetSize(width, height, e);
         } else {
-            Size newSize = ConstrainToAspect(mImageAspect, width, height);
-            setSize(newSize.width, newSize.height);
+            autoShapeToAspect();
         }
 
-//         if (e != null && e.isShiftDown())
+//         If (e != null && e.isShiftDown())
 //             croppingSetSize(width, height);
 //         else
 //             scalingSetSize(width, height);
