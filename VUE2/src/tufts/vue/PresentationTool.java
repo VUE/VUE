@@ -648,7 +648,7 @@ public class PresentationTool extends VueTool
                 //Log.warn("NULL NODE in " + this);
                 Util.printStackTrace("NULL NODE in " + this);
                 mJumpBoxes = null;
-            } else if (node.inPathway()) {
+            } else if (node.inVisiblePathway()) {
                 mJumpBoxes = createPathwayJumpBoxes(node);
             } else {
                 mJumpBoxes = null;
@@ -1555,7 +1555,7 @@ public class PresentationTool extends VueTool
 
         final LWPathway pathway = VUE.getActivePathway();
 
-        if (!pathway.isVisible())
+        if (!pathway.isVisible() && !pathway.isLocked())
             pathway.setVisible(true);
 
         mStartPathway = pathway;
