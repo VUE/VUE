@@ -210,10 +210,12 @@ public class WindowPropertiesPreference extends StringPreference implements Item
 		}		
 	}
 	
-	private final JPanel panel = new JPanel();
+	private JPanel panel = null; 
 	
 	public JComponent getPreferenceUI() {
-		
+		if (panel != null)
+			return panel;
+		panel = new JPanel();
 		panel.setBackground(Color.WHITE);
 		GridBagLayout gbl = new GridBagLayout();
 		panel.setLayout(gbl);

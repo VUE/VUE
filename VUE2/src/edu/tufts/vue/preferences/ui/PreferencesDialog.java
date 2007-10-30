@@ -268,6 +268,7 @@ public class PreferencesDialog extends JDialog {
 		splitPane = new JSplitPane();
 		splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);		
 		splitPane.setOneTouchExpandable(false);
+		splitPane.setEnabled(false);
 		JScrollPane pane = new JScrollPane(prefTree)
 		{
 			public Dimension getPreferredSize()
