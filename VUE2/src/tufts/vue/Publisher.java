@@ -54,11 +54,14 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.75 $ / $Date: 2007-10-29 15:24:05 $ / $Author: anoop $
+ * @version $Revision: 1.76 $ / $Date: 2007-10-30 16:42:02 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
-    /** Creates a new instance of Publisher */
+	private static final org.apache.log4j.Logger Log = 
+		org.apache.log4j.Logger.getLogger(Publisher.class);
+    
+   /** Creates a new instance of Publisher */
     //todo: Create an interface for datasources and have separate implementations for each type of datasource.
     public static final String TITLE = "Publisher";
     public static final String FILE_PREFIX = "file://";
@@ -413,7 +416,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                 if(publishMapRButton.isSelected()) {
-                    
+                    //SakaiPublisher.uploadMap( ds, sakaiFolder, VUE.getActiveMap());
                 }else if(publishMapAllRButton.isSelected()){
                     
                 }   else
