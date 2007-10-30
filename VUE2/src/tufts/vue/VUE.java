@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.500 $ / $Date: 2007-10-27 21:01:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.501 $ / $Date: 2007-10-30 00:36:10 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -487,7 +487,8 @@ public class VUE
                                                   + Util.TERM_RED + "(%F/%C/%M)" + Util.TERM_CLEAR
                                                   + " %m%n"); 
         } else {
-            MasterLogPattern.setConversionPattern("@%6r %5p [%t]%x %c{1}: %m%n");
+            MasterLogPattern.setConversionPattern("@%.1p%6r [%t]%x %c{1}: %m%n");
+            //MasterLogPattern.setConversionPattern("@%6r %5p [%t]%x %c{1}: %m%n");
             //MasterLogPattern.setConversionPattern("@%6r [%t] %5p %c %x %m%n");
         }
 
