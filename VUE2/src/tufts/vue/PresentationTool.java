@@ -1258,7 +1258,7 @@ public class PresentationTool extends VueTool
         final int MouseRightActivationPixel = width - 40;
         final int MouseRightClearAfterActivationPixel = width - NavNode.MaxWidth;
 
-        if (DEBUG.MOUSE) {
+        if (DEBUG.MOUSE && DEBUG.META) {
             Log.debug(String.format("CURX %d; Max %d; On pixel: %d, off pixel %d",
                                     e.getX(),
                                     width,
@@ -1637,15 +1637,6 @@ public class PresentationTool extends VueTool
         //VUE.setActive(LWPathway.Entry.class, this, entry);
     }
 
-    private void setPage(LWComponent destination) {
-        if (destination != null)
-            setPage(new Page(destination), RECORD_BACKUP);
-    }
-    
-    private void setPage(Page page) {
-        setPage(page, RECORD_BACKUP);
-    }
-
     private void loadPathway(LWPathway pathway) {
         //if (DEBUG.PRESENT) new Throwable("FYI, loadPathway: " + pathway).printStackTrace();
         if (DEBUG.PRESENT) out("loadPathway " + pathway);
@@ -1677,7 +1668,11 @@ public class PresentationTool extends VueTool
         if (page == null) // for now
             return;
 
-            
+        if (page.entry != null && page.entry.isPathway()) {
+            Util.printStackTrace("recordPageTransition to master: " + page.entry);
+            return;
+        }
+
         // we're backing up:
 
         
@@ -1728,21 +1723,36 @@ public class PresentationTool extends VueTool
     }
     
     
+    private void setPage(LWComponent destination) {
+        if (destination != null)
+            setPage(new Page(destination), RECORD_BACKUP);
+    }
+    
+    private void setPage(Page page) {
+        setPage(page, RECORD_BACKUP);
+    }
+
 
     private volatile boolean pageLoadingUnderway = false;
     private void setPage(final Page page, boolean recordBackup)
     {
         if (page == null) { // for now
-            tufts.Util.printStackTrace("null page!");
+            Util.printStackTrace("null page!");
             return;
         }
-        
+
         if (page.equals(mCurrentPage)) {
             if (DEBUG.Enabled) Log.debug("current page matches new page: " + mCurrentPage + "; requested=" + page);
             return;
         }
 
         if (DEBUG.PRESENT) out("setPage " + page);
+        
+        if (page.entry != null && page.entry.isPathway()) {
+            Log.warn("attempt to present master slide denied: " + page.entry);
+            if (DEBUG.Enabled) Util.printStackTrace("present master slide attempt: " + page.entry);
+            return;
+        }
         
         recordPageTransition(page, recordBackup);
 
