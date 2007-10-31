@@ -238,10 +238,9 @@ public class Actions implements VueConstants
     	
     	public PreferenceAction()
     	{
-    	    
-                putValue(SHORT_DESCRIPTION, "Preferences");
-            
-                      putValue(ACCELERATOR_KEY, keyStroke(KeyEvent.VK_COMMA, COMMAND));
+    		   putValue(NAME, "Preferences");
+               putValue(SHORT_DESCRIPTION, "Preferences");            
+               putValue(ACCELERATOR_KEY, keyStroke(KeyEvent.VK_COMMA, COMMAND));
     		
     	}
     	
