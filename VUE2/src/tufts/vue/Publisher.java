@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.77 $ / $Date: 2007-10-31 22:38:13 $ / $Author: anoop $
+ * @version $Revision: 1.78 $ / $Date: 2007-10-31 22:56:47 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -65,14 +65,14 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     //todo: Create an interface for datasources and have separate implementations for each type of datasource.
     public static final String TITLE = "Publisher";
     public static final String FILE_PREFIX = "file://";
-    public static final int PUB_WIDTH = 500;
+    public static final int PUB_WIDTH = 550;
     public static final int PUB_HEIGHT = 250;
     
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
     public static final String[] PUBLISH_INFORMATION = {"The \"Export\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
-    "\"Publish Map\" saves only the map. Digital resources are not attached, but the resources’ paths are maintained. “Export Map” is the equivalent of the “Save” function for a registered digital repository.",
-    "\"Publish IMSCP Map\" embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a “zip” file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
+    "\"Publish Map\" saves only the map. Digital resources are not attached, but the resources' paths are maintained. \"Export Map\" is the equivalent of the \"Save\" function for a registered digital repository.",
+    "\"Publish IMSCP Map\" embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a \"zip\" file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
     "\"Publish All\" creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resources are accessible to all users viewing the map.",
     "\"Publish IMSCP Map to Sakai\" saves concept map in Sakai content hosting system.","Zips map with local resources."
     };
@@ -238,6 +238,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         JPanel optionPanel = new JPanel(new GridLayout(0, 1));
         //optionPanel.setLayout(new BoxLayout(optionPanel,BoxLayout.Y_AXIS));
         publishMapRButton = new JRadioButton(MODE_LABELS[0]);
+        publishMapRButton.setSelected(true);
         publishMapAllRButton = new JRadioButton(MODE_LABELS[1]);
         publishZipRButton = new JRadioButton(MODE_LABELS[2]);
         publishZipRButton.setEnabled(false);
@@ -265,7 +266,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         modeInfo.setLineWrap(true);
         modeInfo.setWrapStyleWord(true);
         modeInfo.setRows(7);
-        modeInfo.setColumns(25);
+        modeInfo.setColumns(28);
         modeInfo.setVisible(true);
         modeInfo.setFont(tufts.vue.gui.GUI.LabelFace);
         modeInfo.setHighlighter(null);
