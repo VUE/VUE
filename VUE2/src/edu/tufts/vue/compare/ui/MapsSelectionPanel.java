@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.27 $ / $Date: 2007-10-31 00:17:18 $ / $Author: dan $
+ * @version $Revision: 1.28 $ / $Date: 2007-10-31 00:24:27 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -288,10 +288,16 @@ public class MapsSelectionPanel extends JPanel  {
         gridBagConstraints.gridwidth = 1;
         gridBag.setConstraints(mergePropertyLabel,gridBagConstraints);
         mergePropertyLabel.setBorder(BorderFactory.createEmptyBorder(5+2,15,5+2,5));
-        add(mergePropertyLabel);
+        if(!VueResources.getString("merge.ontologyType.gui").equals("OFF"))
+        {    
+          add(mergePropertyLabel);
+        }
         gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(mergePropertyChoice,gridBagConstraints);
-        add(mergePropertyChoice);
+        if(!VueResources.getString("merge.ontologyType.gui").equals("OFF"))
+        {
+          add(mergePropertyChoice);
+        }
         
         gridBagConstraints.insets = new Insets(0,0,0,0);
         
