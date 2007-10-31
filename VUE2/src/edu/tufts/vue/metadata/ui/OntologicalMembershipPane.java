@@ -108,6 +108,7 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton addSelectedTerm = new JButton("Add selected term");
+        addSelectedTerm.setFont(tufts.vue.gui.GUI.LabelFace);
         
         addSelectedTerm.addActionListener(new ActionListener(){
            public void actionPerformed(ActionEvent e)
@@ -199,6 +200,8 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
             panel.setBorder(outerCompoundBorder);
             
             deleteButton.setIcon(tufts.vue.VueResources.getImageIcon("ontologicalmembership.delete.up"));
+            
+            setFont(tufts.vue.gui.GUI.LabelFace);
         }
         
         public java.awt.Component getListCellRendererComponent(javax.swing.JList list,Object value,int index,boolean isSelected,boolean cellHasFocus)
