@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.32 $ / $Date: 2007-10-30 00:38:02 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-10-31 08:48:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -380,10 +380,13 @@ public class Images
             }
         }
         public void gotBytes(Object imageSrc, long bytesSoFar) {
-            if (DEBUG.IMAGE) out("relay BYTES to head " + tag(head) + " " + imageSrc);
+            //if (DEBUG.IMAGE) out("relaying new byte total " + bytesSoFar + " to " + imageSrc);
+            if (DEBUG.IMAGE) out(String.format("relay BYTES %5d to head %s", bytesSoFar, tag(head)));
+            //if (DEBUG.IMAGE) out(String.format("relay BYTES to head " + tag(head) + " " + imageSrc);
             head.gotBytes(imageSrc, bytesSoFar);
             if (tail != null) {
-                if (DEBUG.IMAGE) out("relay BYTES to tail " + tag(tail) + " " + imageSrc);
+                //if (DEBUG.IMAGE) out("relay BYTES to tail " + tag(tail) + " " + imageSrc);
+                if (DEBUG.IMAGE) out(String.format("relay BYTES %5d to tail %s", bytesSoFar, tag(tail)));
                 tail.gotBytes(imageSrc, bytesSoFar);
             }
         }
@@ -900,8 +903,9 @@ public class Images
         if (cacheDir != null) {
             file = new File(getCacheDirectory(), cacheName);
             try {
-                if (!file.createNewFile())
-                    Log.debug("cache file already exists: " + file);
+                if (!file.createNewFile()) {
+                    if (DEBUG.IO) Log.debug("cache file already exists: " + file);
+                }
             } catch (java.io.IOException e) {
                 Util.printStackTrace(e, "can't create tmp cache file " + file);
                 //VUE.Log.warn(e.toString());
@@ -1077,19 +1081,14 @@ public class Images
                 if (debug) out("got URL stream");
 
                 if (debug) {
-                    out("Connected. Headers---");
+                    out("Connected; Headers from [" + conn + "];");
                     final Map<String,List<String>> headers = conn.getHeaderFields();
+                    List<String> response = headers.get(null);
+                    if (response != null)
+                        System.out.format("%20s: %s\n", "HTTP-RESPONSE", response);
                     for (Map.Entry<String,List<String>> e : headers.entrySet()) {
-                        System.out.println(e.getKey() + ": " + e.getValue());
-                    }
-                }
-                
-
-                if (debug) {
-                    out("Connected. Headers---");
-                    final Map<String,List<String>> headers = conn.getHeaderFields();
-                    for (Map.Entry<String,List<String>> e : headers.entrySet()) {
-                        System.out.println(e.getKey() + ": " + e.getValue());
+                        if (e.getKey() != null)
+                            System.out.format("%20s: %s\n", e.getKey(), e.getValue());
                     }
                 }
                 
@@ -1520,27 +1519,53 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
 
         this.cache.setLength(0); // in case already there
 
-        if (true) { 
-            byte[] testBuf = new byte[16];
-            read(testBuf);
+        if (true) {
+
+            final byte[] testBuf = new byte[64];
+            final int got = read(testBuf);
             super.seek(0); // put as back at the start
-            String content = new String(testBuf, "US-ASCII");
+            
+            final String contentHead = new String(testBuf, 0, got, "US-ASCII");
             
             if (DEBUG.IMAGE) {
-                System.err.println("\n***CONTENT[" + content + "] streamPos=" + streamPos + " length=" + length);
+                Log.debug(String.format("ContentHead; got=%d; streamPos=%d; length=%d [%s]",
+                                        got,
+                                        streamPos,
+                                        length,
+                                        contentHead.trim()));
+
+                // For inspecting largeer content-head's in log debug stream:
+                // compress strings of newlines/whitespaces into single newlines:
+                //contentHead = contentHead.replaceAll("(\\n\\s*)(\\n\\s*)+", "\n");
+                // or just compress all whitespace down to single spaces:
+                //contentHead = contentHead.replaceAll("\\s+", " ");
+                //Log.debug("CONTENT-HEAD:\n" + contentHead + "\n-------");
             }
 
-            // TODO: this readUntil is debug to get more info on the streams that are starting
-            // with <HTML> every once in a while: we can inspect the cache file afterwords.
-            readUntil(BUFFER_LENGTH);
         
-            String test = content.toUpperCase();
+            final String trimmed = contentHead.trim();
+            final String matcher = trimmed.substring(0, Math.min(16, trimmed.length())).toUpperCase();
 
-            if (test.startsWith("<HTML>") || test.startsWith("<!DOCTYPE")) {
-                Log.error("Stream " + stream + " contains HTML, not image data; [" + content + "]");
+            if (matcher.startsWith("<HTML>") || matcher.startsWith("<!DOCTYPE")) {
+                Log.warn("Stream " + stream + " contains HTML, not image data: [" + contentHead.trim() + "]");
+
+                Log.info("see cache file for HTML sample:\n\t" + file);
+                
+                // DEBUG: we force this readUntil is to get more info on the streams that are starting
+                // with <HTML> every once in a while: we can be sure to have a cache file with a bit 
+                // of data in it we can inspect afterwords.
+                readUntil(BUFFER_LENGTH);
+                
                 close();
                 throw new Images.DataException("Content is HTML, not image data");
+                
+            } else {
+                readUntil(BUFFER_LENGTH);  // debug: same reason as above
             }
+
+            // setting this at the end will prevent any gotBytes callbacks to any listener
+            // until we at know it's not an HTML data stream
+            //this.listener = listener;
         }
     }
 
@@ -1581,7 +1606,8 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
                 return length;
             }
 
-            if (DEBUG.IMAGE && DEBUG.IO) System.err.print(">" + nbytes + "; ");
+            //if (DEBUG.IMAGE && DEBUG.IO) System.err.format("+%4d; ", nbytes);
+            if (DEBUG.IO) Log.debug(String.format("+%4d bytes; %7d total", nbytes, length+nbytes));
             cache.write(streamBuf, 0, nbytes);
             len -= nbytes;
             length += nbytes;
@@ -1598,7 +1624,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         long next = streamPos + 1;
         long pos = readUntil(next);
         if (pos >= next) {
-            if (DEBUG.IMAGE && DEBUG.IO) System.err.println("SEEK " + streamPos+1);
+            if (DEBUG.IMAGE && DEBUG.IO) Log.debug("SEEK " + (streamPos+1));
             cache.seek(streamPos++);
             return cache.read();
         } else {
@@ -1626,7 +1652,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
         // len will always fit into an int so this is safe
         len = (int)Math.min((long)len, pos - streamPos);
         if (len > 0) {
-            if (DEBUG.IMAGE && DEBUG.IO) System.err.println("SEEK " + streamPos);
+            if (DEBUG.IMAGE && DEBUG.IO) Log.debug("SEEK " + streamPos);
             cache.seek(streamPos);
             cache.readFully(b, off, len);
             streamPos += len;
