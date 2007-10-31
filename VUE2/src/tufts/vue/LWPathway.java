@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.197 $ / $Date: 2007-10-30 00:37:31 $ / $Author: sfraize $
+ * @version $Revision: 1.198 $ / $Date: 2007-10-31 08:48:01 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -108,17 +108,17 @@ public class LWPathway extends LWContainer
             syncNodeEntryRef();
         }
         
-        /** create a merge of multiple nodes */
-        private Entry(LWPathway pathway, Iterable<LWComponent> contents) {
-            this.pathway = pathway;
-            this.node = null;
-            String titleText = "Untitled Slide";
-            this.slide = LWSlide.CreateForPathway(pathway, titleText, null, contents, true);
-            this.slide.enableProperty(LWKey.Label);
-            this.slide.setPathwayEntry(this);
-            this.setLabel(titleText);
-            syncNodeEntryRef();
-        }
+//         /** create a merge of multiple nodes */
+//         private Entry(LWPathway pathway, Iterable<LWComponent> contents) {
+//             this.pathway = pathway;
+//             this.node = null;
+//             String titleText = "Untitled Slide";
+//             this.slide = LWSlide.CreateForPathway(pathway, titleText, null, contents, true);
+//             this.slide.enableProperty(LWKey.Label);
+//             this.slide.setPathwayEntry(this);
+//             this.setLabel(titleText);
+//             syncNodeEntryRef();
+//         }
 
         /** for our use during castor restores */
         private Entry(LWPathway pathway, Entry partial) {
