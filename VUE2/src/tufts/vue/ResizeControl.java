@@ -36,8 +36,8 @@ import java.awt.geom.Rectangle2D;
  * the control point being moved is not guarnteed to stay exactly under
  * the mouse.
  *
- * @version $Revision:  $ / $Date:  $ / $Author:  $
-  */
+ * @version $Revision: 1.54 $ / $Date: 2007/10/18 21:58:16 $ / $Author: sfraize $
+ */
 class ResizeControl implements LWSelection.ControlListener, VueConstants
 {
 
