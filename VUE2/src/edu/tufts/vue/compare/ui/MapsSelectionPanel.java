@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.26 $ / $Date: 2007-10-30 23:56:50 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2007-10-31 00:17:18 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -28,6 +28,8 @@
  */
 
 package edu.tufts.vue.compare.ui;
+
+import edu.tufts.vue.compare.Util;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -37,6 +39,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import java.beans.*;
 
@@ -251,6 +255,43 @@ public class MapsSelectionPanel extends JPanel  {
         // //gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
         gridBag.setConstraints(mapFilterChoice,gridBagConstraints);
         add(mapFilterChoice);
+        
+        JLabel mergePropertyLabel = new JLabel("4. Merge property:");
+        mergePropertyLabel.setFont(tufts.vue.gui.GUI.LabelFace);
+        String[] mergePropertyChoices = {"Label","Type","Type and Label"};
+        JComboBox mergePropertyChoice = new JComboBox(mergePropertyChoices);
+        
+        mergePropertyChoice.addItemListener(new ItemListener(){
+           public void itemStateChanged(ItemEvent ie)
+           {
+               if(ie.getStateChange() == ItemEvent.SELECTED)
+               {
+                   if(ie.getItem().equals("Label"))
+                   {
+                       Util.setMergeProperty(Util.LABEL);
+                   }
+                   
+                   if(ie.getItem().equals("Type"))
+                   {
+                       Util.setMergeProperty(Util.TYPE);
+                   }
+                   
+                   if(ie.getItem().equals("Type and Label"))
+                   {
+                       Util.setMergeProperty(Util.BOTH);
+                   }
+               }
+           }
+        });
+        
+        mergePropertyChoice.setFont(tufts.vue.gui.GUI.LabelFace);
+        gridBagConstraints.gridwidth = 1;
+        gridBag.setConstraints(mergePropertyLabel,gridBagConstraints);
+        mergePropertyLabel.setBorder(BorderFactory.createEmptyBorder(5+2,15,5+2,5));
+        add(mergePropertyLabel);
+        gridBagConstraints.gridwidth = GridBagConstraints.REMAINDER;
+        gridBag.setConstraints(mergePropertyChoice,gridBagConstraints);
+        add(mergePropertyChoice);
         
         gridBagConstraints.insets = new Insets(0,0,0,0);
         

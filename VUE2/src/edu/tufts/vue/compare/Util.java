@@ -27,12 +27,18 @@ package edu.tufts.vue.compare;
 import tufts.vue.*;
 import  java.util.*;
 public class Util {
+    
+    public static final int LABEL = 0;
+    public static final int TYPE = 1;
+    public static final int BOTH = 2;
+    
     // returns a map for concept map comparison
     public static final String[] CITIES = {"Boston","Miami", "Denver","London","Mumbai","Tokyo"};
     public static final String MAP_NAME= "Cities";
     public static final int MAP_SIZE = 200; // creates a map in a square of 200*200 approx
     
     private static final boolean DEBUG = false;
+    private static int mergeProperty = LABEL;
     
     public static LWMap getMap() {
         LWMap map = new LWMap("Cities");
@@ -68,35 +74,72 @@ public class Util {
         return null;
     }
     
-    public static String getMergeProperty(LWComponent comp) {
-        //if(comp instanceof LWImage)
-        //{
-        //  System.out.println("Util - getMergeProperty for LWImage: " + ((LWImage)comp).getResource().toString());  
-        //  return ((LWImage)comp).getResource().toString();   
-        //}
-        //else
-        //{
-        //  System.out.println("Util - getMergeProperty for non LWImage: " + comp.getLabel());   
-        String mergeType = tufts.vue.VueResources.getString("merge.ontologyType");
+    public static void setMergeProperty(int property)
+    {
+        mergeProperty = property;
+    }
+    
+    public static String getMergeProperty(LWComponent comp)
+    {
         
-        if(DEBUG)
-        {
-          System.out.println("edu.tufts.vue.compare.Util merge.ontologyType: " + mergeType);
-        }
+        String selectionMethod = VueResources.getString("merge.ontologyType.gui");
         
-        if(mergeType.equals("NONE"))
-          return  comp.getLabel();
-        else
-        {
-          if(comp.getMetadataList().containsOntologicalType(mergeType))
+        if(selectionMethod.equals("OFF"))
+        {    
+        
+          String mergeType = tufts.vue.VueResources.getString("merge.ontologyType");
+        
+          if(DEBUG)
           {
-              return mergeType + "-" + comp.getLabel();
+            System.out.println("edu.tufts.vue.compare.Util merge.ontologyType: " + mergeType);
+          }
+        
+          if(mergeType.equals("LABEL"))
+          {
+            mergeProperty = LABEL;
           }
           else
+          if(mergeType.equals("TYPE"))
           {
-              return comp.getLabel();
+            mergeProperty = TYPE;
+          }
+          else
+          if(mergeType.equals("BOTH"))
+          {
+            mergeProperty = BOTH;
+          }
+          else
+          if(mergeType.equals("NONE"))
+            return  comp.getLabel();
+          else
+          {
+            if(comp.getMetadataList().containsOntologicalType(mergeType))
+            {
+                return mergeType + "-" + comp.getLabel();
+            }
+            else
+            {
+                return comp.getLabel();
+            }
           }
         }
-        //}
+
+        if(mergeProperty == LABEL)
+        {
+           return comp.getLabel();     
+        }
+            
+        if(mergeProperty == TYPE)
+        {
+           return comp.getMetadataList().getOntologyListString();     
+        }
+            
+        if(mergeProperty == BOTH)
+        {
+           return comp.getLabel() + "|" + comp.getMetadataList().getOntologyListString();    
+        }
+        
+        return comp.getLabel();
+    
     }
 }

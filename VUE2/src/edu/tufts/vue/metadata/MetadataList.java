@@ -120,6 +120,19 @@ public class MetadataList {
         return (getOntologyListSize() > 0);
     }
     
+    public String getOntologyListString()
+    {
+        String returnString = "";
+        
+        for(int i=0;i<getOntologyListSize();i++)
+        {
+            VueMetadataElement vme = getOntologyListElement(i);
+            returnString += vme.getObject() + "|";
+        }
+        
+        return returnString;
+    }
+    
     public class CategoryFirstList<E> extends java.util.ArrayList<E>
     {
         
