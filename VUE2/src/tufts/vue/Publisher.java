@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.76 $ / $Date: 2007-10-30 16:42:02 $ / $Author: peter $
+ * @version $Revision: 1.77 $ / $Date: 2007-10-31 22:38:13 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -167,22 +167,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         
         finishButton = new JButton("Finish");
         backButton = new JButton("< Back");
-        cancelButton.addActionListener(this);
         finishButton.addActionListener(this);
-        nextButton.addActionListener(this);
         backButton.addActionListener(this);
-        cancelButton.addActionListener(this);
-        //modeNext.addActionListener(this);
-        publishButton.addActionListener(this);
-        //setUpModeSelectionPanel();
         setUpRepositorySelectionPanel();
         getContentPane().add(rPanel,BorderLayout.CENTER);
-        // adding the buttonPanel
-        buttonPanel = new JPanel();
-        buttonPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(7,7,7,7),BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(1,0,0,0,Color.DARK_GRAY),BorderFactory.createEmptyBorder(5,0,0,0))));
-        buttonPanel.setLayout(new BorderLayout());
-        buttonPanel.add(cancelButton,BorderLayout.WEST);
-        buttonPanel.add(nextButton,BorderLayout.EAST);
+        setUpButtonPanel();
         getContentPane().add(buttonPanel,BorderLayout.SOUTH);
         setLocation(X_LOCATION,Y_LOCATION);
         setModal(true);
@@ -315,6 +304,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         cLabel.setBorder(BorderFactory.createEmptyBorder(80,10,0,0));
         cPanel.add(cLabel);
         buttonPanel.remove(cancelButton);
+        buttonPanel.repaint();
         doneButton.addActionListener(this);
         buttonPanel.add(doneButton,BorderLayout.EAST);
         getContentPane().remove(pPanel);
