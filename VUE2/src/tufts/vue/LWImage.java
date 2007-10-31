@@ -38,13 +38,14 @@ import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 
 /**
- * Handle the presentation of an image resource, allowing cropping.
+ * Handle the presentation of an image resource, allowing resize.
+ * Also provides special support for appear as a "node icon" -- a fixed
+ * size image inside a node to represent it's resource.
  *
  * @version $Revision: $ / $Date: 2006/01/20 18:57:33 $ / $Author: sfraize $
  */
 
 
-// TODO: get undo working again.
 // TODO: on delete, null the image so it can be garbage collected, and on
 //       un-delete, restore it via the resource, and hopefully it'll
 //       still be in the memory cache (if not, it'll be in the disk cache)
@@ -55,8 +56,6 @@ import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 //       the content.  Actually, would still be nice if this happened
 //       just by selecting the object, in case the resource previewer
 //       didn't happen to be open.
-
-// TODO: Allow node image icon selection w/out resize controls
 
 public class LWImage extends
                          LWComponent
@@ -106,11 +105,11 @@ public class LWImage extends
     /** is this image currently serving as an icon for an LWNode? */
     private boolean isNodeIcon = false;
     
-    private transient LWIcon.Block mIconBlock =
-        new LWIcon.Block(this,
-                         20, 12,
-                         null,
-                         LWIcon.Block.VERTICAL);
+//     private transient LWIcon.Block mIconBlock =
+//         new LWIcon.Block(this,
+//                          20, 12,
+//                          null,
+//                          LWIcon.Block.VERTICAL);
 
 
     public LWImage() {
@@ -302,13 +301,13 @@ public class LWImage extends
     }        
     
 
-    @Override
-    public void layoutImpl(Object triggerKey) {
-        if (getClass().isAssignableFrom(LWNode.class))
-            super.layoutImpl(triggerKey);
-        else
-            mIconBlock.layout();
-    }
+//     @Override
+//     public void layoutImpl(Object triggerKey) {
+//         if (getClass().isAssignableFrom(LWNode.class))
+//             super.layoutImpl(triggerKey);
+//         else
+//             mIconBlock.layout();
+//     }
     
     // TODO: this wants to be on LWComponent, in case this is a
     // regular node containing an LWImage, we want the image to
@@ -548,13 +547,14 @@ public class LWImage extends
      */
     protected void userSetSize(float width, float height, MapMouseEvent e)
     {
-        if (DEBUG.IMAGE) out("userSetSize");
+        if (DEBUG.IMAGE) out("userSetSize " + Util.fmt(new Point2D.Float(width, height)) + "; e=" + e);
 
         if (e != null && e.isShiftDown()) {
             // Unconstrained aspect ration scaling
             super.userSetSize(width, height, e);
         } else {
-            autoShapeToAspect();
+            Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            setSize(newSize.width, newSize.height);
         }
 
 //         If (e != null && e.isShiftDown())
@@ -982,13 +982,14 @@ public class LWImage extends
    }
     */
     
-    public void mouseOver(MapMouseEvent e)
-    {
-        if (getClass().isAssignableFrom(LWNode.class))
-            super.mouseOver(e);
-        else
-            mIconBlock.checkAndHandleMouseOver(e);
-    }
+//     @Override
+//     public void mouseOver(MapMouseEvent e)
+//     {
+//         if (getClass().isAssignableFrom(LWNode.class))
+//             super.mouseOver(e);
+//         else
+//             mIconBlock.checkAndHandleMouseOver(e);
+//     }
 
     // Holy shit: if we somehow defined all this control-point stuff as a property editor,
     // could we then just attach the property editor to any component that
