@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-10-25 21:48:04 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2007-10-31 08:46:24 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -109,8 +109,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     private URL mURL_Thumb;
     private URL mURL_Image;
     
-    /** if non-null, is local file */ // todo: FileResource...
-    private File mFile;
+    ///** if non-null, is local file */ // todo: FileResource...
+    //private File mFile;
     
     /** an optional resource title */
     protected String mTitle;
@@ -643,13 +643,14 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     @Override
     public int hashCode() {
-        // TODO: this not safe long-term
-        if (mURL_Browse == null)
-            asURL();
-        if (mURL_Browse == null)
-            return super.hashCode();
-        else
-            return mURL_Browse.hashCode();
+        return spec == null ? super.hashCode() : spec.hashCode();
+//         // TODO: this not safe long-term
+//         if (mURL_Browse == null)
+//             asURL();
+//         if (mURL_Browse == null)
+//             return super.hashCode();
+//         else
+//             return mURL_Browse.hashCode();
     }
 
     @Override
@@ -657,7 +658,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (o == this)
             return true;
         if (o instanceof Resource) {
-            return getSpec().equals(((Resource)o).getSpec());
+            if (spec == SPEC_UNSET || spec == null)
+                return false;
+            final String spec2 = ((Resource)o).getSpec();
+            if (spec2 == SPEC_UNSET || spec2 == null)
+                return false;
+            return spec.equals(spec2);
+            //return getSpec().equals(((Resource)o).getSpec());
             // use URL?  Better URN eventually?
             //o.asURL().equals(asURL());
         }
