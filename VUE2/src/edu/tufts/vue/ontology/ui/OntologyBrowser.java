@@ -76,6 +76,30 @@ public class OntologyBrowser extends JPanel {
         return selectedOntology;
     }
     
+    public static void setSelectedList(TypeList list)
+    {
+        
+       // System.out.println()
+        
+        if(list != selectedOntology)
+        {    
+          selectedOntology = list;
+          getBrowser().fireOntologySelectionChanged(list);
+        }
+    }
+    
+    public static int getSelectedIndex(TypeList tlist)
+    {
+        Component[] comps = getBrowser().getComponents();
+        for(int i=0;i<comps.length;i++)
+        {
+            if(tlist == comps[i])
+                return i;
+        }
+        
+        return -1;
+    }
+    
     public Widget addTypeList(final edu.tufts.vue.ontology.ui.TypeList list,String name,URL url) {
         list.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent listSelectionEvent) {
@@ -180,7 +204,7 @@ public class OntologyBrowser extends JPanel {
                 
         tufts.vue.VueAction applyStyle = new tufts.vue.VueAction() {
             {
-                setActionName("Import Style Sheet");
+                setActionName("Add Style Sheet");
             }
             
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -305,6 +329,7 @@ public class OntologyBrowser extends JPanel {
         //singleton = this;
         initialized = true;
         
+        addOntologySelectionListener(getViewer().getList());
         
     }
    

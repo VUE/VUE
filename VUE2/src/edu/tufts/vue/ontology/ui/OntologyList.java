@@ -34,7 +34,7 @@ import tufts.vue.gui.GUI;
  *
  * @author dhelle01
  */
-public class OntologyList extends javax.swing.JList {
+public class OntologyList extends javax.swing.JList implements OntologySelectionListener {
 	
     public OntologyList(OntologyViewer viewer)
     {
@@ -46,6 +46,28 @@ public class OntologyList extends javax.swing.JList {
     public void refresh()
     {
         ((OntologyListModel)getModel()).refresh();
+    }
+    
+    public void ontologySelected(OntologySelectionEvent ose)
+    {
+        
+        /*int selection = OntologyBrowser.getBrowser().getSelectedIndex(ose.getSelection());
+        if(selection > 0 && selection < getModel().getSize())
+        {    
+          setSelectedIndex(selection);
+          repaint();
+        }
+        
+        System.out.println("Ontology List -- ontology selected - " + selection);*/
+        
+        edu.tufts.vue.ontology.Ontology ont = ose.getSelection().getOntology();
+        
+        for(int i=0;i<getModel().getSize();i++)
+        {
+            if(getModel().getElementAt(i).equals(ont))
+                setSelectedIndex(i);
+        }
+        
     }
     
     public static class OntologyListModel extends javax.swing.DefaultListModel
@@ -87,7 +109,7 @@ public class OntologyList extends javax.swing.JList {
     {
         //private javax.swing.JLabel mLabel = new javax.swing.DefaultListCellRenderer();
         private javax.swing.border.Border dividerBorder = new tufts.vue.gui.DashBorder(java.awt.Color.LIGHT_GRAY,false,true,false,false);
-        private javax.swing.JLabel importLabel = new javax.swing.JLabel("Import Style Sheet");
+        private javax.swing.JLabel importLabel = new javax.swing.JLabel("Add Style Sheet");
         
         private CheckBoxRenderer mCheckBox = new CheckBoxRenderer();
         /*mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
