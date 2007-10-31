@@ -219,8 +219,9 @@ public class TypeList extends JList {
             else
             {
               LWLink r = new LWLink();
-              r.setHeadPoint(15,5);
-              r.setTailPoint(85,45);
+              r.setTailPoint(15,5);
+              r.setHeadPoint(85,45);
+              r.setArrowState(tufts.vue.LWLink.ARROW_HEAD);
               r.setLabel(ontType.getLabel());
               compFor = r;
             }

@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.176 $ / $Date: 2007-10-11 19:50:33 $ / $Author: dan $
+ * @version $Revision: 1.177 $ / $Date: 2007-10-31 07:14:56 $ / $Author: dan $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -301,6 +301,7 @@ public class LWLink extends LWComponent
               } else
               if(cssValue.equals("off"))
               {
+                c.setArrowState(ARROW_NONE);
                 vueHeadOffFromCSS = true; 
               }
             }  
@@ -309,7 +310,7 @@ public class LWLink extends LWComponent
             {    
               if(cssValue.equals("on"))
               {     
-                if(!vueHeadOnFromCSS)
+                if(!vueHeadOnFromCSS || vueHeadOffFromCSS)
                 {    
                   c.setArrowState(ARROW_TAIL);
                 }
@@ -318,10 +319,12 @@ public class LWLink extends LWComponent
                   c.setArrowState(ARROW_BOTH);
                 }         
               }
-              else if(cssValue.equals("off") && vueHeadOffFromCSS)
+              else if(cssValue.equals("off") && (!vueHeadOnFromCSS || vueHeadOffFromCSS))
               {
                   c.setArrowState(ARROW_NONE);
               }
+              vueHeadOffFromCSS = false;
+              vueHeadOnFromCSS = false;
             }
             return true;
         }
