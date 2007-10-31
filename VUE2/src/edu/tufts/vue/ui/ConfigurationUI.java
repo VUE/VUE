@@ -12,6 +12,7 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 
 import tufts.vue.VueResources;
+
 import tufts.vue.gui.VueButton;
 import tufts.vue.gui.VueFileChooser;
 
@@ -508,7 +509,10 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     for (int j=0; j < password.length; j++) {
                         sb.append(password[j]);
                     }
-                    properties.setProperty(key,sb.toString());
+                    String enc = edu.tufts.vue.util.Encryption.encrypt(sb.toString());
+                    //String dec = edu.tufts.vue.util.Encryption.decrypt(enc);
+                    properties.setProperty(key,enc);
+                    //System.out.println("PASS: "+sb.toString()+ " encrypted to: "+ enc+" decrypted to: "+ dec);
                     break;
                 case MULTI_LINE_TEXT_CONTROL:
                     javax.swing.JTextArea field2 = (javax.swing.JTextArea)fieldVector.elementAt(i);
@@ -566,7 +570,8 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         break;
                     case SINGLE_LINE_MASKED_TEXT_CONTROL:
                         javax.swing.JPasswordField field1 = (javax.swing.JPasswordField)fieldVector.elementAt(i);
-                        field1.setText(value);
+                        String dec = edu.tufts.vue.util.Encryption.decrypt(value);
+                        field1.setText(dec);
                         break;
                     case MULTI_LINE_TEXT_CONTROL:
                         javax.swing.JTextArea field2 = (javax.swing.JTextArea)fieldVector.elementAt(i);
