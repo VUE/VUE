@@ -98,8 +98,11 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
                 //System.out.println("Mouse Pressed: getCategoryIndex() " + categoryIndex);
                 
                 current.getMetadataList().getMetadata().remove(categoryIndex + selected);
+               
                 
-                OntologicalMembershipPane.this.validate();
+                //OntologicalMembershipPane.this.validate();
+                //OntologicalMembershipPane.this.repaint();
+                ((OntologyTypeListModel)list.getModel()).refresh();
             }
         });
         
