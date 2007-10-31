@@ -1,4 +1,4 @@
- /*
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * the control point being moved is not guarnteed to stay exactly under
  * the mouse.
  *
- * @version $Revision: 1.54 $ / $Date: 2007/10/18 21:58:16 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007/10/31 08:47:40 $ / $Author: sfraize $
  */
 class ResizeControl implements LWSelection.ControlListener, VueConstants
 {
