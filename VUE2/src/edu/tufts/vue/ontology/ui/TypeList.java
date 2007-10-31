@@ -90,7 +90,14 @@ public class TypeList extends JList {
             public void valueChanged(javax.swing.event.ListSelectionEvent e)
             {
                 comp = createLWComponent(getSelectedValue());
-                OntologyBrowser.getBrowser().setSelectedList(TypeList.this);
+                OntologyBrowser browser = OntologyBrowser.getBrowser();
+                TypeList oldSelection = browser.getSelectedList();
+                if(oldSelection !=null && oldSelection != TypeList.this)
+                {
+                    oldSelection.clearSelection();
+                    oldSelection.repaint();
+                }
+                browser.setSelectedList(TypeList.this);
             }
         });
         
