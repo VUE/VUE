@@ -36,19 +36,24 @@ import java.awt.geom.Rectangle2D;
  * the control point being moved is not guarnteed to stay exactly under
  * the mouse.
  *
- * @version $Revision: 1. $ / $Date: 2006/01/20 17:17:29 $ / $Author: sfraize $ 
- */
+ * @version $Revision:  $ / $Date:  $ / $Author:  $
+  */
 class ResizeControl implements LWSelection.ControlListener, VueConstants
 {
-    // todo: consider implementing as or optionally as (perhaps
-    // depending on shape) a point-transforming resize that instead
-    // of setting the bounding box & letting shape handle it,
-    // transforms all the points in the shape manualy.  Wouldn't
-    // want to do this for, say RoundRect, as would throw off
-    // corner arcs I think, but, polygons > sides 4 and, of
-    // course, you'll HAVE to have this if you want to support
-    // arbitrary polygons!
 
+    // Consider implementing as or optionally as (perhaps depending on shape) a
+    // point-transforming resize that instead of setting the bounding box & letting
+    // shape handle it, transforms all the points in the shape manualy.  Wouldn't want
+    // to do this for, say RoundRect, as would throw off corner arcs I think, but,
+    // polygons > sides 4 and, of course, you'll HAVE to have this if you want to
+    // support arbitrary polygons!
+
+    // TODO: LOCAL_RESIZE still doesn't work for multi-selection on slides (upper offset
+    // is wrong), and single-reshape of child nodes on the map has now been broken: not
+    // taking into account scale, nor proper offset of the drag bounds -- e.g., we're
+    // now using local bounds (local to the parent node of the resizing child node), but
+    // the drag bounds are relative to the FOCAL, not the parent...
+    
     public static final boolean LOCAL_RESIZE = true;
         
     boolean active = false;
