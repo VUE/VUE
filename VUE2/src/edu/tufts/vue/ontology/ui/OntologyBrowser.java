@@ -194,8 +194,25 @@ public class OntologyBrowser extends JPanel {
                         System.out.println("trouble opening css file: " + mue);
                     }
                     int selectedOntology = getViewer().getList().getSelectedIndex();
-                    ((edu.tufts.vue.ontology.Ontology)(getViewer().getList().getModel().getElementAt(selectedOntology))).applyStyle(cssURL);
+                    edu.tufts.vue.ontology.Ontology ont = ((edu.tufts.vue.ontology.Ontology)
+                             (getViewer().getList().getModel().getElementAt(selectedOntology)));
+                    ont.applyStyle(cssURL);
+                    
+                    // need to update typelist!!
+                    try
+                    {        
+                      URL url = new URL(ont.getBase());
+                      TypeList tlist = (TypeList)widgetMap.get(new OntologyBrowserKey(
+                                            edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),url)).getComponent(0);
+                      tlist.getOntology().applyStyle(cssURL);
+                      tlist.styleApplied();
+                    }
+                    catch(Exception urle)
+                    {
+                        System.out.println("Typelist -- error refreshing type list" + urle);
+                    }
                    
+                    //should get rid of message next to ontology name
                     //should be able to do better than this -- validate(), repaint() don't seem to work..
                     resultsStack.updateUI();
                     getViewer().getList().updateUI();

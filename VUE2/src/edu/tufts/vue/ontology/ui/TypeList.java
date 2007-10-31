@@ -146,10 +146,10 @@ public class TypeList extends JList {
     
     public LWComponent createLWComponent(Object type)
     {
-        if(typeCache.containsKey(type))
+        /*if(typeCache.containsKey(type))
         {
             return (LWComponent)typeCache.get(type);
-        }
+        }*/
       
         LWComponent compFor = null;
         OntType ontType = null;
@@ -514,7 +514,7 @@ public class TypeList extends JList {
           widget.remove(loadingLabel);
           //repaint();
           //browser.addTypeList(TypeList.this,ontologyURL.getFile());
-          if(ontology != null)
+          if(browser !=null && browser.getViewer() != null && browser.getViewer().getList() !=null && ontology != null)
           {    
             browser.getViewer().getList().setSelectedValue(ontology,true);
           }
@@ -540,6 +540,11 @@ public class TypeList extends JList {
        t.start();
        
         
+    }
+    
+    public Ontology getOntology()
+    {
+        return ontology;
     }
     
     
@@ -580,6 +585,16 @@ public class TypeList extends JList {
         //System.out.println("tl: type.getStyle.getClass() " + type.getStyle().getClass());
                
         //return (type.getStyle() instanceof NodeStyle);    
+    }
+    
+    
+    public void styleApplied()
+    {
+        OntType selected = (OntType)getSelectedValue();
+        if(selected != null)
+        {    
+          comp = createLWComponent(selected);
+        }
     }
     
     /*
