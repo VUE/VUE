@@ -120,8 +120,8 @@ public class FedoraPublisher {
     private static void  addObjectToRepository(edu.tufts.vue.dsm.DataSource ds,String cModel,File file,LWComponent comp,LWMap map) throws Exception{
         Properties properties = ds.getConfiguration();
         System.setProperty("javax.net.ssl.trustStore", properties.getProperty("fedora22TrustStore"));
-        System.setProperty("javax.net.ssl.trustStorePassword",properties.getProperty("fedora22TrustStorePassword"));
-        FedoraClient fc = new FedoraClient(HTTPS+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22SecurePort")+FEDORA_URL_PATH, properties.getProperty("fedora22UserName"), properties.getProperty("fedora22Password"));
+        System.setProperty("javax.net.ssl.trustStorePassword",edu.tufts.vue.util.Encryption.decrypt(properties.getProperty("fedora22TrustStorePassword")));
+        FedoraClient fc = new FedoraClient(HTTPS+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22SecurePort")+FEDORA_URL_PATH, properties.getProperty("fedora22UserName"), edu.tufts.vue.util.Encryption.decrypt(properties.getProperty("fedora22Password")));
         String pid = getFedoraPid(comp);
         AutoFinder af = new AutoFinder(fc.getAPIA());
         FieldSearchQuery query =  new FieldSearchQuery();
@@ -165,7 +165,7 @@ public class FedoraPublisher {
         if(cModel.equals(REMOTE_CM)){
             fc.getAPIM().modifyDatastreamByReference(pid, dsName,  null,comp.getLabel(), mimeType, VUE_FORMAT_URL, comp.getResource().getSpec(), null,null,  COMMENT,true);
         }else {
-            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
+            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), edu.tufts.vue.util.Encryption.decrypt(p.getProperty("fedora22Password")));
             String uploadId = uploader.upload(file);
             fc.getAPIM().modifyDatastreamByReference(pid, dsName,  null,comp.getLabel(), mimeType, VUE_FORMAT_URL, uploadId, null,null,  COMMENT,true);
             
@@ -211,7 +211,7 @@ public class FedoraPublisher {
             mimeType =VUE_MIME_TYPE;
         }
         if(!cModel.equals(REMOTE_CM)){
-            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
+            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), edu.tufts.vue.util.Encryption.decrypt(p.getProperty("fedora22Password")));
             uploadId = uploader.upload(file);
         } else {
             controlGroup = "E";
