@@ -53,7 +53,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.19 $ / $Date: 2007-10-30 21:03:21 $ / $Author: mike $
+ * @version $Revision: 1.20 $ / $Date: 2007-10-31 16:44:03 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -101,13 +101,81 @@ implements ActionListener, tufts.vue.LWEditor
         c.addMouseListener(new MouseAdapter()
         {                 
             
+            public void mousePressed(final MouseEvent e)
+            {
+            	Component c = popupWindow.getGlassPane();
+            	java.awt.Container contentPane = popupWindow.getContentPane();
+//            	 get the mouse click point relative to the content pane
+                Point containerPoint = SwingUtilities.convertPoint(popupWindow,
+                    e.getPoint(),contentPane);
+
+                // find the component that under this point
+                Component component = SwingUtilities.getDeepestComponentAt(
+                            contentPane,
+                            containerPoint.x,
+                            containerPoint.y);
+
+                // return if nothing was found
+                if (component == null) {             
+                    return;
+                }
+
+                // convert point relative to the target component
+                Point componentPoint = SwingUtilities.convertPoint(
+                    popupWindow,
+                    e.getPoint(),
+                    component);
+
+                // redispatch the event
+                component.dispatchEvent(new MouseEvent(component,
+                    e.getID(),
+                    e.getWhen(),
+                    e.getModifiers(),
+                    componentPoint.x,
+                    componentPoint.y,
+                    e.getClickCount(),
+                    e.isPopupTrigger()));
+            }	
             
-        	public void mouseEntered(final MouseEvent e)
-        	{
-        		//System.out.println("ENTERED");        	
-        			
-        	}
-        //	boolean removeWindow = false;
+            public void mouseReleased(final MouseEvent e)
+            {
+            	Component c = popupWindow.getGlassPane();
+            	java.awt.Container contentPane = popupWindow.getContentPane();
+//            	 get the mouse click point relative to the content pane
+                Point containerPoint = SwingUtilities.convertPoint(popupWindow,
+                    e.getPoint(),contentPane);
+
+                // find the component that under this point
+                Component component = SwingUtilities.getDeepestComponentAt(
+                            contentPane,
+                            containerPoint.x,
+                            containerPoint.y);
+
+                // return if nothing was found
+                if (component == null) {
+             
+                    return;
+                }
+             
+
+                // convert point relative to the target component
+                Point componentPoint = SwingUtilities.convertPoint(
+                    popupWindow,
+                    e.getPoint(),
+                    component);
+
+                // redispatch the event
+                component.dispatchEvent(new MouseEvent(component,
+                    e.getID(),
+                    e.getWhen(),
+                    e.getModifiers(),
+                    componentPoint.x,
+                    componentPoint.y,
+                    e.getClickCount(),
+                    e.isPopupTrigger()));
+            }
+            
+        	
         	public void mouseExited(final MouseEvent e)
         	{        		
         		SwingUtilities.invokeLater(new Runnable() {
