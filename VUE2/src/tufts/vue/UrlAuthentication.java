@@ -60,43 +60,36 @@ public class UrlAuthentication
         return ua;
     }
     
-    URL _url;
-    edu.tufts.vue.dsm.impl.VueDataSourceManager dataSourceManager = null;
-    
     /**
      * Currently stores only Sakai hosts
      */
-	private UrlAuthentication() 
-	{
-		edu.tufts.vue.dsm.DataSourceManager dsm;
-		edu.tufts.vue.dsm.DataSource dataSources[] = null;
+    private UrlAuthentication() 
+    {
+        edu.tufts.vue.dsm.DataSourceManager dsm;
+        edu.tufts.vue.dsm.DataSource dataSources[] = null;
 				
-		try {
-			// load new data sources
-			Log.info("DataSourceViewer; loading Installed data sources via Data Source Manager");
-			dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+        try {
+            // load new data sources
+            Log.info("loading installed data sources via Data Source Manager");
+            dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
 			
-			// Sakai specific code begins
-			SakaiExport se = new SakaiExport(dsm);
-			dataSources = se.getSakaiDataSources();
+            // Sakai specific code begins
+            SakaiExport se = new SakaiExport(dsm);
+            dataSources = se.getSakaiDataSources();
 			
-			for (int i = 0; i < dataSources.length; i++) 
-			{
-				Log.info("DataSourceViewer; adding data source to sakai data source list: "
-								+ dataSources[i]);
-				if (dataSources[i].hasConfiguration()) 
-				{
-					Properties configuration = dataSources[i]
-							.getConfiguration();
-					loadHostMap(configuration);
-					//VUE.Log .info("Sakai session id = " + _sessionId);
-				}
-			}
-		} catch (OsidException e) {
-			e.printStackTrace();
-			// VueUtil.alert("Error loading Resource", "Error");
-		}
-	}
+            for (int i = 0; i < dataSources.length; i++) {
+                Log.info("adding data source to sakai data source list: " + dataSources[i]);
+                if (dataSources[i].hasConfiguration()) {
+                    Properties configuration = dataSources[i].getConfiguration();
+                    loadHostMap(configuration);
+                    //VUE.Log .info("Sakai session id = " + _sessionId);
+                }
+            }
+        } catch (OsidException e) {
+            Log.error(e);
+            // VueUtil.alert("Error loading Resource", "Error");
+        }
+    }
 	
     /** 
      * @param url The URL of map resource 
