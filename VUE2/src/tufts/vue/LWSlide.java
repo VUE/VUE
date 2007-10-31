@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.66 $ / $Date: 2007-10-18 21:58:32 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2007-10-31 10:45:05 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -379,7 +379,7 @@ public class LWSlide extends LWContainer
 
         // First add all resources in any descendent of the node to nodeUnique (include
         // the node's resource itself), then iterate through all the resources found
-        // anywhere inside the side, removing duplicates from nodeUnique, and adding the
+        // anywhere inside the slide, removing duplicates from nodeUnique, and adding the
         // remainder to slideUnique.
 
         if (node.hasResource())

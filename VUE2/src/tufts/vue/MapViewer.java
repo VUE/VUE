@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.475 $ / $Date: 2007-10-31 08:47:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.476 $ / $Date: 2007-10-31 10:45:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -874,8 +874,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // TODO: add a getFocalBounds to LWComponent, and override in LWLink
         if (c instanceof LWLink)
             return c.getFanBounds();
-        else
-            return c.getFocalBounds();
+        else {
+            if (DEBUG.CONTAINMENT)
+                return LWComponent.grow(c.getFocalBounds(), 10);
+            else
+                return c.getFocalBounds();
+        }
     }
     
     private Rectangle2D.Float getFocalBounds() {
@@ -3298,7 +3302,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
             }
 
-            if (selection.size() > 1 && mFocal instanceof LWSlide) {
+            if (/* !ResizeControl.LOCAL_RESIZE && */ selection.size() > 1 && mFocal instanceof LWSlide) {
                 // hack for broken multi-resize on slides -- provide no selection handles
                 resizeControl.active = false;
             } else {

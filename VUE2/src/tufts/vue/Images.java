@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.33 $ / $Date: 2007-10-31 08:48:34 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2007-10-31 10:45:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1551,7 +1551,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
 
                 Log.info("see cache file for HTML sample:\n\t" + file);
                 
-                // DEBUG: we force this readUntil is to get more info on the streams that are starting
+                // DEBUG: we force this readUntil to get more info on the streams that are starting
                 // with <HTML> every once in a while: we can be sure to have a cache file with a bit 
                 // of data in it we can inspect afterwords.
                 readUntil(BUFFER_LENGTH);

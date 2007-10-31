@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.util.Iterator;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -46,14 +48,16 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     // corner arcs I think, but, polygons > sides 4 and, of
     // course, you'll HAVE to have this if you want to support
     // arbitrary polygons!
+
+    public static final boolean LOCAL_RESIZE = true;
         
     boolean active = false;
     LWSelection.Controller[] handles = new LWSelection.Controller[8];
         
     // These are all in MAP coordinates
     private Rectangle2D.Float mOriginalGroup_bounds;
-    private Rectangle2D.Float mOriginalGroupULC_bounds;
-    private Rectangle2D.Float mOriginalGroupLRC_bounds;
+    //private Rectangle2D.Float mOriginalGroupULC_bounds;
+    //private Rectangle2D.Float mOriginalGroupLRC_bounds;
     private Rectangle2D.Float mNewDraggedBounds;
     private Object[]  mOriginal_each_bounds; // Rectangle2D.Float for everything but links
     private Box2D resize_box = null;
@@ -80,12 +84,15 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         
     /** interface ControlListener handler -- for handling resize on selection */
     public void controlPointPressed(int index, MapMouseEvent e) {
-        if (DEBUG.LAYOUT||DEBUG.MOUSE) System.out.println(this + " resize control point " + index + " pressed");
+        if (DEBUG.LAYOUT||DEBUG.MOUSE) out("resize control point " + index + " pressed");
 
         final LWSelection selection = VUE.getSelection().clone();
         
         //mOriginalGroup_bounds = (Rectangle2D.Float) selection.getShapeBounds();
-        mOriginalGroup_bounds = (Rectangle2D.Float) selection.getBounds();
+        if (LOCAL_RESIZE)
+            mOriginalGroup_bounds = LWMap.getLocalBounds(selection);
+        else
+            mOriginalGroup_bounds = (Rectangle2D.Float) selection.getBounds();
 
         if (mOriginalGroup_bounds == null) {
             // if some code is written that clears the selection at the wrong time, this might happen.
@@ -95,8 +102,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         }
         
         if (DEBUG.LAYOUT) System.out.println(this + " originalGroup_bounds " + mOriginalGroup_bounds);
-        mOriginalGroupULC_bounds = LWMap.getULCBounds(selection.iterator());
-        mOriginalGroupLRC_bounds = LWMap.getLRCBounds(selection.iterator());
+        //mOriginalGroupULC_bounds = LWMap.getULCBounds(selection.iterator());
+        //mOriginalGroupLRC_bounds = LWMap.getLRCBounds(selection.iterator());
         resize_box = new Box2D(mOriginalGroup_bounds);
         mNewDraggedBounds = resize_box.getRect();
         //mNewDraggedBounds = (Rectangle2D.Float) mOriginalGroup_bounds.getBounds2D();
@@ -112,16 +119,20 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (c.isManagedLocation())
                 continue;
             if (c instanceof LWLink) {
-                mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone(); // be sure to clone, as this is changing all the time
+
+                // be sure to clone, as this is changing all the time                
+                mOriginal_each_bounds[idx] = ((LWLink)c).getMoveableControls().clone();
+                
                 //c.out("ResizeControl GOT CONTROLS " + java.util.Arrays.asList(mOriginal_each_bounds[idx]));
             } else {
                 //mOriginal_each_bounds[idx] = c.getShapeBounds();
-                mOriginal_each_bounds[idx] = c.getBounds();
-                if (DEBUG.LAYOUT) System.out.println(this + " " + c + " bounds " + c.getBounds());
-                //if (DEBUG.LAYOUT) System.out.println(this + " " + c + " shapeBounds " + c.getShapeBounds());
+                if (LOCAL_RESIZE)
+                    mOriginal_each_bounds[idx] = c.getLocalBounds();
+                else
+                    mOriginal_each_bounds[idx] = c.getBounds();
+                if (DEBUG.LAYOUT) out(c + " bounds " + mOriginal_each_bounds[idx]);
             }
             idx++;
-            //mOriginal_each_bounds[idx++] = (Rectangle2D.Float) c.getBounds();
         }
         mapMouseDown = e.getMapPoint();
     }
@@ -133,18 +144,24 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
             dc.g.setStroke(STROKE_TWO);
             dc.g.setColor(java.awt.Color.blue);
-            dc.g.draw(viewer.mapToScreenRect(mOriginalGroup_bounds));
+            if (false&&LOCAL_RESIZE)
+                dc.g.draw(viewer.mapToScreenRect(viewer.getFocal().transformZeroToMapRect(mOriginalGroup_bounds)));
+            else
+                dc.g.draw(viewer.mapToScreenRect(mOriginalGroup_bounds));
 
             dc.g.setStroke(STROKE_ONE);
             dc.g.setColor(java.awt.Color.red);
-            dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
+            if (false&&LOCAL_RESIZE)
+                dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
+            else
+                dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
             
-            if (false) {
-                dc.g.setColor(java.awt.Color.green);
-                dc.g.draw(viewer.mapToScreenRect(mOriginalGroupULC_bounds));
-                dc.g.setColor(java.awt.Color.red);
-                dc.g.draw(viewer.mapToScreenRect(mOriginalGroupLRC_bounds));
-            }
+//             if (false) {
+//                 dc.g.setColor(java.awt.Color.green);
+//                 dc.g.draw(viewer.mapToScreenRect(mOriginalGroupULC_bounds));
+//                 dc.g.setColor(java.awt.Color.red);
+//                 dc.g.draw(viewer.mapToScreenRect(mOriginalGroupLRC_bounds));
+//             }
         }
     }
         
@@ -154,21 +171,24 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             
         // control points are indexed starting at 0 in the upper left,
         // and increasing clockwise ending at 7 at the middle left point.
+
+        final Point2D.Float p = LOCAL_RESIZE ? e.getFocalPoint() : e.getMapPoint();
             
         if (isTopCtrl(i)) {
-            resize_box.setULY(e.getMapY());
+            resize_box.setULY(p.y);
         } else if (isBottomCtrl(i)) {
-            resize_box.setLRY(e.getMapY());
+            resize_box.setLRY(p.y);
         }
         if (isLeftCtrl(i)) {
-            resize_box.setULX(e.getMapX());
+            resize_box.setULX(p.x);
         } else if (isRightCtrl(i)) {
-            resize_box.setLRX(e.getMapX());
+            resize_box.setLRX(p.x);
         }
             
-        if (DEBUG.LAYOUT) System.out.println(this + " resize_box " + resize_box);
+        if (DEBUG.WORK) out("     point: " + Util.fmt(p));
+        if (DEBUG.WORK) out("resize_box: " + resize_box);
         mNewDraggedBounds = resize_box.getRect();
-        if (DEBUG.LAYOUT) System.out.println(this + " draggedBounds " + mNewDraggedBounds);
+        if (DEBUG.WORK) out("dragBounds: " + Util.fmt(mNewDraggedBounds));
             
 
         if (VUE.getSelection().size() == 1) {
@@ -197,11 +217,19 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
      */
     private void dragReshape(final int controlPoint, final LWComponent c, final Rectangle2D.Float request, MapMouseEvent e)
     {
+        //if (DEBUG.WORK) out("dragReshape; request=" + Util.fmt(request));
         //final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
         final boolean lockedLocation = c.isManagedLocation(); // todo: this also checks selection, which we may not want...
 
-        final float requestWidth = request.width / c.getMapScaleF();
-        final float requestHeight = request.height / c.getMapScaleF();
+        final float requestWidth, requestHeight;
+
+        if (LOCAL_RESIZE) {
+            requestWidth = request.width;
+            requestHeight = request.height;
+        } else {
+            requestWidth = request.width / c.getMapScaleF();
+            requestHeight = request.height / c.getMapScaleF();
+        }
 
         if (lockedLocation || isSizeOnlyCtrl(controlPoint)) {
             
@@ -218,11 +246,22 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
             // an origin control point is any control point that might
             // change the location
+            
+            final float oldWidth, oldHeight, oldX, oldY;
 
-            final float oldWidth = c.getWidth();
-            final float oldHeight = c.getHeight();
-            final float oldX = c.getMapX();
-            final float oldY = c.getMapY();
+            if (LOCAL_RESIZE) {
+                Rectangle2D.Float lb = c.getLocalBounds();
+                oldWidth = lb.width;
+                oldHeight = lb.height;
+                oldX = lb.x;
+                oldY = lb.y;
+            } else {
+                oldWidth = c.getWidth();
+                oldHeight = c.getHeight();
+                oldX = c.getMapX();
+                oldY = c.getMapY();
+            }
+            
 
             // First set size and find out what size was actually
             // taken before adjusting location.  Would be better
@@ -274,7 +313,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             if (moved) {
                 
                 //if (!c.hasAbsoluteMapLocation()) {
-                if (true) {
+                if (LOCAL_RESIZE == false) {
                     if (DEBUG.WORK) System.out.format("RC: new absolute loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
                     final Point2D.Float p = new Point2D.Float();
                     c.getParent().transformMapToZeroPoint(new Point2D.Float(newX, newY), p);
@@ -514,6 +553,10 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         mNewDraggedBounds = null;
         Actions.NodeMakeAutoSized.checkEnabled();
     }
+
+    private void out(String s) {
+        System.out.println("ResizeControl: " + s);
+    }
         
 
     static class Box2D {
@@ -543,7 +586,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         void setLRY(float y) { lr.y = (y < ul.y) ? ul.y : y; }
         
         public String toString() {
-            return "Box2D[" + ul + " -> " + lr + "]";
+            return "Box2D[" + Util.fmt(ul) + " -> " + Util.fmt(lr) + "]";
         }
     }
 
