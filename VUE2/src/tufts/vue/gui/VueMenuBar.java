@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.69 $ / $Date: 2007-10-26 14:48:53 $ / $Author: anoop $
+ * @version $Revision: 1.70 $ / $Date: 2007-10-31 08:49:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -374,11 +374,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         presentationMenu.add(Actions.NewSlide);
         presentationMenu.add(Actions.MergeNodeSlide);
         presentationMenu.addSeparator();
-        if (VUE.getSlideDock() != null)
+        if (VUE.getSlideDock() != null) {
             presentationMenu.add(Actions.MasterSlide);                
+            presentationMenu.add(Actions.PreviewInViewer);
+        }
         //slidePreviewMenu.add(Actions.PreviewOnMap);
         presentationMenu.add(Actions.PreviewOnMap);
-       // slidePreviewMenu.add(Actions.PreviewInViewer);
+        // slidePreviewMenu.add(Actions.PreviewInViewer);
       //  presentationMenu.add(slidePreviewMenu);
    /*
         notesMenu.addMenuListener(new MenuListener()
