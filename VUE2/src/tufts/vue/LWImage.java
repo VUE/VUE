@@ -301,13 +301,13 @@ public class LWImage extends
     }        
     
 
-//     @Override
-//     public void layoutImpl(Object triggerKey) {
-//         if (getClass().isAssignableFrom(LWNode.class))
-//             super.layoutImpl(triggerKey);
+    @Override
+    public void layoutImpl(Object triggerKey) {
+        if (getClass().isAssignableFrom(LWNode.class))
+            super.layoutImpl(triggerKey);
 //         else
 //             mIconBlock.layout();
-//     }
+    }
     
     // TODO: this wants to be on LWComponent, in case this is a
     // regular node containing an LWImage, we want the image to
