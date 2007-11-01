@@ -85,12 +85,14 @@ public class LWImage extends
     // it's on-disk content.  Currently, this only applies to images.  If we were to
     // support, say, dynamically generating icons (or even a document model) for HTML or
     // PDF content, the problem would then become a truly generic one.
+
+    private static final float NO_ASPECT = -1;
     
     private Image mImage;
     private int mImageWidth = -1; // pixel width of raw image
     private int mImageHeight = -1; // pixel height of raw image
     private volatile Status mImageStatus = Status.UNLOADED;
-    private float mImageAspect = NEEDS_DEFAULT; // image width / height
+    private float mImageAspect = NO_ASPECT;
     private long mDataSize = -1;
     private volatile long mDataSoFar = 0;
     private Object mUndoMarkForThread;
@@ -157,11 +159,11 @@ public class LWImage extends
         return i;
     }
 
-    /** @return true */
-    @Override
-    public boolean isImageNode() {
-        return true;
-    }
+//     /** @return true */
+//     @Override
+//     public boolean isImageNode() {
+//         return true;
+//     }
     
 
     @Override
@@ -333,14 +335,15 @@ public class LWImage extends
     @Override
     public void setResource(Resource r) {
         if (r == null) {
-            //if (DEBUG.Enabled) out("nulling out LWImage resource: should only happen if it's creation is being undone");
-            if (DEBUG.Enabled) out("resource set to null");
-            //if (DEBUG.Enabled) Util.printStackTrace("RESOURCE SET NULL " + this);
+            // this will happen normally if when the creation of a new image is undone
+            // (altho this is kind of pointless: may want to just deny this, tho we
+            // see zombie events if we do that)
+            if (DEBUG.Enabled) out("nulling resource");
             mImage = null;
             mImageWidth = -1;
             mImageHeight = -1;
             mImageStatus = Status.EMPTY;
-            //mImageStatus = Status.UNLOADED;
+            mImageAspect = NO_ASPECT;
             super.setResource(r);
         } else if (mXMLRestoreUnderway) {
             super.setResource(r);
@@ -552,10 +555,12 @@ public class LWImage extends
         if (e != null && e.isShiftDown()) {
             // Unconstrained aspect ration scaling
             super.userSetSize(width, height, e);
-        } else {
+        } else if (mImageAspect > 0) {
             Size newSize = ConstrainToAspect(mImageAspect, width, height);
             setSize(newSize.width, newSize.height);
-        }
+        } else
+            setSize(width, height);
+
 
 //         If (e != null && e.isShiftDown())
 //             croppingSetSize(width, height);
@@ -781,6 +786,12 @@ public class LWImage extends
                 dc.g.setColor(getStrokeColor());
                 dc.g.draw(shape);
             }
+
+//             if (hasLabel()) {
+//                 dc.g.translate(0, getHeight());
+//                 getLabelBox().draw(dc);
+//             }
+                
         }
 
         //super.drawImpl(dc); // need this for label
@@ -894,6 +905,9 @@ public class LWImage extends
         synchronized (this) {
             if (mImageStatus == Status.ERROR) {
                 status1 = "Missing";
+                status2 = "Image";
+            } else if (mImageStatus == Status.EMPTY) {
+                status1 = "Empty";
                 status2 = "Image";
             } else if (mDataSoFar > 0 && mStatusMsg != null) {
                 status1 = mStatusMsg;

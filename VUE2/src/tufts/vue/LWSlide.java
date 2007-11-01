@@ -33,10 +33,12 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.67 $ / $Date: 2007-10-31 10:45:05 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2007-11-01 23:55:03 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWSlide.class);
+    
     public static final int SlideWidth = 800;
     public static final int SlideHeight = 600;
     public static final float SlideAspect = ((float)SlideWidth) / ((float)SlideHeight);
@@ -339,13 +341,25 @@ public class LWSlide extends LWContainer
         title.setStyle(master.getTitleStyle());
         // if (syncTitle) title.setSyncSource(slide); doesn't seem to work in this direction (reverse is okay, but not what we want)
         if (mapNode != null) {
-            if (mapNode.isImageNode())
+            //if (mapNode.isImageNode())
+            if (LWNode.isImageNode(mapNode) || mapNode instanceof LWImage)
                 ; // don't sync titles of images
             else
                 title.setSyncSource(mapNode);
         }
 
         for (LWComponent c : contents) {
+            if (LWNode.isImageNode(c) || c instanceof LWLink) {
+                Log.debug("IGNORING " + c);
+                
+                // ignore the node itself -- just use it's image, which
+                // will already be in the list as it's first child
+
+                // ignore links
+                
+                continue;
+            }
+            Log.debug(" COPYING " + c);
             final LWComponent copyForSlide = c.duplicate(cc);
             copyForSlide.setScale(1);
             applyMasterStyle(master, copyForSlide);

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.361 $ / $Date: 2007-10-30 00:37:53 $ / $Author: sfraize $
+ * @version $Revision: 1.362 $ / $Date: 2007-11-01 23:55:03 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2547,10 +2547,10 @@ u                    getSlot(c).setFromString((String)value);
         return true;
     }
 
-    /** @return false by default */
-    public boolean isImageNode() {
-        return false;
-    }
+//     /** @return false by default */
+//     public boolean isImageNode() {
+//         return false;
+//     }
 
     /**
      * Although unsupported on LWComponents (must be an LWContainer subclass to support children),

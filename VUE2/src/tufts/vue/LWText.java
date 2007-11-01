@@ -497,10 +497,10 @@ public class LWText extends LWComponent {
 		inLayout = false;
 	}
 
-	@Override
-	public boolean isImageNode() {
-		return false;
-	}
+// 	@Override
+// 	public boolean isImageNode() {
+// 		return false;
+// 	}
 
 	private void setSizeNoLayout(float w, float h) {
 		if (DEBUG.LAYOUT)
