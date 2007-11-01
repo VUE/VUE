@@ -310,7 +310,7 @@ public class MapChooser extends JDialog implements ActionListener{
                       PrintWriter writer2 = new PrintWriter(new BufferedWriter(new FileWriter(fileName2)));
                       writer2.write(categories);
                       writer2.close();
-                      VueUtil.openURL(FILE_URL + fileName2);
+                      //VueUtil.openURL(FILE_URL + fileName2);
                     }
                     
                     String md = "";
@@ -337,7 +337,7 @@ public class MapChooser extends JDialog implements ActionListener{
                       PrintWriter writer3 = new PrintWriter(new BufferedWriter(new FileWriter(fileName3)));
                       writer3.write(md);
                       writer3.close();
-                      VueUtil.openURL(FILE_URL + fileName3);
+                      //VueUtil.openURL(FILE_URL + fileName3);
                     }
                     
                 }
