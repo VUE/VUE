@@ -63,7 +63,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.87 $ / $Date: 2007-10-30 23:56:49 $ / $Author: mike $
+ * @version $Revision: 1.88 $ / $Date: 2007-11-01 20:16:49 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -104,9 +104,17 @@ public class ActionUtil
         
         chooser.setDialogTitle(title);
         chooser.setAcceptAllFileFilterUsed(false);    
-        
-        
-        
+        //chooser.set
+        String baseName = null;
+        if (VUE.getActiveMap().getFile() == null)
+        	baseName = VUE.getActiveMap().getLabel();
+        else
+        {
+        	baseName = VUE.getActiveMap().getLabel();// + "-copy";
+        	baseName = baseName.substring(0, baseName.lastIndexOf(".")) + "-copy";
+        }
+        if (fileType == null)
+        	chooser.setSelectedFile(new File(baseName + ".vue"));
         
         if (fileType != null && !fileType.equals("export"))
          chooser.setFileFilter(new VueFileFilter(fileType)); 
