@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.28 $ / $Date: 2007-10-31 00:24:27 $ / $Author: dan $
+ * @version $Revision: 1.29 $ / $Date: 2007-11-01 01:19:43 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -258,7 +258,7 @@ public class MapsSelectionPanel extends JPanel  {
         
         JLabel mergePropertyLabel = new JLabel("4. Merge property:");
         mergePropertyLabel.setFont(tufts.vue.gui.GUI.LabelFace);
-        String[] mergePropertyChoices = {"Label","Type","Type and Label"};
+        String[] mergePropertyChoices = {"Label","Ontological Membership","Ontological Membership and Label"};
         JComboBox mergePropertyChoice = new JComboBox(mergePropertyChoices);
         
         mergePropertyChoice.addItemListener(new ItemListener(){
@@ -271,12 +271,12 @@ public class MapsSelectionPanel extends JPanel  {
                        Util.setMergeProperty(Util.LABEL);
                    }
                    
-                   if(ie.getItem().equals("Type"))
+                   if(ie.getItem().equals("Ontological Membership"))
                    {
                        Util.setMergeProperty(Util.TYPE);
                    }
                    
-                   if(ie.getItem().equals("Type and Label"))
+                   if(ie.getItem().equals("Ontological Membership and Label"))
                    {
                        Util.setMergeProperty(Util.BOTH);
                    }
