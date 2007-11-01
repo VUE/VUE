@@ -38,6 +38,8 @@ class LWCInspector extends javax.swing.JPanel
     private JLabel locationField = new JLabel();
     private JLabel sizeField = new JLabel();
     private JLabel labelHex = new JLabel();
+    private JLabel styleField = new JLabel();
+    private JLabel syncField = new JLabel();
     private JTextField labelField = new JTextField(15);
     private JTextField widthField = new JTextField();
     private JTextField heightField = new JTextField();
@@ -51,12 +53,16 @@ class LWCInspector extends javax.swing.JPanel
     private JTextField resourceField = new JTextField();
     private JTextField notesField = new JTextField();
     //private JPanel extraPanel = new JPanel();
+    
+    private boolean LOG_ENABLED = false;
     private JTextArea log = new JTextArea() {
             int rows = 0;
             public void append(String s) {
-                super.append(rows++ + " " + s + "\n");
+                if (LOG_ENABLED)
+                    super.append(rows++ + " " + s + "\n");
             }
         };
+
     
     //private JTextArea notesField = new JTextArea(1, 20);
 
@@ -74,6 +80,8 @@ class LWCInspector extends javax.swing.JPanel
         "-Size",    sizeField,
         "-ZeroTX",    transLocField,
         "-Bits",    bitsField,
+        "-Style",    styleField,
+        "-Sync",    syncField,
         "Label",    labelField,
         "Width",    widthField,
         "Height",    heightField,
@@ -122,10 +130,13 @@ class LWCInspector extends javax.swing.JPanel
         //setUpMetadataPane();
 
         setLayout(new BorderLayout());
-        add(new JScrollPane(log), BorderLayout.NORTH);
-        log.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 9));
-        log.setRows(15);
-        log.setEditable(false);
+        if (DEBUG.META) {
+            add(new JScrollPane(log), BorderLayout.NORTH);
+            log.setFont(new Font("Lucida Sans Typewriter", Font.BOLD, 9));
+            log.setRows(15);
+            log.setEditable(false);
+            LOG_ENABLED = true;
+        }
         add(fieldPane, BorderLayout.CENTER);
         add(lockBtn, BorderLayout.SOUTH);
         //add(metadataPane,BorderLayout.SOUTH);
@@ -212,7 +223,8 @@ class LWCInspector extends javax.swing.JPanel
             txt += ": ";
 
             JLabel label = new JLabel(txt);
-            label.setFont(VueConstants.SmallFont);
+            //label.setFont(VueConstants.SmallFont);
+            label.setFont(VueConstants.FONT_NARROW);
             gridbag.setConstraints(label, c);
             container.add(label);
 
@@ -445,6 +457,10 @@ class LWCInspector extends javax.swing.JPanel
         sizeField.setText(sizeText);
         transLocField.setText(c.getZeroTransform().toString());
         bitsField.setText(c.getDescriptionOfSetBits() + (c.isFiltered() ? " +FILTERED" : ""));
+
+        styleField.setText(""+c.getStyle());
+        syncField.setText(""+c.getSyncSource());
+        
         widthField.setText(String.format("%5.1f map(%5.1f)", c.getWidth(), c.getMapWidth()));
         heightField.setText(String.format("%5.1f map(%5.1f)", c.getHeight(), c.getMapHeight()));
         xField.setText(String.format("%5.1f map(%5.1f)", c.getX(), c.getMapX()));
