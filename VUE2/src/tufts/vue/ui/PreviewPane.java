@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.18 $ / $Date: 2007-10-30 00:35:21 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2007-11-01 23:50:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -170,6 +170,10 @@ public class PreviewPane extends JPanel
     // TODO: if this triggered from an LWImage selection, and LWImage had
     // an image error, also notify the LWImage of good data if it comes
     // in as a result of selection.
+
+    // TODO: make the preview handling / image loading code in ResourceIcon generic
+    // enough that PreviewPane can use a ResourceIcon instance or subclass, as the code
+    // here is almost identical to that in ResourceIcon.
 
     private synchronized void loadImage(Object imageData) {
         if (DEBUG.IMAGE) out("loadImage " + imageData);

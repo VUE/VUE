@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-10-31 08:46:24 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2007-11-01 23:50:01 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1493,11 +1493,21 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
 
-    /** Return this object if cached (can use the full, raw content for preview),
-     * otherwise thumbnail if there is one.  TODO: don't make this decision
-     * for the UI... just always return thumbnail URL if there is one (null if none).
-     */
+    // TODO: create an Images.Thumbshot class that can be a recognized special image
+    // source (just the thumbshot URL), which getPreview can return, so ResourceIcon /
+    // PreviewPane can feed it to Images.getImage and get the async callback when it's
+    // loaded instead of having to fetch the thumbshot on the AWT EDT.  (Also, Images
+    // can then manage caching the thumbshots, perhaps based on host only.  Also may not
+    // want to bother caching those to disk in case of expiration).
+
     private Image mThumbShot;
+
+    /**
+     * Either immediately return an Image object if available, otherwise return an
+     * object that is some kind of valid image source (e.g., a URL or image Resource)
+     * that can be fed to Images.getImage and fetch asynchronously w/callbacks if it
+     * isn't already in the cache.
+     */
     public Object getPreview()
     {
         if (isCached)
@@ -1545,7 +1555,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         return mPreview;
         */
-        
     }
 
     private Image fetchThumbshot(URL url)

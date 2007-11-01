@@ -329,7 +329,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                     if (DEBUG.WORK) System.out.format("RC: new relative loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
                 }
                 
-                c.setLocation(newX, newY); // todo: setAbsoluteLocation would be nice
+                c.setLocation(newX, newY);
             }
                 
             // TODO: get rid of getMinumumSize unless we fix layout floating_text
@@ -355,6 +355,11 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                                       final double dScaleY,
                                       final boolean reshapeObjects)
     {
+        // TODO: pre-process selection to remove any managed location items (as now),
+        // but ALSO ignore any items that don't share the top-level parent of
+        // the entire selection (as due to LOCAL_RESIZE, we can no longer support
+        // reshaping an entire selection unless all contents have the same parent)
+        
         int idx = 0;
         //System.out.println("scaleX="+scaleX);System.out.println("scaleY="+scaleY);
         LWLink currentLink;

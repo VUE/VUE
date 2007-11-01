@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.476 $ / $Date: 2007-10-31 10:45:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.477 $ / $Date: 2007-11-01 23:49:44 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -128,13 +128,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     /** Current on-map text edit, null if no edit active */
     protected RichTextBox activeRichTextEdit;
     
-    // todo make a "ResizeControl" -- a control abstraction that's
-    // less than a whole VueTool -- it depends on the current selection,
-    // but can still do some drawing on the map while active --
-    // (generically, something like a SelectionController -- provides ControlPoints)
-    //private LWSelection.ControlPoint[] resizeHandles = new LWSelection.ControlPoint[8];
-    //private boolean resizeHandlesActive = false;
-    private ResizeControl resizeControl = new ResizeControl();
+    private final ResizeControl resizeControl = new ResizeControl();
     
     //-------------------------------------------------------
     // Selection support
@@ -3264,6 +3258,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             //(VueSelection.size() == 1 && VueSelection.first() instanceof LWNode && ((LWNode)VueSelection.first()).isTextNode())
 //             selection.allOfType(LWLink.class)
 //             ) {
+
+        // TODO: move the hairy resizeControl.active set-up code to ResizeControl
 
         final LWComponent only = selection.only();
         final LWComponent first = selection.first();
