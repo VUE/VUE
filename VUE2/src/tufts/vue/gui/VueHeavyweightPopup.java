@@ -59,7 +59,7 @@ class VueHeavyweightPopup extends Popup {
     
     public void hide() 
     {
-        super.hide();
+       // super.hide();
         Component component = getComponent();
         if (component instanceof JWindow) {
             component.hide();
