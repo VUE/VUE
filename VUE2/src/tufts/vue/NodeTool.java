@@ -713,8 +713,14 @@ public class NodeTool extends VueTool
             creationNode.draw(dc);
         }
     	
+        edu.tufts.vue.ontology.ui.TypeList list = null;
 		public void ontologySelected(OntologySelectionEvent e) {
 			edu.tufts.vue.ontology.ui.TypeList l = e.getSelection();
+
+			if (list != l)
+				creationNode=null;
+			
+			list = l;
 			LWComponent c = l.getSelectedComponent();
 			if (c != null)
 			{

@@ -474,8 +474,16 @@ public class LinkTool extends VueTool
     	        
             return false;
         }
+        edu.tufts.vue.ontology.ui.TypeList list = null;
+        
         public void ontologySelected(OntologySelectionEvent e) {
 			edu.tufts.vue.ontology.ui.TypeList l = e.getSelection();
+			
+			if (list != l)
+				creationLink=null;
+			
+			list = l;
+			
 			LWComponent c = l.getSelectedComponent();
 			if (c != null)
 			{
