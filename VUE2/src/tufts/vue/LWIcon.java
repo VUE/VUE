@@ -263,8 +263,8 @@ public abstract class LWIcon extends Rectangle2D.Float
                     if (icon.isShowing()) {
                         icon.layout();
                         icon.setLocation(x, iconY);
-                        iconY += icon.height;
-                        super.height += icon.height;
+                        iconY += icon.height+5;
+                        super.height += icon.height+5;
                     }
                 }
             } else {
@@ -275,8 +275,8 @@ public abstract class LWIcon extends Rectangle2D.Float
                     if (icon.isShowing()) {
                         icon.layout();
                         icon.setLocation(iconX, y);
-                        iconX += icon.width;
-                        super.width += icon.width;
+                        iconX += icon.width+5;
+                        super.width += icon.width+5;
                     }
                 }
             }
