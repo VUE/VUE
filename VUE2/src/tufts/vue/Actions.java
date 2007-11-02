@@ -1110,25 +1110,28 @@ public class Actions implements VueConstants
     
     public static final LWCAction SyncWithNode = new LWCAction("Sync slide to node") 
     {
+        boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
     	public void act(LWSlide slide)
     	{    		
-    		slide.synchronizeResourcesWithNode();
+            slide.synchronizeSlideToNode();
     	}
     };
     
-    public static final LWCAction SyncWithSlide = new LWCAction("Sync node to node") 
+    public static final LWCAction SyncWithSlide = new LWCAction("Sync node to slide") 
     {
+        boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
     	public void act(LWSlide slide)
     	{    		
-    		slide.synchronizeResourcesWithNode();
+            slide.synchronizeNodeToSlide();
     	}
     };
     
     public static final LWCAction SyncAll = new LWCAction("Sync all") 
     {
+        boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
     	public void act(LWSlide slide)
     	{    		
-    		slide.synchronizeResourcesWithNode();
+            slide.synchronizeAll();
     	}
     };
     

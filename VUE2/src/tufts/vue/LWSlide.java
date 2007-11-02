@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.74 $ / $Date: 2007-11-02 20:47:06 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2007-11-02 21:33:36 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -41,6 +41,9 @@ public class LWSlide extends LWContainer
     
     public static final int SlideWidth = 800;
     public static final int SlideHeight = 600;
+    // 640/480 == 1024/768 == 1.333...
+    // Keynote uses 800/600 (1.3)
+    // PowerPoint defaut 720/540  (1.3)  Based on 72dpi?  (it has a DPI option)
     public static final float SlideAspect = ((float)SlideWidth) / ((float)SlideHeight);
     protected static final int SlideMargin = 30;
 
@@ -378,15 +381,136 @@ public class LWSlide extends LWContainer
         return slide;
     }
 
-    public void synchronizeResourcesWithNode() {
+    private void importAndLayout(List<LWComponent> nodes)
+    {
+        final LWComponent title = nodes.get(0);
+        nodes.remove(nodes.get(0));
+
+        title.setLocation(SlideMargin, SlideMargin);
+        addChildImpl(title);
+
+        final List<LWImage> images = new ArrayList();
+        final List<LWComponent> text = new ArrayList();
+
+        for (LWComponent c : nodes) {
+            if (c instanceof LWImage)
+                images.add((LWImage)c);
+            else
+                text.add(c);
+        }
+
+        int x, y;
+
+        // Add as children, providing seed relative locations
+        // for layout, and establish z-order (images under text)
+        // Nodes will be auto-styled with the master slide style
+        // in addChildImpl.
+
+        x = y = SlideMargin;
+        for (LWComponent c : images) {
+            c.takeLocation(x++,y++);
+            addChildImpl(c);
+        }
+
+        // differences in font sizes mean text below title looks to left of title unless slighly indented
+        final int textIndent = 2;
+        
+        x = SlideMargin + textIndent; 
+        y = SlideMargin * 2 + (int) title.getHeight();
+        for (LWComponent c : text) {
+            c.takeLocation(x++,y++);
+            addChildImpl(c);
+        }
+            
+        if (DEBUG.PRESENT || DEBUG.STYLE) out("LAYING OUT CHILDREN, parent=" + getParent());
+
+        setSize(SlideWidth, SlideHeight);
+
+        // layout not currently working unless we force the scale temporarily to 1.0 map
+        // bounds are computed for contents, which are tiny if scale is small, as
+        // opposed to local bounds.  Arrange actions need to figure out which bounds to
+        // use -- best guess would be local bounds, but all would have to have same
+        // parent...
+        // takeScale(1.0); // 2007-11-02 Should no longer be needed: arrange actions use local bounds
+        
+        final LWSelection selection = new LWSelection(nodes);
+        
+        if (text.size() > 1) {
+
+            // Better to distribute text items in their total height + a border IF they'd all fit on the slide:
+            // selection.setSize((int) bounds.getWidth(),
+            //                   (int) bounds.getHeight() + 15 * selection.size());
+
+            selection.setSize(SlideWidth - SlideMargin*2,
+                              (int) (getHeight() - SlideMargin*1.5 - text.get(0).getY()));
+            selection.setTo(text);
+            Actions.DistributeVertically.act(selection);
+            Actions.AlignLeftEdges.act(selection);
+        }
+        
+        if (images.size() == 1) {
+            final LWImage image = images.get(0);
+
+            image.userSetSize(0, getHeight() - SlideMargin * 4, null); // aspect preserving
+            image.setLocation(getWidth() - image.getWidth() - SlideMargin * 2, SlideMargin * 2);
+                
+        } else if (images.size() > 1) {
+
+            selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*2);
+
+            final float commonHeight = (selection.getHeight()-((images.size()-1)*SlideMargin)) / images.size();
+
+            //out("common height " + commonHeight);
+
+            for (LWImage image : images)
+                image.userSetSize(0, commonHeight, null); // aspect preserving
+
+            selection.setTo(images);
+            Actions.DistributeVertically.act(selection);
+            
+            for (LWImage image : images) {
+                float imageX = getWidth() - image.getWidth() - SlideMargin;
+                image.setLocation(imageX, image.getY());
+            }
+
+            //if (images.size() > 1) Actions.AlignLeftEdges.act(selection);
+            
+        }
+
+        takeScale(SlideIconScale);
+    }
+
+    private enum Sync { ALL, TO_NODE, TO_SLIDE };
+    
+    public void synchronizeAll() {
+        synchronizeResources(Sync.ALL);
+    }
+    public void synchronizeSlideToNode() {
+        synchronizeResources(Sync.TO_NODE);
+    }
+    public void synchronizeNodeToSlide() {
+        synchronizeResources(Sync.TO_SLIDE);
+    }
+
+    public boolean canSync() {
+        return mEntry != null && !mEntry.isMapView();
+    }
+
+    private void synchronizeResources(Sync type) {
+
         if (getSourceNode() == null) {
             Log.warn("Can't synchronize a slide w/out a source node: " + this);
             return;
         }
 
+        if (getEntry() != null && getEntry().isMapView()) {
+            Util.printStackTrace("cannot synchronize virtual slides");
+            return;
+        }
+
         final LWComponent node = getSourceNode();
 
-        if (DEBUG.Enabled) outf("BI-DIRECTIONAL RESOURCE SYNCHRONIZATION---\n\t NODE: %s\n\tSLIDE: %s", node, this);
+        if (DEBUG.Enabled) outf("NODE/SILDE SYNCHRONIZATION; type(%s) ---\n\t NODE: %s\n\tSLIDE: %s", type, node, this);
         
         final Set<Resource> slideUnique = new HashSet();
         final Set<Resource> nodeUnique = new HashSet();
@@ -430,24 +554,28 @@ public class LWSlide extends LWContainer
             this.outf("SLIDE UNIQUE: " + slideUnique);
             node.outf(" NODE UNIQUE: " + nodeUnique);
         }
-
-        for (Resource r : slideUnique) {
-            // TODO: merge MapDropTarget & NodeModeTool node creation code into NodeTool, including resource handling
-            final LWNode newNode = new LWNode(r.getTitle(), r);
-            node.addChild(newNode);
-        }
-        for (Resource r : nodeUnique) {
-            final LWComponent newNode;
-            if (r.isImage())
-                newNode = new LWImage(r);
-            else
-                newNode = new LWNode(r.getName(), r);
-            this.addChild(newNode);
-        }
-
-        if (getMap().getUndoManager() != null)
-            getMap().getUndoManager().mark("Sync: Node<=>Slide");
         
+        if (type == Sync.ALL || type == Sync.TO_NODE) {
+            for (Resource r : slideUnique) {
+                // TODO: merge MapDropTarget & NodeModeTool node creation code into NodeTool, including resource handling
+                final LWNode newNode = new LWNode(r.getTitle(), r);
+                node.addChild(newNode);
+            }
+        }
+        
+        if (type == Sync.ALL || type == Sync.TO_SLIDE) {
+            for (Resource r : nodeUnique) {
+                final LWComponent newNode;
+                if (r.isImage())
+                    newNode = new LWImage(r);
+                else
+                    newNode = new LWNode(r.getName(), r);
+                this.addChild(newNode);
+            }
+        }
+
+//         if (getMap().getUndoManager() != null)
+//             getMap().getUndoManager().mark("Sync: Node<=>Slide");
             
     }
 
@@ -685,178 +813,8 @@ public class LWSlide extends LWContainer
             return mEntry.pathway.getMasterSlide();
     }
 
-    /*
-    public LWPathway.MasterSlide getMasterSlide() {
-        if (!(getParent() instanceof LWPathway)) {
-            // old on-map slides could do this
-            return null;
-        }
-        LWPathway pathway = (LWPathway) getParent();
-        if (pathway == null) {
-            tufts.Util.printStackTrace("null parent attempting to get master slide");
-            return null;
-        } 
-        return pathway.getMasterSlide();
-    }
-    */
-    
 
-    
-    // This will prevent the object from ever being drawn on the map.
-    // But this bit isn't checked at the top level if this is the top
-    // level object requested to draw, so it will still work on the slide viewer.
-    //public boolean isDrawn() { return false; }
-    //public boolean isFiltered() { return true; }
-    //public boolean isHidden() { return true; }
-
-    private void importAndLayout(List<LWComponent> nodes)
-    {
-        final LWComponent title = nodes.get(0);
-        nodes.remove(nodes.get(0));
-        final LWSelection selection = new LWSelection(nodes);
-
-        title.setLocation(SlideMargin, SlideMargin);
-        addChildImpl(title);
-
-        final List<LWImage> images = new ArrayList();
-        final List<LWComponent> text = new ArrayList();
-
-        for (LWComponent c : nodes) {
-            if (c instanceof LWImage)
-                images.add((LWImage)c);
-            else
-                text.add(c);
-        }
-
-        int x, y;
-
-        // Add as children, providing seed relative locations
-        // for layout, and establish z-order (images under text)
-
-        x = y = SlideMargin;
-        for (LWComponent c : images) {
-            c.takeLocation(x++,y++);
-            addChildImpl(c);
-        }
-
-        // differences in font sizes mean text below title looks to left of title unless slighly indented
-        final int textIndent = 2;
-        
-        x = SlideMargin + textIndent; 
-        y = SlideMargin * 2 + (int) title.getHeight();
-        for (LWComponent c : text) {
-            c.takeLocation(x++,y++);
-            addChildImpl(c);
-        }
-            
-        // TODO: need to know master slide at this point, or at least
-        // the master slide styles...
-        if (DEBUG.PRESENT || DEBUG.STYLE) out("LAYING OUT CHILDREN, parent=" + getParent());
-
-        setSize(SlideWidth, SlideHeight);
-
-        // layout not currently working unless we force the scale temporarily to 1.0 map
-        // bounds are computed for contents, which are tiny if scale is small, as
-        // opposed to local bounds.  Arrange actions need to figure out which bounds to
-        // use -- best guess would be local bounds, but all would have to have same
-        // parent...
-        takeScale(1.0);
-        
-        //Actions.MakeColumn.act(selection);
-        //Actions.AlignLeftEdges.act(selection); // make column centers -- align left
-        // now re-distribute with space between components:
-//         final Rectangle2D bounds = selection.getBounds();
-//         selection.setSize((int) bounds.getWidth(),
-//                           (int) bounds.getHeight() + 15 * selection.size());
-        //selection.setSize(SlideWidth, SlideHeight); // doesn't quite hack it
-
-        if (text.size() > 1) {
-            //selection.setSize(SlideWidth - SlideMargin*2, (SlideHeight - SlideMargin*2) + (int) title.getHeight());
-            selection.setSize(SlideWidth - SlideMargin*2,
-                              (int) (getHeight() - SlideMargin*1.5 - text.get(0).getY()));
-            selection.setTo(text);
-            Actions.DistributeVertically.act(selection);
-            Actions.AlignLeftEdges.act(selection);
-        }
-        
-        if (images.size() == 1) {
-            final LWImage image = images.get(0);
-
-            image.userSetSize(0, getHeight() - SlideMargin * 4, null); // aspect preserving
-            image.setLocation(getWidth() - image.getWidth() - SlideMargin * 2, SlideMargin * 2);
-                
-        } else if (images.size() > 1) {
-
-            selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*2);
-
-            final float commonHeight = (selection.getHeight()-((images.size()-1)*SlideMargin)) / images.size();
-
-            //out("common height " + commonHeight);
-
-            for (LWImage image : images)
-                image.userSetSize(0, commonHeight, null); // aspect preserving
-
-            selection.setTo(images);
-            Actions.DistributeVertically.act(selection);
-            
-            for (LWImage image : images) {
-                float imageX = getWidth() - image.getWidth() - SlideMargin;
-                image.setLocation(imageX, image.getY());
-            }
-
-            //if (images.size() > 1) Actions.AlignLeftEdges.act(selection);
-            
-        }
-
-        
-
-
-        // 640/480 == 1024/768 == 1.333...
-        // Keynote uses 800/600 (1.3)
-        // PowerPoint defaut 720/540  (1.3)  Based on 72dpi?  (it has a DPI option)
-            
-        // need to set child coords relative to the 0,0 location in virtual map space of the slide
-        // but hey, when we want to show the slide on the map, it's going to have to have it's
-        // map coords set to be displayed, and then all it's CHILDREN would need to get updated...
-        // Sigh, maybe we need to move to relative coordinates... (if do so, need to handle old
-        // save files w/absolute coords)
-
-        // In any case, seems like it would be convenient to have the slide track the
-        // location of it's parent node... actually, who cares: when go into slide mode,
-        // can translate and draw the slide instead of drawing the node.
-            
-        //slide.setSizeFromChildren();
-
-        takeScale(SlideIconScale);
-        
-        
-    }
-
-
-    /*
-    void createForNode(LWComponent node) {
-        LWComponent dupeChildren = node.duplicate(); // just for children: rest of node thrown away
-        java.util.List toLayout = new java.util.ArrayList();
-        LWNode title = NodeTool.buildTextNode(node.getLabel()); // need to "sync" this...=
-        title.setFont(node.getFont().deriveFont(java.awt.Font.BOLD));
-        title.setFontSize(48);
-        toLayout.add(title);
-        toLayout.addAll(dupeChildren.getChildList());
-        importAndLayout(toLayout);
-    }
-    */
-
-//     public void setLayer(int layer) {
-//         mLayer = layer;
-//         throw new Error();
-//     }
-    
-//     public int getLayer() {
-//         //out("returning layer " + mLayer);
-//         if(true)throw new Error();
-//         return mLayer;
-//     }
-
+    @Override
     public boolean isPresentationContext() {
         return true;
     }

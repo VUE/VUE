@@ -90,24 +90,36 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
 
     public void actionPerformed(java.awt.event.ActionEvent e) 
     {
-    	   if (e.getSource() == okButton)
-           {
-             if (nodeToSlideButton.isSelected())
-            	 Actions.SyncWithSlide.act();
-             else if (slideToNodeButton.isSelected())
-            	 Actions.SyncWithNode.act();
-            	 
-             else if (syncAllButton.isSelected())
-            	 Actions.SyncAll.act();
-             else
-            	 return;
-             
-             dispose();
-           }
-           else if (e.getSource() == cancelButton)
-           {
-               dispose();
-           }
+        if (e.getSource() == okButton) {
+
+            if (!fireAction())
+                return;
+
+            dispose();
+        } else if (e.getSource() == cancelButton) {
+            dispose();
+        }
+    }
+
+    private boolean fireAction() {
+
+        final LWPathway.Entry entry = VUE.getActiveEntry();
+        if (entry == null || entry.isMapView()) {
+            tufts.Util.printStackTrace(this + ": no entry or not allowed to sync virtual slides; action should have been disabled; entry=" + entry);
+            return false;
+        }
+
+        LWSlide slide = entry.getSlide();
+        
+        if (nodeToSlideButton.isSelected())
+            Actions.SyncWithSlide.act(slide);
+        else if (slideToNodeButton.isSelected())
+            Actions.SyncWithNode.act(slide);
+        else if (syncAllButton.isSelected())
+            Actions.SyncAll.act(slide);
+        else
+            return false;
+        return true;
     }
 
     //key events for the dialog box
@@ -121,15 +133,8 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
             if (okButton.isFocusOwner()) 
             {    
                 
-                if (nodeToSlideButton.isSelected())
-               	 Actions.SyncWithSlide.act();
-                else if (slideToNodeButton.isSelected())
-               	 Actions.SyncWithNode.act();
-               	 
-                else if (syncAllButton.isSelected())
-               	 Actions.SyncAll.act();
-                else
-               	 return;
+                if (!fireAction())
+                    return;
                 
                 dispose();                  
             } else if (cancelButton.isFocusOwner()) {
