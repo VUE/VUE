@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.71 $ / $Date: 2007-11-02 18:41:53 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2007-11-02 19:04:19 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -752,9 +752,6 @@ public class LWSlide extends LWContainer
 
         setSize(SlideWidth, SlideHeight);
 
-        if (nodes.size() == 1)
-            return;
-
         // layout not currently working unless we force the scale temporarily to 1.0 map
         // bounds are computed for contents, which are tiny if scale is small, as
         // opposed to local bounds.  Arrange actions need to figure out which bounds to
@@ -777,8 +774,15 @@ public class LWSlide extends LWContainer
             Actions.DistributeVertically.act(selection);
             Actions.AlignLeftEdges.act(selection);
         }
+        
+        if (images.size() == 1) {
+            final LWImage image = images.get(0);
 
-        if (images.size() > 0) {
+            image.userSetSize(0, getHeight() - SlideMargin * 4, null); // aspect preserving
+            image.setLocation(getWidth() - image.getWidth() - SlideMargin * 2, SlideMargin * 2);
+                
+        } else if (images.size() > 1) {
+
             selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*2);
 
             final float commonHeight = (selection.getHeight()-((images.size()-1)*SlideMargin)) / images.size();
@@ -788,13 +792,12 @@ public class LWSlide extends LWContainer
             for (LWImage image : images)
                 image.userSetSize(0, commonHeight, null); // aspect preserving
 
-            if (images.size() > 1) {
-                selection.setTo(images);
-                Actions.DistributeVertically.act(selection);
-            }
+            selection.setTo(images);
+            Actions.DistributeVertically.act(selection);
             
             for (LWImage image : images) {
-                image.setLocation(getWidth() - image.getWidth() - SlideMargin, image.getY());
+                float imageX = getWidth() - image.getWidth() - SlideMargin;
+                image.setLocation(imageX, image.getY());
             }
 
             //if (images.size() > 1) Actions.AlignLeftEdges.act(selection);
