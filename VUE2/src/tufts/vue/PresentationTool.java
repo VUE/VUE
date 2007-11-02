@@ -981,6 +981,10 @@ public class PresentationTool extends VueTool
             }
             break;
 
+        case KeyEvent.VK_R:
+            setPage(mLastStartPathwayPage);
+            break;
+            
         case KeyEvent.VK_SPACE:
             //if (mLastPathwayPage != null && mCurrentPage.node instanceof LWMap)
             if (mLastPathwayPage != null && mCurrentPage.entry == null)
@@ -1012,7 +1016,8 @@ public class PresentationTool extends VueTool
             goBackward(amplified);
             break;
             
-        case KeyEvent.VK_BACK_QUOTE:
+        //case KeyEvent.VK_BACK_QUOTE:
+        case KeyEvent.VK_N:
             // toggle showing the non-linear nav options:
             //mForceShowNavNodes = mShowNavNodes = !mForceShowNavNodes;
             mForceShowNavNodes = mShowNavNodes = !mShowNavNodes;
@@ -1391,6 +1396,10 @@ public class PresentationTool extends VueTool
     @Override
     public boolean handleMousePressed(MapMouseEvent e)
     {
+        if (e.getButton() == MouseEvent.BUTTON2) {
+            
+        }
+        
         if (ExitButton.contains(e)) {
             ExitButton.doAction();
             return true;
