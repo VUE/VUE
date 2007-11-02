@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.68 $ / $Date: 2007-11-01 23:55:03 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2007-11-02 18:08:22 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -723,7 +723,18 @@ public class LWSlide extends LWContainer
         // (make row sizes are sometimes being off...)
         //Actions.MakeRow.act(selection);
 
-        for (LWComponent c : nodes) addChildImpl(c);
+        final List<LWImage> images = new ArrayList();
+        final List<LWComponent> text = new ArrayList();
+
+        for (LWComponent c : nodes) {
+            addChildImpl(c);
+            if (c instanceof LWImage)
+                images.add((LWImage)c);
+            else
+                text.add(c);
+        }
+
+        
 
         //             int x = 1, y = 1;
         //             for (LWComponent c : slide.getChildList())
@@ -752,16 +763,50 @@ public class LWSlide extends LWContainer
         // to use -- best guess would be local bounds, but
         // all would have to have same parent...
         
-        Actions.MakeColumn.act(selection);
-        Actions.AlignLeftEdges.act(selection); // make column centers -- align left
-        //selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*4);
+        //Actions.MakeColumn.act(selection);
+        //Actions.AlignLeftEdges.act(selection); // make column centers -- align left
 
         // now re-distribute with space between components:
-        final Rectangle2D bounds = selection.getBounds();
-        selection.setSize((int) bounds.getWidth(),
-                          (int) bounds.getHeight() + 15 * selection.size());
+//         final Rectangle2D bounds = selection.getBounds();
+//         selection.setSize((int) bounds.getWidth(),
+//                           (int) bounds.getHeight() + 15 * selection.size());
         //selection.setSize(SlideWidth, SlideHeight); // doesn't quite hack it
-        Actions.DistributeVertically.act(selection);
+
+        selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*2);
+
+        if (text.size() > 1) {
+
+            // Seed relative positions
+            x = y = SlideMargin;
+            for (LWComponent c : text)
+                c.takeLocation(x++,y++);
+            
+            selection.setTo(text);
+            Actions.DistributeVertically.act(selection);
+            Actions.AlignLeftEdges.act(selection);
+        }
+
+        if (images.size() > 0) {
+
+            // Seed relative positions
+            x = y = SlideMargin;
+            for (LWComponent c : images)
+                c.takeLocation(x++,y++);
+            
+            if (images.size() > 1) {
+                selection.setTo(images);
+                Actions.DistributeVertically.act(selection);
+            }
+            
+            for (LWImage image : images) {
+                image.setLocation(getWidth() - image.getWidth() - SlideMargin, image.getY());
+            }
+
+            //if (images.size() > 1) Actions.AlignLeftEdges.act(selection);
+            
+        }
+
+        
 
 
         // 640/480 == 1024/768 == 1.333...
