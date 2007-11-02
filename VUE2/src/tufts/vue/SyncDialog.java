@@ -83,7 +83,7 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
         gbConstraints.gridy=3;
         panel.add(syncAllButton,gbConstraints);
         gbConstraints.gridy=4;
-    
+    group.setSelected(syncAllButton.getModel(), true);
         dialogContentPane.add(panel,BorderLayout.CENTER);
         dialogContentPane.add(buttons, BorderLayout.SOUTH);
     }
