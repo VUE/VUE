@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.69 $ / $Date: 2007-11-02 18:08:22 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2007-11-02 18:37:00 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -711,41 +711,40 @@ public class LWSlide extends LWContainer
 
     private void importAndLayout(List<LWComponent> nodes)
     {
-        //java.util.Collections.reverse(nodes);
+        final LWComponent title = nodes.get(0);
+        nodes.remove(nodes.get(0));
         final LWSelection selection = new LWSelection(nodes);
 
-        //tufts.Util.printStackTrace("SLIDE CONTENT BOUNDS " + selection.getBounds());
-        // Must import before MakeRow, as arrange actions will remove all nodes
-        // parented to other nodes (auto-laid-out) before doing an arrange
-        //super.importNodes(nodes);
-        // prob need to layout all the children once, so they pickup layout
-        // based on the fact their now in a presentation context...
-        // (make row sizes are sometimes being off...)
-        //Actions.MakeRow.act(selection);
+        title.setLocation(SlideMargin, SlideMargin);
+        addChildImpl(title);
 
         final List<LWImage> images = new ArrayList();
         final List<LWComponent> text = new ArrayList();
 
         for (LWComponent c : nodes) {
-            addChildImpl(c);
             if (c instanceof LWImage)
                 images.add((LWImage)c);
             else
                 text.add(c);
         }
 
-        
+        int x, y;
 
-        //             int x = 1, y = 1;
-        //             for (LWComponent c : slide.getChildList())
-        //                 c.takeLocation(x += 5, y += 5);
-        int x = SlideMargin;
-        int y = SlideMargin;
-        // Give them crude positioning so that arrange action can figure out
-        // the crude ordering based on x/y values.
-        for (LWComponent c : getChildren())
+        // Add as children, providing seed relative locations
+        // for layout, and establish z-order (images under text)
+
+        x = SlideMargin;
+        y = SlideMargin * 2 + (int) title.getHeight();
+        for (LWComponent c : text) {
             c.takeLocation(x++,y++);
-
+            addChildImpl(c);
+        }
+        x = y = SlideMargin;
+        for (LWComponent c : images) {
+            c.takeLocation(x++,y++);
+            addChildImpl(c);
+        }
+            
         // TODO: need to know master slide at this point, or at least
         // the master slide styles...
         if (DEBUG.PRESENT || DEBUG.STYLE) out("LAYING OUT CHILDREN, parent=" + getParent());
@@ -755,44 +754,39 @@ public class LWSlide extends LWContainer
         if (nodes.size() == 1)
             return;
 
+        // layout not currently working unless we force the scale temporarily to 1.0 map
+        // bounds are computed for contents, which are tiny if scale is small, as
+        // opposed to local bounds.  Arrange actions need to figure out which bounds to
+        // use -- best guess would be local bounds, but all would have to have same
+        // parent...
         takeScale(1.0);
-        // layout not currently working unless we force the scale temporarily to 1.0
-        // map bounds are computed for contents, which are tiny
-        // if scale is small, as opposed to local bounds.
-        // Arrange actions need to figure out which bounds
-        // to use -- best guess would be local bounds, but
-        // all would have to have same parent...
         
         //Actions.MakeColumn.act(selection);
         //Actions.AlignLeftEdges.act(selection); // make column centers -- align left
-
         // now re-distribute with space between components:
 //         final Rectangle2D bounds = selection.getBounds();
 //         selection.setSize((int) bounds.getWidth(),
 //                           (int) bounds.getHeight() + 15 * selection.size());
         //selection.setSize(SlideWidth, SlideHeight); // doesn't quite hack it
 
-        selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*2);
-
         if (text.size() > 1) {
-
-            // Seed relative positions
-            x = y = SlideMargin;
-            for (LWComponent c : text)
-                c.takeLocation(x++,y++);
-            
+            //selection.setSize(SlideWidth - SlideMargin*2, (SlideHeight - SlideMargin*2) + (int) title.getHeight());
+            selection.setSize(SlideWidth - SlideMargin*2, (int) (getHeight() - SlideMargin - text.get(0).getY()));
             selection.setTo(text);
             Actions.DistributeVertically.act(selection);
             Actions.AlignLeftEdges.act(selection);
         }
 
         if (images.size() > 0) {
+            selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*2);
 
-            // Seed relative positions
-            x = y = SlideMargin;
-            for (LWComponent c : images)
-                c.takeLocation(x++,y++);
-            
+            final float commonHeight = (selection.getHeight()-((images.size()-1)*SlideMargin)) / images.size();
+
+            //out("common height " + commonHeight);
+
+            for (LWImage image : images)
+                image.userSetSize(0, commonHeight, null); // aspect preserving
+
             if (images.size() > 1) {
                 selection.setTo(images);
                 Actions.DistributeVertically.act(selection);
