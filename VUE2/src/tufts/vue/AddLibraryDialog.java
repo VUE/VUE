@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.69 $ / $Date: 2007-10-30 22:54:42 $ / $Author: mike $
+ * @version $Revision: 1.70 $ / $Date: 2007-11-02 18:37:42 $ / $Author: anoop $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -204,6 +204,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
   
             getContentPane().add(addLibraryPanel,gbConstraints);//,BorderLayout.CENTER);
             pack();
+            setResizable(false);
             setLocation(300,300);
         } catch (Throwable t) {
             t.printStackTrace();
