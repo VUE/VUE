@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.72 $ / $Date: 2007-11-02 19:04:19 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2007-11-02 19:15:09 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -739,7 +739,7 @@ public class LWSlide extends LWContainer
             addChildImpl(c);
         }
         
-        x = SlideMargin;
+        x = SlideMargin * 2;
         y = SlideMargin * 2 + (int) title.getHeight();
         for (LWComponent c : text) {
             c.takeLocation(x++,y++);
@@ -769,7 +769,8 @@ public class LWSlide extends LWContainer
 
         if (text.size() > 1) {
             //selection.setSize(SlideWidth - SlideMargin*2, (SlideHeight - SlideMargin*2) + (int) title.getHeight());
-            selection.setSize(SlideWidth - SlideMargin*2, (int) (getHeight() - SlideMargin - text.get(0).getY()));
+            selection.setSize(SlideWidth - SlideMargin*2,
+                              (int) (getHeight() - SlideMargin*1.5 - text.get(0).getY()));
             selection.setTo(text);
             Actions.DistributeVertically.act(selection);
             Actions.AlignLeftEdges.act(selection);
