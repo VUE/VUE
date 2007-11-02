@@ -883,12 +883,28 @@ public class LWImage extends
         }
    }
 
-    //private static final Color ErrorColor = new Color(255,128,128, 64);
-    //private static final Color ErrorColor = Color.red;
-    private static final Color LoadingColor = new Color(0,0,0,128);
-    private static final Color LoadedColor = new Color(0,0,0,160);
-    //private static final Color LoadingColor = Color.red;
-    //private static final Color LoadedColor = Color.blue;
+    private static final Color EmptyColorDark = new Color(0,0,0,128);
+    private static final Color LoadedColorDark = new Color(0,0,0,160);
+    private static final Color EmptyColorLight = new Color(128,128,128,64);
+    private static final Color LoadedColorLight = new Color(128,128,128,128);
+
+    private Color getEmptyColor(DrawContext dc) {
+        final LWComponent parent = getParent();
+        Color pc;
+        if (parent != null && (pc=parent.getRenderFillColor(dc)) != null) {
+            return Color.black.equals(pc) ? EmptyColorLight : EmptyColorDark;
+        } else
+            return EmptyColorDark;
+            
+    }
+    private Color getLoadedColor(DrawContext dc) {
+        final LWComponent parent = getParent();
+        Color pc;
+        if (parent != null && (pc=parent.getRenderFillColor(dc)) != null) {
+            return Color.black.equals(pc) ? LoadedColorLight : LoadedColorDark;
+        } else
+            return LoadedColorDark;
+    }
 
     private static final int StatusHeight = 4;
     private static final Font StatusFont = new Font("Gill Sans", Font.PLAIN, 10);
@@ -907,8 +923,8 @@ public class LWImage extends
                 status1 = "Missing";
                 status2 = "Image";
             } else if (mImageStatus == Status.EMPTY) {
-                status1 = "Empty";
-                status2 = "Image";
+                status1 = "Empty Image";
+                status2 = "(no resource)";
             } else if (mDataSoFar > 0 && mStatusMsg != null) {
                 status1 = mStatusMsg;
                 pct = mLastPct;
@@ -933,12 +949,12 @@ public class LWImage extends
 
         if (pct > 0) {
             final int split = (int) (width * pct);
-            dc.g.setColor(LoadedColor);
+            dc.g.setColor(getLoadedColor(dc));
             dc.g.fillRect(0, 0, split, height);
-            dc.g.setColor(LoadingColor);
+            dc.g.setColor(getEmptyColor(dc));
             dc.g.fillRect(split, 0, width - split, height);
         } else {
-            dc.g.setColor(LoadingColor);
+            dc.g.setColor(getEmptyColor(dc));
             dc.g.fillRect(0, 0, width, height);
         }
 
