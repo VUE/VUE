@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
-* @version $Revision: 1.22 $ / $Date: 2007-10-30 22:55:35 $ / $Author: mike $
+* @version $Revision: 1.23 $ / $Date: 2007-11-02 18:52:18 $ / $Author: mike $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -185,6 +185,7 @@ public class UpdateLibraryDialog extends JDialog implements ListSelectionListene
             getContentPane().add(addLibraryPanel,gbConstraints);
             
             pack();
+            setResizable(false);
             setLocation(300,300);
         } catch (Throwable t) {
             t.printStackTrace();
