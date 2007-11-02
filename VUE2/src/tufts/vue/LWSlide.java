@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.70 $ / $Date: 2007-11-02 18:37:00 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2007-11-02 18:41:53 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -733,14 +733,15 @@ public class LWSlide extends LWContainer
         // Add as children, providing seed relative locations
         // for layout, and establish z-order (images under text)
 
-        x = SlideMargin;
-        y = SlideMargin * 2 + (int) title.getHeight();
-        for (LWComponent c : text) {
+        x = y = SlideMargin;
+        for (LWComponent c : images) {
             c.takeLocation(x++,y++);
             addChildImpl(c);
         }
-        x = y = SlideMargin;
-        for (LWComponent c : images) {
+        
+        x = SlideMargin;
+        y = SlideMargin * 2 + (int) title.getHeight();
+        for (LWComponent c : text) {
             c.takeLocation(x++,y++);
             addChildImpl(c);
         }
