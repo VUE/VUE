@@ -31,7 +31,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.5 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.6 $ / $Date: 2007-11-02 21:38:02 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -268,6 +268,11 @@ public final class MasterSlide extends LWSlide
         linkStyle = style;
     }
 
+    @Override
+    public void synchronizeResources(Sync type) {
+        Util.printStackTrace("Cannot sync a MasterSlide: " + this + " type(" + type + ")");
+    }
+    
 
     @Override
     public Color getRenderFillColor(DrawContext dc) {

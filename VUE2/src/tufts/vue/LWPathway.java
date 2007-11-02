@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.198 $ / $Date: 2007-10-31 08:48:01 $ / $Author: sfraize $
+ * @version $Revision: 1.199 $ / $Date: 2007-11-02 21:38:02 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1308,8 +1308,8 @@ public class LWPathway extends LWContainer
         }
 
         @Override
-        public void synchronizeResourcesWithNode() {
-            Util.printStackTrace("Can't sync a MapSlide: " + this);
+        public void synchronizeResources(Sync type) {
+            Util.printStackTrace("Cannot sync a MapSlide: " + this + " type(" + type + ")");
         }
 
         @Override

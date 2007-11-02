@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.75 $ / $Date: 2007-11-02 21:33:36 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-11-02 21:38:02 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -480,7 +480,7 @@ public class LWSlide extends LWContainer
         takeScale(SlideIconScale);
     }
 
-    private enum Sync { ALL, TO_NODE, TO_SLIDE };
+    protected enum Sync { ALL, TO_NODE, TO_SLIDE };
     
     public void synchronizeAll() {
         synchronizeResources(Sync.ALL);
@@ -496,7 +496,7 @@ public class LWSlide extends LWContainer
         return mEntry != null && !mEntry.isMapView();
     }
 
-    private void synchronizeResources(Sync type) {
+    protected void synchronizeResources(Sync type) {
 
         if (getSourceNode() == null) {
             Log.warn("Can't synchronize a slide w/out a source node: " + this);
