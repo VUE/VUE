@@ -88,6 +88,7 @@ public class PresentationTool extends VueTool
     
     private volatile Page mCurrentPage = NO_PAGE;
     private volatile Page mLastPage = NO_PAGE;
+    private volatile Page mLastSlidePage;
     private volatile LWPathway mPathway; // current pathway (last pathway we were on)
     private volatile LWPathway mStartPathway; // pathway when started presentation
     private volatile Page mLastPathwayPage;
@@ -218,6 +219,10 @@ public class PresentationTool extends VueTool
               //return false; 
             else
                 return entry.isMapView();
+        }
+
+        public boolean isMap() {
+            return node instanceof LWMap;
         }
         
         public boolean onPathway() {
@@ -1364,14 +1369,20 @@ public class PresentationTool extends VueTool
             return false;
     }
 
+    private void focusUp(MapMouseEvent e)  {
+        focusUp(e, false);
+    }
+
+    private static final boolean TO_MAP = true;
+
     // todo: really, a total refocus, that handles the transition,
     // and knowing if a new focal needs loading
-    private void focusUp(MapMouseEvent e) 
+    private void focusUp(MapMouseEvent e, boolean forceMap) 
     {
-        if (DEBUG.PRESENT) out("focusUp");
+        if (DEBUG.PRESENT) out("focusUp, forceMap=" + forceMap);
         
-        final boolean toMap = e.isShiftDown();
-        final boolean toLinks = e.isAltDown();
+        final boolean toMap = forceMap || e.isShiftDown();
+        //final boolean toLinks = e.isAltDown();
         final MapViewer viewer = e.getViewer();
 
         final LWComponent focal = viewer.getFocal();
@@ -1391,13 +1402,24 @@ public class PresentationTool extends VueTool
 //         }
         
     }
+
+
+    /** toggle back and forth between either map and slide, or slide and descendent content */
+    private void toggleFocal(MapMouseEvent e) {
+        if (DEBUG.PRESENT) out("toggleFocal");
+        if (mCurrentPage.isMap())
+            setPage(mLastPage);
+        else
+            focusUp(e, TO_MAP);
+    }
     
     
     @Override
     public boolean handleMousePressed(MapMouseEvent e)
     {
-        if (e.getButton() == MouseEvent.BUTTON2) {
-            
+        if (GUI.isRightClick(e)) {
+            toggleFocal(e);
+            return true;
         }
         
         if (ExitButton.contains(e)) {
@@ -1425,7 +1447,6 @@ public class PresentationTool extends VueTool
         if (hit == null) {
             focusUp(e);
             return true;
-            //return false;
         }
         
         if (mCurrentPage.equals(hit)) {
@@ -1557,6 +1578,7 @@ public class PresentationTool extends VueTool
         mVisited.clear();
 
         mLastPage = NO_PAGE;
+        mLastSlidePage = null;
         mPathway = null;
         mStartPathway = null;
         mLastPathwayPage = null;
@@ -1694,7 +1716,7 @@ public class PresentationTool extends VueTool
             if (DEBUG.PRESENT) out("ROLLBACK");
             mVisited.rollBack();
         } else if (recordBackup) {
-            if (page.node instanceof LWMap)
+            if (page.isMap())
                 ; // don't record map views
             else
                 mVisited.push(page);
@@ -1711,6 +1733,9 @@ public class PresentationTool extends VueTool
 
         mLastPage = mCurrentPage;
         mCurrentPage = page;
+
+        if (page.getPresentationFocal() instanceof LWSlide)
+            mLastSlidePage = page;
 
         if (page.onPathway()) {
             if (page.pathway() != mPathway)
