@@ -1106,12 +1106,27 @@ public class Actions implements VueConstants
     	}
     };
     
-    public static final LWCAction SyncWithNode = new LWCAction("Sync slide with node") 
+    public static final LWCAction SyncWithNode = new LWCAction("Sync slide to node") 
     {
     	public void act(LWSlide slide)
     	{    		
     		slide.synchronizeResourcesWithNode();
-    		//System.out((LWSlide)c).getPathwayEntry().pathway.toName()
+    	}
+    };
+    
+    public static final LWCAction SyncWithSlide = new LWCAction("Sync node to node") 
+    {
+    	public void act(LWSlide slide)
+    	{    		
+    		slide.synchronizeResourcesWithNode();
+    	}
+    };
+    
+    public static final LWCAction SyncAll = new LWCAction("Sync all") 
+    {
+    	public void act(LWSlide slide)
+    	{    		
+    		slide.synchronizeResourcesWithNode();
     	}
     };
     
