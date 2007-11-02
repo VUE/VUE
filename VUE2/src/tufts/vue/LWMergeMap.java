@@ -494,10 +494,17 @@ public class LWMergeMap extends LWMap {
     public boolean nodeAlreadyPresent(LWComponent node)
     {
         
-        if(getFilterOnBaseMap())
+        // creating double child nodes now...
+        /*if(getFilterOnBaseMap())
         {
             return false;
-        }
+        }*/
+        
+        System.out.println("nodeAlreadyPresent -- getParent() " + node.getParent());
+        
+        // also need to check if parent *will* be visible
+        if(! (node.getParent() instanceof LWMap ) )
+            return true;
         
         Iterator<LWComponent> i = getChildList().iterator();
         while(i.hasNext())
