@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.73 $ / $Date: 2007-11-02 19:15:09 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2007-11-02 20:47:06 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -738,8 +738,11 @@ public class LWSlide extends LWContainer
             c.takeLocation(x++,y++);
             addChildImpl(c);
         }
+
+        // differences in font sizes mean text below title looks to left of title unless slighly indented
+        final int textIndent = 2;
         
-        x = SlideMargin * 2;
+        x = SlideMargin + textIndent; 
         y = SlideMargin * 2 + (int) title.getHeight();
         for (LWComponent c : text) {
             c.takeLocation(x++,y++);
