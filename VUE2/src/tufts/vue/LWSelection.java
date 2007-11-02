@@ -31,7 +31,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.80 $ / $Date: 2007-10-29 16:34:37 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2007-11-02 18:07:53 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -194,7 +194,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     private boolean inNotify = false;
     private synchronized void notifyListeners()
     {
-        if (isClone) throw new IllegalStateException(this + " clone's can't notify listeners! " + this);
+        //if (isClone) throw new IllegalStateException(this + " clone's can't notify listeners! " + this);
+        if (isClone) {
+            if (DEBUG.Enabled) Log.debug(this + ": clone skipping notification");
+            return;
+        }
 
         if (notifyUnderway())
             return;
