@@ -1495,6 +1495,11 @@ public class Actions implements VueConstants
             if (r == null)
                 r = LWMap.getLocalBounds(selection);
 
+            if (selection.isSized()) {
+                r.width = selection.getWidth();
+                r.height = selection.getHeight();
+            }
+
             minX = r.x;
             minY = r.y;
             maxX = r.x + r.width;
@@ -1650,22 +1655,22 @@ public class Actions implements VueConstants
     
     public static final ArrangeAction DistributeVertically = new ArrangeAction("Distribute Vertically", KeyEvent.VK_V) {
             boolean supportsSingleMover() { return false; }
-        boolean enabledFor(LWSelection s) { return s.size() >= 3; }
-        // use only *2* in selection if use our minimum layout region setting
-        void arrange(LWSelection selection) {
-            LWComponent[] comps = sortByY(sortByX(selection.asArray()));
-            float layoutRegion = maxY - minY;
-            //if (layoutRegion < totalHeight)
-            //  layoutRegion = totalHeight;
-            float verticalGap = (layoutRegion - totalHeight) / (selection.size() - 1);
-            float y = minY;
-            for (int i = 0; i < comps.length; i++) {
-                LWComponent c = comps[i];
-                c.setLocation(c.getX(), y);
-                y += c.getHeight() + verticalGap;
+            boolean enabledFor(LWSelection s) { return s.size() >= 3; }
+            // use only *2* in selection if use our minimum layout region setting
+            void arrange(LWSelection selection) {
+                LWComponent[] comps = sortByY(sortByX(selection.asArray()));
+                float layoutRegion = maxY - minY;
+                //if (layoutRegion < totalHeight)
+                //  layoutRegion = totalHeight;
+                float verticalGap = (layoutRegion - totalHeight) / (selection.size() - 1);
+                float y = minY;
+                for (int i = 0; i < comps.length; i++) {
+                    LWComponent c = comps[i];
+                    c.setLocation(c.getX(), y);
+                    y += c.getHeight() + verticalGap;
+                }
             }
-        }
-    };
+        };
     
     public static final ArrangeAction DistributeHorizontally = new ArrangeAction("Distribute Horizontally", KeyEvent.VK_H) {
             boolean supportsSingleMover() { return false; }
