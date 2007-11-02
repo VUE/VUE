@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.39 $ / $Date: 2007-11-01 23:50:01 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2007-11-02 20:47:40 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1590,7 +1590,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 gotError = true;
                 Log.warn("fetching thumbshot in AWT;   got error: " + thumbShot + "; " + t);
             }
-            if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
+            //if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
         }
         if (inUI_Thread && !gotError)
             Log.warn("fetching thumbshot in AWT;         got: " + thumbShot);
