@@ -54,7 +54,7 @@ import fedora.client.Uploader;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.79 $ / $Date: 2007-10-31 23:05:35 $ / $Author: anoop $
+ * @version $Revision: 1.80 $ / $Date: 2007-11-02 14:01:35 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -70,8 +70,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
-    public static final String[] PUBLISH_INFORMATION = {"The \"Export\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
-    "\"Publish Map\" saves only the map. Digital resources are not attached, but the resources' paths are maintained. \"Export Map\" is the equivalent of the \"Save\" function for a registered digital repository.",
+    public static final String[] PUBLISH_INFORMATION = {"The \"Publishe\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
+    "\"Map only\" saves only the map to the digital repository. Digital resources are not attached, but the resource paths are maintained, whether to a local computer or the web.",
     "\"Publish IMSCP Map\" embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a \"zip\" file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
     "\"Map and resources\" create a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resouces are accessible to all users viewing the map.",
     "\"Publish IMSCP Map to Sakai\" saves concept map in Sakai content hosting system.","Zips map with local resources."
@@ -102,7 +102,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     JTextArea informationArea;
     JPanel buttonPanel;
-    JTextArea modeInfo  = new JTextArea(PUBLISH_INFORMATION[0]);
+    JTextArea modeInfo  = new JTextArea(PUBLISH_INFORMATION[1]);
     JPanel rPanel  = new JPanel(); // repository panel
     JPanel mPanel  = new JPanel(); // Mode Selection Panel
     JPanel pPanel = new JPanel(); // publish panel
