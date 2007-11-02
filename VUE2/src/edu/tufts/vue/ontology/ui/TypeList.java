@@ -529,11 +529,24 @@ public class TypeList extends JList {
           }
           //clearSelection();
           //setSelectedIndex(-1);
+          
+          try
+          {        
+            OntManager.getOntManager().getOntology(new URL(ontology.getBase())).setEnabled(true);
+          }
+          catch(java.net.MalformedURLException mue)
+          {
+              System.out.println("TypeList: malformed url exception attempting to enable ontology " + mue);
+          }
+          
           try
           {
            // browser.getViewer().getList().updateUI();
            //   browser.getViewer().getList().repaint();
+              
+              
               browser.getViewer().getList().refresh();
+              browser.getViewer().getList().repaint();
           }
           catch(Exception e)
           {
@@ -544,10 +557,10 @@ public class TypeList extends JList {
          // browser.repaint();
           edu.tufts.vue.ontology.OntManager.getOntManager().save();
          }
+         
        };
        
        t.start();
-       
         
     }
     
