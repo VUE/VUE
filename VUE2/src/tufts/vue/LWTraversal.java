@@ -36,7 +36,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-10-22 03:12:05 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-11-02 20:47:31 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -238,7 +238,10 @@ public class LWTraversal {
             //return pc.pickDepth >= c.getPickLevel();
             //return true;
             //return c.hasChildren();
-            return c.hasPicks();
+            if (c.isPathwayOwned() && c instanceof LWSlide && pc.root != c)
+                return false;
+            else
+                return c.hasPicks();
         }
         
 
@@ -428,7 +431,7 @@ public class LWTraversal {
                 
             } else if (hit != null) {
                 final LWContainer parent = hit.getParent();
-                if (parent != null) {
+                if (parent != null && !(parent instanceof LWSlide)) { // todo: this hack crucial for slides
 
                     // This is a hack for groups to replace our getPickLevel functionality:
 
