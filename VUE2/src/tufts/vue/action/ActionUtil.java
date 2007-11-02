@@ -57,13 +57,15 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Locale;
 import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
 
 /**
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.88 $ / $Date: 2007-11-01 20:16:49 $ / $Author: mike $
+ * @version $Revision: 1.89 $ / $Date: 2007-11-02 15:34:53 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -96,25 +98,42 @@ public class ActionUtil
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
        It returns the selected file or null if the process didn't complete*/
-    public static File selectFile(String title, String fileType)
+    public static File selectFile(String title, final String fileType)
     {
         File picked = null;
-        VueFileChooser chooser = new VueFileChooser();
+        final VueFileChooser chooser = new VueFileChooser();
         
         
         chooser.setDialogTitle(title);
         chooser.setAcceptAllFileFilterUsed(false);    
         //chooser.set
-        String baseName = null;
-        if (VUE.getActiveMap().getFile() == null)
-        	baseName = VUE.getActiveMap().getLabel();
-        else
+        chooser.addPropertyChangeListener(new PropertyChangeListener()
         {
-        	baseName = VUE.getActiveMap().getLabel();// + "-copy";
-        	baseName = baseName.substring(0, baseName.lastIndexOf(".")) + "-copy";
-        }
-        if (fileType == null)
-        	chooser.setSelectedFile(new File(baseName + ".vue"));
+
+			public void propertyChange(PropertyChangeEvent arg0) {				
+				if (arg0.getPropertyName() == VueFileChooser.FILE_FILTER_CHANGED_PROPERTY)
+				{
+				
+					String baseName = null;
+			        if (VUE.getActiveMap().getFile() == null)
+			        	baseName = VUE.getActiveMap().getLabel();
+			        else
+			        {
+			        	baseName = VUE.getActiveMap().getLabel();// + "-copy";
+			        	baseName = baseName.substring(0, baseName.lastIndexOf(".")) + "-copy";
+			        }
+			     
+			        if (fileType == null)
+			        {
+
+			        	chooser.setSelectedFile(new File(baseName));
+			        }
+			        
+				}
+				
+			}
+        	
+        });
         
         if (fileType != null && !fileType.equals("export"))
          chooser.setFileFilter(new VueFileFilter(fileType)); 
