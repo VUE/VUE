@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.86 $ / $Date: 2007-10-27 20:41:21 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2007-11-02 17:00:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1417,17 +1417,22 @@ public class GUI
     
     /** 1 click, button 2 or 3 pressed, button 1 not already down & ctrl not down */
     public static boolean isRightClick(MouseEvent e) {
-        return e.getClickCount() == 1
-            && (e.getButton() == java.awt.event.MouseEvent.BUTTON3 ||
+        return (e.getButton() == java.awt.event.MouseEvent.BUTTON3 ||
                 e.getButton() == java.awt.event.MouseEvent.BUTTON2)
             && (e.getModifiersEx() & java.awt.event.InputEvent.BUTTON1_DOWN_MASK) == 0
             && !e.isControlDown();
     }
+
+    /** single click count and isRightClick is true */
+    public static boolean isSingleRightClick(MouseEvent e) {
+        return e.getClickCount() == 1 && isRightClick(e);
+    }
+    
     
     public static boolean isMenuPopup(ComponentEvent ce) {
         if (ce instanceof MouseEvent) {
             MouseEvent e = (MouseEvent) ce;
-            return e.isPopupTrigger() || isRightClick(e);
+            return e.isPopupTrigger() || isSingleRightClick(e);
         } else
             return false;
     }
