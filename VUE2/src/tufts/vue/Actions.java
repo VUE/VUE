@@ -93,7 +93,7 @@ public class Actions implements VueConstants
 		}
     };
     
-    private static final File getFileForPresentation()
+    private static final File getFileForPresentation(String type)
     {
     	if (VUE.getActivePathway() == null || VUE.getActivePathway().getEntries().isEmpty())
     	{
@@ -102,8 +102,9 @@ public class Actions implements VueConstants
     	}
 		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
-		
-        int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save as");
+		chooser.setDialogTitle("Save PDF as");
+		chooser.setSelectedFile(new File(VUE.getActivePathway().getLabel()+"_"+type));
+        int option = chooser.showSaveDialog(tufts.vue.VUE.getDialogParent());
         if (option == VueFileChooser.APPROVE_OPTION) 
         {
             pdfFileName = chooser.getSelectedFile();
@@ -135,8 +136,9 @@ public class Actions implements VueConstants
     	}
 		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
-		
-        int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save as");
+		chooser.setSelectedFile(new File(VUE.getActiveMap().getLabel()));
+		chooser.setDialogTitle("Save PDF as");
+        int option = chooser.showSaveDialog(tufts.vue.VUE.getDialogParent());
         if (option == VueFileChooser.APPROVE_OPTION) 
         {
             pdfFileName = chooser.getSelectedFile();
@@ -165,7 +167,7 @@ public class Actions implements VueConstants
     	new VueAction("Slides - speaker notes (1 per page)") {
 		public void act() 
 		{
-			File pdfFile = getFileForPresentation();
+			File pdfFile = getFileForPresentation("Speaker notes");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createSpeakerNotes1PerPage(pdfFile);
 		}
@@ -174,7 +176,7 @@ public class Actions implements VueConstants
     	new VueAction("Slides - speaker notes (up to 4 per page)") {
 		public void act() 
 		{
-			File pdfFile = getFileForPresentation();
+			File pdfFile = getFileForPresentation("Speaker notes");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createSpeakerNotes4PerPage(pdfFile);
 		}
@@ -183,7 +185,7 @@ public class Actions implements VueConstants
     	new VueAction("Speaker notes only (outline)") {
 		public void act() 
 		{
-			File pdfFile = getFileForPresentation();
+			File pdfFile = getFileForPresentation("Speaker notes");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createOutline(pdfFile);
 		}
@@ -192,7 +194,7 @@ public class Actions implements VueConstants
     	new VueAction("Slides (8 per page)") {
 		public void act() 
 		{
-			File pdfFile = getFileForPresentation();
+			File pdfFile = getFileForPresentation("Slides");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createPresentationNotes8PerPage(pdfFile);
 		}
@@ -203,7 +205,7 @@ public class Actions implements VueConstants
     	new VueAction("Audience Notes") {
 		public void act() 
 		{
-			File pdfFile = getFileForPresentation();
+			File pdfFile = getFileForPresentation("Audience notes");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createAudienceNotes(pdfFile);
 		}
@@ -214,7 +216,7 @@ public class Actions implements VueConstants
     	new VueAction("Slides (1 per page)") {
 		public void act() 
 		{			
-			File pdfFile = getFileForPresentation();
+			File pdfFile = getFileForPresentation("Slides");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createPresentationSlidesDeck(pdfFile);
 		}
