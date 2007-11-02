@@ -1444,6 +1444,11 @@ public class PresentationTool extends VueTool
 //             return true;
 //         }
 
+        if (hit.getTypeToken() == LWNode.TYPE_TEXT && hit.hasResource()) {
+            hit.getResource().displayContent();
+            return true;
+        }
+
         if (hit == null) {
             focusUp(e);
             return true;
