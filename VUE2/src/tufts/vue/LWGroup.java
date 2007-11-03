@@ -44,11 +44,13 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.80 $ / $Date: 2007-08-30 18:33:03 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2007-11-03 20:39:05 $ / $Author: sfraize $
  */
 public class LWGroup extends LWContainer
 {
     private static final boolean FancyGroups = true;
+
+    private boolean isForSelection = false;
 
     public LWGroup() {
         if (!FancyGroups)
@@ -72,6 +74,12 @@ public class LWGroup extends LWContainer
     public boolean supportsUserLabel() {
         return false;
     }
+
+    @Override
+    public boolean isOrphan() {
+        return isForSelection || super.isOrphan();
+    }
+
     
     /**
      * For the viewer selection code -- we're mainly interested
@@ -258,8 +266,6 @@ public class LWGroup extends LWContainer
         normalize(false);
     }
     
-    private boolean isForSelection = false;
-
     /**
      * "Borrow" the children in the list for the sole purpose of computing total bounds
      * and moving them around en-mass -- used for dragging a selection.  Does NOT
