@@ -855,6 +855,14 @@ public class Actions implements VueConstants
         	
         }
     };
+
+    public static final LWCAction ImageToNaturalSize = new LWCAction("Make Natural Size") {
+            public void act(LWImage c) {
+                c.setToNaturalSize();
+            }
+        };
+    
+
     
     public static final LWCAction AddFileAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addFile.label")) {
         public void act(LWComponent c) 
@@ -2163,6 +2171,8 @@ public class Actions implements VueConstants
                 act((LWLink)c);
             else if (c instanceof LWNode)
                 act((LWNode)c);
+            else if (c instanceof LWImage)
+                act((LWImage)c);
             else if (c instanceof LWSlide)
                 act((LWSlide)c);
             else
@@ -2174,6 +2184,9 @@ public class Actions implements VueConstants
             ignoredDebug(c);
         }
         void act(LWNode c) {
+            ignoredDebug(c);
+        }
+        void act(LWImage c) {
             ignoredDebug(c);
         }
         void act(LWSlide c) {
