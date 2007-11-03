@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.477 $ / $Date: 2007-11-01 23:49:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.478 $ / $Date: 2007-11-03 20:40:49 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -606,12 +606,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // todo: when in scroll region, user origin being offset 12 or so pixels
         // (probably width of scroll bar) -- would be nice to keep normalized to 0
         // so doesn't always offset it (will it do that cumulative every time we start??)
-        if (mMap == mFocal) {
-            if (VUE.getActiveViewer() == this)
+        //if (mMap == mFocal) {
+        if (true) {
+            if (mMap == mFocal && VUE.getActiveViewer() == this)
                 mMap.setUserOrigin(panelX, panelY);
             if (!inScrollPane && update) {
                 repaint();
-                fireViewerEvent(MapViewerEvent.PAN);
+                if (mMap == mFocal)
+                    fireViewerEvent(MapViewerEvent.PAN);
             }
         }
     }
@@ -877,6 +879,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     private Rectangle2D.Float getFocalBounds() {
+        if (mFocal == null) {
+            Util.printStackTrace("getFocalBounds w/null focal in " + this);
+            return LWMap.EmptyBounds;
+        }
         return getFocalBounds(mFocal);
     }
 
@@ -1042,7 +1048,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             ZoomTool.setZoomFitRegion(this,
                                       getFocalBounds(mLastFocal),
                                       0,
-                                      false);
+                                      NO_ANIMATE);
         }
 
         if (ScrollBarHiding && mFocal instanceof LWMap) {
@@ -2534,8 +2540,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         Point2D mapCoords = new Point2D.Float(mapX, mapY);
         Point canvas = getLocation();
-        Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
-                                                     
+        //Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
+        Point screen = new Point(_mouse.x + canvas.x, _mouse.y + canvas.y);
+        Point2D focalCoords = screenToFocalPoint(screen);
             
         g.setFont(VueConstants.FixedFont);
         int x = -getX() + 40;
@@ -2545,9 +2552,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
         if (true) {
             g.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
-            g.drawString("     map mouse: " + out(mapCoords), x, y+=15);
-            g.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
             g.drawString(" ~screen mouse: " + out(screen), x, y+=15);
+            g.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
+            g.drawString("   focal mouse: " + out(focalCoords), x, y+=15);
+            g.drawString("     map mouse: " + out(mapCoords), x, y+=15);
             g.drawString("     canvas at: " + out(canvas), x, y+= 15);
             /*if (inScrollPane){
               Point extent = viewportToCanvasPoint(mouse);
@@ -2560,7 +2568,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             if (getMap() != null)
                 g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
-            g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
+            if (mFocal == null)
+                g.drawString("map-canvas-adju (NULL FOCAL)", x, y+=15);
+            else
+                g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
             g.drawString("    canvas-size " + out(getSize()), x, y+=15);
             g.drawString("          frame " + out(dc.getFrame()), x, y+=15);
         }
@@ -3455,7 +3466,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         indication.transformZero(dc.g);
 
-        if (DEBUG.PICK
+        if (true||DEBUG.PICK
             //&& (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)
             ) {
             dc.g.setColor(Color.green);
@@ -3640,50 +3651,50 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VueSelection.toggle(i);
     }
     
-    private static Map sLinkMenus = new HashMap();
-    private JMenu getLinkMenu(String name) {
-        Object menu = sLinkMenus.get(name);
-        if (menu == null) {
-            JMenu linkMenu = new JMenu(name);
-            for (int i = 0; i < Actions.LINK_MENU_ACTIONS.length; i++) {
-                Action a = Actions.LINK_MENU_ACTIONS[i];
-                if (a == null)
-                    linkMenu.addSeparator();
-                else
-                    linkMenu.add(a);
-            }
-            sLinkMenus.put(name, linkMenu);
-            return linkMenu;
-        } else {
-            return (JMenu) menu;
-        }
-    }
+//     private static Map sLinkMenus = new HashMap();
+//     private JMenu getLinkMenu(String name) {
+//         Object menu = sLinkMenus.get(name);
+//         if (menu == null) {
+//             JMenu linkMenu = new JMenu(name);
+//             for (int i = 0; i < Actions.LINK_MENU_ACTIONS.length; i++) {
+//                 Action a = Actions.LINK_MENU_ACTIONS[i];
+//                 if (a == null)
+//                     linkMenu.addSeparator();
+//                 else
+//                     linkMenu.add(a);
+//             }
+//             sLinkMenus.put(name, linkMenu);
+//             return linkMenu;
+//         } else {
+//             return (JMenu) menu;
+//         }
+//     }
     
-    private static Map sNodeMenus = new HashMap();
-    private JMenu getNodeMenu(String name) {
-        Object menu = sNodeMenus.get(name);
-        if (menu == null) {
-            JMenu nodeMenu = new JMenu(name);
-            for (int i = 0; i < Actions.NODE_MENU_ACTIONS.length; i++) {
-                Action a = Actions.NODE_MENU_ACTIONS[i];
-                if (a == null)
-                    nodeMenu.addSeparator();
-                else
-                    nodeMenu.add(a);
-            }
-            nodeMenu.addSeparator();
-            //nodeMenu.add(new JMenuItem("Set shape:")).setEnabled(false);
-            nodeMenu.add(new JLabel("   Set shape:"));
-            Action[] shapeActions = NodeTool.getTool().getShapeSetterActions();
-            for (int i = 0; i < shapeActions.length; i++) {
-                nodeMenu.add(shapeActions[i]);
-            }
-            sNodeMenus.put(name, nodeMenu);
-            return nodeMenu;
-        } else {
-            return (JMenu) menu;
-        }
-    }
+//     private static Map sNodeMenus = new HashMap();
+//     private JMenu getNodeMenu(String name) {
+//         Object menu = sNodeMenus.get(name);
+//         if (menu == null) {
+//             JMenu nodeMenu = new JMenu(name);
+//             for (int i = 0; i < Actions.NODE_MENU_ACTIONS.length; i++) {
+//                 Action a = Actions.NODE_MENU_ACTIONS[i];
+//                 if (a == null)
+//                     nodeMenu.addSeparator();
+//                 else
+//                     nodeMenu.add(a);
+//             }
+//             nodeMenu.addSeparator();
+//             //nodeMenu.add(new JMenuItem("Set shape:")).setEnabled(false);
+//             nodeMenu.add(new JLabel("   Set shape:"));
+//             Action[] shapeActions = NodeTool.getTool().getShapeSetterActions();
+//             for (int i = 0; i < shapeActions.length; i++) {
+//                 nodeMenu.add(shapeActions[i]);
+//             }
+//             sNodeMenus.put(name, nodeMenu);
+//             return nodeMenu;
+//         } else {
+//             return (JMenu) menu;
+//         }
+//     }
     /*
     private static JMenu sArrangeMenu;
     private JMenu getArrangeMenu() {
@@ -3755,6 +3766,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static Component sEditMasterSlideItem;
     private static Component sSyncWithNodeItem;
     private static Component sEditSlideItem;
+    private static Component sImageNaturalSize;
     
     //  private static Component sPathSeparator;
     private JPopupMenu buildSingleSelectionPopup() {
@@ -3793,6 +3805,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sPathAddItem = m.add(Actions.AddPathwayItem);
         sPathRemoveItem = m.add(Actions.RemovePathwayItem);
         m.add(sPostPathwaySeparator);
+
+        if (DEBUG.Enabled) {
+            sImageNaturalSize = m.add(Actions.ImageToNaturalSize);
+        }
+        
         
         WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
         formatBox = new JCheckBoxMenuItem(formatAction);
@@ -6728,7 +6745,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //System.out.format("%s %12s: %s\n", this, method, msg);
     }
 
-    private String out(Point2D p) { return p==null?"<null Point2D>":(float)p.getX() + ", " + (float)p.getY(); }
+    //private String out(Point2D p) { return p==null?"<null Point2D>":(float)p.getX() + ", " + (float)p.getY(); }
+    private String out(Point2D p) { return Util.fmt(p); }
     private String out(Rectangle2D r) { return ""
             + (float)r.getX() + ", " + (float)r.getY()
             + "  "
