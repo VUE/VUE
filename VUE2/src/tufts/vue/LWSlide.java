@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.76 $ / $Date: 2007-11-02 21:38:02 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2007-11-03 20:39:30 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -496,6 +496,9 @@ public class LWSlide extends LWContainer
         return mEntry != null && !mEntry.isMapView();
     }
 
+    // TODO: this code should be on LWPathway.Entry, as it's entirely
+    // dependent upon the relationship between a node and a slide
+    // established by the pathway entry.
     protected void synchronizeResources(Sync type) {
 
         if (getSourceNode() == null) {
@@ -573,10 +576,6 @@ public class LWSlide extends LWContainer
                 this.addChild(newNode);
             }
         }
-
-//         if (getMap().getUndoManager() != null)
-//             getMap().getUndoManager().mark("Sync: Node<=>Slide");
-            
     }
 
     /** slides never considered translucent: they're not on the map needing backfill when they're the focal */

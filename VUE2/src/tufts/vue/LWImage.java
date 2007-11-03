@@ -59,6 +59,7 @@ import edu.tufts.vue.preferences.implementations.ImageSizePreference;
 
 public class LWImage extends
                          LWComponent
+                         //LWContainer
                          //LWNode
     implements //LWSelection.ControlListener,
                Images.Listener,
@@ -129,6 +130,12 @@ public class LWImage extends
 
     protected void out(String s) {
         Log.debug(s);
+    }
+
+    /** @return true -- an image is always it's own content */
+    @Override
+    public boolean hasContent() {
+        return true;
     }
     
     
@@ -732,7 +739,10 @@ public class LWImage extends
 //         if (dc.g.getComposite() instanceof AlphaComposite) {
 //             AlphaComposite a = (AlphaComposite) dc.g.getComposite();
 //             System.err.println("ALPHA RULE: " + a.getRule() + " " + DrawContext.AlphaRuleNames[a.getRule()] + " " + this);
-//         }    
+//         }
+
+//         if (dc.focal == this)
+//             super.drawChildren(dc);
     }
 
     
