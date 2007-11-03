@@ -36,7 +36,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-10-17 14:52:48 $ / $Author: dan $ 
+ * @version $Revision: 1.58 $ / $Date: 2007-11-03 20:39:53 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -238,8 +238,11 @@ public class MapInspectorPanel extends JPanel
 				}
 
 				public void focusLost(FocusEvent arg0) {
-					if (VUE.getActiveMap() != null)
-						VUE.getActiveMap().setFillColor(mMapColor.getColor());						
+                                    final LWMap map = VUE.getActiveMap();
+                                    if (map != null) {
+                                        map.setFillColor(mMapColor.getColor());
+                                        map.getUndoManager().mark();
+                                    }
 				}
             	 
              });
