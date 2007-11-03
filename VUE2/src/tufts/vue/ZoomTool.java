@@ -37,7 +37,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.71 $ / $Date: 2007-10-30 00:35:29 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2007-11-03 20:41:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -631,7 +631,7 @@ public class ZoomTool extends VueTool
 //                 zoom = cz + izOut*i;
 //             else 
 //                 zoom = zoomApex - izIn*i;
-            //if (DEBUG.Enabled) System.out.format("zoomAnimate frame %2d %.1f%%\n", i, zoom*100);
+            if (DEBUG.VIEWER) Log.debug(String.format("zoomAnimate frame %2d %.1f%%", i, zoom*100));
             setZoom(viewer, zoom, false, DONT_FOCUS, true);
             viewer.setMapOriginOffset(cx + ix*i, cy + iy*i);
             viewer.paintImmediately();

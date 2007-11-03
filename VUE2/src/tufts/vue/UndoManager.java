@@ -1,4 +1,4 @@
- /*
+/*
  * -----------------------------------------------------------------------------
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
@@ -127,7 +127,7 @@ public class UndoManager
         void mark(String name) {
             this.name = name;
             if (DEBUG.UNDO) {
-                System.out.println(this + " MARKED with [" + name + "]");
+                Log.debug(this + " MARKED with [" + name + "]");
                 //tufts.Util.printStackTrace(this + " MARKED with [" + name + "]");
             }
                     
@@ -153,7 +153,7 @@ public class UndoManager
         // ideally be interrupted.
         //private synchronized void run_undo() {
         synchronized void undoAggregateUserAction() {
-            if (DEBUG.UNDO) System.out.println(this + " undoing sequence of size " + changeCount());
+            if (DEBUG.UNDO) Log.debug(this + " undoing sequence of size " + changeCount());
 
             if (attachedThreads != null) {
                 // First: interrupt any running threads that may yet deliver events
@@ -161,7 +161,7 @@ public class UndoManager
                 Iterator i = attachedThreads.iterator();
                 while (i.hasNext()) {
                     Thread t = (Thread) i.next();
-                    if (DEBUG.Enabled) System.out.println(this + " INTERRUPTING " + t);
+                    if (DEBUG.Enabled) Log.debug(this + " INTERRUPTING " + t);
                     if (t.isAlive())
                         t.interrupt();
                     // only interrupt the first time
@@ -267,7 +267,7 @@ public class UndoManager
         }
 
         void undo() {
-            if (DEBUG.UNDO) System.out.println("UNDOING: " + this);
+            if (DEBUG.UNDO) Log.debug("UNDOING: " + this);
             if (propKey == LWKey.HierarchyChanging) {
                 undoHierarchyChange((LWContainer) component, oldValue);
             } else if (oldValue instanceof Undoable) {
@@ -287,7 +287,7 @@ public class UndoManager
                     }
                 }
 
-                if (component.getParent() == null) {
+                if (component.isOrphan()) {
                     
                     // For the hairy event's that LWGroups produce when created inside groups.
                     // we'd be getting a zombie event complaint if we did this.  Turns out if we
@@ -296,8 +296,7 @@ public class UndoManager
                     // then on redo, a location event goes thru that we actually don't want -- this
                     // was the conversion to local coordinates.
                     
-                    if (DEBUG.Enabled) System.err.println("SKIPPING undo item for deleted (parentless) component: "
-                                                          + component + "; " + this);
+                    if (DEBUG.Enabled) Log.debug("SKIPPING undo item for deleted (parentless) component: " + component + "; " + this);
                 } else 
                     component.setProperty(propKey, oldValue);
                 
@@ -492,11 +491,11 @@ public class UndoManager
             parent.layout();
             // issue synthesized ChildrenAddded and/or ChildrenRemoved events
             if (childrenAdded.size() > 0) {
-                if (DEBUG.UNDO) out("Synthetic event " + LWKey.ChildrenAdded + " " + childrenAdded);
+                if (DEBUG.UNDO) Log.debug("Synthetic event " + LWKey.ChildrenAdded + " " + childrenAdded);
                 parent.notify(LWKey.ChildrenAdded, childrenAdded);
             }
             if (childrenRemoved.size() > 0) {
-                if (DEBUG.UNDO) out("Synthetic event " + LWKey.ChildrenRemoved + " " + childrenRemoved);
+                if (DEBUG.UNDO) Log.debug("Synthetic event " + LWKey.ChildrenRemoved + " " + childrenRemoved);
                 parent.notify(LWKey.ChildrenRemoved, childrenRemoved);
             }
             // issue the general hierarchy change event
@@ -1059,7 +1058,7 @@ public class UndoManager
 
     public Object getKeyForNextMark() {
         UndoMark mark = new UndoMark(this);
-        if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("GENERATED MARK " + mark);
+        if (DEBUG.UNDO || DEBUG.THREAD) out("GENERATED MARK " + mark);
         return mark;
     }
 
@@ -1082,12 +1081,12 @@ public class UndoManager
             UndoMark mark = (UndoMark) undoActionKey;
             // store the mark in the appropriate UndoManager, and notify of error if thread was already marked
             if (mark.manager.mThreadsWithMark.containsKey(thread)) {
-                System.err.println(thread + " already tied mark " + mark + " grouping as one undo for now");
+                Log.warn(thread + " already tied mark " + mark + " grouping as one undo for now");
                 // this seems to actually be "working" as we get two undoables... ?
             } else {
                 mark.manager.mThreadsWithMark.put(thread, mark);
                 mark.action.addAttachedThread(thread);
-                if (DEBUG.UNDO || DEBUG.THREAD) System.out.println("ATTACHED " + mark + " to " + thread);
+                if (DEBUG.UNDO || DEBUG.THREAD) Log.debug("ATTACHED " + mark + " to " + thread);
             }
                 
             /*
@@ -1167,6 +1166,9 @@ public class UndoManager
         if (mRedoUnderway) // ignore everything during redo
             return;
 
+        if (e.key == LWKey.RepaintAsync) // ignore these
+            return;
+
         if (mUndoUnderway) {
             if (!mRedoCaptured && mCurrentUndo.size() > 0)  {
                 Util.printStackTrace("Undo Error: have changes at start of redo record:"
@@ -1179,7 +1181,9 @@ public class UndoManager
             mRedoCaptured = true;
             if (DEBUG.UNDO) System.out.print("\tredo: " + e);
         } else if (!mCleanupUnderway) {
-            if (DEBUG.UNDO) System.out.print(this + " " + e);
+            
+            if (DEBUG.UNDO) Log.debug(this + " " + e);
+            
             if (mCurrentUndo.size() == 0 && mCleanupTasks.size() > 0 && mEventsSeenSinceLastMark <= 0) {
 
                 // This can happen if a task is adding during a new user action,
@@ -1252,7 +1256,7 @@ public class UndoManager
         } else if (mThreadsWithMark.size() > 0 && mThreadsWithMark.containsKey(thread)) {
             final UndoMark mark = (UndoMark) mThreadsWithMark.get(thread);
             if (DEBUG.UNDO || DEBUG.THREAD)
-                System.out.println("\nFOUND MARK FOR CURRENT THREAD " + thread
+                Log.debug("FOUND MARK FOR CURRENT THREAD " + thread
                                    + "\n\t mark: " + mark
                                    + "\n\tevent: " + e);
             relevantUndoAction = mark.action;
@@ -1424,22 +1428,28 @@ public class UndoManager
         }
     }
     
-    private static void out(String s) {
-        System.out.println("UndoManger: " + s);
+    private void out(String s) {
+        Log.debug(mCurrentUndo + ": " + s);
+        //Log.debug(this + ": " + s);
     }
 
     private static void coutln(String termColor, String s) {
         System.out.println(termColor + s + TERM_CLEAR);
     }
+
+    private String paramString() {
+        return "" + mCurrentUndo;
+    }
     
 
     public String toString()
     {
-        return "UndoManager[" + mMap.getLabel() + " "
-            + mCurrentUndo
-            + "]"
-            //+ hashCode()
-            ;
+        return ""+mCurrentUndo;
+//         return "UndoManager[" + mMap.getLabel() + " "
+//             + mCurrentUndo
+//             + "]"
+//             //+ hashCode()
+//             ;
     }
     
 }
