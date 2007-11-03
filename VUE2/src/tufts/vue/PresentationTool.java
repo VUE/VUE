@@ -1444,19 +1444,19 @@ public class PresentationTool extends VueTool
 //             return true;
 //         }
 
-        if (hit != null && hit.getTypeToken() == LWNode.TYPE_TEXT && hit.hasResource()) {
-            hit.getResource().displayContent();
-            return true;
-        }
-
         if (hit == null) {
             focusUp(e);
             return true;
         }
         
+        if (hit.getTypeToken() == LWNode.TYPE_TEXT && hit.hasResource()) {
+            hit.getResource().displayContent();
+            return true;
+        }
+
         if (mCurrentPage.equals(hit)) {
 
-            if (mCurrentPage.isMapViewNode()) {
+            if (mCurrentPage.onPathway() && mCurrentPage.isMapViewNode()) {
                 // a click on the current map-node page: stay put
                 return false;
             }
