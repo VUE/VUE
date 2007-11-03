@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="en-us" http-equiv="Content-Language">
+  <title>JCSC Task</title>
+</head>
+<body>
+<h2>JCSC</h2>
+<h3>Description</h3>
+<p>Parses one file (single file mode) or a whole package tree of java
+files (batch mode) using <span
+ style="font-family: monospace; font-weight: bold;">Fileset</span> with
+the JCSC (Java Coding Standard Checker). .<br>
+When run in batch mode the result can be viewed with a browser(tested
+with IE6+ with SP1 and Mozilla1+). The L&amp;F is similar to that of
+JavaDoc. Start the<tt> index.html</tt> in the <tt>destdir</tt>.<br>
+</p>
+<h3>Installation</h3>
+Since JCSC uses the <a href="http://www.fsf.org/copyleft/gpl.html">GPL</a>
+it is/will not be distributed with Ant. Place the JCSC.jar and
+gnu-regexp.jar (V 1.1.4+) in the <span style="font-family: monospace;">ANT_HOM/lib</span>
+folder and add this line to your build.xml file. JCSCTask requires Ant
+1.5+.<br>
+<blockquote><tt><b>&lt;taskdef name="jcsc"
+classname="rj.tools.jcsc.ant.JCSCTask"/&gt;<br>
+  </b></tt></blockquote>
+If you want to view the resulting XML files with a browser, you need to
+set the &lt;copyassociatedfiles&gt; to yes.<span
+ style="font-family: monospace;"></span>
+<h3>Parameters</h3>
+<table cellspacing="0" cellpadding="2" border="1">
+  <tbody>
+    <tr>
+      <td valign="top"><b>Attribute</b></td>
+      <td valign="top"><b>Description</b></td>
+      <td valign="top" align="center"><b>Required</b></td>
+    </tr>
+    <tr>
+      <td valign="top">file</td>
+      <td valign="top">the file to be parsed; <span
+ style="font-family: monospace;">fully qualified path</span><br>
+      </td>
+      <td align="center" valign="top">Yes, when in single file mode.</td>
+    </tr>
+    <tr>
+      <td valign="top">rules<br>
+      </td>
+      <td valign="top">Specifies the rules files being used;<span
+ style="font-family: monospace;"> fully qualified path</span><br>
+      </td>
+      <td align="center" valign="top">No, otherwise default.jcsc is used</td>
+    </tr>
+    <tr>
+      <td valign="top">destdir<br>
+      </td>
+      <td valign="top">The folder where to place the results;<span
+ style="font-family: monospace;"> fully qualified path</span> </td>
+      <td align="center" valign="top">Yes, when in batch mode<br>
+      </td>
+    </tr>
+    <tr>
+      <td valign="top">worstcount</td>
+      <td valign="top">The generated XML shows a list of the worst
+classes. The <i>x</i> classes which do have the most violations; <span
+ style="font-family: monospace;">integer</span> The default is 15. </td>
+      <td align="center" valign="top">No, a value of '-1' keeps the
+default</td>
+    </tr>
+    <tr>
+      <td valign="top">resultsformatter</td>
+      <td valign="top">The formatter which prints out the results.
+There are 2 formatters available:
+      <ul>
+        <li><span style="font-family: monospace;">rj.tools.jcsc.XMLResultsformatter</span>
+- <span style="text-decoration: underline;">default for batch mode</span></li>
+        <li><span style="font-family: monospace;">rj.tools.jcsc.ConsoleResultsformatter</span>
+- <span style="text-decoration: underline;">default for single file
+mode</span><br>
+        </li>
+      </ul>
+      </td>
+      <td align="center" valign="top">No</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">violationssorter<br>
+      </td>
+      <td style="vertical-align: top;">Ther sorter for sorting the
+violations. There are 3 formatter available<br>
+      <ul>
+        <li><span style="font-family: monospace;">rj.tools.jcsc.sorter.OccurenceSorter</span>
+- <span style="text-decoration: underline;">default</span></li>
+        <li style="font-family: monospace;">rj.tools.jcsc.sorter.RulekeySorter</li>
+        <li><span style="font-family: monospace;">rj.tools.jcsc.sorter.SeveritySorter</span><br>
+        </li>
+      </ul>
+      </td>
+      <td style="vertical-align: top; text-align: center;">No<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">startdate<br>
+      </td>
+      <td style="vertical-align: top;">Only files which are newer then
+startdate are parsed; <span style="font-family: monospace;">String</span><br>
+Format <span style="font-family: monospace;">YYYY-MM-DD HH:MM:SS</span><br
+ style="font-family: monospace;">
+      </td>
+      <td style="vertical-align: top; text-align: center;">No, a value
+of "" means not set </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">failvalue<br>
+      </td>
+      <td style="vertical-align: top;">If the violations/NCSS gets
+higher or equals then build fails; <span
+ style="font-family: monospace;">double</span><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;">No, a value
+of "" means not set</td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">failseverity<br>
+      </td>
+      <td style="vertical-align: top;">If found violations severity
+is higher or equals then the build fails; <span
+ style="font-family: monospace;">integer</span><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;">No, a value
+of "" means not set<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">failproperty<br>
+      </td>
+      <td style="vertical-align: top;">When this attribute is set, JCSC
+will not cause a 'Build Failed' condition but create a property with
+the name of the failproperty value and set it to true; <span
+ style="font-family: monospace;">String</span><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;">No; a value
+of "" means not set<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">ignoretestseverity<br>
+      </td>
+      <td style="vertical-align: top;">Ignores violations in Unit-Test
+classes having a lower or equalt then <span
+ style="font-family: monospace;">ignoretestseverity</span><span
+ style="font-family: monospace;">; integer</span><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;">No, a value
+of "" not set<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">copyassociatedfiles<br>
+      </td>
+      <td style="vertical-align: top;">copy the associated files
+(example html, XSL, index.html) to the <span
+ style="font-family: monospace;">&lt;destdir&gt;</span>;<span
+ style="font-family: monospace;"> boolean</span><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;">No, only
+used when in batch mode<br>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top;">jcschome<br>
+      </td>
+      <td style="vertical-align: top;">The home folder if the JCSC
+installation. <br>
+      </td>
+      <td style="vertical-align: top; text-align: center;">Yes, if <span
+ style="font-family: monospace;">copyassociatedfiles </span>is set<br>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h3>Parameters specified as nested elements</h3>
+<h4>fileset</h4>
+<p> <a
+ href="http://jakarta.apache.org/ant/manual/CoreTypes/filterset.html">FileSets</a>
+are used to get the list of java files from a whole java source package
+tree for batch processing. </p>
+<h3>Examples</h3>
+<p><b>Example 1</b></p>
+<pre>&lt;target name="one"&gt;<br>  &lt;jcsc file="c:/cygwin/home/jcsc/src/rj/tools/jcsc/ui/RulesPanel.java"<br>        resultsformatter="rj.tools.jcsc.formatter.XMLResultsFormatter"/&gt;<br>&lt;/target&gt;<br></pre>
+Parses the RulesPanel.java file and shows the result in XML format
+using the <tt>default.jcsc</tt> rules.<br>
+<p><b>Example 2</b></p>
+<pre>...<br>&lt;!-- read the environment variables into env property --&gt;<br>&lt;property environment="env"/&gt;<br>...<br><br>&lt;target name="all"&gt;<br>  &lt;jcsc rules="c:/cygwin/home/jcsc/rules/company.jcsc"<br>        destdir="c:/results/jcsc/"<br>        worstcount="20"<br>	startdate="2003-01-01 00:00:00"<br>        failvalue="0.05"<br>        failseverity="5"<br>        copyassociatedfiles="true"<br>        jcschome=${env.JCSC_HOME}&gt;<br>    &lt;fileset dir="L:/java/src"<br>             includes="**/*.java"/&gt;<br>  &lt;/jcsc&gt;<br>&lt;/target&gt;<br><br></pre>
+Parses a whole package tree in batch mode. <span
+ style="font-family: monospace;">company.jcsc</span> is used as rules.
+The resulting XML, XSL and HTML files are put into <tt>c:/results/jcsc</tt>.
+The worst 20 classes are displayed on the web page. The files are all <tt>.java</tt>
+files starting at <tt>L:/java/src</tt>. Only files which have been
+created after Jan 1st 2003 midnight are considered. If the
+violations/NCSS ratio is higher
+then 0.05 (1 violations per 20 NCSS) or a violation of severity '5' has
+been found, the build fails.<br>
+<p><b>Example 3<br>
+</b></p>
+<pre>...<br>&lt;!-- read the environment variables into env property --&gt;<br>&lt;property environment="env"/&gt;<br>...<br><br>&lt;target name="all"&gt;<br>  &lt;jcsc rules="c:/cygwin/home/jcsc/rules/company.jcsc"<br>        destdir="c:/results/jcsc/"<br>        worstcount="10"<br>	violationssorter="rj.tools.jcsc.sorter.SeveritySorter"<br>	ignoretestseverity="4"<br>        jcschome=${env.JCSC_HOME}&gt;<br>    &lt;fileset dir="L:/java/src"<br>             includes="**/*.java"/&gt;<br>  &lt;/jcsc&gt;<br>&lt;/target&gt;<br><br></pre>
+Parses a whole package tree in batch mode. <span
+ style="font-family: monospace;">company.jcsc</span> is used as rules.
+The resulting XML, XSL and HTML files are put into <tt>c:/results/jcsc</tt>.
+The worst 10 classes are displayed on the web page. The files are all <tt>.java</tt>
+files starting at <tt>L:/java/src</tt>.&nbsp; The found violations are
+sorted by severity and violations with a severity of&nbsp; 4 or less
+are ignored in Unit-Test classes.<br>
+<p><b>Example 4<br>
+</b></p>
+<pre>...<br>&lt;!-- read the environment variables into env property --&gt;<br>&lt;property environment="env"/&gt;<br>...<br><br>&lt;target name="jcsc.run"&gt;<br>  &lt;jcsc rules="c:/cygwin/home/jcsc/rules/company.jcsc"<br>        destdir="c:/results/jcsc/"<br>        worstcount="20"<br>	startdate="2003-01-01 00:00:00"<br>        failvalue="0.05"<br>        failseverity="5"<br>        failproperty="jcsc.failed"<br>        copyassociatedfiles="true"<br>        jcschome=${env.JCSC_HOME}&gt;<br>    &lt;fileset dir="L:/java/src"<br>             includes="**/*.java"/&gt;<br>  &lt;/jcsc&gt;<br><br>  &lt;!-- here you could execute further steps; which will always be executed --&gt;<br><br>&lt;/target&gt;<br><br>&lt;target name="jcsc.test" <br>        depends="jcsc.run"<br>        description="runs JCSC and tests if it failed"&gt;<br>    &lt;fail if="${jcsc.failed}" <br>          message="JCSC failed -- VIO/NCSS ratio too high (max. 0.05)"/&gt;<br>&lt;/target&gt;<br><br></pre>
+This example is copied from Example 2, however it has one addtional
+attribute <span style="font-family: monospace;">failproperty</span>.
+In case that the JCSC should fail because of either <span
+ style="font-family: monospace;">failvalue </span>or <span
+ style="font-family: monospace;">failseverity </span>the build will
+not&nbsp; fail immediately. A property <span
+ style="font-family: monospace;">jcsc.failed</span> is created with
+value <span style="font-family: monospace;">true</span>. This property
+can be used to make decissions about further actions. Using the
+examples above, <span style="font-family: monospace;">jcsc.run</span>
+will never fail but<span style="font-family: monospace;"> jcsc.test</span>
+will if the <span style="font-family: monospace;">failproperty </span>was
+set -- that way you can between running JCSC and failing execute
+additional steps.<br>
+<h3>Note:</h3>
+It is recommended to only use the XMLResultsformatter when working in
+batch mode.<br>
+<hr>
+<div style="text-align: center;">Copyright &copy; 1999-2005 Ralph Jocham<br>
+</div>
+</body>
+</html>

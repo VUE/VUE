@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>BracesAroundSingleLineStatement</title>
+             
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+  <body>
+  <tt><b><font color="#009900">// This rule specifies whether braces should
+ be around<br>
+// single line statements. This is allowed but could cause<br>
+// could be missunderstood in badly indented code.<br>
+  </font><br>
+  ...<font color="#009900"><br>
+  // the 2nd line after the if statement could be assumed to<br>
+  // belong to the if block</font><br>
+  if (name.equals("Bill"))<br>
+  &nbsp; &nbsp; name.replace("Bill", "Linus");<br>
+  &nbsp; &nbsp; name.append("is cool");<br>
+  <br>
+  name.print();<br>
+  ...<br>
+  <br>
+  </b></tt><tt><b>...<font color="#009900"><br>
+   // this code is also bad indented but the braces make it<br>
+   // more clear to the if block</font><br>
+   if (name.equals("Bill"))<br>
+  {<br>
+   &nbsp; &nbsp; name.replace("Bill", "Linus");<br>
+  }<br>
+   &nbsp; &nbsp; name.append("is cool");<br>
+   <br>
+   name.print();<br>
+   ...</b></tt><br>
+ <br>
+</body>
+</html>

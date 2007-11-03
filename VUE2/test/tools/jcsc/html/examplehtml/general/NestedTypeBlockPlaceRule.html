@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>EmptyStringLiteralsAllowed</title>
+                                                             
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+</head>
+<body>
+        <font color="#009900"><tt><b>// This rule specifies where to place
+an non<br>
+// anonymous inner class.<br>
+// There are 2 choices:<br>
+// 1. At the beginning of the Class<br>
+// 2. At the end of the Clas</b></tt></font><br>
+   <br>
+<tt><b><font color="#009900">// Option 1</font><br>
+public class A<br>
+{<br>
+<font color="#009900"><font color="#000000">&nbsp;&nbsp;&nbsp; public class
+B<br>
+&nbsp;&nbsp;&nbsp; {<br>
+&nbsp; &nbsp; &nbsp; &nbsp; ...<br>
+&nbsp;&nbsp;&nbsp; }<br>
+<br>
+</font>&nbsp; &nbsp; // Field and Method go here<br>
+</font>}<br>
+<br>
+<font color="#009900">// Option 2</font><br>
+</b></tt><tt><b>public class A<br>
+{<br>
+</b></tt><tt><b><font color="#009900">&nbsp; &nbsp; // Field and Method go
+here<br>
+</font></b></tt><font color="#000000"><tt><b><br>
+&nbsp;&nbsp;&nbsp; public class B<br>
+&nbsp;&nbsp;&nbsp; {<br>
+&nbsp; &nbsp; &nbsp; &nbsp; ...<br>
+&nbsp;&nbsp;&nbsp; }<br>
+&nbsp;<br>
+}<br>
+</b></tt></font><br>
+</body>
+</html>

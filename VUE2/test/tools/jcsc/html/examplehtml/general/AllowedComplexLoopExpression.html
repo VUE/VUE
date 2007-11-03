@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>AssignmentInConidtional</title>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+</head>
+<body>
+<b><tt><font color="#009900">// This rule specifies whether you are
+allowed
+to have<br>
+// complex expressions in loops.<br>
+// A complex expression is usually a method call which<br>
+// could be very time/resource intensive. Therefore you<br>
+// should assign the return value to a variable and<br>
+// check agains this.</font><br>
+<br>
+<br>
+...<br>
+ComplexObject co = new ComplexObject();<br>
+<br>
+<font color="#009900">// this can be very time intensive</font><br>
+for (int i = 0; i &lt; co.doCalculation(); i++})<br>
+{<br>
+&nbsp; &nbsp; <font color="#009900">// do something</font><br>
+}<br>
+<br>
+<font color="#009900">// this approach is better</font><br>
+int result = co.doCalculation();<br>
+<br>
+</tt><tt>for (int i = 0; i &lt; result; i++})<br>
+{<br>
+&nbsp; &nbsp; <font color="#009900">// do something</font><br>
+}<br>
+<br>
+</tt></b><b><tt><font color="#009900">// or this one</font><br>
+</tt><tt>for (int i = 0, </tt></b><b><tt>result = co.doCalculation()</tt></b><b><tt>;
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp; i &lt; result; i++})<br>
+{<br>
+&nbsp; &nbsp; <font color="#009900">// do something</font><br>
+}<br>
+</tt></b><b><tt>&nbsp;
+</tt></b>
+</body>
+</html>
