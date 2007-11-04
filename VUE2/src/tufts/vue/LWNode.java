@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.193 $ / $Date: 2007-11-01 23:55:03 $ / $Author: sfraize $
+ * @version $Revision: 1.194 $ / $Date: 2007-11-04 23:10:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -407,7 +407,8 @@ public class LWNode extends LWContainer
      */
     protected boolean iconShowing()
     {    	
-        if (isPresentationContext() || isTextNode())
+        //if (isPresentationContext() || isTextNode())
+        if (hasFlag(Flag.NO_ICONS) || isTextNode())
             return false;
          else
             return mIconBlock.isShowing(); // remember not current till after a layout
