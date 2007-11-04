@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.78 $ / $Date: 2007-11-04 21:34:20 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2007-11-04 23:10:07 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -75,6 +75,12 @@ public class LWSlide extends LWContainer
 
     public final LWPathway.Entry getEntry() {
         return mEntry;
+    }
+
+    /** always just return child list -- slides never have extra picks (e.g., slide icons) */
+    @Override
+    public List<LWComponent> getPickList(PickContext pc, List<LWComponent> stored) {
+        return (List) getChildren();
     }
 
     @Override
@@ -758,6 +764,8 @@ public class LWSlide extends LWContainer
             super.addChildImpl(c);
             return;
         }
+
+        c.setFlag(Flag.NO_ICONS);
         
         if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
 
@@ -806,8 +814,10 @@ public class LWSlide extends LWContainer
 
     private void applyMasterStyle(LWComponent node) {
         applyMasterStyle(getMasterSlide(), node);
-        for (LWComponent c : node.getAllDescendents())
-            applyMasterStyle(getMasterSlide(), c);
+        if (!(node instanceof LWGroup)) {
+            for (LWComponent c : node.getAllDescendents())
+                applyMasterStyle(getMasterSlide(), c);
+        }
     }
             
     private static void applyMasterStyle(MasterSlide master, LWComponent c) {
@@ -815,6 +825,9 @@ public class LWSlide extends LWContainer
             Log.error("null master slide applying master style to " + c);
             return;
         }
+
+        c.setFlag(Flag.NO_ICONS);
+        
         if (c.hasResource())
             c.setStyle(master.getLinkStyle());
         //else if (c instanceof LWNode && ((LWNode)c).isTextNode())
