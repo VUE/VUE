@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-11-04 21:42:44 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2007-11-04 23:08:42 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -68,7 +68,7 @@ public class LWTraversal {
     LWTraversal(boolean preOrder, PickContext pc) {
         this.preOrder = preOrder;
         this.pc = pc;
-        //if (DEBUG.PICK && DEBUG.META) Log.debug("pick cache: " + Util.tags(pickList));
+        if (DEBUG.PICK && DEBUG.WORK) Log.debug("pick cache: " + Util.tags(pickCache));
     }
 
     LWTraversal(PickContext pc) {
@@ -127,7 +127,9 @@ public class LWTraversal {
                     iteratingPickCache = true;
 
                 try {
-                    traverseChildrenZoomFocusIsUnderSiblings(pickables);
+
+                    if (DEBUG.PICK && DEBUG.META) Util.dumpCollection(pickables);
+                    traversePicks(c, pickables);
                 } catch (Throwable t) {
                     Util.printStackTrace(t, "traversal failure on " + c + "; pickables=" + pickables);
                 } finally {
@@ -156,23 +158,7 @@ public class LWTraversal {
         return true;
     }
         
-    public void traverseChildren(java.util.List<LWComponent> pickChildren)
-    {
-        // default behaviour of traversals is to traverse list in reverse so
-        // that top-most components are seen first
-
-        // TODO: could more cleanly handle our slide-icon hack by having a special
-        // call to ask for the child list, and if someone has a slide icon, return
-        // a list with that always at the the end (on top)
-
-        for (ListIterator<LWComponent> i = pickChildren.listIterator(pickChildren.size()); i.hasPrevious();) {
-            traverse(i.previous());
-            if (done)
-                return;
-        }
-    }
-    
-    public void traverseChildrenZoomFocusIsUnderSiblings(java.util.List<LWComponent> children)
+    public void traversePicks(LWComponent curTop, java.util.List<LWComponent> children)
     {
         // if we encounder a zoomed rollover, all siblings get priority
         // (so you can get to siblings that might have been obscurved by it's increased size)
@@ -186,6 +172,10 @@ public class LWTraversal {
         if (DEBUG.PICK && DEBUG.META) eoutln("TRAVERSE " + Util.tags(children));
         for (ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
             final LWComponent c = i.previous();
+            if (c == curTop) {
+                Util.printStackTrace("found local root in pick list (loop!), skipping: " + c);
+                continue;
+            }
             if (c.isZoomedFocus()) {
                 zoomedFocus = c;
             } else {
@@ -198,6 +188,49 @@ public class LWTraversal {
         if (zoomedFocus != null) 
             traverse(zoomedFocus);
     }
+    
+//     public void traverseChildren(java.util.List<LWComponent> pickChildren)
+//     {
+//         // default behaviour of traversals is to traverse list in reverse so
+//         // that top-most components are seen first
+
+//         // TODO: could more cleanly handle our slide-icon hack by having a special
+//         // call to ask for the child list, and if someone has a slide icon, return
+//         // a list with that always at the the end (on top)
+
+//         for (ListIterator<LWComponent> i = pickChildren.listIterator(pickChildren.size()); i.hasPrevious();) {
+//             traverse(i.previous());
+//             if (done)
+//                 return;
+//         }
+//     }
+    
+//     public void traverseChildrenZoomFocusIsUnderSiblings(java.util.List<LWComponent> children)
+//     {
+//         // if we encounder a zoomed rollover, all siblings get priority
+//         // (so you can get to siblings that might have been obscurved by it's increased size)
+
+//         // Note that this shouldn't be used in instances where the siblings might be actually
+//         // overlapping when non-zoomed, as we get flashing back and forth every time
+//         // the mouse moves.
+        
+//         LWComponent zoomedFocus = null;
+        
+//         if (DEBUG.PICK && DEBUG.META) eoutln("TRAVERSE " + Util.tags(children));
+//         for (ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
+//             final LWComponent c = i.previous();
+//             if (c.isZoomedFocus()) {
+//                 zoomedFocus = c;
+//             } else {
+//                 traverse(c);
+//                 if (done)
+//                     return;
+//             }
+//         }
+
+//         if (zoomedFocus != null) 
+//             traverse(zoomedFocus);
+//     }
 
     
 
@@ -477,7 +510,7 @@ public class LWTraversal {
                 
             } else if (hit != null) {
                 final LWContainer parent = hit.getParent();
-                if (parent != null && !(parent instanceof LWSlide)) { // todo: this hack crucial for slides
+                if (parent != null && !hit.hasAncestorOfType(LWSlide.class)) { // todo cleanup: this hack crucial for slides
 
                     // This is a hack for groups to replace our getPickLevel functionality:
 
@@ -520,6 +553,14 @@ public class LWTraversal {
                 if (picked != null && pc.dropping != null)
                     picked = picked.defaultDropTarget(pc);
             
+            }
+
+            if (picked != null && picked != pc.root && !picked.hasAncestor(pc.root)) {
+                // Just in case, NEVER allow anything above the current pick root to be picked (e.g., above the current focal).
+                // The group picking code is pretty hairy, and although it should catch this now,
+                // we double-check here just in case.
+                Log.warn("PointPick: DENIED: " + picked + "; is above pick root: " + pc.root);
+                picked = null;
             }
 
             if (DEBUG.PICK) eoutln("PointPick:     PICKED: " + picked + "\n");
