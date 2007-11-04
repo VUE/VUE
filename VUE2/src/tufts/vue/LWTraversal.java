@@ -18,6 +18,8 @@
 
 package tufts.vue;
 
+import tufts.Util;
+
 import java.util.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -36,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.35 $ / $Date: 2007-11-02 20:47:31 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2007-11-04 21:36:24 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -48,6 +50,8 @@ import java.awt.geom.Rectangle2D;
 
 public class LWTraversal {
 
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWTraversal.class);
+
     protected static final boolean PRE_ORDER = true;
     protected static final boolean POST_ORDER = false;
 
@@ -57,17 +61,20 @@ public class LWTraversal {
     
     protected final PickContext pc;
     
-    private final List<LWComponent> pickList = new ArrayList();
+    private final List<LWComponent> pickCache = new ArrayList();
+    private boolean iteratingPickCache;
     
     /** Note: if preOrder is true, a node can be visited if accept(node) is true, even if acceptTraversal(node) is false */
     LWTraversal(boolean preOrder, PickContext pc) {
         this.preOrder = preOrder;
         this.pc = pc;
+        //if (DEBUG.PICK && DEBUG.META) Log.debug("pick cache: " + Util.tags(pickList));
     }
 
     LWTraversal(PickContext pc) {
         this(POST_ORDER, pc);
     }
+
 
     public void traverse(LWComponent c) {
 
@@ -84,20 +91,59 @@ public class LWTraversal {
             if (acceptChildren(c)) {
                 if (DEBUG.PICK) eoutln("Travers1: " + c);
                 depth++;
+
+                List<LWComponent> pickables = null;
+
+                final List<LWComponent> curCache;
+                if (iteratingPickCache) {
+                    // messy:  only need this if getPickList actually returns slide icons...
+                    if (DEBUG.PICK && DEBUG.META) Log.debug("allocating tmp pick cache");
+                    curCache = new ArrayList(); 
+                } else {
+                    curCache = pickCache;
+                }
+                
+                try {
+
+                    // todo performace: get rid of all this pickCache stuff, and change
+                    // getPickList to getPickIter, and require it to iterate in the pick
+                    // order (reverse of child order), and the impl's can use some kind
+                    // of ReverseListIter by default, and combine it with some kind of
+                    // GroupIterator that would wrap children iterator + seenSlideIcons
+                    // iter (and then apply the reverse on top of it).
+                    
+                    pickables = c.getPickList(pc, curCache);
+                } catch (Throwable t) {
+                    Util.printStackTrace(t, "pickList fetch failed for " + c + "; pickables=" + pickables);
+                }
+
                 if (depth > 15) {
-                    tufts.Util.printStackTrace("aborting pick at depth " + depth + " in case of loop; pickList: " +
-                                               c.getPickList(pc, pickList));
+                    Util.printStackTrace("aborting pick at depth " + depth + " in case of loop; pickables: " + pickables);
                     done = true;
                     return;
                 }
-                traverseChildrenZoomFocusIsUnderSiblings(c.getPickList(pc, pickList));
+                
+                if (pickables == pickCache)
+                    iteratingPickCache = true;
+                else
+                    iteratingPickCache = false;
+
+                try {
+                    traverseChildrenZoomFocusIsUnderSiblings(pickables);
+                } catch (Throwable t) {
+                    Util.printStackTrace(t, "traversal failure on " + c + "; pickables=" + pickables);
+                } finally {
+                    depth--;
+                    iteratingPickCache = false;
+                }
+                
 //                 if (true || c.isManagingChildLocations())
 //                     traverseChildrenZoomFocusIsUnderSiblings(c.getPickList(pc, pickList));
 //                 //traverseChildrenZoomUnderSiblings(c.getChildList());
 //                 else
 //                     traverseChildren(c.getPickList(pc, pickList));
 //                 //traverseChildren(c.getChildList());
-                depth--;
+                
             }
             if (done) return;
             if (!preOrder && accept(c))
@@ -119,7 +165,7 @@ public class LWTraversal {
         // TODO: could more cleanly handle our slide-icon hack by having a special
         // call to ask for the child list, and if someone has a slide icon, return
         // a list with that always at the the end (on top)
-        
+
         for (ListIterator<LWComponent> i = pickChildren.listIterator(pickChildren.size()); i.hasPrevious();) {
             traverse(i.previous());
             if (done)
@@ -138,6 +184,7 @@ public class LWTraversal {
         
         LWComponent zoomedFocus = null;
         
+        if (DEBUG.PICK && DEBUG.META) eoutln("TRAVERSE " + Util.tags(children));
         for (ListIterator<LWComponent> i = children.listIterator(children.size()); i.hasPrevious();) {
             final LWComponent c = i.previous();
             if (c.isZoomedFocus()) {
@@ -309,7 +356,7 @@ public class LWTraversal {
             // inverse transform to the point.
 
             c.transformMapToZeroPoint(mapPoint, zeroPoint);
-            if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + zeroPoint);
+            //if (DEBUG.PICK && DEBUG.META) eoutln("relative pick: " + zeroPoint);
 
             // note: passing an uncloned PickContext down to each visited component
             // is a bit risky, as all implementations must be sure not to modify
