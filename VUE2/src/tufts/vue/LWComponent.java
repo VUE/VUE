@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.363 $ / $Date: 2007-11-04 21:33:30 $ / $Author: sfraize $
+ * @version $Revision: 1.364 $ / $Date: 2007-11-04 23:10:49 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -131,7 +131,8 @@ public class LWComponent
             /** can't be moved */
             FIXED_LOCATION,
             NO_DELETE,
-            NO_LINKS;
+            NO_LINKS,
+            NO_ICONS;
 
         // TODO: general LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link
             
@@ -821,6 +822,17 @@ u                    getSlot(c).setFromString((String)value);
         void setBy(String s) { set(s); }
     }
 
+    public class BooleanProperty extends Property<java.lang.Boolean> {
+        BooleanProperty(Key key, Boolean defaultValue) {
+            super(key);
+            value = defaultValue;
+        }
+        BooleanProperty(Key key) {
+           this(key, Boolean.FALSE);
+        }
+        
+        void setBy(String s) { set(Boolean.valueOf(s)); }
+    }
     
     abstract public class NumberProperty<T> extends Property<T> {
         NumberProperty(Key key) { super(key); }
