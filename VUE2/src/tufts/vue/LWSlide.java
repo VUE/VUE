@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.77 $ / $Date: 2007-11-03 20:39:30 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2007-11-04 21:34:20 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -517,17 +517,25 @@ public class LWSlide extends LWContainer
         
         final Set<Resource> slideUnique = new HashSet();
         final Set<Resource> nodeUnique = new HashSet();
+        
+        final Map<Resource,LWComponent> slideSources = new HashMap();
+        final Map<Resource,LWComponent> nodeSources = new HashMap();
 
         // First add all resources in any descendent of the node to nodeUnique (include
         // the node's resource itself), then iterate through all the resources found
         // anywhere inside the slide, removing duplicates from nodeUnique, and adding the
         // remainder to slideUnique.
 
-        if (node.hasResource())
-            nodeUnique.add(node.getResource());
-        for (LWComponent c : node.getAllDescendents())
-            if (c.hasResource())
-                nodeUnique.add(c.getResource());
+        if (node.hasResource()) {
+            if (nodeUnique.add(node.getResource()))
+                nodeSources.put(node.getResource(), node);
+        }
+        for (LWComponent c : node.getAllDescendents()) {
+            if (c.hasResource()) {
+                if (nodeUnique.add(c.getResource()))
+                    nodeSources.put(c.getResource(), c);
+            }
+        }
 
         if (DEBUG.Enabled) {
             for (Resource r : nodeUnique)
@@ -544,6 +552,7 @@ public class LWSlide extends LWContainer
                     if (DEBUG.Enabled) outf("%30s: %s", "ALREADY ON NODE, IGNORE FOR SLIDE", Util.tags(r));
                 } else {
                     if (slideUnique.add(r)) {
+                        slideSources.put(r, c);
                         if (DEBUG.Enabled) outf("%30s: %s", "ADDED UNIQUE SLIDE", Util.tags(r));
                     }
                 }
@@ -557,22 +566,31 @@ public class LWSlide extends LWContainer
             this.outf("SLIDE UNIQUE: " + slideUnique);
             node.outf(" NODE UNIQUE: " + nodeUnique);
         }
-        
+
+
+        // TODO: if a resource was added to BOTH the slide and the node
+        // extra-sync (e.g., cut/paste or drag/drop), and then during sync 
+        // we also probably want to connect these up via sync-source.
+                
         if (type == Sync.ALL || type == Sync.TO_NODE) {
             for (Resource r : slideUnique) {
                 // TODO: merge MapDropTarget & NodeModeTool node creation code into NodeTool, including resource handling
                 final LWNode newNode = new LWNode(r.getTitle(), r);
+                newNode.setSyncSource(slideSources.get(r));
                 node.addChild(newNode);
             }
         }
-        
+
         if (type == Sync.ALL || type == Sync.TO_SLIDE) {
             for (Resource r : nodeUnique) {
                 final LWComponent newNode;
-                if (r.isImage())
+                // TODO: MERGE THIS CODE WITH ADDCHILDIMPL LOGIC / CreateForPathway/importAndLayout
+                if (false && r.isImage()) {
                     newNode = new LWImage(r);
-                else
+                } else {
                     newNode = new LWNode(r.getName(), r);
+                    newNode.setSyncSource(nodeSources.get(r));
+                }
                 this.addChild(newNode);
             }
         }
@@ -786,8 +804,10 @@ public class LWSlide extends LWContainer
     }
     
 
-    private void applyMasterStyle(LWComponent c) {
-        applyMasterStyle(getMasterSlide(), c);
+    private void applyMasterStyle(LWComponent node) {
+        applyMasterStyle(getMasterSlide(), node);
+        for (LWComponent c : node.getAllDescendents())
+            applyMasterStyle(getMasterSlide(), c);
     }
             
     private static void applyMasterStyle(MasterSlide master, LWComponent c) {
