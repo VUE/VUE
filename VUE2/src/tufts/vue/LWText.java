@@ -11,6 +11,9 @@ import tufts.Util;
 
 
 public class LWText extends LWComponent {
+
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWText.class);
+    
 	public static final Object TYPE_RICHTEXT = "richTextNode";
 	protected transient RichTextBox labelBox = null;
     //protected RectangularShape mShape;
@@ -405,9 +408,13 @@ public class LWText extends LWComponent {
 	 */
 	protected void layout(Object triggerKey, Size curSize, Size request) {
 		if (inLayout) {
-			if (DEBUG.Enabled)
-				new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
-			return;
+                    if (DEBUG.Enabled) {
+                        if (DEBUG.META || DEBUG.LAYOUT)
+                            new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
+                        else
+                            Log.warn("already in layout: " + Util.tag(this) + " id#" + getID());
+                    }
+                    return;
 		}
 		inLayout = true;
 		if (DEBUG.LAYOUT) {
