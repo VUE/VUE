@@ -585,4 +585,19 @@ public class LWText extends LWComponent {
 		return min;
 	}
 
+    @Override
+    public String toString() {
+
+        String txt;
+
+        if (labelBox == null)
+            txt = "<null-RichTextBox>";
+        else {
+            txt = labelBox.getText();
+            txt = txt.replaceAll("\\s+", " ");        
+        }
+
+        return "LWText[" + getID() + "; " + txt + "]";
+    }
+
 }
