@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-11-04 21:36:24 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2007-11-04 21:42:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -97,7 +97,7 @@ public class LWTraversal {
                 final List<LWComponent> curCache;
                 if (iteratingPickCache) {
                     // messy:  only need this if getPickList actually returns slide icons...
-                    if (DEBUG.PICK && DEBUG.META) Log.debug("allocating tmp pick cache");
+                    if (DEBUG.WORK) Log.debug("allocating tmp pick cache for " + c);
                     curCache = new ArrayList(); 
                 } else {
                     curCache = pickCache;
@@ -125,8 +125,6 @@ public class LWTraversal {
                 
                 if (pickables == pickCache)
                     iteratingPickCache = true;
-                else
-                    iteratingPickCache = false;
 
                 try {
                     traverseChildrenZoomFocusIsUnderSiblings(pickables);
@@ -134,7 +132,8 @@ public class LWTraversal {
                     Util.printStackTrace(t, "traversal failure on " + c + "; pickables=" + pickables);
                 } finally {
                     depth--;
-                    iteratingPickCache = false;
+                    if (pickables == pickCache)
+                        iteratingPickCache = false;
                 }
                 
 //                 if (true || c.isManagingChildLocations())
