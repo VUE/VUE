@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.362 $ / $Date: 2007-11-01 23:55:03 $ / $Author: sfraize $
+ * @version $Revision: 1.363 $ / $Date: 2007-11-04 21:33:30 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2687,7 +2687,6 @@ u                    getSlot(c).setFromString((String)value);
         }
     }
 
-
     /** @return the slides for drawing as slide icons in the current picking and drawing order */
     private final Iterable<LWSlide> seenSlideIcons(DrawContext dc) {
 //         if (mEntries == null || mEntries.size() == 0) {
@@ -2706,7 +2705,7 @@ u                    getSlot(c).setFromString((String)value);
         }
         //return new SlideIter();
     }
-    
+
 
     /**
      * @return a list, to be traversed in reverse order.  If a new list needs to be constructed,
@@ -2714,17 +2713,13 @@ u                    getSlot(c).setFromString((String)value);
      */
     public List<LWComponent> getPickList(PickContext pc, List<LWComponent> stored)
     {
-        if (pc.root != this && hasEntries()) {
-            // todo performance: would be nice if we didn't even need to clear and
-            // load up a new list.
-            // also: might actually just get rid of SlideIter/seenSlides, and use getPickList
-            // down in draw...
-            //synchronized (stored) {            
-                stored.clear();
-                stored.addAll(getChildren());
-                for (LWSlide s : seenSlideIcons(pc.dc))
-                    stored.add(s);
-            //}
+        Iterable<LWSlide> seenSlides = null;
+        if (pc.root != this && hasEntries() && (seenSlides = seenSlideIcons(pc.dc)) != Util.EmptyIterable) {
+            // todo performance: see LWTraversal for comments: change impl to return a ReverseListIterator, etc.a
+            stored.clear();
+            stored.addAll(getChildren());
+            for (LWSlide s : seenSlides)
+                stored.add(s);
             return stored;
         } else
             return (List) getChildren();
