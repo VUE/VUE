@@ -1147,10 +1147,14 @@ public class PresentationTool extends VueTool
 //         else if (mFocal instanceof LWMap == false)
 //             focused = mFocal;
 
-        final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from somewhere safer
+        final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from some kind of context
         
-        //LWComponent focused = mCurrentPage.getOriginalMapNode();
         LWComponent focused = mCurrentPage.getPresentationFocal();
+
+        if (!focused.isVisible())  {
+            // if focused is slide icon and slide icons are turned off, will report not visible
+            focused = mCurrentPage.getOriginalMapNode();
+        }
 
         if (focused != null) {
 
