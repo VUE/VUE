@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.480 $ / $Date: 2007-11-05 07:21:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.481 $ / $Date: 2007-11-05 08:28:59 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2464,8 +2464,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // DRAW THE CURRENT INDICATION, if any (for targeting during drags)
         //-------------------------------------------------------
 
-        if (indication != null && indication != mFocal) {
-            drawIndication(dc.push()); dc.pop();
+        if (indication != null && indication != mFocal && indication.hasAncestor(mFocal)) {
+            if (indication instanceof LWSlide && indication.isPathwayOwned() && (indication.getParent() == mFocal || !indication.isVisible())) {
+                // special case: don't indicate a slide icon if it's parent is
+                // the focal -- slide icons are "special" children that are NOT drawn when
+                // an object is the focal, and also don't indicate if it currently
+                // isn't visible, which will be the case if slide icons are turned off
+            } else {
+                drawIndication(dc.push()); dc.pop();
+            }
         }
 
         //-------------------------------------------------------
@@ -4163,7 +4170,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     if (LWC instanceof LWMap && ((LWMap)LWC).getFile() != null)
                         s = ((LWMap)LWC).getFile().getAbsolutePath();
                     if (LWC.hasResource())
-                        s = LWC.getResource().toString();
+                        s = LWC.getResource().getSpec();
                     if (s == null && LWC.hasLabel())
                         s = LWC.getLabel();
                     if (s == null && LWC.hasNotes())
@@ -4336,7 +4343,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             case KeyEvent.VK_ENTER:
                 if (!Actions.Rename.isUserEnabled() && // messy: encoding that we know Rename uses ENTER here...
                     !(mFocal instanceof LWMap) && !(this instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
-                    handled = popFocal(e.isShiftDown());
+                    handled = popFocal(e.isShiftDown(), ANIMATE);
                 } else if (Actions.Rename.isUserEnabled()) {
                     // while this is normally fired via it's membership in the main menu, we have to fire it manually
                     // here just in case this happens to be a full-screen viewer (FocusManager normallhy relays
@@ -6203,8 +6210,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void defaultDoubleClickAction(MouseEvent e) {
         // TODO: refactor such that this shares code w/LWComponent.doZoomingDoubleClick,
         // and we don't need the instanceof checks.
-        if (mFocal instanceof LWSlide || mFocal instanceof LWGroup) {
+        //if (mFocal instanceof LWSlide || mFocal instanceof LWGroup) {
+        if (mFocal instanceof LWMap == false) {
             popFocal(POP_TO_TOP, ANIMATE);
+            // What we really want to do here is pop to the next "tier" --
+            // e.g., pop up to the slide if we're in a slide, otherwise back up
+            // to the map.
 
 // This applies to SINGLE CLICK:
 //             if (activeTool == ToolPresentation) {
