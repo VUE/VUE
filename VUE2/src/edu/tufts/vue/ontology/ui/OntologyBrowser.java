@@ -320,7 +320,7 @@ public class OntologyBrowser extends JPanel {
             ontologyOpenAction,
             applyStyle,
             removeOntology,
-            new edu.tufts.vue.ontology.action.AddFedoraOntologies(this)
+            new edu.tufts.vue.ontology.action.AddFedoraOntology(this)
             // ,about this ontology
 
         };
