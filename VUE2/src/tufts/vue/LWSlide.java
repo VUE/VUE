@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.82 $ / $Date: 2007-11-05 13:01:47 $ / $Author: sfraize $
+ * @version $Revision: 1.83 $ / $Date: 2007-11-05 14:58:33 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -631,7 +631,7 @@ public class LWSlide extends LWContainer
 
     private static void track(String where, Object o) {
         if (DEBUG.Enabled)
-            Log.debug(String.format("%7s: %s",
+            Log.debug(String.format("%8s: %s",
                                     where,
                                     o instanceof LWComponent ? o : Util.tags(o)));
     }
@@ -667,6 +667,14 @@ public class LWSlide extends LWContainer
         
         super.pasteChildren(iterable);
     }
+
+    @Override
+    protected void addChildImpl(final LWComponent c)
+    {
+        track("addChild", c);
+        super.addChildImpl(c);
+    }
+
     
 //     @Override
 //     protected void addChildImpl(final LWComponent c)

@@ -34,7 +34,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.19 $ / $Date: 2007-11-01 23:50:20 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007-11-05 14:58:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -222,7 +222,8 @@ public class PreviewPane extends JPanel
             return;
             
         displayImage(NoImage);
-        status("Error: " + msg);
+        if (msg != null)
+            status("Error: " + msg);
         isLoading = false;
     }
 

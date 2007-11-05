@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.35 $ / $Date: 2007-11-05 13:02:38 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2007-11-05 14:58:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -271,6 +271,8 @@ public class Images
         Object readable;        // the readable image source (not a Resource, and URL's converted to stream before ImageIO)
         File cacheFile;         // If later stored in a file cache, is marked here.
 
+        boolean isThumbshot = false;
+
         ImageSource(Object original) {
             this.original = original;
 
@@ -288,6 +290,8 @@ public class Images
                 this.resource = r;
             } else if (original instanceof java.net.URL) {
                 this.readable = (java.net.URL) original;
+                if (readable.toString().startsWith(URLResource.THUMBSHOT_FETCH))
+                    isThumbshot = true;
                 this.resource = null;
             } else if (original instanceof BufferedImage) {
                 Util.printStackTrace("SEEING BUFFERED IMAGE: HANDLE PRIOR " + original);
@@ -329,6 +333,10 @@ public class Images
             } else
                 this.key = null; // will not be cacheable
             
+        }
+
+        boolean useCacheFile() {
+            return !isThumbshot;
         }
 
         public String toString() {
@@ -788,6 +796,9 @@ public class Images
                     msg = "Not Found: " + t.getMessage();
                 else if (t instanceof java.net.UnknownHostException)
                     msg = "Unknown Host: " + t.getMessage();
+                else if (t instanceof java.lang.IllegalArgumentException && t.getMessage().startsWith("LUT has improper length"))
+                    // known java bug: many small PNG images fail to read (effects thumbshots)
+                    msg = null; // don't bother to report an error
                 else if (t instanceof ThreadDeath)
                     msg = "interrupted";
                 else if (t.getMessage() != null && t.getMessage().length() > 0)
@@ -799,7 +810,7 @@ public class Images
                 // during image loading:
                 listener.gotImageError(imageSRC.original, msg);
 
-                Log.warn("Image source: " + imageSRC + ": " + t);
+                Log.warn(imageSRC + ": " + t);
             }
 
             if (imageSRC.resource != null)
@@ -810,6 +821,15 @@ public class Images
         // replacing the existing CacheEntry with a new one, instead of
         // updating the old with the new in-memory image buffer.
 
+        
+//         if (imageSRC.isThumbshot) {
+//             // always cache the result for a thumbshot, even if null
+//             Cache.put(imageSRC.key, new CacheEntry(image, null)); // oops: we don't currently support fully null cache entries
+//         } else
+        if (!imageSRC.useCacheFile()) {
+            if (image != null)
+                Cache.put(imageSRC.key, new CacheEntry(image, null));
+        } else
         if (image != null) {
             File permanentCacheFile = null;
             if (imageSRC.cacheFile != null)
@@ -1096,35 +1116,42 @@ public class Images
                             System.out.format("%20s: %s\n", e.getKey(), e.getValue());
                     }
                 }
-                
 
-                tmpCacheFile = makeTmpCacheFile(imageSRC.key);
-                imageSRC.cacheFile = tmpCacheFile;  // will be made permanent if no errors
-
-                if (imageSRC.cacheFile != null) {
-                    try {
-                        imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile, listener);
-                        success = true;
-                    } catch (Images.DataException e) {
-                        Log.warn(imageSRC + ": " + e);
-                        if (++tries > 1) {
-                            final String msg = "Try #" + tries + ": " + e;
-                            if (DEBUG.Enabled)
-                                Util.printStackTrace(msg);
-                            else
-                                Log.warn(msg);
-                            throw e;
-                        } else {
-                            Log.info("second try for " + imageSRC);
-                            urlStream.close();
-                        }
-                        // try the reconnect one more time
-                    }
-                } else {
-                    // unable to create cache file: read directly from the stream
-                    Log.warn("Failed to create cache file " + tmpCacheFile);
+                if (!imageSRC.useCacheFile()) {
+                    
                     imageSRC.readable = urlStream;
                     success = true;
+                    
+                } else {
+
+                    tmpCacheFile = makeTmpCacheFile(imageSRC.key);
+                    imageSRC.cacheFile = tmpCacheFile;  // will be made permanent if no errors
+                    
+                    if (imageSRC.cacheFile != null) {
+                        try {
+                            imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile, listener);
+                            success = true;
+                        } catch (Images.DataException e) {
+                            Log.warn(imageSRC + ": " + e);
+                            if (++tries > 1) {
+                                final String msg = "Try #" + tries + ": " + e;
+                                if (DEBUG.Enabled)
+                                    Util.printStackTrace(msg);
+                                else
+                                    Log.warn(msg);
+                                throw e;
+                            } else {
+                                Log.info("second try for " + imageSRC);
+                                urlStream.close();
+                            }
+                            // try the reconnect one more time
+                        }
+                    } else {
+                        // unable to create cache file: read directly from the stream
+                        Log.warn("Failed to create cache file " + tmpCacheFile);
+                        imageSRC.readable = urlStream;
+                        success = true;
+                    }
                 }
                 
             } while (!success && tries < 2);
@@ -1526,7 +1553,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
 
         if (true) {
 
-            final byte[] testBuf = new byte[DEBUG.Enabled ? 128 : 64];
+            final byte[] testBuf = new byte[64];
             final int got = read(testBuf);
             super.seek(0); // put as back at the start
             
@@ -1560,6 +1587,14 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
                 // with <HTML> every once in a while: we can be sure to have a cache file with a bit 
                 // of data in it we can inspect afterwords.
                 readUntil(BUFFER_LENGTH);
+
+                if (DEBUG.IMAGE) {
+                    byte[] buf = new byte[BUFFER_LENGTH];
+                    int n = read(buf);
+                    super.seek(0);
+                    Log.debug("Cache contents:\n");
+                    System.out.println(new String(buf, 0, n, "US_ASCII"));
+                }
                 
                 close();
                 throw new Images.DataException("Content is HTML, not image data");

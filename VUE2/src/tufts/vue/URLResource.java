@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.41 $ / $Date: 2007-11-05 13:00:26 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2007-11-05 14:58:33 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1493,7 +1493,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
 
-    private Image mThumbShot;
+    //private URL mThumbShot;
 
     /**
      * Either immediately return an Image object if available, otherwise return an
@@ -1516,15 +1516,16 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return getFileIconImage();
         }
         else if (mURL_Browse != null && !isLocalFile()) {
-            if (mThumbShot == null) {
-                mThumbShot = fetchThumbshot(mURL_Browse);
+            return getThumbshotURL(mURL_Browse);
+//             if (mThumbShot == null) {
+//                 mThumbShot = fetchThumbshot(mURL_Browse);
 
-                // If we don't assign this, it will keep trying, which
-                // is bad, yet if we go from offline to online, we'd
-                // like to start finding these, so we just keep trying for now...
-                //if (mThumbShot == null) mThumbShot = GUI.NoImage32;
-            }
-            return mThumbShot;
+//                 // If we don't assign this, it will keep trying, which
+//                 // is bad, yet if we go from offline to online, we'd
+//                 // like to start finding these, so we just keep trying for now...
+//                 //if (mThumbShot == null) mThumbShot = GUI.NoImage32;
+//             }
+//             return mThumbShot;
         }
         else 
             return null;
@@ -1550,68 +1551,81 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         */
     }
 
-    // TODO: create an Images.Thumbshot class that can be a recognized special image
-    // source (just the thumbshot URL), which getPreview can return, so ResourceIcon /
-    // PreviewPane can feed it to Images.getImage and get the async callback when it's
-    // loaded instead of having to fetch the thumbshot on the AWT EDT.  (Also, Images
-    // can then manage caching the thumbshots, perhaps based on host only.  Also may not
-    // want to bother caching those to disk in case of expiration).
+    public static final String THUMBSHOT_FETCH = "http://open.thumbshots.org/image.pxf?url=";
 
-    private Image fetchThumbshot(URL url)
-    {
-        if (url == null || !"http".equals(url.getProtocol()))
-            return null;
-
-        final String thumbShotURL = "http://open.thumbshots.org/image.pxf?url=" + url;
-        final URL thumbShot = makeURL(thumbShotURL);
-
-        if (thumbShot == null)
-            return null;
-
-        // TODO: if we're currently on the AWT event thread, this should NOT run synchronously...
-        // We should spawn a thread for this.  Otherwise, any delay in accessing thumbshots.org
-        // will result in the UI locking up until it responds with a result/error.
-
-        final boolean inUI_Thread = SwingUtilities.isEventDispatchThread();
-
-        if (inUI_Thread) {
-            // 2007-11-05 SMF -- okay, this not safe, turning off for now:
-            if (DEBUG.Enabled) Log.debug("skipping thumbshot fetch in AWT EDT: " + thumbShot);
-            return null;
-        }
-
-        if (inUI_Thread) {
-             Log.warn("fetching thumbshot in AWT; may lock UI: " + thumbShot);
-             if (DEBUG.Enabled && DEBUG.META) Util.printStackTrace("fetchThumbshot " + thumbShot);
-        } else {
-            if (DEBUG.IO) Log.debug("attempting thumbshot: " + thumbShot);
-        }
-
-        Image image = null;
-        boolean gotError = false;
-        try {
-            image = ImageIO.read(thumbShot);
-        } catch (Throwable t) {
-            if (inUI_Thread) {
-                gotError = true;
-                Log.warn("fetching thumbshot in AWT;   got error: " + thumbShot + "; " + t);
-            }
-            //if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
-        }
-        if (inUI_Thread && !gotError)
-            Log.warn("fetching thumbshot in AWT;         got: " + thumbShot);
-
-        if (image == null) {
-            if (DEBUG.WEBSHOTS) out("Didn't get a valid return from webshots : " + thumbShot);
-        } else if (image.getHeight(null) <= 1 || image.getWidth(null) <= 1) {
-            if (DEBUG.WEBSHOTS) out("This was a valid URL but there is no webshot available : " + thumbShot);
-            return null;
-        }
-        
-        if (DEBUG.WEBSHOTS) out("Returning webshot image " + image);
-        
-        return image;
+    private URL getThumbshotURL(URL url) {
+        if (true)
+            // I don't think thumbshots ever generate images for paths beyond the root host:
+            return makeURL(String.format("%s%s://%s/",
+                                         THUMBSHOT_FETCH,
+                                         url.getProtocol(),
+                                         url.getHost()));
+        else
+            return makeURL(THUMBSHOT_FETCH + url);
     }
+
+//     // Could create an Images.Thumbshot class that can be a recognized special image
+//     // source (just the thumbshot URL), which getPreview can return, so ResourceIcon /
+//     // PreviewPane can feed it to Images.getImage and get the async callback when it's
+//     // loaded instead of having to fetch the thumbshot on the AWT EDT.  (Also, Images
+//     // can then manage caching the thumbshots, perhaps based on host only.  Also may not
+//     // want to bother caching those to disk in case of expiration).
+
+//     private Image fetchThumbshot(URL url)
+//     {
+//         if (url == null || !"http".equals(url.getProtocol()))
+//             return null;
+
+//         final String thumbShotURL = "http://open.thumbshots.org/image.pxf?url=" + url;
+//         final URL thumbShot = makeURL(thumbShotURL);
+
+//         if (thumbShot == null)
+//             return null;
+
+//         // TODO: if we're currently on the AWT event thread, this should NOT run synchronously...
+//         // We should spawn a thread for this.  Otherwise, any delay in accessing thumbshots.org
+//         // will result in the UI locking up until it responds with a result/error.
+
+//         final boolean inUI_Thread = SwingUtilities.isEventDispatchThread();
+
+//         if (inUI_Thread) {
+//             // 2007-11-05 SMF -- okay, this not safe, turning off for now:
+//             if (DEBUG.Enabled) Log.debug("skipping thumbshot fetch in AWT EDT: " + thumbShot);
+//             return null;
+//         }
+
+//         if (inUI_Thread) {
+//              Log.warn("fetching thumbshot in AWT; may lock UI: " + thumbShot);
+//              if (DEBUG.Enabled && DEBUG.META) Util.printStackTrace("fetchThumbshot " + thumbShot);
+//         } else {
+//             if (DEBUG.IO) Log.debug("attempting thumbshot: " + thumbShot);
+//         }
+
+//         Image image = null;
+//         boolean gotError = false;
+//         try {
+//             image = ImageIO.read(thumbShot);
+//         } catch (Throwable t) {
+//             if (inUI_Thread) {
+//                 gotError = true;
+//                 Log.warn("fetching thumbshot in AWT;   got error: " + thumbShot + "; " + t);
+//             }
+//             //if (DEBUG.Enabled) Util.printStackTrace(t, thumbShot.toString());
+//         }
+//         if (inUI_Thread && !gotError)
+//             Log.warn("fetching thumbshot in AWT;         got: " + thumbShot);
+
+//         if (image == null) {
+//             if (DEBUG.WEBSHOTS) out("Didn't get a valid return from webshots : " + thumbShot);
+//         } else if (image.getHeight(null) <= 1 || image.getWidth(null) <= 1) {
+//             if (DEBUG.WEBSHOTS) out("This was a valid URL but there is no webshot available : " + thumbShot);
+//             return null;
+//         }
+        
+//         if (DEBUG.WEBSHOTS) out("Returning webshot image " + image);
+        
+//         return image;
+//     }
 
         
 
