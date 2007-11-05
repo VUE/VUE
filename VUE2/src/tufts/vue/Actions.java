@@ -1840,7 +1840,7 @@ public class Actions implements VueConstants
         }
     };
     public static final VueAction ZoomActual =
-    new VueAction("Actual Size", keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
+    new VueAction(VueResources.getString("actions.zoomActual.label"), keyStroke(KeyEvent.VK_1, COMMAND+SHIFT)) {
         // no way to listen for zoom change events to keep this current
         //boolean enabled() { return VUE.getActiveViewer().getZoomFactor() != 1.0; }
         public void act() {
