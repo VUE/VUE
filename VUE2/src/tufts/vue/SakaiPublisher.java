@@ -20,7 +20,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.2 $ / $Date: 2007-10-30 16:49:53 $ / $Author: peter $
+ * @version $Revision: 1.3 $ / $Date: 2007-11-05 21:34:20 $ / $Author: peter $
  */
 
 package tufts.vue;
@@ -52,7 +52,7 @@ public class SakaiPublisher {
      * All references to _local resources have URLs with a "file" prefix
      */
 	public static final String FILE_PREFIX = "file://";
-    private static final Map<String, Map<String,String>> HostMap = new HashMap();
+    //private static final Map<String, Map<String,String>> HostMap = new HashMap();
 
 	private static final org.apache.log4j.Logger Log = 
 		org.apache.log4j.Logger.getLogger(SakaiPublisher.class);
@@ -77,6 +77,7 @@ public class SakaiPublisher {
     {        
     	Properties dsConfig = dataSource.getConfiguration();
     	String sessionId = getSessionId(dsConfig);
+    	
     }
     
     /**
@@ -93,7 +94,7 @@ public class SakaiPublisher {
      * @param ds TODO
      * @throws Exception
      */
-     public static void uploadMapAll( String host, int port, String userName, String password, LWMap map, DataSource ds) throws Exception 
+     private static void uploadMapAll( String host, int port, String userName, String password, LWMap map, DataSource ds) throws Exception 
      {
     	LWMap cloneMap = (LWMap)map.clone();
         cloneMap.setLabel(map.getLabel());
@@ -161,7 +162,7 @@ public class SakaiPublisher {
 		 String collectionId = null; 	// collectionId of the collection it is to be added to
 		 String contentMime = null;   	// contentMime content string
 		 String description = null; 	// description of the resource to be added
-		 boolean isBinary = false; 		// binary if true, content is encoded using Base64, if false content is assumed to be text.
+		 boolean isBinary = true; 		// binary if true, content is encoded using Base64, if false content is assumed to be text.
 		 /*
 		public String createContentItem(String sessionid, String name, String collectionId, String contentMime, 
 			String description, String type, boolean binary) {
@@ -185,10 +186,9 @@ public class SakaiPublisher {
 		} catch (ServiceException e) {
 			e.printStackTrace();
 		}
-	
 	}
 
-	private static String getSessionId( Properties configuration ) 
+	public static String getSessionId( Properties configuration ) 
 	{
 		String username = configuration.getProperty("sakaiUsername");
 		String password = configuration.getProperty("sakaiPassword");
@@ -235,4 +235,53 @@ public class SakaiPublisher {
 		return sessionId;
 	}
 
+	public static String getServerId( Properties configuration, String sessionId )
+	{
+		String host = configuration.getProperty("sakaiHost");
+		String port = configuration.getProperty("sakaiPort");
+
+		String serverId = null;
+		boolean debug = false;
+		
+		// show web services errors?
+		String debugString = configuration
+				.getProperty("sakaiAuthenticationDebug");
+		if (debugString != null) {
+			debug = (debugString.trim().toLowerCase().equals("true"));
+		}
+
+		if (!host.startsWith("http://")) {
+			// add http if it is not present
+			host = "http://" + host;
+		}
+
+		try {
+			String endpoint = host + ":" + port + "/sakai-axis/SakaiServerUtil.jws";
+			Service service = new Service();
+			Call call = (Call) service.createCall();
+
+			call.setTargetEndpointAddress(new java.net.URL(endpoint));
+			call.setOperationName(new QName(host + port + "/", "getSakaiServerId"));
+
+			serverId = (String) call
+					.invoke(new Object[] { sessionId });
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (RemoteException e) {
+			e.printStackTrace();
+		} catch (ServiceException e) {
+			e.printStackTrace();
+		}
+		
+		return serverId;
+	}
+	
+	public static String getCookieString( DataSource ds )
+	{
+	   	Properties dsConfig = ds.getConfiguration();
+    	String sessionId = getSessionId(dsConfig);
+    	String serverId = getServerId( dsConfig, sessionId);
+ 
+		return "JSESSION=" + sessionId + "." + serverId;
+	}
 }
