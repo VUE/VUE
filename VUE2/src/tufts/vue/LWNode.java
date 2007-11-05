@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.195 $ / $Date: 2007-11-05 06:02:15 $ / $Author: sfraize $
+ * @version $Revision: 1.196 $ / $Date: 2007-11-05 07:20:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -767,7 +767,7 @@ public class LWNode extends LWContainer
     public void XML_completed() {
         super.XML_completed();
         if (hasChildren()) {
-            if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) System.out.println("Scaling down LWNode children in: " + this);
+            if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) Log.debug("XML_completed: scaling down LWNode children in: " + this);
             for (LWComponent c : getChildren()) {
                 if (isScaledChildType(c))
                     c.setScale(LWNode.ChildScale);
@@ -838,7 +838,12 @@ public class LWNode extends LWContainer
     protected void layout(Object triggerKey, Size curSize, Size request)
     {
         if (inLayout) {
-            if (DEBUG.Enabled) new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
+            if (DEBUG.Enabled) {
+                if (DEBUG.LAYOUT)
+                    new Throwable("ALREADY IN LAYOUT " + this).printStackTrace();
+                else
+                    Log.warn("already in layout: " + this);
+            }
             return;
         }
         inLayout = true;
