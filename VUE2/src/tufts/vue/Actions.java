@@ -1504,7 +1504,7 @@ public class Actions implements VueConstants
                 throw new DeniedException("all must have same parent");
 
             if (r == null)
-                r = LWMap.getLocalBounds(selection);
+                r = LWMap.getLayoutBounds(selection);
 
             if (selection.isSized()) {
                 r.width = selection.getWidth();
