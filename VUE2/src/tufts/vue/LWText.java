@@ -94,10 +94,10 @@ public class LWText extends LWComponent {
 		return this.labelBox;
 	}
 
-	public boolean isTextNode() {
-
-		return true;
-	}
+    @Override
+    public boolean isTextNode() {
+        return true;
+    }
 
 	public void initRichTextBoxLocation(RichTextBox activeRichTextEdit) {
 		activeRichTextEdit.setBoxCenter(getWidth() / 2, getHeight() / 2);
