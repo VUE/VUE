@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.83 $ / $Date: 2007-11-05 14:58:33 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2007-11-05 19:34:42 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -615,12 +615,13 @@ public class LWSlide extends LWContainer
     /** @return true if adjusted */
     private boolean adjustForSlideDisplay(LWComponent c) {
         
-        track("adjust", c);
+        //track("adjust", c);
         
         if (this instanceof MasterSlide)
             return false;
         
-        if (DEBUG.PRESENT || DEBUG.STYLE) Log.debug("adjusting " + c);
+        //aif (DEBUG.PRESENT || DEBUG.STYLE)
+        track("adjusting", c);
         
         c.setFlag(Flag.SLIDE_STYLE);
         if (c.getStyle() == null)
@@ -631,11 +632,11 @@ public class LWSlide extends LWContainer
 
     private static void track(String where, Object o) {
         if (DEBUG.Enabled)
-            Log.debug(String.format("%8s: %s",
+            Log.debug(String.format("%16s: %s",
                                     where,
                                     o instanceof LWComponent ? o : Util.tags(o)));
     }
-
+    
     @Override
     public void dropChildren(Iterable<LWComponent> iterable) {
         track("drop", iterable);
@@ -669,9 +670,9 @@ public class LWSlide extends LWContainer
     }
 
     @Override
-    protected void addChildImpl(final LWComponent c)
+    protected void addChildImpl(LWComponent c)
     {
-        track("addChild", c);
+        track("addChildImpl", c);
         super.addChildImpl(c);
     }
 

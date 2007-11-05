@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.373 $ / $Date: 2007-11-05 18:46:17 $ / $Author: dan $
+ * @version $Revision: 1.374 $ / $Date: 2007-11-05 19:34:41 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1505,8 +1505,8 @@ u                    getSlot(c).setFromString((String)value);
     {
         if (getParent() == null) {
             //throw new IllegalStateException("LWComponent has null parent; needs a parent instance subclassed from LWContainer that implements getNextUniqueID: " + this);
-            if (DEBUG.PARENTING) tufts.Util.printStackTrace("getNextUniqueID: returning null for current orphan " + this);
-            if (DEBUG.Enabled) out("getNextUniqueID: returning null for current orphan");
+            //if (DEBUG.PARENTING) tufts.Util.printStackTrace("getNextUniqueID: returning null for current orphan " + this);
+            if (DEBUG.PARENTING) out("getNextUniqueID: returning null for current orphan");
             return null;
         } else
             return getParent().getNextUniqueID();
@@ -5414,7 +5414,11 @@ u                    getSlot(c).setFromString((String)value);
             //out("*** CLEARING IMAGE CACHE");
             //mCachedImage = null;
         }
-        mChangeSupport.notifyListeners(this, e);
+
+        if (isStyle() && getParent() == null)
+            ; // ignore events from non-embedded style objects (e.g., EditorManager constructs)
+        else
+            mChangeSupport.notifyListeners(this, e);
 
         if (getParent() != null && e.component == this && e.key instanceof Key) {
             // if parent is null, we're still initializing

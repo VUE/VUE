@@ -33,11 +33,13 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.135 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
+ * @version $Revision: 1.136 $ / $Date: 2007-11-05 19:34:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
 {
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWContainer.class);
+    
     protected java.util.List<LWComponent> mChildren;
     
     public void XML_fieldAdded(String name, Object child) {
@@ -375,12 +377,26 @@ public abstract class LWContainer extends LWComponent
         }
     }
 
+    protected void out(String s) {
+        if (DEBUG.Enabled) Log.debug(s + "; " + this);
+    }
+    
+    private static void track(String where, Object o) {
+        if (DEBUG.Enabled)
+            Log.debug(String.format("%12s: %s",
+                                    where,
+                                    o instanceof LWComponent ? o : Util.tags(o)));
+    }
+
+    
+
     // TODO: deleteAll: can removeChildren on all, then remove all from model
     
     protected void addChildImpl(LWComponent c)
     {
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
-        if (DEBUG.PARENTING) out("ADDING " + c);
+        //if (DEBUG.PARENTING) out("ADDING " + c);
+        if (DEBUG.PARENTING) track("addChildImpl", c);
 
         if (c.getParent() != null && c.getParent().hasChild(c)) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
