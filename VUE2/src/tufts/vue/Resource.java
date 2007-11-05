@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-10-18 21:58:16 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-11-05 13:00:37 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -175,7 +175,7 @@ public abstract class Resource
 
         protected Resource postProcess(Resource r, Object source) {
             r.setReferenceCreated(System.currentTimeMillis());
-            Log.debug(Util.tags(source) + " -> " + Util.tags(r));
+            if (DEBUG.DR) Log.debug(Util.tags(source) + " -> " + Util.tags(r));
             //Log.debug("Created " + Util.tags(r) + " from " + Util.tags(source));
             return r;
         }

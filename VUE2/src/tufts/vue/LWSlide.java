@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.81 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2007-11-05 13:01:47 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -592,6 +592,8 @@ public class LWSlide extends LWContainer
             Log.error("null master slide applying master style to " + c);
             return;
         }
+        
+        track("style", c);
 
         c.setFlag(Flag.SLIDE_STYLE);
         
@@ -605,12 +607,15 @@ public class LWSlide extends LWContainer
     }
 
     private void addView(LWComponent c) {
+        track("addView", c);
         adjustForSlideDisplay(c);
         addChildImpl(c);
     }
 
     /** @return true if adjusted */
     private boolean adjustForSlideDisplay(LWComponent c) {
+        
+        track("adjust", c);
         
         if (this instanceof MasterSlide)
             return false;
@@ -624,8 +629,26 @@ public class LWSlide extends LWContainer
        return true;
     }
 
+    private static void track(String where, Object o) {
+        if (DEBUG.Enabled)
+            Log.debug(String.format("%7s: %s",
+                                    where,
+                                    o instanceof LWComponent ? o : Util.tags(o)));
+    }
+
+    @Override
+    public void dropChildren(Iterable<LWComponent> iterable) {
+        track("drop", iterable);
+        if (DEBUG.Enabled) Util.printStackTrace("DROP");
+        pasteChildren(iterable);
+    }
+
+
     @Override
     public void pasteChildren(Iterable<LWComponent> iterable) {
+
+        track("paste", iterable);
+
         for (LWComponent c : iterable) {
 
             if (!adjustForSlideDisplay(c))
@@ -636,6 +659,7 @@ public class LWSlide extends LWContainer
             // or setSize or something.
             if (c instanceof LWImage) {
                 ((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
+                track("resized", c);
                 // todo: we actually want this to happen after we're sure we know the image's aspect,
                 // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
             }
@@ -744,7 +768,7 @@ public class LWSlide extends LWContainer
 
     @Override
     public boolean canDuplicate() {
-        return DEBUG.Enabled;
+        return DEBUG.META; // testing only
     }
     
     @Override
