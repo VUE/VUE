@@ -766,6 +766,15 @@ public class PresentationTool extends VueTool
         public void setLocation(float x, float y) {
             super.takeLocation(x, y);
         }
+
+        // These are all NOOP's: nobody needs our events:
+
+        @Override protected void notify(String what, LWComponent contents) {}
+        @Override protected void notify(String what, Object oldValue) {}
+        @Override protected void notify(Key key, Object oldValue) {}
+        @Override protected void notify(String what) {}
+        @Override protected void notify(String what, List<LWComponent> componentList) {}
+        @Override protected void notifyLWCListeners(LWCEvent e) {} 
         
         // force label at left (non-centered)                
         @Override
@@ -798,7 +807,7 @@ public class PresentationTool extends VueTool
     public JPanel createToolPanel() {
         //JPanel p = super.createToolPanel();
         JPanel p = new JPanel();
-        mStartButton = new JButton(VueResources.getString("presentationTool.startButton.label"));
+        mStartButton = new JButton(VueResources.getString("presentationTool.startButton.label"));        
         mToBlack.setSelected(false);
         mShowContext.setSelected(true);
         add(p, mStartButton);
@@ -1151,7 +1160,7 @@ public class PresentationTool extends VueTool
         
         LWComponent focused = mCurrentPage.getPresentationFocal();
 
-        if (!focused.isVisible())  {
+        if (focused == null || !focused.isVisible())  {
             // if focused is slide icon and slide icons are turned off, will report not visible
             focused = mCurrentPage.getOriginalMapNode();
         }
