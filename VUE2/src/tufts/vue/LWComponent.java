@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.364 $ / $Date: 2007-11-04 23:10:49 $ / $Author: sfraize $
+ * @version $Revision: 1.365 $ / $Date: 2007-11-05 06:00:37 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -132,7 +132,7 @@ public class LWComponent
             FIXED_LOCATION,
             NO_DELETE,
             NO_LINKS,
-            NO_ICONS;
+            SLIDE_STYLE;
 
         // TODO: general LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link
             
@@ -1927,7 +1927,7 @@ u                    getSlot(c).setFromString((String)value);
         return false;
     }
 
-    /** @return true: subclasses (e.g. containers), override to return false if you never want this component
+    /** @Return true: subclasses (e.g. containers), override to return false if you never want this component
         reparented by users */
     public boolean supportsReparenting() {
         return parent instanceof LWGroup == false; // todo: handle via API that LWGroup can declare
@@ -1942,8 +1942,12 @@ u                    getSlot(c).setFromString((String)value);
     public boolean supportsSlide() {
         return false;
     }
-    
 
+    /** @return false by default -- override to initiate dupe and system drag */
+    public boolean supportsCopyOnDrag() {
+        return false;
+    }
+    
 
     /** @return true if we allow a link to the target, and the target allows a link to us.
      * Eventually we can use this to check ontology information.
@@ -2564,6 +2568,12 @@ u                    getSlot(c).setFromString((String)value);
 //         return false;
 //     }
 
+    /** @return false by default */
+    public boolean isTextNode() {
+        return false;
+    }
+    
+
     /**
      * Although unsupported on LWComponents (must be an LWContainer subclass to support children),
      * this method appears here for typing convenience and debug.  If a non LWContainer subclass
@@ -2606,6 +2616,12 @@ u                    getSlot(c).setFromString((String)value);
     public Collection<LWComponent> getChildren()
     {
         return java.util.Collections.EMPTY_LIST;
+    }
+
+
+    /** @return: always null */
+    public LWComponent getChild(int index) {
+        return null;
     }
     
     public boolean hasPicks() {
@@ -3106,29 +3122,46 @@ u                    getSlot(c).setFromString((String)value);
 
     /** @return the first ancestor, EXCLUDING this component (starting with the parent), that is of the given type, or null if none found */
     public LWComponent getParentOfType(Class clazz) {
+        return getParentOfType(clazz, null);
+    }
+    
+    /** never ascend above root */
+    public LWComponent getParentOfType(Class clazz, LWComponent root) {
         LWComponent parent = getParent();
         if (parent == null)
             return null;
         else
-            return parent.getAncestorOfType(clazz);
+            return parent.getAncestorOfType(clazz, root);
     }
     
     /** @return the first ancestor, INCLUDING this component, that is of the given type, or null if none found */
     // TODO: including this component is confusing...
     public LWComponent getAncestorOfType(Class clazz) {
+        return getAncestorOfType(clazz, null);
+    }
+    
+    /** never ascend above root */
+    public LWComponent getAncestorOfType(Class clazz, LWComponent root) {
         if (clazz.isInstance(this))
             return this;
+        else if (this == root)
+            return null;
         else
-            return getParentOfType(clazz);
+            return getParentOfType(clazz, root);
     }
 
     public LWComponent getTopMostAncestorOfType(Class clazz) {
-        LWComponent topAncestor = getAncestorOfType(clazz);
+        return getTopMostAncestorOfType(clazz, null);
+    }
+    
+    /** never ascend above root */
+    public LWComponent getTopMostAncestorOfType(Class clazz, LWComponent root) {
+        LWComponent topAncestor = getAncestorOfType(clazz, root);
         LWComponent nextAncestor = topAncestor;
 
         if (nextAncestor != null) {
             for (;;) {
-                nextAncestor = nextAncestor.getParentOfType(clazz);
+                nextAncestor = nextAncestor.getParentOfType(clazz, root);
                 if (nextAncestor != null)
                     topAncestor = nextAncestor;
                 else
@@ -3942,6 +3975,13 @@ u                    getSlot(c).setFromString((String)value);
      * is any local scale this component has (not the total map scale: the scale that includes the scaling of all ancestors) */
     public Rectangle2D.Float getLocalBounds() {
         return new Rectangle2D.Float(getX(), getY(), getLocalWidth(), getLocalHeight());
+    }
+
+    /** @return the layout bounds -- this is the local bounds, plus an extra "hangoff" decorations that are not considered
+     * part of the formal bounds of the object.  When the object is the focal, these items are not displayed.
+     */
+    public Rectangle2D.Float getLayoutBounds() {
+        return getLocalBounds();
     }
 
     /** @return the local (parent-based) border bounds */
