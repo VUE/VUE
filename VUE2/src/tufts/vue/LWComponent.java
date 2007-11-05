@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.365 $ / $Date: 2007-11-05 06:00:37 $ / $Author: sfraize $
+ * @version $Revision: 1.366 $ / $Date: 2007-11-05 07:22:33 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5328,7 +5328,7 @@ u                    getSlot(c).setFromString((String)value);
         }
         mChangeSupport.notifyListeners(this, e);
 
-        if (getParent() != null && e.key instanceof Key) {
+        if (getParent() != null && e.component == this && e.key instanceof Key) {
             // if parent is null, we're still initializing
             final Key key = (Key) e.key;
 
@@ -5364,14 +5364,15 @@ u                    getSlot(c).setFromString((String)value);
         // slides on different pathways, but a node in a slide can only refer
         // back to one source)
         if (mSyncSource != null) {
-            out("UPDATING SYNC SOURCE " + mSyncSource + " for " + key);
+            Log.debug("[" + key + "] UPDATING SYNC SOURCE: " +  this + " -> " + mSyncSource);
             if (!mSyncSource.isDeleted())
                 key.copyValue(this, mSyncSource);
 
         } else if (mSyncClients != null && !mSyncClients.isEmpty()) {
             
             for (LWComponent c : mSyncClients) {
-                out("UPDATING SYNC CLIENT " + c + " for " + key);
+                Log.debug("[" + key + "] UPDATING SYNC CLIENT: " + this + " -> " + c);
+                //Util.printStackTrace("SYNCTRACE " + this);
                 if (!c.isDeleted())
                     key.copyValue(this, c);
             }
