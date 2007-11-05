@@ -33,7 +33,7 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.14 $ / $Date: 2007-10-22 03:45:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.15 $ / $Date: 2007-11-05 15:29:27 $ / $Author: mike $ 
  */
 
 public class LWPortal extends LWNode
@@ -56,7 +56,7 @@ public class LWPortal extends LWNode
         p.setStrokeWidth(0);
         p.setSize(LWSlide.SlideWidth / 4, LWSlide.SlideHeight / 4);
         //setAspect(LWSlide.SlideAspect);
-        p.setLabel("Presentation Portal");
+        p.setLabel(VueResources.getString("pathways.portal.label"));
         return p;
     }
 

@@ -798,7 +798,7 @@ public class PresentationTool extends VueTool
     public JPanel createToolPanel() {
         //JPanel p = super.createToolPanel();
         JPanel p = new JPanel();
-        mStartButton = new JButton("Start Presenting");
+        mStartButton = new JButton(VueResources.getString("presentationTool.startButton.label"));
         mToBlack.setSelected(false);
         mShowContext.setSelected(true);
         add(p, mStartButton);

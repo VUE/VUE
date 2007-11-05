@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.482 $ / $Date: 2007-11-05 13:00:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.483 $ / $Date: 2007-11-05 15:29:27 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3741,13 +3741,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         contextKeywordsItem = m.add(Actions.ContextKeywordAction);
         slideNotesItem = new JMenuItem();        
         slideNotesItem.setAction(Actions.ContextNotesAction);
-        slideNotesItem.setLabel("Add Presentation Notes");
+        slideNotesItem.setLabel(VueResources.getString("actions.pathwayNotes.label"));
         m.add(slideNotesItem);
         slideNotesItem.setVisible(false);
         
         slideKeywordsItem = new JMenuItem();
         slideKeywordsItem.setAction(Actions.ContextKeywordAction);
-        slideKeywordsItem.setLabel("Add Presentation Keywords");
+        slideKeywordsItem.setLabel(VueResources.getString("actions.pathwayKeywords.label"));
         m.add(slideKeywordsItem);
         slideKeywordsItem.setVisible(false);
         m.addSeparator();

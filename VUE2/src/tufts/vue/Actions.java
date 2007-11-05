@@ -100,7 +100,7 @@ public class Actions implements VueConstants
     {
     	if (VUE.getActivePathway() == null || VUE.getActivePathway().getEntries().isEmpty())
     	{
-			VueUtil.alert(null,"There is no presentation selected or the presentation selected contains no slides, please select a valid presentation.", "Invalid Active Presentation");
+			VueUtil.alert(null,VueResources.getString("presentationNotes.invalidPresentation.message"), VueResources.getString("presentationNotes.invalidPathway.title"));
 			return null;
     	}
 		VueFileChooser chooser = new VueFileChooser();
@@ -306,7 +306,7 @@ public class Actions implements VueConstants
     
     
     public static final Action AddPathwayItem =
-    new LWCAction("Add to Presentation/Pathway") {
+    new LWCAction(VueResources.getString("actions.addPathwayItem.label")) {
         public void act(Iterator i) {
         	LWPathway pathway = VUE.getActiveMap().getActivePathway();
         	if (!pathway.isOpen())
@@ -322,7 +322,7 @@ public class Actions implements VueConstants
     };
     
     public static final Action RemovePathwayItem =
-    new LWCAction("Remove from active Pathway") {
+    new LWCAction(VueResources.getString("actions.removePathwayItem.label")) {
         public void act(Iterator i) {
             VUE.getActivePathway().remove(i);
         }
@@ -1900,7 +1900,7 @@ public class Actions implements VueConstants
         }
     };
     
-    public static final LWCAction NewSlide = new LWCAction("Add node to presentation") {        
+    public static final LWCAction NewSlide = new LWCAction(VueResources.getString("actions.newSlide.label")) {        
                 public void act(Iterator i) {
                     VUE.getActivePathway().add(i);
                     GUI.makeVisibleOnScreen(VUE.getActiveViewer(), PathwayPanel.class);
@@ -1912,7 +1912,7 @@ public class Actions implements VueConstants
                 }            
      };
      
-     public static final LWCAction MergeNodeSlide = new LWCAction("Copy nodes into new node and add to presentation") {        
+     public static final LWCAction MergeNodeSlide = new LWCAction("actions.mergeNode.label") {        
          public void act(Iterator i) {
              final LWComponent node = VUE.getActivePathway().createMergedNode(VUE.getSelection());
              node.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());

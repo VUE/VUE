@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.70 $ / $Date: 2007-10-31 08:49:46 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2007-11-05 15:29:28 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -92,7 +92,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu transformMenu = new VueMenu("Font");
         final JMenu arrangeMenu = new VueMenu("Arrange");
         final JMenu contentMenu = new VueMenu("Content");
-        final JMenu presentationMenu = new VueMenu("Presentation");
+        final JMenu presentationMenu = new VueMenu(VueResources.getString("menu.pathway.label"));
         final JMenu analysisMenu = new VueMenu("Analysis");
         final JMenu windowMenu = new VueMenu("Windows");
         final JMenu alignMenu = new VueMenu("Align");         
@@ -103,7 +103,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
       //  final JMenu slidePreviewMenu = new JMenu("Slide preview");
         final JMenu notesMenu = new JMenu("Handouts and Notes");
-        final JMenu playbackMenu = new JMenu("Playback Presentation");
+        final JMenu playbackMenu = new JMenu(VueResources.getString("menu.playback.play.label"));
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Actions
         ////////////////////////////////////////////////////////////////////////////////////

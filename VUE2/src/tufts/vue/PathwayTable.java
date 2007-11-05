@@ -63,7 +63,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.89 $ / $Date: 2007-10-17 02:25:57 $ / $Author: mike $
+ * @version $Revision: 1.90 $ / $Date: 2007-11-05 15:29:27 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -628,7 +628,7 @@ public class PathwayTable extends JTable
             		  if (entry.pathway.getEntries().isEmpty())
             		  {
             			  if (entry.pathway.getEntries().isEmpty())
-                      		emptyString = "This presentation is empty";
+                      		emptyString = VueResources.getString("pathways.empty.label");
             			  if (getRowHeight(row) != 40)
             				  setRowHeight(row, 40);            			
             			  gl = new GradientLabel(entry.pathway,emptyString);
