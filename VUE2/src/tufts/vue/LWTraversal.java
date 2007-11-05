@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.39 $ / $Date: 2007-11-05 06:03:21 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2007-11-05 08:27:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -292,19 +292,24 @@ public class LWTraversal {
                 return false;
             }
             
-            if (!c.isDrawn()) {
-                if (DEBUG.PICK) eoutln("DENIED: not-drawn " + c);
-                return false;
-            }
-            
-            if (depth > pc.maxDepth) {
-                if (DEBUG.PICK) eoutln("DENIED: depth " + c + " depth " + depth + " > maxDepth " + pc.maxDepth);
-                return false;
-            }
-            
-            if (c.getLayer() > pc.maxLayer) {
-                if (DEBUG.PICK) eoutln("DENIED: layer " + c);
-                return false;
+            if (c != pc.root) {
+
+                // The below checks never apply to the root
+                
+                if (!c.isDrawn()) {
+                    if (DEBUG.PICK) eoutln("DENIED: not-drawn " + c);
+                    return false;
+                }
+                
+                if (depth > pc.maxDepth) {
+                    if (DEBUG.PICK) eoutln("DENIED: depth " + c + " depth " + depth + " > maxDepth " + pc.maxDepth);
+                    return false;
+                }
+                
+                if (c.getLayer() > pc.maxLayer) {
+                    if (DEBUG.PICK) eoutln("DENIED: layer " + c);
+                    return false;
+                }
             }
             
             //else return strayChildren || c.contains(mapX, mapY); // for now, ALWAYS work as if strayChildren was true
