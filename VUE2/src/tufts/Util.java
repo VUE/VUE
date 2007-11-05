@@ -763,7 +763,7 @@ public class Util
         public T next() { if (object == null) throw new NoSuchElementException(); T o = object; object = null; return o; }
         public void remove() { throw new UnsupportedOperationException(); }
         public Iterator<T> iterator() { return this; }
-        public String toString() { return "SingleIterator[" + object + "]"; }
+        public String toString() { return "[" + object + "]"; }
         
     };
     
@@ -917,7 +917,8 @@ public class Util
     public static void dumpIterator(Iterator i) {
         int x = 0;
         while (i.hasNext()) {
-            System.out.println((x<10?" ":"") + x + ": " + i.next());
+            //System.out.println((x<10?" ":"") + x + ": " + i.next());
+            System.out.format("\t%2d: %s\n", x, i.next());
             x++;
         }
     }
@@ -1640,7 +1641,10 @@ public class Util
 
         try {
             if (o instanceof Collection) {
-                txt = "size=" + ((Collection)o).size();
+                final int size = ((Collection)o).size();
+                txt = "size=" + size;
+                if (size == 1)
+                    txt += "; " + ((Collection)o).toArray()[0];
             } else if (o instanceof java.awt.image.BufferedImage) {
                 BufferedImage bi = (BufferedImage) o;
                 return String.format("BufferedImage@%07x[%dx%d]", ident, bi.getWidth(), bi.getHeight());

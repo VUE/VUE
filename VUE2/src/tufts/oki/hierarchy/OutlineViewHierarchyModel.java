@@ -55,6 +55,8 @@ import tufts.vue.LWKey;
 
 public class OutlineViewHierarchyModel extends HierarchyModel implements LWComponent.Listener
 {    
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(OutlineViewHierarchyModel.class);
+
     /** Creates a new instance of OutlineViewHierarchyModel */
     public OutlineViewHierarchyModel(LWContainer container) 
     {
@@ -268,7 +270,7 @@ public class OutlineViewHierarchyModel extends HierarchyModel implements LWCompo
                 parentNode = findHierarchyNode(getRootNode(), parent, true);
             
             if (parentNode == null) {
-                System.err.println(this + " *** NULL parentNode when adding a hierarchy node");
+                if (Log.isDebugEnabled()) Log.debug("null parentNode when adding hierarchy node: " + addedChild);
                 return;
             }
 
