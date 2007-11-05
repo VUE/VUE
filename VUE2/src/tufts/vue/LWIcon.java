@@ -1170,11 +1170,23 @@ public abstract class LWIcon extends Rectangle2D.Float
         Hierarchy(LWComponent lwc) { super(lwc); }
 
         boolean isShowing() {
-        	if (IconPref.getHierarchyIconValue())
-        		return mLWC.hasChildren();
-        	else
-        		return false;
+            // TODO performance: getting complicated: compute in layout (and check for all text nodes, not just first)
+            // Will need to make sure layout() is called when removing items from nodes: only appears to be called upon adding
+            if (IconPref.getHierarchyIconValue()) {
+                if (mLWC.hasChildren()) {
+                    if (mLWC.numChildren() == 1 && mLWC.getChild(0).isTextNode())
+                        return false;
+                    else
+                        return true;
+                }
+            }
+            return false;
         }
+
+//         @Override
+//         void layout() {
+//             Log.debug("HIERARCY LAYOUT IN " + mLWC);
+//         }
 
         void doDoubleClickAction() {
             //VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
@@ -1217,10 +1229,10 @@ public abstract class LWIcon extends Rectangle2D.Float
             if (!(c instanceof LWContainer))
                 return html;
             
-            Iterator i = ((LWContainer)c).getChildIterator();
-            int n = 0;
-            while (i.hasNext()) {
-                LWComponent child = (LWComponent) i.next();
+            //int n = 0;
+            for (LWComponent child : c.getChildren()) {
+                if (child.isTextNode())
+                    continue;
                 //if (n++ > 0) html += "<br>";
                 for (int x = 0; x < indent; x++)
                     html += Indent;
