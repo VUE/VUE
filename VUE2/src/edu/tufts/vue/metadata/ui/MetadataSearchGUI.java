@@ -45,7 +45,7 @@ public class MetadataSearchGUI extends JPanel {
     private static final boolean DEBUG_LOCAL = false;
     
     // "false' is inner scroll pane just around search terms table
-    private static final boolean SIDE_SCROLLBAR = false;
+    private static final boolean SIDE_SCROLLBAR = true;
     
     public static final int ONE_LINE = 0;
     public static final int MULTIPLE_FIELDS = 1;
@@ -171,7 +171,7 @@ public class MetadataSearchGUI extends JPanel {
               dockWindow.setContent(content); 
             }
      
-            dockWindow.setSize(300,250); 
+            dockWindow.setSize(305,255); 
     }
     
     public MetadataSearchGUI() 
@@ -401,7 +401,14 @@ public class MetadataSearchGUI extends JPanel {
         }
         else
         {
-          JPanel fieldsInnerPanel = new JPanel(new BorderLayout());
+          JPanel fieldsInnerPanel = new JPanel()
+          {
+            public java.awt.Dimension getPreferredSize()
+            {
+                return new java.awt.Dimension(super.getWidth(),90);
+            }
+          };
+          fieldsInnerPanel.setLayout(new BorderLayout());
           fieldsInnerPanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
           fieldsInnerPanel.add(searchTermsTable);    
           fieldsPanel.add(fieldsInnerPanel);
