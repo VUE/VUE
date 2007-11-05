@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.367 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
+ * @version $Revision: 1.368 $ / $Date: 2007-11-05 13:02:16 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2589,15 +2589,20 @@ u                    getSlot(c).setFromString((String)value);
         Util.printStackTrace(this + ": can't take children; ignored new child: " + c);
     }
 
-    /** default action: addChild */
+    /** default action: redirect to pasteChildren */
     public void pasteChild(LWComponent c) {
-        addChild(c);
+        pasteChildren(new Util.SingleIterator(c));
     }
-    
-    /** default action: pasteChild */
+
+    /** default action: redirects to dropChildren */
     public void dropChild(LWComponent c) {
-        pasteChild(c);
+        dropChildren(new Util.SingleIterator(c));
     }
+        
+//     /** default action: pasteChild */
+//     public void dropChild(LWComponent c) {
+//         pasteChild(c);
+//     }
 
 
     /**
