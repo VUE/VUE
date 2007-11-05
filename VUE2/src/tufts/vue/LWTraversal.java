@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.38 $ / $Date: 2007-11-04 23:08:42 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2007-11-05 06:03:21 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -96,8 +96,13 @@ public class LWTraversal {
 
                 final List<LWComponent> curCache;
                 if (iteratingPickCache) {
-                    // messy:  only need this if getPickList actually returns slide icons...
-                    if (DEBUG.WORK) Log.debug("allocating tmp pick cache for " + c);
+                    
+                    // We really only need this if getPickList actually returns slide icons,
+                    // but we don't know that in advance, so we have to allocate just in case.
+                    // This currently only happens if we encounter a node with a slide icon that
+                    // is a descendent of another node that also has a slide icon.
+                    
+                    if (DEBUG.PICK && DEBUG.WORK) Log.debug("allocating tmp pick cache for " + c);
                     curCache = new ArrayList(); 
                 } else {
                     curCache = pickCache;
@@ -510,18 +515,19 @@ public class LWTraversal {
                 
             } else if (hit != null) {
                 final LWContainer parent = hit.getParent();
-                if (parent != null && !hit.hasAncestorOfType(LWSlide.class)) { // todo cleanup: this hack crucial for slides
+                if (parent != null) {
 
                     // This is a hack for groups to replace our getPickLevel functionality:
 
-                    final LWGroup topGroupAncestor = (LWGroup) parent.getTopMostAncestorOfType(LWGroup.class);
+                    LWGroup topGroupAncestor = (LWGroup) parent.getTopMostAncestorOfType(LWGroup.class, pc.root);
+
                     if (pc.pickDepth > 0) {
                         // DEEP PICK:
                         // Even if deep picking, only pick the deepest group we can find,
                         // not the contents.  TODO: Really, we should be picking the second
                         // top-most (that is, only penetrate through the top-level group when
                         // deep picking, not straight to the bottom.)
-                        final LWGroup groupAncestor = (LWGroup) parent.getAncestorOfType(LWGroup.class);
+                        final LWGroup groupAncestor = (LWGroup) parent.getAncestorOfType(LWGroup.class, pc.root);
                         if (groupAncestor != topGroupAncestor)
                             picked = groupAncestor;
                     } else {
