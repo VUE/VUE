@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.478 $ / $Date: 2007-11-03 20:40:49 $ / $Author: sfraize $ 
+ * @version $Revision: 1.479 $ / $Date: 2007-11-05 06:03:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4696,6 +4696,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         public void keyReleased(KeyEvent e) {
             //if (DEBUG.KEYS) out("[" + e.paramString() + "]");
             if (DEBUG.KEYS) kdebug("keyReleased", e);
+
+            tempToolPendingActivation = null;
             
             if (activeTool.handleKeyReleased(e))
                 return;
@@ -4924,7 +4926,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 displayContextMenu(e, hitComponent);
                 return;
             }
-            else if (hitComponent != null) {
+            else if (hitComponent != null && hitComponent != mFocal) { // check focal in case of on-slide
                 // special case handling for KEY_TOOL_LINK which
                 // doesn't want to be fully activated till the
                 // key is down (ctrl) AND the left mouse has been
@@ -5253,8 +5255,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (DEBUG_MOUSE_MOTION) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
             lastMouseX = e.getX();
             lastMouseY = e.getY();
-            
-            
+
             final float mapX = screenToMapX(e.getX());
             final float mapY = screenToMapY(e.getY());
             
@@ -6120,7 +6121,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //out("EX MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiersEx()) + "]");
             // button is 0 (!) on the PC, which is why <= 1 compare for getB
 
-            if (VUE.getSelection().only() instanceof LWImage && ((LWImage)VUE.getSelection().only()).isNodeIcon())
+            if (VueSelection.size() == 1 && VueSelection.first().supportsCopyOnDrag())
                 return true;
             else
                 return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
