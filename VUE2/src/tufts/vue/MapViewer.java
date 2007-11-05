@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.479 $ / $Date: 2007-11-05 06:03:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.480 $ / $Date: 2007-11-05 07:21:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2464,8 +2464,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // DRAW THE CURRENT INDICATION, if any (for targeting during drags)
         //-------------------------------------------------------
 
-        if (indication != null && indication != mFocal)
-            drawIndication(dc);
+        if (indication != null && indication != mFocal) {
+            drawIndication(dc.push()); dc.pop();
+        }
 
         //-------------------------------------------------------
         // DRAW THE SELECTION DECORATIONS - if anything is selected
@@ -2483,7 +2484,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (s == null || s.isEmpty() || !activeTool.supportsResizeControls() || isAnimating) {
             resizeControl.active = false;
-        } else  {
+        } else {
             final LWComponent remoteFocal = s.getFocal();
             if (remoteFocal == null) {
                 out("null remote focal");
@@ -2494,9 +2495,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
 
+        final LWSelection globalSelection = VUE.getSelection();
+        if (globalSelection.size() == 1) {
+            final LWComponent syncSource = globalSelection.first().getSyncSource();
+            if (syncSource != null && syncSource.hasAncestor(mFocal)) {
+                drawSyncSource(dc.push(), syncSource); dc.pop();
+            }
+        }
         
         //-------------------------------------------------------
-        // draw the dragged selector box
+        // Draw the dragged selector box
         //-------------------------------------------------------
         
         //if (draggedSelectorBox != null && activeTool.supportsDraggedSelector(null)) {
@@ -2523,79 +2531,48 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             super.paintChildren(incomingGC);
     }
 
-    protected void drawViewerDebug(DrawContext dc)
+    private void drawSyncSource(DrawContext dc, LWComponent syncSource)
     {
-        dc.setRawDrawing();
-
-        final Graphics2D g = dc.g;
-        
-        g.setColor(Color.red);
-        g.setStroke(new java.awt.BasicStroke(1f));
-        g.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
-            
-        int iX = (int) (screenToMapX(_mouse.x) * 100);
-        int iY = (int) (screenToMapY(_mouse.y) * 100);
-        float mapX = iX / 100f;
-        float mapY = iY / 100f;
-
-        Point2D mapCoords = new Point2D.Float(mapX, mapY);
-        Point canvas = getLocation();
-        //Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
-        Point screen = new Point(_mouse.x + canvas.x, _mouse.y + canvas.y);
-        Point2D focalCoords = screenToFocalPoint(screen);
-            
-        g.setFont(VueConstants.FixedFont);
-        int x = -getX() + 40;
-        int y = -getY() + 100;
-        //int x = dc.frame.x;
-        //int y = dc.frame.y;
-        //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
-        if (true) {
-            g.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
-            g.drawString(" ~screen mouse: " + out(screen), x, y+=15);
-            g.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
-            g.drawString("   focal mouse: " + out(focalCoords), x, y+=15);
-            g.drawString("     map mouse: " + out(mapCoords), x, y+=15);
-            g.drawString("     canvas at: " + out(canvas), x, y+= 15);
-            /*if (inScrollPane){
-              Point extent = viewportToCanvasPoint(mouse);
-              Point2D map = extentToMapPoint(extent);
-              g2.drawString("  extent point: " + out(extent), x, y+=15);
-              g2.drawString("     map point: " + out(map), x, y+=15);
-              }*/
-            if (inScrollPane){
-                g.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
-            }
-            if (getMap() != null)
-                g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
-            if (mFocal == null)
-                g.drawString("map-canvas-adju (NULL FOCAL)", x, y+=15);
-            else
-                g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
-            g.drawString("    canvas-size " + out(getSize()), x, y+=15);
-            g.drawString("          frame " + out(dc.getFrame()), x, y+=15);
-        }
-        if (inScrollPane) {
-            g.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
-        }
-        g.drawString("zoom " + getZoomFactor(), x, y+=15);
-        g.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
-        g.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
-        g.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
-        //g.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
-        g.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
-        g.drawString("Focal " + this.mFocal, x, y+=15);
-        g.drawString("Entry " + this.mFocalEntry, x, y+=15);
-        g.drawString("  MAP " + this.mMap, x, y+=15);
-
-        Point2D center = getVisibleCenter();
-        dc.setAbsoluteStroke(1);
-        // easily gets lost when way zoomed in because coords > MaxCoord
-        //g2.draw(new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord));
-        //g2.draw(new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
-        g.drawLine(-99999, (int) Math.round(center.getY()), 99999, (int) Math.round(center.getY()));
-        g.drawLine((int) Math.round(center.getX()), -99999, (int) Math.round(center.getX()), 99999);
+        dc.g.setColor(Color.blue);
+        dc.setAlpha(0.5);
+        syncSource.transformZero(dc.g);
+        dc.g.fill(syncSource.getZeroShape());
     }
+    
+    private void drawIndication(DrawContext dc)
+    {
+        if (indication == null)
+            return;
+
+        //dc = dc.create(); // overkill?
+        dc.setMapDrawing();
+        //setScaleDraw(dc.g);
+        double minStroke = STROKE_SELECTION.getLineWidth() * 3;// * mZoomInverse;
+        if (indication.getStrokeWidth() > minStroke)
+            dc.g.setStroke(new BasicStroke(indication.getStrokeWidth()));
+        else
+            dc.g.setStroke(new BasicStroke((float) minStroke));
+
+        //dc.g.setColor(new Color(Color.green.getRGB() + (128<<24), true)); // 128<<24 = 50% transparent
+        //dc.g.setColor(COLOR_SELECTION);
+
+        indication.transformZero(dc.g);
+
+        if (true||DEBUG.PICK
+            //&& (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)
+            ) {
+            dc.g.setColor(Color.green);
+            dc.setAlpha(0.5);
+            dc.g.fill(indication.getZeroShape());
+        } else {
+            dc.g.setColor(COLOR_INDICATION);
+            dc.g.draw(indication.getZeroShape());
+        }
+
+        //dc.g.setColor(new Color(Color.white.getRGB() + (128<<24), true));
+        //dc.g.fill(indication.getLocalShape());
+    }
+    
     
 
     protected static final Color DefaultFillColor = Color.white;
@@ -3113,7 +3090,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // todo: some kind of special indicator for this... (or check type token?)
             return;
         }
-
         
         dc.g.setColor(COLOR_SELECTION);
         dc.g.setStroke(STROKE_SELECTION);
@@ -3447,40 +3423,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     */
 
-    private void drawIndication(DrawContext dc)
-    {
-        if (indication == null)
-            return;
-
-        //dc = dc.create(); // overkill?
-        dc.setMapDrawing();
-        //setScaleDraw(dc.g);
-        double minStroke = STROKE_SELECTION.getLineWidth() * 3;// * mZoomInverse;
-        if (indication.getStrokeWidth() > minStroke)
-            dc.g.setStroke(new BasicStroke(indication.getStrokeWidth()));
-        else
-            dc.g.setStroke(new BasicStroke((float) minStroke));
-
-        //dc.g.setColor(new Color(Color.green.getRGB() + (128<<24), true)); // 128<<24 = 50% transparent
-        //dc.g.setColor(COLOR_SELECTION);
-
-        indication.transformZero(dc.g);
-
-        if (true||DEBUG.PICK
-            //&& (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)
-            ) {
-            dc.g.setColor(Color.green);
-            dc.setAlpha(0.5);
-            dc.g.fill(indication.getZeroShape());
-        } else {
-            dc.g.setColor(COLOR_INDICATION);
-            dc.g.draw(indication.getZeroShape());
-        }
-
-        //dc.g.setColor(new Color(Color.white.getRGB() + (128<<24), true));
-        //dc.g.fill(indication.getLocalShape());
-    }
+                        
     
+
     
     // exterior drawn box will be 1 pixel bigger
     static final int SelectionHandleSize = VueResources.getInt("mapViewer.selection.handleSize"); // fill size
@@ -6877,5 +6822,81 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public static void setAutoZoomEnabled(boolean enabled)
     {
     	autoZoomEnabled = enabled;
-    }        
+    }
+
+
+    protected void drawViewerDebug(DrawContext dc)
+    {
+        dc.setRawDrawing();
+
+        final Graphics2D g = dc.g;
+        
+        g.setColor(Color.red);
+        g.setStroke(new java.awt.BasicStroke(1f));
+        g.drawLine(_mouse.x,_mouse.y, _mouse.x+1,_mouse.y+1);
+            
+        int iX = (int) (screenToMapX(_mouse.x) * 100);
+        int iY = (int) (screenToMapY(_mouse.y) * 100);
+        float mapX = iX / 100f;
+        float mapY = iY / 100f;
+
+        Point2D mapCoords = new Point2D.Float(mapX, mapY);
+        Point canvas = getLocation();
+        //Point2D screen = new Point2D.Float(_mouse.x + canvas.x, _mouse.y + canvas.y);
+        Point screen = new Point(_mouse.x + canvas.x, _mouse.y + canvas.y);
+        Point2D focalCoords = screenToFocalPoint(screen);
+            
+        g.setFont(VueConstants.FixedFont);
+        int x = -getX() + 40;
+        int y = -getY() + 100;
+        //int x = dc.frame.x;
+        //int y = dc.frame.y;
+        //g2.drawString("screen(" + mouse.x + "," +  mouse.y + ")", 10, y+=15);
+        if (true) {
+            g.drawString(" origin offset: " + out(getOriginLocation()), x, y+=15);
+            g.drawString(" ~screen mouse: " + out(screen), x, y+=15);
+            g.drawString("  canvas mouse: " + out(_mouse), x, y+=15);
+            g.drawString("   focal mouse: " + out(focalCoords), x, y+=15);
+            g.drawString("     map mouse: " + out(mapCoords), x, y+=15);
+            g.drawString("     canvas at: " + out(canvas), x, y+= 15);
+            /*if (inScrollPane){
+              Point extent = viewportToCanvasPoint(mouse);
+              Point2D map = extentToMapPoint(extent);
+              g2.drawString("  extent point: " + out(extent), x, y+=15);
+              g2.drawString("     map point: " + out(map), x, y+=15);
+              }*/
+            if (inScrollPane){
+                g.drawString("viewport----pos " + out(mViewport.getViewPosition()), x, y+=15);
+            }
+            if (getMap() != null)
+                g.drawString("map-canvas-size " + out(mapToScreenDim(getMap().getBounds())), x, y+=15);
+            if (mFocal == null)
+                g.drawString("map-canvas-adju (NULL FOCAL)", x, y+=15);
+            else
+                g.drawString("map-canvas-adju " + out(mapToScreenDim(getContentBounds())), x, y+=15);
+            g.drawString("    canvas-size " + out(getSize()), x, y+=15);
+            g.drawString("          frame " + out(dc.getFrame()), x, y+=15);
+        }
+        if (inScrollPane) {
+            g.drawString("  viewport-size " + out(mViewport.getSize()), x, y+=15);
+        }
+        g.drawString("zoom " + getZoomFactor(), x, y+=15);
+        g.drawString("anitAlias " + DEBUG_ANTI_ALIAS, x, y+=15);
+        g.drawString("renderQuality " + DEBUG_RENDER_QUALITY, x, y+=15);
+        g.drawString("fractionalMetrics " + DEBUG_FONT_METRICS, x, y+=15);
+        //g.drawString("findParent " + !DEBUG_FINDPARENT_OFF, x, y+=15);
+        g.drawString("optimizedRepaint " + OPTIMIZED_REPAINT, x, y+=15);
+        g.drawString("Focal " + this.mFocal, x, y+=15);
+        g.drawString("Entry " + this.mFocalEntry, x, y+=15);
+        g.drawString("  MAP " + this.mMap, x, y+=15);
+
+        Point2D center = getVisibleCenter();
+        dc.setAbsoluteStroke(1);
+        // easily gets lost when way zoomed in because coords > MaxCoord
+        //g2.draw(new Line2D.Double(center.getX(), MinCoord, center.getX(), MaxCoord));
+        //g2.draw(new Line2D.Double(MinCoord, center.getY(), MaxCoord, center.getY());
+        g.drawLine(-99999, (int) Math.round(center.getY()), 99999, (int) Math.round(center.getY()));
+        g.drawLine((int) Math.round(center.getX()), -99999, (int) Math.round(center.getX()), 99999);
+    }
+    
 }
