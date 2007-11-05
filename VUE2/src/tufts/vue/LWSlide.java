@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.79 $ / $Date: 2007-11-04 23:10:07 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2007-11-05 06:02:40 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -456,9 +456,15 @@ public class LWSlide extends LWContainer
         
         if (images.size() == 1) {
             final LWImage image = images.get(0);
+            final LWSlide slide = this;
 
-            image.userSetSize(0, getHeight() - SlideMargin * 4, null); // aspect preserving
-            image.setLocation(getWidth() - image.getWidth() - SlideMargin * 2, SlideMargin * 2);
+            image.userSetSize(0,
+                              slide.getHeight() - SlideMargin * 6, null); // aspect preserving
+            final float imageRegionTop = SlideMargin * 2;
+            final float imageRegionBottom = slide.getHeight();
+            final float imageRegionHeight = imageRegionBottom - imageRegionTop;
+            image.setLocation((slide.getWidth() - image.getWidth()) / 2,
+                              imageRegionTop + (imageRegionHeight - image.getHeight()) / 2);
                 
         } else if (images.size() > 1) {
 
@@ -518,6 +524,7 @@ public class LWSlide extends LWContainer
         }
 
         final LWComponent node = getSourceNode();
+        final LWSlide slide = this;
 
         if (DEBUG.Enabled) outf("NODE/SILDE SYNCHRONIZATION; type(%s) ---\n\t NODE: %s\n\tSLIDE: %s", type, node, this);
         
@@ -550,7 +557,7 @@ public class LWSlide extends LWContainer
             
         final Set<Resource> nodeDupes = new HashSet();
 
-        for (LWComponent c : this.getAllDescendents()) {
+        for (LWComponent c : slide.getAllDescendents()) {
             if (c.hasResource()) {
                 final Resource r = c.getResource();
                 if (nodeUnique.contains(r)) {
@@ -569,7 +576,7 @@ public class LWSlide extends LWContainer
 
         if (DEBUG.Enabled) {
             //this.outf("  NODE DUPES: " + nodeDupes + "\n");
-            this.outf("SLIDE UNIQUE: " + slideUnique);
+            slide.outf("SLIDE UNIQUE: " + slideUnique);
             node.outf(" NODE UNIQUE: " + nodeUnique);
         }
 
@@ -597,7 +604,7 @@ public class LWSlide extends LWContainer
                     newNode = new LWNode(r.getName(), r);
                     newNode.setSyncSource(nodeSources.get(r));
                 }
-                this.addChild(newNode);
+                slide.addChild(newNode);
             }
         }
     }
@@ -765,7 +772,7 @@ public class LWSlide extends LWContainer
             return;
         }
 
-        c.setFlag(Flag.NO_ICONS);
+        c.setFlag(Flag.SLIDE_STYLE);
         
         if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
 
@@ -826,7 +833,7 @@ public class LWSlide extends LWContainer
             return;
         }
 
-        c.setFlag(Flag.NO_ICONS);
+        c.setFlag(Flag.SLIDE_STYLE);
         
         if (c.hasResource())
             c.setStyle(master.getLinkStyle());
