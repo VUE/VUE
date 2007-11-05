@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.372 $ / $Date: 2007-11-05 18:29:43 $ / $Author: dan $
+ * @version $Revision: 1.373 $ / $Date: 2007-11-05 18:46:17 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1576,12 +1576,11 @@ u                    getSlot(c).setFromString((String)value);
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
     public boolean hasMetaData() {
-        return metadataList != null && metadataList.getMetadata().size() > 0;
+        return (getMetaDataAsHTML().length() > 0);
     }
     public String getMetaDataAsHTML() {
         if (metadataList != null && metadataList.getMetadata().size() > 0) {
-            // todo: get/format meta-data
-            String txt = "Meta-data: "; //+ metadataList.getMetadata().size() + " items:";
+            String txt = "";
             for (Object o : metadataList.getMetadata()) {
                 String value = ((edu.tufts.vue.metadata.VueMetadataElement)o).getValue();
                 if(value.length() > 0)
@@ -1589,6 +1588,12 @@ u                    getSlot(c).setFromString((String)value);
                   txt += "<br>" + value;
                 }
             }
+            
+            if(txt.length() > 0)
+            {
+                txt = "Metadata: " + txt;
+            }
+            
             return txt;
         } else {
             return "No meta-data!";
