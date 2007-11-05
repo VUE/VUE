@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.200 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
+ * @version $Revision: 1.201 $ / $Date: 2007-11-05 13:13:17 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -187,6 +187,12 @@ public class LWPathway extends LWContainer
             if (DEBUG.UNDO && DEBUG.META) pathway.out("removeFromModel " + this);
             node.removeEntryRef(this);
             node.removeLWCListener(pathway);
+
+            if (node instanceof LWPortal && node.getEntries().size() == 0) {
+                // if this portal has no other entries, remove it
+                node.getParent().deleteChildPermanently(node);
+            }
+            
             // TODO: do we still need to listen to each of our members?
             // if slides stay as children of LWPathway, could handle
             // via broadcastChildEvent
