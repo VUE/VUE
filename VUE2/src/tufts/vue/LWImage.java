@@ -66,6 +66,8 @@ public class LWImage extends
                edu.tufts.vue.preferences.VuePrefListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWImage.class);
+
+    public static final boolean SLIDE_LABELS = false;
     
     static int MaxRenderSize = PreferencesManager.getIntegerPrefValue(ImageSizePreference.getInstance());
     //private static VueIntegerPreference PrefImageSize = ImageSizePreference.getInstance(); // is failing for some reason
@@ -240,7 +242,7 @@ public class LWImage extends
 
     @Override
     public boolean supportsUserLabel() {
-        return hasFlag(Flag.SLIDE_STYLE);
+        return SLIDE_LABELS && hasFlag(Flag.SLIDE_STYLE);
     }
 
     /** this for backward compat with old save files to establish the image as a special "node" image */
