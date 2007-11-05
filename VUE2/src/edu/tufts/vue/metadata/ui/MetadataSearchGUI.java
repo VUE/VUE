@@ -67,7 +67,7 @@ public class MetadataSearchGUI extends JPanel {
     public final static String SELECTED_MAP_STRING = "Current Map";
     public final static String ALL_MAPS_STRING = "All Open Maps";
     
-    public final static String SEARCH_EVERYTHING = "Search everything:";
+    public final static String SEARCH_EVERYTHING = "Search everything";
     public final static String SEARCH_LABELS_ONLY = "Labels";
     public final static String SEARCH_ALL_KEYWORDS = "Keywords";
     public final static String SEARCH_CATEGORIES_AND_KEYWORDS = "Categories + Keywords";
