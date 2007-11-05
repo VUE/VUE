@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-11-02 20:47:40 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2007-11-05 13:00:26 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1493,13 +1493,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
 
-    // TODO: create an Images.Thumbshot class that can be a recognized special image
-    // source (just the thumbshot URL), which getPreview can return, so ResourceIcon /
-    // PreviewPane can feed it to Images.getImage and get the async callback when it's
-    // loaded instead of having to fetch the thumbshot on the AWT EDT.  (Also, Images
-    // can then manage caching the thumbshots, perhaps based on host only.  Also may not
-    // want to bother caching those to disk in case of expiration).
-
     private Image mThumbShot;
 
     /**
@@ -1557,6 +1550,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         */
     }
 
+    // TODO: create an Images.Thumbshot class that can be a recognized special image
+    // source (just the thumbshot URL), which getPreview can return, so ResourceIcon /
+    // PreviewPane can feed it to Images.getImage and get the async callback when it's
+    // loaded instead of having to fetch the thumbshot on the AWT EDT.  (Also, Images
+    // can then manage caching the thumbshots, perhaps based on host only.  Also may not
+    // want to bother caching those to disk in case of expiration).
+
     private Image fetchThumbshot(URL url)
     {
         if (url == null || !"http".equals(url.getProtocol()))
@@ -1573,6 +1573,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         // will result in the UI locking up until it responds with a result/error.
 
         final boolean inUI_Thread = SwingUtilities.isEventDispatchThread();
+
+        if (inUI_Thread) {
+            // 2007-11-05 SMF -- okay, this not safe, turning off for now:
+            if (DEBUG.Enabled) Log.debug("skipping thumbshot fetch in AWT EDT: " + thumbShot);
+            return null;
+        }
 
         if (inUI_Thread) {
              Log.warn("fetching thumbshot in AWT; may lock UI: " + thumbShot);
