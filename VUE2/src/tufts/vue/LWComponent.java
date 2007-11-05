@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.369 $ / $Date: 2007-11-05 16:59:42 $ / $Author: sfraize $
+ * @version $Revision: 1.370 $ / $Date: 2007-11-05 17:12:40 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2323,11 +2323,13 @@ u                    getSlot(c).setFromString((String)value);
 
     public Color getContrastStrokeColor(DrawContext dc) {
         final Color renderFill = getRenderFillColor(dc);
-        if (renderFill != null) {
+        if (renderFill != null && !isTransparent()) {
             return getContrastColor(renderFill);
         } else {
+            // transparent fill: just use stroke color
+            return getStrokeColor();
             // transparent fill: base on stroke color
-            return getStrokeColor().brighter();
+            //return getStrokeColor().brighter();
         }
     }
 
