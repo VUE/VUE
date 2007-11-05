@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.172 $ / $Date: 2007-10-29 08:20:27 $ / $Author: sfraize $
+ * @version $Revision: 1.173 $ / $Date: 2007-11-05 06:01:58 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1379,6 +1379,23 @@ public class LWMap extends LWContainer
         } else
             return EmptyBounds;
     }
+
+    public static Rectangle2D.Float getLayoutBounds(Iterable<LWComponent> iterable)
+    {
+        final Iterator<LWComponent> i = iterable.iterator();
+        if (i.hasNext()) {
+            final Rectangle2D.Float rect = new Rectangle2D.Float();
+            rect.setRect(i.next().getLayoutBounds());
+            while (i.hasNext()) {
+                final LWComponent c = i.next();
+                if (c.isDrawn())
+                    rect.add(c.getLayoutBounds());
+            }
+            return rect;
+        } else
+            return EmptyBounds;
+    }
+    
     
     
     
