@@ -60,7 +60,7 @@ public class VueDataSourceManager
      * -- SMF 10/2007
      */
     
-    private static final Set<DataSource> DataSources = new HashSet();
+    private static final Set<DataSource> DataSources = new LinkedHashSet();
 
     /** This is only used marshalling and unmarshalling */
     private static final Vector<DataSource> dataSourceVector = new Vector();
