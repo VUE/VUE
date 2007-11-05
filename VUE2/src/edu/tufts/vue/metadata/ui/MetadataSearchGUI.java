@@ -44,6 +44,9 @@ public class MetadataSearchGUI extends JPanel {
     
     private static final boolean DEBUG_LOCAL = false;
     
+    // "false' is inner scroll pane just around search terms table
+    private static final boolean SIDE_SCROLLBAR = false;
+    
     public static final int ONE_LINE = 0;
     public static final int MULTIPLE_FIELDS = 1;
     
@@ -130,11 +133,7 @@ public class MetadataSearchGUI extends JPanel {
     
     private int searchType = EVERYTHING;
     
-    //reenable for side scroll
-    //private static tufts.vue.gui.WidgetStack stack;
-    
-    //reenable for side scroll method 2
-   // private static JScrollPane pane = null;
+    private static tufts.vue.gui.WidgetStack stack;
     
     public static tufts.vue.gui.DockWindow getDockWindow()
     {
@@ -146,18 +145,16 @@ public class MetadataSearchGUI extends JPanel {
             
             content = new MetadataSearchGUI(MULTIPLE_FIELDS);
 
-            //reenable for side-scrollbar
-            //stack = new tufts.vue.gui.WidgetStack();
+            if(SIDE_SCROLLBAR)
+            {    
+              stack = new tufts.vue.gui.WidgetStack();
             
-            //stack.setLayout(new BorderLayout());
-            //stack.setWantsScroller(true);
+              stack.setLayout(new BorderLayout());
+              stack.setWantsScroller(true);
             
-            //stack.add(content);
+              stack.add(content);
+            }
             
-            //pane = new JScrollPane(content,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-            //                              JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            
-            //dockWindow.pack();
         }    
         
         return dockWindow;
@@ -165,17 +162,15 @@ public class MetadataSearchGUI extends JPanel {
     
     public static void afterDockVisible()
     {
-        
-
-        
-            dockWindow.setContent(content);
-            
-            //re-enable for side-scrollbar
-            //dockWindow.setContent(pane);
-            //dockWindow.setContent(stack);
-            
-            //content.adjustColumnModel();
-
+            if(SIDE_SCROLLBAR)
+            {
+              dockWindow.setContent(stack);
+            }
+            else
+            {
+              dockWindow.setContent(content); 
+            }
+     
             dockWindow.setSize(300,250); 
     }
     
@@ -208,7 +203,6 @@ public class MetadataSearchGUI extends JPanel {
                               BorderFactory.createLineBorder(new java.awt.Color(200,200,200),1)));
         JPanel buttonPanel = new JPanel(new BorderLayout());
         searchButton = new JButton(new SearchAction(searchField));
-        //searchButton.setBackground(java.awt.Color.WHITE);
         buttonPanel.setOpaque(true);
         buttonPanel.setBackground(getBackground());
         buttonPanel.add(BorderLayout.EAST,searchButton);
@@ -228,10 +222,8 @@ public class MetadataSearchGUI extends JPanel {
         
         JPanel linePanel = new JPanel() {
                 protected void paintComponent(java.awt.Graphics g) {
-                    //g.setColor(java.awt.Color.WHITE);
-                    //g.fillRect(0,0,getWidth(),getHeight());
                     g.setColor(java.awt.Color.DARK_GRAY);
-                    g.drawLine(5,getHeight()/2,/* this.getSize().width*/ MetadataSearchGUI.this.getWidth()-15, getHeight()/2);
+                    g.drawLine(5,getHeight()/2, MetadataSearchGUI.this.getWidth()-15, getHeight()/2);
                 }
                 
                 public java.awt.Dimension getMinimumSize()
@@ -349,6 +341,7 @@ public class MetadataSearchGUI extends JPanel {
         advancedSearchPanel.add(advancedSearch);
         innerTopPanel.add(advancedSearchPanel,BorderLayout.NORTH);
         
+        //for default of advanced...
         //innerTopPanel.add(optionsPanel);
         
         //optionsPanel.add(advancedSearch);
@@ -401,19 +394,22 @@ public class MetadataSearchGUI extends JPanel {
         scroll.setCorner(JScrollPane.UPPER_RIGHT_CORNER,corner);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(getBackground());
-        fieldsPanel.add(scroll);
-        
-        //JPanel fieldsInnerPanel = new JPanel(new BorderLayout());
-        //fieldsInnerPanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
-        //fieldsInnerPanel.add(searchTermsTable);
 
-        
-        //fieldsPanel.add(fieldsInnerPanel);
+        if(!SIDE_SCROLLBAR)
+        {    
+          fieldsPanel.add(scroll);
+        }
+        else
+        {
+          JPanel fieldsInnerPanel = new JPanel(new BorderLayout());
+          fieldsInnerPanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
+          fieldsInnerPanel.add(searchTermsTable);    
+          fieldsPanel.add(fieldsInnerPanel);
+        }
         
         topPanel.add(innerTopPanel,BorderLayout.NORTH);
         fieldsPanel.add(linePanel,BorderLayout.NORTH);
         topPanel.add(fieldsPanel);
-        //topPanel.add(innerTopPanel,BorderLayout.NORTH);
         
         buttonPanel = new JPanel(new BorderLayout());
         termsAction = new SearchAction(searchTerms);
@@ -518,9 +514,16 @@ public class MetadataSearchGUI extends JPanel {
            
 
            
-           dockWindow.validate();
+           //dockWindow.validate();
            
-           dockWindow.setSize(300,250 + optionsPanel.getHeight());
+           //dockWindow.setSize(300,250 + optionsPanel.getHeight());
+           
+           //dockWindow.validate();
+           
+           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + optionsPanel.getHeight());
+           //validate();
+           
+           dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + 50);
            
            dockWindow.validate();
            
@@ -542,11 +545,18 @@ public class MetadataSearchGUI extends JPanel {
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
            optionsLabel.setText("show options");
            
-          // dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - optionsPanel.getHeight());
+           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - optionsPanel.getHeight());
+           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - optionsPanel.getPreferredSize().getHeight());
            
-           dockWindow.setSize(300,250);
+           //dockWindow.setSize(300,250);
            
-           validate();
+           
+           dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - 50);
+           
+           
+           //validate();
+           dockWindow.validate();
+           
            
            /*if(dockWindow != null)
            {
