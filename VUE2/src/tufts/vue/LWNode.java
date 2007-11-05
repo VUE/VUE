@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.196 $ / $Date: 2007-11-05 07:20:10 $ / $Author: sfraize $
+ * @version $Revision: 1.197 $ / $Date: 2007-11-05 16:59:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2110,18 +2110,7 @@ public class LWNode extends LWContainer
             mIconBlock.draw(dc);
             // draw divider if there's a label
             if (hasLabel()) {
-                final Color renderFill = getRenderFillColor(dc);
-                final Color marginColor;
-                if (renderFill != null) {
-                    if (renderFill.equals(Color.black))
-                        marginColor = Color.darkGray;
-                    else
-                        marginColor = renderFill.darker();
-                } else {
-                    // transparent fill: base on stroke color
-                    marginColor = getStrokeColor().brighter();
-                }
-                g.setColor(marginColor);
+                g.setColor(getContrastStrokeColor(dc));
                 g.setStroke(STROKE_ONE);
                 g.draw(mIconDivider);
             }

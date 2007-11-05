@@ -33,7 +33,7 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.15 $ / $Date: 2007-11-05 15:29:27 $ / $Author: mike $ 
+ * @version $Revision: 1.16 $ / $Date: 2007-11-05 16:59:42 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -121,20 +121,12 @@ public class LWPortal extends LWNode
         //if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
         if (dc.focal == this) {
 
-            final AffineTransform zeroTransform = DEBUG.CONTAINMENT ? dc.g.getTransform() : null;
+            final AffineTransform zeroTransform = dc.g.getTransform();
 
-//             dc.setAbsoluteStroke(5);
-//             dc.g.setColor(Color.red);
-//             dc.g.fill(getZeroShape());
-//             //dc.g.draw(getZeroShape());
-            
-            // Okay, I think this is really best handled in SlideViewer & PresentationTool, tho
-            // would be nice if that code could be merged...
-            //dc.g.setColor(getRenderFillColor(dc));
-            //dc.g.fill(getZeroShape());
             dc.setMapDrawing();
             dc.setDrawPathways(false);
             dc.skipDraw = this;
+            
             if (DEBUG.CONTAINMENT) {
                 final DrawContext alphaDC = dc.create();
                 alphaDC.setAlpha(0.1, AlphaComposite.SRC);
@@ -150,11 +142,18 @@ public class LWPortal extends LWNode
                 dc.setAbsoluteStroke(1);
                 dc.g.setColor(Color.red);
                 dc.g.draw(getZeroShape());
+                
             } else {
+                
                 final DrawContext clipDC = dc.create();
                 clipDC.setMasterClip(getMapShape());
                 getParent().draw(clipDC);
                 clipDC.dispose();
+                
+                dc.g.setTransform(zeroTransform);                
+                dc.setAbsoluteStroke(2);
+                dc.g.setColor(getContrastColor(dc.getBackgroundFill()));
+                dc.g.draw(getZeroShape());
             }
             
         } else if (dc.focal instanceof LWPortal) {

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.368 $ / $Date: 2007-11-05 13:02:16 $ / $Author: sfraize $
+ * @version $Revision: 1.369 $ / $Date: 2007-11-05 16:59:42 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2309,6 +2309,29 @@ u                    getSlot(c).setFromString((String)value);
         //System.out.println("DEFAULT FILL: " + mFillColor.get() + " " + this);
         return mFillColor.get();
     }
+
+    public static Color getContrastColor(Color c) {
+        if (c != null) {
+            if (c.equals(Color.black))
+                return Color.darkGray;
+            else
+                return c.darker();
+        } else {
+            return DEBUG.BOXES ? Color.red : Color.gray;
+        }
+    }
+
+    public Color getContrastStrokeColor(DrawContext dc) {
+        final Color renderFill = getRenderFillColor(dc);
+        if (renderFill != null) {
+            return getContrastColor(renderFill);
+        } else {
+            // transparent fill: base on stroke color
+            return getStrokeColor().brighter();
+        }
+    }
+
+    
 
     //private LWPathway lastPriorit;
 
@@ -5145,6 +5168,17 @@ u                    getSlot(c).setFromString((String)value);
                 if (e.hasVisibleSlide()) {
                     final LWSlide slide = e.getSlide();
                     lastSlide = slide;
+                    
+                    // TODO BUG: during a presentation, if you use 'p' to change to exclusive
+                    // pathway display mode and back, it actually results in the movement of the
+                    // slide icons -- so unless the slide you're on happens to be the first slide
+                    // icon, it will move when you do this, and the viewer isn't catching this, and
+                    // the slide moves up and to the left in the middle of the presentation.  The
+                    // real fix for this involves the complete reworking of the MapViewer to just
+                    // be a Focal/Tree viewer, which can truly throw out all map coordinates, and
+                    // just deal with wherever it's rooted in the hierachy.  We're probably 2/3 of
+                    // the way there now.  Hopefully we'll get there someday... SMF 2007-11-05
+                    
                     slide.takeLocation(xoff, yoff);
                     final float scaledSlideWidth = slide.getLocalWidth();
                     final float scaledSlideHeight = slide.getLocalHeight();
