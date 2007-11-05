@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.201 $ / $Date: 2007-11-05 13:13:17 $ / $Author: sfraize $
+ * @version $Revision: 1.202 $ / $Date: 2007-11-05 16:22:27 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -281,7 +281,8 @@ public class LWPathway extends LWContainer
         // currently visible, tho it would be better to force showing the hidden
         // slide icon even if there off...
         public LWComponent getSelectable() {
-            return canProvideSlide() ? getSlide() : node;
+            return (canProvideSlide() && getSlide().isVisible()) ? getSlide() : node;
+            //return canProvideSlide() ? getSlide() : node;
             //return isMapView() ? node : slide;
         }
 
