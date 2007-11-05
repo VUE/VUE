@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.374 $ / $Date: 2007-11-05 19:34:41 $ / $Author: sfraize $
+ * @version $Revision: 1.375 $ / $Date: 2007-11-05 20:45:50 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1576,7 +1576,7 @@ u                    getSlot(c).setFromString((String)value);
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
     public boolean hasMetaData() {
-        return (getMetaDataAsHTML().length() > 0);
+        return ( (metadataList != null) && (getMetaDataAsHTML().length() > 0) );
     }
     public String getMetaDataAsHTML() {
         if (metadataList != null && metadataList.getMetadata().size() > 0) {
@@ -1596,7 +1596,7 @@ u                    getSlot(c).setFromString((String)value);
             
             return txt;
         } else {
-            return "No meta-data!";
+            return "";
         }
     }
    
@@ -2509,6 +2509,7 @@ u                    getSlot(c).setFromString((String)value);
     
     public void setPersistIsStyle(Boolean b) {
         setFlag(Flag.IS_STYLE, b.booleanValue());
+
     }
 
     /** @deprecated: tmp back compat only */ public void setParentStyle(LWComponent c) { setStyle(c); }
