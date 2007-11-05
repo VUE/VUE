@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.194 $ / $Date: 2007-11-04 23:10:57 $ / $Author: sfraize $
+ * @version $Revision: 1.195 $ / $Date: 2007-11-05 06:02:15 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -408,7 +408,7 @@ public class LWNode extends LWContainer
     protected boolean iconShowing()
     {    	
         //if (isPresentationContext() || isTextNode())
-        if (hasFlag(Flag.NO_ICONS) || isTextNode())
+        if (hasFlag(Flag.SLIDE_STYLE) || isTextNode())
             return false;
          else
             return mIconBlock.isShowing(); // remember not current till after a layout
@@ -549,6 +549,7 @@ public class LWNode extends LWContainer
             return false;
     }
     
+    @Override
     public boolean isTextNode() {
         // todo: "text" node should display no note icon, but display the note if any when any part of it is rolled over.
         // Just what a text node is is a bit confusing right now, but it's useful
