@@ -367,6 +367,11 @@ public class LWMergeMap extends LWMap {
              if(voteAggregate.isNodeVoteAboveThreshold(Util.getMergeProperty(comp)) ){
                    //LWNode node = (LWNode)comp.duplicate();
                    LWComponent node = comp.duplicate();
+                   
+                   edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                   vme.setObject("source: " + map.getLabel());
+                   node.getMetadataList().getMetadata().add(vme);
+                   
                    if(!repeat)
                    {
                      /*if(RECORD_SOURCE_NODES)
@@ -628,6 +633,10 @@ public class LWMergeMap extends LWMap {
                  repeat = true;
                }
                LWComponent node = component.duplicate();
+               
+               edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+               vme.setObject("source: " + map.getLabel());
+               node.getMetadataList().getMetadata().add(vme);
              
                if(!repeat)
                {    
