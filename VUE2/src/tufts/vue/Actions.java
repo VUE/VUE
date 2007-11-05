@@ -846,6 +846,11 @@ public class Actions implements VueConstants
         {
         	VueFileChooser chooser = new VueFileChooser();
     		File fileName = null;
+
+                // TODO: this is broken -- it should do almost exactly the same thing
+                // as AddFileAction -- the only difference would when adding a new item
+                // entirely, create an image instead of a node (and perhaps use
+                // an image selecting file filter)
     		
             int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
             if (option == VueFileChooser.APPROVE_OPTION) 
