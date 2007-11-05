@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import tufts.Util;
 import tufts.vue.NodeTool.NodeModeTool;
+import static tufts.vue.LWComponent.Flag;
 import java.util.*;
 import java.awt.Component;
 import java.awt.Event;
@@ -63,6 +64,8 @@ import tufts.vue.gui.WindowDisplayAction;
 
 public class Actions implements VueConstants
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Actions.class);
+    
     public static final int COMMAND = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
     public static final int LEFT_OF_SPACE = VueUtil.isMacPlatform() ? Event.META_MASK : Event.ALT_MASK;
     public static final int CTRL = Event.CTRL_MASK;
@@ -593,7 +596,7 @@ public class Actions implements VueConstants
             // just rely on the random selection order, unless we want to change the
             // selection to a SortedSet (TreeSet)).
             
-            if (c.isAncestorSelected()) {
+            if (c.isAncestorSelected() || !canEdit(c)) {
                 
                 // Duplicate is hierarchical action: don't dupe if parent is going to do
                 // it for us.  Note that when we call this on paste, parent will always
@@ -604,7 +607,8 @@ public class Actions implements VueConstants
                 continue;
             }
             LWComponent copy = c.duplicate(CopyContext);
-            DupeList.add(copy);
+            if (copy != null)
+                DupeList.add(copy);
             //System.out.println("duplicated " + copy);
         }
         CopyContext.complete();
@@ -612,16 +616,25 @@ public class Actions implements VueConstants
         return DupeList;
     }
 
+    /** @return true if we can cut/copy/delete/duplicate this selection */
     private static boolean canEdit(LWSelection s) {
         if (s.size() == 1) {
-            if (s.first().getParent() instanceof LWPathway) // slides not on map
-                return false;
-            else
-                return true;
+            return canEdit(s.first());
         } else
             return s.size() > 1;
                                
         //return s.size() > 0 && !(s.only() instanceof LWSlide);
+    }
+
+    private static boolean canEdit(LWComponent c) {
+        if (c.hasFlag(Flag.LOCKED))
+            return false;
+        else if (c instanceof LWSlide && !DEBUG.Enabled)
+            return false;
+        else if (c.getParent() instanceof LWPathway) // old-style slides not map-owned
+            return false;
+        else
+            return true;
     }
 
     public static final LWCAction Duplicate =
@@ -646,10 +659,14 @@ public class Actions implements VueConstants
         }
         
         void act(LWComponent c) {
-            LWComponent copy = c.duplicate(CopyContext);
-            DupeList.add(copy);
-            copy.translate(CopyOffset, CopyOffset);
-            c.getParent().addChild(copy);
+            if (canEdit(c)) {
+                LWComponent copy = c.duplicate(CopyContext);
+                if (copy != null) {
+                    DupeList.add(copy);
+                    copy.translate(CopyOffset, CopyOffset);
+                    c.getParent().pasteChild(copy);
+                }
+            }
         }
         
     };
@@ -706,12 +723,7 @@ public class Actions implements VueConstants
         // children in selection who's parent is also in selection)
         boolean hierarchicalAction() { return true; }
         boolean mayModifySelection() { return true; }
-        boolean enabledFor(LWSelection s) {
-            if (s.size() == 1 && s.first().hasFlag(LWComponent.Flag.NO_DELETE))
-                return false;
-            else
-                return canEdit(s);
-        }
+        boolean enabledFor(LWSelection s) { return canEdit(s); }
         
         void act(Iterator i) {
             super.act(i);
@@ -727,14 +739,19 @@ public class Actions implements VueConstants
         }
         void act(LWComponent c) {
             LWContainer parent = c.getParent();
+            
             if (parent == null) {
-                System.out.println("DELETE: " + c + " skipping: null parent (already deleted)");
+                info("skipping: null parent (already deleted): " + c);
             } else if (c.isDeleted()) {
-                System.out.println("DELETE: " + c + " skipping (already deleted)");
+                info("skipping (already deleted): " + c);
             } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
-                System.out.println("DELETE: " + c + " skipping (parent already deleted)"); // parent will call deleteChildPermanently
+                info("skipping (parent already deleted): " + c); // parent will call deleteChildPermanently
             } else if (parent.isSelected()) { // if parent selected, it will delete it's children
-                System.out.println("DELETE: " + c + " skipping - parent selected & will be deleting");
+                info("skipping - parent selected & will be deleting: " + c);
+            } else if (c.hasFlag(Flag.LOCKED)) {
+                info("not permitted: " + c);
+            } else if (!canEdit(c)) {
+                info("cannot edit: " + c);
             } else {
                 parent.deleteChildPermanently(c);
             }
@@ -788,7 +805,7 @@ public class Actions implements VueConstants
             }
             
             MapDropTarget.setCenterAt(pasted, pasteLocation); // only works on un-parented nodes
-            viewer.getFocal().addChildren(pasted);
+            viewer.getFocal().pasteChildren(pasted);
             viewer.getSelection().setTo(pasted);
             lastMouseLocation = mouseLocation;
         }
@@ -1043,7 +1060,7 @@ public class Actions implements VueConstants
     {
     	public void act(LWSlide slide)
     	{
-            final LWSlide masterSlide = slide.getPathwayEntry().pathway.getMasterSlide();
+            final LWSlide masterSlide = slide.getMasterSlide();
             if (VUE.getActiveViewer() != null)
             {
             	if (VUE.getActiveViewer().getFocal().equals(masterSlide))
@@ -1328,7 +1345,7 @@ public class Actions implements VueConstants
         boolean undoable() { return false; } // label editor handles the undo
             
         boolean enabledFor(LWSelection s) {
-            return s.size() == 1 && s.first().supportsUserLabel();
+            return s.size() == 1 && s.first().supportsUserLabel() && !s.first().hasFlag(Flag.LOCKED);
         }
         void act(LWComponent c) {
             // todo: throw interal exception if c not in active map
@@ -1993,7 +2010,7 @@ public class Actions implements VueConstants
             
             // maybe: run a timer and do this if no activity (e.g., node creation)
             // for 250ms or something
-            viewer.getFocal().addChild(newItem);
+            viewer.getFocal().dropChild(newItem);
 
             //GUI.invokeAfterAWT(new Runnable() { public void run() {
                 viewer.getSelection().setTo(newItem);

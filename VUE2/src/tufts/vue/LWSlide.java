@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.80 $ / $Date: 2007-11-05 06:02:40 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -46,9 +46,6 @@ public class LWSlide extends LWContainer
     // PowerPoint defaut 720/540  (1.3)  Based on 72dpi?  (it has a DPI option)
     public static final float SlideAspect = ((float)SlideWidth) / ((float)SlideHeight);
     protected static final int SlideMargin = 30;
-
-    // todo: shouldn't we be able to pick the source node out of mEntry?
-    private LWComponent mSourceNode;
 
     private transient LWPathway.Entry mEntry;
 
@@ -64,16 +61,16 @@ public class LWSlide extends LWContainer
     /** set a runtime entry marker for this slide for use in presentation navigation */
     protected void setPathwayEntry(LWPathway.Entry e) {
         mEntry = e;
-        if (DEBUG.Enabled && mSourceNode != null && e.node != mSourceNode)
-            Util.printStackTrace(this + " sourceNode != entry node! " + mSourceNode + " " + e);
+//         if (DEBUG.Enabled && mSourceNode != null && e.node != mSourceNode)
+//             Util.printStackTrace(this + " sourceNode != entry node! " + mSourceNode + " " + e);
     }
+    
     /** get the LWPathway.Entry for this slide if it is a pathway slide, otherwise null */
-    // TODO: only need one of these!
     LWPathway.Entry getPathwayEntry() {
         return mEntry;
     }
 
-    public final LWPathway.Entry getEntry() {
+    protected LWPathway.Entry getEntry() {
         return mEntry;
     }
 
@@ -167,6 +164,22 @@ public class LWSlide extends LWContainer
         return isMoveable();
     }
     
+    /** slides never considered translucent: they're not on the map needing backfill when they're the focal */
+    @Override
+    public boolean isTranslucent() {
+        return false;
+    }
+
+    // todo: won't be able to use this when we allow variable sized slides...
+    private static final Rectangle2D SlideZeroShape = new Rectangle2D.Float(0, 0, SlideWidth, SlideHeight);
+
+    @Override
+    public final java.awt.Shape getZeroShape() {
+        if (mEntry == null)
+            return super.getZeroShape(); // if entry is null, is an on-map slide that may have been resized
+        else
+            return SlideZeroShape; // as slides all same size for now, can use a constant zeroShape
+    }
 
 //     /** @return false -- slides themseleves never have slide icons: only nodes that own them */
 //     @Override
@@ -188,57 +201,6 @@ public class LWSlide extends LWContainer
         return 0;
     }
 
-
-//     @Override
-//     public boolean handleDoubleClick(MapMouseEvent e)
-//     {
-//         // a hack to do this in the model: better in the viewer and/or selection tool...
-//         // TODO: not if we're the focal!
-
-//         final MapViewer viewer = e.getViewer();
-
-//         if (viewer.getFocal() == this)
-//             return false;
-
-        
-//         final Rectangle2D viewerBounds = viewer.getVisibleMapBounds();
-//         final Rectangle2D slideBounds = getMapBounds();
-//         final Rectangle2D overlap = viewerBounds.createIntersection(slideBounds);
-//         final double overlapArea = overlap.getWidth() * overlap.getHeight();
-//         //final double viewerArea = viewerBounds.getWidth() * viewerBounds.getHeight();
-//         final double slideArea = slideBounds.getWidth() * slideBounds.getHeight();
-//         final boolean slideClipped = overlapArea < slideArea;
-        
-//         final double overlapWidth = slideBounds.getWidth() / viewerBounds.getWidth();
-//         final double overlapHeight = slideBounds.getHeight() / viewerBounds.getHeight();
-
-//         final boolean focusSlide; // otherwise, re-focus map
-
-//         //outf("slideClip=" + slideClipped + " overlapWidth  %4.1f%%", overlapWidth * 100);
-//         //outf("slideClip=" + slideClipped + " overlapHeight %4.1f%%", overlapHeight * 100);
-        
-//         if (slideClipped) {
-//             focusSlide = true;
-//         } else if (overlapWidth > 0.8 || overlapHeight > 0.8) {
-//             focusSlide = false;
-//         } else
-//             focusSlide = true;
-
-//         if (focusSlide) {
-//             viewer.clearRollover();
-//             ZoomTool.setZoomFitRegion(viewer,
-//                                       getMapBounds(),
-//                                       -LWPathway.PathBorderStrokeWidth / 2,
-//                                       true);
-//         } else {
-//             // re-focus the map:
-//             viewer.fitToFocal(true);
-//         }
-        
-//         return true;
-//     }
-    
-    
     
     @Override
     protected void setParent(LWContainer parent) {
@@ -260,40 +222,29 @@ public class LWSlide extends LWContainer
 //         }
     }
 
+    protected LWComponent getSourceNode() {
+        return mEntry == null ? null : mEntry.node;
+    }
+    
 
 //     protected LWComponent getSourceNode() {
-//         return mEntry == null ? null : mEntry.node;
-//     }
-    protected LWComponent getSourceNode() {
 
-        // todo: clean this up: should only need an entry, not a special source node
-        if (DEBUG.Enabled && mEntry != null && mSourceNode != null && mEntry.node != mSourceNode) {
-            Util.printStackTrace("sourceNode != entry node! srcNode=" + mSourceNode + " entry=" + mEntry);
-        }
-        if (mEntry == null) {
-            if (DEBUG.Enabled) Util.printStackTrace(this + " source node w/no entry: " + mSourceNode);
-            return mSourceNode;
-        } else
-            return mEntry.node;
-    }
-    protected void setSourceNode(LWComponent node) {
-        mSourceNode = node;
-    }
+//         // todo: clean this up: should only need an entry, not a special source node
+//         if (DEBUG.Enabled && mEntry != null && mSourceNode != null && mEntry.node != mSourceNode) {
+//             Util.printStackTrace("sourceNode != entry node! srcNode=" + mSourceNode + " entry=" + mEntry);
+//         }
+//         if (mEntry == null) {
+//             if (DEBUG.Enabled) Util.printStackTrace(this + " source node w/no entry: " + mSourceNode);
+//             return mSourceNode;
+//         } else
+//             return mEntry.node;
+//     }
+    
+//     protected void setSourceNode(LWComponent node) {
+//         mSourceNode = node;
+//     }
 
     
-    /** implemented to return the bg color of the master slide (for proper on-slide text edit fill color) */
-    @Override
-    public Color getRenderFillColor(DrawContext dc) {
-         if (mFillColor.isTransparent()) {
-             final LWSlide master = getMasterSlide();
-             if (master == null)
-                 return getFillColor();
-             else
-                 return master.getFillColor();
-         } else
-            return getFillColor();
-    }
-
     @Override
     public String getLabel() {
 
@@ -346,7 +297,7 @@ public class LWSlide extends LWContainer
         final CopyContext cc = new CopyContext(false);
         final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
 
-        slide.setSourceNode(mapNode);
+        //slide.setSourceNode(mapNode);
         title.setStyle(master.getTitleStyle());
         // if (syncTitle) title.setSyncSource(slide); doesn't seem to work in this direction (reverse is okay, but not what we want)
         if (mapNode != null) {
@@ -393,7 +344,7 @@ public class LWSlide extends LWContainer
         nodes.remove(nodes.get(0));
 
         title.setLocation(SlideMargin, SlideMargin);
-        addChildImpl(title);
+        addView(title);
 
         final List<LWImage> images = new ArrayList();
         final List<LWComponent> text = new ArrayList();
@@ -410,12 +361,12 @@ public class LWSlide extends LWContainer
         // Add as children, providing seed relative locations
         // for layout, and establish z-order (images under text)
         // Nodes will be auto-styled with the master slide style
-        // in addChildImpl.
+        // in addView.
 
         x = y = SlideMargin;
         for (LWComponent c : images) {
             c.takeLocation(x++,y++);
-            addChildImpl(c);
+            addView(c);
         }
 
         // differences in font sizes mean text below title looks to left of title unless slighly indented
@@ -425,7 +376,7 @@ public class LWSlide extends LWContainer
         y = SlideMargin * 2 + (int) title.getHeight();
         for (LWComponent c : text) {
             c.takeLocation(x++,y++);
-            addChildImpl(c);
+            addView(c);
         }
             
         if (DEBUG.PRESENT || DEBUG.STYLE) out("LAYING OUT CHILDREN, parent=" + getParent());
@@ -604,146 +555,12 @@ public class LWSlide extends LWContainer
                     newNode = new LWNode(r.getName(), r);
                     newNode.setSyncSource(nodeSources.get(r));
                 }
-                slide.addChild(newNode);
+                slide.addView(newNode);
             }
         }
     }
 
-    /** slides never considered translucent: they're not on the map needing backfill when they're the focal */
-    @Override
-    public boolean isTranslucent() {
-        return false;
-    }
-
-    // todo: won't be able to use this when we allow variable sized slides...
-    private static final Rectangle2D SlideZeroShape = new Rectangle2D.Float(0, 0, SlideWidth, SlideHeight);
-
-    @Override
-    public final java.awt.Shape getZeroShape() {
-        if (mEntry == null)
-            return super.getZeroShape(); // if entry is null, is an on-map slide that may have been resized
-        else
-            return SlideZeroShape; // as slides all same size for now, can use a constant zeroShape
-    }
-
-    @Override
-    protected void drawImpl(DrawContext dc)
-    {
-//         final LWSlide master = getMasterSlide();
-//         final Color fillColor = getRenderFillColor(dc);
-
-//         //if (dc.focal != this && dc.isInteractive() && (isSelected() || dc.isPresenting()) && isDrawn()) {
-//         if (dc.focal != this && (isSelected() || dc.isPresenting()) && isDrawn()) {
-            
-//             // we check isDrawn above because we may actually be hidden (no slide icons),
-//             // but forced drawn temporarily by the selection ghosting code, in which case
-//             // we don't want to bother with this transparent stroke: just messy then
-            
-//             if (mEntry != null) {
-//                 //final Composite savedComposite = dc.g.getComposite();
-//                 //dc.g.setComposite(LWPathway.PathTranslucence);
-//                 dc.g.setColor(mEntry.pathway.getColor());
-                
-// //                 final BasicStroke s = LWPathway.ConnectorStroke;
-// //                 final float scale = getScaleF();
-// //                 dc.g.setStroke(new BasicStroke(s.getLineWidth() * 1 / scale,
-// //                                     //BasicStroke.CAP_BUTT,
-// //                                     s.getEndCap(),
-// //                                     BasicStroke.JOIN_ROUND,
-// //                                     s.getMiterLimit(),
-// //                                     //LWPathway.DashPattern,
-// //                                     new float[] { 8/scale, 8/scale },
-// //                                     //s.getDashArray(),
-// //                                     s.getDashPhase());
-
-//                 // todo: cache this for the common case (we know the fixed icon slide scale)
-//                 dc.g.setStroke(new BasicStroke((float) (LWPathway.PathBorderStrokeWidth * 1 / getScale()),
-//                                                BasicStroke.CAP_ROUND,
-//                                                BasicStroke.JOIN_ROUND));
-//                 dc.g.draw(getZeroShape());
-//                 //dc.g.setComposite(savedComposite);
-//             } else {
-//                 dc.g.setColor(COLOR_HIGHLIGHT);
-//                 dc.setAbsoluteStroke(getStrokeWidth() + SelectionStrokeWidth);
-//                 dc.g.draw(getZeroShape());
-//             }
-//             //dc.setAbsoluteStroke(SelectionStrokeWidth);
-//             //dc.g.setStroke(new java.awt.BasicStroke((float) ((1/getScale()) * (getStrokeWidth() + SelectionStrokeWidth))));
-//             //dc.setAbsoluteStroke(getStrokeWidth() + SelectionStrokeWidth);
-//             //dc.g.draw(getZeroShape());
-//         }
-
-        final LWSlide master = getMasterSlide();
-        final Color fillColor = getRenderFillColor(dc);
-
-        if (mEntry == null && isSelected() && dc.isInteractive()) {
-            // for on-map slides only: drag regular selection border if selection
-            dc.g.setColor(COLOR_HIGHLIGHT);
-            dc.setAbsoluteStroke(getStrokeWidth() + SelectionStrokeWidth);
-            dc.g.draw(getZeroShape());
-        }
-
-        if (fillColor == null)
-            Util.printStackTrace("null fill " + this);
-        else
-            dc.fillArea(getZeroShape(), fillColor);
-        
-
-//         if (dc.focal != this || fillColor != dc.getFill() || !fillColor.equals(dc.getFill())) {
-//             dc.g.setColor(fillColor);
-//             dc.g.fill(getZeroShape());
-//         }
-
-        // When just filling the background with the master, only draw
-        // what's in the containment box
-        //dc.g.setClip(master.getBounds());
-        //master.drawChildren(dc);
-        //dc.g.setClip(curClip);
-
-        
-        if (master != null) {
-            // As the master slide isn't in the model, sit's children can't succesfully know
-            // their bounds anyway, so we can't clip-optimize further when we draw it.
-            // (It would be of little help anyway)
-            final DrawContext masterDC = dc.create();
-            masterDC.setClipOptimized(false);
-
-            // We only draw the master's children, as we've already
-            // done our background fill:
-            master.drawChildren(masterDC);
-        }
-
-        // Now draw the slide contents:
-        drawChildren(dc);
-    }
-
-
-//     /**
-//      * Special case for squeezing a slide into a particular
-//      * frame draw context -- e.g., used for drawing a master
-//      * slide as the background to an arbitrary context.
-//      */
-//     public void drawIntoFrame(DrawContext dc)
-//     {
-//         //dc = dc.create();
-//         dc.push();
-//         dc.setFrameDrawing();
-//         final Point2D.Float offset = new Point2D.Float();
-//         final double zoom = ZoomTool.computeZoomFit(dc.frame.getSize(), 0, getBounds(), offset);
-//         dc.g.translate(-offset.x, -offset.y);
-//         dc.g.scale(zoom, zoom);
-//         if (DEBUG.BOXES || DEBUG.PRESENT || DEBUG.CONTAINMENT) {
-//             dc.g.setColor(Color.green);
-//             dc.g.setStroke(VueConstants.STROKE_TWO);
-//             dc.g.draw(getZeroShape());
-//         }
-//         drawZero(dc);
-//         dc.pop();
-//     }
-    
-    public void rebuild() {
-        
-    }
+    //public void rebuild() {}
 
     public void revertToMasterStyle() {
         //out("REVERTING TO MASTER STYLE");
@@ -761,63 +578,6 @@ public class LWSlide extends LWContainer
         }
         setFillColor(null); // this is how we revert a slide's bg color to that of the master slide
     }
-
-    @Override
-    protected void addChildImpl(final LWComponent c)
-    {
-        // TODO: need to apply proper style w/generic code
-        
-        if (this instanceof MasterSlide) {
-            super.addChildImpl(c);
-            return;
-        }
-
-        c.setFlag(Flag.SLIDE_STYLE);
-        
-        if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
-
-        if (c.getStyle() == null)
-            applyMasterStyle(c);
-
-        super.addChildImpl(c);
-
-        // TODO: need a size request for LWImage, as the image itself
-        // may not be loaded yet (or just auto-handle this in userSetSize,
-        // or setSize or something.
-        if (c instanceof LWImage) {
-            ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
-//             addCleanupTask(new Runnable() { public void run() {
-//                 ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
-//             }});
-//             GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                     ((LWImage)c).userSetSize(SlideWidth / 3, SlideWidth / 3, null); // more forgiving when image aspect close to slide aspect
-//                   //((LWImage)c).userSetSize(SlideWidth / 3, SlideHeight / 3, null);
-//             }});
-        }
-        
-        /*
-        LWPathway pathway = (LWPathway) getParent();
-        if (pathway != null && c.getStyle() == null)
-            c.setStyle(pathway.getMasterSlide().textStyle);
-        */
-    }
-
-//     /** Return true if our parent is the given pathway (as slides are currently owned by the pathway).
-//      * If our parent is NOT a pathway, use the default impl.
-//      */
-    @Override
-    public boolean inPathway(LWPathway p)
-    {
-        if (mEntry == null)
-            return super.inPathway(p);
-        else
-            return mEntry.pathway == p;
-//         if (getParent() instanceof LWPathway)
-//             return getParent() == p;
-//         else
-//             return super.inPathway(p);
-    }
-    
 
     private void applyMasterStyle(LWComponent node) {
         applyMasterStyle(getMasterSlide(), node);
@@ -844,8 +604,85 @@ public class LWSlide extends LWContainer
             c.setStyle(master.getTextStyle());
     }
 
-    public MasterSlide getMasterSlide() {
+    private void addView(LWComponent c) {
+        adjustForSlideDisplay(c);
+        addChildImpl(c);
+    }
 
+    /** @return true if adjusted */
+    private boolean adjustForSlideDisplay(LWComponent c) {
+        
+        if (this instanceof MasterSlide)
+            return false;
+        
+        if (DEBUG.PRESENT || DEBUG.STYLE) Log.debug("adjusting " + c);
+        
+        c.setFlag(Flag.SLIDE_STYLE);
+        if (c.getStyle() == null)
+            applyMasterStyle(c);
+
+       return true;
+    }
+
+    @Override
+    public void pasteChildren(Iterable<LWComponent> iterable) {
+        for (LWComponent c : iterable) {
+
+            if (!adjustForSlideDisplay(c))
+                continue;
+            
+            // TODO: need a size request for LWImage, as the image itself
+            // may not be loaded yet (or just auto-handle this in userSetSize,
+            // or setSize or something.
+            if (c instanceof LWImage) {
+                ((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
+                // todo: we actually want this to happen after we're sure we know the image's aspect,
+                // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
+            }
+        }
+        
+        super.pasteChildren(iterable);
+    }
+    
+//     @Override
+//     protected void addChildImpl(final LWComponent c)
+//     {
+//         if (this instanceof MasterSlide) {
+//             super.addChildImpl(c);
+//             return;
+//         }
+//         c.setFlag(Flag.SLIDE_STYLE);
+//         if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
+//         if (c.getStyle() == null)
+//             applyMasterStyle(c);
+//         super.addChildImpl(c);
+//         }
+//         /*
+//         LWPathway pathway = (LWPathway) getParent();
+//         if (pathway != null && c.getStyle() == null)
+//             c.setStyle(pathway.getMasterSlide().textStyle);
+//         */
+//     }
+
+    
+//     /** Return true if our parent is the given pathway (as slides are currently owned by the pathway).
+//      * If our parent is NOT a pathway, use the default impl.
+//      */
+    @Override
+    public boolean inPathway(LWPathway p)
+    {
+        if (mEntry == null)
+            return super.inPathway(p);
+        else
+            return mEntry.pathway == p;
+//         if (getParent() instanceof LWPathway)
+//             return getParent() == p;
+//         else
+//             return super.inPathway(p);
+    }
+    
+
+    public MasterSlide getMasterSlide() {
         if (mEntry == null)
             return null;
         else
@@ -858,9 +695,64 @@ public class LWSlide extends LWContainer
         return true;
     }
 
+    /** implemented to return the bg color of the master slide (for proper on-slide text edit fill color) */
+    @Override
+    public Color getRenderFillColor(DrawContext dc) {
+         if (mFillColor.isTransparent()) {
+             final LWSlide master = getMasterSlide();
+             if (master == null)
+                 return getFillColor();
+             else
+                 return master.getFillColor();
+         } else
+            return getFillColor();
+    }
+
+    @Override
+    protected void drawImpl(DrawContext dc)
+    {
+        final LWSlide master = getMasterSlide();
+        final Color fillColor = getRenderFillColor(dc);
+
+        if (mEntry == null && isSelected() && dc.isInteractive()) {
+            // for on-map slides only: drag regular selection border if selection
+            dc.g.setColor(COLOR_HIGHLIGHT);
+            dc.setAbsoluteStroke(getStrokeWidth() + SelectionStrokeWidth);
+            dc.g.draw(getZeroShape());
+        }
+
+        if (fillColor == null)
+            Util.printStackTrace("null fill " + this);
+        else
+            dc.fillArea(getZeroShape(), fillColor);
+        
+        if (master != null) {
+            // As the master slide isn't in the model, sit's children can't succesfully know
+            // their bounds anyway, so we can't clip-optimize further when we draw it.
+            // (It would be of little help anyway)
+            final DrawContext masterDC = dc.create();
+            masterDC.setClipOptimized(false);
+
+            // We only draw the master's children, as we've already
+            // done our background fill:
+            master.drawChildren(masterDC);
+        }
+
+        // Now draw the slide contents:
+        drawChildren(dc);
+    }
+
+    @Override
+    public boolean canDuplicate() {
+        return DEBUG.Enabled;
+    }
+    
     @Override
     public LWComponent duplicate(CopyContext cc)
     {
+        if (!DEBUG.Enabled)
+            return null;
+        
         LWSlide newSlide = (LWSlide) super.duplicate(cc);
 
         if (newSlide.mEntry == null && newSlide.isTransparent() && getMasterSlide() != null) {

@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.199 $ / $Date: 2007-11-02 21:38:02 $ / $Author: sfraize $
+ * @version $Revision: 1.200 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -175,6 +175,8 @@ public class LWPathway extends LWContainer
                 return;
             if (DEBUG.UNDO && DEBUG.META) pathway.out("ensureModel " + this);
             node.addEntryRef(this);
+            if (slide != null)
+                slide.setPathwayEntry(this);
             node.addLWCListener(pathway, LWKey.Deleting, LWKey.Label, LWKey.Hidden);
         }
     
@@ -243,7 +245,7 @@ public class LWPathway extends LWContainer
             }
             
             if (slide == null || slide instanceof MapSlide)
-                rebuildSlide();
+                buildSlide();
             if (node != null && slide.parent != node) {
                 if (node instanceof LWContainer)
                     slide.setParent((LWContainer)node);
@@ -252,7 +254,21 @@ public class LWPathway extends LWContainer
             }
             return slide;
         }
+        
+        private void buildSlide() {
+            // TODO: check/test undo -- is it working / the mark happening at the right time?
+            final LWSlide oldSlide = slide;
+            slide = LWSlide.CreateForPathway(pathway, node);
+            slide.setPathwayEntry(this);
+            pathway.notify("slide.rebuild", new Undoable() { void undo() {
+                slide = oldSlide;
+            }});
+        }
 
+        public void rebuildSlide() {
+            buildSlide();
+        }
+        
         /** @return what should be selected for this entry: will be node for map-view, slide otherwise, which may
          * currently be null if hasn't been created yet */
         // This could return the node instead of the slide if the slide-icon's aren't
@@ -263,16 +279,6 @@ public class LWPathway extends LWContainer
             //return isMapView() ? node : slide;
         }
 
-        public void rebuildSlide() {
-            // TODO: check/test undo -- is it working / the mark happening at the right time?
-            final LWSlide oldSlide = slide;
-            slide = LWSlide.CreateForPathway(pathway, node);
-            slide.setPathwayEntry(this);
-            pathway.notify("slide.rebuild", new Undoable() { void undo() {
-                slide = oldSlide;
-            }});
-        }
-        
         public void revertSlideToMasterStyle() {
             if (slide != null)
                 slide.revertToMasterStyle();
@@ -1481,15 +1487,17 @@ public class LWPathway extends LWContainer
             }
         }
 
+        // setEntries will ensure all of our model pointersd are correctly maintained
         setEntries("pathway.restore", newEntries, 0);
 
-        // The parent of a slide tied to an Entry is the LWPathway itself
-        for (Entry e : mEntries) {
-            if (e.slide != null) {
-                e.slide.setParent(this);
-                e.slide.setSourceNode(e.node);
-            }
-        }
+//         // [2007-11-05 -- hasn't been true for a while: slides are parented to their nodes as "slide-icons"]
+//         // The parent of a slide tied to an Entry is the LWPathway itself
+//         for (Entry e : mEntries) {
+//             if (e.slide != null) {
+//                 e.slide.setParent(this);
+//                 //e.slide.setSourceNode(e.node);
+//             }
+//         }
 
         // Now restore old-style notes
         for (LWPathwayElementProperty pep : mOldStyleProperties) {

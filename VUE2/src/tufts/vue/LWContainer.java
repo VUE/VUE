@@ -33,7 +33,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.134 $ / $Date: 2007-11-05 06:01:15 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -195,12 +195,25 @@ public abstract class LWContainer extends LWComponent
         newParent.addChildren(reparenting);
     }
 
+    @Override
     public final void addChild(LWComponent c) {
-        addChildren(new VueUtil.SingleIterator(c));
+        addChildren(new Util.SingleIterator(c));
     }
+
+//     /** redirects to pasteChildren */
+//     @Override
+//     public void pasteChild(LWComponent c) {
+//         pasteChildren(new Util.SingleIterator(c));
+//     }
+
+//     /** redirects to dropChildren */
+//     @Override
+//     public void dropChild(LWComponent c) {
+//         dropChildren(new Util.SingleIterator(c));
+//     }
     
     final void removeChild(LWComponent c) {
-        removeChildren(new VueUtil.SingleIterator(c));
+        removeChildren(new Util.SingleIterator(c));
     }
 
 //     public void addChildrenPreservingOrder(List addList)
@@ -253,7 +266,7 @@ public abstract class LWContainer extends LWComponent
         if (mChildren == null)
             mChildren = new ArrayList(toAdd.length);
         
-        addChildren(new tufts.Util.ArrayIterator(toAdd));
+        addChildren(new Util.ArrayIterator(toAdd));
     }
     
     /**
@@ -553,8 +566,8 @@ public abstract class LWContainer extends LWComponent
      */
     public void deleteChildPermanently(LWComponent c)
     {
-        if (c.hasFlag(Flag.NO_DELETE)) {
-            if (DEBUG.Enabled) out("Doesn't permit deletion: " + c);
+        if (c.hasFlag(Flag.LOCKED)) {
+            if (DEBUG.Enabled) out("is locked; deletion not permitted: " + c);
             return;
         }
         

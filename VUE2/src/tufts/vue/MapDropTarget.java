@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.84 $ / $Date: 2007-10-29 08:55:31 $ / $Author: sfraize $  
+ * @version $Revision: 1.85 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -881,7 +881,7 @@ class MapDropTarget
                     // TODO: clean this up:  resource should load meta-data on CREATION.
                     ((URLResource)drop.hit.getResource()).scanForMetaDataAsync(drop.hit);
                 } else if (drop.hitParent != null) {
-                    drop.hitParent.addChild(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
+                    drop.hitParent.dropChild(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
                 } else {
                     processed = false;
                 }
@@ -913,9 +913,9 @@ class MapDropTarget
             setLocation(drop.items, drop.location);
 
         if (drop.hitParent != null) {
-            drop.hitParent.addChildren(drop.items);
+            drop.hitParent.dropChildren(drop.items);
         } else {
-            mViewer.getFocal().addChildren(drop.items);
+            mViewer.getFocal().dropChildren(drop.items);
         }
         drop.added.addAll(drop.items);
             
@@ -942,7 +942,7 @@ class MapDropTarget
 
                     // create new node children of the hit node
                     //drop.hitParent.addChild(createNode(drop, resource, null));
-                    drop.hitParent.addChild(createNode(drop, resource, drop.nextDropLocation()));
+                    drop.hitParent.dropChild(createNode(drop, resource, drop.nextDropLocation()));
                 
                 } else {
                     
@@ -1054,7 +1054,7 @@ class MapDropTarget
             if (drop.isLinkAction || drop.hit instanceof LWLink) { // hack for now: if a link, just always set resource...
                 drop.hit.setResource(resourceSpec);
             } else if (drop.hitParent != null) {
-                drop.hitParent.addChild(createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation()));
+                drop.hitParent.dropChild(createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation()));
                 // Why were we leaving out the location here?  Oh: when hitParent could only be a node (auto-layout), that made sense
                 //drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
             }
@@ -1192,7 +1192,7 @@ class MapDropTarget
         // reparented to where it needs to go.
 
         if (where != null)
-            addNodeToMap(node, where);
+            addNodeToFocal(node, where);
 
         if (lwImage != null) {
             // this will cause the LWImage to start loading the image
@@ -1209,16 +1209,16 @@ class MapDropTarget
 
     private LWComponent createTextNode(String text, Point2D where)
     {
-        return addNodeToMap(NodeModeTool.createTextNode(text), where);
+        return addNodeToFocal(NodeModeTool.createTextNode(text), where);
     }
 
-    private LWComponent addNodeToMap(LWComponent node, Point2D where)
+    private LWComponent addNodeToFocal(LWComponent node, Point2D where)
     {
         if (CenterNodesOnDrop)
             node.setCenterAt(where);
         else
             node.setLocation(where);
-        mViewer.getFocal().addChild(node);
+        mViewer.getFocal().dropChild(node);
         return node;
     }
 

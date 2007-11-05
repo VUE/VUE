@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.366 $ / $Date: 2007-11-05 07:22:33 $ / $Author: sfraize $
+ * @version $Revision: 1.367 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -128,10 +128,12 @@ public class LWComponent
 
     public enum Flag {
         IS_STYLE,
+            /** cannot move, delete, link to or edit label */
+            LOCKED,
             /** can't be moved */
             FIXED_LOCATION,
-            NO_DELETE,
-            NO_LINKS,
+//             NO_DELETE,
+//             NO_LINKS,
             SLIDE_STYLE;
 
         // TODO: general LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link
@@ -1403,6 +1405,10 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     
+    public boolean canDuplicate() {
+        return true;
+    }
+    
     /**
      * Create a component with duplicate content & style.  Does not
      * duplicate any links to this component, and leaves it an
@@ -1961,7 +1967,7 @@ u                    getSlot(c).setFromString((String)value);
     
     /** @return true -- subclass impl's can override */
     protected boolean canLinkToImpl(LWComponent target) {
-        return hasFlag(Flag.NO_LINKS) == false;
+        return hasFlag(Flag.LOCKED) == false;
     }
     
     public boolean hasLabel() {
@@ -2583,6 +2589,17 @@ u                    getSlot(c).setFromString((String)value);
         Util.printStackTrace(this + ": can't take children; ignored new child: " + c);
     }
 
+    /** default action: addChild */
+    public void pasteChild(LWComponent c) {
+        addChild(c);
+    }
+    
+    /** default action: pasteChild */
+    public void dropChild(LWComponent c) {
+        pasteChild(c);
+    }
+
+
     /**
      * Although unsupported on LWComponents (must be an LWContainer subclass to support children),
      * this method appears here for typing convenience and debug.  If a non LWContainer subclass
@@ -2592,7 +2609,15 @@ u                    getSlot(c).setFromString((String)value);
         Util.printStackTrace(this + ": can't take children; ignored iterable: " + iterable);
     }
 
-    
+    /** default action: addChildren */
+    public void pasteChildren(Iterable<LWComponent> iterable) {
+        addChildren(iterable);
+    }
+
+    /** default action: pasteChildren */
+    public void dropChildren(Iterable<LWComponent> iterable) {
+        pasteChildren(iterable);
+    }
 
     /** return true if this component is only a "virutal" member of the map:
      * It may report that it's parent is in the map, but that parent doesn't
@@ -2655,7 +2680,7 @@ u                    getSlot(c).setFromString((String)value);
                     if (activePathway == null && slide.isSelected()) {
                         onTop = slide;
                         //} else if (slide.getEntry().pathway == activePathway) {
-                    } else if (slide.getEntry() == activeEntry) {
+                    } else if (slide.getPathwayEntry() == activeEntry) {
                         onTop = slide;
                     } else {
                         nextSlide = slide;
@@ -5172,9 +5197,9 @@ u                    getSlot(c).setFromString((String)value);
 
         
         //if (dc.isPresenting() || slide.isSelected()) {
-        if (dc.isPresenting() || slide.getEntry() == VUE.getActiveEntry()) {
+        if (dc.isPresenting() || slide.getPathwayEntry() == VUE.getActiveEntry()) {
             // every slide icon should be a slide with an entry...
-            dc.g.setColor(slide.getEntry().pathway.getColor());
+            dc.g.setColor(slide.getPathwayEntry().pathway.getColor());
             dc.g.setStroke(SlideIconPathwayStroke);
             dc.g.draw(slide.getZeroShape());
             drewBorder = true;
@@ -5769,6 +5794,18 @@ u                    getSlot(c).setFromString((String)value);
         final double overlapHeight = mapBounds.getHeight() / viewerBounds.getHeight();
 
         final boolean focusNode; // otherwise, re-focus map
+
+        // Note: this code is way more complicated than we're making use of right now --
+        // we always fully load objects (slides) as the focal when we zoom to them.
+        // This code permitted double-clicking through a slide-icon stack, where we'd
+        // zoom to the slide icon, but retain the map focal.  The overlap herustics here
+        // determined how much of the current view was occupied by the current clicked
+        // on zoom-to object.  If mostly in view, assume we want to "de-focus" (zoom
+        // back out to the map from our "virtual focal" zoomed-to node), but if mostly
+        // not in view, re-center on this object.  When last tested, this was smart
+        // enough to allow you to simply cycle through a stack of slide-icons with
+        // double clicking on the exposed edge of the nearby slide icons (of course,
+        // this code was on LWSlide back then...)
 
         if (DEBUG.Enabled) {
             outf(" overlapWidth %4.1f%%", overlapWidth * 100);
