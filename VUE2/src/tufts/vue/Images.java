@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-10-31 10:45:05 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2007-11-05 13:02:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -981,10 +981,15 @@ public class Images
                 if (name.charAt(0) == '.')
                     continue;
                 //out("found cache file " + file);
-                URI key = cacheFileNameToKey(name);
-                if (DEBUG.IMAGE && DEBUG.META) out("made cache key: " + key);
-                if (key != null)
-                    Cache.put(key, new CacheEntry(null, file));
+                URI key = null;
+                try {
+                    key = cacheFileNameToKey(name);
+                    if (DEBUG.IMAGE && DEBUG.META) out("made cache key: " + key);
+                    if (key != null)
+                        Cache.put(key, new CacheEntry(null, file));
+                } catch (Throwable t) {
+                    Log.error("failed to load cache with [" + name + "]; key=" + key);
+                }
             }
         }
     }
@@ -1521,7 +1526,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
 
         if (true) {
 
-            final byte[] testBuf = new byte[64];
+            final byte[] testBuf = new byte[DEBUG.Enabled ? 128 : 64];
             final int got = read(testBuf);
             super.seek(0); // put as back at the start
             
