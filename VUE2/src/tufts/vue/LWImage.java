@@ -224,21 +224,24 @@ public class LWImage extends
         }
     }
 
+    @Override
+    public boolean supportsCopyOnDrag() {
+        //return !hasFlag(Flag.SLIDE_STYLE);
+        return isNodeIcon();
+    }
     
     
     /** @return true unless this is a node icon image */
     @Override
     public boolean supportsUserResize() {
-        return !isNodeIcon;
+        return !isNodeIcon();
+        //return hasFlag(Flag.SLIDE_STYLE) || !isNodeIcon;
     }
 
-    /** @return false -- no on-map editing of image labels */
     @Override
     public boolean supportsUserLabel() {
-        return false;
+        return hasFlag(Flag.SLIDE_STYLE);
     }
-
-    
 
     /** this for backward compat with old save files to establish the image as a special "node" image */
     @Override
@@ -307,15 +310,35 @@ public class LWImage extends
         }
         if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + newWidth + "x" + newHeight);
         setSize(newWidth, newHeight);
-    }        
+    }
+
+    @Override
+    protected TextBox getLabelBox()
+    {
+        if (super.labelBox == null) {
+            initTextBoxLocation(super.getLabelBox());
+            //layoutImpl("LWImage.labelBox-init");
+        }
+        return this.labelBox;
+    }
     
+    
+    @Override
+    public void initTextBoxLocation(TextBox textBox) {
+        textBox.setBoxLocation(0, -textBox.getHeight());
+    }
 
     @Override
     public void layoutImpl(Object triggerKey) {
-        if (getClass().isAssignableFrom(LWNode.class))
+        if (false&&getClass().isAssignableFrom(LWNode.class)) {
             super.layoutImpl(triggerKey);
-//         else
-//             mIconBlock.layout();
+        } else {
+            //mIconBlock.layout();
+//             if (super.labelBox != null) {
+//                 out("layoutImpl " + triggerKey + "; SET BOX LOCATION AT Y " + getHeight() + " in " + this);
+//                 super.labelBox.setBoxLocation(0, getHeight());
+//             }
+        }
     }
     
     // TODO: this wants to be on LWComponent, in case this is a
@@ -797,11 +820,13 @@ public class LWImage extends
                 dc.g.draw(shape);
             }
 
-//             if (hasLabel()) {
-//                 dc.g.translate(0, getHeight());
-//                 getLabelBox().draw(dc);
-//             }
-                
+            if (supportsUserLabel() && hasLabel()) {
+                initTextBoxLocation(getLabelBox());
+                if (this.labelBox.getParent() == null) {
+                    dc.g.translate(labelBox.getBoxX(), labelBox.getBoxY());
+                    this.labelBox.draw(dc);
+                }
+            }
         }
 
         //super.drawImpl(dc); // need this for label
