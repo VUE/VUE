@@ -106,7 +106,7 @@ public class Actions implements VueConstants
 		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
 		chooser.setDialogTitle("Save PDF as");
-		chooser.setSelectedFile(new File(VUE.getActivePathway().getLabel()+"_"+type));
+		chooser.setSelectedFile(new File(VUE.getActivePathway().getLabel().replaceAll("\\*", "")+"_"+type));
         int option = chooser.showSaveDialog(tufts.vue.VUE.getDialogParent());
         if (option == VueFileChooser.APPROVE_OPTION) 
         {
@@ -139,7 +139,7 @@ public class Actions implements VueConstants
     	}
 		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
-		chooser.setSelectedFile(new File(VUE.getActiveMap().getLabel()));
+		chooser.setSelectedFile(new File(VUE.getActiveMap().getLabel().replaceAll("\\*","")));
 		chooser.setDialogTitle("Save PDF as");
         int option = chooser.showSaveDialog(tufts.vue.VUE.getDialogParent());
         if (option == VueFileChooser.APPROVE_OPTION) 

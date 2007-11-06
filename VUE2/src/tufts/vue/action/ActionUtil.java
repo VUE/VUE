@@ -65,7 +65,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.89 $ / $Date: 2007-11-02 15:34:53 $ / $Author: mike $
+ * @version $Revision: 1.90 $ / $Date: 2007-11-06 16:50:23 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -126,7 +126,7 @@ public class ActionUtil
 			        if (fileType == null)
 			        {
 
-			        	chooser.setSelectedFile(new File(baseName));
+			        	chooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));
 			        }
 			        
 				}
