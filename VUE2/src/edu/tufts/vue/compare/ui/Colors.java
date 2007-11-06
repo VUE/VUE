@@ -62,6 +62,8 @@ import tufts.vue.VueResources;
  */
 public class Colors {
     
+    public static final int DEFAULT_INTERVAL_COUNT = 6;
+    
     private List<Color> colors;
     private String name;  
     
@@ -152,6 +154,13 @@ public class Colors {
     public String getName()
     {
        return name;
+    }
+    
+    public static int getIntervalCount()
+    {
+        // next line has to wait for static and/or ColorsManager setting
+        //return colors.size();
+        return DEFAULT_INTERVAL_COUNT;
     }
     
 }

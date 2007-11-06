@@ -19,7 +19,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.27 $ / $Date: 2007-10-30 15:41:37 $ / $Author: dan $
+ * @version $Revision: 1.28 $ / $Date: 2007-11-06 16:08:09 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -342,10 +342,21 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
            Style currNodeStyle = StyleMap.getStyle("node.w" + (si+1));
            if(currNodeStyle !=null)
            {
+             Color foregroundColor = null;  
+               
+             if(currNodeStyle.getAttribute("font-color") != null)
+             {
+                 foregroundColor = Style.hexToColor(currNodeStyle.getAttribute("font-color"));
+             }
+             else
+             {
+                 foregroundColor = Color.BLACK;
+             }
+               
              nodeModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
                               (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
-                              Style.hexToColor(currNodeStyle.getAttribute("background")),Color.BLACK);
-                              //,Style.hexToColor(currNodeStyle.getAttribute("foreground")));
+                              Style.hexToColor(currNodeStyle.getAttribute("background")),//Color.BLACK);
+                              foregroundColor);
            }
            
            Style currLinkStyle = StyleMap.getStyle("link.w" + (si+1));
@@ -354,7 +365,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
              //System.out.println("wvsp: default styles: " + currLinkStyle.getAttribute("background"));
              linkModel.addRow((int)(si*(100.0/DEFAULT_STYLE_CHOICES)),
                               (int)((si+1)*(100.0/DEFAULT_STYLE_CHOICES)),
-                              Style.hexToColor(currLinkStyle.getAttribute("background")),Color.BLACK);
+                              Style.hexToColor(currLinkStyle.getAttribute("background")),
+                              //Style.hexToColor(currLinkStyle.getSttribute("font-color"));
+                              Color.BLACK);
                              //,Style.hexToColor(currLinkStyle.getAttribute("foreground")));
            }
            
@@ -416,10 +429,23 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                 return;
             int i = 1;
             Iterator<Color> colors = ((Colors)(paletteChoice.getSelectedItem())).getColors().iterator();
+            
+            int count = 0;
+            
             while(colors.hasNext())
             {
+                //note: when #of intervals becomes variable this will have to adjust
+                float percentage = ((++count)/(float)Colors.getIntervalCount()); 
+                
+                System.out.println("percentage for color " + count + "," + percentage);
+                
                 Style s = StyleMap.getStyle(nodeOrLink+".w" + (i++));
                 s.setAttribute("background",Style.colorToHex(colors.next()).toString());
+                if(percentage >= .8)
+                {
+                    System.out.println("setting foreground color to white? " + count);
+                    s.setAttribute("font-color",Style.colorToHex(Color.WHITE));
+                }
             }
            // loadDefaultStyles();
             loadDefaultSettings();

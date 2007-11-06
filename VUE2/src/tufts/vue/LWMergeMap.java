@@ -770,6 +770,16 @@ public class LWMergeMap extends LWMap {
                   Style currStyle = nodeStyles.get(getInterval(score)-1);
                   //todo: applyCss here instead.
                   node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
+                  
+                  java.awt.Color strokeColor = null;
+                  if(currStyle.getAttribute("font-color") != null)
+                  {
+                    strokeColor = Style.hexToColor(currStyle.getAttribute("font-color"));
+                  }
+                  if(strokeColor != null)
+                  {
+                    node.setTextColor(strokeColor);
+                  }
              }
         }
        

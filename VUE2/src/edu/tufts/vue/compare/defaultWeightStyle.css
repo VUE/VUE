@@ -58,7 +58,7 @@ node.w4 {
  background: #2CA25F; font-size: normal;  
 }
 node.w5 { 
-    background: #006D2C; font-size: normal;  
+    background: #006D2C; font-size: normal; font-color: #FFFFFF  
 }
 link.w1 { 
   background: #EDF8FB; weight: 1px; arrow-end: start; curved: true; 
