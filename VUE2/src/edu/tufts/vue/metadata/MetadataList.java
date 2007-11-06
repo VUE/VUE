@@ -93,6 +93,11 @@ public class MetadataList {
         return false;
     }
     
+    public int getCategoryListSize()
+    {
+        return ((CategoryFirstList)metadataList).getCategoryEndIndex();
+    }
+    
     public VueMetadataElement getOntologyListElement(int i)
     {
         int index = i+((CategoryFirstList)metadataList).getCategoryEndIndex();

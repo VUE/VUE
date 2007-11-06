@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.376 $ / $Date: 2007-11-06 14:31:21 $ / $Author: dan $
+ * @version $Revision: 1.377 $ / $Date: 2007-11-06 14:42:10 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1581,8 +1581,9 @@ u                    getSlot(c).setFromString((String)value);
     public String getMetaDataAsHTML() {
         if (metadataList != null && metadataList.getMetadata().size() > 0) {
             String txt = "";
-            for (Object o : metadataList.getMetadata()) {
-                String value = ((edu.tufts.vue.metadata.VueMetadataElement)o).getValue();
+            //List allMetadata = metadataList;
+            for (int i=0;i<metadataList.getCategoryListSize();i++) {
+                String value = metadataList.getMetadata().get(i).getValue();//((edu.tufts.vue.metadata.VueMetadataElement)o).getValue();
                 if(value.length() > 0)
                 {    
                   txt += "<br>" + value;
