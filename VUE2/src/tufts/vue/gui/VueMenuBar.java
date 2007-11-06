@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.71 $ / $Date: 2007-11-05 15:29:28 $ / $Author: mike $
+ * @version $Revision: 1.72 $ / $Date: 2007-11-06 15:40:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -131,7 +131,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         // Actions added by the power team
         final PrintAction printAction = PrintAction.getPrintAction();
-        final PDFTransform pdfAction = new PDFTransform("PDF");
+    //    final PDFTransform pdfAction = new PDFTransform("PDF");
         final HTMLConversion htmlAction = new HTMLConversion("HTML");
         final ImageConversion imageAction = new ImageConversion("JPEG");
         final ImageMap imageMap = new ImageMap("IMAP");
@@ -212,7 +212,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG (see above)
             JMenu exportMenu = add(new VueMenu("Export"));
             exportMenu.add(htmlAction);
-            exportMenu.add(pdfAction);
+           // exportMenu.add(pdfAction);
             exportMenu.add(imageAction);
             exportMenu.add(svgAction);
             exportMenu.add(xmlAction);

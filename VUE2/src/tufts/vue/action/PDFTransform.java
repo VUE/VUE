@@ -60,6 +60,13 @@ import tufts.vue.*;
  *
  * @author Jay Briedis
  */
+/*  This class has been replaced by the itext export code found in 
+ * PresentationNotes.java, there were problems including the xml/fo/xsl
+ * were not actually present in the JAR, and I think in the end
+ * we get abetter map from the itext code.
+ * 
+ * -Mike
+ */
 public class PDFTransform extends AbstractAction {
     
     private static  String pdfFileName = "default.pdf";
