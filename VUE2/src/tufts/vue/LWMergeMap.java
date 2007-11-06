@@ -91,12 +91,12 @@ public class LWMergeMap extends LWMap {
     
     public static String getTitle()
     {
-        return "Merge Map" + (++numberOfMaps); //+ "*";
+        return "Merge Map " + (++numberOfMaps); //+ "*";
     }
     
     public String getLabel()
     {
-        return super.getLabel() + "*";
+        return super.getLabel() + " *";
     }
     
     public LWMergeMap()
