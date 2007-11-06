@@ -134,6 +134,7 @@ public class MetadataSearchGUI extends JPanel {
     private int searchType = EVERYTHING;
     
     private static tufts.vue.gui.WidgetStack stack;
+    private static boolean initialized = false;
     
     public static tufts.vue.gui.DockWindow getDockWindow()
     {
@@ -161,7 +162,11 @@ public class MetadataSearchGUI extends JPanel {
     }
     
     public static void afterDockVisible()
-    {
+    {   
+        
+            if(initialized)
+                return;
+            
             if(SIDE_SCROLLBAR)
             {
               dockWindow.setContent(stack);
@@ -172,6 +177,8 @@ public class MetadataSearchGUI extends JPanel {
             }
      
             dockWindow.setSize(305,255); 
+            
+            initialized = true;
     }
     
     public MetadataSearchGUI() 
