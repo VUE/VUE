@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.375 $ / $Date: 2007-11-05 20:45:50 $ / $Author: dan $
+ * @version $Revision: 1.376 $ / $Date: 2007-11-06 14:31:21 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1591,7 +1591,7 @@ u                    getSlot(c).setFromString((String)value);
             
             if(txt.length() > 0)
             {
-                txt = "Metadata: " + txt;
+                txt = "Keywords: " + txt;
             }
             
             return txt;
