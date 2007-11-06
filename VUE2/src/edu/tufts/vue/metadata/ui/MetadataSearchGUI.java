@@ -401,13 +401,13 @@ public class MetadataSearchGUI extends JPanel {
         }
         else
         {
-          JPanel fieldsInnerPanel = new JPanel()
-          {
+          JPanel fieldsInnerPanel = new JPanel();
+          /*{
             public java.awt.Dimension getPreferredSize()
             {
                 return new java.awt.Dimension(super.getWidth(),90);
             }
-          };
+          };*/
           fieldsInnerPanel.setLayout(new BorderLayout());
           fieldsInnerPanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
           fieldsInnerPanel.add(searchTermsTable);    
