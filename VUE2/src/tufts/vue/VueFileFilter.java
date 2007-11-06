@@ -76,6 +76,8 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         
         else if (description.equalsIgnoreCase("rdf")) 
             extensions = rdf;
+        else if (description.equalsIgnoreCase("pdf"))
+        	extensions = pdf;
         else if (description.equalsIgnoreCase(ZIP_DESCRIPTION))
         	extensions=zip;
         else if (description.equalsIgnoreCase(IMAGEMAP_DESCRIPTION))
