@@ -509,9 +509,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     for (int j=0; j < password.length; j++) {
                         sb.append(password[j]);
                     }
-                    String enc = edu.tufts.vue.util.Encryption.encrypt(sb.toString());
+                    //String enc = edu.tufts.vue.util.Encryption.encrypt(sb.toString());
                     //String dec = edu.tufts.vue.util.Encryption.decrypt(enc);
-                    properties.setProperty(key,enc);
+                    properties.setProperty(key,sb.toString());
                     //System.out.println("PASS: "+sb.toString()+ " encrypted to: "+ enc+" decrypted to: "+ dec);
                     break;
                 case MULTI_LINE_TEXT_CONTROL:
@@ -570,8 +570,9 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         break;
                     case SINGLE_LINE_MASKED_TEXT_CONTROL:
                         javax.swing.JPasswordField field1 = (javax.swing.JPasswordField)fieldVector.elementAt(i);
-                        String dec = edu.tufts.vue.util.Encryption.decrypt(value);
-                        field1.setText(dec);
+                        //String dec = edu.tufts.vue.util.Encryption.decrypt(value);
+                        //field1.setText(dec);
+                        field1.setText(value);
                         break;
                     case MULTI_LINE_TEXT_CONTROL:
                         javax.swing.JTextArea field2 = (javax.swing.JTextArea)fieldVector.elementAt(i);
