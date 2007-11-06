@@ -161,7 +161,10 @@ public class SaveAction extends VueAction
                 new SVGConversion().createSVG(file);
             
             else if (name.endsWith(".pdf"))
-                new PDFTransform().convert(file);
+            {
+            	PresentationNotes.createMapAsPDF(file);
+                //new PDFTransform().convert(file);
+            }
             else if (name.endsWith(".zip"))
             {   Vector resourceVector = new Vector();
             	Iterator i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
