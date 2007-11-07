@@ -753,9 +753,10 @@ public class Util
         };
     
 
-    /** Convenience class: provides a single element iterator */
+    /** Convenience class: provides a single element iterator.  Is also an iterable, returning self.
+     * Each request for an iterable resets us to be iterated again (not threadsafe) */
     public static final class SingleIterator<T> implements java.util.Iterator<T>, Iterable<T> {
-        private T object;
+        private final T object;
         private boolean done;
         public SingleIterator(T o) {
             object = o;
