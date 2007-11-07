@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.377 $ / $Date: 2007-11-06 14:42:10 $ / $Author: dan $
+ * @version $Revision: 1.378 $ / $Date: 2007-11-07 05:59:02 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -4519,14 +4519,21 @@ u                    getSlot(c).setFromString((String)value);
         
     }
 
-
-    
     /**
      * This will take the given rectangle in local coordinates, and transform it
      * into map coordinates.  The passed in Rectangle2D will be modified
      * and returned.
      */
-    public Rectangle2D transformZeroToMapRect(Rectangle2D zeroRect)
+    public Rectangle2D transformZeroToMapRect(Rectangle2D zeroRect) {
+        return transformZeroToMapRect(zeroRect, zeroRect);
+    }
+    
+    /**
+     * This will take the given zeroRect rectangle in local coordinates, and transform it
+     * into map coordinates, setting mapRect and returning it.  If mapRect is null,
+     * a new rectangle will be created and returned.
+     */
+    public Rectangle2D transformZeroToMapRect(Rectangle2D zeroRect, Rectangle2D mapRect)
     {
         final AffineTransform tx = getZeroTransform();
         final double[] points = new double[4];
@@ -4537,13 +4544,16 @@ u                    getSlot(c).setFromString((String)value);
         points[3] = points[1] + zeroRect.getHeight();
         tx.transform(points, 0, points, 0, 2);
 
-        zeroRect.setRect(points[0],
+        if (mapRect == null)
+            mapRect = new Rectangle2D.Float();
+        
+        mapRect.setRect(points[0],
                         points[1],
                         points[2] - points[0],
                         points[3] - points[1]
                         );
         
-        return zeroRect;
+        return mapRect;
 
         
         
