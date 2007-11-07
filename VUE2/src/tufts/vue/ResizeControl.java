@@ -53,8 +53,30 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     // taking into account scale, nor proper offset of the drag bounds -- e.g., we're
     // now using local bounds (local to the parent node of the resizing child node), but
     // the drag bounds are relative to the FOCAL, not the parent...
+
+    // TODO: LOCAL_RESIZE breaks the resizing of objects that are in groups,
+    // unless the group happens to be located at 0,0...
+
+    // OKAY, here's the problem: originally, EVERYTHING was in map coordinates, so
+    // we never had to worry about this.  Now, everything has local coordinates.
+    // That is, the coordinates in their parent.  And now we also have coordinates
+    // relative to the FOCAL, which should ultimately replace all reference to
+    // map coordinates -- maps will just be another focal, except they'd normally
+    // be a focal without a parent.
+
+    // The incoming events can give us the map or focal coordinates.
+
+    // The LOCAL coordinates are relative to whatever is moving -- e.g., if the items
+    // are in a group, then we have a THIRD coordinate system to contend with here.
+    // Easist is probably to go back to everything tracking map coordinates, and then
+    // always transform those down to the new mResizeParent coordinates to get the local
+    // coords.  Ultimately we always track the focal coords, and then have generic
+    // routines that map between any two coordinate systems, but we don't have that
+    // yet...
     
-    public static final boolean LOCAL_RESIZE = true;
+    // only one of these two options should be in use.  LOCAL_RESIZE not currently feasable.
+    private static final boolean LOCAL_RESIZE = false;
+    private static final boolean MAPPED_RESIZE = false;
         
     boolean active = false;
     LWSelection.Controller[] handles = new LWSelection.Controller[8];
@@ -67,6 +89,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     private Object[]  mOriginal_each_bounds; // Rectangle2D.Float for everything but links
     private Box2D resize_box = null;
     private Point2D mapMouseDown;
+
+    private LWComponent mLocalParent;
 
     ResizeControl() {
         for (int i = 0; i < handles.length; i++)
@@ -92,12 +116,16 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         if (DEBUG.LAYOUT||DEBUG.MOUSE) out("resize control point " + index + " pressed");
 
         final LWSelection selection = VUE.getSelection().clone();
-        
+
         //mOriginalGroup_bounds = (Rectangle2D.Float) selection.getShapeBounds();
-        if (LOCAL_RESIZE)
+        mLocalParent = selection.first().getParent();
+        if (LOCAL_RESIZE) {
+            if (!selection.allHaveSameParent())
+                Util.printStackTrace(this + "; selection includes multiple parentage -- unpredicatable results");
             mOriginalGroup_bounds = LWMap.getLocalBounds(selection);
-        else
+        } else {
             mOriginalGroup_bounds = (Rectangle2D.Float) selection.getBounds();
+        }
 
         if (mOriginalGroup_bounds == null) {
             // if some code is written that clears the selection at the wrong time, this might happen.
@@ -142,24 +170,50 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         mapMouseDown = e.getMapPoint();
     }
         
-    void draw(DrawContext dc) { // this only called if viewer or layout debug is on
+    void drawDebug(DrawContext dc) { // this only called if viewer or layout debug is on
         if (mNewDraggedBounds != null) {
             MapViewer viewer = VUE.getActiveViewer();
 
+            if (LOCAL_RESIZE) {
+                Rectangle2D localOriginal = mLocalParent.transformZeroToMapRect(mOriginalGroup_bounds, null);
+                dc.g.setStroke(STROKE_TWO);
+                dc.g.setColor(java.awt.Color.blue);
+                dc.g.draw(viewer.mapToScreenRect(localOriginal));
 
-            dc.g.setStroke(STROKE_TWO);
-            dc.g.setColor(java.awt.Color.blue);
-            if (false&&LOCAL_RESIZE)
-                dc.g.draw(viewer.mapToScreenRect(viewer.getFocal().transformZeroToMapRect(mOriginalGroup_bounds)));
-            else
+                Rectangle2D localNew = mLocalParent.transformZeroToMapRect(mNewDraggedBounds, null);
+                dc.g.setStroke(STROKE_ONE);
+                dc.g.setColor(java.awt.Color.red);
+                dc.g.draw(viewer.mapToScreenRect(localNew));
+                
+                
+            } else {
+            
+                // old/ style            
+                dc.g.setStroke(STROKE_TWO);
+                dc.g.setColor(java.awt.Color.blue);
                 dc.g.draw(viewer.mapToScreenRect(mOriginalGroup_bounds));
 
-            dc.g.setStroke(STROKE_ONE);
-            dc.g.setColor(java.awt.Color.red);
-            if (false&&LOCAL_RESIZE)
+                dc.g.setStroke(STROKE_ONE);
+                dc.g.setColor(java.awt.Color.red);
                 dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
-            else
-                dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
+
+                
+            }
+
+//             if (viewer.getFocal() != viewer.getMap()) {
+//                 // *FOCAL* LOCAL style            
+//                 dc.g.setStroke(STROKE_TWO);
+//                 dc.g.setColor(java.awt.Color.orange);
+//                 dc.g.draw(viewer.mapToScreenRect(viewer.getFocal().transformZeroToMapRect(mOriginalGroup_bounds)));
+//             }
+
+
+//             dc.g.setStroke(STROKE_ONE);
+//             dc.g.setColor(java.awt.Color.red);
+//             if (false&&LOCAL_RESIZE)
+//                 dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
+//             else
+//                 dc.g.draw(viewer.mapToScreenRect(mNewDraggedBounds));
             
 //             if (false) {
 //                 dc.g.setColor(java.awt.Color.green);
@@ -223,12 +277,26 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     private void dragReshape(final int controlPoint, final LWComponent c, final Rectangle2D.Float request, MapMouseEvent e)
     {
         //if (DEBUG.WORK) out("dragReshape; request=" + Util.fmt(request));
-        //final boolean lockedLocation = c.getParent() instanceof LWNode; // todo: have a locked flag
-        final boolean lockedLocation = c.isManagedLocation(); // todo: this also checks selection, which we may not want...
+        boolean lockedLocation = c.isManagedLocation(); // todo: this also checks selection, which we may not want...
+
+        if (c instanceof LWImage && !(c.getParent() instanceof LWMap) && !e.isShiftDown()) {
+            // TODO: fix 
+            // Total hack for now for at least images on slides to do something
+            // reasonable: includes knowledge the images resize differently if shift is down...
+            lockedLocation = true;
+        }
 
         final float requestWidth, requestHeight;
 
-        if (LOCAL_RESIZE) {
+        if (MAPPED_RESIZE) {
+            mLocalParent.transformMapToZeroRect(request, request);
+            // note that if the object itself is scaled, this actually won't work,
+            // as the zeroRect in the parent is the net scaled size, whereas
+            // we want the "actual" size to actually set on the component...
+            // (and anyway, this appears to be even worse for resizing images on slides!)
+            requestWidth = request.width;
+            requestHeight = request.height;
+        } else if (LOCAL_RESIZE) {
             requestWidth = request.width;
             requestHeight = request.height;
         } else {
@@ -236,8 +304,13 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             requestHeight = request.height / c.getMapScaleF();
         }
 
+
         if (lockedLocation || isSizeOnlyCtrl(controlPoint)) {
             
+            // this part works fine for local resizes of images on slides (Right, LR,
+            // and Bottom controls) it's any control that may also change the location
+            // while the image is enforcing it's aspect that has problems.
+
             c.userSetSize(requestWidth, requestHeight, e);
             
         } else {
@@ -268,13 +341,22 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             }
             
 
-            // First set size and find out what size was actually
-            // taken before adjusting location.  Would be better
-            // to do this by getting the minimum size first, but
-            // that's not working at the moment for floating text
-            // layout's.
+            //----------------------------------------------------------------------------------------
+
+            // First set size and find out what size was actually taken before adjusting
+            // location.  Would be better to do this by getting the minimum size first,
+            // but that's not working at the moment for floating text layout's.
+
+            // With images, this is badly broken for UL, UR and LL controls because of
+            // images constraining the aspect (and somewhat broken for the Top & Left
+            // controls).  The way this code works here is to do the resize, then see
+            // about the location needing to be changes, but the userSetSize call on an
+            // aspect constraining image may not actually set it to that size, so our
+            // further adjustments based on the new size get very confused.
                     
             c.userSetSize(requestWidth, requestHeight, e);
+
+            //----------------------------------------------------------------------------------------
 
             final float newWidth = c.getWidth();
             final float newHeight = c.getHeight();
