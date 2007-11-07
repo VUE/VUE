@@ -115,7 +115,7 @@ public class AssetMetadataTest extends TestCase
 					}
 					typeVector.addElement(partStructureTypeString);
 					partVector.addElement(partValue);
-					System.out.println("Discovered Part Type " + partStructureTypeString + " with value " + partValue);
+					if (Utilities.isVerbose()) System.out.println("Discovered Part Type " + partStructureTypeString + " with value " + partValue);
 				}
 			}
 			
