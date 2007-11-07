@@ -1173,8 +1173,9 @@ public abstract class LWIcon extends Rectangle2D.Float
             // TODO performance: getting complicated: compute in layout (and check for all text nodes, not just first)
             // Will need to make sure layout() is called when removing items from nodes: only appears to be called upon adding
             if (IconPref.getHierarchyIconValue()) {
-                if (mLWC.hasChildren()) {
-                    if (mLWC.numChildren() == 1 && mLWC.getChild(0).isTextNode())
+                if (mLWC.hasChildren() && mLWC.numChildren() == 1) {
+                    LWComponent child0 = mLWC.getChild(0);
+                    if (child0.isTextNode() || LWNode.isImageNode(mLWC))
                         return false;
                     else
                         return true;
