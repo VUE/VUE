@@ -77,8 +77,7 @@ public class SVGConversion extends AbstractAction {
         svgGenerator.setColor(Color.white);
         svgGenerator.fillRect(0, 0, size.width, size.height);
         svgGenerator.setColor(Color.black);
-        svgGenerator.drawRect(0, 0, size.width-1, size.height-1);
-        
+        svgGenerator.drawRect(0, 0, size.width-1, size.height-1);        
         //translate and set the clip for the map content
         svgGenerator.translate(-(int)bounds.getX(), -(int)bounds.getY());
         svgGenerator.setClip(bounds);   
@@ -89,7 +88,10 @@ public class SVGConversion extends AbstractAction {
         DrawContext dc = new DrawContext(svgGenerator);
         dc.setAntiAlias(true);
         // render the map
+        LWPathway.setShowSlides(false);
         currentMap.draw(dc);
+        LWPathway.setShowSlides(true);
+        
         
         try
         {
@@ -104,9 +106,17 @@ public class SVGConversion extends AbstractAction {
         {
             System.err.println("Couldn't convert to SVG:" + e);
         }
-        
+        catch (java.lang.OutOfMemoryError error)
+        {
+        	System.err.println("Couldn't convert to SVG:" + error);
+        }
+        /*
+         * There's no explanation to why this is being done, I'm not really sure
+         * why you would do this.  Every application I tried appeared to open the
+         * file fine without this so I'm removing it, and it causes VUE to hang. -MK
+         */
         //there might be a better way to do this
-        replaceHeader(location);
+      //  replaceHeader(location);
     }
     
     /**A class which replaces the encoding of the xml to be utf - 8*/
