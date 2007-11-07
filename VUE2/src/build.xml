@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.146 $ / $Date: 2007-10-31 19:58:17 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.146 2007-10-31 19:58:17 anoop Exp $ -->
+<!-- $Revision: 1.147 $ / $Date: 2007-11-07 17:43:43 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.147 2007-11-07 17:43:43 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -161,11 +161,7 @@
                    apple-laf.jar
                    avalon-framework-cvs-20020806.jar
                    axis-ant.jar
-                   batik-awt-util.jar
-                   batik-ext.jar
-                   batik-svggen.jar
-                   batik-util.jar
-                   batik.jar
+                   batik-all.jar
                    commons-codec-1.3.jar
                    commons-discovery.jar
                    commons-logging.jar
@@ -247,10 +243,8 @@
      could reduce the size of the distriubtion to less than half it's current size. -->
      <!--
          Used for exporting to SVG:
-                   batik-awt-util.jar
-                   batik-ext.jar
-                   batik-svggen.jar
-                   batik-util.jar
+                   batik-all.jar
+                   
 
          axis (org.apache.axis)         FEDORA code uses this (tufts/oki/{dr,repository}/fedora)
          saaj (javax.xml.soap)          For SOAP (FEDORA access support)
@@ -269,11 +263,8 @@
                    commons-httpclient-3.1-beta1.jar      
                    commons-codec-1.3.jar
                    trippi-1.1.2-core.jar
-                   commons-httpclient-3.1-beta1.jar
-                   batik-awt-util.jar
-                   batik-ext.jar
-                   batik-svggen.jar
-                   batik-util.jar
+                   commons-httpclient-3.1-beta1.jar                   
+                   batik-all.jar
                    castor-1.0.5-xml.jar
                    commons-discovery.jar
                    commons-logging.jar
@@ -311,9 +302,7 @@
     <pathelement location="${junit.jar}"/>
     <pathelement path="${lib.home}/VUE-MacOSX.jar"/>
     <pathelement path="${lib.home}/castor-1.0.5-xml.jar"/>
-    <pathelement path="${lib.home}/batik-svggen.jar"/>
-    <pathelement path="${lib.home}/batik-awt-util.jar"/>
-    <pathelement path="${lib.home}/batik-util.jar"/>
+    <pathelement path="${lib.home}/batik-all.jar"/>
     <pathelement path="${lib.home}/fop.jar"/>
     <pathelement path="${lib.home}/fedoragentypes.jar"/>
       <pathelement path="${lib.home}/fedora-client_2_2.jar"/>
