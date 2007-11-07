@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.198 $ / $Date: 2007-11-05 17:46:33 $ / $Author: sfraize $
+ * @version $Revision: 1.199 $ / $Date: 2007-11-07 10:43:15 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -512,7 +512,7 @@ public class LWNode extends LWContainer
         if (c instanceof LWNode) {
             final LWNode node = (LWNode) c;
             final LWComponent childZero = node.getChild(0);
-            return childZero instanceof LWImage && childZero.getResource().equals(node.getResource());
+            return childZero instanceof LWImage && childZero.hasResource() && childZero.getResource().equals(node.getResource());
         } else
             return false;
     }
