@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.485 $ / $Date: 2007-11-07 08:57:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.486 $ / $Date: 2007-11-07 10:42:46 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1793,15 +1793,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
             pc.dropping = dropping;
         LWComponent hit = LWTraversal.PointPick.pick(pc);
-        if (hit != null && hit.supportsChildren()) {
-
-            if (hit instanceof LWSlide && hit != mFocal)
-                hit = null; // disable slide icon dropping for now
-
-            if (dropping instanceof LWComponent)
-                return ((LWComponent)dropping).supportsReparenting() ? hit : null;
-            else
-                return hit;
+        if (hit != null) {
+            if (hit.supportsChildren()) {
+                if (hit instanceof LWSlide && hit != mFocal)
+                    hit = null; // disable slide icon dropping for now
+                
+                if (dropping instanceof LWComponent)
+                    return ((LWComponent)dropping).supportsReparenting() ? hit : null;
+                else
+                    return hit;
+            } else {
+                if (hit.getAncestorOfType(LWSlide.class) == mFocal) {
+                    // make sure we can always drop onto slides, even if "hit" a non-parenting
+                    // This should probably be even more generic, but need to reconcile/merge
+                    // this code with MapDropTarget.processTransferrable, which calls us.
+                    return mFocal;
+                } else
+                    return null;
+            }
         } else
             return null;
     }
@@ -2570,11 +2579,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 dc.g.setStroke(new BasicStroke((float) minStroke));
             dc.g.draw(indication.getZeroShape());
         }
-    
-        //dc.g.setColor(COLOR_INDICATION);
-        //dc.g.draw(indication.getZeroShape());
     }
-    
     
 
     protected static final Color DefaultFillColor = Color.white;
