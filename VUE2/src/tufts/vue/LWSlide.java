@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.86 $ / $Date: 2007-11-07 09:24:43 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2007-11-07 10:43:01 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -528,8 +528,8 @@ public class LWSlide extends LWContainer
 
         if (DEBUG.Enabled) {
             //this.outf("  NODE DUPES: " + nodeDupes + "\n");
-            slide.outf("SLIDE UNIQUE: " + slideUnique);
-            node.outf(" NODE UNIQUE: " + nodeUnique);
+            slide.out("SLIDE UNIQUE: " + slideUnique);
+            node.out(" NODE UNIQUE: " + nodeUnique);
         }
 
 
