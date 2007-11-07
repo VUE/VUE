@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-11-05 08:27:17 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2007-11-07 11:05:37 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -570,7 +570,7 @@ public class LWTraversal {
                 // Just in case, NEVER allow anything above the current pick root to be picked (e.g., above the current focal).
                 // The group picking code is pretty hairy, and although it should catch this now,
                 // we double-check here just in case.
-                Log.warn("PointPick: DENIED: " + picked + "; is above pick root: " + pc.root);
+                if (DEBUG.Enabled) Log.warn("PointPick: DENIED: " + picked + "; is above pick root: " + pc.root);
                 picked = null;
             }
 
