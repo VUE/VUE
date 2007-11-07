@@ -73,10 +73,18 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
     // coords.  Ultimately we always track the focal coords, and then have generic
     // routines that map between any two coordinate systems, but we don't have that
     // yet...
+
+    // todo future: could create a Coord class for all our coordinates (e.g. Point2D.Float,
+    // and then we can change impl w/out direct reference to the java API), but
+    // have every Coord also refer to it's context (parent) so at any time,
+    // we could request the value of that Coord in any other context (focal, child, etc).
+    // Would do the same for Rectangles.  (maybe VPoint / VRect?)  All transient usage
+    // would use these objects (GUI code path).  Non-transient would be a bit overkill as they
+    // wouldn't need the context/parent pointer.
     
     // only one of these two options should be in use.  LOCAL_RESIZE not currently feasable.
     private static final boolean LOCAL_RESIZE = false;
-    private static final boolean MAPPED_RESIZE = false;
+    private static final boolean MAPPED_RESIZE = false; // untested/broken code, but direction we want
         
     boolean active = false;
     LWSelection.Controller[] handles = new LWSelection.Controller[8];
@@ -289,11 +297,14 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
         final float requestWidth, requestHeight;
 
         if (MAPPED_RESIZE) {
-            mLocalParent.transformMapToZeroRect(request, request);
+            // note: this has never worked, but makes sense to move in direction
+            // of doing this first (and then won't have to transform the location
+            // x/y below when we actually do a set)
+            c.getParent().transformMapToZeroRect(request, request);
             // note that if the object itself is scaled, this actually won't work,
             // as the zeroRect in the parent is the net scaled size, whereas
             // we want the "actual" size to actually set on the component...
-            // (and anyway, this appears to be even worse for resizing images on slides!)
+            // (and anyway, this appears to be even worse for resizing images on slides)
             requestWidth = request.width;
             requestHeight = request.height;
         } else if (LOCAL_RESIZE) {
@@ -399,7 +410,6 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
 
             if (moved) {
                 
-                //if (!c.hasAbsoluteMapLocation()) {
                 if (LOCAL_RESIZE == false) {
                     if (DEBUG.WORK) System.out.format("RC: new absolute loc: %6.1f,%-6.1f; %s\n", newX, newY, c);
                     final Point2D.Float p = new Point2D.Float();
