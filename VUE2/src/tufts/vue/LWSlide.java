@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.84 $ / $Date: 2007-11-05 19:34:42 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2007-11-07 08:34:51 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -61,8 +61,6 @@ public class LWSlide extends LWContainer
     /** set a runtime entry marker for this slide for use in presentation navigation */
     protected void setPathwayEntry(LWPathway.Entry e) {
         mEntry = e;
-//         if (DEBUG.Enabled && mSourceNode != null && e.node != mSourceNode)
-//             Util.printStackTrace(this + " sourceNode != entry node! " + mSourceNode + " " + e);
     }
     
     /** get the LWPathway.Entry for this slide if it is a pathway slide, otherwise null */
@@ -273,27 +271,28 @@ public class LWSlide extends LWContainer
         return s;
     }
 
-    public static LWSlide CreatePathwaySlide()
+    public static LWSlide CreatePathwaySlide(LWPathway.Entry entry)
     {
         final LWSlide s = Create();
         s.setStrokeWidth(0f);
         s.setFillColor(null);
+        s.setPathwayEntry(entry);
         return s;
     }
     
-    public static LWSlide CreateForPathway(LWPathway pathway, LWComponent node) {
-        return CreateForPathway(pathway, node.getDisplayLabel(), node, node.getAllDescendents(), false);
+    public static LWSlide CreateForPathway(LWPathway.Entry e) {
+        return CreateForPathway(e, e.node.getDisplayLabel(), e.node, e.node.getAllDescendents(), false);
     }
         
-    public static LWSlide CreateForPathway(LWPathway pathway,
+    public static LWSlide CreateForPathway(LWPathway.Entry entry,
                                            String titleText,
                                            LWComponent mapNode,
                                            Iterable<LWComponent> contents,
                                            boolean syncTitle) 
     {
-        final LWSlide slide = CreatePathwaySlide();
+        final LWSlide slide = CreatePathwaySlide(entry);
         final LWNode title = NodeModeTool.buildTextNode(titleText);
-        final MasterSlide master = pathway.getMasterSlide();
+        final MasterSlide master = entry.pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
         final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
 
@@ -322,7 +321,7 @@ public class LWSlide extends LWContainer
             Log.debug(" COPYING " + c);
             final LWComponent copyForSlide = c.duplicate(cc);
             copyForSlide.setScale(1);
-            applyMasterStyle(master, copyForSlide);
+            //applyMasterStyle(master, copyForSlide);
             copyForSlide.setSyncSource(c);
             toLayout.add(copyForSlide);
         }
@@ -331,7 +330,7 @@ public class LWSlide extends LWContainer
         
         //slide.setParent(pathway); // must do before import
         slide.importAndLayout(toLayout);
-        pathway.ensureID(slide);
+        entry.pathway.ensureID(slide);
         
         //slide.setLocked(true);
         
@@ -350,9 +349,11 @@ public class LWSlide extends LWContainer
         final List<LWComponent> text = new ArrayList();
 
         for (LWComponent c : nodes) {
-            if (c instanceof LWImage)
+            if (c instanceof LWImage) {
                 images.add((LWImage)c);
-            else
+                //String imageName = 
+                //text.add(new 
+            } else
                 text.add(c);
         }
 
@@ -589,12 +590,10 @@ public class LWSlide extends LWContainer
             
     private static void applyMasterStyle(MasterSlide master, LWComponent c) {
         if (master == null) {
-            Log.error("null master slide applying master style to " + c);
+            Log.error("NULL MASTER SLIDE: can't apply master style to " + c);
             return;
         }
         
-        track("style", c);
-
         c.setFlag(Flag.SLIDE_STYLE);
         
         if (c.hasResource())
@@ -604,6 +603,8 @@ public class LWSlide extends LWContainer
             c.setStyle(master.getTextStyle());
         else if (c instanceof LWText)
             c.setStyle(master.getTextStyle());
+
+        track("styled", c.getStyle() == null ? c : c + "; Style=" + c.getStyle().getLabel());
     }
 
     private void addView(LWComponent c) {
@@ -621,7 +622,7 @@ public class LWSlide extends LWContainer
             return false;
         
         //aif (DEBUG.PRESENT || DEBUG.STYLE)
-        track("adjusting", c);
+        track("adjusting", c + "; curStyle=" + c.getStyle());
         
         c.setFlag(Flag.SLIDE_STYLE);
         if (c.getStyle() == null)
@@ -634,7 +635,7 @@ public class LWSlide extends LWContainer
         if (DEBUG.Enabled)
             Log.debug(String.format("%16s: %s",
                                     where,
-                                    o instanceof LWComponent ? o : Util.tags(o)));
+                                    o instanceof LWComponent ? o : (o instanceof String ? o : Util.tags(o))));
     }
     
     @Override
