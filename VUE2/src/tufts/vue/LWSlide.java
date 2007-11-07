@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.85 $ / $Date: 2007-11-07 08:34:51 $ / $Author: sfraize $
+ * @version $Revision: 1.86 $ / $Date: 2007-11-07 09:24:43 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -640,8 +640,15 @@ public class LWSlide extends LWContainer
     
     @Override
     public void dropChildren(Iterable<LWComponent> iterable) {
-        track("drop", iterable);
-        if (DEBUG.Enabled) Util.printStackTrace("DROP");
+        track("dropChildren", iterable);
+
+        // TODO: this is being called twice during drops: a MapDropTarget bug, which has
+        // probably been there a long time... as drop operations are generally
+        // idempotent once the new nodes have been created, it was hard to notice, tho
+        // it makes debugging confusing, and it's bound to break something at some
+        // point.
+            
+        if (DEBUG.DND) new Throwable("dropChildren " + iterable).printStackTrace();
         pasteChildren(iterable);
     }
 
@@ -649,7 +656,7 @@ public class LWSlide extends LWContainer
     @Override
     public void pasteChildren(Iterable<LWComponent> iterable) {
 
-        track("paste", iterable);
+        track("pasteChildren", iterable);
 
         for (LWComponent c : iterable) {
 
@@ -668,6 +675,12 @@ public class LWSlide extends LWContainer
         }
         
         super.pasteChildren(iterable);
+    }
+    
+    @Override
+    public void addChildren(Iterable<LWComponent> iterable) {
+        track("addChildren", iterable);
+        super.addChildren(iterable);
     }
 
     @Override
