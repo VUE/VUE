@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.87 $ / $Date: 2007-11-02 17:00:06 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2007-11-07 06:24:41 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1960,7 +1960,7 @@ public class GUI
             if (Util.isMacPlatform()) {
                 Dimension maxSize = new Dimension(256,256); // bigger for LW drags
                 // This can be slow on Window's, and we can't see it anyway
-                dragImage = c.getAsImage(0.667, maxSize);
+                dragImage = c.getAsImage(0.5, maxSize);
             }
             
             startDrag(source,
