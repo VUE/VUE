@@ -30,7 +30,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.88 $ / $Date: 2007-10-30 00:10:49 $ / $Author: sfraize $
+ * @version $Revision: 1.89 $ / $Date: 2007-11-07 00:11:45 $ / $Author: anoop $
  * @author Scott Fraize
  *
  */
@@ -79,15 +79,25 @@ public class VueUtil extends tufts.Util
                 }
             
                 try {
-                    tufts.vue.VUE.displayMap(new File(new java.net.URL(platformURL).getFile()));
+                    File file = new File(new java.net.URL(platformURL).getFile());
+                    if(file.exists()) {
+                        tufts.vue.VUE.displayMap(file);
+                    } else{
+                        LWMap loadMap = tufts.vue.action.OpenAction.loadMap(new java.net.URL(platformURL));
+                        tufts.vue.VUE.displayMap(loadMap);
+                        loadMap.setFile(null);
+                    }
                 } catch (java.net.MalformedURLException e) {
                     Log.error(e + " " + platformURL);
+                    e.printStackTrace();
                     try {
                         tufts.vue.VUE.displayMap(new File(platformURL));
                     } catch (Exception ex) {
                         System.out.println(ex + " " + platformURL);
                         tufts.Util.openURL(platformURL);
                     }
+                } catch(Exception ex) {
+                    ex.printStackTrace();
                 }
                 return;
             }
