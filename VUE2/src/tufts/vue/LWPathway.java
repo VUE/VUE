@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.202 $ / $Date: 2007-11-05 16:22:27 $ / $Author: sfraize $
+ * @version $Revision: 1.203 $ / $Date: 2007-11-07 08:34:00 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -82,6 +82,7 @@ public class LWPathway extends LWContainer
      * pathways themselves).  This special version of the entry represents the pathway
      * itself.
      */
+    // todo: better if this class was in it's own file, including all the auto-slide creation & synchronization code
     public static class Entry implements Transferable {
 
         public static final String MAP_VIEW_CHANGED = "pathway.entry.mapView";
@@ -139,14 +140,19 @@ public class LWPathway extends LWContainer
             pathway = null;
         }
 
+        /** @return this index in the pathway, starting at 0 */
+        public int index() {
+            return pathway.getEntryIndex(this);
+        }
+
         /** @return next entry on this pathway, or null if at end */
         public Entry next() {
-            return pathway.getEntry(pathway.getEntryIndex(this) + 1);
+            return pathway.getEntry(index() + 1);
         }
         
         /** @return prev entry on this pathway, or null if at beginning */
         public Entry prev() {
-            return pathway.getEntry(pathway.getEntryIndex(this) - 1);
+            return pathway.getEntry(index() - 1);
         }
 
         /** @return true if this is the last entry on the pathway */
@@ -264,8 +270,7 @@ public class LWPathway extends LWContainer
         private void buildSlide() {
             // TODO: check/test undo -- is it working / the mark happening at the right time?
             final LWSlide oldSlide = slide;
-            slide = LWSlide.CreateForPathway(pathway, node);
-            slide.setPathwayEntry(this);
+            slide = LWSlide.CreateForPathway(this);
             pathway.notify("slide.rebuild", new Undoable() { void undo() {
                 slide = oldSlide;
             }});
@@ -436,10 +441,6 @@ public class LWPathway extends LWContainer
                 pathway.notify("pathway.entry.notes", new Undoable() { void undo() { setNotes(oldNotes); }});
 
             // TODO: this isn't updating on undo / remote call
-        }
-
-        public int index() {
-            return pathway.mEntries.indexOf(this);
         }
 
         public boolean isPathway() { return false; }
@@ -1697,18 +1698,20 @@ public class LWPathway extends LWContainer
         LWPathway onlyPathway = null;
         int visiblePathMemberships = 0;
 
-        final LWPathway activePathway = VUE.getActivePathway();
+        final LWPathway activePathway = VUE.getActivePathway(); // todo: from draw context
 
         for (LWPathway p : node.getPathways()) {
             if (p.isDrawn()) {
                 onlyPathway = p;
-                if (p == activePathway) {
-                    // override for active-pathway:
-                    visiblePathMemberships = 1;
-                    break;
-                } else {
-                    visiblePathMemberships++;
-                }
+                visiblePathMemberships++;
+//                 if (p == activePathway) {
+//                     // override for active-pathway:
+//                     visiblePathMemberships = 1;
+//                     break;
+//                 } else {
+//                     visiblePathMemberships++;
+//                 }
+                
             }
         }
 
@@ -1830,19 +1833,28 @@ public class LWPathway extends LWContainer
     {
         final Line2D.Float connector = new Line2D.Float();
 
-        if (dc.isPresenting()) {
-            if (VUE.getActivePathway() == this) {
-                dc.g.setStroke(ConnectorStrokeActive);
-                //dc.g.setColor(Util.alphaMix(getColor(), Color.gray));
-                dc.g.setColor(getColor());
-            } else {
-                dc.g.setStroke(ConnectorStrokePlain);
-                dc.g.setColor(getColor());
-            }
-        } else {
+        if (VUE.getActivePathway() == this) {
             dc.g.setStroke(ConnectorStroke);
             dc.g.setColor(getColor());
+        } else {
+            dc.g.setStroke(ConnectorStrokePlain);
+            dc.g.setColor(getColor());
         }
+            
+
+//         if (dc.isPresenting()) {
+//             if (VUE.getActivePathway() == this) {
+//                 dc.g.setStroke(ConnectorStrokeActive);
+//                 //dc.g.setColor(Util.alphaMix(getColor(), Color.gray));
+//                 dc.g.setColor(getColor());
+//             } else {
+//                 dc.g.setStroke(ConnectorStrokePlain);
+//                 dc.g.setColor(getColor());
+//             }
+//         } else {
+//             dc.g.setStroke(ConnectorStroke);
+//             dc.g.setColor(getColor());
+//         }
 
         
         LWComponent last = null;
