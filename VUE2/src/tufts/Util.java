@@ -756,13 +756,14 @@ public class Util
     /** Convenience class: provides a single element iterator */
     public static final class SingleIterator<T> implements java.util.Iterator<T>, Iterable<T> {
         private T object;
+        private boolean done;
         public SingleIterator(T o) {
             object = o;
         }
-        public boolean hasNext() { return object != null; }
-        public T next() { if (object == null) throw new NoSuchElementException(); T o = object; object = null; return o; }
+        public boolean hasNext() { return !done; }
+        public T next() { if (done) throw new NoSuchElementException(); done = true; return object; }
         public void remove() { throw new UnsupportedOperationException(); }
-        public Iterator<T> iterator() { return this; }
+        public Iterator<T> iterator() { done = false; return this; }
         public String toString() { return "[" + object + "]"; }
         
     };
