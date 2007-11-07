@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.484 $ / $Date: 2007-11-07 05:58:18 $ / $Author: sfraize $ 
+ * @version $Revision: 1.485 $ / $Date: 2007-11-07 08:57:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2551,33 +2551,28 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (indication == null)
             return;
 
-        //dc = dc.create(); // overkill?
         dc.setMapDrawing();
-        //setScaleDraw(dc.g);
-        double minStroke = STROKE_SELECTION.getLineWidth() * 3;// * mZoomInverse;
-        if (indication.getStrokeWidth() > minStroke)
-            dc.g.setStroke(new BasicStroke(indication.getStrokeWidth()));
-        else
-            dc.g.setStroke(new BasicStroke((float) minStroke));
-
-        //dc.g.setColor(new Color(Color.green.getRGB() + (128<<24), true)); // 128<<24 = 50% transparent
-        //dc.g.setColor(COLOR_SELECTION);
-
         indication.transformZero(dc.g);
 
-        if (true||DEBUG.PICK
-            //&& (indication instanceof LWLink || indication instanceof LWNode || indication instanceof LWImage)
-            ) {
-            dc.g.setColor(Color.green);
-            dc.setAlpha(0.5);
+        //boolean asFill = DEBUG.PICK;
+        boolean asFill = !(indication instanceof LWLink);
+
+        dc.g.setColor(COLOR_INDICATION);
+        dc.setAlpha(0.5);
+        
+        if (asFill) {
             dc.g.fill(indication.getZeroShape());
         } else {
-            dc.g.setColor(COLOR_INDICATION);
+            double minStroke = STROKE_SELECTION.getLineWidth() * 3;// * mZoomInverse;
+            if (indication.getStrokeWidth() > minStroke)
+                dc.g.setStroke(new BasicStroke(indication.getStrokeWidth()));
+            else
+                dc.g.setStroke(new BasicStroke((float) minStroke));
             dc.g.draw(indication.getZeroShape());
         }
-
-        //dc.g.setColor(new Color(Color.white.getRGB() + (128<<24), true));
-        //dc.g.fill(indication.getLocalShape());
+    
+        //dc.g.setColor(COLOR_INDICATION);
+        //dc.g.draw(indication.getZeroShape());
     }
     
     
