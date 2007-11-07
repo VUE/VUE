@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.378 $ / $Date: 2007-11-07 05:59:02 $ / $Author: sfraize $
+ * @version $Revision: 1.379 $ / $Date: 2007-11-07 10:43:50 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5950,7 +5950,16 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected void outf(String format, Object ... args) {
-	Log.debug(String.format(format, args));
+        if (args == null) {
+            Log.debug(format);
+        } else {
+            try {
+                Log.debug(String.format(format, args));
+            } catch (Throwable t) {
+                t.printStackTrace();
+                Log.debug(format);
+            }
+        }
     }
     
     /*
