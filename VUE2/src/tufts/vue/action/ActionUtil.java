@@ -65,7 +65,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistance thru castor XML.
  *
- * @version $Revision: 1.90 $ / $Date: 2007-11-06 16:50:23 $ / $Author: mike $
+ * @version $Revision: 1.91 $ / $Date: 2007-11-07 15:31:06 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -118,9 +118,12 @@ public class ActionUtil
 			        if (VUE.getActiveMap().getFile() == null)
 			        	baseName = VUE.getActiveMap().getLabel();
 			        else
-			        {
-			        	baseName = VUE.getActiveMap().getLabel();// + "-copy";
-			        	baseName = baseName.substring(0, baseName.lastIndexOf(".")) + "-copy";
+			        {			        	
+			        	baseName = VUE.getActiveMap().getLabel();
+			    		if (baseName.indexOf(".") > 0)
+			    			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
+			    		baseName = baseName.replaceAll("\\*","") + "-copy";
+			        	
 			        }
 			     
 			        if (fileType == null)

@@ -1,7 +1,6 @@
 /*
  * -----------------------------------------------------------------------------
  *
- * <p><b>License and Copyright: </b>The contents of this file are subject to the
  * Mozilla Public License Version 1.1 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy of the License
  * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
@@ -106,7 +105,13 @@ public class Actions implements VueConstants
 		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
 		chooser.setDialogTitle("Save PDF as");
-		chooser.setSelectedFile(new File(VUE.getActivePathway().getLabel().replaceAll("\\*", "")+"_"+type));
+		
+		String baseName = VUE.getActivePathway().getLabel();
+		if (baseName.indexOf(".") > 0)
+			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
+		baseName = baseName.replaceAll("\\*","")+"_"+type;
+		
+		chooser.setSelectedFile(new File(baseName));
         int option = chooser.showSaveDialog(tufts.vue.VUE.getDialogParent());
         if (option == VueFileChooser.APPROVE_OPTION) 
         {
@@ -139,7 +144,13 @@ public class Actions implements VueConstants
     	}
 		VueFileChooser chooser = new VueFileChooser();
 		File pdfFileName = null;
-		chooser.setSelectedFile(new File(VUE.getActiveMap().getLabel().replaceAll("\\*","")));
+		
+		String baseName = VUE.getActiveMap().getLabel();
+		if (baseName.indexOf(".") > 0)
+			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
+		baseName = baseName.replaceAll("\\*","");
+		
+		chooser.setSelectedFile(new File(baseName));
 		chooser.setDialogTitle("Save PDF as");
         int option = chooser.showSaveDialog(tufts.vue.VUE.getDialogParent());
         if (option == VueFileChooser.APPROVE_OPTION) 
