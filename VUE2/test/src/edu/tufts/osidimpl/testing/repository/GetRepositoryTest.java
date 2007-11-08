@@ -33,10 +33,18 @@ public class GetRepositoryTest extends TestCase
 			String idString = repositoryElement.getAttribute(OsidTester.ID_ATTR);
 			if (idString != null) {
 				try {
+					if (Utilities.isVerbose()) System.out.println("Looking for a repository with id " + idString);
 					org.osid.shared.Id id = Utilities.getIdManager().getId(idString);
 					org.osid.repository.Repository repository = repositoryManager.getRepository(id);
 					System.out.println("PASSED: Repository By Id " + idString);
-				} catch (Throwable t) {
+					
+					// test metadata, if present
+					RepositoryMetadataTest rmt = new RepositoryMetadataTest(repository,repositoryElement);
+				} catch (org.osid.repository.RepositoryException rex) {
+					if (Utilities.isVerbose()) rex.printStackTrace();
+					fail("No Repository with the ID " + idString);
+				} catch (org.osid.id.IdException iex) {
+					if (Utilities.isVerbose()) iex.printStackTrace();
 					fail("ID Manager Failed");
 				}
 			}
