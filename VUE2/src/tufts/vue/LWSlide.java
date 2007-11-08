@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.87 $ / $Date: 2007-11-07 10:43:01 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2007-11-08 19:07:07 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -777,12 +777,12 @@ public class LWSlide extends LWContainer
             // As the master slide isn't in the model, sit's children can't succesfully know
             // their bounds anyway, so we can't clip-optimize further when we draw it.
             // (It would be of little help anyway)
-            final DrawContext masterDC = dc.create();
+            final DrawContext masterDC = dc.push();
             masterDC.setClipOptimized(false);
-
             // We only draw the master's children, as we've already
             // done our background fill:
             master.drawChildren(masterDC);
+            dc.pop();
         }
 
         // Now draw the slide contents:
