@@ -18,7 +18,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-11-03 00:08:01 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2007-11-08 15:00:51 $ / $Author: mike $
  *
  */
 
@@ -396,7 +396,7 @@ public class FullScreen
         fullScreenWorking = true; // we're in the mode as soon as the add completes (no going back then)
         fullScreenNative = goNative;
 
-        if (goNative) {
+        if (!Util.isWindowsPlatform() && goNative) {
 
             // Try and prevent us from flashing a big white screen while we load.
             // Tho immediately loading the focal below will quickly override this...
@@ -421,7 +421,13 @@ public class FullScreen
             }
 
         } else {
-            
+        	if (goNative)
+        	{
+        	  if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
+                  nativeModeHidAllDockWindows = true;
+                  DockWindow.HideAllWindows();
+              }
+        	}
             GUI.setFullScreenVisible(FullScreenWindow);
         }
                 
