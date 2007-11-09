@@ -20,7 +20,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.3 $ / $Date: 2007-11-05 21:34:20 $ / $Author: peter $
+ * @version $Revision: 1.4 $ / $Date: 2007-11-09 21:42:53 $ / $Author: peter $
  */
 
 package tufts.vue;
@@ -196,14 +196,6 @@ public class SakaiPublisher {
 		String port = configuration.getProperty("sakaiPort");
 
 		String sessionId = null;
-		boolean debug = false;
-
-		// show web services errors?
-		String debugString = configuration
-				.getProperty("sakaiAuthenticationDebug");
-		if (debugString != null) {
-			debug = (debugString.trim().toLowerCase().equals("true"));
-		}
 
 		if (!host.startsWith("http://")) {
 			// add http if it is not present
@@ -221,10 +213,6 @@ public class SakaiPublisher {
 			sessionId = (String) call
 					.invoke(new Object[] { username, password });
 
-			// TODO the ".vue-sakai" should presumably come from the web service,
-			// or at least from some internal config.
-			sessionId = sessionId + ".vue-sakai";
-			
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
@@ -241,14 +229,6 @@ public class SakaiPublisher {
 		String port = configuration.getProperty("sakaiPort");
 
 		String serverId = null;
-		boolean debug = false;
-		
-		// show web services errors?
-		String debugString = configuration
-				.getProperty("sakaiAuthenticationDebug");
-		if (debugString != null) {
-			debug = (debugString.trim().toLowerCase().equals("true"));
-		}
 
 		if (!host.startsWith("http://")) {
 			// add http if it is not present
@@ -265,6 +245,7 @@ public class SakaiPublisher {
 
 			serverId = (String) call
 					.invoke(new Object[] { sessionId });
+			
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} catch (RemoteException e) {
