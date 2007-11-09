@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.486 $ / $Date: 2007-11-07 10:42:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.487 $ / $Date: 2007-11-09 23:22:38 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1029,6 +1029,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //return true;
     }
 
+    private final Point2D.Double mFocalMapLocation = new Point2D.Double();
+
     private void doFitToFocal(boolean animate)
     {
         if (DEBUG.PRESENT || DEBUG.VIEWER) out("fitToFocal", mFocal);
@@ -1075,6 +1077,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                       zoomBounds,
                                       mFocal.getFocalMargin(),
                                       animate);
+            if (mFocal != mMap) {
+                mFocalMapLocation.setLocation(mFocal.getMapXPrecise(), mFocal.getMapYPrecise());
+                //if (DEBUG.Enabled) out("recording new focal position: " + Util.fmt(mFocalMapLocation));
+            }
         }
         
     }
@@ -1592,6 +1598,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // once we have cleanup tasks, we're in an intermediate state:
             // don't ever draw until we're complete.
             return;
+        }
+
+        if (e.key == LWKey.Location && e.getComponent() == mFocal) {
+            if (DEBUG.Enabled) out("FOCAL MOVED");
+            fitToFocal();
         }
         
         
@@ -2306,6 +2317,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
         }
         if (DEBUG.PAINT) {
+            try { Thread.sleep(500); } catch (Exception e) {}            
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
             System.out.println("paint #" + paints + " " + this + ": "
@@ -2353,6 +2365,41 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     protected DrawContext getDrawContext(Graphics2D g) {
         
+        // TODO: if focal is non-map, re-architect (would be significant) such that we
+        // don't need to refer to the map at all.  This will will mean passing a
+        // DrawContext or better something new like RenderContext/Scene that
+        // PickContext/DrawContext both make use of or subclass, which principally names
+        // the root of the context, and helps with converting coordinates between the
+        // root and and lower level items.  This would involve passing the Scene to
+        // LWComonent transformDown / transformZero / getZeroTransform: e.g., the top
+        // transform would start as the scene graph root, and we'd only need to do
+        // transforms down from there.  MapMouseEvent would also be affected.
+        // Basically, we'd need to get rid of all getMapX/Y calls anywhere -- any
+        // default would always be the focal.  Maybe this would even be handled via a
+        // new Coord (Point2D subclass), which always has a reference to it's context.
+        
+//         final DrawContext dc;
+//         if (mFocal instanceof LWMap) {
+//             dc = new DrawContext(g,
+//                                  getZoomFactor(),
+//                                  -getOriginX(),
+//                                  -getOriginY(),
+//                                  getVisibleBounds(),
+//                                  mFocal,
+//                                  true);
+//         } else {
+//             //mZoomFactor = .125 / mFocal.getMapScale();
+//             mOffset.x = (float) (mFocal.getMapX() * getZoomFactor());
+//             mOffset.y = (float) (mFocal.getMapY() * getZoomFactor());
+//             dc = new DrawContext(g,
+//                                  getZoomFactor(),
+//                                  -getOriginX(),
+//                                  -getOriginY(),
+//                                  getVisibleBounds(),
+//                                  mFocal,
+//                                  true);
+//         }
+
         final DrawContext dc = new DrawContext(g,
                                                getZoomFactor(),
                                                -getOriginX(),
@@ -2360,6 +2407,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                                                getVisibleBounds(),
                                                mFocal,
                                                true);
+
+        
         dc.setAnimating(isAnimating);
         
         if (isAnimating) {
@@ -2629,6 +2678,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected void drawFocalImpl(DrawContext dc)
     {
+        if (mFocal != mMap) {
+            
+            // until we re-architect such that the viewer can deal only with an
+            // arbitrary place in the scene graph w/out referring to the map, we need to
+            // make sure the focal's ultimate map location hasn't changed -- if it has,
+            // we need to refit to it, or the focal may move right out of the viewer
+            // entirely, as it's focused at the wrong (old) location in the map.  We
+            // don't have events to track a change in the ultimate map location that we
+            // can listen for.
+            
+            double fx = mFocal.getMapXPrecise();
+            double fy = mFocal.getMapYPrecise();
+
+            if (mFocalMapLocation.x != fx || mFocalMapLocation.y != fy) {
+                //if (DEBUG.Enabled) out("focal moved out from under us: re-focusing");
+                fitToFocal(false);
+            }
+        }
+
+        
         if (dc.getBackgroundFill() == null) {
             // unless the active tool has already done some kind
             // of special fill, fill the entire background
@@ -5914,6 +5983,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //                 selectionSet(mFocal);
 //             }
             
+            //VUE.getUndoManager().mark(); // in case anything happened
             VUE.getUndoManager().mark(); // in case anything happened
             
             if (tempToolKeyReleased) {
