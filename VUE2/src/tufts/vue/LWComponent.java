@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.379 $ / $Date: 2007-11-07 10:43:50 $ / $Author: sfraize $
+ * @version $Revision: 1.380 $ / $Date: 2007-11-09 23:21:19 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3522,6 +3522,12 @@ u                    getSlot(c).setFromString((String)value);
                 for (LWLink link : mLinks)
                     link.notifyEndpointMoved(movingSrc, this);
     }
+
+//     boolean isFocal;
+//     void setFocal(boolean isFocal) {
+//         this.isFocal = isFocal;
+//     }
+    
     
     /** a notification to the component that it's absolute map location has changed by the given absolute map dx / dy */
     // todo: may be better named ancestorMoved or ancestorTranslated or some such
@@ -5184,16 +5190,14 @@ u                    getSlot(c).setFromString((String)value);
         float xoff = corner.x;
         float yoff = corner.y;
 
-        if (false && dc != null && dc.isPresenting()) {
-
-            // if presenting, let the position the active pathway slide as the last slide in the stack            
-
-            for (LWSlide slide : seenSlideIcons(dc)) {
-                slide.takeLocation(xoff, yoff);
-                yoff += slide.getLocalHeight() / 6;
-                xoff += slide.getLocalWidth() / 6;
-            }
-        } else {
+//         if (false && dc != null && dc.isPresenting()) {
+//             // if presenting, let the position the active pathway slide as the last slide in the stack            
+//             for (LWSlide slide : seenSlideIcons(dc)) {
+//                 slide.takeLocation(xoff, yoff);
+//                 yoff += slide.getLocalHeight() / 6;
+//                 xoff += slide.getLocalWidth() / 6;
+//             }
+//         } else {
 
             // if NOT presenting, leave the slides arranged in the order
             // of the pathway list (TODO: entries order isn't synced with this...)
@@ -5214,8 +5218,12 @@ u                    getSlot(c).setFromString((String)value);
                     // be a Focal/Tree viewer, which can truly throw out all map coordinates, and
                     // just deal with wherever it's rooted in the hierachy.  We're probably 2/3 of
                     // the way there now.  Hopefully we'll get there someday... SMF 2007-11-05
-                    
+
+                    // so if is the focal somewhere, it can know to zoom fit, tho ideally
+                    // the viewer would just ignore the location on focals...
+                    // slide.setLocation(xoff, yoff); // No good: if slide's parent moves, the slide moves..
                     slide.takeLocation(xoff, yoff);
+                
                     final float scaledSlideWidth = slide.getLocalWidth();
                     final float scaledSlideHeight = slide.getLocalHeight();
                     yoff += scaledSlideWidth / 6;
@@ -5241,8 +5249,7 @@ u                    getSlot(c).setFromString((String)value);
                     e.getSlide().takeLocation(xoff, yoff);
                 }
             }
-            
-        }
+            //}
     }
     
     private void drawSlideIconStack(final DrawContext dc)
