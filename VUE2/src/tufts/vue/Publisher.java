@@ -16,7 +16,6 @@
   * -----------------------------------------------------------------------------
   */
 
-
 /*
  * Publisher.java
  *
@@ -33,6 +32,7 @@ import javax.swing.border.LineBorder;
 import java.util.Vector;
 import java.util.Iterator;
 import javax.swing.table.*;
+import javax.swing.event.*;
 import java.io.*;
 import java.net.*;
 import org.apache.commons.net.ftp.*;
@@ -51,10 +51,10 @@ import fedora.client.utility.ingest.AutoIngestor;
 import fedora.client.utility.AutoFinder;
 import fedora.server.types.gen.Datastream;
 import fedora.client.Uploader;
+
 /**
- *
  * @author  akumar03
- * @version $Revision: 1.81 $ / $Date: 2007-11-02 15:56:48 $ / $Author: anoop $
+ * @version $Revision: 1.82 $ / $Date: 2007-11-10 20:53:50 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -122,6 +122,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     java.util.List<JRadioButton> modeRadioButtons;
     JList repList;
     JTree wTree; // list of workspaces
+    TreePath _tp = null; // WorkspaceSelection
+    
     org.osid.shared.Type dataSourceType =edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
     private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
     
@@ -139,7 +141,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
             setUpWorkspaceSelectionPanel();
             getContentPane().add(wPanel, BorderLayout.CENTER);
-            nextButton.setActionCommand(AC_SETUP_W);
+            nextButton.setActionCommand(AC_SETUP_M);  // "Next" on ws panel activates Mode panel - pdw 10-nov-07 
         } else{
             setUpModeSelectionPanel();
             getContentPane().add(mPanel, BorderLayout.CENTER);
@@ -213,7 +215,14 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         wLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         wPanel.add(wLabel,BorderLayout.NORTH);
         edu.tufts.vue.dsm.DataSource selectedDataSource = (edu.tufts.vue.dsm.DataSource) repList.getSelectedValue();
-        wTree= new JTree(getWorkSpaceTreeModel(selectedDataSource));
+        wTree = new JTree(getWorkSpaceTreeModel(selectedDataSource));
+        wTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        wTree.addTreeSelectionListener(new TreeSelectionListener() {
+        	public void valueChanged( TreeSelectionEvent tse ) {
+        		TreePath tp = tse.getNewLeadSelectionPath();
+        		_tp = tp;
+        	}
+        });
         JScrollPane wPane = new JScrollPane(wTree);
         JPanel scrollPanel = new JPanel(new BorderLayout());
         scrollPanel.add(wPane);
@@ -276,7 +285,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         mainPanel.add(modeInfo);
         mainPanel.validate();
         
-        // setting up cnstraints
+        // setting up constraints
         layout.putConstraint(SpringLayout.WEST, publishLabel,10,SpringLayout.WEST, mainPanel);
         layout.putConstraint(SpringLayout.WEST, optionPanel,3,SpringLayout.EAST, publishLabel);
         layout.putConstraint(SpringLayout.WEST,modeInfo,20,SpringLayout.EAST, optionPanel);
@@ -339,7 +348,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }  else if(e.getActionCommand().equals(NEXT)) {
             System.out.println("Selected Repository: "+repList.getSelectedValue());
              if(repList.getSelectedValue() == null) {
-                alert(this,"No repository is selectd. Please  select a repository","Publish Error");
+                alert(this,"No repository is selected. Please  select a repository","Publish Error");
                 return;
             }
             getContentPane().remove(rPanel);
@@ -379,9 +388,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     }
                 }
             };
-            invokeThread.start();
-            
-            
+            invokeThread.start();           
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
@@ -406,10 +413,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                  else
                     alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+            	DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
+            	String siteId = ((SakaiSiteUserObject)(treeNode.getUserObject())).getId();
                 if(publishMapRButton.isSelected()) {
-                    //SakaiPublisher.uploadMap( ds, sakaiFolder, VUE.getActiveMap());
+                    SakaiPublisher.uploadMap( ds, siteId, VUE.getActiveMap());
                 }else if(publishMapAllRButton.isSelected()){
-                    
+                	SakaiPublisher.uploadMapAll( ds, siteId, VUE.getActiveMap());
                 }   else
                     alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
             }
@@ -428,21 +437,21 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     private DefaultTreeModel getWorkSpaceTreeModel(edu.tufts.vue.dsm.DataSource dataSource) {
         String ROOT_LABEL = "Sites";
-        javax.swing.tree.DefaultMutableTreeNode root =    new javax.swing.tree.DefaultMutableTreeNode(ROOT_LABEL);
-        DefaultTreeModel treeModel = new   DefaultTreeModel(root);
+        javax.swing.tree.DefaultMutableTreeNode root = new javax.swing.tree.DefaultMutableTreeNode(ROOT_LABEL);
+        DefaultTreeModel treeModel = new DefaultTreeModel(root);
         try {
             org.osid.repository.Repository repository = dataSource.getRepository();
             org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
-            System.out.println("repository is " + repository.getDisplayName());
+            Log.debug( "repository is " + repository.getDisplayName());
             
             while (assetIterator.hasNextAsset()) {
                 org.osid.repository.Asset asset = assetIterator.nextAsset();
-                System.out.println("asset is " + asset.getDisplayName());
+                Log.debug( "asset is " + asset.getDisplayName());
                 
                 SakaiSiteUserObject userObject = new SakaiSiteUserObject();
                 userObject.setId(asset.getId().getIdString());
                 userObject.setDisplayName(asset.getDisplayName());
-                System.out.println("another obj " + userObject);
+                Log.debug( "another obj " + userObject);
                 
                 javax.swing.tree.DefaultMutableTreeNode nextTreeNode = new javax.swing.tree.DefaultMutableTreeNode(userObject);
                 treeModel.insertNodeInto(nextTreeNode,root,0);
