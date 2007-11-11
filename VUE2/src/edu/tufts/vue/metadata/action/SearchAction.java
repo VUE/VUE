@@ -49,10 +49,16 @@ public class SearchAction extends AbstractAction {
     public static final int SEARCH_SELECTED_MAP = 0;
     public static final int SEARCH_ALL_OPEN_MAPS = 1;
     
+    public static final int AND = 0;
+    public static final int OR = 1;
+    
+    private int crossTermOperator = AND;
+    
     private List<List<URI>> finds = null;
     
     private List<String> tags;
     private Query query;
+    private List<Query> queryList;
     private List<LWComponent> comps;
     private static List<LWComponent> globalResults;
     private static List<LWComponent> globalHides;
@@ -198,14 +204,16 @@ public class SearchAction extends AbstractAction {
               }
               else
               {    
-                query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]);
+                query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
+                // query condition here -- could do as subclass of VueMetadataElement? getCondition()? then a search
+                // can be metadata too..
                 actualCriteriaAdded = true;
               }
             }
             else
             {
-              System.out.println("query -- setBasic == true");
-              query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]);
+              //System.out.println("query -- setBasic == true");
+              query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
               actualCriteriaAdded = true;
             }
         }
@@ -217,12 +225,94 @@ public class SearchAction extends AbstractAction {
         
     }
     
+    public void createQueries()
+    {
+        queryList = new ArrayList<Query>();
+        
+        //query = new Query();
+        textToFind = new ArrayList<String>();
+        Iterator<VueMetadataElement> criterias = searchTerms.iterator();
+        actualCriteriaAdded = false;
+        while(criterias.hasNext())
+        {
+            Query currentQuery = new Query();
+            
+            
+            VueMetadataElement criteria = criterias.next();
+            if(DEBUG_LOCAL)
+            {    
+              System.out.println("SearchAction adding criteria - getKey(), getValue() " + criteria.getKey() + "," + criteria.getValue());
+            }
+           // query.addCriteria(criteria.getKey(),criteria.getValue());
+            String[] statement = (String[])(criteria.getObject());
+            
+            if(setBasic != true) 
+            {  
+                
+              if(DEBUG_LOCAL)
+              {    
+                System.out.println("query setBasic != true");
+                System.out.println("criteria.getKey() " + criteria.getKey());
+                System.out.println("RDFIndex.VUE_ONTOLOGY+ none " + RDFIndex.VUE_ONTOLOGY+"none");
+                System.out.println("text only = " + textOnly);
+              }
+              if(criteria.getKey().equals("http://vue.tufts.edu/vue.rdfs#"+"none") && treatNoneSpecially)
+              {
+                //System.out.println("adding criteria * ...");  
+                  
+                //query.addCriteria("*",criteria.getValue(),statement[2]);
+                textToFind.add(criteria.getValue());
+              }   
+              else if(textOnly)
+              {
+                textToFind.add(criteria.getValue()); 
+              }
+              else
+              {    
+                currentQuery.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
+                // query condition here -- could do as subclass of VueMetadataElement? getCondition()? then a search
+                // can be metadata too..
+                actualCriteriaAdded = true;
+              }
+            }
+            else
+            {
+              //System.out.println("query -- setBasic == true");
+              currentQuery.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
+              actualCriteriaAdded = true;
+            }
+            
+            queryList.add(currentQuery);
+        }
+        
+        if(DEBUG_LOCAL)
+        {
+          for(int i=0;i<queryList.size();i++)
+          {
+            System.out.println("SearchAction: query - " + "i: " + queryList.get(i).createSPARQLQuery());
+          }
+        }        
+        
+        
+    }
+    
     public void performSearch(int searchLocationType) {
         
-        if(searchType == QUERY)
+        if(searchType == QUERY && crossTermOperator == AND)
         {
             createQuery();
         }
+        else // todo: AND in first query
+        if(searchType == QUERY && crossTermOperator == OR)
+        {
+            createQueries();
+        }
+       // else // todo: for gathering text into its own list
+             // hmm seems to suggest a superclass for Query?
+        /*if(searchType == QUERY && crossTermOperation == OR)
+        {
+            getSearchStrings();
+        }*/
         
         // edu.tufts.vue.rdf.RDFIndex.getDefaultIndex().index(VUE.getActiveMap());
         
@@ -277,13 +367,24 @@ public class SearchAction extends AbstractAction {
         {
             //System.out.println("query result " + index.search(query) + " for query " + query.createSPARQLQuery());
             
-            if(actualCriteriaAdded)
+            if(actualCriteriaAdded && crossTermOperator == AND)
             {    
               finds.add(index.search(query));
             }
+            else if(actualCriteriaAdded && crossTermOperator == OR)
+            {
+              Iterator<Query> queries = queryList.iterator();
+              while(queries.hasNext())
+              {
+                  finds.add(index.search(queries.next()));
+              }
+            }
             
+            boolean firstFinds = true;
             // may need to do AND by hand here...
-            // this is OR
+            // this is OR 
+            // do as list of text to finds? or cull the list before
+            // doing this loop for ands? thats in both createquery and createqueries right now...
             if(textToFind.size() != 0)
             {
                Iterator<String> textIterator = textToFind.iterator(); 
@@ -299,9 +400,38 @@ public class SearchAction extends AbstractAction {
                    found = index.searchAllResources(text);
                    
                    
+                   if(crossTermOperator == OR || firstFinds == true)
+                   {
+                      finds.add(found);   
+                      firstFinds = false;
+                   }
+                   else
+                   {
+                      // note: this iterator should usually have only one element in this case
+                      Iterator<List<URI>> findsIterator = finds.iterator();
+                      while(findsIterator.hasNext())
+                      {
+                          List<URI> current = findsIterator.next();
+                          Iterator<URI> alreadyFound = current.iterator();
+                          List<URI> toBeRemoved = new ArrayList<URI>();
+                          while(alreadyFound.hasNext())
+                          {
+                            URI currentURI = alreadyFound.next();
+                            if(!found.contains(currentURI))
+                            {
+                                toBeRemoved.add(currentURI);
+                            }
+                          }
+                          
+                          Iterator<URI> removeThese = toBeRemoved.iterator();
+                          while(removeThese.hasNext())
+                          {
+                            current.remove(removeThese.next());
+                          }
+                      }
+                   }
                    
-                   finds.add(found);
-                 //}
+                   firstFinds = false;
                }
                
                /*
@@ -339,7 +469,10 @@ public class SearchAction extends AbstractAction {
                 Iterator<URI> foundIterator = found.iterator();
                 while(foundIterator.hasNext()) {
                     URI uri = foundIterator.next();
-                    System.out.println("SearchAction: uri found - " + uri);
+                    if(DEBUG_LOCAL)
+                    {    
+                      System.out.println("SearchAction: uri found - " + uri);
+                    }
                     LWComponent r = (LWComponent)edu.tufts.vue.rdf.VueIndexedObjectsMap.getObjectForID(uri);
                     //if(r!=null && (r.getMap() != null) && r.getMap().equals(VUE.getActiveMap())) {
                     if(r!=null && (r.getMap() != null) && maps.contains(r.getMap())) {
