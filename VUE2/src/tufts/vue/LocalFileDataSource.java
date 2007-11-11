@@ -17,7 +17,7 @@ package tufts.vue;
  * -----------------------------------------------------------------------------
  */
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.22 2007-10-26 17:28:02 mike Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.23 2007-11-11 23:35:37 peter Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -37,7 +37,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.22 $ / $Date: 2007-10-26 17:28:02 $ / $Author: mike $
+ * @version $Revision: 1.23 $ / $Date: 2007-11-11 23:35:37 $ / $Author: peter $
  * @author  rsaigal
  */
 
@@ -256,6 +256,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     }
     private void publishCMap(LWMap map) throws IOException {
         try{
+        	// Note: resourceVector is never initialized in Publisher class. pdw 11-nov-07
             File savedCMap = PublishUtil.createIMSCP(Publisher.resourceVector);
             InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
             OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("IMSCP","zip")));
@@ -280,6 +281,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
                 VueUtil.alert("The map is not saved. Please save the map first and export it.","Zip Save Alert");
                 return;
             }
+        	// Note: resourceVector is never initialized in Publisher class. pdw 11-nov-07
             File savedCMap = PublishUtil.createZip(map,Publisher.resourceVector);
             InputStream istream = new BufferedInputStream(new FileInputStream(savedCMap));
             OutputStream ostream = new BufferedOutputStream(new FileOutputStream(ActionUtil.selectFile("Export to Zip File","zip"))); 
