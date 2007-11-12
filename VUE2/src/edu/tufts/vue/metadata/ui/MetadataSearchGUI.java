@@ -63,9 +63,12 @@ public class MetadataSearchGUI extends JPanel {
     public final static int HIDE_OPTIONS = 0;
     
     // search types
-    public final static int EVERYTHING = 0;
-    public final static int LABEL = 1;
-    public final static int KEYWORD = 2;
+    //public final static int EVERYTHING = 0;
+    public final static int LABEL = 0;
+    public final static int KEYWORD = 1;
+    
+    public final static String AND = "and";
+    public final static String OR = "or";
     
     public final static String SELECTED_MAP_STRING = "Current Map";
     public final static String ALL_MAPS_STRING = "All Open Maps";
@@ -95,7 +98,8 @@ public class MetadataSearchGUI extends JPanel {
     //private String[] searchTypes = {"Basic","Categories","Advanced"};
     //private String[] searchTypes = {"Basic","Categories"};
     
-    private String[] searchTypes = {SEARCH_EVERYTHING,SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
+   // private String[] searchTypes = {SEARCH_EVERYTHING,SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
+    private String[] searchTypes = {SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
             
     private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
     
@@ -131,10 +135,14 @@ public class MetadataSearchGUI extends JPanel {
     
     private static MetadataSearchGUI content;
     
-    private int searchType = EVERYTHING;
+    private int searchType = LABEL;
     
     private static tufts.vue.gui.WidgetStack stack;
     private static boolean initialized = false;
+    
+    private ButtonGroup andOrButtonGroup;
+    private JPanel radioButtonPanel;
+    private JPanel fieldsInnerPanel;
     
     public static tufts.vue.gui.DockWindow getDockWindow()
     {
@@ -195,7 +203,7 @@ public class MetadataSearchGUI extends JPanel {
         else
         {
            setUpFieldsSearch();
-           setEverythingSearch();
+           setLabelSearch();
         }
         
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
@@ -248,7 +256,7 @@ public class MetadataSearchGUI extends JPanel {
                if(ie.getStateChange() == ItemEvent.SELECTED)
                {
                    // currently not in use -- see menu items above
-                   if(ie.getItem().equals("Basic"))
+                   /*if(ie.getItem().equals("Basic"))
                    {
                        //System.out.println("Basic search selected");
                        setBasicSearch();
@@ -268,13 +276,13 @@ public class MetadataSearchGUI extends JPanel {
                    {
                        //System.out.println("All search selected");
                        setAllSearch();
-                   }
+                   }*/
                    // end currently not in use
                    
-                   if(ie.getItem().equals(SEARCH_EVERYTHING))
+                   /*if(ie.getItem().equals(SEARCH_EVERYTHING))
                    {
                        setEverythingSearch();
-                   }
+                   }*/
                    if(ie.getItem().equals(SEARCH_LABELS_ONLY))
                    {
                        //setBasicSearch();
@@ -408,7 +416,7 @@ public class MetadataSearchGUI extends JPanel {
         }
         else
         {
-          JPanel fieldsInnerPanel = new JPanel();
+          fieldsInnerPanel = new JPanel();
           /*{
             public java.awt.Dimension getPreferredSize()
             {
@@ -416,8 +424,42 @@ public class MetadataSearchGUI extends JPanel {
             }
           };*/
           fieldsInnerPanel.setLayout(new BorderLayout());
-          fieldsInnerPanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
-          fieldsInnerPanel.add(searchTermsTable);    
+          
+          radioButtonPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+          andOrButtonGroup = new ButtonGroup();
+          JRadioButton andButton = new JRadioButton(AND);
+          andButton.setActionCommand(AND);
+          JRadioButton orButton = new JRadioButton(OR);
+          orButton.setActionCommand(OR);
+          andOrButtonGroup.add(andButton);
+          andOrButtonGroup.add(orButton);
+          andOrButtonGroup.setSelected(andButton.getModel(),true);
+          radioButtonPanel.add(andButton);
+          radioButtonPanel.add(orButton);
+          
+          andButton.addActionListener(new java.awt.event.ActionListener(){
+             public void actionPerformed(java.awt.event.ActionEvent e)
+             {
+                 termsAction.setOperator(SearchAction.AND);
+             }
+          });
+          
+          orButton.addActionListener(new java.awt.event.ActionListener(){
+             public void actionPerformed(java.awt.event.ActionEvent e)
+             {
+                 termsAction.setOperator(SearchAction.OR);
+             }
+          });
+          
+          JPanel tablePanel = new JPanel();
+          tablePanel.setLayout(new BorderLayout());
+          tablePanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
+          tablePanel.add(searchTermsTable);    
+          
+          fieldsInnerPanel.add(tablePanel);
+          // do this in toggleOptionsView
+          //fieldsInnerPanel.add(radioButtonPanel,BorderLayout.SOUTH);
+          
           fieldsPanel.add(fieldsInnerPanel);
         }
         
@@ -511,7 +553,8 @@ public class MetadataSearchGUI extends JPanel {
            //dockWindow.setSize(300,250 + optionsPanel.getHeight()); 
            
            dockWindow.validate();
-            
+           
+           fieldsInnerPanel.add(radioButtonPanel,BorderLayout.SOUTH);
            innerTopPanel.add(optionsPanel);
            remove(topPanel);
            remove(buttonPanel);
@@ -550,6 +593,7 @@ public class MetadataSearchGUI extends JPanel {
         }
         else if(optionsToggle == HIDE_OPTIONS)
         {
+           fieldsInnerPanel.remove(radioButtonPanel); 
            innerTopPanel.remove(optionsPanel);
            remove(topPanel);
            remove(buttonPanel);
@@ -607,6 +651,30 @@ public class MetadataSearchGUI extends JPanel {
                
         adjustColumnModel(); 
     }
+    
+    public int getSelectedOperator()
+    {
+        
+        if(andOrButtonGroup == null || andOrButtonGroup.getSelection() == null || andOrButtonGroup.getSelection().getActionCommand() == null)
+        {
+            return SearchAction.AND;
+        }
+        
+        if(DEBUG_LOCAL)
+        {    
+          System.out.println("MetadataSearchGUI action command of selected operator will be: " + andOrButtonGroup.getSelection().getActionCommand());
+        }
+        
+        String choice = andOrButtonGroup.getSelection().getActionCommand();
+        if(choice.equals(OR))
+        {
+           return SearchAction.OR; 
+        }
+        else
+        {
+           return SearchAction.AND;  
+        }
+    }
  
     public void setCategorySearchWithNoneCase()
     {
@@ -627,6 +695,8 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setTextOnly(false);
         termsAction.setBasic(false);
         termsAction.setMetadataOnly(false);
+        termsAction.setOperator(getSelectedOperator());
+        //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
     
@@ -646,10 +716,12 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setBasic(false);
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
+        termsAction.setOperator(getSelectedOperator());
+        //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
     
-    public void setEverythingSearch()
+    /*public void setEverythingSearch()
     {
         searchType = EVERYTHING;
         
@@ -667,8 +739,10 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setBasic(false);
         termsAction.setTextOnly(true);
         termsAction.setMetadataOnly(false);
+        termsAction.setOperator(getSelectedOperator());
+        //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
-    }
+    }*/
     
     public void setBasicSearch()
     {
@@ -684,6 +758,8 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setBasic(true);
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
+        termsAction.setOperator(getSelectedOperator());
+        //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
     
@@ -703,6 +779,8 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setBasic(true);
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
+        termsAction.setOperator(getSelectedOperator());
+        //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
     
@@ -719,11 +797,12 @@ public class MetadataSearchGUI extends JPanel {
         model.setColumns(2);
         adjustColumnModel();
         //termsAction = new SearchAction(searchTerms);
-        
-        // !!!! what does this do? (waiting for setting for special index on only metadata/keywords)
+       
         termsAction.setBasic(false);
         termsAction.setTextOnly(true);
         termsAction.setMetadataOnly(true);
+        termsAction.setOperator(getSelectedOperator());
+        //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
     
@@ -741,6 +820,8 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setBasic(false);
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
+        termsAction.setOperator(getSelectedOperator());
+        //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
     
@@ -923,7 +1004,8 @@ public class MetadataSearchGUI extends JPanel {
            else
            if(col == conditionColumn)
            {
-               String [] conditions = {"starts with","contains"};
+               //String [] conditions = {"starts with","contains"};
+               String [] conditions = {"contains","starts with"};
                final JComboBox conditionCombo = new JComboBox(conditions);
                conditionCombo.setFont(tufts.vue.gui.GUI.LabelFace);
                conditionCombo.addItemListener(new ItemListener()
@@ -1108,10 +1190,10 @@ public class MetadataSearchGUI extends JPanel {
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
             else if( table.getModel().getColumnCount() == 2 && col == valueColumn)
             {    
-              if(searchType == EVERYTHING)
+              /*if(searchType == EVERYTHING)
               {
                 comp.setText("Search everything:");                  
-              }
+              }*/
               
               if(searchType == LABEL)
               {

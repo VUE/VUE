@@ -103,6 +103,11 @@ public class SearchAction extends AbstractAction {
         this.searchTerms = searchTerms;
     }
     
+    public void setOperator(int operator)
+    {
+        crossTermOperator = operator;
+    }
+    
     public void setBasic(boolean basic)
     {
         setBasic = basic;
@@ -204,7 +209,8 @@ public class SearchAction extends AbstractAction {
               }
               else
               {    
-                query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
+                query.addCriteria(criteria.getKey(),criteria.getValue(),"CONTAINS");  
+                //query.addCriteria(criteria.getKey(),criteria.getValue(),statement[2]); // would be nice to be able to say
                 // query condition here -- could do as subclass of VueMetadataElement? getCondition()? then a search
                 // can be metadata too..
                 actualCriteriaAdded = true;
@@ -212,8 +218,9 @@ public class SearchAction extends AbstractAction {
             }
             else
             {
+              query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),"CONTAINS");
               //System.out.println("query -- setBasic == true");
-              query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
+              //query.addCriteria(RDFIndex.VUE_ONTOLOGY+Constants.LABEL,criteria.getValue(),statement[2]); // see comments just above
               actualCriteriaAdded = true;
             }
         }
@@ -417,8 +424,19 @@ public class SearchAction extends AbstractAction {
                           while(alreadyFound.hasNext())
                           {
                             URI currentURI = alreadyFound.next();
+                            
+                            if(DEBUG_LOCAL)
+                            {
+                               System.out.println("SearchAction - already found " + currentURI + "," + text);
+                            }
+                            
                             if(!found.contains(currentURI))
                             {
+                                if(DEBUG_LOCAL)
+                                {
+                                    System.out.println("SearchAction - scheduling uri to be removed: (text follows) " + currentURI + "," + text);
+                                }
+                                
                                 toBeRemoved.add(currentURI);
                             }
                           }
