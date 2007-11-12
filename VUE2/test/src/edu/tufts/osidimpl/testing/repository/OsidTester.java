@@ -44,6 +44,7 @@ public class OsidTester extends TestCase
 	public static final String ID_TAG = "id";
 	public static final String MANAGER_TAG = "managerImpl";
 	public static final String PACKAGENAME_TAG = "packagename";
+	public static final String PART_TAG = "part";
 	public static final String PART_TYPE_TAG = "parttype";
 	public static final String PROPERTIES_TAG = "properties";
 	public static final String PROPERTY_TAG = "property";
@@ -55,6 +56,17 @@ public class OsidTester extends TestCase
 	public static final String REPOSITORY_TYPES_TAG = "repositorytypes";	
 	public static final String SEARCH_TAG = "search";
 	public static final String SEARCH_TYPES_TAG = "searchtypes";
+	public static final String SUBASSETS_TAG = "subassets";
+	public static final String SUBASSET_TAG = "subasset";
+	public static final String SUBASSET_DESCRIPTION_TAG = "subassetdescription";
+	public static final String SUBASSET_DISPLAY_NAME_TAG = "subassetdisplayname";
+	public static final String SUBASSET_ID_TAG = "subassetid";
+	public static final String SUBASSET_PART_TAG = "subassetpart";
+	public static final String SUBASSET_PART_TYPE_TAG = "subassetparttype";
+	public static final String SUBASSET_PART_VALUE_TAG = "subassetpartvalue";
+	public static final String SUBASSET_REPOSITORY_ID_TAG = "subassetrepositoryid";
+	public static final String SUBASSET_TYPE_TAG = "subassettype";
+	public static final String SUBASSET_VALUE_TAG = "subassetVALUE";
 	public static final String SUPPORTS_BROWSE_TAG = "supportsbrowse";
 	public static final String SUPPORTS_SEARCH_TAG = "supportssearch";
 	public static final String SUPPORTS_UPDATE_TAG = "supportsupdate";
@@ -69,7 +81,6 @@ public class OsidTester extends TestCase
 	public static final String KEY_ATTR = "key";
 	public static final String NAME_ATTR = "name";
 	public static final String OSID_ATTR = "osid";
-	public static final String PART_TAG = "part";
 	public static final String REPOSITORY_ID_ATTR = "repositoryid";	
 	public static final String VERSION_ATTR = "version";
 	public static final String VALUE_ATTR = "value";

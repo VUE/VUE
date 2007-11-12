@@ -20,28 +20,28 @@ package edu.tufts.osidimpl.testing.repository;
 
 import junit.framework.TestCase;
 
-public class AssetMetadataTest extends TestCase
+public class SubAssetMetadataTest extends TestCase
 {
 	/*
 	 Assumes an Asset (OSID object and Test element are in hand.   Index is added for more informative messages
 	 */
-	public AssetMetadataTest(org.osid.repository.Asset nextAsset, org.w3c.dom.Element assetElement, String index)
+	public SubAssetMetadataTest(org.osid.repository.Asset nextAsset, org.w3c.dom.Element assetElement, String index)
 		throws org.osid.repository.RepositoryException, org.xml.sax.SAXParseException
 	{
-		String expected = Utilities.expectedValue(assetElement,OsidTester.DISPLAY_NAME_TAG);
+		String expected = Utilities.expectedValue(assetElement,OsidTester.SUBASSET_DISPLAY_NAME_TAG);
 		if (expected != null) {
 			if (Utilities.isVerbose()) System.out.println(expected);
 			assertEquals("seeking display name " + expected,expected,nextAsset.getDisplayName());
 			System.out.println("PASSED: Asset's Display Name " + index + " " + expected);
 		}
 		
-		expected = Utilities.expectedValue(assetElement,OsidTester.DESCRIPTION_TAG);
+		expected = Utilities.expectedValue(assetElement,OsidTester.SUBASSET_DESCRIPTION_TAG);
 		if (expected != null) {
 			assertEquals("seeking description " + expected,expected,nextAsset.getDescription());
 			System.out.println("PASSED: Asset's Description " + index + " " + expected);
 		}
 		
-		expected = Utilities.expectedValue(assetElement,OsidTester.ID_TAG);
+		expected = Utilities.expectedValue(assetElement,OsidTester.SUBASSET_ID_TAG);
 		if (expected != null) {
 			org.osid.shared.Id id = nextAsset.getId();
 			try {
@@ -54,13 +54,13 @@ public class AssetMetadataTest extends TestCase
 			}
 		}
 		
-		expected = Utilities.expectedValue(assetElement,OsidTester.TYPE_TAG);
+		expected = Utilities.expectedValue(assetElement,OsidTester.SUBASSET_TYPE_TAG);
 		if (expected != null) {
 			assertEquals("seeking type " + expected,expected,Utilities.typeToString(nextAsset.getAssetType()));
 			System.out.println("PASSED: Asset's Type " + index + " " + expected);
 		}
 		
-		expected = Utilities.expectedValue(assetElement,OsidTester.REPOSITORY_ID_TAG);
+		expected = Utilities.expectedValue(assetElement,OsidTester.SUBASSET_REPOSITORY_ID_TAG);
 		if (expected != null) {
 			org.osid.shared.Id id = nextAsset.getRepository();
 			try {
@@ -73,7 +73,7 @@ public class AssetMetadataTest extends TestCase
 		}
 		
 		// now look for parts to match (finds records, record, parts, part)
-		org.w3c.dom.NodeList partNodeList = assetElement.getElementsByTagName(OsidTester.PART_TAG);
+		org.w3c.dom.NodeList partNodeList = assetElement.getElementsByTagName(OsidTester.SUBASSET_PART_TAG);
 		int numParts = partNodeList.getLength();
 		if (numParts > 0) {
 			// TODO: Deepen flexibility for different records
@@ -122,7 +122,7 @@ public class AssetMetadataTest extends TestCase
 			// test the next part returned by the OSID against ANY part in the test
 			for (int p=0; p < numParts; p++) {
 				org.w3c.dom.Element partElement = (org.w3c.dom.Element)partNodeList.item(p);
-				String expectedType = Utilities.expectedValue(partElement,OsidTester.PART_TYPE_TAG);
+				String expectedType = Utilities.expectedValue(partElement,OsidTester.SUBASSET_PART_TYPE_TAG);
 				if (expectedType != null) {
 					// test there is at least one type match
 					if (typeVector.contains(expectedType)) {
@@ -132,7 +132,7 @@ public class AssetMetadataTest extends TestCase
 					}
 				}
 				
-				expected = Utilities.expectedValue(partElement,OsidTester.VALUE_TAG);
+				expected = Utilities.expectedValue(partElement,OsidTester.SUBASSET_VALUE_TAG);
 				if (expected != null) {
 					// test there is a part for this type
 					boolean found = false;
@@ -149,32 +149,6 @@ public class AssetMetadataTest extends TestCase
 					if (!found) {
 						fail("No match for Type(" + expectedType + ") and Value(" + expected + ") in profile");
 					}
-				}
-			}
-		}
-		
-		// check for sub-assets
-		org.w3c.dom.NodeList assetsNodeList = assetElement.getElementsByTagName(OsidTester.SUBASSETS_TAG);
-		if (assetsNodeList.getLength() > 0) {
-			org.osid.repository.AssetIterator assetIterator = nextAsset.getAssets();
-			org.w3c.dom.Element assetsElement = (org.w3c.dom.Element)assetsNodeList.item(0);
-			String anyTestOnly = assetsElement.getAttribute("any");
-			if (anyTestOnly.toLowerCase().trim().equals("true")) {
-				// we are going to look for anything
-				assertTrue(assetIterator.hasNextAsset());
-				System.out.println("PASSED: All Sub-Assets - any result is sufficient");
-				// we are done since no exception was raised
-			} else {
-				org.w3c.dom.NodeList assetNodeList = assetsElement.getElementsByTagName(OsidTester.SUBASSET_TAG);
-				int numAssets = assetNodeList.getLength();
-				for (int i=0; i < numAssets; i++) {
-					if (!assetIterator.hasNextAsset()) {
-						fail("No moe Assets in Iterator to compare with profile");
-					}
-					org.w3c.dom.Element aElement = (org.w3c.dom.Element)assetNodeList.item(i);
-					org.osid.repository.Asset asset = assetIterator.nextAsset();
-					// check asset metadata, if specified
-					SubAssetMetadataTest amt = new SubAssetMetadataTest(asset,aElement,(new Integer(i)).toString());
 				}
 			}
 		}
