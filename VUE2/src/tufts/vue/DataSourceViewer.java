@@ -54,7 +54,7 @@ import org.xml.sax.InputSource;
 import tufts.vue.gui.*;
 
 public class DataSourceViewer extends JPanel
-    implements KeyListener, edu.tufts.vue.fsm.event.SearchListener
+    implements KeyListener, edu.tufts.vue.fsm.event.SearchListener, ActionListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceViewer.class);
     //private static final boolean UseFederatedSearchManager = false;
@@ -194,6 +194,66 @@ public class DataSourceViewer extends JPanel
     		addLibraryAction.actionPerformed(null);
     	}
     }
+    private void displayContextMenu(MouseEvent e) {
+        getPopup(e).show(e.getComponent(), e.getX(), e.getY());
+    	}
+
+    	JPopupMenu m = null;
+    	private static final JMenuItem aboutResource = new JMenuItem("About this Resource");
+    	//private static final JMenuItem configureResource = new JMenuItem("Configure Resource");
+    	private static final JMenuItem deleteResource = new JMenuItem("Delete Resource");
+    	Point lastMouseClick = null;
+
+    	public void actionPerformed(ActionEvent e)
+    	{
+    		if (e.getSource().equals(aboutResource))
+    		{
+    			int index = dataSourceList.locationToIndex(lastMouseClick);
+    			//ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
+    			if (dataSourceList.getModel().getElementAt(index) instanceof DataSource)
+    			{
+    				displayEditOrInfo((DataSource)dataSourceList.getModel().getElementAt(index));
+    			}
+    			else
+    			{
+    				displayEditOrInfo((edu.tufts.vue.dsm.DataSource)dataSourceList.getModel().getElementAt(index));
+    			}
+    		}
+    		/*else if (e.getSource().equals(configureResource))
+    		{
+    			
+    		}*/
+    		else if (e.getSource().equals(deleteResource))
+    		{
+    			int index = dataSourceList.locationToIndex(lastMouseClick);
+    			dataSourceList.setSelectedIndex(index);
+    			removeLibraryAction.actionPerformed(e);
+    		}
+    	}
+
+    	private JPopupMenu getPopup(MouseEvent e) 
+    	{
+    		if (m == null)
+    		{
+    			m = new JPopupMenu("Datasource Menu");
+    		
+    			m.add(aboutResource);
+    			m.addSeparator();
+    			//m.add(configureResource);
+    			//m.addSeparator();
+    			m.add(deleteResource);
+    			aboutResource.addActionListener(this);
+    			//configureResource.addActionListener(this);
+    			deleteResource.addActionListener(this);
+    		}
+    		
+    		return m;
+    	}
+
+
+
+
+
     private void addListeners() {
         dataSourceList.addKeyListener(this);
         // WORKING: commented out
@@ -230,6 +290,7 @@ public class DataSourceViewer extends JPanel
         );
         
         dataSourceList.addMouseListener(new MouseAdapter() {
+        	
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
                     if (activeDataSource instanceof DataSource) {
@@ -262,7 +323,11 @@ public class DataSourceViewer extends JPanel
                             }
                         }});
                     }
-                    //if(e.getButton() == e.BUTTON3)
+                    if(e.getButton() == e.BUTTON3)
+                    {
+                     	lastMouseClick = e.getPoint();
+           				displayContextMenu(e);
+                    }
                     //popup.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
