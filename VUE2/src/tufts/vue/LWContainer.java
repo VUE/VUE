@@ -33,7 +33,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.136 $ / $Date: 2007-11-05 19:34:41 $ / $Author: sfraize $
+ * @version $Revision: 1.137 $ / $Date: 2007-11-13 04:36:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -1152,7 +1152,7 @@ public abstract class LWContainer extends LWComponent
      * among our children.
      */
     @Override
-    public LWComponent duplicate(CopyContext cc)
+    public LWContainer duplicate(CopyContext cc)
     {
         boolean isPatcherOwner = false;
         
