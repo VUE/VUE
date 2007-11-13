@@ -231,12 +231,12 @@ public class SlideViewer extends tufts.vue.MapViewer
         return b;
     }
 
-    protected String getEmptyMessage() {
-        if (mLastLoad != null && btnSlide.isSelected())
-            return "Not on Pathway";
-        else
-            return "Empty";
-    }
+//     protected String getEmptyMessage() {
+//         if (mLastLoad != null && btnSlide.isSelected())
+//             return "Not on Pathway";
+//         else
+//             return "Empty";
+//     }
     
 //     @Override
 //     public void addNotify() {
