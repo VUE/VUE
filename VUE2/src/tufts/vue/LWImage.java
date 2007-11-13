@@ -152,7 +152,8 @@ public class LWImage extends
     }
 
 
-    public LWComponent duplicate(CopyContext cc)
+    @Override
+    public LWImage duplicate(CopyContext cc)
     {
         // TODO: if had list of property keys in object, LWComponent
         // could handle all the duplicate code.
@@ -219,7 +220,7 @@ public class LWImage extends
         if (getClass().isAssignableFrom(LWNode.class)) {
             return super.defaultPick(pc);
         } else {
-            if (isNodeIcon())
+            if (!hasFlag(Flag.SLIDE_STYLE) && isNodeIcon())
                 return pc.pickDepth > 0 ? this : getParent();
             else
                 return this;
@@ -229,21 +230,36 @@ public class LWImage extends
     @Override
     public boolean supportsCopyOnDrag() {
         //return !hasFlag(Flag.SLIDE_STYLE);
-        return isNodeIcon();
+        //return isNodeIcon();
+        return !hasFlag(Flag.SLIDE_STYLE) && isNodeIcon();
     }
     
     
     /** @return true unless this is a node icon image */
     @Override
     public boolean supportsUserResize() {
-        return !isNodeIcon();
-        //return hasFlag(Flag.SLIDE_STYLE) || !isNodeIcon;
+        //return !isNodeIcon();
+        return hasFlag(Flag.SLIDE_STYLE) || !isNodeIcon;
     }
 
     @Override
     public boolean supportsUserLabel() {
         return SLIDE_LABELS && hasFlag(Flag.SLIDE_STYLE);
     }
+
+//     @Override
+//     public Rectangle2D.Float getLayoutBounds() {
+//         if (supportsUserLabel() && hasLabel()) {
+//             final TextBox label = getLabelBox();
+//             final Rectangle2D.Float r = super.getLocalBounds();
+//             final float height = label.getBoxHeight() * 2;
+//             r.y -= height;
+//             r.height += height;
+//             return r;
+//         } else
+//             return super.getLayoutBounds();
+//     }
+    
 
     /** this for backward compat with old save files to establish the image as a special "node" image */
     @Override
@@ -279,7 +295,8 @@ public class LWImage extends
             isNodeIcon = true;
             if (mImageWidth <= 0)
                 return;
-            setMaxSizeDimension(MaxRenderSize);
+            if (!hasFlag(Flag.SLIDE_STYLE))
+                setMaxSizeDimension(MaxRenderSize);
         } else {
             isNodeIcon = false;
             if (super.width == NEEDS_DEFAULT) {
@@ -926,12 +943,18 @@ public class LWImage extends
     private static final Color LoadedColorLight = new Color(128,128,128,128);
 
     private Color getEmptyColor(DrawContext dc) {
-        final LWComponent parent = getParent();
-        Color pc;
-        if (parent != null && (pc=parent.getRenderFillColor(dc)) != null) {
-            return Color.black.equals(pc) ? EmptyColorLight : EmptyColorDark;
-        } else
-            return EmptyColorDark;
+        Color fill = getFinalFillColor(dc);
+
+        return Color.black.equals(fill) ? EmptyColorLight : EmptyColorDark;
+        
+//         final LWComponent parent = getParent();
+//         Color pc;
+//         if (parent != null && (pc=parent.getRenderFillColor(dc)) != null) {
+//             return Color.black.equals(pc) ? EmptyColorLight : EmptyColorDark;
+//         } else if (dc.getBackgroundFill() != null && dc.getBackgroundFill().equals(Color.black))
+//             return EmptyColorLight;
+//         else
+//             return EmptyColorDark;
             
     }
     private Color getLoadedColor(DrawContext dc) {
