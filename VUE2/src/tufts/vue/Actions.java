@@ -494,8 +494,52 @@ public class Actions implements VueConstants
             };
                 
     
-    
-    
+            public static final VueAction LaunchPresentation = new VueAction("Preview")
+            {
+            	public void act()
+            	{
+            		final PresentationTool presTool = PresentationTool.getTool();
+              
+            		GUI.invokeAfterAWT(new Runnable() { public void run() {
+            			VUE.toggleFullScreen(true);
+            		}});
+            		GUI.invokeAfterAWT(new Runnable() { public void run() {
+            			//VueToolbarController.getController().setSelectedTool(presTool);
+            			VUE.setActive(VueTool.class, this, presTool);
+            		}});
+            		GUI.invokeAfterAWT(new Runnable() { public void run() {
+            			presTool.startPresentation();
+            		}});
+            	}
+            };
+            
+            public static final Action DeleteSlide = new VueAction("Delete")
+            {
+            	public void act()
+            	{
+                	//delete the current entry
+//          		 This is a heuristic to try and best guess what the user might want to
+                  // actually remove.  If nothing in selection, and we have a current pathway
+                  // index/element, remove that current pathway element.  If one item in
+                  // selection, also remove whatever the current element is (which ideally is
+                  // usually also the selection, but if it's different, we want to prioritize
+                  // the current element hilighted in the PathwayTable).  If there's MORE than
+                  // one item in selection, do a removeAll of everything in the selection.
+                  // This removes ALL instances of everything in selection, so that, for
+                  // instance, a SelectAll followed by pathway delete is guaranteed to empty
+                  // the pathway entirely.
+
+            	  LWPathway pathway = VUE.getActivePathway();
+            	  
+                  if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
+                      pathway.remove(pathway.getCurrentIndex());
+                  } else {
+                      pathway.remove(VUE.getSelection().iterator());
+                  }
+        
+
+            	}
+            };            
     //-----------------------------------------------------------------------------
     // Link actions
     //-----------------------------------------------------------------------------
@@ -851,7 +895,7 @@ public class Actions implements VueConstants
         }
         //public void act() { VUE.ObjectInspector.setVisible(true); }
     };
-    
+    /*
     public static final LWCAction AddImageAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addImage.label")) {
         public void act(LWComponent c) 
         {
@@ -888,7 +932,7 @@ public class Actions implements VueConstants
         	
         }
     };
-
+    */
     public static final LWCAction ImageToNaturalSize = new LWCAction("Make Natural Size") {
             public void act(LWImage c) {
                 c.setToNaturalSize();
@@ -1149,7 +1193,7 @@ public class Actions implements VueConstants
     	}
     };
     
-    public static final LWCAction SyncWithNode = new LWCAction("Sync slide to node") 
+    public static final LWCAction SyncWithNode = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.slide2node")) 
     {
         boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
     	public void act(LWSlide slide)
@@ -1158,7 +1202,7 @@ public class Actions implements VueConstants
     	}
     };
     
-    public static final LWCAction SyncWithSlide = new LWCAction("Sync node to slide") 
+    public static final LWCAction SyncWithSlide = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.node2slide")) 
     {
         boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
     	public void act(LWSlide slide)
@@ -1167,7 +1211,7 @@ public class Actions implements VueConstants
     	}
     };
     
-    public static final LWCAction SyncAll = new LWCAction("Sync all") 
+    public static final LWCAction SyncAll = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.all")) 
     {
         boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
     	public void act(LWSlide slide)
@@ -1974,8 +2018,8 @@ public class Actions implements VueConstants
     public static final Action[] NEW_OBJECT_ACTIONS = {
         NewNode,
         NewText,
-        AddImageAction,
-        AddFileAction,
+        //AddImageAction,
+        //AddFileAction,
         //NewSlide
     };
     
