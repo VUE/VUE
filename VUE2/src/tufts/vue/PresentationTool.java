@@ -2163,6 +2163,7 @@ public class PresentationTool extends VueTool
         //            dc.setDrawPathways(mCurrentPage.node instanceof LWMap);
 
         //out("getDrawContext");
+        dc.setInteractive(false);
 
         dc.setDrawPathways(dc.isAnimating() || mCurrentPage == null || mCurrentPage.node instanceof LWMap);
         
