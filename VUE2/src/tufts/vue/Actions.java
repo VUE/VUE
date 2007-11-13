@@ -955,12 +955,14 @@ public class Actions implements VueConstants
                 if (fileName == null) 
                 	return;
               Resource r = c.getResource();
-              if (r == null)
-              {
+              
+            	  VUE.setActive(LWComponent.class, this, null);
+              
             	  //c.setResource(new URLResource(fileName.getAbsolutePath()));  
             	  c.setResource(fileName);
-              }
-              else            	  
+            	  VUE.setActive(LWComponent.class, this, c);
+            //  }
+            /*  else            	  
               {
             	  final Object[] defaultOrderButtons = { "Replace","Add","Cancel"};
                   int response = JOptionPane.showOptionDialog
@@ -991,7 +993,7 @@ public class Actions implements VueConstants
                       }
                   } else // anything else (Cancel or dialog window closed)
                       return;
-              }                                                                  	
+              }*/                                                                  	
         }
         }
     };
@@ -1029,7 +1031,7 @@ public class Actions implements VueConstants
                 }
              
                 Resource r = c.getResource();
-                if (r == null) {
+               // if (r == null) {
                     r = c.getResourceFactory().get(uri);
                     if (r == null) {
                         JOptionPane.showMessageDialog((Component)VUE.getApplicationFrame(),
@@ -1037,8 +1039,12 @@ public class Actions implements VueConstants
                                                       "Malformed URL", 
                                                       JOptionPane.ERROR_MESSAGE);
                     } else
+                    {
+                    	  VUE.setActive(LWComponent.class, this, null);
                         c.setResource(r);
-                    
+                        //VUE.getInspectorPane().lo
+                        VUE.setActive(LWComponent.class, this, c);
+                    }
 //                     try {
 //                         c.setResource(new URLResource(url.toURL()));
 //                     } catch (MalformedURLException e) {
@@ -1047,8 +1053,8 @@ public class Actions implements VueConstants
 //                                                       "Malformed URL", 
 //                                                       JOptionPane.ERROR_MESSAGE);
 //                     }  
-                }
-                else {
+                //}
+                /*else {
                     final Object[] defaultOrderButtons = { "Replace","Add","Cancel"};
                     int response = JOptionPane.showOptionDialog
                         ((Component)VUE.getApplicationFrame(),
@@ -1111,7 +1117,7 @@ public class Actions implements VueConstants
                             c.addChild(node);
                         }
                     } // else // anything else (Cancel or dialog window closed)
-                }                                                                  	
+                } */                                                                 	
             }
         };
 
