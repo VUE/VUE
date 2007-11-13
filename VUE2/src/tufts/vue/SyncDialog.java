@@ -109,16 +109,16 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
             return false;
         }
 
-        LWSlide slide = entry.getSlide();
-        
+        // must call action fire method in order for undo code to be invoked:
         if (nodeToSlideButton.isSelected())
-            Actions.SyncWithSlide.act(slide);
+            Actions.SyncWithSlide.fire(this);
         else if (slideToNodeButton.isSelected())
-            Actions.SyncWithNode.act(slide);
+            Actions.SyncWithNode.fire(this);
         else if (syncAllButton.isSelected())
-            Actions.SyncAll.act(slide);
+            Actions.SyncAll.fire(this);
         else
             return false;
+
         return true;
     }
 
