@@ -79,6 +79,14 @@ public class PresentationTool extends VueTool
             
         };
     
+    private final ImageButton ResumeButton = new ImageButton(VueResources.getImageIcon("pathwayTool.resumeImageIcon")) {
+            void doAction() {
+                if (!VUE.inNativeFullScreen())
+                    VUE.toggleFullScreen(true);
+            }
+        };
+    
+    
     private JButton mStartButton;
     private final JCheckBox mShowContext = new JCheckBox("Show Context");
     private final JCheckBox mToBlack = new JCheckBox("Black");
@@ -146,12 +154,12 @@ public class PresentationTool extends VueTool
         }
 
         boolean contains(MouseEvent e) {
-            return visible ? contains(e.getX(), e.getY()) : false;
+            return isVisible() ? contains(e.getX(), e.getY()) : false;
         }
         
         boolean contains(int x, int y) {
 
-            if (!visible)
+            if (!isVisible())
                 return false;
             
             return x >= this.x
@@ -1444,6 +1452,11 @@ public class PresentationTool extends VueTool
             return true;
         }
         
+        if (ResumeButton.contains(e)) {
+            ResumeButton.doAction();
+            return true;
+        }
+        
         if (checkForNavNodeClick(e))
             return true;
 
@@ -1555,15 +1568,18 @@ public class PresentationTool extends VueTool
     }
 
     
-//     @Override
-//     public void handleFullScreen(boolean entering, boolean nativeMode) {
+    @Override
+    public void handleFullScreen(boolean entering, boolean nativeMode) {
+        
+        ResumeButton.setVisible(!entering || !nativeMode);
+                                
 //         out("handleFullScreen: " + entering + " native=" + nativeMode);
 //         if (entering) {
 //             //if (nativeMode)
 //                 VueAction.setAllActionsIgnored(true);
 //         } else
 //             VueAction.setAllActionsIgnored(false);
-//     }
+    }
 
     @Override
     public void handleToolSelection(boolean selected, VueTool fromTool)
@@ -2226,12 +2242,18 @@ public class PresentationTool extends VueTool
             drawOverviewMap(dc.push()); dc.pop();
         }
 
-        if (dc.isInteractive() && ExitButton.isVisible()) {
-            dc.setFrameDrawing();
-            // only really need to set location when this tool actives, but just
-            // in case the screen size should change...
-            ExitButton.setLocation(30, dc.frame.height - (ExitButton.height+20)); 
-            ExitButton.draw(dc);
+        if (dc.isInteractive()) {
+            if (ResumeButton.isVisible()) {
+                dc.setFrameDrawing();
+                ResumeButton.setLocation(30, dc.frame.height - (ResumeButton.height+20)); 
+                ResumeButton.draw(dc);
+            } else if (ExitButton.isVisible()) {
+                dc.setFrameDrawing();
+                // only really need to set location when this tool actives, but just
+                // in case the screen size should change...
+                ExitButton.setLocation(30, dc.frame.height - (ExitButton.height+20)); 
+                ExitButton.draw(dc);
+            }
         }
         
         if (DEBUG.NAV) {
