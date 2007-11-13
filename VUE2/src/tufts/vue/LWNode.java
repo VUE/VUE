@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.199 $ / $Date: 2007-11-07 10:43:15 $ / $Author: sfraize $
+ * @version $Revision: 1.200 $ / $Date: 2007-11-13 04:34:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -362,7 +362,7 @@ public class LWNode extends LWContainer
     /** Duplicate this node.
      * @return the new node -- will have the same style (visible properties) of the old node */
     @Override
-    public LWComponent duplicate(CopyContext cc)
+    public LWNode duplicate(CopyContext cc)
     {
         LWNode newNode = (LWNode) super.duplicate(cc);
         // make sure shape get's set with old size:
@@ -387,7 +387,15 @@ public class LWNode extends LWContainer
     /** @return false if this is a text node */
     @Override
     public boolean supportsChildren() {
-        return !isTextNode();
+//         if (hasFlag(Flag.SLIDE_STYLE) && isImageNode(this))
+//             return false;
+//         else
+        if (hasFlag(Flag.SLIDE_STYLE) && hasResource() && getResource().isImage()) {
+            // so a text item that links to an image is allowed to have an
+            // image dropped into it (ideally, it would only allow the image with the same resource)
+            return true;
+        } else
+            return !isTextNode();
     }
 
     /** @return true -- a node is always considered to have content */
@@ -515,6 +523,13 @@ public class LWNode extends LWContainer
             return childZero instanceof LWImage && childZero.hasResource() && childZero.getResource().equals(node.getResource());
         } else
             return false;
+    }
+
+    public LWImage getImage() {
+        if (isImageNode(this))
+            return (LWImage) getChild(0);
+        else
+            return null;
     }
     
 
@@ -899,11 +914,13 @@ public class LWNode extends LWContainer
 //             min = layoutCentered(request);
 //         }
 
-        if (isRectShape) {
-            isCenterLayout = (mAlignment.get() == Alignment.CENTER);
-        } else {
-            isCenterLayout = true;
-        }
+        isCenterLayout = !isRectShape;
+
+//         if (isRectShape) {
+//             isCenterLayout = (mAlignment.get() == Alignment.CENTER);
+//         } else {
+//             isCenterLayout = true;
+//         }
 
         if (isCenterLayout) {
             if (request == null)
@@ -1773,13 +1790,12 @@ public class LWNode extends LWContainer
 //         if (isPresentationContext())
 //             layoutChildrenGrid(baseX, baseY, result, 1, minWidth);
 //         else
+        if (hasFlag(Flag.SLIDE_STYLE) && mAlignment.get() != Alignment.LEFT && isImageNode(this))
+            layoutChildrenColumnAligned(baseX, baseY, result);
+        else
             layoutChildrenSingleColumn(baseX, baseY, result);
 
 //         if (result != null) {
-//             if (!VUE.RELATIVE_COORDS) {
-//                 result.width /= getScale();
-//                 result.height /= getScale();
-//             }
 //             //if (DEBUG.BOXES)
 //             //child_box.setRect(baseX, baseY, result.width, result.height);
 //         }
@@ -1787,6 +1803,48 @@ public class LWNode extends LWContainer
     }
 
         
+    protected void layoutChildrenColumnAligned(float baseX, float baseY, Size result)
+    {
+        float maxWidth = 0;
+
+        for (LWComponent c : getChildren()) {
+            if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
+                continue;
+            float w = c.getLocalBorderWidth();
+            if (w > maxWidth)
+                maxWidth = w;
+        }
+
+        // TODO: need to re-arch to handle center/right alignment: e.g., removing widest
+        // child doesn't do a re-layout, and on parent drag-resize, layout is falling behind
+        
+        float maxLayoutWidth = Math.max(maxWidth, getWidth() - baseX*2);
+        
+        float y = baseY;
+        boolean first = true;
+        for (LWComponent c : getChildren()) {
+            if (c instanceof LWLink) // todo: don't allow adding of links into a manged layout node!
+                continue;
+            if (first)
+                first = false;
+            else
+                y += ChildVerticalGap * getScale();
+
+            if (mAlignment.get() == Alignment.RIGHT)
+                c.setLocation(baseX + maxLayoutWidth - c.getLocalWidth(), y);
+            else if (mAlignment.get() == Alignment.CENTER)
+                c.setLocation(baseX + (maxLayoutWidth - c.getLocalWidth()) / 2, y);
+            else
+                c.setLocation(baseX, y);
+            y += c.getLocalHeight();
+        }
+
+        if (result != null) {
+            result.width = maxWidth;
+            result.height = (y - baseY);
+        }
+    }
+
     protected void layoutChildrenSingleColumn(float baseX, float baseY, Size result)
     {
         float y = baseY;
@@ -1816,7 +1874,7 @@ public class LWNode extends LWContainer
             result.height = (y - baseY);
         }
     }
-
+    
     class Column extends java.util.ArrayList<LWComponent>
     {
         float width;
@@ -2150,12 +2208,31 @@ public class LWNode extends LWContainer
         } else {
             // horizontally center if no icons
 
-            if (WrapText)
+            if (WrapText) {
                 return mLabelPos.x;
-            else {
-                // Doing this risks slighly moving the damn TextBox just as you edit it.
-                final float offset = (this.width - getTextSize().width) / 2;
-                return offset + 1;
+            } else {
+                // todo problem: pre-existing default alignment w/out icons
+                // is center label, left children: when we move to generally
+                // suporting left/center/right alignment, that configuration won't
+                // be supported: we may need a special "old-style" alignment style
+                if (mAlignment.get() == Alignment.LEFT && hasFlag(Flag.SLIDE_STYLE)) {
+                    return ChildPadX;
+                } else if (mAlignment.get() == Alignment.RIGHT) {
+                    return (this.width - getTextSize().width) - 1;
+                } else {
+                    // CENTER:
+                    // Doing this risks slighly moving the damn TextBox just as you edit it.
+                    final float offset = (this.width - getTextSize().width) / 2;
+                    return offset + 1;
+                }
+//                 if (hasFlag(Flag.SLIDE_STYLE)) {
+//                     // only if left align
+//                     return ChildOffsetX;
+//                 } else {
+//                     // Doing this risks slighly moving the damn TextBox just as you edit it.
+//                     final float offset = (this.width - getTextSize().width) / 2;
+//                     return offset + 1;
+//                 }
             }
         }
     }
