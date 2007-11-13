@@ -1389,6 +1389,22 @@ public class Util
                 + (float)l.getX2() + "," + (float)l.getY2()
                 ;
     }
+
+    public static void outf(org.apache.log4j.Logger logger, String format, Object ... args)
+    {
+        if (args == null || args.length == 0) {
+            logger.debug(format);
+        } else {
+            try {
+                logger.debug(String.format(format, args));
+            } catch (Throwable t) {
+                logger.warn("bad format? " + t);
+                logger.debug(format);
+                t.printStackTrace();
+            }
+        }
+    }
+    
     
     public static String oneDigitDecimal(double x) {
         int tenX = (int) Math.round(x * 10);
