@@ -1093,6 +1093,10 @@ public class PresentationTool extends VueTool
             } else
                 handled = false;
             break;
+        case '~':
+            DEBUG.NAV = !DEBUG.NAV;
+            repaint();
+            break;
         default:
             handled = false;
         }
@@ -1466,7 +1470,7 @@ public class PresentationTool extends VueTool
             if (hit.hasResource())
                 hit.getResource().displayContent();
             // if no resource, do not just zoom to single text item
-            return true;
+            //return true;
         }
 
         if (mCurrentPage.equals(hit)) {
@@ -1485,7 +1489,8 @@ public class PresentationTool extends VueTool
             // OTHERWISE, if general "browse", pop the focal
             if (mCurrentPage.insideSlide() || mLastPathwayPage == null) {
                 focusUp(e);
-            } else if (mVisited.hasPrev()) {
+            }
+            else if (mVisited.hasPrev()) {
                 
                 // TODO: ONLY DO THIS IF PREVIOUS IS AN ANCESTOR OF CURRENT
                 // (this could be tricky to figure out using pages tho...)
