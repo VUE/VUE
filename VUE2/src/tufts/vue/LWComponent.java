@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.380 $ / $Date: 2007-11-09 23:21:19 $ / $Author: sfraize $
+ * @version $Revision: 1.381 $ / $Date: 2007-11-13 04:37:46 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -102,8 +102,8 @@ public class LWComponent
     
 
     public enum HideCause {
-        /** special case bit for deleted objects (which always remain in the undo queue) */
-        DELETED (),
+//         /** special case bit for deleted objects (which always remain in the undo queue) */
+//         DELETED (),
             
             /** each subclass of LWComponent can use this for it's own purposes */
             DEFAULT (),
@@ -127,7 +127,9 @@ public class LWComponent
     }
 
     public enum Flag {
-        IS_STYLE,
+        DELETED,
+            
+            IS_STYLE,
             /** cannot move, delete, link to or edit label */
             LOCKED,
             /** can't be moved */
@@ -2331,6 +2333,19 @@ u                    getSlot(c).setFromString((String)value);
         }
         //System.out.println("DEFAULT FILL: " + mFillColor.get() + " " + this);
         return mFillColor.get();
+    }
+
+    public Color getFinalFillColor(DrawContext dc) {
+        if (mFillColor.isTransparent()) {
+            Color c = null;
+            if (getParent() != null)
+                return getParent().getFinalFillColor(dc);
+            else if (dc != null)
+                return dc.getBackgroundFill();
+            else
+                return null;            
+        } else
+            return getFillColor();
     }
 
     public static Color getContrastColor(Color c) {
@@ -4605,7 +4620,7 @@ u                    getSlot(c).setFromString((String)value);
         //if (DEBUG.CONTAINMENT) System.out.println("INTERSECTS " + Util.fmt(rect));
         final Rectangle2D bounds = getPaintBounds();
         final boolean hit = mapRect.intersects(bounds);
-        if (DEBUG.PAINT || DEBUG.PICK) System.out.println("INTERSECTS " + fmt(mapRect) + " " + (hit?"YES":"NO ") + " for " + fmt(bounds) + " of " + this);
+        if (DEBUG.PAINT && DEBUG.PICK) System.out.println("INTERSECTS " + fmt(mapRect) + " " + (hit?"YES":"NO ") + " for " + fmt(bounds) + " of " + this);
         //Util.printClassTrace("tufts.vue.LW", "INTERSECTS " + this);
         return hit;
     }
@@ -5071,7 +5086,27 @@ u                    getSlot(c).setFromString((String)value);
         final AffineTransform zeroTransform = DEBUG.PDF ? dc.g.getTransform() : null;
         
         dc.checkComposite(this);
-        drawImpl(dc);
+        try {
+            drawImpl(dc);
+        } catch (RuntimeException e) {
+            Log.error("drawImpl failed: " + e);
+            try {
+                dc.setAlpha(0.5);
+                dc.g.setColor(Color.red);
+                dc.g.fill(getZeroShape());
+            } catch (Throwable t) {
+                Util.printStackTrace(t);
+            } finally {
+                throw e;
+            }
+        }
+
+        if (isDeleted()) {
+            // debug
+            dc.setAlpha(0.5);
+            dc.g.setColor(Color.yellow);
+            dc.g.fill(getZeroShape());
+        }
         
         if (DEBUG.PDF && DEBUG.META && this instanceof LWLink == false) {
             dc = dc.create();
@@ -5614,17 +5649,20 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean isDeleted() {
-        return isHidden(HideCause.DELETED);
+        //return isHidden(HideCause.DELETED);
+        return hasFlag(Flag.DELETED);
     }
     
     private void setDeleted(boolean deleted) {
         if (deleted) {
-            mHideBits |= HideCause.DELETED.bit; // direct set: don't trigger notify
+            //mHideBits |= HideCause.DELETED.bit; // direct set: don't trigger notify
+            mFlags |= Flag.DELETED.bit;
             if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS)
                 if (parent != null) out("parent not yet null in setDeleted true (ok for undo of creates)");
             this.parent = null;
         } else
-            mHideBits &= ~HideCause.DELETED.bit; // direct set: don't trigger notify
+            mFlags &= ~Flag.DELETED.bit; // direct set: don't trigger notify
+        //mHideBits &= ~HideCause.DELETED.bit; // direct set: don't trigger notify
     }
 
     private void disconnectFromLinks()
@@ -5957,16 +5995,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected void outf(String format, Object ... args) {
-        if (args == null) {
-            Log.debug(format);
-        } else {
-            try {
-                Log.debug(String.format(format, args));
-            } catch (Throwable t) {
-                t.printStackTrace();
-                Log.debug(format);
-            }
-        }
+        Util.outf(Log, format, args);
     }
     
     /*
