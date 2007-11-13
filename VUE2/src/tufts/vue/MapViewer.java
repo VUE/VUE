@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.488 $ / $Date: 2007-11-13 02:58:50 $ / $Author: mike $ 
+ * @version $Revision: 1.489 $ / $Date: 2007-11-13 04:31:59 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -474,8 +474,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         if (DEBUG.SCROLL) out("ZOOM: reset="+pReset + " Z="+pZoomFactor + " focus="+mapAnchor);
 
-        if (!mFocal.hasContent()) {
-            if (DEBUG.SCROLL) out("EMPTY OVERRIDE");
+        if (!mFocal.hasContent() && !(mFocal instanceof LWSlide)) {
+            if (DEBUG.Enabled) out("no content: force zoom 1.0");
+            //if (DEBUG.SCROLL) out("EMPTY OVERRIDE");
             //pReset = true;
             pZoomFactor = 1.0;
         }
@@ -1600,10 +1601,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
-        if (e.key == LWKey.Location && e.getComponent() == mFocal) {
-            if (DEBUG.Enabled) out("FOCAL MOVED");
-            fitToFocal();
-        }
+//         if (e.key == LWKey.Location && e.getComponent() == mFocal) {
+//             if (DEBUG.Enabled) out("FOCAL MOVED");
+//             fitToFocal();
+//         }
         
         
         // ? todo: optimize -- we get lots of extra location events
@@ -2317,7 +2318,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             VUE.invokeAfterAWT(new Runnable() { public void run() { ensureMapVisible(); }});
         }
         if (DEBUG.PAINT) {
-            try { Thread.sleep(500); } catch (Exception e) {}            
+            //try { Thread.sleep(500); } catch (Exception e) {}            
             long delta = System.currentTimeMillis() - start;
             long fps = delta > 0 ? 1000/delta : -1;
             System.out.println("paint #" + paints + " " + this + ": "
@@ -2334,7 +2335,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     protected void paintEmptyMessage(Graphics g) {
-        g.setColor(Color.lightGray);
+        if (mFocal != null) {
+            g.setColor(LWComponent.getContrastColor(mFocal.getRenderFillColor(null)));
+        } else {
+            g.setColor(Color.lightGray);
+        }
         Font font = new Font("Verdana", Font.BOLD, 36);
         g.setFont(font);
 
@@ -2346,10 +2351,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     protected String getEmptyMessage() {
-        if (mMap != null && mMap.isModified())
-            return "Empty Map";
-        else
-            return "New Map";
+        if (mFocal == mMap) {
+            if (mMap != null && mMap.isModified())
+                return "Empty Map";
+            else
+                return "New Map";
+        } else {
+            if (mFocal != null)
+                return "Empty " + mFocal.getComponentTypeLabel();
+            else
+                return "Empty";
+        }
     }
 
     protected final DrawContext getLastDC() {
@@ -2600,6 +2612,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     {
         dc.g.setColor(Color.blue);
         dc.setAlpha(0.5);
+        dc.setMapDrawing();
         syncSource.transformZero(dc.g);
         dc.g.fill(syncSource.getZeroShape());
     }
@@ -4718,7 +4731,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == 'L') { DEBUG.LAYOUT = !DEBUG.LAYOUT; }
                 else if (c == 'M') { DEBUG.MOUSE = !DEBUG.MOUSE; }
                 else if (c == 'm') { DEBUG.MARGINS = !DEBUG.MARGINS; }
-                else if (c == 'N') { DEBUG.NAV = !DEBUG.NAV; }
+                //else if (c == 'N') { DEBUG.NAV = !DEBUG.NAV; }
                 else if (c == 'O') { DEBUG_SHOW_ORIGIN = !DEBUG_SHOW_ORIGIN; }
                 else if (c == 'P') { DEBUG.PAINT = !DEBUG.PAINT; }
                 else if (c == 'Q') { DEBUG_RENDER_QUALITY = !DEBUG_RENDER_QUALITY; }
@@ -4751,7 +4764,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 //else if (c == '&') { tufts.macosx.Screen.fadeFromBlack(); }
                 //else if (c == '@') { tufts.macosx.Screen.setMainAlpha(.5f); }
                 //else if (c == '$') { tufts.macosx.Screen.setMainAlpha(1f); }
-                else if (c == '~') { System.err.println("MapViewer debug abort."); System.exit(-1); }
+                else if (c == '~') { if (e.isMetaDown()) { out("debug abort."); System.exit(-1);} }
                 else if (c == '_') { DEBUG.DYNAMIC_UPDATE = !DEBUG.DYNAMIC_UPDATE; }
                 else if (c == '*') { OPTIMIZED_REPAINT = !OPTIMIZED_REPAINT; }
                 //else if (c == '\\') { VUE.toggleFullScreen(); }
@@ -4989,7 +5002,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 mme.setPicked(hitComponent);
                 
                 SearchAction.revertGlobalSearchSelection();
-
                 
 //                 // this is a hack:
 //                 if (hitComponent instanceof LWSlide && mFocal instanceof LWMap) {
@@ -5024,7 +5036,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 displayContextMenu(e, hitComponent);
                 return;
             }
-            else if (hitComponent != null && hitComponent != mFocal) { // check focal in case of on-slide
+            else if (hitComponent != null && hitComponent == mFocal) {
+                // never do anything special with the focal (e.g., drag, activate a tmp tool) -- just select it
+                // (a "non-selectable" focal, such as the default map, will have picked as null, so hitComponent
+                // will be null)
+                selectionSet(justSelected = hitComponent);                
+            } else if (hitComponent != null) { // check focal in case of on-slide
                 // special case handling for KEY_TOOL_LINK which
                 // doesn't want to be fully activated till the
                 // key is down (ctrl) AND the left mouse has been
@@ -5275,7 +5292,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             */
 
-            if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) {
+            //if (inScrollPane && !(e.isMetaDown() || e.isAltDown())) { // too easy to accidentally zoom during presentation
+            if (!(e.isMetaDown() || e.isAltDown())) {
                 // Do not consume, and let the event be passed
                 // on to the BasicScrollPaneUI via MouseWheelRelay
                 // in MapScrollPane.
@@ -6220,7 +6238,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //out("EX MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiersEx()) + "]");
             // button is 0 (!) on the PC, which is why <= 1 compare for getB
 
-            if (VueSelection.size() == 1 && VueSelection.first().supportsCopyOnDrag())
+            if (VueSelection != null && VueSelection.size() == 1 && VueSelection.first().supportsCopyOnDrag())
                 return true;
             else
                 return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
