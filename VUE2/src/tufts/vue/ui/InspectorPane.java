@@ -41,7 +41,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-10-30 21:29:01 $ / $Author: mike $
+ * @version $Revision: 1.55 $ / $Date: 2007-11-13 04:39:27 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -151,6 +151,7 @@ public class InspectorPane extends JPanel
            // this.getParent().setEnabled(false);
             showNodePanes(false);
             showResourcePanes(false);
+            stack.putClientProperty("TITLE-INFO", null);
         } else {
             this.setEnabled(true);
             //this.getParent().setEnabled(true);
@@ -195,8 +196,29 @@ public class InspectorPane extends JPanel
 //         }
 //     }
 
-    private static void setTypeName(JComponent component, LWComponent c, String suffix) {
-        component.setName(c.getComponentTypeLabel() + " " + suffix);
+    private void setTypeName(JComponent component, LWComponent c, String suffix)
+    {
+        final String type = c.getComponentTypeLabel();
+        String title;
+        if (DEBUG.Enabled) {
+            String name = c.getDisplayLabel();
+            
+            if (name == null)
+                title = type;
+            else
+                title = type + ": " + name;
+
+//             if (title.length() > 30)
+//                 title = title.substring(0,20) + "...";
+            stack.putClientProperty("TITLE-INFO", title);
+        }// else
+        //stack.putClientProperty("TITLE-INFO", null);
+
+        if (suffix != null)
+            title = type + " " + suffix;
+        else
+            title = type;
+        component.setName(title);
     }
 
     private void loadResource(final Resource r) {
