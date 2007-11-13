@@ -39,7 +39,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.41 $ / $Date: 2007-10-22 21:26:22 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2007-11-13 05:56:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -142,6 +142,7 @@ public class PrintAction extends tufts.vue.VueAction
     private class PrintJob extends Thread implements Printable
     {
         private LWMap map;
+        private LWComponent focal;
         private String jobName;
         private boolean isPrintingView;
         private Rectangle2D bounds; // map bounds of print job
@@ -149,6 +150,7 @@ public class PrintAction extends tufts.vue.VueAction
         private PrintJob(MapViewer viewer, boolean viewerPrint) {
             super("PrintJob#" + JobCount++);
             this.map = viewer.getMap();
+            this.focal = viewerPrint ? viewer.getFocal() : map;
             this.jobName = map.getDisplayLabel();
             this.isPrintingView = viewerPrint;
 
@@ -158,9 +160,12 @@ public class PrintAction extends tufts.vue.VueAction
             // or repaint itself.  (That's not a problem when we run this
             // in a thread, but there's a java bug with that right now, tho
             // it's safer to do it this way anyway).
-            if (isPrintingView())
-                this.bounds = viewer.getVisibleMapBounds();
-            else
+            if (isPrintingView()) {
+                if (focal == map)
+                    this.bounds = viewer.getVisibleMapBounds();
+                else
+                    this.bounds = focal.getBorderBounds();
+            } else
                 this.bounds = map.getBounds();
             out(viewerPrint ? "printing: viewer contents" : "printing: whole map");
             out("requested map bounds: " + bounds);
@@ -267,13 +272,13 @@ public class PrintAction extends tufts.vue.VueAction
                                              -offset.x,
                                              -offset.y,
                                              null, // frame would be the PageFormat offset & size rectangle
-                                             map,
+                                             focal,
                                              false); // todo: absolute links shouldn't be spec'd here
             dc.setAntiAlias(true);
             dc.setMapDrawing();
             dc.setPrioritizeQuality(true);
 
-            if (isPrintingView())
+            if (isPrintingView() && map == focal)
                 g.clipRect((int) Math.floor(bounds.getX()),
                            (int) Math.floor(bounds.getY()),
                            (int) Math.ceil(bounds.getWidth()),
@@ -286,7 +291,10 @@ public class PrintAction extends tufts.vue.VueAction
             }
             
             // render the map
-            map.draw(dc);
+            if (map == focal)
+                map.draw(dc);
+            else
+                focal.draw(dc);
           
             out("page " + pageIndex + " rendered.");
             return Printable.PAGE_EXISTS;
