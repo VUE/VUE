@@ -14,7 +14,7 @@ import java.awt.Color;
  * Utility classes for auto-generating and synchronizing slides for pathway entries.
  *
  * @author Scott Fraize
- * @version $Revision: 1.1 $ / $Date: 2007-11-13 04:38:33 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2007-11-13 04:46:01 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -295,9 +295,6 @@ class Slides {
     }
 
 
-    // TODO: this code should be on LWPathway.Entry, as it's entirely
-    // dependent upon the relationship between a node and a slide
-    // established by the pathway entry.
     protected static void synchronizeResources(final LWSlide slide, Sync type) {
 
         if (slide.getSourceNode() == null) {
