@@ -31,7 +31,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.7 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $ 
+ * @version $Revision: 1.8 $ / $Date: 2007-11-13 04:30:59 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -267,10 +267,23 @@ public final class MasterSlide extends LWSlide
         linkStyle = style;
     }
 
+    /** @return false: master slide can never sync */
     @Override
-    public void synchronizeResources(Sync type) {
-        Util.printStackTrace("Cannot sync a MasterSlide: " + this + " type(" + type + ")");
+    public boolean canSync() {
+        return false;
     }
+
+    /** @return false: master slide applies no styles of it's own */
+    @Override
+    boolean applyStyle(LWComponent c) {
+        return false;
+    }
+    
+    
+//     @Override
+//     public void synchronizeResources(Sync type) {
+//         Util.printStackTrace("Cannot sync a MasterSlide: " + this + " type(" + type + ")");
+//     }
     
 
     @Override
