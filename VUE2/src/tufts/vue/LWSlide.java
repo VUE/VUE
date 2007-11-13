@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.88 $ / $Date: 2007-11-08 19:07:07 $ / $Author: sfraize $
+ * @version $Revision: 1.89 $ / $Date: 2007-11-13 04:33:34 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -224,24 +224,6 @@ public class LWSlide extends LWContainer
         return mEntry == null ? null : mEntry.node;
     }
     
-
-//     protected LWComponent getSourceNode() {
-
-//         // todo: clean this up: should only need an entry, not a special source node
-//         if (DEBUG.Enabled && mEntry != null && mSourceNode != null && mEntry.node != mSourceNode) {
-//             Util.printStackTrace("sourceNode != entry node! srcNode=" + mSourceNode + " entry=" + mEntry);
-//         }
-//         if (mEntry == null) {
-//             if (DEBUG.Enabled) Util.printStackTrace(this + " source node w/no entry: " + mSourceNode);
-//             return mSourceNode;
-//         } else
-//             return mEntry.node;
-//     }
-    
-//     protected void setSourceNode(LWComponent node) {
-//         mSourceNode = node;
-//     }
-
     
     @Override
     public String getLabel() {
@@ -259,306 +241,21 @@ public class LWSlide extends LWContainer
     }
 
     /** create a default LWSlide */
-    public static LWSlide Create()
+    public static LWSlide instance()
     {
         final LWSlide s = new LWSlide();
-        s.setFillColor(new Color(0,0,0,64));
-        s.setStrokeWidth(1);
-        s.setStrokeColor(Color.black);
+        //s.setFillColor(new Color(0,0,0,64));
+        s.setFillColor(Color.black);
+        s.setStrokeWidth(0);
+        //s.setStrokeColor(Color.black);
         s.setSize(SlideWidth, SlideHeight);
         //setAspect(((float)GUI.GScreenWidth) / ((float)GUI.GScreenHeight));
         s.setAspect(SlideAspect);
         return s;
     }
 
-    public static LWSlide CreatePathwaySlide(LWPathway.Entry entry)
-    {
-        final LWSlide s = Create();
-        s.setStrokeWidth(0f);
-        s.setFillColor(null);
-        s.setPathwayEntry(entry);
-        return s;
-    }
-    
-    public static LWSlide CreateForPathway(LWPathway.Entry e) {
-        return CreateForPathway(e, e.node.getDisplayLabel(), e.node, e.node.getAllDescendents(), false);
-    }
-        
-    public static LWSlide CreateForPathway(LWPathway.Entry entry,
-                                           String titleText,
-                                           LWComponent mapNode,
-                                           Iterable<LWComponent> contents,
-                                           boolean syncTitle) 
-    {
-        final LWSlide slide = CreatePathwaySlide(entry);
-        final LWNode title = NodeModeTool.buildTextNode(titleText);
-        final MasterSlide master = entry.pathway.getMasterSlide();
-        final CopyContext cc = new CopyContext(false);
-        final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
-
-        //slide.setSourceNode(mapNode);
-        title.setStyle(master.getTitleStyle());
-        // if (syncTitle) title.setSyncSource(slide); doesn't seem to work in this direction (reverse is okay, but not what we want)
-        if (mapNode != null) {
-            //if (mapNode.isImageNode())
-            if (LWNode.isImageNode(mapNode) || mapNode instanceof LWImage)
-                ; // don't sync titles of images
-            else
-                title.setSyncSource(mapNode);
-        }
-
-        for (LWComponent c : contents) {
-            if (LWNode.isImageNode(c) || c instanceof LWLink) {
-                Log.debug("IGNORING " + c);
-                
-                // ignore the node itself -- just use it's image, which
-                // will already be in the list as it's first child
-
-                // ignore links
-                
-                continue;
-            }
-            Log.debug(" COPYING " + c);
-            final LWComponent copyForSlide = c.duplicate(cc);
-            copyForSlide.setScale(1);
-            //applyMasterStyle(master, copyForSlide);
-            copyForSlide.setSyncSource(c);
-            toLayout.add(copyForSlide);
-        }
-
-        toLayout.addFirst(title);
-        
-        //slide.setParent(pathway); // must do before import
-        slide.importAndLayout(toLayout);
-        entry.pathway.ensureID(slide);
-        
-        //slide.setLocked(true);
-        
-        return slide;
-    }
-
-    private void importAndLayout(List<LWComponent> nodes)
-    {
-        final LWComponent title = nodes.get(0);
-        nodes.remove(nodes.get(0));
-
-        title.setLocation(SlideMargin, SlideMargin);
-        addView(title);
-
-        final List<LWImage> images = new ArrayList();
-        final List<LWComponent> text = new ArrayList();
-
-        for (LWComponent c : nodes) {
-            if (c instanceof LWImage) {
-                images.add((LWImage)c);
-                //String imageName = 
-                //text.add(new 
-            } else
-                text.add(c);
-        }
-
-        int x, y;
-
-        // Add as children, providing seed relative locations
-        // for layout, and establish z-order (images under text)
-        // Nodes will be auto-styled with the master slide style
-        // in addView.
-
-        x = y = SlideMargin;
-        for (LWComponent c : images) {
-            c.takeLocation(x++,y++);
-            addView(c);
-        }
-
-        // differences in font sizes mean text below title looks to left of title unless slighly indented
-        final int textIndent = 2;
-        
-        x = SlideMargin + textIndent; 
-        y = SlideMargin * 2 + (int) title.getHeight();
-        for (LWComponent c : text) {
-            c.takeLocation(x++,y++);
-            addView(c);
-        }
-            
-        if (DEBUG.PRESENT || DEBUG.STYLE) out("LAYING OUT CHILDREN, parent=" + getParent());
-
-        setSize(SlideWidth, SlideHeight);
-
-        // layout not currently working unless we force the scale temporarily to 1.0 map
-        // bounds are computed for contents, which are tiny if scale is small, as
-        // opposed to local bounds.  Arrange actions need to figure out which bounds to
-        // use -- best guess would be local bounds, but all would have to have same
-        // parent...
-        // takeScale(1.0); // 2007-11-02 Should no longer be needed: arrange actions use local bounds
-        
-        final LWSelection selection = new LWSelection(nodes);
-        
-        if (text.size() > 1) {
-
-            // Better to distribute text items in their total height + a border IF they'd all fit on the slide:
-            // selection.setSize((int) bounds.getWidth(),
-            //                   (int) bounds.getHeight() + 15 * selection.size());
-
-            selection.setSize(SlideWidth - SlideMargin*2,
-                              (int) (getHeight() - SlideMargin*1.5 - text.get(0).getY()));
-            selection.setTo(text);
-            Actions.DistributeVertically.act(selection);
-            Actions.AlignLeftEdges.act(selection);
-        }
-        
-        if (images.size() == 1) {
-            final LWImage image = images.get(0);
-            final LWSlide slide = this;
-
-            image.userSetSize(0,
-                              slide.getHeight() - SlideMargin * 6, null); // aspect preserving
-            final float imageRegionTop = SlideMargin * 2;
-            final float imageRegionBottom = slide.getHeight();
-            final float imageRegionHeight = imageRegionBottom - imageRegionTop;
-            image.setLocation((slide.getWidth() - image.getWidth()) / 2,
-                              imageRegionTop + (imageRegionHeight - image.getHeight()) / 2);
-                
-        } else if (images.size() > 1) {
-
-            selection.setSize(SlideWidth - SlideMargin*2, SlideHeight - SlideMargin*2);
-
-            final float commonHeight = (selection.getHeight()-((images.size()-1)*SlideMargin)) / images.size();
-
-            //out("common height " + commonHeight);
-
-            for (LWImage image : images)
-                image.userSetSize(0, commonHeight, null); // aspect preserving
-
-            selection.setTo(images);
-            Actions.DistributeVertically.act(selection);
-            
-            for (LWImage image : images) {
-                float imageX = getWidth() - image.getWidth() - SlideMargin;
-                image.setLocation(imageX, image.getY());
-            }
-
-            //if (images.size() > 1) Actions.AlignLeftEdges.act(selection);
-            
-        }
-
-        takeScale(SlideIconScale);
-    }
-
-    protected enum Sync { ALL, TO_NODE, TO_SLIDE };
-    
-    public void synchronizeAll() {
-        synchronizeResources(Sync.ALL);
-    }
-    public void synchronizeSlideToNode() {
-        synchronizeResources(Sync.TO_NODE);
-    }
-    public void synchronizeNodeToSlide() {
-        synchronizeResources(Sync.TO_SLIDE);
-    }
-
     public boolean canSync() {
         return mEntry != null && !mEntry.isMapView();
-    }
-
-    // TODO: this code should be on LWPathway.Entry, as it's entirely
-    // dependent upon the relationship between a node and a slide
-    // established by the pathway entry.
-    protected void synchronizeResources(Sync type) {
-
-        if (getSourceNode() == null) {
-            Log.warn("Can't synchronize a slide w/out a source node: " + this);
-            return;
-        }
-
-        if (getEntry() != null && getEntry().isMapView()) {
-            Util.printStackTrace("cannot synchronize virtual slides");
-            return;
-        }
-
-        final LWComponent node = getSourceNode();
-        final LWSlide slide = this;
-
-        if (DEBUG.Enabled) outf("NODE/SILDE SYNCHRONIZATION; type(%s) ---\n\t NODE: %s\n\tSLIDE: %s", type, node, this);
-        
-        final Set<Resource> slideUnique = new HashSet();
-        final Set<Resource> nodeUnique = new HashSet();
-        
-        final Map<Resource,LWComponent> slideSources = new HashMap();
-        final Map<Resource,LWComponent> nodeSources = new HashMap();
-
-        // First add all resources in any descendent of the node to nodeUnique (include
-        // the node's resource itself), then iterate through all the resources found
-        // anywhere inside the slide, removing duplicates from nodeUnique, and adding the
-        // remainder to slideUnique.
-
-        if (node.hasResource()) {
-            if (nodeUnique.add(node.getResource()))
-                nodeSources.put(node.getResource(), node);
-        }
-        for (LWComponent c : node.getAllDescendents()) {
-            if (c.hasResource()) {
-                if (nodeUnique.add(c.getResource()))
-                    nodeSources.put(c.getResource(), c);
-            }
-        }
-
-        if (DEBUG.Enabled) {
-            for (Resource r : nodeUnique)
-                outf("%50s: %s", "UNIQUE NODE RESOURCE", Util.tags(r));
-        }
-            
-        final Set<Resource> nodeDupes = new HashSet();
-
-        for (LWComponent c : slide.getAllDescendents()) {
-            if (c.hasResource()) {
-                final Resource r = c.getResource();
-                if (nodeUnique.contains(r)) {
-                    nodeDupes.add(r);
-                    if (DEBUG.Enabled) outf("%30s: %s", "ALREADY ON NODE, IGNORE FOR SLIDE", Util.tags(r));
-                } else {
-                    if (slideUnique.add(r)) {
-                        slideSources.put(r, c);
-                        if (DEBUG.Enabled) outf("%30s: %s", "ADDED UNIQUE SLIDE", Util.tags(r));
-                    }
-                }
-            }
-        }
-
-        nodeUnique.removeAll(nodeDupes);
-
-        if (DEBUG.Enabled) {
-            //this.outf("  NODE DUPES: " + nodeDupes + "\n");
-            slide.out("SLIDE UNIQUE: " + slideUnique);
-            node.out(" NODE UNIQUE: " + nodeUnique);
-        }
-
-
-        // TODO: if a resource was added to BOTH the slide and the node
-        // extra-sync (e.g., cut/paste or drag/drop), and then during sync 
-        // we also probably want to connect these up via sync-source.
-                
-        if (type == Sync.ALL || type == Sync.TO_NODE) {
-            for (Resource r : slideUnique) {
-                // TODO: merge MapDropTarget & NodeModeTool node creation code into NodeTool, including resource handling
-                final LWNode newNode = new LWNode(r.getTitle(), r);
-                newNode.setSyncSource(slideSources.get(r));
-                node.addChild(newNode);
-            }
-        }
-
-        if (type == Sync.ALL || type == Sync.TO_SLIDE) {
-            for (Resource r : nodeUnique) {
-                final LWComponent newNode;
-                // TODO: MERGE THIS CODE WITH ADDCHILDIMPL LOGIC / CreateForPathway/importAndLayout
-                if (false && r.isImage()) {
-                    newNode = new LWImage(r);
-                } else {
-                    newNode = new LWNode(r.getName(), r);
-                    newNode.setSyncSource(nodeSources.get(r));
-                }
-                slide.addView(newNode);
-            }
-        }
     }
 
     //public void rebuild() {}
@@ -580,12 +277,63 @@ public class LWSlide extends LWContainer
         setFillColor(null); // this is how we revert a slide's bg color to that of the master slide
     }
 
-    private void applyMasterStyle(LWComponent node) {
-        applyMasterStyle(getMasterSlide(), node);
-        if (!(node instanceof LWGroup)) {
-            for (LWComponent c : node.getAllDescendents())
-                applyMasterStyle(getMasterSlide(), c);
+
+    private static abstract class SlideStylingTraversal extends LWTraversal {
+        SlideStylingTraversal() {
+            super(null);
         }
+
+        @Override
+        public boolean acceptChildren(LWComponent c) {
+            return c instanceof LWGroup == false && c.hasChildren();
+        }
+
+        @Override
+        public boolean acceptTraversal(LWComponent c) {
+            return true;
+        }        
+        
+        @Override
+        public boolean accept(LWComponent c) {
+            return c instanceof LWGroup == false && c instanceof LWSlide == false;
+        }
+
+        abstract public void visit(LWComponent c);
+//         @Override
+//         public void visit(LWComponent c) {
+//         }
+
+        
+        
+    }
+
+
+    @Override
+    public void XML_completed() {
+        new SlideStylingTraversal() {
+            public void visit(LWComponent c) {
+                c.setFlag(Flag.SLIDE_STYLE);
+                //out("slide bit: " + c);
+            }
+        }.traverse(this);
+        super.XML_completed();
+    }
+    
+
+    private void applyMasterStyle(LWComponent node) {
+        final MasterSlide master = getMasterSlide();
+
+        new SlideStylingTraversal() {
+            public void visit(LWComponent c) {
+                applyMasterStyle(master, c);
+            }
+        }.traverse(node);
+        
+//        applyMasterStyle(master, node);
+//         if (!(node instanceof LWGroup)) {
+//             for (LWComponent c : node.getAllDescendents())
+//                 applyMasterStyle(getMasterSlide(), c);
+//         }
     }
             
     private static void applyMasterStyle(MasterSlide master, LWComponent c) {
@@ -595,8 +343,9 @@ public class LWSlide extends LWContainer
         }
         
         c.setFlag(Flag.SLIDE_STYLE);
+        c.mAlignment.set(Alignment.LEFT);
         
-        if (c.hasResource())
+        if (c.hasResource() && !c.hasChildren())
             c.setStyle(master.getLinkStyle());
         //else if (c instanceof LWNode && ((LWNode)c).isTextNode())
         else if (c instanceof LWNode)
@@ -607,26 +356,30 @@ public class LWSlide extends LWContainer
         track("styled", c.getStyle() == null ? c : c + "; Style=" + c.getStyle().getLabel());
     }
 
-    private void addView(LWComponent c) {
-        track("addView", c);
-        adjustForSlideDisplay(c);
-        addChildImpl(c);
-    }
+//     void addView(LWComponent c) {
+//         track("addView", c);
+//         adjustForSlideDisplay(c);
+//         addChild(c);
+//         //addChildImpl(c); // won't generate hierarchy events...
+//     }
+    
 
     /** @return true if adjusted */
-    private boolean adjustForSlideDisplay(LWComponent c) {
+    boolean applyStyle(LWComponent c) {
         
         //track("adjust", c);
-        
-        if (this instanceof MasterSlide)
-            return false;
+//         if (this instanceof MasterSlide)
+//             return false;
         
         //aif (DEBUG.PRESENT || DEBUG.STYLE)
-        track("adjusting", c + "; curStyle=" + c.getStyle());
+        //track("styling", c + "; curStyle=" + c.getStyle());
         
         c.setFlag(Flag.SLIDE_STYLE);
         if (c.getStyle() == null)
             applyMasterStyle(c);
+
+//         if (LWNode.isImageNode(c))
+//             c.mAlignment.set(Alignment.RIGHT);
 
        return true;
     }
@@ -660,7 +413,7 @@ public class LWSlide extends LWContainer
 
         for (LWComponent c : iterable) {
 
-            if (!adjustForSlideDisplay(c))
+            if (!applyStyle(c))
                 continue;
             
             // TODO: need a size request for LWImage, as the image itself
@@ -756,6 +509,12 @@ public class LWSlide extends LWContainer
     }
 
     @Override
+    public Color getFinalFillColor(DrawContext dc) {
+        Color c = getRenderFillColor(dc);
+        return c == null ? super.getFinalFillColor(dc) : c;
+    }
+
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         final LWSlide master = getMasterSlide();
@@ -795,7 +554,7 @@ public class LWSlide extends LWContainer
     }
     
     @Override
-    public LWComponent duplicate(CopyContext cc)
+    public LWSlide duplicate(CopyContext cc)
     {
         if (!DEBUG.Enabled)
             return null;
