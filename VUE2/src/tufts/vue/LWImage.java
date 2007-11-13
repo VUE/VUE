@@ -290,7 +290,11 @@ public class LWImage extends
         if (parent == null)
             return;
 
-        if (parent instanceof LWNode && parent.getChild(0) == this) {
+        if (parent instanceof LWNode
+            && parent.getChild(0) == this
+            && getResource() != null
+            && getResource().equals(parent.getResource()))
+        {
             // special case: if first child of a LWNode is an LWImage, treat it as an icon
             isNodeIcon = true;
             if (mImageWidth <= 0)
