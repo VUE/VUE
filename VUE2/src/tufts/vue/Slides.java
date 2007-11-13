@@ -15,18 +15,19 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.3 $ / $Date: 2007-11-13 06:17:54 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2007-11-13 07:02:16 $ / $Author: sfraize $
  */
 class Slides {
 
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Slides.class);
 
-    private static LWNode createNode(Resource r) {
-        LWNode newNode = NodeModeTool.createNewNode(r.getTitle());
-        newNode.setResource(r);
-        return newNode;
-    }
+//     private static LWNode createNode(Resource r) {
+//         LWNode newNode = NodeModeTool.createNewNode(r.getTitle());
+//         newNode.setResource(r);
+//         return newNode;
+//     }
 
+    // todo: resource should always be from the node, so can eventually have this take just one arg when done refactoring:
     private static LWNode createNode(LWComponent node, Resource r) {
 
         if (!r.equals(node.getResource()))
@@ -187,7 +188,7 @@ class Slides {
         }
 
         // TODO: if the source node is an image node, need to make sure
-        // it's image gets added (is filter by getContentToCopy)
+        // it's image gets added (is filtered by getContentToCopy)
         if (LWNode.isImageNode(entry.node))
             images.add(new TitledImage(entry.node, ((LWNode)entry.node).getImage().duplicate(cc)));
 
@@ -204,13 +205,14 @@ class Slides {
         // in addView.
 
         x = y = SlideMargin;
+
         for (TitledImage t : images) {
             t.title.takeLocation(x++,y++);
             t.image.takeLocation(x++,y++);
             slide.applyStyle(t.title);
             slide.applyStyle(t.image);
-            added.add(t.title);
             added.add(t.image);
+            added.add(t.title); // keep titles over images (add after)
         }
 
         // differences in font sizes mean text below title looks to left of title unless slighly indented
@@ -276,6 +278,11 @@ class Slides {
                               slide.getHeight() - SlideMargin * 6, null); // aspect preserving
             image.setLocation((slide.getWidth() - image.getWidth()) / 2,
                               imageRegionTop + (imageRegionHeight - image.getHeight()) / 2);
+
+            LWComponent label = images.get(0).title;
+            label.setLocation(image.getX() + (image.getWidth() - label.getWidth()) / 2,
+                              image.getY() + image.getHeight());
+            //image.getY() - label.getHeight());
                 
         } else if (images.size() > 1) {
 
@@ -410,7 +417,7 @@ class Slides {
                 if (false && r.isImage()) {
                     newNode = new LWImage(r);
                 } else {
-                    newNode = createNode(r);
+                    newNode = createNode(nodeSources.get(r), r);
                     newNode.setSyncSource(nodeSources.get(r));
                     if (LWNode.isImageNode(newNode))
                         ((LWNode)newNode).getImage().setSyncSource(nodeSources.get(r));
