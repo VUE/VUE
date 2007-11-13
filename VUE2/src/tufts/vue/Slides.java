@@ -11,10 +11,11 @@ import java.awt.Color;
 
 /**
  *
- * Utility classes for auto-generating and synchronizing slides for pathway entries.
+ * Utility methods for auto-generating and synchronizing slides for pathway entries.
+ * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.2 $ / $Date: 2007-11-13 04:46:01 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2007-11-13 06:17:54 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -25,6 +26,23 @@ class Slides {
         newNode.setResource(r);
         return newNode;
     }
+
+    private static LWNode createNode(LWComponent node, Resource r) {
+
+        if (!r.equals(node.getResource()))
+            Log.warn("createNode: resource not on node: " + node + "; r=" + r);
+
+        String label;
+
+        if (node.hasLabel())
+            label = node.getLabel();
+        else
+            label = r.getTitle();
+        LWNode newNode = NodeModeTool.createNewNode(label);
+        newNode.setResource(r);
+        return newNode;
+    }
+    
     
     
     protected enum Sync { ALL, TO_NODE, TO_SLIDE };
@@ -378,7 +396,7 @@ class Slides {
         if (type == Sync.ALL || type == Sync.TO_NODE) {
             for (Resource r : slideUnique) {
                 // TODO: merge MapDropTarget & NodeModeTool node creation code into NodeTool, including resource handling
-                LWNode newNode = createNode(r);
+                LWNode newNode = createNode(slideSources.get(r), r);
                 slideSources.get(r).setSyncSource(newNode);
                 node.addChild(newNode);
             }
@@ -388,7 +406,7 @@ class Slides {
             List<LWComponent> added = new ArrayList();
             for (Resource r : nodeUnique) {
                 final LWComponent newNode;
-                // TODO: MERGE THIS CODE WITH ADDCHILDIMPL LOGIC / CreateForPathway/importAndLayout
+                // TODO: merge this code into something common with buildPathwaySlide
                 if (false && r.isImage()) {
                     newNode = new LWImage(r);
                 } else {
