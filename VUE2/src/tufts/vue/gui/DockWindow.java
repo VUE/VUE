@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.117 $ / $Date: 2007-10-30 00:33:40 $ / $Author: sfraize $
+ * @version $Revision: 1.118 $ / $Date: 2007-11-13 04:39:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -108,7 +108,7 @@ public class DockWindow extends javax.swing.JWindow
     private JComponent mResizeCorner2;
     //private Action[] mMenuActions;
     
-    private String mTitle;
+    private String mTitleName;
     private String mMenuName; // if non-null, will be used for name in menus
     private final String mBaseTitle;
     private int mTitleWidth;
@@ -435,7 +435,7 @@ public class DockWindow extends javax.swing.JWindow
         if (suffix == null) {
             newTitle = mBaseTitle;
         } else {
-            newTitle = mBaseTitle + " [" + suffix + "]";
+            newTitle = mBaseTitle + " (" + suffix + ")";
         }
         setTitle(newTitle);
         //if (DEBUG.Enabled) System.out.println("setAuxTitle(" + newTitle + ")");
@@ -835,7 +835,7 @@ public class DockWindow extends javax.swing.JWindow
         addMouseMotionListener(this);
         
         // make sure peer has title for a native MacOSX code, and re-set name if it was ###override
-        setTitle(mTitle);
+        setTitle(mTitleName);
 
         if (isToolbar) {
             // enforced a fixed height on toolbars
@@ -1211,7 +1211,13 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     public void setTitle(String title) {
-        mTitle = title;
+
+        if (mTitleName != null && mTitleName.equals(title))
+            return;
+
+        // TODO: don't update the root title if the aux title changes
+        
+        mTitleName = title;
         mTitleWidth = GUI.stringLength(TitleFont, title);
         mMinTitleWidth = mTitleWidth + 4;
         setName(title);
@@ -1236,7 +1242,7 @@ public class DockWindow extends javax.swing.JWindow
     }
     
     public String getTitle() {
-        return mTitle;
+        return mTitleName;
     }
     
     /** Return the name to use in a menu action to refer to this window: defaults to title */
@@ -1288,7 +1294,7 @@ public class DockWindow extends javax.swing.JWindow
     {
         if (DEBUG.DOCK) out("setBounds " + x+","+y + " " + width+"x"+height);
 
-        if (DEBUG.Enabled && width == 0 && mTitle != null) // mTitle only null during <init>
+        if (DEBUG.Enabled && width == 0 && mTitleName != null) // mTitle only null during <init>
             Util.printStackTrace(this + " zero width setBounds " + x+","+y + " " + width+"x"+height);
         
         /*
@@ -3338,7 +3344,7 @@ public class DockWindow extends javax.swing.JWindow
     }
     
     private void out(Object o) {
-        Log.debug("(" + mTitle + ") " + o);
+        Log.debug("(" + mTitleName + ") " + o);
 //         String s = "DockWindow " + (""+System.currentTimeMillis()).substring(9);
 //         s += " [" + mTitle + "]";
         
@@ -3347,11 +3353,11 @@ public class DockWindow extends javax.swing.JWindow
 
     public String toString() {
         //String s = "DockWindow[" + mTitle;
-        String s = "[" + mTitle;
+        String s = "[" + mTitleName;
         if (true || mChild == null)
             return s + "]";
         else
-            return s + " ->" + mChild.mTitle + "]";
+            return s + " ->" + mChild.mTitleName + "]";
     }
 
     private static class ScrollableWidthTracker extends JPanel implements Scrollable {
@@ -3510,7 +3516,7 @@ public class DockWindow extends javax.swing.JWindow
 
                     if (DEBUG.INIT) {
                         if (targetClass.isInstance(c)) {
-                            System.out.format("\tDockWindow(%s) making transparent: ", DockWindow.this.mTitle);
+                            System.out.format("\tDockWindow(%s) making transparent: ", DockWindow.this.mTitleName);
                             dispatchSafely(c);
                         } else
                             System.out.print("              ");
