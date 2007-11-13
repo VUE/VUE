@@ -38,7 +38,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.41 $ / $Date: 2007-11-07 11:05:37 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2007-11-13 04:32:14 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -47,6 +47,9 @@ import java.awt.geom.Rectangle2D;
 // LWComponent.ChildKind, so we have the option of traversing ChildKind.ANY, as opposed
 // to the current impl, which does a traversal that gives us all the same components
 // that ChildKind.PROPER does.
+
+// todo: now that LWTraversal takes a PickContext, this is really no longer a generic
+// traversal: it's a PickTraversal
 
 public class LWTraversal {
 
@@ -86,7 +89,9 @@ public class LWTraversal {
             if (done) return;
         }
             
-        if (acceptTraversal(c)) {
+        if (!acceptTraversal(c)) {
+            if (DEBUG.PICK) eoutln("TRV DENY: " + c);
+        } else {
             if (DEBUG.PICK) eoutln("Travers0: " + c);
             if (acceptChildren(c)) {
                 if (DEBUG.PICK) eoutln("Travers1: " + c);
@@ -116,8 +121,11 @@ public class LWTraversal {
                     // of ReverseListIter by default, and combine it with some kind of
                     // GroupIterator that would wrap children iterator + seenSlideIcons
                     // iter (and then apply the reverse on top of it).
-                    
-                    pickables = c.getPickList(pc, curCache);
+
+                    if (pc != null)
+                        pickables = c.getPickList(pc, curCache);
+                    else
+                        pickables = c.getChildList();
                 } catch (Throwable t) {
                     Util.printStackTrace(t, "pickList fetch failed for " + c + "; pickables=" + pickables);
                 }
@@ -154,8 +162,6 @@ public class LWTraversal {
             if (done) return;
             if (!preOrder && accept(c))
                 visit(c);
-        } else {
-            if (DEBUG.PICK) eoutln("**DENIED: " + c);
         }
     }
 
