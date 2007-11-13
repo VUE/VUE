@@ -63,7 +63,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.90 $ / $Date: 2007-11-05 15:29:27 $ / $Author: mike $
+ * @version $Revision: 1.91 $ / $Date: 2007-11-13 02:58:50 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -131,7 +131,8 @@ public class PathwayTable extends JTable
         this.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         this.setRowHeight(20);
         this.setRowSelectionAllowed(true);
-        this.setShowVerticalLines(false);        
+        this.setShowVerticalLines(false);      
+        this.setDoubleBuffered(true);
        this.setShowHorizontalLines(true);
         this.setGridColor(Color.lightGray);
         this.setIntercellSpacing(new Dimension(0,1));
@@ -220,7 +221,8 @@ public class PathwayTable extends JTable
     	editEntry.addActionListener(this);
     	addNoteEntry.addActionListener(this);
     	deleteEntry.addActionListener(this);
-    	deleteEntry.setVisible(false);
+    	duplicateEntry.addActionListener(this);
+    	
         // end of PathwayTable constructor
     }
 
@@ -1104,14 +1106,22 @@ public class PathwayTable extends JTable
 	private void displayContextMenu(MouseEvent e) {
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
 	}
-	JPopupMenu m = null;
-	private static final JMenuItem renamePresentation = new JMenuItem("Rename");
-	private static final JMenuItem playbackPresentation = new JMenuItem("Playback");
-	private static final JMenuItem masterSlidePresentation = new JMenuItem("Masterslide");
-	private static final JMenuItem deletePresentation = new JMenuItem("Delete");
-	private static final JMenuItem editEntry = new JMenuItem("Edit");
-	private static final JMenuItem addNoteEntry = new JMenuItem("Add note");
-	private static final JMenuItem deleteEntry = new JMenuItem("Delete");
+
+	private JPopupMenu m = null;
+	
+	//presentation menu items
+	private static final String context="contextMenus.pathways.";
+	private static final JMenuItem renamePresentation = new JMenuItem(VueResources.getString(context+"pathway.rename"));
+	private static final JMenuItem playbackPresentation = new JMenuItem(VueResources.getString(context+"pathway.start"));
+	private static final JMenuItem addNoteEntry = new JMenuItem(VueResources.getString(context+"pathway.notes"));
+	private static final JMenuItem masterSlidePresentation = new JMenuItem(VueResources.getString(context+"pathway.masterslide"));
+	private static final JMenuItem deletePresentation = new JMenuItem(VueResources.getString(context+"pathway.delete"));	
+
+	//entry menu items
+	private static final JMenuItem deleteEntry = new JMenuItem(VueResources.getString(context+"entry.delete"));
+	private static final JMenuItem previewEntry = new JMenuItem(VueResources.getString(context+"entry.preview"));
+	private static final JMenuItem editEntry = new JMenuItem(VueResources.getString(context+"entry.edit"));
+	private static final JMenuItem duplicateEntry = new JMenuItem(VueResources.getString(context+"entry.duplicate"));
 	
 	public void actionPerformed(ActionEvent e)
 	{
@@ -1139,15 +1149,39 @@ public class PathwayTable extends JTable
 		}
 		else if (e.getSource().equals(deletePresentation))
 		{
-			VUE.getPathwayPanel().deletePathway(selectedEntry.pathway);
+			final Object[] defaultOrderButtons = { "Cancel","Delete"};
+			
+			final Object[]	macOrderButtons = {"Delete","Cancel"};
+			
+		   int response = JOptionPane.showOptionDialog
+           (VUE.getDialogParent(),
+       
+            "Are you sure you want to delete this presentation?" ,         
+            "Delete presentation",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            (Util.isMacPlatform() ? macOrderButtons : defaultOrderButtons),             
+            "Cancel"
+            );
+		   if (Util.isMacPlatform() ? response == 0 : response == 1)
+		   {
+			//delete the pathway
+			   VUE.getPathwayPanel().deletePathway(selectedEntry.pathway);
+		   }
+			
 		}
 		else if (e.getSource().equals(addNoteEntry))
 		{
 			Actions.NotesAction.actionPerformed(e);
 		}
-		else if (e.getSource().equals(editEntry))
+		else if (e.getSource().equals(editEntry) || e.getSource().equals(previewEntry))	
 		{			
 			Actions.EditSlide.act(selectedEntry.getSlide());
+		}
+		else if (e.getSource().equals(duplicateEntry))	
+		{			
+			//Actions.DuplicateSlide.act(selectedEntry.getFocal());
 		}
 		else if (e.getSource().equals(deleteEntry))
 		{
@@ -1157,6 +1191,7 @@ public class PathwayTable extends JTable
             }});
 			   
 		}
+		repaint();
 	}
 	LWPathway.Entry selectedEntry = null;
 	int selectedX = 0;
@@ -1182,15 +1217,19 @@ public class PathwayTable extends JTable
 	    {
 	    	m.add(renamePresentation);
 	    	m.add(playbackPresentation);
+	    	m.add(addNoteEntry);
+	    	m.addSeparator();
 	    	m.add(masterSlidePresentation);
-	    	m.add(deletePresentation);
-	    	playbackPresentation.setVisible(false);
+	    	m.add(deletePresentation);	    	
 
 	    }
 	    else
 	    {
-	    	m.add(editEntry);
 	    	m.add(addNoteEntry);
+	    	m.add(previewEntry);
+	    	m.addSeparator();
+	    	m.add(editEntry);
+	    	//m.add(duplicateEntry);
 	    	m.add(deleteEntry);
 	    }
 

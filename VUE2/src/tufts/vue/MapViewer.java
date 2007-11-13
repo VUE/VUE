@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.487 $ / $Date: 2007-11-09 23:22:38 $ / $Author: sfraize $ 
+ * @version $Revision: 1.488 $ / $Date: 2007-11-13 02:58:50 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3726,185 +3726,289 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     
     private Component multiPathway;
+    private static JPopupMenu sMultiPopup = null;
+    
     private JPopupMenu buildMultiSelectionPopup() {
-        JPopupMenu m = new JPopupMenu("Multi-Component Menu");
+    	   if (sMultiPopup != null)
+           	sMultiPopup.removeAll();
+           else
+           {
+           	sMultiPopup = new JPopupMenu();
+           }
+    	sMultiPopup.add(Actions.Group);
+    	sMultiPopup.add(Actions.Ungroup);
+    	sMultiPopup.addSeparator();
         
-        //m.add(getNodeMenu("Nodes"));
-        //m.add(getLinkMenu("Links"));
-        multiPathway = m.add(Actions.AddPathwayItem);
+        multiPathway = sMultiPopup.add(Actions.AddPathwayItem);
+     
+        //Manage pathway list
+        if (getMap().getPathwayList().getActivePathway() == null) {
+            multiPathway.setVisible(false);
+        } else {
+        	multiPathway.setVisible(true);
+        }
+     
+        if (VUE.getSelection().allOfType(LWLink.class))
+        {
+        	multiPathway.setVisible(false);
+        	
+        //	System.out.println("All links");
+        }
+        
+        //if (VUE.getSelection().allOfType(LWNode.class))
+        	//sMultiPopup.add(syncMenu);
+        
+        if (multiPathway.isVisible()) //|| VUE.getSelection().allOfType(LWNode.class))
+        	sMultiPopup.addSeparator();
+        	
+        
+        
+        sMultiPopup.add(Actions.Copy);
+        sMultiPopup.add(Actions.Paste);
+        
+        //Format Box        
         WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
         JCheckBoxMenuItem formatBox = new JCheckBoxMenuItem(formatAction);
         if (VUE.getFormatDock().isShowing())
         	formatBox.setSelected(true);
         formatAction.setTitle("Format");      
-        m.add(formatBox);
-    
-        m.add(GUI.buildMenu("Align", Actions.ARRANGE_MENU_ACTIONS));
+        sMultiPopup.add(formatBox);
+        //end Format Box
         
+        sMultiPopup.add(GUI.buildMenu("Align", Actions.ARRANGE_MENU_ACTIONS));        
         JMenu arrangeMenu = new JMenu("Arrange");
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
         arrangeMenu.add(Actions.SendToBack);
         arrangeMenu.add(Actions.SendBackward);
-        m.add(arrangeMenu);        
-        m.addSeparator();
-        m.add(Actions.Duplicate);
-        m.add(Actions.Group);
-        m.add(Actions.Ungroup);
-        m.addSeparator();
-        m.add(Actions.DeselectAll);
-        m.add(Actions.Delete);
+        sMultiPopup.add(arrangeMenu);
+        sMultiPopup.add(Actions.Duplicate);
+        sMultiPopup.add(Actions.DeselectAll);
+        sMultiPopup.add(Actions.Delete);
 
-        GUI.adjustMenuIcons(m);
+        GUI.adjustMenuIcons(sMultiPopup);
         
-        m.setLightWeightPopupEnabled(false);
-        return m;
+        sMultiPopup.setLightWeightPopupEnabled(false);
+        return sMultiPopup;
     }
     
-    //private static JMenuItem sNodeMenuItem;
-    //private static JMenuItem sLinkMenuItem;
-    private static JMenuItem sUngroupItem;
-    private static Component sPathAddItem;
-    private static Component sRemoveResourceItem;
-    private static Component sPathRemoveItem;
-    private static Component sAddImageItem;
-    private static Component sAddFileItem;
-    private static Component sAddURLItem;
-    JCheckBoxMenuItem infoCheckBox;
-    private static JCheckBoxMenuItem formatBox; 
-    private static Component sPostPathwaySeparator = new JPopupMenu.Separator();
-    private static Component sPostResourceSeparator = new JPopupMenu.Separator();
-    private static Component sPreSlideSeparator = new JPopupMenu.Separator();
-    private static Component sDuplicateItem;
-  //  private static Component sRenameItem;
-    private static Component sDeleteItem;
-    private static Component sDeselectItem;     
-    private static Component sArrangeItem;        
-    private static Component contextKeywordsItem;
-    private static Component contextNotesItem;
-    private static JMenuItem slideNotesItem;
-    private static JMenuItem slideKeywordsItem;
-    private static Component sEditMasterSlideItem;
-    private static Component sSyncWithNodeItem;
-    private static Component sEditSlideItem;
-    private static Component sImageNaturalSize;
     
-    //  private static Component sPathSeparator;
-    private JPopupMenu buildSingleSelectionPopup() {
-        JPopupMenu m = new JPopupMenu("Component Menu");
-        
-        sUngroupItem = new JMenuItem(Actions.Ungroup);
-        
-        WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
-        infoCheckBox = new JCheckBoxMenuItem(infoAction);
-        infoAction.setTitle("Node Info");
-        m.add(sUngroupItem);
-        m.add(infoCheckBox);
-        m.addSeparator();
-        sAddImageItem = m.add(Actions.AddImageAction);
-        sAddFileItem = m.add(Actions.AddFileAction);
-        sAddURLItem = m.add(Actions.AddURLAction);
-        sRemoveResourceItem = m.add(Actions.RemoveResourceAction);
-        m.add(sPostResourceSeparator);        
-        contextNotesItem = m.add(Actions.ContextNotesAction);
-        contextKeywordsItem = m.add(Actions.ContextKeywordAction);
-        slideNotesItem = new JMenuItem();        
-        slideNotesItem.setAction(Actions.ContextNotesAction);
-        slideNotesItem.setLabel(VueResources.getString("actions.pathwayNotes.label"));
-        m.add(slideNotesItem);
-        slideNotesItem.setVisible(false);
-        
-        slideKeywordsItem = new JMenuItem();
-        slideKeywordsItem.setAction(Actions.ContextKeywordAction);
-        slideKeywordsItem.setLabel(VueResources.getString("actions.pathwayKeywords.label"));
-        m.add(slideKeywordsItem);
-        slideKeywordsItem.setVisible(false);
-        m.addSeparator();
-        /***
-         * Add to Pathway stuff goes here.
-         */
-        sPathAddItem = m.add(Actions.AddPathwayItem);
-        sPathRemoveItem = m.add(Actions.RemovePathwayItem);
-        m.add(sPostPathwaySeparator);
-
-        if (DEBUG.Enabled) {
-            sImageNaturalSize = m.add(Actions.ImageToNaturalSize);
-        }
-        
-        
-        WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
-        formatBox = new JCheckBoxMenuItem(formatAction);
-        if (VUE.getFormatDock().isShowing())
-        	formatBox.setSelected(true);
-        formatAction.setTitle("Format");
-      
-        m.add(formatBox);
-        
-        sDuplicateItem = m.add(Actions.Duplicate);
-//        sRenameItem = m.add(Actions.Rename);
-        sDeleteItem = m.add(Actions.Delete);
-        sDeselectItem = m.add(Actions.DeselectAll);
-        JMenu arrangeMenu = new JMenu("Arrange");
-        arrangeMenu.add(Actions.BringToFront);
-        arrangeMenu.add(Actions.BringForward);
-        arrangeMenu.add(Actions.SendToBack);
-        arrangeMenu.add(Actions.SendBackward);
-        sArrangeItem = m.add(arrangeMenu);        
-        m.add(sPreSlideSeparator);
-        sEditMasterSlideItem =m.add(Actions.EditMasterSlide);
-        sEditSlideItem =m.add(Actions.EditSlide);
-        sSyncWithNodeItem = m.add(Actions.SyncWithNode);
-        sAssetMenu = new JMenu("Disseminators");
-        // todo: special add-to selection action that adds
-        // hitComponent to selection so have way other
-        // than shift-click to add to selection (so you
-        // can do it all with the mouse)
-        
-
-        GUI.adjustMenuIcons(m);
-        m.setLightWeightPopupEnabled(false);
-        return m;
-    }
-    
+    private static JMenuItem sAddFileItem;
+    private static JMenuItem sAddURLItem;
+    private static JCheckBoxMenuItem formatBox;
     private static JMenu sAssetMenu;
     private static JPopupMenu sSinglePopup;
+    private static final WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
+    private static final JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
+    private static Component sRemoveResourceItem;
+    
+    private void buildSingleSelectionNodePopup(LWComponent c) 
+    {        
+    	if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
+    	{
+    		LWSlide slide = (LWSlide)VUE.getActiveViewer().getFocal();
+    		if (slide.getMasterSlide().equals(slide))
+    		{
+    			 sSinglePopup.add(formatBox);
+    			return;
+    		}
+    	}    			
+    			
+    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.nodeInfo.label"));
+        if (VUE.getInfoDock().isShowing())
+        	infoCheckBox.setSelected(true);
+    	sSinglePopup.add(infoCheckBox);
+    	sSinglePopup.addSeparator();
+    	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
+    	sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	sRemoveResourceItem = sSinglePopup.add(Actions.RemoveResourceAction);
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.ContextNotesAction);
+    	sSinglePopup.add(Actions.ContextKeywordAction);
+
+    	//
+        // Add to Pathway stuff goes here.
+        //
+    	sSinglePopup.add(Actions.AddPathwayItem);
+    	sSinglePopup.add(Actions.RemovePathwayItem);
+        
+        if (DEBUG.Enabled) {
+            sSinglePopup.add(Actions.ImageToNaturalSize);
+        }
+        sSinglePopup.add(syncMenu);
+        sSinglePopup.addSeparator();
+        sSinglePopup.add(Actions.Copy);
+        sSinglePopup.add(Actions.Paste);
+        sSinglePopup.add(Actions.DeselectAll);
+        sSinglePopup.add(formatBox);
+        sSinglePopup.add(arrangeMenu);
+        sSinglePopup.add(Actions.Delete);
+        	     
+        LWNode n = (LWNode) c;
+        Resource r = n.getResource();
+        
+        if (r == null)
+        {
+        	sRemoveResourceItem.setEnabled(false);
+        	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));        	
+        	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
+        }
+        else
+        {
+        	sRemoveResourceItem.setEnabled(true);
+        	sAddFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
+        	sAddURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));
+        }        	 
+    }
+    
+    private void buildSingleSelectionLinkPopup()
+    {
+    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.linkInfo.label"));
+    	if (VUE.getInfoDock().isShowing())
+        	infoCheckBox.setSelected(true);
+    	sSinglePopup.add(infoCheckBox);
+    	sSinglePopup.addSeparator();
+     	sSinglePopup.add(Actions.ContextNotesAction);
+   	    sSinglePopup.add(Actions.ContextKeywordAction);
+        sSinglePopup.addSeparator();
+   	    sSinglePopup.add(Actions.Copy);
+        sSinglePopup.add(Actions.Paste);
+        sSinglePopup.add(Actions.DeselectAll);
+        sSinglePopup.add(formatBox);
+        sSinglePopup.add(arrangeMenu);
+        sSinglePopup.add(Actions.Delete);
+    }
+    
+    private void buildSingleSelectionSlideEditingPopup()
+    {
+    	LWSlide slide = (LWSlide)VUE.getActiveViewer().getFocal();
+    	
+    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.slideInfo.label"));
+    	if (VUE.getInfoDock().isShowing())
+        	infoCheckBox.setSelected(true);
+    	sSinglePopup.add(infoCheckBox);
+    	sSinglePopup.addSeparator();
+    	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
+    	//sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
+    	sSinglePopup.add(Actions.NewNode);
+    	sSinglePopup.add(Actions.NewText);
+    	if (!slide.getMasterSlide().equals(slide))
+    	{    		
+    		sSinglePopup.addSeparator();
+    		sSinglePopup.add(Actions.ContextNotesAction);
+    		sSinglePopup.add(Actions.ContextKeywordAction);
+    		sSinglePopup.add(syncMenu);
+    		sSinglePopup.addSeparator();
+    		sSinglePopup.add(Actions.Copy);
+    		sSinglePopup.add(Actions.Paste);
+    	}
+   	    sSinglePopup.add(formatBox);
+   		
+    	if (!slide.getMasterSlide().equals(slide))
+    	{
+    		sSinglePopup.add(Actions.EditMasterSlide);     		
+    	}    	
+    	JMenuItem item = new JMenuItem(Actions.EditSlide);
+    	item.setLabel("Return to map");
+   	    sSinglePopup.add(item);
+     
+    }
+    
+    private void buildSingleSelectionSlideIconPopup()
+    {
+    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.slideInfo.label"));
+    	if (VUE.getInfoDock().isShowing())
+        	infoCheckBox.setSelected(true);
+    	sSinglePopup.add(infoCheckBox);
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.LaunchPresentation);
+    	sSinglePopup.add(Actions.ContextNotesAction);
+   	    sSinglePopup.add(Actions.ContextKeywordAction);
+   	    sSinglePopup.add(syncMenu);
+   	    sSinglePopup.add(Actions.EditSlide);
+   	    sSinglePopup.add(Actions.EditMasterSlide);
+   	    sSinglePopup.add(Actions.DeleteSlide);
+   	    
+        
+    	
+    }
+    
+    private void buildSingleSelectionGroupPopup()
+    {
+    	 sSinglePopup.add(Actions.Ungroup);
+    	 sSinglePopup.addSeparator();
+    	 infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.groupInfo.label"));
+    	 if (VUE.getInfoDock().isShowing())
+         	infoCheckBox.setSelected(true);
+     	 sSinglePopup.add(infoCheckBox);
+     	 sSinglePopup.addSeparator();
+      	 sSinglePopup.add(Actions.ContextNotesAction);
+    	 sSinglePopup.add(Actions.ContextKeywordAction);
+
+    	 //
+         // Add to Pathway stuff goes here.
+         //
+    	 sSinglePopup.add(Actions.AddPathwayItem);
+    	 sSinglePopup.add(Actions.RemovePathwayItem);
+    	 sSinglePopup.addSeparator();
+    	 sSinglePopup.add(Actions.Copy);
+         sSinglePopup.add(Actions.Paste);
+         sSinglePopup.add(Actions.DeselectAll);
+         sSinglePopup.add(formatBox);
+         sSinglePopup.add(arrangeMenu);
+         sSinglePopup.add(Actions.Delete);    	 
+    }
+    
+    private JMenu syncMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.syncMenu.label"));
+    private JMenu arrangeMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.arrangeMenu.label"));
+    
     private JPopupMenu getSingleSelectionPopup(LWComponent c) {
         if (c == null)
             c = VueSelection.first(); // should be only thing in selection
         
-        if (sSinglePopup == null)
-            sSinglePopup = buildSingleSelectionPopup();
+        if (sSinglePopup != null)
+        	sSinglePopup.removeAll();
+        else
+        {
+        	sSinglePopup = new JPopupMenu();
+            syncMenu.add(Actions.SyncWithNode);
+            syncMenu.add(Actions.SyncWithSlide);
+            syncMenu.add(Actions.SyncAll);
+            WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
+            formatBox = new JCheckBoxMenuItem(formatAction);
+            if (VUE.getFormatDock().isShowing())
+            	formatBox.setSelected(true);
+            formatAction.setTitle(VueResources.getString("mapViewer.componentMenu.format.label"));
+              
+            arrangeMenu.add(Actions.BringToFront);
+            arrangeMenu.add(Actions.BringForward);
+            arrangeMenu.add(Actions.SendToBack);
+            arrangeMenu.add(Actions.SendBackward);
+                   
+            
+        }
         
-        if (c instanceof LWNode) {
-            //sNodeMenuItem.setVisible(!((LWNode)c).isTextNode());
-            //sLinkMenuItem.setVisible(false);
-            //Actions.HierarchyView.setEnabled(true);
-            
-            LWNode n = (LWNode) c;
-            Resource r = n.getResource();
-            if (r != null && r.getClientType() == Resource.ASSET_FEDORA) {
-                Asset a = r == null ? null :((AssetResource)r).getAsset();
-                if (a != null && sAssetMenu == null) {
-                    buildAssetMenu(a);
-                    sSinglePopup.add(sAssetMenu);
-                } else if (a != null) {
-                    sSinglePopup.remove(sAssetMenu);
-                     buildAssetMenu(a);
-                    sSinglePopup.add(sAssetMenu);
-                } else if (a == null && sAssetMenu != null) {
-                    sSinglePopup.remove(sAssetMenu);
-                }
-            }else {
-                    sSinglePopup.remove(sAssetMenu);
-            }
-            
-            if (r == null)
-            	sRemoveResourceItem.setEnabled(false);
-            else
-            	sRemoveResourceItem.setEnabled(true);
-            
-        }        
-        
+        if (c instanceof LWNode)
+        {
+        	buildSingleSelectionNodePopup(c);
+       
+        }
+        else if (c instanceof LWLink)
+        {
+        	buildSingleSelectionLinkPopup();
+        }
+        else if (c instanceof LWSlide)
+        {
+        	if (VUE.getActiveViewer().getFocal().equals(c))
+        		buildSingleSelectionSlideEditingPopup();
+        	else
+        		buildSingleSelectionSlideIconPopup();
+        }
+        else if (c instanceof LWGroup)
+        {
+        	buildSingleSelectionGroupPopup();
+        }
+        /*
         //Manage pathway list
         if (getMap().getPathwayList().getActivePathway() == null || (c instanceof LWSlide) || (c instanceof LWLink)) {
             sPathAddItem.setVisible(false);
@@ -3917,32 +4021,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         
-        //Show Ungroup
-        if (c instanceof LWGroup) {
-            sUngroupItem.setVisible(true);            
-        } else {
-            sUngroupItem.setVisible(false);            
-        }
-        
-        //Manage Resource Section
-        if (c instanceof LWLink)
-        {
-        	sAddImageItem.setVisible(false);
-        	sAddFileItem.setVisible(false);
-        	sAddURLItem.setVisible(false);
-        	sRemoveResourceItem.setVisible(false);
-        	sPostResourceSeparator.setVisible(false);
-        	
-        }
-        else if (c instanceof LWNode)
-        {
-        	sAddImageItem.setVisible(true);
-        	sAddFileItem.setVisible(true);
-        	sAddURLItem.setVisible(true);
-        	sRemoveResourceItem.setVisible(true);
-        	sPostResourceSeparator.setVisible(true);
-        	
-        }
+    
+    
         else if (c instanceof LWSlide)
         {
         	sAddImageItem.setVisible(true);
@@ -3990,7 +4070,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 sEditMasterSlideItem.setVisible(true);
                 sEditSlideItem.setVisible(false);
                 sSyncWithNodeItem.setVisible(false);
-                Actions.EditMasterSlide.setActionName("Exit master slide");
+                Actions.EditMasterSlide.setActionName("Return to Map");
                 Actions.EditSlide.setActionName("Edit slide");
         		
         	}
@@ -4042,7 +4122,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	infoCheckBox.setLabel("Slide Info");
         else if (c instanceof LWNode && infoCheckBox != null)
         	infoCheckBox.setLabel("Node Info");
-        
+      */  
         //return popup
         return sSinglePopup;
     }
@@ -4074,7 +4154,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
             
     
-    private void buildAssetMenu(Asset asset) {
+  /*  private void buildAssetMenu(Asset asset) {
         sAssetMenu.removeAll();
         osid.dr.InfoRecordIterator i;
         try {
@@ -4089,19 +4169,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             ex.printStackTrace();
         }
     }
-    
-    private static JPopupMenu sMultiPopup;
+    */
+    //private static JPopupMenu sMultiPopup;
     private JPopupMenu getMultiSelectionPopup() {
-        if (sMultiPopup == null)
+        
             sMultiPopup = buildMultiSelectionPopup();
      
-        //Manage pathway list
-        if (getMap().getPathwayList().getActivePathway() == null) {
-            multiPathway.setVisible(false);
-        } else {
-        	multiPathway.setVisible(true);
-        }
-     
+       
         /*
         if (VueSelection.allOfType(LWLink.class))
             multiPopup.add(getLinkMenu());
@@ -4116,7 +4190,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private JPopupMenu getMapPopup() {
         if (sMapPopup == null) {
             sMapPopup = new JPopupMenu("Map Menu");
-            sMapPopup.addSeparator();
+   
             GUI.addToMenu(sMapPopup, Actions.NEW_OBJECT_ACTIONS);
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.ZoomFit);
@@ -4125,7 +4199,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sMapPopup.addSeparator();
             sMapPopup.add(Actions.SelectAll);
             sMapPopup.add(new VueAction(VueResources.getString("mapViewer.mapMenu.info.label")) {
-                    public void act() { GUI.makeVisibleOnScreen(this, MapInspectorPanel.class); }
+                    public void act() { /*GUI.makeVisibleOnScreen(this, MapInspectorPanel.class);*/
+                    	VUE.getMapInfoDock().setVisible(true);
+                    	VUE.getMapInfoDock().toFront();
+                    }
                     //public void act() { VUE.MapInspector.setVisible(true); }
                 });
 

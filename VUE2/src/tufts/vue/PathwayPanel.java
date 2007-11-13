@@ -49,7 +49,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.114 $ / $Date: 2007-11-02 15:51:57 $ / $Author: mike $
+ * @version $Revision: 1.115 $ / $Date: 2007-11-13 02:58:50 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -943,18 +943,7 @@ public class PathwayPanel extends JPanel
         }    
         else if (btn == btnPlay)
         {
-            final PresentationTool presTool = PresentationTool.getTool();
-            
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                VUE.toggleFullScreen(true);
-            }});
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                //VueToolbarController.getController().setSelectedTool(presTool);
-                VUE.setActive(VueTool.class, this, presTool);
-            }});
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                presTool.startPresentation();
-            }});
+           Actions.LaunchPresentation.act();
         }
         else if (btn == btnRefresh)
         {

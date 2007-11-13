@@ -30,15 +30,27 @@ import java.awt.Font;
 import java.awt.Color;
 import java.awt.BasicStroke;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JTextPane;
+import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.*;
@@ -89,7 +101,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.59 $ / $Date: 2007-10-26 20:54:20 $ / $Author: mike $
+ * @version $Revision: 1.60 $ / $Date: 2007-11-13 02:58:50 $ / $Author: mike $
  *
  */
 
@@ -98,6 +110,8 @@ public class TextBox extends JTextPane
                , FocusListener
                , KeyListener
                , DocumentListener
+               , MouseListener
+               , ActionListener
 {
 // todo: duplicate not working[? for wrap only? ]
 
@@ -139,6 +153,8 @@ public class TextBox extends JTextPane
         setMargin(null);
         setOpaque(false); // don't bother to paint background
         setVisible(true);
+        addMouseListener(this);
+        
         //setFont(SmallFont);
         // PC text pane will pick this font up up as style for
         // document, but mac ignores.
@@ -1133,6 +1149,77 @@ public class TextBox extends JTextPane
         w.setVisible(true);
         //tufts.Util.displayComponent(panel);
     }
+
+	public void mouseClicked(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mousePressed(MouseEvent e) 
+	{					      	
+			 if (GUI.isMenuPopup(e))
+			 {
+				 displayContextMenu(e);
+				 return;
+			 }		
+	}
+	
+	private void displayContextMenu(MouseEvent e) {
+        getPopup(e).show(e.getComponent(), e.getX(), e.getY());
+	}
+	private JPopupMenu m = null;
+	private final JMenuItem copyItem = new JMenuItem("Copy");
+	private final JMenuItem pasteItem = new JMenuItem("Paste");
+	private JPopupMenu getPopup(MouseEvent e) 
+	{			        
+		if (m == null)
+		{
+			m = new JPopupMenu("Textbox Menu");
+			
+			//copyItem.addActionListener(this);
+			//pasteItem.addActionListener(this);
+			//If you let this be focusable you'll loose the text box when
+			//the menu gets raised.
+			m.setFocusable(false);
+			m.add(copyItem);
+	    	m.add(pasteItem);
+	    	
+	    	copyItem.addActionListener(new ActionListener() {
+	    	      public void actionPerformed(ActionEvent e) {
+	    	    	  TextBox.this.copy();
+	    	      }
+	    	    });
+	    	    pasteItem.addActionListener(new ActionListener() {
+	    	      public void actionPerformed(ActionEvent e) {	    	      	    	        	    
+	    	    	  TextBox.this.paste();
+	    	    	  setSize(getPreferredSize());
+	    	      } 
+	    	    });
+	    
+		}
+		
+
+		return m;
+	}
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		//if (e.getSource().equals(copyItem))
+	}
     
 
 }
