@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.177 $ / $Date: 2007-10-31 07:14:56 $ / $Author: dan $
+ * @version $Revision: 1.178 $ / $Date: 2007-11-13 04:35:24 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -3033,7 +3033,7 @@ public class LWLink extends LWComponent
     /** Create a duplicate LWLink.  The new link will
      * not be connected to any endpoints */
     @Override
-    public LWComponent duplicate(CopyContext cc)
+    public LWLink duplicate(CopyContext cc)
     {
         //todo: make sure we've got everything (styles, etc)
         final LWLink link = (LWLink) super.duplicate(cc);
