@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.147 $ / $Date: 2007-11-07 17:43:43 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.147 2007-11-07 17:43:43 mike Exp $ -->
+<!-- $Revision: 1.148 $ / $Date: 2007-11-13 04:41:28 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.148 2007-11-13 04:41:28 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -487,7 +487,7 @@
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
            listfiles="yes"
-           classpath="${lib.home}/VUE-MacOSX.jar"
+           classpath="${lib.home}/VUE-MacOSX.jar:${lib.home}/log4j-1.2.12.jar"
            source="${target.version}"
            target="${target.version}"
            verbose="true"
