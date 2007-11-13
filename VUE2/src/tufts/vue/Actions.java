@@ -1192,31 +1192,49 @@ public class Actions implements VueConstants
 //     		((LWSlide)c).getPathwayEntry().pathway.getMasterSlide().doZoomingDoubleClick(mme);
     	}
     };
+    private static boolean hasSyncable(LWSelection s) {
+        return getSyncable(s) != null;
+    }
+    
+//     private static LWSlide getSyncable(LWSelection s) {
+//         return getSyncable(true);
+//     }
+    
+    private static LWSlide getSyncable(LWSelection s) {
+        if (s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync()) {
+            return (LWSlide) s.only();
+        } else {
+            LWPathway.Entry e = VUE.getActiveEntry();
+            if (e != null && e.canProvideSlide() && !e.isMapView())
+                return e.getSlide();
+        }
+        return null;
+    }
     
     public static final LWCAction SyncWithNode = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.slide2node")) 
     {
-        boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
-    	public void act(LWSlide slide)
+        boolean enabledFor(LWSelection s) { return hasSyncable(s); }
+    	public void act(LWSelection s)
     	{    		
-            slide.synchronizeSlideToNode();
+            Slides.synchronizeSlideToNode(getSyncable(s));
     	}
     };
     
     public static final LWCAction SyncWithSlide = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.node2slide")) 
     {
-        boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
-    	public void act(LWSlide slide)
+        boolean enabledFor(LWSelection s) { return hasSyncable(s); }
+    	public void act(LWSelection s)
     	{    		
-            slide.synchronizeNodeToSlide();
+            Slides.synchronizeNodeToSlide(getSyncable(s));
     	}
     };
     
     public static final LWCAction SyncAll = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.all")) 
     {
-        boolean enabledFor(LWSelection s) { return s.only() instanceof LWSlide && ((LWSlide)s.only()).canSync(); }
-    	public void act(LWSlide slide)
+        boolean enabledFor(LWSelection s) { return hasSyncable(s); }
+    	public void act(LWSelection s)
     	{    		
-            slide.synchronizeAll();
+            Slides.synchronizeAll(getSyncable(s));
     	}
     };
     
