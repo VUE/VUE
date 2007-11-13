@@ -63,7 +63,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.91 $ / $Date: 2007-11-13 02:58:50 $ / $Author: mike $
+ * @version $Revision: 1.92 $ / $Date: 2007-11-13 21:34:51 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -158,8 +158,13 @@ public class PathwayTable extends JTable
         this.setDefaultRenderer(ImageIcon.class, new ImageRenderer());
         this.setDefaultRenderer(Object.class, new LabelRenderer());
         this.setDefaultEditor(Color.class, new ColorEditor());
+      
+        JTextField field = new PathwayNameField();
+        LabelCellEditor labelEditor = new LabelCellEditor(field);
+        ((PathwayNameField)field).setCellEditor(labelEditor);
+        this.setDefaultEditor(Object.class, labelEditor);
         this.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
+        CellEditor e = this.getCellEditor(2,0);
         for (int i = 0; i < colWidths.length; i++){
             TableColumn col = getColumn(PathwayTableModel.ColumnNames[i]);
             if (i == PathwayTableModel.COL_OPEN)
@@ -403,6 +408,21 @@ public class PathwayTable extends JTable
         return (PathwayTableModel) getModel();
     }
 
+    private class LabelEditor extends AbstractCellEditor    	    	
+    {    
+    	public LabelEditor()
+    	{
+    		
+    	}
+    	//public LabelEditor(JTextField f){super(f);}	
+
+		public Object getCellEditorValue() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+    }
+
+    
     private class ColorEditor extends AbstractCellEditor
                          implements TableCellEditor,
 			             MouseListener
@@ -1288,6 +1308,94 @@ public class PathwayTable extends JTable
 	public void mouseReleased(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
-	}	    
+	}
+    class LabelCellEditor extends DefaultCellEditor
+    {
+    	public LabelCellEditor(JTextField edit)
+    	{
+    		super(edit);        
+    	}
+
+    }
+    
+    class PathwayNameField extends JTextField implements MouseListener
+    {
+    	LabelCellEditor labelEditor;
+    	public PathwayNameField()
+    	{
+    		super();
+    		addMouseListener(this);
+    		        		        
+    	}
+    
+    	public void setCellEditor(LabelCellEditor editor)
+    	{
+    		labelEditor = editor;
+    	}
+    	
+    	public Rectangle getBounds()
+    	{
+    		Rectangle r = super.getBounds();
+    		r.height=20;
+    		return r;
+    	}
+    	public boolean isOpaque()
+    	{
+    		return true;
+    	}
+    
+    	//public void repaint(){}
+    	//public void paintImmediately(){}        	
+   // 	public void paint(Graphics g){}
+    	public void paintComponent(Graphics g)
+    	{        		
+    		 g.setColor(Color.white);
+    		 super.paintComponent(g);
+             Graphics2D g2 = (Graphics2D)g;
+             Rectangle r= g2.getClipRect();
+             g2.setColor(Color.gray);
+             g2.drawLine(r.x, 20, r.width, 20);
+             g2.setColor(Color.lightGray);
+             g2.setFont(EntryFont);                 
+             g2.drawString("This pathway is empty", 0, 33);	
+    	}
+    	public void paintBorder(Graphics g)
+    	{
+    	
+    		
+    	}
+   // 	public void paintChildren(Graphics g){}
+    //	public void update(){}
+
+		public void mouseClicked(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public void mousePressed(MouseEvent e) {
+		if (e.getY() >20 && labelEditor != null)
+			labelEditor.stopCellEditing();
+			
+		}
+
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+    	
+    
+    }
+   
+
 }
     
