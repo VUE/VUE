@@ -47,7 +47,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.203 $ / $Date: 2007-11-07 08:34:00 $ / $Author: sfraize $
+ * @version $Revision: 1.204 $ / $Date: 2007-11-13 04:34:13 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -270,7 +270,7 @@ public class LWPathway extends LWContainer
         private void buildSlide() {
             // TODO: check/test undo -- is it working / the mark happening at the right time?
             final LWSlide oldSlide = slide;
-            slide = LWSlide.CreateForPathway(this);
+            slide = Slides.CreateForPathwayEntry(this);
             pathway.notify("slide.rebuild", new Undoable() { void undo() {
                 slide = oldSlide;
             }});
@@ -1321,9 +1321,10 @@ public class LWPathway extends LWContainer
             return false;
         }
 
+        /** @return false: map slides have nothing to sync */
         @Override
-        public void synchronizeResources(Sync type) {
-            Util.printStackTrace("Cannot sync a MapSlide: " + this + " type(" + type + ")");
+        public boolean canSync() {
+            return false;
         }
 
         @Override
@@ -1352,7 +1353,7 @@ public class LWPathway extends LWContainer
         protected LWComponent pickChild(PickContext pc, LWComponent c) { return this; }
 
         @Override
-        public LWComponent duplicate(CopyContext cc)
+        public LWSlide duplicate(CopyContext cc)
         {
             Util.printStackTrace("MapSlide: illegal duplicate " + this);
             return null;
