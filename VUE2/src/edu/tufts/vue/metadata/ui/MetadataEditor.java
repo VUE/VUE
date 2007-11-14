@@ -130,7 +130,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                        {
                          java.util.List<VueMetadataElement> metadataList = MetadataEditor.this.current.getMetadataList().getMetadata();
                          int selectedRow = metadataTable.getSelectedRow();
-                         if(metadataTable.getSelectedColumn()==buttonColumn && metadataList.size() > selectedRow)
+                         if(selectedRow > 0 && metadataTable.getSelectedColumn()==buttonColumn && metadataList.size() > selectedRow)
                          {
                             metadataList.remove(selectedRow);
                             metadataTable.repaint();
