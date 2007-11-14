@@ -147,7 +147,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.17 $ / $Date: 2007-10-18 19:08:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.18 $ / $Date: 2007-11-14 03:26:53 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -489,15 +489,35 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         boolean handled = false;
         
         // A complete and total hack making use of a global TAB press:
-        if (e.getKeyCode() == KeyEvent.VK_TAB && e.getID() == KeyEvent.KEY_PRESSED) {
+        
+        if (e.getKeyCode() == KeyEvent.VK_TAB
+            && (e.getID() == KeyEvent.KEY_PRESSED || e.getID() == KeyEvent.KEY_RELEASED))
+        {
+                
+            if (FullScreen.inNativeFullScreen()) {
 
-            //out("TAB: consumed=" + e.isConsumed() + " handled=" + handled);
+                // never want to manually mess with the DockWindows in full screen mode anyway
 
-            //if (!e.isConsumed()) {
-            if (e.getSource() instanceof tufts.vue.MapViewer || e.getSource() instanceof tufts.vue.gui.DockWindow) {
-                if (DEBUG.FOCUS||DEBUG.KEYS) out("TAB press trapped for DockWindow toggle feature");
-                DockWindow.ToggleAllVisible();
-                handled = true;
+                final tufts.vue.VueTool tool = tufts.vue.VueToolbarController.getActiveTool();
+                
+                if (tool instanceof tufts.vue.PresentationTool) {
+                    if (e.getID() == KeyEvent.KEY_PRESSED)
+                        tool.handleKeyPressed(e);
+                    else //if (e.getID() == KeyEvent.KEY_RELEASED)
+                        tool.handleKeyReleased(e);
+                    handled = true;
+                }
+                
+            } else if (e.getID() == KeyEvent.KEY_PRESSED) {
+                //out("TAB: consumed=" + e.isConsumed() + " handled=" + handled);
+                
+                //if (!e.isConsumed()) {
+                if (e.getSource() instanceof tufts.vue.MapViewer || e.getSource() instanceof tufts.vue.gui.DockWindow) {
+                    if (DEBUG.FOCUS||DEBUG.KEYS) out("TAB press trapped for DockWindow toggle feature");
+                    DockWindow.ToggleAllVisible();
+                    handled = true;
+                }
+                
             }
         }
 
