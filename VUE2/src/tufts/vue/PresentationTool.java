@@ -107,7 +107,7 @@ public class PresentationTool extends VueTool
 
     private static volatile boolean
         mFadeEffect = true,
-        mShowNavigator = DEBUG.NAV,
+        mShowOverview = DEBUG.NAV,
         mShowNavNodes,
         mForceShowNavNodes,
         mDidAutoShowNavNodes,
@@ -914,7 +914,7 @@ public class PresentationTool extends VueTool
                 setEntry(nextPathwayEntry(BACKWARD, allTheWay), BACKING_UP);
             }
         } else {
-            revisitPrior(allTheWay);
+            if (DEBUG.NAV) revisitPrior(allTheWay);
         }
     }
 
@@ -955,7 +955,7 @@ public class PresentationTool extends VueTool
                     repaint("guessForward");
                 }
             } else
-                revisitNext(allTheWay); 
+                if (DEBUG.NAV) revisitNext(allTheWay); 
         }
 
     }
@@ -967,10 +967,12 @@ public class PresentationTool extends VueTool
             pc.pickDepth = 1;
         return pc;
     }
+
+    private boolean ShowOverviewKeyIsDown = false;
     
     @Override
     public boolean handleKeyPressed(java.awt.event.KeyEvent e) {
-        //out("handleKeyPressed " + e);
+        if (DEBUG.PRESENT) out(" handleKeyPressed " + e);
         final int keyCode = e.getKeyCode();
         final char keyChar = e.getKeyChar();
 
@@ -979,6 +981,14 @@ public class PresentationTool extends VueTool
         final boolean amplified = e.isShiftDown();
 
         switch (keyCode) {
+        case KeyEvent.VK_TAB:
+            if (!mShowOverview) {
+                ShowOverviewKeyIsDown = true;
+                mShowOverview = true;
+                repaint("tmpOverview");
+            }
+            break;
+            
         case KeyEvent.VK_ENTER:
 
             // [2007-10-22:this comment still current? ]
@@ -1016,7 +1026,7 @@ public class PresentationTool extends VueTool
             break;            
 
         case KeyEvent.VK_DOWN:
-            if (DEBUG.Enabled) {
+            if (DEBUG.NAV) {
                 if (mVisited.hasNext())
                     revisitNext(amplified);
                 else
@@ -1029,7 +1039,7 @@ public class PresentationTool extends VueTool
             break;
             
         case KeyEvent.VK_UP:
-            if (DEBUG.Enabled) {
+            if (DEBUG.NAV) {
                 revisitPrior(amplified);
                 break;
             } // else fallthru to LEFT
@@ -1077,7 +1087,7 @@ public class PresentationTool extends VueTool
 //             mToBlack.doClick();
 //             break;
         case 'm':
-            mShowNavigator = !mShowNavigator;
+            mShowOverview = !mShowOverview;
             repaint("showOverview");
             break;
 
@@ -1087,7 +1097,7 @@ public class PresentationTool extends VueTool
             
         case '+':
         case '=': // allow "non-shift-plus"
-            if (mShowNavigator && OverviewMapSizeIndex < OverviewMapScales.length-1) {
+            if (isOverviewVisible() && OverviewMapSizeIndex < OverviewMapScales.length-1) {
                 OverviewMapSizeIndex++;
                 repaint("overviewBigger");
             } else
@@ -1095,7 +1105,7 @@ public class PresentationTool extends VueTool
             break;
         case '-':
         case '_': // allow "shift-minus" also
-            if (mShowNavigator && OverviewMapSizeIndex > 0) {
+            if (isOverviewVisible() && OverviewMapSizeIndex > 0) {
                 OverviewMapSizeIndex--;
                 repaint("overviewSmaller");
             } else
@@ -1117,159 +1127,245 @@ public class PresentationTool extends VueTool
 
     @Override
     public boolean handleKeyReleased(java.awt.event.KeyEvent e) {
+        if (DEBUG.PRESENT) out("handleKeyReleased " + e);
+
+        if (e.getKeyCode() == KeyEvent.VK_TAB) { // dismiss even if it had been displayed manually
+      //if (ShowOverviewKeyIsDown && e.getKeyCode() == KeyEvent.VK_TAB) { // dismiss only if displayed via holding TAB key down
+            ShowOverviewKeyIsDown = false;
+            if (mShowOverview) {
+                mShowOverview = false;
+                repaint("removeTmpOverview");
+            }
+        }
         return false;
     }
     
     //private boolean isPresenting() { return !mShowContext.isSelected(); }
     
-    private static float[] OverviewMapScales = {8, 6, 4, 3, 2.5f, 2, 1.5f, 1};
+    private static float[] OverviewMapScales = {8, 6, 4, 3, 2.5f, 2, 1.5f, 1.25f, 1};
     private static int OverviewMapSizeIndex = 5;
     private float mNavMapX, mNavMapY; // location of the overview navigator map
     private DrawContext mNavMapDC;
+
+    private final Color OverviewMapFill = Color.gray; // black or white depending on brightess of the fill?
+    private final Color OverviewMapFillAlpha = new Color(128,128,128,224);
 
     
     /** Draw a ghosted panner */
     private void drawOverviewMap(DrawContext dc)
     {
-        //sourceDC.setRawDrawing();
-        //DrawContext dc = sourceDC.create();
-        //dc.setRawDrawing();
-        //final DrawContext dc = sourceDC;
-
         dc.setFrameDrawing();
-        //dc.setPresenting(true);
 
-        float overviewMapFraction = OverviewMapScales[OverviewMapSizeIndex];
-        final Rectangle panner = new Rectangle(0,0,
+        final float overviewMapFraction = OverviewMapScales[OverviewMapSizeIndex];
+        final Rectangle overview = new Rectangle(0,0,
                                                (int) (dc.frame.width / overviewMapFraction),
                                                (int) (dc.frame.height / overviewMapFraction));
 
-        mNavMapX = dc.frame.width - panner.width;
-        mNavMapY = dc.frame.height - panner.height;
+        mNavMapX = dc.frame.width - overview.width;
+        mNavMapY = dc.frame.height - overview.height;
 
         dc.g.translate(mNavMapX, mNavMapY);
 
-        dc.g.setColor(Color.gray); // black or white depending on brightess of the fill?
-        dc.g.fill(panner);
+        if (overviewMapFraction == 1 ||  DEBUG.Enabled)
+            dc.g.setColor(OverviewMapFillAlpha);
+        else
+            dc.g.setColor(OverviewMapFill);
+        dc.g.fill(overview);
 
-        // clip in case borders that might extend outside the panner if the fit is tight to the raw map shapes        
-        dc.g.clipRect(0,0, panner.width, panner.height);
-        //dc.setMasterClip(panner);
-        
-        //final LWComponent focused = mCurrentPage.isMapView() ? null : mCurrentPage.getOriginalMapNode();
+        // clip in case borders that might extend outside the overview if the fit is tight to the raw map shapes        
+        dc.g.clipRect(0,0, overview.width, overview.height);
+        //dc.setMasterClip(overview);
 
-        // the "focused" node is the node on the map we're going to show highlighted
-        // -- it's the node our current slide belongs to
-        
-//         // This more or less allows panning to the node icon:
-//         LWComponent focused = null;
-//         if (mFocal instanceof LWSlide)
-//             focused = ((LWSlide)mFocal).getSourceNode();
-//         else if (mFocal instanceof LWMap == false)
-//             focused = mFocal;
 
         final MapViewer viewer = VUE.getActiveViewer(); // TODO: pull from some kind of context
-        
-        LWComponent focused = mCurrentPage.getPresentationFocal();
+        final LWComponent onMapNode = mCurrentPage.getOriginalMapNode();
+        final LWPathway.Entry entry = mCurrentPage.entry;
+        final LWPathway pathway;
 
-        if (focused == null || !focused.isVisible())  {
-            // if focused is slide icon and slide icons are turned off, will report not visible
-            focused = mCurrentPage.getOriginalMapNode();
+        // if non-null, we're inside a slide (at any depth), and this is it
+        final LWSlide inSlide;
+
+        // the "standout" node is the node on the map we're going to show highlighted
+        LWComponent standout = mCurrentPage.getPresentationFocal();
+        
+
+        if (standout == null || !standout.isVisible())  {
+            // if standout is slide icon and slide icons are turned off, will report not visible
+            standout = onMapNode;
         }
 
-        if (focused != null) {
-
+        if (standout != null) {
             // if we're nav-clicking within a slide, the original map node is totally
             // uninteresting: it's just the node (e.g., an image) on the slide -- if
             // slides we're really on the map tho, we could in fact zoom to it normally.
             
-            //final LWSlide slide = (LWSlide) focused.getAncestorOfType(LWSlide.class);
+            //final LWSlide slide = (LWSlide) standout.getAncestorOfType(LWSlide.class);
             // TODO: Test using getParent v.s. getAncestor...
-            final LWSlide slide = (LWSlide) focused.getParentOfType(LWSlide.class);
-            if (slide != null)
-                focused = slide.getSourceNode();
-        }
+            inSlide = (LWSlide) standout.getParentOfType(LWSlide.class);
+            if (inSlide != null)
+                standout = inSlide;
+              //standout = slide.getSourceNode();
+        } else
+            inSlide = null;
 
-        dc.skipDraw = focused; // will be ignored!  We only pass GC into paintViewerIntoRectangle
+        if (inSlide != null && inSlide.getEntry() != null)
+            pathway = inSlide.getEntry().pathway;
+        else if (entry != null)
+            pathway = entry.pathway;
+        else
+            pathway = null;
+        
+
+        //-----------------------------------------------------------------------------
+        // done sorting out and establishing context state: now start drawing
+        //-----------------------------------------------------------------------------
+        
+        dc.skipDraw = standout; // will be ignored!  We only pass GC into paintViewerIntoRectangle
 
         //final LWMap map = viewer.getMap();
         //dc.setDrawPathways(true);
-        //map.drawFit(dc.push(), panner, 10); dc.pop();
+        //map.drawFit(dc.push(), overview, 10); dc.pop();
         
         final Graphics2D pannerGC = (Graphics2D) dc.g.create();
         mNavMapDC = MapPanner.paintViewerIntoRectangle(null,
                                                        pannerGC,
                                                        viewer,
-                                                       panner,
+                                                       overview,
                                                        false); // draw reticle
 
+        //----------------------------------------------------------------------------------------
+        // would be cleaner to do this way now that we have to recapitulate the panner reticle
+        // functionality here to deal with specialized standout / reticle code and hacks
+        // for those nefarious slide icons.
+        // Also, we could then set dc.isPresenting in the dc so all slide icons paint their pathway borders.
+        //viewer.getMap().drawFit(dc, overview, 0);
+        //----------------------------------------------------------------------------------------
 
         if (mNavMapDC == null) {
             Log.error("null nav map GC for viewer " + viewer);
-        } else if (focused != null) {
-            dc.g.setColor(Color.black);
-            dc.setAlpha(0.5);
-            dc.g.fill(panner);
-
-            if (mCurrentPage.entry != null && mCurrentPage.entry.pathway != null) {
-                // redraw the current pathway so it's highlighted
-                mCurrentPage.entry.pathway.drawPathwayWithDots(mNavMapDC);
-            }
-            
-            
-//             if (false && mShowNavNodes) {
-//                 // Also highlight connectd nav nodes if non-linear nav overlay is showing:
-//                 for (NavNode nav : mNavNodes) {
-//                     if (nav.page.node != null && nav.page.node != focused) {
-//                         nav.page.node.draw(dc.push()); dc.pop();
-//                     }
-//                 }
-//             }
-
-            //if (!(focused instanceof LWSlide) && mCurrentPage.isMapView() && bounds != null) {
-            if (focused instanceof LWMap == false) {
-                final Rectangle2D.Float bounds = mCurrentPage.getOriginalMapNode().getPaintBounds();
-
-                bounds.x -= 2;
-                bounds.y -= 2;
-                bounds.width += 4;
-                bounds.height += 4;
-                
-//                 if (viewer.getFocal() instanceof LWSlide) {
-//                     if (focused != null)
-//                         //bounds = focused.getPaintBounds();
-//                         bounds = focused.getBounds(); // could grab node icon bounds if they're drawing...
-//                 } else {
-//                     bounds = viewer.getVisibleMapBounds();
-//                 }
-
-                  
-                // redraw the reticle at full brightness:
-                mNavMapDC.setAntiAlias(true);
-                
-                if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + bounds);
-                //mNavMapDC.g.setColor(mCurrentPage.getPresentationFocal().getMap().getFillColor());
-                //mNavMapDC.setAlpha(0.25);
-                //mNavMapDC.g.fill(bounds);
-                mNavMapDC.setAlpha(1);
-                mNavMapDC.g.setColor(Color.red);
-                mNavMapDC.g.setStroke(VueConstants.STROKE_TWO);
-                mNavMapDC.g.draw(bounds);
-            }
-            
-            
-            if (DEBUG.WORK) out("overview drawing focused: " + focused);
-            dc.setAlpha(1);            
-            focused.draw(mNavMapDC.push()); mNavMapDC.pop();
-            
-            
+            return;
         }
 
-        if (mNavMapDC != null)
+        if (standout == null) {
+            if (DEBUG.Enabled) Log.debug("no standout item via page " + mCurrentPage);
             mNavMapDC.dispose();
-        pannerGC.dispose();
+            return;
+        }
+
+        
+        //-----------------------------------------------------------------------------
+        // First, fade out everything already drawn on the map, so we can then
+        // redraw a standout item later that appears brighter than everything else
+        //-----------------------------------------------------------------------------
             
+        dc.g.setColor(Color.black);
+        dc.setAlpha(0.5);
+        dc.g.fill(overview);
+
+        //-----------------------------------------------------------------------------
+        // Second, redraw the pathway the current page is part of (if any),
+        // so it can stand out as well.
+        //-----------------------------------------------------------------------------
+            
+        if (pathway != null) {
+            // redraw the current pathway so it's highlighted
+            pathway.drawPathwayWithDots(mNavMapDC);
+        }
+            
+        // highlight connectd nav nodes if non-linear nav overlay is showing:
+        //             if (false && mShowNavNodes) {
+        //                 for (NavNode nav : mNavNodes) {
+        //                     if (nav.page.node != null && nav.page.node != standout) {
+        //                         nav.page.node.draw(dc.push()); dc.pop();
+        //                     }
+        //                 }
+        //             }
+
+        //-----------------------------------------------------------------------------
+        // now redraw the standout item, using the original overview map GC, which
+        // is still at full brighness (alpha=1)
+        //-----------------------------------------------------------------------------
+
+        if (DEBUG.WORK) out("overview drawing standout: " + standout);
+        DrawContext standoutDC = new DrawContext(mNavMapDC, standout);
+        standoutDC.focused = standout;
+        standout.draw(standoutDC);
+        standoutDC.dispose();
+
+// Attempting to force pathway borders to redraw on slide icons:
+//      focalDC.setDrawPathways(true);
+//      focalDC.setClipOptimized(false);
+//      standout.transformZero(focalDC.g);
+//      standout.drawZeroDecorated(focalDC, false);
+
+
+        //-----------------------------------------------------------------------------
+        // now draw a special reticle depending on what's selected
+        // is still at full brighness (alpha=1)
+        //-----------------------------------------------------------------------------
+        
+            
+        //if (!(standout instanceof LWSlide) && mCurrentPage.isMapView() && bounds != null) {
+        if (standout instanceof LWMap == false) {
+
+            // draw the red reticle 
+                
+            final Rectangle2D.Float reticle;
+
+            if (onMapNode instanceof LWLink) {
+                reticle = onMapNode.getFocalBounds();
+                LWComponent.grow(reticle, 2);
+            } else {
+                if (entry != null) {
+                    reticle = onMapNode.getPaintBounds();
+                    LWComponent.grow(reticle, 2);
+                    if (onMapNode.hasEntries() && entry.pathway.isShowingSlides()) {
+                        // include room for the slide icon pathway border stroke:
+                        reticle.width += 5;
+                        reticle.height += 5;
+                    }
+                } else {
+                    reticle = onMapNode.getMapBounds();
+                    LWComponent.grow(reticle, 3);
+                }
+                
+                //reticle = standout.getPaintBounds();
+                //reticle = mFocal.getPaintBounds();
+                
+            }
+                
+            //                 if (viewer.getFocal() instanceof LWSlide) {
+            //                     if (standout != null)
+            //                         //reticle = standout.getPaintBounds();
+            //                         reticle = standout.getBounds(); // could grab node icon bounds if they're drawing...
+            //                 } else {
+            //                     reticle = viewer.getVisibleMapBounds();
+            //                 }
+
+                  
+            // redraw the reticle at full brightness:
+            mNavMapDC.setAntiAlias(true);
+                
+            if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + reticle);
+
+//             mNavMapDC.g.setColor(Color.white);
+//             mNavMapDC.setAlpha(0.2);
+//             mNavMapDC.g.fill(reticle);
+            mNavMapDC.setAlpha(1);
+            mNavMapDC.g.setColor(Color.red);
+            //mNavMapDC.g.setStroke(VueConstants.STROKE_TWO);
+            mNavMapDC.setAbsoluteStroke(2);
+            mNavMapDC.g.draw(reticle);
+        }
+            
+        //if (DEBUG.WORK) out("overview drawing standout: " + standout);
+        //dc.setAlpha(1);            
+        //standout.draw(mNavMapDC.push()); mNavMapDC.pop();
+            
+        mNavMapDC.dispose();
+        //pannerGC.dispose(); // owned by mNavMapDC
     }
+    
 
     /** @return true to disable rollovers on the map */
     @Override
@@ -1303,9 +1399,8 @@ public class PresentationTool extends VueTool
         }
 
             
-        boolean handled = false;
-        if (DEBUG.PICK && mShowNavigator)
-            handled = debugTrackNavMapMouseOver(e);
+        if (DEBUG.Enabled && isOverviewVisible())
+            debugTrackNavMapMouseOver(e);
 
         boolean oldShowNav = mShowNavNodes;
 
@@ -1335,7 +1430,7 @@ public class PresentationTool extends VueTool
 //     public boolean handleMouseMoved(MapMouseEvent e)
 //     {
 //         boolean handled = false;
-//         if (DEBUG.PICK && mShowNavigator)
+//         if (DEBUG.PICK && mShowOverview)
 //             handled = debugTrackNavMapMouseOver(e);
 
 //         boolean oldShowNav = mShowNavNodes;
@@ -1360,38 +1455,68 @@ public class PresentationTool extends VueTool
 
 //         return true;
 //     }
+
+    private final LWComponent HIT_OVERVIEW = new LWNode("<overmap-map-hit>");
+
+    private LWComponent getOverviewMapHit(MapMouseEvent e) {
+    
+        if (e.getX() < mNavMapX || e.getY() < mNavMapY)
+            return null;
+
+        //out("over map at " + e.getPoint());
+        Point2D.Float mapPoint = new Point2D.Float(e.getX() - mNavMapX,
+                                                   e.getY() - mNavMapY);
+
+        out(mNavMapDC.toString());
+        //out("over nav map rect at " +  mapPoint);
+
+        mapPoint.x -= mNavMapDC.offsetX;
+        mapPoint.y -= mNavMapDC.offsetY;
+        mapPoint.x /= mNavMapDC.zoom;
+        mapPoint.y /= mNavMapDC.zoom;
+                
+        //out("over nav map at " +  mapPoint);
+        final MapViewer viewer = e.getViewer();
+        final PickContext pc = new PickContext(viewer.getLastDC(), mapPoint.x, mapPoint.y);
+        pc.root = viewer.getMap();
+        final LWComponent hit = LWTraversal.PointPick.pick(pc);
+        out("hit=" + hit);
+        return hit == null ? HIT_OVERVIEW : hit;
+    }
     
 
-    private boolean debugTrackNavMapMouseOver(MapMouseEvent e)
+    private void debugTrackNavMapMouseOver(MapMouseEvent e)
     {
-        //out(mNavMapDC.g.getClipBounds().toString());
-        //if (mNavMapDC.g.getClipBounds().contains(e.getPoint())) {
-        if (e.getX() > mNavMapX && e.getY() > mNavMapY) {
-            //out("over map at " + e.getPoint());
-            Point2D.Float mapPoint = new Point2D.Float(e.getX() - mNavMapX,
-                                                       e.getY() - mNavMapY);
+        LWComponent hit = getOverviewMapHit(e);
+        
+//         //out(mNavMapDC.g.getClipBounds().toString());
+//         //if (mNavMapDC.g.getClipBounds().contains(e.getPoint())) {
+//         if (e.getX() > mNavMapX && e.getY() > mNavMapY) {
+//             //out("over map at " + e.getPoint());
+//             Point2D.Float mapPoint = new Point2D.Float(e.getX() - mNavMapX,
+//                                                        e.getY() - mNavMapY);
 
-            out(mNavMapDC.toString());
-            out("over nav map rect at " +  mapPoint);
+//             out(mNavMapDC.toString());
+//             out("over nav map rect at " +  mapPoint);
 
-            mapPoint.x -= mNavMapDC.offsetX;
-            mapPoint.y -= mNavMapDC.offsetY;
-            mapPoint.x /= mNavMapDC.zoom;
-            mapPoint.y /= mNavMapDC.zoom;
+//             mapPoint.x -= mNavMapDC.offsetX;
+//             mapPoint.y -= mNavMapDC.offsetY;
+//             mapPoint.x /= mNavMapDC.zoom;
+//             mapPoint.y /= mNavMapDC.zoom;
                 
-            out("over nav map at " +  mapPoint);
-            final MapViewer viewer = e.getViewer();
-            final PickContext pc = new PickContext(viewer.getLastDC(), mapPoint.x, mapPoint.y);
-            pc.root = viewer.getMap();
-            final LWComponent hit = LWTraversal.PointPick.pick(pc);
-            //out("hit=" + hit);
-            if (hit != null)
-                e.getViewer().setIndicated(hit);
-            else
-                e.getViewer().clearIndicated();
-            return true;
-        } else
-            return false;
+//             out("over nav map at " +  mapPoint);
+//             final MapViewer viewer = e.getViewer();
+//             final PickContext pc = new PickContext(viewer.getLastDC(), mapPoint.x, mapPoint.y);
+//             pc.root = viewer.getMap();
+//             final LWComponent hit = LWTraversal.PointPick.pick(pc);
+//             //out("hit=" + hit);
+//             if (hit != null)
+//                 e.getViewer().setIndicated(hit);
+//             else
+//                 e.getViewer().clearIndicated();
+//             return true;
+//         } else
+//             return false;
     }
 
     private void focusUp(MapMouseEvent e)  {
@@ -1456,18 +1581,32 @@ public class PresentationTool extends VueTool
             ResumeButton.doAction();
             return true;
         }
+
+        LWComponent hit = null;
         
-        if (checkForNavNodeClick(e))
+        if (isOverviewVisible()) {
+            hit = getOverviewMapHit(e);
+            if (hit != null && hit != HIT_OVERVIEW) {
+                setPage(hit);
+                if (e.isShiftDown())
+                    mShowOverview = false;
+                return true;
+            }
+        }
+        
+        if (hit == null && checkForNavNodeClick(e))
             return true;
 
         //if (e.isShiftDown())
         //    return false;
 
-        final LWComponent hit = e.getPicked();
+        if (hit == null)
+            hit = e.getPicked();
         
         if (DEBUG.PRESENT) out("handleMousePressed " + e.paramString() + " hit on " + hit);
 
-        // TODO: currently optimized for random nav: totally screwing slides for the moment...
+        if (hit == HIT_OVERVIEW)
+            return true;
 
 //         if (hit instanceof LWLink && !(hit.getParent() instanceof LWMap)) {
 //             // do nothing for links inside slide or group for now (display is jumpy/messy for groups)
@@ -1911,7 +2050,8 @@ public class PresentationTool extends VueTool
     }
 
     private Rectangle2D.Float getFocalBounds(LWComponent c) {
-        return MapViewer.getFocalBounds(c);
+        return c.getFocalBounds();
+        //return MapViewer.getFocalBounds(c);
     }
 
     // TODO: if we're currently animating a focal swith,
@@ -2163,7 +2303,7 @@ public class PresentationTool extends VueTool
         //            dc.setDrawPathways(mCurrentPage.node instanceof LWMap);
 
         //out("getDrawContext");
-        dc.setInteractive(false);
+        //dc.setInteractive(false); // draw no selections, tho we depend on this being interactive right now...
 
         dc.setDrawPathways(dc.isAnimating() || mCurrentPage == null || mCurrentPage.node instanceof LWMap);
         
@@ -2206,6 +2346,10 @@ public class PresentationTool extends VueTool
             }
         }
     }
+
+    private boolean isOverviewVisible() {
+        return mShowOverview && mFocal instanceof LWMap == false;
+    }
     
     @Override
     public void handlePostDraw(DrawContext dc, MapViewer viewer)
@@ -2239,7 +2383,7 @@ public class PresentationTool extends VueTool
         // Be sure to draw the navigator after the nav nodes, as navigator
         // display can depend on the current nav nodes, which are created
         // at draw time.
-        if (mShowNavigator && mFocal instanceof LWMap == false) {
+        if (isOverviewVisible()) {
             drawOverviewMap(dc.push()); dc.pop();
         }
 
@@ -2684,7 +2828,7 @@ public class PresentationTool extends VueTool
 
 //         /*
 //         float spacePerNode = frame.width;
-//         if (mShowNavigator)
+//         if (mShowOverview)
 //             spacePerNode -= (frame.width / OverviewMapFraction);
 //         spacePerNode /= mNavNodes.size();
 //         int cnt = 0;
