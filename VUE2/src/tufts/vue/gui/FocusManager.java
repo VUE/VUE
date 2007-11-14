@@ -147,7 +147,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.18 $ / $Date: 2007-11-14 03:26:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.19 $ / $Date: 2007-11-14 06:24:29 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -493,14 +493,15 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         if (e.getKeyCode() == KeyEvent.VK_TAB
             && (e.getID() == KeyEvent.KEY_PRESSED || e.getID() == KeyEvent.KEY_RELEASED))
         {
-                
+            if (DEBUG.FOCUS || DEBUG.KEYS) out("inspecting TAB from " + e.getSource() + "; " + e.paramString());
             if (FullScreen.inNativeFullScreen()) {
 
                 // never want to manually mess with the DockWindows in full screen mode anyway
 
                 final tufts.vue.VueTool tool = tufts.vue.VueToolbarController.getActiveTool();
-                
+
                 if (tool instanceof tufts.vue.PresentationTool) {
+                    if (DEBUG.FOCUS || DEBUG.KEYS) out("relaying TAB to " + tool);
                     if (e.getID() == KeyEvent.KEY_PRESSED)
                         tool.handleKeyPressed(e);
                     else //if (e.getID() == KeyEvent.KEY_RELEASED)
@@ -511,9 +512,13 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             } else if (e.getID() == KeyEvent.KEY_PRESSED) {
                 //out("TAB: consumed=" + e.isConsumed() + " handled=" + handled);
                 
-                //if (!e.isConsumed()) {
-                if (e.getSource() instanceof tufts.vue.MapViewer || e.getSource() instanceof tufts.vue.gui.DockWindow) {
-                    if (DEBUG.FOCUS||DEBUG.KEYS) out("TAB press trapped for DockWindow toggle feature");
+                final Object src = e.getSource();
+                
+                if (src instanceof tufts.vue.MapViewer ||
+                    src instanceof tufts.vue.gui.DockWindow ||
+                    src instanceof tufts.vue.PathwayTable)
+                {
+                    if (DEBUG.FOCUS || DEBUG.KEYS) out("relaying TAB to " + DockWindow.class);
                     DockWindow.ToggleAllVisible();
                     handled = true;
                 }
