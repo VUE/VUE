@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.53 $ / $Date: 2007-10-21 20:57:29 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2007-11-14 03:24:25 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -554,9 +554,13 @@ public final class DrawContext
     }
     
     
-    // todo: replace with a faster clone op?
     public DrawContext(DrawContext dc)
     {
+        this(dc, dc.focal);
+    }
+        
+    // todo: replace with a faster clone op?
+    public DrawContext(DrawContext dc, LWComponent newFocal) {
         //System.out.println("transform before dupe: " + dc.g.getTransform());
         this.g = (Graphics2D) dc.g.create();
         //this.g = dc.g;
@@ -589,7 +593,7 @@ public final class DrawContext
         //this.inMapDraw = dc.inMapDraw;
         this.mapTransform = dc.mapTransform;
         this.frame = dc.frame;
-        this.focal = dc.focal;
+        this.focal = newFocal;
         this.alpha = dc.alpha;
         //this.drawAbsoluteLinks = dc.drawAbsoluteLinks;
         this.maxLayer = dc.maxLayer;
