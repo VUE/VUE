@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.382 $ / $Date: 2007-11-14 06:29:18 $ / $Author: sfraize $
+ * @version $Revision: 1.383 $ / $Date: 2007-11-14 21:00:59 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2280,7 +2280,7 @@ u                    getSlot(c).setFromString((String)value);
      * If this component supports special layout for it's children,
      * or resizes based on font, label, etc, do it here.
      */
-    final void layout() {
+    public final void layout() {
         if (mXMLRestoreUnderway == false)
             layout("default");
     }

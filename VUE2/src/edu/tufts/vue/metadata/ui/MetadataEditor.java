@@ -570,6 +570,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        {
            super(new JTextField());
            field = (JTextField)getComponent();
+           //field.attachProperty(current, tufts.vue.LWKey.Notes);
            //setClickCountToStart(1);
        }
        
@@ -710,9 +711,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            field.addFocusListener(new FocusAdapter(){
               public void focusLost(java.awt.event.FocusEvent fe)
               {  
+                  //tufts.vue.UndoManager undo = tufts.vue.VUE.getActiveMap().getUndoManager();
+                  //undo.mark("metadata value");
+                  VUE.getActiveMap().markAsModified();
                   
                   if(DEBUG_LOCAL)
                   {
+                    System.out.println("metadata value change marked...");
                     System.out.println("MetadataEditor focuslost row -- " + row);
                     System.out.println("MetadataEditor focuslost current -- " + current);
                     System.out.println("MetadataEditor focuslost opposite component " + fe.getOppositeComponent().getClass() );
@@ -787,7 +792,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   {
                     metadata.add(vme); 
                   }
+                  
 
+                  current.layout();
+                  VUE.getActiveViewer().repaint();
 
               }
               
