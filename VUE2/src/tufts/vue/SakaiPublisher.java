@@ -20,28 +20,28 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.4 $ / $Date: 2007-11-09 21:42:53 $ / $Author: peter $
+ * @version $Revision: 1.5 $ / $Date: 2007-11-14 17:20:15 $ / $Author: peter $
  */
 
 package tufts.vue;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.rmi.RemoteException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
-
-import org.apache.axis.client.Call;
-import org.apache.axis.client.Service;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ServiceException;
 
-import org.apache.axis.encoding.Base64;
+import org.apache.axis.client.Call;
+import org.apache.axis.client.Service;
 
 import edu.tufts.vue.dsm.DataSource;
 
@@ -60,20 +60,43 @@ public class SakaiPublisher {
     /** uploadMap
      *  
      * @param dataSource DataSource object for Sakai LMS
-     * @param sakaiFolder Workspace in Sakai to store map
+     * @param collectionId Workspace in Sakai to store map
      * @param map VUE map to store in Sakai
      */
-    public static void uploadMap(edu.tufts.vue.dsm.DataSource dataSource, Object sakaiFolder, LWMap map) {
+    public static void uploadMap(
+    		edu.tufts.vue.dsm.DataSource dataSource,  // target datasource
+    		Object collectionId,  // String representing collection within Sakai worksite           
+    		LWMap map)            // usually the current map 
+    	throws Exception
+    {
+       	Properties dsConfig = dataSource.getConfiguration();
+       	String sessionId = getSessionId(dsConfig);
+       	LWMap cloneMap = (LWMap)map.clone();
+        cloneMap.setLabel(map.getLabel());
+        File savedMap = saveMapToFile( cloneMap );
         
+        if( !savedMap.exists() )
+        {
+        	// there is no saved file to write to Sakai.
+        }
+        uploadObjectToRepository( 
+        		dsConfig.getProperty("sakaiHost"),
+        		dsConfig.getProperty("sakaiPort"),
+        		sessionId, 
+        		savedMap.getName(), 
+        		collectionId.toString(), 
+        		savedMap, "VUE map", 
+        		cloneMap, 
+        		dataSource);
     }
     
     /** uploadMapAll
      *  
      * @param dataSource DataSource object for Sakai LMS
-     * @param sakaiFolder Workspace in Sakai to store map
+     * @param collectionId Workspace in Sakai to store map
      * @param map VUE map to store in Sakai
      */
-    public static void uploadMapAll(edu.tufts.vue.dsm.DataSource dataSource, Object sakaiFolder, LWMap map) 
+    public static void uploadMapAll(edu.tufts.vue.dsm.DataSource dataSource, Object collectionId, LWMap map) 
     {        
     	Properties dsConfig = dataSource.getConfiguration();
     	String sessionId = getSessionId(dsConfig);
@@ -124,9 +147,8 @@ public class SakaiPublisher {
                     {
                     	continue;
                     }
-                    uploadObjectToRepository( host, port, userName, password, file, 
-                    		VueResources.getFile("fedora.cm.other"), 
-                    		(new MimetypesFileTypeMap().getContentType(file)), file.getName(), component, cloneMap, null);
+//                    uploadObjectToRepository( host, port, userName, file, VueResources.getFile("fedora.cm.other"), (new MimetypesFileTypeMap().getContentType(file)), component, cloneMap, null);
+
                     //Replace the link for resource in the map
                     String ingestUrl =  "http://"+host+":8080/fedora/get/"+"/RESOURCE";
                     resource.setSpec(ingestUrl);
@@ -134,34 +156,34 @@ public class SakaiPublisher {
             }
         }
         //upload the map
-        uploadMap( host, port, userName, password, cloneMap);
+        //uploadMap( host, port, userName, password, cloneMap);
     }
 
-     private URLResource updateResourceRef( URLResource resource )
-     {
-    	 
-    	 return resource;
-     }
-     
-	private static void uploadMap( String host, int port,
-			String userName, String password, LWMap cloneMap) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	private static void uploadObjectToRepository( String host,
-			int port, String userName, String password, File file, File file2,
-			String string, String name, LWComponent component, LWMap cloneMap, DataSource ds) 
+ 	
+	/**
+	 * @param sessionId a valid sessionid
+	 * @param resourceName a name of the resource to be added
+	 * @param collectionId  collectionId of the collection it is to be added to
+	 * @param file
+	 * @param file2
+	 * @param description of the resource to be added
+	 * @param component
+	 * @param cloneMap
+	 * @param ds
+	 */
+	private static void uploadObjectToRepository( String host, String port, String sessionId,
+			String resourceName, String collectionId, File file, String description,
+			LWMap cloneMap, DataSource ds) 
 	{
 		/**
 		 *	Add a resource to a given collection.  The resource is passed either as text or encoded using Base64 flagged
 		 *	using the binary parameter.
 		 */
-		 String sessionId = null; 		// a valid sessionid
-		 String resourceName = null;	// a name of the resource to be added
-		 String collectionId = null; 	// collectionId of the collection it is to be added to
-		 String contentMime = null;   	// contentMime content string
-		 String description = null; 	// description of the resource to be added
+		 //String sessionId = null; 		// a valid sessionid
+		 //String resourceName = null;	// a name of the resource to be added
+		 //String collectionId = null; 	// collectionId of the collection it is to be added to
+		 String contentMime = null;   	// contentMime content string 
+		 //String description = null; 	// description of the resource to be added
 		 boolean isBinary = true; 		// binary if true, content is encoded using Base64, if false content is assumed to be text.
 		 /*
 		public String createContentItem(String sessionid, String name, String collectionId, String contentMime, 
@@ -175,9 +197,12 @@ public class SakaiPublisher {
 			Call call = (Call) service.createCall();
 
 			call.setTargetEndpointAddress(new java.net.URL(endpoint));
-			call.setOperationName(new QName(host + port + "/", "createContentItem"));
+			call.setOperationName(new QName(sessionId + resourceName + "/", "createContentItem"));
 
-			String retVal = (String) call.invoke( new Object[] { sessionId, resourceName, collectionId, contentMime, description, isBinary });
+			String retVal = (String) call.invoke( 
+					new Object[] { sessionId, resourceName, collectionId, 
+							org.apache.axis.encoding.Base64.encode(getByteArrayFromFile(file)), 
+							description, isBinary });
 			
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -188,6 +213,33 @@ public class SakaiPublisher {
 		}
 	}
 
+	/**
+	 * @param file
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 */
+	private static byte[] getByteArrayFromFile(File file)
+	{
+		int bufferSize = 1024;
+		ByteBuffer buff = ByteBuffer.allocate( bufferSize ); 
+		try {
+			FileChannel fc = new FileInputStream(file).getChannel();
+
+			fc.read( buff );
+			buff.flip();
+			while( buff.hasRemaining() )
+			{
+				buff.get();
+			}
+		} catch( FileNotFoundException e ) {
+			e.printStackTrace();
+		} catch( IOException e ) {
+			e.printStackTrace();
+		}
+		return buff.array();
+	}
+
+   
 	public static String getSessionId( Properties configuration ) 
 	{
 		String username = configuration.getProperty("sakaiUsername");
@@ -264,5 +316,29 @@ public class SakaiPublisher {
     	String serverId = getServerId( dsConfig, sessionId);
  
 		return "JSESSION=" + sessionId + "." + serverId;
+	}
+	
+	/**
+	 * @param map
+	 * @return File object that contains marshalled content of map parameter
+	 */
+	private static File saveMapToFile( LWMap map )
+	{
+		File tmpFile = map.getFile();
+		
+		// map exists on disk, but hasn't been changed in memory
+		if( (!map.isModified()) && (null != tmpFile) )
+		{
+			tmpFile = map.getFile();
+		}
+		
+		// map has changed in memory. (may exist on disk, but may not.)
+		if( map.isModified() )
+		{
+			tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
+			tufts.vue.action.ActionUtil.marshallMap( tmpFile );
+		}
+		
+		return tmpFile;
 	}
 }
