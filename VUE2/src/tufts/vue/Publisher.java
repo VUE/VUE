@@ -28,33 +28,33 @@ import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.border.LineBorder;
-import java.util.Vector;
-import java.util.Iterator;
-import javax.swing.table.*;
+//import javax.swing.border.LineBorder;
+//import java.util.Vector;
+//import java.util.Iterator;
+//import javax.swing.table.*;
 import javax.swing.event.*;
 import java.io.*;
-import java.net.*;
-import org.apache.commons.net.ftp.*;
+//import java.net.*;
+//import org.apache.commons.net.ftp.*;
 import java.util.*;
 
-import fedora.server.management.FedoraAPIM;
-import fedora.server.utilities.StreamUtility;
+//import fedora.server.management.FedoraAPIM;
+//import fedora.server.utilities.StreamUtility;
 //import fedora.client.ingest.AutoIngestor;
 
-import tufts.vue.action.*;
+//import tufts.vue.action.*;
 
 //required for publishing to Fedora
 
-import fedora.client.FedoraClient;
-import fedora.client.utility.ingest.AutoIngestor;
-import fedora.client.utility.AutoFinder;
-import fedora.server.types.gen.Datastream;
-import fedora.client.Uploader;
+//import fedora.client.FedoraClient;
+//import fedora.client.utility.ingest.AutoIngestor;
+//import fedora.client.utility.AutoFinder;
+//import fedora.server.types.gen.Datastream;
+//import fedora.client.Uploader;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.82 $ / $Date: 2007-11-10 20:53:50 $ / $Author: peter $
+ * @version $Revision: 1.83 $ / $Date: 2007-11-14 22:07:50 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -62,7 +62,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
 		org.apache.log4j.Logger.getLogger(Publisher.class);
     
    /** Creates a new instance of Publisher */
-    //todo: Create an interface for datasources and have separate implementations for each type of datasource.
+    //TODO: Create an interface for datasources and have separate implementations for each type of datasource.
     public static final String TITLE = "Publisher";
     public static final String FILE_PREFIX = "file://";
     public static final int PUB_WIDTH = 550;
@@ -78,11 +78,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     };
     public static final String[] MODE_LABELS = {"Map only","Map and resources","Zip bundle"};
     
+    private static final String NEXT_BUTTON_TEXT    = "Next";
+    private static final String BACK_BUTTON_TEXT    = "< Back";
+    private static final String FINISH_BUTTON_TEXT  = "Finish";
+    private static final String CANCEL_BUTTON_TEXT  = "Cancel";
+    private static final String PUBLISH_BUTTON_TEXT = "Publish";
+    private static final String DONE_BUTTON_TEXT    = "Done";
     
-    public static final String NEXT = "Next";
-    public static final String CANCEL = "Cancel";
-    public static final String PUBLISH = "Publish";
-    public static final String DONE = "Done";
     // action commands
     public static final String AC_SETUP_R = "AC_SETUP_R"; // repository selection
     public static final String AC_SETUP_M = "AC_SETUP_M"; // mode selection
@@ -90,29 +92,27 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final String AC_SETUP_P = "AC_SETUP_P"; //  publish
     public static final String AC_SETUP_C = "AC_SETUP_C"; // confirm
     
-    private int publishMode = Publishable.PUBLISH_MAP;
     
-    
-   JButton backButton;
+    JButton backButton;
     JButton finishButton;
     JRadioButton publishMapRButton ;
-    JRadioButton    publishMapAllRButton ;
-    JRadioButton    publishZipRButton ;
+    JRadioButton publishMapAllRButton ;
+    JRadioButton publishZipRButton ;
     JRadioButton publishSakaiRButton;
     
     JTextArea informationArea;
     JPanel buttonPanel;
     JTextArea modeInfo  = new JTextArea(PUBLISH_INFORMATION[1]);
-    JPanel rPanel  = new JPanel(); // repository panel
-    JPanel mPanel  = new JPanel(); // Mode Selection Panel
+    JPanel rPanel = new JPanel(); // repository panel
+    JPanel mPanel = new JPanel(); // Mode Selection Panel
     JPanel pPanel = new JPanel(); // publish panel
     JPanel wPanel = new JPanel(); // workspace selection
     JPanel cPanel = new JPanel(); // confirming publish
     
-    JButton nextButton = new JButton(NEXT);
-    JButton cancelButton = new JButton(CANCEL);
-    JButton publishButton = new JButton(PUBLISH);
-    JButton doneButton = new JButton(DONE);
+    JButton nextButton = new JButton(NEXT_BUTTON_TEXT);
+    JButton cancelButton = new JButton(CANCEL_BUTTON_TEXT);
+    JButton publishButton = new JButton(PUBLISH_BUTTON_TEXT);
+    JButton doneButton = new JButton(DONE_BUTTON_TEXT);
     public static Vector resourceVector;
     File activeMapFile;
     public static JTable resourceTable;
@@ -122,7 +122,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     java.util.List<JRadioButton> modeRadioButtons;
     JList repList;
     JTree wTree; // list of workspaces
-    TreePath _tp = null; // WorkspaceSelection
+    private TreePath _tp = null; // Selection from Sakai workspace panel
     
     org.osid.shared.Type dataSourceType =edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
     private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
@@ -167,8 +167,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     private void initialize() {
         
-        finishButton = new JButton("Finish");
-        backButton = new JButton("< Back");
+        finishButton = new JButton(FINISH_BUTTON_TEXT);
+        backButton = new JButton(BACK_BUTTON_TEXT);
         finishButton.addActionListener(this);
         backButton.addActionListener(this);
         setUpRepositorySelectionPanel();
@@ -195,7 +195,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     }
     private void setUpRepositorySelectionPanel() {
         rPanel.setLayout(new BorderLayout());
-        JLabel repositoryLabel = new JLabel("Select a FEDORA Instance");
+        JLabel repositoryLabel = new JLabel("Select a repository Instance");
         repositoryLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         rPanel.add(repositoryLabel,BorderLayout.NORTH);
         repList = new JList();
@@ -220,7 +220,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         wTree.addTreeSelectionListener(new TreeSelectionListener() {
         	public void valueChanged( TreeSelectionEvent tse ) {
         		TreePath tp = tse.getNewLeadSelectionPath();
-        		_tp = tp;
+        		_tp = tp;  
         	}
         });
         JScrollPane wPane = new JScrollPane(wTree);
@@ -269,7 +269,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         optionPanel.validate();
         mainPanel.add(optionPanel);
         
-        // addding modeInfo
+        // adding modeInfo
         modeInfo = new JTextArea(PUBLISH_INFORMATION[1]);
         modeInfo.setEditable(false);
         modeInfo.setLineWrap(true);
@@ -325,9 +325,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     
     public void actionPerformed(ActionEvent e) {
-        if(e.getActionCommand().equals(CANCEL)) {
+        if(e.getActionCommand().equals(CANCEL_BUTTON_TEXT)) {
             this.dispose();
-        } else if(e.getActionCommand().equals(DONE)) {
+        } else if(e.getActionCommand().equals(DONE_BUTTON_TEXT)) {
             this.dispose();
         }else if(e.getActionCommand().equals(AC_SETUP_W)) {
             getContentPane().remove(rPanel);
@@ -345,7 +345,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().add(mPanel, BorderLayout.CENTER);
             getContentPane().validate();
             validateTree();
-        }  else if(e.getActionCommand().equals(NEXT)) {
+        }  else if(e.getActionCommand().equals(NEXT_BUTTON_TEXT)) {
             System.out.println("Selected Repository: "+repList.getSelectedValue());
              if(repList.getSelectedValue() == null) {
                 alert(this,"No repository is selected. Please  select a repository","Publish Error");
@@ -362,7 +362,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             }
             getContentPane().validate();
             validateTree();
-        }else if(e.getActionCommand().equals(PUBLISH)) {
+        } else if(e.getActionCommand().equals(PUBLISH_BUTTON_TEXT)) {
             
             final Thread t = new Thread() {
                 public void run() {
@@ -415,6 +415,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
             	DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
             	String siteId = ((SakaiSiteUserObject)(treeNode.getUserObject())).getId();
+            	// TODO: Verify that a site is selected before proceeding - pdw 10-nov-07 
                 if(publishMapRButton.isSelected()) {
                     SakaiPublisher.uploadMap( ds, siteId, VUE.getActiveMap());
                 }else if(publishMapAllRButton.isSelected()){
