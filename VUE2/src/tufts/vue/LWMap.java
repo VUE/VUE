@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.173 $ / $Date: 2007-11-05 06:01:58 $ / $Author: sfraize $
+ * @version $Revision: 1.174 $ / $Date: 2007-11-14 22:51:08 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -269,13 +269,13 @@ public class LWMap extends LWContainer
     
     
     public void markAsModified() {
-        if (DEBUG.INIT) System.out.println(this + " explicitly marking as modified");
+        if (DEBUG.Enabled) Log.debug("explicitly marking as modified: " + this);
         if (mChanges == 0)
             mChanges = 1;
         // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public void markAsSaved() {
-        if (DEBUG.INIT) System.out.println(this + " marking " + mChanges + " modifications as current");
+        if (DEBUG.Enabled) Log.debug("marking " + mChanges + " modifications as current: " + this);
         mChanges = 0;
         // todo: notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
