@@ -15,7 +15,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.4 $ / $Date: 2007-11-13 07:02:16 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2007-11-14 03:19:16 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -140,20 +140,17 @@ class Slides {
         final LWNode title = NodeModeTool.buildTextNode(entry.node.getDisplayLabel());
         final MasterSlide master = entry.pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
-        //final LinkedList<LWComponent> toLayout = new java.util.LinkedList();
         final List<LWComponent> added = new ArrayList();
 
-        //slide.setSourceNode(mapNode);
         title.setStyle(master.getTitleStyle());
-        title.setSyncSource(entry.node);
-        // if (syncTitle) title.setSyncSource(slide); doesn't seem to work in this direction (reverse is okay, but not what we want)
-        if (entry.node != null) {
-            //if (mapNode.isImageNode())
-            if (LWNode.isImageNode(entry.node) || entry.node instanceof LWImage)
-                ; // don't sync titles of images
-            else
-                title.setSyncSource(entry.node);
-        }
+        
+// SMF: No syncing of slide titles, as per Melanie as of 2007-11-13
+//         if (entry.node != null) {
+//             if (LWNode.isImageNode(entry.node) || entry.node instanceof LWImage)
+//                 ; // don't sync titles of images
+//             else
+//                 title.setSyncSource(entry.node);
+//         }
 
         // we must apply slide styles to all components before laying them out,
         // as the style may change their size
