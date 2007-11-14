@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.89 $ / $Date: 2007-11-13 04:33:34 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2007-11-14 06:30:02 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -514,22 +514,41 @@ public class LWSlide extends LWContainer
         return c == null ? super.getFinalFillColor(dc) : c;
     }
 
+    public boolean isSlideIcon() {
+        return mEntry != null;
+    }
+
     @Override
     protected void drawImpl(DrawContext dc)
     {
+        boolean drewBorder = false;
+        boolean onMapSlideIcon = false;
+        
+        if (isSlideIcon() && (dc.focal != this || dc.focused == this)) {
+            onMapSlideIcon = true;
+            // we have an entry: draw a pathway hilite
+            if (dc.isPresenting() || getEntry() == VUE.getActiveEntry()) {
+                dc.g.setColor(getEntry().pathway.getColor());
+                dc.g.setStroke(SlideIconPathwayStroke);
+                dc.g.draw(getZeroShape());
+                drewBorder = true;
+            }
+        } else if (dc.focal != this) {
+            if (isSelected() && dc.isInteractive()) {
+                // for on-map slides only: drag regular selection border if selection
+                dc.g.setColor(COLOR_HIGHLIGHT);
+                dc.setAbsoluteStroke(getStrokeWidth() + SelectionStrokeWidth);
+                dc.g.draw(getZeroShape());
+                drewBorder = true;
+            }
+        }
+
         final LWSlide master = getMasterSlide();
         final Color fillColor = getRenderFillColor(dc);
 
-        if (mEntry == null && isSelected() && dc.isInteractive()) {
-            // for on-map slides only: drag regular selection border if selection
-            dc.g.setColor(COLOR_HIGHLIGHT);
-            dc.setAbsoluteStroke(getStrokeWidth() + SelectionStrokeWidth);
-            dc.g.draw(getZeroShape());
-        }
-
-        if (fillColor == null)
-            Util.printStackTrace("null fill " + this);
-        else
+        if (fillColor == null) {
+            if (DEBUG.Enabled) Util.printStackTrace("null fill " + this);
+        } else
             dc.fillArea(getZeroShape(), fillColor);
         
         if (master != null) {
@@ -544,10 +563,20 @@ public class LWSlide extends LWContainer
             dc.pop();
         }
 
+        if (onMapSlideIcon && !drewBorder /*&& !dc.isAnimating()*/) {
+            // force a basic slide-icon border in case fill has no contrast w/background
+            dc.g.setColor(Color.darkGray);
+            dc.g.setStroke(STROKE_FIVE);
+            dc.g.draw(getZeroShape());
+        }
+        
+        if (dc.focal != this)
+            dc.g.clip(getZeroShape());
+
         // Now draw the slide contents:
         drawChildren(dc);
     }
-
+    
     @Override
     public boolean canDuplicate() {
         return DEBUG.META; // testing only
