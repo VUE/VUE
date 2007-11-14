@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.178 $ / $Date: 2007-11-13 04:35:24 $ / $Author: sfraize $
+ * @version $Revision: 1.179 $ / $Date: 2007-11-14 03:25:41 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -543,6 +543,44 @@ public class LWLink extends LWComponent
             rect.add(tail.node.getBounds());
         return rect;
     }
+
+    /** @return bounds to use when this is the focal */
+    @Override
+    public Rectangle2D.Float getFocalBounds() {
+        // do not include any slide icons
+        return getFanBounds(new Rectangle2D.Float());
+    }
+    
+    public void draw(DrawContext dc) {
+
+        if (dc.focal == this) {
+            
+            // special case: draw us plus our endpoints: focal bounds should have been getFanBounds()
+            
+            dc.setClipOptimized(false);
+            transformZero(dc.g); // we'll be in the parent context
+            drawZero(dc);
+
+            // todo: if endpoint is in another parent, handle the partial transformation
+            // to get there and draw it (or go back up to map and back down)
+
+            if (head.hasNode() && head.node.getParent() == getParent()) {
+                // no need to transform: already in the parent context
+                head.node.draw(dc.push()); dc.pop();
+            }
+                
+            if (tail.hasNode() && tail.node.getParent() == getParent()) {
+                // no need to transform: already in the parent context
+                tail.node.draw(dc.push()); dc.pop();
+            }
+        } else
+            super.draw(dc);
+    }
+
+    
+
+    
+    
     
     public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
         HashSet set = new HashSet();
@@ -2456,7 +2494,6 @@ public class LWLink extends LWComponent
         }
     }
 
-    
     protected void drawImpl(DrawContext dc)
     {
         if (mRecompute)
