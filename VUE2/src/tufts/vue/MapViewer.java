@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.489 $ / $Date: 2007-11-13 04:31:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.490 $ / $Date: 2007-11-14 03:25:58 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -868,15 +868,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     public static Rectangle2D.Float getFocalBounds(LWComponent c) {
-        // TODO: add a getFocalBounds to LWComponent, and override in LWLink
-        if (c instanceof LWLink)
-            return c.getFanBounds();
-        else {
-            if (DEBUG.CONTAINMENT)
-                return LWComponent.grow(c.getFocalBounds(), 10);
-            else
-                return c.getFocalBounds();
-        }
+
+        return c.getFocalBounds();
+        
+//         // TODO: add a getFocalBounds to LWComponent, and override in LWLink
+//         if (c instanceof LWLink)
+//             return c.getFanBounds();
+//         else {
+//             if (DEBUG.CONTAINMENT)
+//                 return LWComponent.grow(c.getFocalBounds(), 10);
+//             else
+//                 return c.getFocalBounds();
+//         }
     }
     
     private Rectangle2D.Float getFocalBounds() {
