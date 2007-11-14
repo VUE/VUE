@@ -37,7 +37,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.54 $ / $Date: 2007-11-14 03:24:25 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2007-11-14 06:28:36 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -62,6 +62,8 @@ public final class DrawContext
     public final Rectangle frame; // if we have the pixel dimensions of the surface we're drawing on, they go here
 
     public final LWComponent focal;
+
+    LWComponent focused;
 
     private float alpha = 1f;
 
@@ -604,6 +606,7 @@ public final class DrawContext
         this.fillColor = dc.fillColor;
         this.isClipOptimized = dc.isClipOptimized;
         this.isAnimating = dc.isAnimating;
+        this.focused = dc.focused;
 
         if (DEBUG.PAINT) out("CLONE of " + dc);
         //out("CLONED: " + Util.tag(masterClipRect) + " from " + dc);
