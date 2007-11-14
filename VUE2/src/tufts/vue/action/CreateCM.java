@@ -49,7 +49,15 @@ public class CreateCM  extends VueAction{
         try {
             
             java.awt.Frame dialogParent = VUE.getDialogParentAsFrame();
-            MapChooser mapChooser = new MapChooser(dialogParent,label);
+            int indexOfDot = label.indexOf(".");
+            
+            String correctedLabel = label;
+            
+            if(indexOfDot > -1)
+            {
+              correctedLabel = label.substring(0,indexOfDot);
+            }
+            MapChooser mapChooser = new MapChooser(dialogParent,correctedLabel);
 
         } catch(Exception ex) {
             ex.printStackTrace();
