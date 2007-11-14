@@ -69,7 +69,10 @@ public class ConnectivityMatrix {
             Object o = i.next();
             if(o instanceof LWNode || o instanceof LWImage) {
                 //LWNode node = (LWNode) o;
-                labels.add(getMergeProperty((LWComponent)o));
+                if(!labels.contains(getMergeProperty((LWComponent)o)))
+                {    
+                  labels.add(getMergeProperty((LWComponent)o));
+                }
                 size++;
             }
         }
