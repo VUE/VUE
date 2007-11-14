@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.179 $ / $Date: 2007-11-14 03:25:41 $ / $Author: sfraize $
+ * @version $Revision: 1.180 $ / $Date: 2007-11-14 06:33:33 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -544,13 +544,13 @@ public class LWLink extends LWComponent
         return rect;
     }
 
-    /** @return bounds to use when this is the focal */
+    /** @return bounds to use when this is the focal (for links we add our endpoint bounds via getFanBounds) */
     @Override
     public Rectangle2D.Float getFocalBounds() {
-        // do not include any slide icons
         return getFanBounds(new Rectangle2D.Float());
     }
     
+    @Override
     public void draw(DrawContext dc) {
 
         if (dc.focal == this) {
