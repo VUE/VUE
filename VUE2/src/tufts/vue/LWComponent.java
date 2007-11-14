@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.381 $ / $Date: 2007-11-13 04:37:46 $ / $Author: sfraize $
+ * @version $Revision: 1.382 $ / $Date: 2007-11-14 06:29:18 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -5300,7 +5300,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
 
-    private static final BasicStroke SlideIconPathwayStroke =
+    protected static final BasicStroke SlideIconPathwayStroke =
         new BasicStroke((float) (LWPathway.PathBorderStrokeWidth / SlideIconScale),
                         BasicStroke.CAP_ROUND,
                         BasicStroke.JOIN_ROUND);
@@ -5310,34 +5310,34 @@ u                    getSlot(c).setFromString((String)value);
     {
         slide.transformDownG(dc.g);
 
-        final boolean drewBorder;
+        //        final boolean drewBorder;
 
-        
-        //if (dc.isPresenting() || slide.isSelected()) {
-        if (dc.isPresenting() || slide.getPathwayEntry() == VUE.getActiveEntry()) {
-            // every slide icon should be a slide with an entry...
-            dc.g.setColor(slide.getPathwayEntry().pathway.getColor());
-            dc.g.setStroke(SlideIconPathwayStroke);
-            dc.g.draw(slide.getZeroShape());
-            drewBorder = true;
-        } else {
-            drewBorder = false;
-        }
+//         //if (dc.isPresenting() || slide.isSelected()) {
+//         if (dc.isPresenting() || slide.getPathwayEntry() == VUE.getActiveEntry()) {
+//             // every slide icon should be a slide with an entry...
+//             dc.g.setColor(slide.getPathwayEntry().pathway.getColor());
+//             //dc.g.setColor(Color.red);
+//             dc.g.setStroke(SlideIconPathwayStroke);
+//             dc.g.draw(slide.getZeroShape());
+//             drewBorder = true;
+//         } else {
+//             drewBorder = false;
+//         }
             
-        final AffineTransform zeroTransform = dc.g.getTransform();
-        final Shape curClip = dc.g.getClip();
-        dc.g.clip(slide.getZeroShape());
+//         final AffineTransform zeroTransform = dc.g.getTransform();
+//         final Shape curClip = dc.g.getClip();
+//         dc.g.clip(slide.getZeroShape());
         slide.drawZero(dc);
 
-        if (!drewBorder && !dc.isAnimating()) {
-            dc.g.setClip(curClip); // TODO: this is clearing the underlying clip and allowing the border to draw over the scroll bars, etc!
-            // Generic non-presentation unselected slide icon: draw a gray border
-            //dc.g.setColor(slide.getRenderFillColor(dc).brighter());
-            dc.g.setTransform(zeroTransform);
-            dc.g.setColor(Color.darkGray);
-            dc.g.setStroke(STROKE_FIVE);
-            dc.g.draw(slide.getZeroShape());
-        }
+//         if (!drewBorder && !dc.isAnimating()) {
+//             dc.g.setClip(curClip); // TODO: this is clearing the underlying clip and allowing the border to draw over the scroll bars, etc!
+//             // Generic non-presentation unselected slide icon: draw a gray border
+//             //dc.g.setColor(slide.getRenderFillColor(dc).brighter());
+//             dc.g.setTransform(zeroTransform);
+//             dc.g.setColor(Color.darkGray);
+//             dc.g.setStroke(STROKE_FIVE);
+//             dc.g.draw(slide.getZeroShape());
+//         }
         
         
     }
