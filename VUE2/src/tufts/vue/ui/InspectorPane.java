@@ -41,7 +41,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-11-13 04:39:27 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-11-15 15:23:50 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -577,7 +577,10 @@ public class InspectorPane extends JPanel
         }
         void load(LWComponent c) {
             setTypeName(this, c, "Information");
-
+            if (c instanceof LWText)
+            	labelValue.setEditable(false);
+            else
+            	labelValue.setEditable(true);
             labelScrollBar.setValueIsAdjusting(true);
             labelValue.attachProperty(c, LWKey.Label);
             /*
