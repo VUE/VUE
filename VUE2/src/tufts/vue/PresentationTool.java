@@ -594,7 +594,12 @@ public class PresentationTool extends VueTool
 
 
             final LWPathway pathway = null;
-            String label = page.getDisplayLabel();
+            String label;
+
+            if (page.node != null && page.node instanceof LWMap)
+                label = "Map View";
+            else
+                label = page.getDisplayLabel();
             
 //             final LWPathway pathway;
 //             if (destinationPage.entry != null)
