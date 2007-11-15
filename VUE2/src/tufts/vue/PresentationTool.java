@@ -1784,8 +1784,10 @@ public class PresentationTool extends VueTool
 
         VueAction.setAllActionsIgnored(selected);
         
-        if (!selected)
+        if (!selected) {
+            ResumeButton.setVisible(false);
             return;
+        }
 
         ExitButton.setVisible(true);
 
