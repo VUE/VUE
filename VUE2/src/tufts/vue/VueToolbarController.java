@@ -37,12 +37,14 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.72 $ / $Date: 2007-10-22 20:33:57 $ / $Author: mike $
+ * @version $Revision: 1.73 $ / $Date: 2007-11-15 23:48:37 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
     implements LWSelection.Listener, LWComponent.Listener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueToolbarController.class);
+    
     /** the list of tool names is under this key in the resources **/
     public static final String DefaultToolsKey = "mainToolbarToolNames";
     private static VueToolbarController sController;
@@ -252,6 +254,14 @@ public class VueToolbarController
      **/
     public void setSelectedTool( VueTool pTool) {
 
+        final VueTool activeTool = getSelectedTool();
+
+        if (activeTool != null && !activeTool.permitsToolChange()) {
+            Log.warn("tool change not permitted to: " + pTool + "; active tool denies: " + activeTool);
+            //return;
+        }
+            
+
         if( mToolPanel != null) {
             mToolPanel.setSelectedTool( pTool);
         }
@@ -308,6 +318,14 @@ public class VueToolbarController
         
         VueTool rootTool = pTool;
 		
+        // TODO: need to seriously refactor this code: the tools shouldn't be self activating
+        // -- e.g., their installing their cursor even if the tool change is denied, so
+        // we're going to allow the tool selection for now...
+        if (mSelectedTool != null && !mSelectedTool.permitsToolChange()) {
+            Log.warn("tool change not permitted to: " + pTool + "; active tool denies: " + mSelectedTool);
+            //return;
+        }
+        
        if (pTool.getParentTool() != null && pTool.getClass() == tufts.vue.VueSimpleTool.class)          
         		rootTool = pTool.getParentTool();
 		
@@ -339,6 +357,8 @@ public class VueToolbarController
             END OLD CODE ****/
 		
         final VueTool oldActive = mSelectedTool;
+
+        
         
         mSelectedTool = rootTool;
 
