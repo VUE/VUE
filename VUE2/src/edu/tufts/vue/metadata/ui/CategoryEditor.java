@@ -66,7 +66,11 @@ public class CategoryEditor extends JPanel
     
     private JDialog dialog;
     
-    public CategoryEditor(JDialog dialog) 
+    public CategoryEditor(JDialog dialog,final JComboBox categories,
+                          final MetadataEditor metadataEditor,
+                          final tufts.vue.LWComponent current,
+                          final int row,
+                          final int col) 
     {
         this.dialog = dialog;
         setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
@@ -170,6 +174,14 @@ public class CategoryEditor extends JPanel
         {
             public void actionPerformed(java.awt.event.ActionEvent e)
             {
+                //categories.setSelectedItem(categories.getSelectedItem());
+                
+                int n = categories.getModel().getSize();
+                Object currObject = current.getMetadataList().getMetadata().get(row).getObject();
+                Object currValue = (((String[])currObject)[0]);
+                metadataEditor.findCategory(currValue,row,col,n,categories);
+                categories.repaint();
+                
                 CategoryEditor.this.dialog.dispose();
             }
         });

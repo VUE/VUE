@@ -77,7 +77,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
-        //VUE-846
+        //VUE-846 -- special case related to VUE-845 (see comment on opening from keyword item in menu) 
         if(getSize().width < 100)
         {
            setSize(new java.awt.Dimension(300,200)); 
@@ -640,12 +640,15 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            
                            JDialog ecd = new JDialog(VUE.getApplicationFrame(),"Edit Categories");
                            ecd.setModal(true);
-                           ecd.add(new CategoryEditor(ecd));
+                           ecd.add(new CategoryEditor(ecd,categories,MetadataEditor.this,current,row,col));
                            ecd.setBounds(475,300,300,250);
                            //ecd.pack();
                            ecd.setVisible(true);
                            
-                           //findCategory(currValue,row,col,n,categories)
+                          /* int n = categories.getModel().getSize();
+                           Object currObject = current.getMetadataList().getMetadata().get(row).getObject();
+                           Object currValue = (((String[])currObject)[0]);
+                           findCategory(currValue,row,col,n,categories);*/
                        }
                    }
                }
@@ -672,6 +675,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   
                   if(ie.getStateChange()==java.awt.event.ItemEvent.SELECTED)
                   {
+                      
+                    if(categories.getSelectedItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
+                    {
+                        return;
+                    }
                       
                     if(!(categories.getSelectedItem() instanceof OntType) || !(ie.getItem() instanceof OntType))
                     {
