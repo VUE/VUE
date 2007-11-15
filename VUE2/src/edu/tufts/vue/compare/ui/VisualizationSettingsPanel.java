@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.16 $ / $Date: 2007-10-30 15:41:37 $ / $Author: dan $
+ * @version $Revision: 1.17 $ / $Date: 2007-11-15 18:18:05 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -65,6 +65,9 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     private JComboBox weightParameterChoice;
     
     private JLabel weightParameterChoiceLabel;
+    
+    // see below -- next variable is for VUE-607 (todo: use an ItemListener on the combo box instead)
+    private int oldVisualizationSetting = WEIGHT;
    
     // the following boolean specifies to the weight panel a design decision that
     // makes layout of nodes/links drop alignment with visualization choice drop down a bit faster
@@ -174,7 +177,7 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     }
     
     public int getVisualizationSettingsType()
-    {
+    {   
         if(visualizationChoice.getSelectedIndex() == 0)
         {
             return WEIGHT;
@@ -187,6 +190,17 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
     
     public void actionPerformed(ActionEvent e)
     {
+        
+        //VUE-607 (at least part of it) was when combo state has not actually changed
+        if(getVisualizationSettingsType() == oldVisualizationSetting)
+        {
+            return;
+        }
+        else
+        {
+            oldVisualizationSetting = getVisualizationSettingsType();
+        }
+        
         if(e.getSource() == visualizationChoice)
         {
             if(getVisualizationSettingsType() == VOTE)
