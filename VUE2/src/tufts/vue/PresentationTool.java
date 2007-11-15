@@ -312,8 +312,18 @@ public class PresentationTool extends VueTool
 //                     return node == other.node && isMapView() == other.entry.isMapView();
                 
             } else if (o instanceof LWComponent) {
-                final LWComponent c= (LWComponent) o;
-                return node == c || (entry != null && entry.node == c);
+                final LWComponent c = (LWComponent) o;
+                
+                if (node == c || (entry != null && entry.node == c)) {
+                    return true;
+                } else if (c instanceof LWSlide) {
+                    // SMF 2007-11-14 added new case for Page.equals -- test for side effects...
+                    LWSlide slide = (LWSlide) c;
+                    return entry != null && entry == slide.getPathwayEntry();
+                } else
+                    return false;
+                
+                
             } else
                 return false;
         }
@@ -926,9 +936,12 @@ public class PresentationTool extends VueTool
     private static final boolean SINGLE_STEP = false;
     private static final boolean GUESSING = true;
 
-    private void goForward(boolean allTheWay) { goForward(allTheWay, false); }
-    private void goForward(boolean allTheWay, boolean guessing)
+    private boolean goForward(boolean allTheWay) { return goForward(allTheWay, false); }
+    private boolean goForward(boolean allTheWay, boolean guessing)
     {
+        boolean wentForward = true;
+        
+        
         if (mCurrentPage == NO_PAGE && mNextPage == null) {
             
             startPresentation();
@@ -958,10 +971,18 @@ public class PresentationTool extends VueTool
                     mForceShowNavNodes = mShowNavNodes = true;
                     mDidAutoShowNavNodes = true;
                     repaint("guessForward");
+                    wentForward = false;
                 }
-            } else
-                if (DEBUG.NAV) revisitNext(allTheWay); 
+            } else {
+                if (DEBUG.NAV)
+                    revisitNext(allTheWay);
+                else
+                    wentForward = false;
+            }
+            
         }
+
+        return wentForward;
 
     }
 
@@ -1568,15 +1589,14 @@ public class PresentationTool extends VueTool
             focusUp(e, TO_MAP);
     }
     
+    public boolean handleMouseClicked(MapMouseEvent e) {
+        // ignore all clicks
+        return true;
+    }
     
     @Override
     public boolean handleMousePressed(MapMouseEvent e)
     {
-        if (GUI.isRightClick(e)) {
-            toggleFocal(e);
-            return true;
-        }
-        
         if (ExitButton.contains(e)) {
             ExitButton.doAction();
             return true;
@@ -1587,6 +1607,11 @@ public class PresentationTool extends VueTool
             return true;
         }
 
+        if (GUI.isRightClick(e)) {
+            toggleFocal(e);
+            return true;
+        }
+        
         LWComponent hit = null;
         
         if (isOverviewVisible()) {
@@ -1607,10 +1632,10 @@ public class PresentationTool extends VueTool
 
         if (hit == null)
             hit = e.getPicked();
-        
-        if (DEBUG.PRESENT) out("handleMousePressed " + e.paramString() + " hit on " + hit);
 
-        if (hit == HIT_OVERVIEW)
+        if (DEBUG.PRESENT) out("[" + e.paramString() + "] hit=" + hit);
+
+        if (hit == HIT_OVERVIEW) // only needed in earlier design: should never hit this now
             return true;
 
 //         if (hit instanceof LWLink && !(hit.getParent() instanceof LWMap)) {
@@ -1619,7 +1644,10 @@ public class PresentationTool extends VueTool
 //         }
 
         if (hit == null) {
-            focusUp(e);
+            // if we hit nothing / or the focal, attempt to go forward down the pathway.
+            // If that's possible, let it happen -- if not, focus up.
+            if (!goForward(SINGLE_STEP))
+                focusUp(e);
             return true;
         }
         
@@ -1632,6 +1660,11 @@ public class PresentationTool extends VueTool
 
         if (mCurrentPage.equals(hit)) {
 
+            if (DEBUG.PRESENT) out("hit on current page " + mCurrentPage);
+
+            if (goForward(SINGLE_STEP))
+                return true;
+            
             if (mCurrentPage.onPathway() && mCurrentPage.isMapViewNode()) {
                 // a click on the current map-node page: stay put
                 return false;
@@ -1662,6 +1695,9 @@ public class PresentationTool extends VueTool
                 revisitPrior();
             }
         } else {
+
+            if (DEBUG.PRESENT) out("default hit; focusing to: " + hit);
+            
             // todo: use tobe refocus code, which ZoomTool should also
             // use (hell, maybe this should all go in the MapViewer)
             setPage(hit);

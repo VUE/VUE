@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.490 $ / $Date: 2007-11-14 03:25:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.491 $ / $Date: 2007-11-15 05:51:12 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4952,7 +4952,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             
             dragStart.setLocation(e.getX(), e.getY());
-            if (DEBUG.MOUSE) System.out.println("dragStart location set to " + dragStart);
+            if (DEBUG.MOUSE) out("dragStart location set to " + dragStart);
             
             if (activeTool == HandTool) {
                 if (DEBUG.MOUSE) out("HandTool grabbing mouse");
@@ -6277,14 +6277,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //if (activeTool != ArrowTool && activeTool != TextTool)
         //return;  check supportsClick, and add such to node tool
         
-        if (hitOnSelectionHandle == false)
-            processMouseClick(e);
+        if (hitOnSelectionHandle == false) {
+            MapMouseEvent me = new MapMouseEvent(e, hitComponent);
+            if (!activeTool.handleMouseClicked(me))
+                processMouseClick(me);
+        }
         
         hitOnSelectionHandle = false;
         justSelected = null;
     }
 
-    protected void processMouseClick(MouseEvent e)
+    protected void processMouseClick(MapMouseEvent e)
     {
         // TODO: we want to refactor the below very confusing code and delegate to the
         // tools w/out naming them directly.  To do this tho, the tools will need access
@@ -6295,29 +6298,31 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // is the focal should always default to the focal, never null (maybe
         // only if the focal is a slide tho?)
 
+        final LWComponent hit = e.getPicked();
+
         if (isSingleClickEvent(e)) {
             if (DEBUG.MOUSE) out("SINGLE-CLICK on: " + hitComponent);
                     
-            if (hitComponent != null && hitComponent != mFocal && !(hitComponent instanceof LWGroup)) {
+            if (hit != null && hit != mFocal && !(hit instanceof LWGroup)) {
                         
                 boolean handled = false;
                 // move to arrow tool?
                         
                 if (activeToolIsText()) {
-                    activateLabelEdit(hitComponent);
+                    activateLabelEdit(hit);
                     handled = true;
                 } else {
-                    handled = hitComponent.handleSingleClick(new MapMouseEvent(e, hitComponent));
+                    handled = hit.handleSingleClick(e);
                 }
-                //else if (hitComponent instanceof ClickHandler) {
-                //handled = ((ClickHandler)hitComponent).handleSingleClick(new MapMouseEvent(e, hitComponent));
+                //else if (hit instanceof ClickHandler) {
+                //handled = ((ClickHandler)hit).handleSingleClick(new MapMouseEvent(e, hit));
                 //}
                         
                 //todo: below not triggering under arrow tool if we just dragged the link --
                 // justSelected must be inappropriately set to the dragged component
                 if (!handled &&
-                    (activeToolIsText() || hitComponent.isSelected() && hitComponent != justSelected))
-                    activateLabelEdit(hitComponent);
+                    (activeToolIsText() || hit.isSelected() && hit != justSelected))
+                    activateLabelEdit(hit);
                         
             } else if (activeToolIsText() || activeTool == NodeModeTool) {
                         
@@ -6339,18 +6344,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
             /*
               if (activeTool.supportsClick()) {
-              //activeTool.handleClickEvent(e, hitComponent); send in mapxy
+              //activeTool.handleClickEvent(e, hit); send in mapxy
               }
             */
                     
         } else if (isDoubleClickEvent(e) && tempToolKeyDown == 0) {
-            if (DEBUG.MOUSE) out("DOULBLE-CLICK on: " + hitComponent);
-            if (hitComponent != null) {
+            if (DEBUG.MOUSE) out("DOULBLE-CLICK on: " + hit);
+            if (hit != null) {
                     
                 boolean handled = false;
                     
                 if (activeToolIsText()) {
-                    activateLabelEdit(hitComponent);
+                    activateLabelEdit(hit);
                     handled = true;
                 } else {
                     // TODO: nodes need to check this because they need to distinguish between
@@ -6359,15 +6364,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // Consider passing down some kind of VUE interaction event, or
                     // at least adding a requestEdit to MapMouseEvent, than can be understood
                     // to be overridable (as it is now if the presentation tool is active).
-                    handled = hitComponent.handleDoubleClick(new MapMouseEvent(e, hitComponent));
+                    handled = hit.handleDoubleClick(e);
                 }
                 
-                //else if (hitComponent instanceof ClickHandler) {
-                //handled = ((ClickHandler)hitComponent).handleDoubleClick(new MapMouseEvent(e, hitComponent));
+                //else if (hit instanceof ClickHandler) {
+                //handled = ((ClickHandler)hit).handleDoubleClick(new MapMouseEvent(e, hit));
                 //}
                 
-                if (!handled && hitComponent.supportsUserLabel()) {
-                    activateLabelEdit(hitComponent);
+                if (!handled && hit.supportsUserLabel()) {
+                    activateLabelEdit(hit);
                 }
             } else {
                 defaultDoubleClickAction(e);
@@ -6375,7 +6380,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
 
-    protected void defaultDoubleClickAction(MouseEvent e) {
+    protected void defaultDoubleClickAction(MapMouseEvent e) {
         // TODO: refactor such that this shares code w/LWComponent.doZoomingDoubleClick,
         // and we don't need the instanceof checks.
         //if (mFocal instanceof LWSlide || mFocal instanceof LWGroup) {
@@ -6866,7 +6871,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void out(String method, Object msg) {
         if (method.charAt(0) == '@')
             tufts.Util.printStackTrace(method);
-        Log.debug(String.format("%s %12s: %s", this, method, msg));
+        Log.debug(String.format("<%s>[%s] %12s: %s",
+                                instanceName,
+                                mFocal == null ? "<NULL-FOCAL>" : mFocal.getDiagnosticLabel(),
+                                method,
+                                msg));
         //System.out.format("%s %12s: %s\n", this, method, msg);
     }
 
