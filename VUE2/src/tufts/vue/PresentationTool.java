@@ -1666,8 +1666,10 @@ public class PresentationTool extends VueTool
         }
         
         if (hit.getTypeToken() == LWNode.TYPE_TEXT) {
-            if (hit.hasResource())
+            if (hit.hasResource()) {
                 hit.getResource().displayContent();
+                return true;
+            }
             // if no resource, do not just zoom to single text item
             //return true;
         }

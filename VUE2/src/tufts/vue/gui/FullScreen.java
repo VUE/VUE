@@ -18,7 +18,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.15 $ / $Date: 2007-11-15 22:37:31 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2007-11-15 23:26:02 $ / $Author: sfraize $
  *
  */
 
@@ -47,7 +47,7 @@ public class FullScreen
 
     //private static final boolean ExtraDockWindowHiding = !Util.isMacPlatform(); // must be done on WinXP
     private static final boolean ExtraDockWindowHiding = true;
-
+    
 
     /**
      * The special full-screen window for VUE -- overrides setVisible for special handling
@@ -56,6 +56,7 @@ public class FullScreen
     {
         private VueMenuBar mainMenuBar;
         private boolean isHidden = false;
+        private boolean screenBlacked = false;
         
         FSWindow() {
             super(VUE.getApplicationFrame());
@@ -104,6 +105,16 @@ public class FullScreen
                 // wait for paint to finish, then fade us up
                 fadeUp();
             }
+
+            if (screenBlacked) {
+                fadeFromBlack();
+                screenBlacked = false;
+            }
+        }
+
+        void screenToBlack() {
+            screenBlacked = true;
+            goBlack();
         }
 
 
@@ -291,6 +302,39 @@ public class FullScreen
     public static void toggleFullScreen() {
         toggleFullScreen(false);
     }
+
+//     public static void setFullScreenWorkingMode() {
+//         dropFromNativeToWorking();
+//     }
+    
+    public static void dropFromNativeToWorking() {
+
+        // TODO: merge this code with exitFullScreen
+
+        FullScreenWindow.screenToBlack(); // will auto-fade-up next time it completes a paint
+
+        final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        final GraphicsDevice device = ge.getDefaultScreenDevice();
+        
+        if (device.getFullScreenWindow() != null) {
+            // this will take us out of true full screen mode
+            Log.debug("clearing native full screen window:"
+                          + "\n\t  controlling device: " + device
+                          + "\n\tcur device FS window: " + device.getFullScreenWindow());
+            device.setFullScreenWindow(null);
+        }
+        FullScreenWindow.setMenuBarEnabled(true);
+        VUE.getActiveTool().handleFullScreen(true, false);
+        GUI.setFullScreenVisible(FullScreenWindow);
+        fullScreenWorking = true;
+        fullScreenNative = false;
+
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             VUE.getActiveTool().handleFullScreen(true, false);
+//         }});
+        
+        
+    }
     
     public static synchronized void toggleFullScreen(boolean goNative)
     {
@@ -432,13 +476,12 @@ public class FullScreen
             }
 
         } else {
-        	if (goNative)
-        	{
-        	  if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
-                  nativeModeHidAllDockWindows = true;
-                  DockWindow.HideAllWindows();
-              }
-        	}
+            if (goNative) {
+                if (ExtraDockWindowHiding && !DockWindow.AllWindowsHidden()) {
+                    nativeModeHidAllDockWindows = true;
+                    DockWindow.HideAllWindows();
+                }
+            }
             GUI.setFullScreenVisible(FullScreenWindow);
         }
                 
