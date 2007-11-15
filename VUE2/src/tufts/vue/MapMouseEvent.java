@@ -32,7 +32,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.19 $ / $Date: 2007-10-31 10:45:05 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007-11-15 06:09:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -46,11 +46,11 @@ import javax.swing.JScrollPane;
 public class MapMouseEvent extends MouseEvent
 {
     private static final int COMMAND_MASK = VueUtil.isMacPlatform() ? InputEvent.META_MASK : InputEvent.ALT_MASK;
+    private static final LWComponent UNSET = new LWComponent();
     
     float mapX;
     float mapY;
-    LWComponent picked;
-    boolean pickedSet = false;
+    LWComponent picked = UNSET;
     LWComponent dragRequest;
     Rectangle selectorBox;
     int pressX;
@@ -194,7 +194,7 @@ public class MapMouseEvent extends MouseEvent
     
 
     public LWComponent getPicked() {
-        if (!pickedSet) {
+        if (picked == UNSET) {
             if (DEBUG.PICK) out("computing picked...");
             setPicked(getViewer().pickNode(mapX, mapY));
         } else
@@ -205,7 +205,6 @@ public class MapMouseEvent extends MouseEvent
     void setPicked(LWComponent c) {
         if (DEBUG.PICK) out("setting picked to " + c);
         this.picked = c;
-        this.pickedSet = true;
     }
 
     private void out(String s) {
@@ -222,7 +221,7 @@ public class MapMouseEvent extends MouseEvent
         return super.paramString()
 //            + ",cx=" + getComponentX()
 //            + ",cy=" + getComponentY()
-            + ",hit=" + (pickedSet ? "<unset>" : picked);
+            + ",hit=" + (picked == UNSET ? "<unset>" : picked);
     }
 
 }
