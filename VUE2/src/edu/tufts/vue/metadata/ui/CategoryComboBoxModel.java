@@ -80,6 +80,10 @@ public class CategoryComboBoxModel extends DefaultComboBoxModel {
         return ERROR_LABEL;
     }
     
+    public void refresh()
+    {
+        fireContentsChanged(this,0,getSize());
+    }
 
     
 }
