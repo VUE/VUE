@@ -81,7 +81,7 @@ public class PresentationTool extends VueTool
     
     private final ImageButton ResumeButton = new ImageButton("resume", VueResources.getImageIcon("pathwayTool.resumeImageIcon")) {
             void doAction() {
-                if (DEBUG.Enabled) out("resume pressed");
+                if (DEBUG.PRESENT) out("resume pressed");
                 if (!VUE.inNativeFullScreen())
                     VUE.toggleFullScreen(true);
             }
@@ -148,8 +148,7 @@ public class PresentationTool extends VueTool
         }
 
         void setLocation(int x, int y) {
-            if (DEBUG.Enabled) out(this + " setLocation " + x + "," + y);
-            //Util.printStackTrace(this + " setLocation " + x + "," + y);
+            if (DEBUG.PRESENT) out(this + " setLocation " + x + "," + y);
             this.x = x;
             this.y = y;
         }
@@ -160,7 +159,7 @@ public class PresentationTool extends VueTool
 
         boolean contains(MouseEvent e) {
             boolean hit = contains(e.getX(), e.getY());
-            if (DEBUG.Enabled) out(this + " contains=" + hit + "; " + e);
+            if (DEBUG.PRESENT) out(this + " contains=" + hit + "; " + e);
             return hit;
         }
         
