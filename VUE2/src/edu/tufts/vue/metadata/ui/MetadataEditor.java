@@ -75,6 +75,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     private boolean focusToggle = false;
     
+    // also for VUE-846
+    public java.awt.Dimension getPreferrredSize()
+    {
+        int height = Math.max(metadataTable.getModel().getRowCount()*50,200);
+        return new java.awt.Dimension(300,metadataTable.getModel().getRowCount()*50);
+    }
+    
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
         //VUE-846 -- special case related to VUE-845 (see comment on opening from keyword item in menu) 
