@@ -77,6 +77,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
+        //VUE-846
+        if(getSize().width < 100)
+        {
+           setSize(new java.awt.Dimension(300,200)); 
+        }
+        
+        
         this.current = current;
         
         if(DEBUG_LOCAL)
