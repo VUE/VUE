@@ -32,7 +32,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.20 $ / $Date: 2007-11-15 06:09:43 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2007-11-15 06:17:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -170,7 +170,7 @@ public class MapMouseEvent extends MouseEvent
 
 
     public Point2D.Float getLocalPoint(LWComponent local) {
-        if (local != picked && picked != null) {
+        if (local != picked && picked != null && picked != UNSET) {
             if (DEBUG.Enabled)
                 Util.printStackTrace("warning: local != picked"
                                      + "\n\tpicked: " + picked
