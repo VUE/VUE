@@ -19,7 +19,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.29 $ / $Date: 2007-11-15 17:02:09 $ / $Author: dan $
+ * @version $Revision: 1.30 $ / $Date: 2007-11-15 17:16:41 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -200,9 +200,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         intervalList.setDefaultRenderer(IntervalStylePreview.class,new IntervalStylePreviewRenderer());
         intervalList.setDefaultEditor(IntervalStylePreview.class,new IntervalStylePreviewEditor());
 
-        //$
-           intervalList.setRowHeight(30);
-        //$
+        intervalList.setRowHeight(30);
+        
+        intervalList.getTableHeader().setReorderingAllowed(false);
 
         loadSettings();
         
