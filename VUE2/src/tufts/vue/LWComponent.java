@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.383 $ / $Date: 2007-11-14 21:00:59 $ / $Author: dan $
+ * @version $Revision: 1.384 $ / $Date: 2007-11-15 02:20:38 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2480,6 +2480,9 @@ u                    getSlot(c).setFromString((String)value);
     //protected void reparentNotify(LWContainer parent) {}
 
     public void setSyncSource(LWComponent source) {
+
+        if (true) return; // all dynamic data syncing disabled for now as per Melanie -- SMF 2007-11-14
+        
         if (mSyncClients != null) {
             out("blowing away sync clients on syncSource set");
             // just in case
