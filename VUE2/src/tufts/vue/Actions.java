@@ -889,6 +889,7 @@ public class Actions implements VueConstants
     	}
     	
         public void act() {
+        	VUE.getInfoDock().setVisible(true);
         	VUE.getInspectorPane().showKeywordView();
         	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
         	VUE.getInfoDock().setRolledUp(false,true);
