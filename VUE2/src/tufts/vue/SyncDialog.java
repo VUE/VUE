@@ -30,7 +30,7 @@ public class SyncDialog extends JDialog implements ActionListener, KeyListener
     private static int newcnt = 1;
     private final JRadioButton nodeToSlideButton = new JRadioButton("from node to slide");;
     private final JRadioButton slideToNodeButton = new JRadioButton("from slide to node");
-    private final JRadioButton syncAllButton = new JRadioButton("sync all");    
+    private final JRadioButton syncAllButton = new JRadioButton("sync both ways");    
     
     public SyncDialog(Frame parentFrame, Point location)
     {
