@@ -18,7 +18,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.14 $ / $Date: 2007-11-08 15:00:51 $ / $Author: mike $
+ * @version $Revision: 1.15 $ / $Date: 2007-11-15 22:37:31 $ / $Author: sfraize $
  *
  */
 
@@ -86,7 +86,18 @@ public class FullScreen
 
         @Override
         public void paint(Graphics g) {
-            if (DEBUG.Enabled) Log.debug("paint " + this);
+
+            boolean offscreen = getX() < 0 || getY() < 0;
+            
+            if (DEBUG.Enabled) Log.debug("paint " + this + ";  hidden=" + isHidden + "; offscreen=" + offscreen);
+
+            // don't paint if we're offscreen.  This is important for the presentation tool,
+            // as it actually configures some of it's special button locations when it
+            // paints, so only one viewer at a time should be painting, otherwise the
+            // buttons could get the wrong location for the visible viewer.
+            if (offscreen)
+                return;
+            
             super.paint(g);
 
             if (isHidden) {

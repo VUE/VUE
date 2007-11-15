@@ -66,7 +66,7 @@ public class PresentationTool extends VueTool
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
 
-    private final ImageButton ExitButton = new ImageButton(VueResources.getImageIcon("pathwayTool.exitImageIcon")) {
+    private final ImageButton ExitButton = new ImageButton("exit", VueResources.getImageIcon("pathwayTool.exitImageIcon")) {
             void doAction() {
                 if (VUE.inFullScreen())
                     VUE.toggleFullScreen(false, true);
@@ -79,8 +79,9 @@ public class PresentationTool extends VueTool
             
         };
     
-    private final ImageButton ResumeButton = new ImageButton(VueResources.getImageIcon("pathwayTool.resumeImageIcon")) {
+    private final ImageButton ResumeButton = new ImageButton("resume", VueResources.getImageIcon("pathwayTool.resumeImageIcon")) {
             void doAction() {
+                if (DEBUG.Enabled) out("resume pressed");
                 if (!VUE.inNativeFullScreen())
                     VUE.toggleFullScreen(true);
             }
@@ -117,12 +118,14 @@ public class PresentationTool extends VueTool
 
         final ImageIcon icon;
         final int width, height;
+        final String name;
 
         int x, y;
         boolean visible;
 
-        ImageButton(ImageIcon icon) {
+        ImageButton(String name, ImageIcon icon) {
             this.icon = icon;
+            this.name = name;
             width = icon.getIconWidth();
             height = icon.getIconHeight();
         }
@@ -145,6 +148,8 @@ public class PresentationTool extends VueTool
         }
 
         void setLocation(int x, int y) {
+            if (DEBUG.Enabled) out(this + " setLocation " + x + "," + y);
+            //Util.printStackTrace(this + " setLocation " + x + "," + y);
             this.x = x;
             this.y = y;
         }
@@ -154,10 +159,12 @@ public class PresentationTool extends VueTool
         }
 
         boolean contains(MouseEvent e) {
-            return isVisible() ? contains(e.getX(), e.getY()) : false;
+            boolean hit = contains(e.getX(), e.getY());
+            if (DEBUG.Enabled) out(this + " contains=" + hit + "; " + e);
+            return hit;
         }
         
-        boolean contains(int x, int y) {
+        private boolean contains(int x, int y) {
 
             if (!isVisible())
                 return false;
@@ -169,6 +176,13 @@ public class PresentationTool extends VueTool
         }
 
         void doAction() {}
+
+        public String toString() {
+            return String.format("ImageButton[%6s; %3d,%3d %s]",
+                                 name,
+                                 x, y,
+                                 isVisible() ? "VISIBLE" : "HIDDEN");
+        }
     }
 
     /** a presentation moment (data for producing a single presentation screen) */
