@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.90 $ / $Date: 2007-11-14 06:30:02 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2007-11-15 02:40:15 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -563,7 +563,11 @@ public class LWSlide extends LWContainer
             dc.pop();
         }
 
-        if (onMapSlideIcon && !drewBorder /*&& !dc.isAnimating()*/) {
+        if (DEBUG.BOXES) {
+            dc.g.setColor(Color.red);
+            dc.setAbsoluteStroke(1);
+            dc.g.draw(getZeroShape());
+        } else if (onMapSlideIcon && !drewBorder /*&& !dc.isAnimating()*/) {
             // force a basic slide-icon border in case fill has no contrast w/background
             dc.g.setColor(Color.darkGray);
             dc.g.setStroke(STROKE_FIVE);
