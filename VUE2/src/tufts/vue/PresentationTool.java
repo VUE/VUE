@@ -2823,7 +2823,12 @@ public class PresentationTool extends VueTool
     /** @return false if in native full screen */
     @Override
     public boolean permitsToolChange() {
-        return !VUE.inNativeFullScreen();
+        if (VUE.inNativeFullScreen())
+            return false;
+        else if (VUE.inWorkingFullScreen() && ResumeButton.isVisible())
+            return false;
+        else
+            return true;
     }
 
 
