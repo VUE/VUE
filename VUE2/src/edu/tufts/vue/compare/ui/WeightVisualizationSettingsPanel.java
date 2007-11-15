@@ -19,7 +19,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.28 $ / $Date: 2007-11-06 16:08:09 $ / $Author: dan $
+ * @version $Revision: 1.29 $ / $Date: 2007-11-15 17:02:09 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -521,7 +521,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     class PercentageIntervalRenderer extends JPanel implements TableCellRenderer
     {
         private JTextField startField = new JTextField(3);
+        private JLabel startLabel = new JLabel();
+        private JLabel toLabel = new JLabel("to");
         private JTextField endField = new JTextField(3);
+        private JLabel percentageLabel = new JLabel("%");
         
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,boolean hasFocus,int row, int col)
         {
@@ -538,9 +541,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             }
             
             startField.setText(start+"");
+            startLabel.setText(start + "");
             endField.setText(end+"");
             add(startField);
+            //add(startLabel);
+            add(toLabel);
             add(endField);
+            percentageLabel.setForeground(startField.getForeground());
+            add(percentageLabel);
             startField.setEnabled(false);
             endField.setEnabled(false);
             return this;
