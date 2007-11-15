@@ -42,7 +42,7 @@
 	<key>Java</key>
 	<dict>
 		<key>VMOptions</key>
-		<string>-Xms10m -Xmx512m</string>
+		<string>-Xms200m -Xmx1024m</string>
 		<key>WorkingDirectory</key>
 		<string>$APP_PACKAGE/Contents/Resources/Java</string>
 		<key>MainClass</key>
