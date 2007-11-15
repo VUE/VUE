@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.42 $ / $Date: 2007-11-05 14:58:33 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2007-11-15 14:16:46 $ / $Author: anoop $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -100,7 +100,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     //private JComponent preview;
     //private tufts.vue.ui.ResourceIcon mIcon;
     //private Object mPreview;
-    private boolean isImage;
+    private boolean isImage = true;
 
     private URI mRelativeURI; // right now, I think this only used if it's RELATIVE -- kind of a marker for a short-name
     
@@ -1362,6 +1362,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     public boolean isImage() {
         //return isImage(this);
         return isImage;
+        //return true;
     }
 
     /* guiess if a URL or File contains image dta */
