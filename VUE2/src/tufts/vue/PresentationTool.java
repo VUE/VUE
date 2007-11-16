@@ -1053,7 +1053,10 @@ public class PresentationTool extends VueTool
             break;
 
         case KeyEvent.VK_R:
-            setPage(mLastStartPathwayPage);
+            if (ResumeButton.isVisible())
+                ResumeButton.doAction();
+            else
+                setPage(mLastStartPathwayPage);
             break;
             
         case KeyEvent.VK_SPACE:
