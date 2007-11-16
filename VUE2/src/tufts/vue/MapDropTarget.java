@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.86 $ / $Date: 2007-11-16 16:21:45 $ / $Author: anoop $  
+ * @version $Revision: 1.87 $ / $Date: 2007-11-16 16:37:49 $ / $Author: anoop $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -937,7 +937,7 @@ class MapDropTarget
             Iterator i = drop.items.iterator();
             while (i.hasNext()) {
                 Resource resource = (Resource) i.next();
-                System.out.println("Following resource has been dropped"+ resource);
+  //              System.out.println("Following resource has been dropped"+ resource);
                 if (drop.hitParent != null && !drop.isLinkAction) {
 
                     // create new node children of the hit node
