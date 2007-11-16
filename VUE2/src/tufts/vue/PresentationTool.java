@@ -1623,6 +1623,11 @@ public class PresentationTool extends VueTool
             return true;
         }
 
+        if (e.onFocus) {
+            // never advance/change focal on focus
+            return true;
+        }
+
         if (GUI.isRightClick(e)) {
             toggleFocal(e);
             return true;

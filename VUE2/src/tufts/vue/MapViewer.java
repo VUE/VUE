@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.492 $ / $Date: 2007-11-16 16:07:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.493 $ / $Date: 2007-11-16 20:40:21 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4541,7 +4541,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // THE BELOW NOW DOES NOTHING AS THE VIEWER INSTANCE IS DIFFERENT!
                     //if (mFocal != null)
                     //    loadFocal(mFocal.getMap()); // make sure top-level map is displayed
-
                     
                     if (activeTool instanceof PresentationTool) // todo: need to do this in a more centralized location...
                         activateTool(VueTool.getInstance(SelectionTool.class));
@@ -4920,23 +4919,27 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             final boolean wasFocusOwner;
 
-            if (true || activeTool != ToolPresentation) {
-                // Due to a bug in the focus system, sometimes we really should have been
-                // the focus owner, but we mysteriously lost it to "null", so for now all
-                // presses will be recognized, even on *application* focus gains (which is
-                // what wasFocusOwner is there to detect) todo: fix
-                wasFocusOwner = true;
-            } else {
-                // The risk of the above bug is worth it for recovering focus during
-                // a presentation after launching a web browser -- don't immediately
-                // advance the presentation...
-                
-                // TODO: Unless they clicked on the "resume" button!  Need a VueTool
-                // handleFocusGained...  And in fact may just want the pres tool to
-                // auto-resume upon focus-gain...
+            if (activeTool == ToolPresentation) {
 
+                // If presentation tool, it's worth risking the below bug to make
+                // sure we don't auto-advance on the first click-back for focus
+                // if the presentation has dropped into temporary full screen
+                // working mode to display a web browser on the mac.
+                
                 wasFocusOwner = isFocusOwner();
+            } else {
+                
+                // Due to a bug in the focus system, sometimes we really should have
+                // been the focus owner, but we mysteriously lost it to "null" (what
+                // normally happens the the application loses focus entirely to another
+                // OS app), so for now all presses will be recognized, even on
+                // *application* focus gains (which is what wasFocusOwner is there to
+                // detect) todo: fix / workaround
+                
+                wasFocusOwner = true;
             }
+
+            final boolean gotFocus = !wasFocusOwner; // we'll be grabbing the focus no matter what
             
             if (DEBUG.MOUSE || DEBUG.FOCUS) {
                 System.out.println("-----------------------------------------------------------------------------");
@@ -4950,15 +4953,27 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             viewer.clearTip();
             grabVueApplicationFocus("mousePressed", e);
 
-            if (wasFocusOwner == false && !GUI.isMenuPopup(e)) {
-                //if (DEBUG.FOCUS) out("ignoring click on viewer focus gain");
-                Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-                Log.info(MapViewer.this + " ignoring click on viewer focus gain; focusOwner=" + owner);
-                e.consume();
-                return;
-            }
+//             if (wasFocusOwner == false && !GUI.isMenuPopup(e)) {
+//                 //if (DEBUG.FOCUS) out("ignoring click on viewer focus gain");
+//                 Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+//                 Log.info(MapViewer.this + " ignoring click on viewer focus gain; focusOwner=" + owner);
+//                 e.consume();
+//                 return;
+//             }
 
             //out("BUTTON " + e.getButton() + " mods: " + e.getModifiers() + " modEx: " + e.getModifiersEx() + " b2dm=" + InputEvent.BUTTON2_DOWN_MASK);
+            setLastMousePressPoint(e.getX(), e.getY());
+            setDragger(null);
+            
+            final float mapX = screenToMapX(e.getX());
+            final float mapY = screenToMapY(e.getY());
+            final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, gotFocus);
+            
+            if (activeTool.handleMousePressed(mme)) {
+                activeToolAteMousePress = true;
+                return;
+            }
+            
             if (e.getButton() == 0 && (e.getModifiersEx() & InputEvent.BUTTON2_DOWN_MASK) != 0) {
                 // sometimes pressing the mouse-wheel sends an event that looks like this
                 tufts.vue.ZoomTool.setZoomFit();
@@ -4978,25 +4993,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return;
             }
             
-            setLastMousePressPoint(e.getX(), e.getY());
-            
-            setDragger(null);
-            
-            //-------------------------------------------------------
-            // Check for hits on selection control points
-            //-------------------------------------------------------
-            
-            float mapX = screenToMapX(e.getX());
-            float mapY = screenToMapY(e.getY());
-            
-            MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, null);
-            
-            if (activeTool.handleMousePressed(mme)) {
-                activeToolAteMousePress = true;
-                return;
-            }
             
             if (e.getButton() == MouseEvent.BUTTON1 && activeTool.supportsSelection()) {
+                //-------------------------------------------------------
+                // Check for hits on selection control points
+                //-------------------------------------------------------
                 hitOnSelectionHandle = checkAndHandleControlPointPress(mme);
                 if (hitOnSelectionHandle) {
                     return;
@@ -5406,7 +5407,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             if (DEBUG.ROLLOVER) System.out.println("  mouseMoved: hit="+hit);
 
-            final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, hit, null);
+            final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, false);
+            mme.setPicked(hit);
 
             if (hit != sLastMouseOver) {
                 // we're over something different than we were
@@ -5709,7 +5711,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             final float mapX = screenToMapX(screenX);
             final float mapY = screenToMapY(screenY);
-            final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, draggedSelectorBox);
+            final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, draggedSelectorBox, false);
             
             
             if (!dragSelectorEnabled(mme) && !activeTool.supportsResizeControls()) 

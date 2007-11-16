@@ -32,7 +32,7 @@ import javax.swing.JScrollPane;
  * Extension of MouseEvent for events that happen on an instance of LWMap
  * in a MapViewer.
  *
- * @version $Revision: 1.21 $ / $Date: 2007-11-15 06:17:31 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2007-11-16 20:40:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -56,9 +56,12 @@ public class MapMouseEvent extends MouseEvent
     int pressX;
     int pressY;
 
+    /** did this mouse result in VUE / MapViewer getting new focus? */
+    public final boolean onFocus;
+
     //private Point2D.Float nodePoint;
     
-    public MapMouseEvent(MouseEvent e, float mapX, float mapY, LWComponent picked, Rectangle selectorBox)
+    public MapMouseEvent(MouseEvent e, float mapX, float mapY, Rectangle selectorBox, boolean onFocus)
     {
         super(e.getComponent(),
               e.getID(),
@@ -72,16 +75,13 @@ public class MapMouseEvent extends MouseEvent
 
         this.mapX = mapX;
         this.mapY = mapY;
-        if (DEBUG.PICK) out("created: picked=" + picked);
-        //if (picked==null) tufts.Util.printStackTrace("NULL PICKED");
-        if (picked != null)
-            setPicked(picked);
         this.selectorBox = selectorBox;
+        this.onFocus = onFocus;
     }
 
     public MapMouseEvent(MouseEvent e)
     {
-        this(e, 0f, 0f, null, null);
+        this(e, 0f, 0f, null, false);
         this.mapX = getViewer().screenToMapX(e.getX());
         this.mapY = getViewer().screenToMapY(e.getY());
     }
