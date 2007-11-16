@@ -869,9 +869,9 @@ public class TypeList extends JList implements MouseListener,ActionListener {
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
 	}
 	
-	JPopupMenu m = null;
-	private static final JMenuItem addToMap = new JMenuItem("Add to map");
-    //private static final JMenuItem addToNode = new JMenuItem("Add to selected node");
+	private JPopupMenu m = null;
+	private final JMenuItem addToMap = new JMenuItem("Add to map");
+    //private final JMenuItem addToNode = new JMenuItem("Add to selected node");
     
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
@@ -922,15 +922,16 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 			
 		} else*/ if (e.getSource().equals(addToMap))
 		{
+		
 			int index = this.locationToIndex(lastMouseClick);
 			this.setSelectedIndex(index);
 			
 			LWComponent o = this.getSelectedComponentCopy();
 
 			if (o instanceof LWNode)
-				VUE.getActiveMap().addNode((LWNode)o);
+				VUE.getActiveMap().add((LWNode)o);
 			else if (o instanceof LWLink)
-				VUE.getActiveMap().addLink((LWLink)o);
+				VUE.getActiveMap().add((LWLink)o);
 		}
 	}
 
