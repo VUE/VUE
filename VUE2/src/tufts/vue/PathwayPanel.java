@@ -49,7 +49,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.115 $ / $Date: 2007-11-13 02:58:50 $ / $Author: mike $
+ * @version $Revision: 1.116 $ / $Date: 2007-11-16 23:17:15 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -947,10 +947,15 @@ public class PathwayPanel extends JPanel
         }
         else if (btn == btnRefresh)
         {
-           // pathway.getCurrentEntry().getSlide().synchronizeResourcesWithNode();
+
+            final LWPathway.Entry entry = VUE.getActiveEntry();
+            if (entry != null && entry.getSlide().canSync() && entry.getSlide().numChildren() == 0) {
+                Actions.SyncToSlide.fire(this);
+            } else {
         	setFocusable(false);
         	new SyncDialog(mParentFrame, getLocationOnScreen()).setVisible(true);
         	setFocusable(true);
+            }
         }
    /*     else if (btn == btnMasterSlide)
         {

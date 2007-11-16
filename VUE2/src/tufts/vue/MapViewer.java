@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.493 $ / $Date: 2007-11-16 20:40:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.494 $ / $Date: 2007-11-16 23:17:15 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3987,8 +3987,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
         {
         	sSinglePopup = new JPopupMenu();
-            syncMenu.add(Actions.SyncWithNode);
-            syncMenu.add(Actions.SyncWithSlide);
+            syncMenu.add(Actions.SyncToNode);
+            syncMenu.add(Actions.SyncToSlide);
             syncMenu.add(Actions.SyncAll);
             WindowDisplayAction formatAction = new WindowDisplayAction(VUE.getFormatDock());
             formatBox = new JCheckBoxMenuItem(formatAction);

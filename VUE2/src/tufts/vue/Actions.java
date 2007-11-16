@@ -1218,7 +1218,7 @@ public class Actions implements VueConstants
         return null;
     }
     
-    public static final LWCAction SyncWithNode = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.slide2node")) 
+    public static final LWCAction SyncToNode = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.slide2node")) 
     {
         boolean enabledFor(LWSelection s) { return hasSyncable(s); }
     	public void act(LWSelection s)
@@ -1227,7 +1227,7 @@ public class Actions implements VueConstants
     	}
     };
     
-    public static final LWCAction SyncWithSlide = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.node2slide")) 
+    public static final LWCAction SyncToSlide = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.node2slide")) 
     {
         boolean enabledFor(LWSelection s) { return hasSyncable(s); }
     	public void act(LWSelection s)
