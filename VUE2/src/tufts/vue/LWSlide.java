@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.92 $ / $Date: 2007-11-16 23:44:07 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2007-11-16 23:54:22 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -416,9 +416,6 @@ public class LWSlide extends LWContainer
 
         super.pasteChildren(iterable);
     }
-    
-    // hack until addChildren & all the drop/paste methods supports some kind of drop/paste/add context:
-    //private boolean isPasteOrDrop;
     
     @Override
     public void addChildren(Iterable<LWComponent> iterable) {
