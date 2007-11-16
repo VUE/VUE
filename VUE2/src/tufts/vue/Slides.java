@@ -15,7 +15,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.7 $ / $Date: 2007-11-16 22:59:42 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-11-16 23:05:56 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -135,11 +135,13 @@ class Slides {
         }
     }
 
-        
-    private static LWSlide buildPathwaySlide(LWPathway.Entry entry)
+    private static LWSlide buildPathwaySlide(LWPathway.Entry entry) {
+        return buildPathwaySlide(CreatePathwaySlide(entry), entry);
+    }
+    
+    private static LWSlide buildPathwaySlide(final LWSlide slide, final LWPathway.Entry entry)
     {
-        final LWSlide slide = CreatePathwaySlide(entry);
-        //final LWComponent titleSource = entry.node;
+        //final LWSlide slide = CreatePathwaySlide(entry);
         final LWNode title = NodeModeTool.buildTextNode(entry.node.getDisplayLabel());
         final MasterSlide master = entry.pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
@@ -351,6 +353,12 @@ class Slides {
 
         if (!slide.canSync()) {
             Util.printStackTrace("Sync not permitted: " + slide + " type(" + type + ")");
+            return;
+        }
+
+        if (slide.numChildren() == 0 && slide.getEntry() != null && (type == Sync.ALL || type == Sync.TO_SLIDE)) {
+            // special case: completely rebuild this slide:
+            buildPathwaySlide(slide, slide.getEntry());
             return;
         }
 
