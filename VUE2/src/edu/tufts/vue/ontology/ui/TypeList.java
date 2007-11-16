@@ -925,7 +925,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 			int index = this.locationToIndex(lastMouseClick);
 			this.setSelectedIndex(index);
 			
-			LWComponent o = this.getSelectedComponent();
+			LWComponent o = this.getSelectedComponentCopy();
 
 			if (o instanceof LWNode)
 				VUE.getActiveMap().addNode((LWNode)o);
