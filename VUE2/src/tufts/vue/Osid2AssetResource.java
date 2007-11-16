@@ -28,6 +28,7 @@ package tufts.vue;
 /** A wrapper for an implementation of the Repository OSID.  A osid.dr.Asset which can be used as the user 
 *  object in a DefaultMutableTreeNode.  It implements the Resource interface specification.
 */
+import java.net.URL;
 
 public class Osid2AssetResource extends URLResource
 {
@@ -264,6 +265,20 @@ public class Osid2AssetResource extends URLResource
         if (getSpec().endsWith("=jpeg")) {
             // special case for MFA data source
             return "jpeg";
+        } else if (getSpec().startsWith("http:")) {
+            try  {
+                URL url = new URL(getSpec());
+                String mimeType = url.openConnection().getHeaderField("Content-type");
+                if(mimeType.contains("/")) {
+                    return mimeType.split("/")[1]; // returning the second part of mime-type
+                } else {
+                   return  super.getContentType();
+                }
+            } catch(Throwable t) {
+                t.printStackTrace();   
+                return super.getContentType();
+            }
+            
         } else
             return super.getContentType();
     }
