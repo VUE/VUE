@@ -1486,6 +1486,22 @@ public class DataSourceViewer extends JPanel
         }
         return null;
     }
+    
+    public static FavoritesDataSource getDefualtFavoritesDS() {
+        DefaultListModel model = dataSourceList.getContents();
+        
+        try {
+            for(int i = 0; i<model.size();i++){
+                Object o = model.getElementAt(i);
+                if(o instanceof FavoritesDataSource){
+                    return (FavoritesDataSource)o;
+                }
+            }
+        } catch(Throwable t) {
+            t.printStackTrace();
+        }
+        return null;
+    }
     public static void saveDataSourceViewer() {
         if (dataSourceList == null) {
             System.err.println("DataSourceViewer: No dataSourceList to save.");

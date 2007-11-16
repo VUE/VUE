@@ -19,13 +19,24 @@
 package tufts.vue.ui;
 import tufts.vue.DEBUG;
 
+import tufts.vue.Actions;
+import tufts.vue.DataSourceViewer;
+import tufts.vue.FavoritesDataSource;
+import tufts.vue.FavoritesWindow;
+import tufts.vue.LWComponent;
+import tufts.vue.LWImage;
+import tufts.vue.LWNode;
 import tufts.vue.LWPathway;
+import tufts.vue.LWSelection;
+import tufts.vue.LWSlide;
+import tufts.vue.NodeTool;
 import tufts.vue.PathwayTableModel;
 import tufts.vue.Resource;
 import tufts.vue.VUE;
 import tufts.vue.VueResources;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.WidgetStack;
+import tufts.vue.gui.WindowDisplayAction;
 
 import java.util.*;
 import java.awt.*;
@@ -40,14 +51,13 @@ import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 
-
 /**
  * A list of Resource's with their icons & title's that is selectable, draggable & double-clickable
  * for resource actions.  Also uses a "masking" data-model that can abbreviate the results
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-10-17 02:10:55 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2007-11-16 02:41:07 $ / $Author: mike $
  */
 public class ResourceList extends JList
     implements DragGestureListener, tufts.vue.ResourceSelection.Listener, MouseListener,ActionListener
@@ -135,7 +145,7 @@ public class ResourceList extends JList
         setFixedCellHeight(RowHeight);
         setCellRenderer(new RowRenderer());
         addMouseListener(this);
-        launchResource.addActionListener(this);
+        
         // Set up the data-model
 
         //final javax.swing.DefaultListModel model;
@@ -373,13 +383,61 @@ public class ResourceList extends JList
 	}
 	
 	JPopupMenu m = null;
-	private static final JMenuItem launchResource = new JMenuItem("Launch Resource");
-	
+	private static final JMenuItem launchResource = new JMenuItem("Open resource");
+	private static final WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
+    private static final JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
+    private static final JMenuItem addToMap = new JMenuItem("Add to map");
+    private static final JMenuItem addToNode = new JMenuItem("Add to selected node");
+    private static final JMenuItem addToSlide = new JMenuItem("Add to slide");
+    private static final JMenuItem addToSavedContent = new JMenuItem("Add to \"My Saved Content\"");
+    
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
-		m = new JPopupMenu("Resource Menu");
+		if (m == null)
+		{
+			m = new JPopupMenu("Resource Menu");
 		
-		m.add(launchResource);
+			infoCheckBox.setLabel("Resource Info");
+			if (VUE.getInfoDock().isShowing())
+				infoCheckBox.setSelected(true);
+			m.add(infoCheckBox);
+			m.addSeparator();
+			m.add(addToMap);
+			m.add(addToNode);
+			m.add(addToSlide);
+			m.add(addToSavedContent);
+			m.addSeparator();
+			m.add(launchResource);
+			launchResource.addActionListener(this);
+			addToMap.addActionListener(this);
+			addToNode.addActionListener(this);
+			addToSlide.addActionListener(this);
+			addToSavedContent.addActionListener(this);
+		}
+		LWSelection sel = VUE.getActiveViewer().getSelection();
+		LWComponent c = sel.only();
+		
+		if (c != null && c instanceof LWNode)
+		{
+			addToNode.setEnabled(true);
+			addToSlide.setEnabled(false);
+			if (c.hasResource())
+				addToNode.setLabel("Replace resource on node");
+		}
+		else if (c != null && c instanceof LWSlide)
+		{
+			addToNode.setEnabled(false);
+			addToSlide.setEnabled(true);
+			if (c.hasResource())
+				addToNode.setLabel("Add to selected node");
+		}
+		else
+		{
+			addToNode.setEnabled(false);
+			addToSlide.setEnabled(false);
+			if (c != null && c.hasResource())
+				addToNode.setLabel("Add to selected node");
+		}
 		return m;
 	}
 	Point lastMouseClick = null;
@@ -398,7 +456,51 @@ public class ResourceList extends JList
 			o.getResource().displayContent();
 			//this.get
 			//System.out.println(o.toString());
-		}
+		} else if (e.getSource().equals(addToMap))
+		{
+			int index = this.locationToIndex(lastMouseClick);
+			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
+			
+			LWNode end = NodeTool.NodeModeTool.createNewNode(o.getResource().getName());
+			end.setResource(o.getResource());
+	        VUE.getActiveMap().addNode(end);
+		} else if (e.getSource().equals(addToSlide))
+		{
+			int index = this.locationToIndex(lastMouseClick);
+			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
+			 
+			LWSelection sel = VUE.getActiveViewer().getSelection();
+			LWSlide c = (LWSlide)sel.only();
+			
+			LWImage end = new LWImage();
+			end.setResource(o.getResource());
+			
+			end.setStyle(c);
+			end.setResource(o.getResource());
+			end.setLabel(o.getResource().getName());
+			c.addChild(end);
+			
+      	  	
+		} else if (e.getSource().equals(addToNode))
+		{
+			int index = this.locationToIndex(lastMouseClick);
+			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
+			 
+			LWSelection sel = VUE.getActiveViewer().getSelection();
+			LWComponent c = sel.only();
+			VUE.setActive(LWComponent.class, this, null);            
+			c.setResource(o.getResource());
+			c.setLabel(o.getResource().getName());
+      	  	VUE.setActive(LWComponent.class, this, c);
+			
+			
+		} else if (e.getSource().equals(addToSavedContent))
+		{
+			int index = this.locationToIndex(lastMouseClick);
+			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
+			FavoritesDataSource repository = DataSourceViewer.getDefualtFavoritesDS();
+		    ((FavoritesWindow)repository.getResourceViewer()).getFavoritesTree().addResource(o.getResource());
+		}				    
 	}
 
 	public void mouseEntered(MouseEvent e) {

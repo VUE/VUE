@@ -27,6 +27,7 @@ import java.awt.dnd.*;
 
 import javax.swing.border.*;
 import javax.swing.tree.*;
+
 import java.util.Vector;
 import javax.swing.event.*;
 import osid.dr.*;
@@ -40,7 +41,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.32 $ / $Date: 2007-10-18 18:04:40 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2007-11-16 02:41:07 $ / $Author: mike $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -399,6 +400,15 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         VueDandDTree tree = new VueDandDTree(new FavoritesNode(r));
         tufts.Util.displayComponent(tree);
     }
+
+
+	public void addResource(Resource resource) {
+		// TODO Auto-generated method stub
+		   Object rootNode = getModel().getRoot();
+		   ResourceNode newNode = new ResourceNode(resource);
+		   ((DefaultTreeModel) getModel()).insertNodeInto((MutableTreeNode)newNode,  (MutableTreeNode)rootNode, ((DefaultMutableTreeNode)rootNode).getChildCount());
+
+	}
 }
 
 
