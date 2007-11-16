@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.174 $ / $Date: 2007-11-14 22:51:08 $ / $Author: sfraize $
+ * @version $Revision: 1.175 $ / $Date: 2007-11-16 21:29:27 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -226,17 +226,18 @@ public class LWMap extends LWContainer
     }
 
     public void setFile(File file) {
-        mFile = file;
-        if (mFile != null)
-            setLabel(mFile.getName()); // todo: don't let this be undoable!
         Log.debug("setFile " + file);
-        final File parentDir = mFile.getParentFile();
-        mSaveLocation = parentDir.toString();
-        Log.debug("saveLocation " + mSaveLocation);
-        mSaveLocationURI = parentDir.toURI();
-        Log.debug("saveLocationURI " + mSaveLocationURI);
+        mFile = file;
+        if (mFile != null) {
+            setLabel(mFile.getName()); // todo: don't let this be undoable!
+            final File parentDir = mFile.getParentFile();
+            mSaveLocation = parentDir.toString();
+            Log.debug("saveLocation " + mSaveLocation);
+            mSaveLocationURI = parentDir.toURI();
+            Log.debug("saveLocationURI " + mSaveLocationURI);
+        }
 
-        if (false && !mXMLRestoreUnderway) { // not turned on yet
+        if (false && mFile != null && !mXMLRestoreUnderway) { // not turned on yet
             // only do this on save: will be handled in completeXMLRestore
             // for restores
             relativizeResources(getAllDescendents(ChildKind.ANY),
