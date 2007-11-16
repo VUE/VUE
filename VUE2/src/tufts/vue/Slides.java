@@ -15,7 +15,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.6 $ / $Date: 2007-11-16 20:33:26 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2007-11-16 22:59:42 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -360,8 +360,8 @@ class Slides {
 
         if (DEBUG.Enabled) outf("NODE/SILDE SYNCHRONIZATION; type(%s) ---\n\t NODE: %s\n\tSLIDE: %s", type, node, slide);
         
-        final Set<Resource> slideUnique = new HashSet();
-        final Set<Resource> nodeUnique = new HashSet();
+        final Set<Resource> slideUnique = new LinkedHashSet();
+        final Set<Resource> nodeUnique = new LinkedHashSet();
         
         final Map<Resource,LWComponent> slideSources = new HashMap();
         final Map<Resource,LWComponent> nodeSources = new HashMap();
