@@ -111,6 +111,8 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
     private JPanel cssChoicePanel;
     private JPanel ontChoicePanel;
     
+    private int oldCSSSelectedIndex = BROWSE;
+    
     public OntologyChooser2(java.awt.Frame owner,String title,OntologyBrowser browser) 
     {
         super(owner,title);
@@ -455,6 +457,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         if(e.getSource() == ontChoice)
         {
             c.anchor = GridBagConstraints.WEST;
+            
             if(ontChoice.getSelectedIndex() == URL)
             {
                 mainPanel.remove(buttonPanel);
@@ -528,6 +531,15 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         }
         if(e.getSource() == cssChoice)
         {
+            if(cssChoice.getSelectedIndex() == oldCSSSelectedIndex)
+            {
+                return;
+            }
+            else
+            {
+                oldCSSSelectedIndex = cssChoice.getSelectedIndex();
+            }
+            
             reLayoutStartingAtCSS(false);
             validate();
         }
@@ -598,6 +610,10 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                       
                        tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()),ontURL);
 
+                       if(getOntType(ontURL) == null)
+                       {
+                           return;
+                       }
                                                                 
                        list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w);                                          
                                                                 
