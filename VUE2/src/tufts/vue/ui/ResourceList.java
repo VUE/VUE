@@ -57,7 +57,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-11-16 02:41:07 $ / $Author: mike $
+ * @version $Revision: 1.14 $ / $Date: 2007-11-16 20:13:34 $ / $Author: mike $
  */
 public class ResourceList extends JList
     implements DragGestureListener, tufts.vue.ResourceSelection.Listener, MouseListener,ActionListener
@@ -382,14 +382,14 @@ public class ResourceList extends JList
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
 	}
 	
-	JPopupMenu m = null;
-	private static final JMenuItem launchResource = new JMenuItem("Open resource");
-	private static final WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
-    private static final JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
-    private static final JMenuItem addToMap = new JMenuItem("Add to map");
-    private static final JMenuItem addToNode = new JMenuItem("Add to selected node");
-    private static final JMenuItem addToSlide = new JMenuItem("Add to slide");
-    private static final JMenuItem addToSavedContent = new JMenuItem("Add to \"My Saved Content\"");
+	private JPopupMenu m = null;
+	private final JMenuItem launchResource = new JMenuItem("Open resource");
+	private final WindowDisplayAction infoAction = new WindowDisplayAction(VUE.getInfoDock());
+    private final JCheckBoxMenuItem infoCheckBox = new JCheckBoxMenuItem(infoAction);
+    private final JMenuItem addToMap = new JMenuItem("Add to map");
+    private final JMenuItem addToNode = new JMenuItem("Add to selected node");
+    private final JMenuItem addToSlide = new JMenuItem("Add to slide");
+    private final JMenuItem addToSavedContent = new JMenuItem("Add to \"My Saved Content\"");
     
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
@@ -458,6 +458,7 @@ public class ResourceList extends JList
 			//System.out.println(o.toString());
 		} else if (e.getSource().equals(addToMap))
 		{
+			
 			int index = this.locationToIndex(lastMouseClick);
 			ResourceIcon o = (ResourceIcon)this.getModel().getElementAt(index);
 			
