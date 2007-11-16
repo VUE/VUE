@@ -869,9 +869,9 @@ public class TypeList extends JList implements MouseListener,ActionListener {
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
 	}
 	
-	private JPopupMenu m = null;
-	private final JMenuItem addToMap = new JMenuItem("Add to map");
-    //private final JMenuItem addToNode = new JMenuItem("Add to selected node");
+	JPopupMenu m = null;
+	private static final JMenuItem addToMap = new JMenuItem("Add to map");
+        private static final JMenuItem addToNode = new JMenuItem("Add to selected node");
     
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
@@ -880,15 +880,15 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 			m = new JPopupMenu("Resource Menu");
 		
 			m.add(addToMap);
-	//		m.add(addToNode);
+			m.add(addToNode);
 			addToMap.addActionListener(this);
-			//addToNode.addActionListener(this);
+			addToNode.addActionListener(this);
 		}
 
 		LWSelection sel = VUE.getActiveViewer().getSelection();
 		LWComponent c = sel.only();
 		
-	/*	if (c != null && c instanceof LWNode)
+		if (c != null && c instanceof LWNode)
 		{
 			addToNode.setEnabled(true);
 			
@@ -896,7 +896,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 		else
 		{
 			addToNode.setEnabled(false);
-		}*/
+		}
 
 		return m;
 	}
@@ -909,18 +909,32 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 	
 	public void actionPerformed(ActionEvent e)
 	{
-		/*if (e.getSource().equals(addToNode))
+		if (e.getSource().equals(addToNode))
 		{
-			int index = this.locationToIndex(lastMouseClick);
-			this.setSelectedIndex(index);
+			//int index = this.locationToIndex(lastMouseClick);
+			//this.setSelectedIndex(index);
 			
-			LWComponent o = this.getSelectedComponent();
+			//LWComponent o = this.getSelectedComponent();
 			
-			LWSelection sel = VUE.getActiveViewer().getSelection();
-			LWNode c = (LWNode)sel.only();
+			//LWSelection sel = VUE.getActiveViewer().getSelection();
+			//LWNode c = (LWNode)sel.only();
+                    
+                   //also need to check if there *is* a selected value
+                        
+                   Object type = getSelectedValue();
+                   if(type == null)
+                       return;
+                   if(type != null)
+                   {
+                       VueMetadataElement vme = new VueMetadataElement();
+                       vme.setObject(type);
+                       ((LWComponent)VUE.getActive(LWComponent.class)).getMetadataList().getMetadata().add(vme);
+                       //refresh();
+                       //repaint();
+                   }
 			
 			
-		} else*/ if (e.getSource().equals(addToMap))
+		} if (e.getSource().equals(addToMap))
 		{
 		
 			int index = this.locationToIndex(lastMouseClick);
