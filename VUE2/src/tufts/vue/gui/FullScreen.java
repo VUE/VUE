@@ -18,7 +18,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.17 $ / $Date: 2007-11-16 20:40:22 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2007-11-16 22:04:49 $ / $Author: sfraize $
  *
  */
 
@@ -104,6 +104,7 @@ public class FullScreen
             if (isHidden) {
                 // wait for paint to finish, then fade us up
                 fadeUp();
+                //FullScreenViewer.grabVueApplicationFocus("FullScreen.fadeUp", null);
             }
 
             if (screenBlacked) {
@@ -489,7 +490,7 @@ public class FullScreen
                 
         //FullScreenViewer.loadFocal(activeMap);
         FullScreenViewer.loadFocal(FullScreenLastActiveViewer.getFocal());
-        FullScreenViewer.grabVueApplicationFocus("FullScreen.enter", null);
+        FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
         
 //         GUI.invokeAfterAWT(new Runnable() { public void run() {
 //             FullScreenViewer.grabVueApplicationFocus("FullScreen.enter", null);
@@ -526,6 +527,7 @@ public class FullScreen
         }
 
         GUI.invokeAfterAWT(new Runnable() { public void run() {
+            FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-2", null); // backup sometimes needed
             NDC.pop();
         }});
         
