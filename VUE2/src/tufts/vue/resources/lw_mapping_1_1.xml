@@ -149,9 +149,12 @@
                 <field name="persistIsStyle" type="boolean">
                   <bind-xml name="isStyle" node="attribute"/>
                 </field>
-                
 
+                <field name="persistIsSlideStyled" type="boolean">
+                  <bind-xml name="isSlideStyle" node="attribute"/>
+                </field>
                 
+                                   
                 <!-- tmp back compat -->
 		<field name="parentStyle" type="tufts.vue.LWComponent">
                   <bind-xml name="parentStyleID" node="attribute" reference="true"/>

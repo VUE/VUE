@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.384 $ / $Date: 2007-11-15 02:20:38 $ / $Author: sfraize $
+ * @version $Revision: 1.385 $ / $Date: 2007-11-16 23:44:07 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -2522,6 +2522,7 @@ u                    getSlot(c).setFromString((String)value);
         //return isStyle;
     }
     
+    /** @return Boolean.TRUE if this component is serving as an active style for other objects, null otherwise */
     public Boolean getPersistIsStyle() {
         return isStyle() ? Boolean.TRUE : null;
     }
@@ -2530,6 +2531,17 @@ u                    getSlot(c).setFromString((String)value);
         setFlag(Flag.IS_STYLE, b.booleanValue());
 
     }
+
+    /** @return Boolean.TRUE if this component has marked as having the special "slide" style, null otherwise */
+    public Boolean getPersistIsSlideStyled() {
+        return hasFlag(Flag.SLIDE_STYLE) ? Boolean.TRUE : null;
+    }
+    
+    public void setPersistIsSlideStyled(Boolean b) {
+        setFlag(Flag.SLIDE_STYLE, b.booleanValue());
+
+    }
+    
 
     /** @deprecated: tmp back compat only */ public void setParentStyle(LWComponent c) { setStyle(c); }
     /** @deprecated: tmp back compat only */ public Boolean getPersistIsStyleParent() { return null; }

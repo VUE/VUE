@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.91 $ / $Date: 2007-11-15 02:40:15 $ / $Author: sfraize $
+ * @version $Revision: 1.92 $ / $Date: 2007-11-16 23:44:07 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -310,6 +310,11 @@ public class LWSlide extends LWContainer
 
     @Override
     public void XML_completed() {
+
+        // We shouldn't need this anymore now that we persist slide style,
+        // tho we're leaving it in for at least a while to catch recently
+        // made presentations -- SMF 2007-11-16
+        
         new SlideStylingTraversal() {
             public void visit(LWComponent c) {
                 c.setFlag(Flag.SLIDE_STYLE);
@@ -328,12 +333,6 @@ public class LWSlide extends LWContainer
                 applyMasterStyle(master, c);
             }
         }.traverse(node);
-        
-//        applyMasterStyle(master, node);
-//         if (!(node instanceof LWGroup)) {
-//             for (LWComponent c : node.getAllDescendents())
-//                 applyMasterStyle(getMasterSlide(), c);
-//         }
     }
             
     private static void applyMasterStyle(MasterSlide master, LWComponent c) {
@@ -356,22 +355,11 @@ public class LWSlide extends LWContainer
         track("styled", c.getStyle() == null ? c : c + "; Style=" + c.getStyle().getLabel());
     }
 
-//     void addView(LWComponent c) {
-//         track("addView", c);
-//         adjustForSlideDisplay(c);
-//         addChild(c);
-//         //addChildImpl(c); // won't generate hierarchy events...
-//     }
-    
 
     /** @return true if adjusted */
     boolean applyStyle(LWComponent c) {
         
-        //track("adjust", c);
-//         if (this instanceof MasterSlide)
-//             return false;
-        
-        //aif (DEBUG.PRESENT || DEBUG.STYLE)
+        //if (DEBUG.PRESENT || DEBUG.STYLE)
         //track("styling", c + "; curStyle=" + c.getStyle());
         
         c.setFlag(Flag.SLIDE_STYLE);
@@ -405,7 +393,6 @@ public class LWSlide extends LWContainer
         pasteChildren(iterable);
     }
 
-
     @Override
     public void pasteChildren(Iterable<LWComponent> iterable) {
 
@@ -426,9 +413,12 @@ public class LWSlide extends LWContainer
                 // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
             }
         }
-        
+
         super.pasteChildren(iterable);
     }
+    
+    // hack until addChildren & all the drop/paste methods supports some kind of drop/paste/add context:
+    //private boolean isPasteOrDrop;
     
     @Override
     public void addChildren(Iterable<LWComponent> iterable) {
@@ -443,28 +433,6 @@ public class LWSlide extends LWContainer
         super.addChildImpl(c);
     }
 
-    
-//     @Override
-//     protected void addChildImpl(final LWComponent c)
-//     {
-//         if (this instanceof MasterSlide) {
-//             super.addChildImpl(c);
-//             return;
-//         }
-//         c.setFlag(Flag.SLIDE_STYLE);
-//         if (DEBUG.PRESENT || DEBUG.STYLE) out("addChildImpl " + c);
-//         if (c.getStyle() == null)
-//             applyMasterStyle(c);
-//         super.addChildImpl(c);
-//         }
-//         /*
-//         LWPathway pathway = (LWPathway) getParent();
-//         if (pathway != null && c.getStyle() == null)
-//             c.setStyle(pathway.getMasterSlide().textStyle);
-//         */
-//     }
-
-    
 //     /** Return true if our parent is the given pathway (as slides are currently owned by the pathway).
 //      * If our parent is NOT a pathway, use the default impl.
 //      */
