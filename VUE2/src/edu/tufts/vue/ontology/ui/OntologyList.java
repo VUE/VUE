@@ -18,15 +18,36 @@
 
 package edu.tufts.vue.ontology.ui;
 
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import javax.swing.border.Border;
 import javax.swing.Box;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 //not currently needed: VUE-815
 //import tufts.vue.VueConstants;
+import tufts.vue.DataSourceViewer;
+import tufts.vue.FavoritesDataSource;
+import tufts.vue.FavoritesWindow;
+import tufts.vue.LWComponent;
+import tufts.vue.LWImage;
+import tufts.vue.LWNode;
+import tufts.vue.LWSelection;
+import tufts.vue.LWSlide;
+import tufts.vue.NodeTool;
+import tufts.vue.VUE;
 import tufts.vue.gui.CheckBoxRenderer;
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.WindowDisplayAction;
+import tufts.vue.ui.ResourceIcon;
 
 
 /**
@@ -37,12 +58,15 @@ import tufts.vue.gui.GUI;
  *
  * @author dhelle01
  */
-public class OntologyList extends javax.swing.JList implements OntologySelectionListener {
+public class OntologyList extends javax.swing.JList implements OntologySelectionListener,
+																MouseListener, ActionListener
+{
 	
     public OntologyList(OntologyViewer viewer)
     {
         super(new OntologyListModel());
         setCellRenderer(new OntologyListRenderer());
+        addMouseListener(this);
     }
     
     public void refresh()
@@ -155,5 +179,77 @@ public class OntologyList extends javax.swing.JList implements OntologySelection
             return renderer;
         }
     }
+
+    private void displayContextMenu(MouseEvent e) {
+        getPopup(e).show(e.getComponent(), e.getX(), e.getY());
+	}
+	
+	JPopupMenu m = null;
+	private static final JMenuItem addStyleSheet = new JMenuItem("Add Style Sheet");
+    private static final JMenuItem deleteOntology = new JMenuItem("Delete Ontology");
     
+	private JPopupMenu getPopup(MouseEvent e) 
+	{
+		if (m == null)
+		{
+			m = new JPopupMenu("Resource Menu");
+		
+			m.add(addStyleSheet);
+			m.add(deleteOntology);
+			addStyleSheet.addActionListener(this);
+			deleteOntology.addActionListener(this);
+		}
+		int index = this.locationToIndex(lastMouseClick);
+		edu.tufts.vue.ontology.Ontology o = (edu.tufts.vue.ontology.Ontology)this.getModel().getElementAt(index);
+		if (o.getCssFileName() != null)
+			addStyleSheet.setLabel("Replace Style Sheet");
+		else
+			addStyleSheet.setLabel("Add Style Sheet");
+		
+		return m;
+	}
+	Point lastMouseClick = null;
+	
+	public void mouseClicked(MouseEvent arg0) {
+		 
+		
+	}
+	
+	public void actionPerformed(ActionEvent e)
+	{
+		if (e.getSource().equals(addStyleSheet))
+		{
+			OntologyBrowser.getBrowser().applyStyle.actionPerformed(e);
+		} else if (e.getSource().equals(deleteOntology))
+		{
+			OntologyBrowser.getBrowser().removeOntology.actionPerformed(e);
+		}
+	}
+
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mousePressed(MouseEvent e) {
+		if (e.isPopupTrigger())
+		 {
+			 	lastMouseClick = e.getPoint();
+				displayContextMenu(e);
+		 }
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		if (e.isPopupTrigger())
+		 {
+			 	lastMouseClick = e.getPoint();
+				displayContextMenu(e);
+		 }
+	}
+
 }

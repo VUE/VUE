@@ -155,7 +155,97 @@ public class OntologyBrowser extends JPanel {
     }
 
     private OntologyOpenAction ontologyOpenAction = new edu.tufts.vue.ontology.action.OntologyOpenAction("Add an Ontology",this);
-    
+    protected tufts.vue.VueAction removeOntology = new tufts.vue.VueAction() {
+        {
+            setActionName("Remove Selected Ontology");
+        }
+        
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+            
+            try
+            {
+              
+                
+              edu.tufts.vue.ontology.Ontology ont = (edu.tufts.vue.ontology.Ontology)getBrowser().getViewer().getList().getSelectedValue();
+              URL ontURL = new java.net.URL(ont.getBase());
+              
+              OntManager.getOntManager().removeOntology(ontURL);
+              edu.tufts.vue.ontology.OntManager.getOntManager().save();
+                              
+              Widget w = widgetMap.get(new OntologyBrowserKey(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),ontURL));
+              
+              if(DEBUG_LOCAL)
+              {    
+                System.out.println("TypeList remove w from key: " + w);
+              }
+              
+              resultsStack.setHidden(w,true);
+              resultsStack.remove(w);
+              widgetMap.remove(w);
+       
+              if (widgetMap.size() <= 1)
+              {
+            	  VueToolbarController.getController().hideOntologicalTools();
+              }
+              
+              //resultsStack.updateUI();
+            }
+            catch(java.net.MalformedURLException mue)
+            {
+              System.out.println("OntologyBrowser: remove ontology url exception" + mue);
+            }
+            
+            getViewer().getList().updateUI();
+            //repaint();
+            revalidate();
+        }
+        
+    };
+
+    protected tufts.vue.VueAction applyStyle = new tufts.vue.VueAction() {
+        {
+            setActionName("Add Style Sheet");
+        }
+        
+        public void actionPerformed(java.awt.event.ActionEvent e) {
+            VueFileChooser chooser = new VueFileChooser();
+            chooser.showOpenDialog(OntologyBrowser.this);
+            if(chooser.getSelectedFile()!=null) {
+                java.net.URL cssURL = null;
+                try {
+                    cssURL = chooser.getSelectedFile().toURL();
+                } catch(java.net.MalformedURLException mue) {
+                    System.out.println("trouble opening css file: " + mue);
+                }
+                int selectedOntology = getViewer().getList().getSelectedIndex();
+                edu.tufts.vue.ontology.Ontology ont = ((edu.tufts.vue.ontology.Ontology)
+                         (getViewer().getList().getModel().getElementAt(selectedOntology)));
+                ont.applyStyle(cssURL);
+                
+                // need to update typelist!!
+                try
+                {        
+                  URL url = new URL(ont.getBase());
+                  TypeList tlist = (TypeList)widgetMap.get(new OntologyBrowserKey(
+                                        edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),url)).getComponent(0);
+                  tlist.getOntology().applyStyle(cssURL);
+                  tlist.styleApplied();
+                }
+                catch(Exception urle)
+                {
+                    System.out.println("Typelist -- error refreshing type list" + urle);
+                }
+               
+                //should get rid of message next to ontology name
+                //should be able to do better than this -- validate(), repaint() don't seem to work..
+                resultsStack.updateUI();
+                getViewer().getList().updateUI();
+
+            }
+        }
+        
+    };
+
     public Widget getWidgetForOntology(edu.tufts.vue.ontology.Ontology o)
     {
         URL ontURL = null;
@@ -202,99 +292,9 @@ public class OntologyBrowser extends JPanel {
         
         buildSingleDockWindow();
                 
-        tufts.vue.VueAction applyStyle = new tufts.vue.VueAction() {
-            {
-                setActionName("Add Style Sheet");
-            }
-            
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                VueFileChooser chooser = new VueFileChooser();
-                chooser.showOpenDialog(OntologyBrowser.this);
-                if(chooser.getSelectedFile()!=null) {
-                    java.net.URL cssURL = null;
-                    try {
-                        cssURL = chooser.getSelectedFile().toURL();
-                    } catch(java.net.MalformedURLException mue) {
-                        System.out.println("trouble opening css file: " + mue);
-                    }
-                    int selectedOntology = getViewer().getList().getSelectedIndex();
-                    edu.tufts.vue.ontology.Ontology ont = ((edu.tufts.vue.ontology.Ontology)
-                             (getViewer().getList().getModel().getElementAt(selectedOntology)));
-                    ont.applyStyle(cssURL);
-                    
-                    // need to update typelist!!
-                    try
-                    {        
-                      URL url = new URL(ont.getBase());
-                      TypeList tlist = (TypeList)widgetMap.get(new OntologyBrowserKey(
-                                            edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),url)).getComponent(0);
-                      tlist.getOntology().applyStyle(cssURL);
-                      tlist.styleApplied();
-                    }
-                    catch(Exception urle)
-                    {
-                        System.out.println("Typelist -- error refreshing type list" + urle);
-                    }
-                   
-                    //should get rid of message next to ontology name
-                    //should be able to do better than this -- validate(), repaint() don't seem to work..
-                    resultsStack.updateUI();
-                    getViewer().getList().updateUI();
-
-                }
-            }
-            
-        };
-        
-        
-       tufts.vue.VueAction removeOntology = new tufts.vue.VueAction() {
-            {
-                setActionName("Remove Selected Ontology");
-            }
-            
-            public void actionPerformed(java.awt.event.ActionEvent e) {
                 
-                try
-                {
-                  
-                    
-                  edu.tufts.vue.ontology.Ontology ont = (edu.tufts.vue.ontology.Ontology)getBrowser().getViewer().getList().getSelectedValue();
-                  URL ontURL = new java.net.URL(ont.getBase());
-                  
-                  OntManager.getOntManager().removeOntology(ontURL);
-                  edu.tufts.vue.ontology.OntManager.getOntManager().save();
-                                  
-                  Widget w = widgetMap.get(new OntologyBrowserKey(edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),ontURL));
-                  
-                  if(DEBUG_LOCAL)
-                  {    
-                    System.out.println("TypeList remove w from key: " + w);
-                  }
-                  
-                  resultsStack.setHidden(w,true);
-                  resultsStack.remove(w);
-                  widgetMap.remove(w);
-           
-                  if (widgetMap.size() <= 1)
-                  {
-                	  VueToolbarController.getController().hideOntologicalTools();
-                  }
-                  
-                  //resultsStack.updateUI();
-                }
-                catch(java.net.MalformedURLException mue)
-                {
-                  System.out.println("OntologyBrowser: remove ontology url exception" + mue);
-                }
-                
-                getViewer().getList().updateUI();
-                //repaint();
-                revalidate();
-            }
-            
-        };
-
-        /*tufts.vue.VueAction addFedoraOntologies = new tufts.vue.VueAction() {
+        
+               /*tufts.vue.VueAction addFedoraOntologies = new tufts.vue.VueAction() {
             {
                 setActionName("Add Fedora Ontologies");
             }
