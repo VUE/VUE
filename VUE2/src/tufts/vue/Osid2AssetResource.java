@@ -268,6 +268,7 @@ public class Osid2AssetResource extends URLResource
         } else if (getSpec().startsWith("http:")) {
             try  {
                 URL url = new URL(getSpec());
+                Log.info("opening URL " + url);
                 String mimeType = url.openConnection().getHeaderField("Content-type");
                 if(mimeType.contains("/")) {
                     return mimeType.split("/")[1]; // returning the second part of mime-type
