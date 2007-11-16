@@ -18,6 +18,12 @@
 
 package edu.tufts.vue.ontology.action;
 
+import java.awt.event.KeyEvent;
+
+import javax.swing.Action;
+import javax.swing.KeyStroke;
+
+import tufts.vue.Actions;
 import edu.tufts.vue.ontology.ui.*;
 
 /*
@@ -35,6 +41,8 @@ public class OntologyControlsOpenAction extends tufts.vue.VueAction {
     public OntologyControlsOpenAction(String label) 
     {
         super(label);
+        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_8, Actions.COMMAND);
+    	putValue(Action.ACCELERATOR_KEY, acceleratorKey);    	
     }
     
     public void actionPerformed(java.awt.event.ActionEvent e)

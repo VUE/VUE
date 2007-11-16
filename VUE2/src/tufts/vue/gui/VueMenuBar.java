@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.73 $ / $Date: 2007-11-13 02:58:02 $ / $Author: mike $
+ * @version $Revision: 1.74 $ / $Date: 2007-11-16 16:44:29 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -572,23 +572,26 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
 
         if (VUE.getFormatDock() != null)        
-        	windowMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_4,"Formatting Palette"));                
+        	windowMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_1,"Formatting Palette"));                
         windowMenu.addSeparator();                
         if (VUE.getInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
         windowMenu.add(Actions.KeywordAction);
-        windowMenu.add(Actions.NotesAction);                    
+        windowMenu.add(Actions.NotesAction);
+        if (VUE.getMapInfoDock() !=null)
+        	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
         windowMenu.addSeparator();
       //  if (VUE.getSlideDock() !=null)	
       //  	windowMenu.add(createWindowItem(VUE.getSlideDock(),KeyEvent.VK_8, "Slide Viewer"));
-        if (VUE.getMapInfoDock() !=null)
-        	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));        
+        if (VUE.getPresentationDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_4, "Pathways"));
+        if (VUE.getContentDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_5, "Resources"));
         if (VUE.getPannerDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_5, "Panner"));        
+        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, "Panner"));        
         if (VUE.getOutlineDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_7, "Outline"));        
-        if (VUE.getContentDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_1, "Resources"));
+        
         windowMenu.addSeparator();
         if (VUE.getFloatingZoomDock()!=null)
         {
@@ -597,7 +600,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	windowMenu.add(fullScreenToolbarItem);        	
         }        
         windowMenu.addSeparator();
-        windowMenu.add(ontcontrls);                
+        windowMenu.add(ontcontrls);   
+        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
+    	Actions.SearchFilterAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
         windowMenu.add(Actions.SearchFilterAction);
         
         ////////////////////////////////////////////////////////////////////////////////////
