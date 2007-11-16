@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.491 $ / $Date: 2007-11-15 05:51:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.492 $ / $Date: 2007-11-16 16:07:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4917,12 +4917,26 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // so can drag copies off map into slide viewer more easily (if it selects
     // on the map, it will swap out the slide displayed!)
         public void mousePressed(MouseEvent e) {
-            //boolean wasFocusOwner = isFocusOwner();
-            // Due to a bug in the focus system, sometimes we really should have been
-            // the focus owner, but we mysteriously lost it to "null", so for now all
-            // presses will be recognized, even on *application* focus gains (which is
-            // what wasFocusOwner is there to detect) todo: fix
-            boolean wasFocusOwner = true;
+
+            final boolean wasFocusOwner;
+
+            if (true || activeTool != ToolPresentation) {
+                // Due to a bug in the focus system, sometimes we really should have been
+                // the focus owner, but we mysteriously lost it to "null", so for now all
+                // presses will be recognized, even on *application* focus gains (which is
+                // what wasFocusOwner is there to detect) todo: fix
+                wasFocusOwner = true;
+            } else {
+                // The risk of the above bug is worth it for recovering focus during
+                // a presentation after launching a web browser -- don't immediately
+                // advance the presentation...
+                
+                // TODO: Unless they clicked on the "resume" button!  Need a VueTool
+                // handleFocusGained...  And in fact may just want the pres tool to
+                // auto-resume upon focus-gain...
+
+                wasFocusOwner = isFocusOwner();
+            }
             
             if (DEBUG.MOUSE || DEBUG.FOCUS) {
                 System.out.println("-----------------------------------------------------------------------------");
