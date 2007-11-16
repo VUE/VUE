@@ -15,7 +15,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.5 $ / $Date: 2007-11-14 03:19:16 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2007-11-16 20:33:26 $ / $Author: sfraize $
  */
 class Slides {
 
@@ -112,17 +112,19 @@ class Slides {
         TitledImage(LWComponent imageNode, LWImage i) {
             image = i;
             image.setSyncSource(imageNode);
-            String txt;
-            if (imageNode.hasLabel())
-                txt = imageNode.getLabel();
-            else
-                txt = i.getLabel();
-            if (txt == null || txt.length() == 0)
-                txt = "Image";
-            
-            title = new LWNode(txt);
-            title.setAsTextNode(true);
-            title.setSyncSource(imageNode);
+            if (imageNode != null) {
+                String txt;
+                if (imageNode.hasLabel())
+                    txt = imageNode.getLabel();
+                else
+                    txt = i.getLabel();
+                if (txt == null || txt.length() == 0)
+                    txt = "Image";
+                title = new LWNode(txt);
+                title.setAsTextNode(true);
+                title.setSyncSource(imageNode);
+            } else
+                title = null;
         }
 
         TitledImage(LWImage syncSource, LWImage i) {
@@ -137,6 +139,7 @@ class Slides {
     private static LWSlide buildPathwaySlide(LWPathway.Entry entry)
     {
         final LWSlide slide = CreatePathwaySlide(entry);
+        //final LWComponent titleSource = entry.node;
         final LWNode title = NodeModeTool.buildTextNode(entry.node.getDisplayLabel());
         final MasterSlide master = entry.pathway.getMasterSlide();
         final CopyContext cc = new CopyContext(false);
@@ -186,8 +189,17 @@ class Slides {
 
         // TODO: if the source node is an image node, need to make sure
         // it's image gets added (is filtered by getContentToCopy)
-        if (LWNode.isImageNode(entry.node))
-            images.add(new TitledImage(entry.node, ((LWNode)entry.node).getImage().duplicate(cc)));
+        if (LWNode.isImageNode(entry.node)) {
+            if (images.size() == 0)
+                images.add(new TitledImage((LWComponent)null, ((LWNode)entry.node).getImage().duplicate(cc)));
+            else
+                images.add(new TitledImage(entry.node, ((LWNode)entry.node).getImage().duplicate(cc)));
+        } else if (entry.node.hasResource()) {
+            LWNode titleLink = new LWNode(entry.node.getLabel()); // could use resource title instead
+            titleLink.setResource(entry.node.getResource());
+            titleLink.setAsTextNode(true);
+            text.add(titleLink);
+        }
 
 
         //-------------------------------------------------------
@@ -204,12 +216,15 @@ class Slides {
         x = y = SlideMargin;
 
         for (TitledImage t : images) {
-            t.title.takeLocation(x++,y++);
+            if (t.title != null) {
+                t.title.takeLocation(x++,y++);
+                slide.applyStyle(t.title);
+            }
             t.image.takeLocation(x++,y++);
-            slide.applyStyle(t.title);
             slide.applyStyle(t.image);
             added.add(t.image);
-            added.add(t.title); // keep titles over images (add after)
+            if (t.title != null)
+                added.add(t.title); // keep titles over images (add after)
         }
 
         // differences in font sizes mean text below title looks to left of title unless slighly indented
@@ -277,11 +292,16 @@ class Slides {
                               imageRegionTop + (imageRegionHeight - image.getHeight()) / 2);
 
             LWComponent label = images.get(0).title;
-            label.setLocation(image.getX() + (image.getWidth() - label.getWidth()) / 2,
-                              image.getY() + image.getHeight());
+            if (label != null) {
+                label.setLocation(image.getX() + (image.getWidth() - label.getWidth()) / 2,
+                                  image.getY() + image.getHeight());
+            }
             //image.getY() - label.getHeight());
                 
         } else if (images.size() > 1) {
+
+            // TitledImage.title should never be null if there is more than one image
+            // to layout
 
             final float labelHeight = images.get(0).title.getHeight();
             final float verticalMargin = labelHeight / 2;
