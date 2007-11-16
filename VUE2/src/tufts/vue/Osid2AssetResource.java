@@ -265,7 +265,7 @@ public class Osid2AssetResource extends URLResource
         if (getSpec().endsWith("=jpeg")) {
             // special case for MFA data source
             return "jpeg";
-        } else if (getSpec().startsWith("http:")) {
+        } else if (getSpec().contains("fedora")) { // fix for fedora url
             try  {
                 URL url = new URL(getSpec());
                 Log.info("opening URL " + url);
