@@ -24,9 +24,14 @@ import edu.tufts.vue.style.*;
 import edu.tufts.vue.ontology.*;
 
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.datatransfer.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.dnd.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -35,7 +40,9 @@ import java.util.List;
 //import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.event.ListDataListener;
@@ -43,6 +50,7 @@ import javax.swing.event.ListSelectionEvent;
 
 import tufts.vue.*;
 import tufts.vue.gui.*;
+import tufts.vue.ui.ResourceIcon;
 
 /*
  * TypeList.java
@@ -56,7 +64,7 @@ import tufts.vue.gui.*;
  *
  * @author dhelle01
  */
-public class TypeList extends JList { 
+public class TypeList extends JList implements MouseListener,ActionListener { 
     
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(TypeList.class);
@@ -82,7 +90,7 @@ public class TypeList extends JList {
     public TypeList() {
         
         setCellRenderer(new TypeCellRenderer());
-        
+        addMouseListener(this);
         javax.swing.DefaultListSelectionModel selectionModel = new javax.swing.DefaultListSelectionModel();
         selectionModel.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         setSelectionModel(selectionModel);
@@ -857,5 +865,99 @@ public class TypeList extends JList {
         
         return testPanel;
     }*/
+    private void displayContextMenu(MouseEvent e) {
+        getPopup(e).show(e.getComponent(), e.getX(), e.getY());
+	}
+	
+	JPopupMenu m = null;
+	private static final JMenuItem addToMap = new JMenuItem("Add to map");
+    //private static final JMenuItem addToNode = new JMenuItem("Add to selected node");
     
+	private JPopupMenu getPopup(MouseEvent e) 
+	{
+		if (m == null)
+		{
+			m = new JPopupMenu("Resource Menu");
+		
+			m.add(addToMap);
+	//		m.add(addToNode);
+			addToMap.addActionListener(this);
+			//addToNode.addActionListener(this);
+		}
+
+		LWSelection sel = VUE.getActiveViewer().getSelection();
+		LWComponent c = sel.only();
+		
+	/*	if (c != null && c instanceof LWNode)
+		{
+			addToNode.setEnabled(true);
+			
+		}
+		else
+		{
+			addToNode.setEnabled(false);
+		}*/
+
+		return m;
+	}
+	Point lastMouseClick = null;
+	
+	public void mouseClicked(MouseEvent arg0) {
+		 
+		
+	}
+	
+	public void actionPerformed(ActionEvent e)
+	{
+		/*if (e.getSource().equals(addToNode))
+		{
+			int index = this.locationToIndex(lastMouseClick);
+			this.setSelectedIndex(index);
+			
+			LWComponent o = this.getSelectedComponent();
+			
+			LWSelection sel = VUE.getActiveViewer().getSelection();
+			LWNode c = (LWNode)sel.only();
+			
+			
+		} else*/ if (e.getSource().equals(addToMap))
+		{
+			int index = this.locationToIndex(lastMouseClick);
+			this.setSelectedIndex(index);
+			
+			LWComponent o = this.getSelectedComponent();
+
+			if (o instanceof LWNode)
+				VUE.getActiveMap().addNode((LWNode)o);
+			else if (o instanceof LWLink)
+				VUE.getActiveMap().addLink((LWLink)o);
+		}
+	}
+
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void mousePressed(MouseEvent e) {
+		if (e.isPopupTrigger())
+		 {
+			 	lastMouseClick = e.getPoint();
+				displayContextMenu(e);
+		 }
+	}
+
+	public void mouseReleased(MouseEvent e) {
+		if (e.isPopupTrigger())
+		 {
+			 	lastMouseClick = e.getPoint();
+				displayContextMenu(e);
+		 }
+	}
+
 }
