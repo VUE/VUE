@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.44 $ / $Date: 2007-11-15 21:33:35 $ / $Author: anoop $
+ * @version $Revision: 1.45 $ / $Date: 2007-11-16 16:34:58 $ / $Author: anoop $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -794,8 +794,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             System.err.println("Got classpath resource: " + mURL_Browse);
             //this.spec = mURL_Browse.toString();
         } else {
-            if (!isImage) // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
+            if (!isImage) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
                 setAsImage(looksLikeImageFile(spec));
+                if(getContentType().equalsIgnoreCase("jpg") || getContentType().equalsIgnoreCase("jpeg") || getContentType().equalsIgnoreCase("gif"))
+                    setAsImage(true);
+            }
             mURL_Browse = makeURL(spec);
             //setURL_Browse(spec);
         }
@@ -1376,6 +1379,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             || s.endsWith(".fpx")
             || s.endsWith(".bmp")
             || s.endsWith(".ico")
+          
                ) return true;
         return false;
     }
