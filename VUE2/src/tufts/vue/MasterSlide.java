@@ -31,7 +31,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.9 $ / $Date: 2007-11-17 00:12:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.10 $ / $Date: 2007-11-17 00:34:47 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -67,20 +67,25 @@ public final class MasterSlide extends LWSlide
         if (parent instanceof LWPathway) {
             super.setParent(parent);
             setPathwayEntry(((LWPathway)parent).asEntry());
-            if (!mXMLRestoreUnderway) {
-            }
         } else
             Util.printStackTrace(this + " master slide can't set parent to non pathway: " + parent);
     }
 
     @Override
-    public final double getScale() { return 1.0; }
+    public double getScale() { return 1.0; }
 
     @Override
-    public final void takeScale(double s) {}
+    public void takeScale(double s) {}
 
     @Override
-    public final boolean isMoveable() { return false; }
+    public boolean isMoveable() { return false; }
+
+//     /** @return true */
+//     @Override
+//     public boolean isPathwayOwned() {
+//         return true;
+//     }
+    
 
     void completeXMLRestore() {
 
