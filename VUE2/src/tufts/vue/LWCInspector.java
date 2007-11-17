@@ -35,6 +35,7 @@ class LWCInspector extends javax.swing.JPanel
 {
     private JLabel idField = new JLabel();
     private JLabel typeField = new JLabel();
+    private JLabel parentField = new JLabel();
     private JLabel locationField = new JLabel();
     private JLabel sizeField = new JLabel();
     private JLabel labelHex = new JLabel();
@@ -76,6 +77,7 @@ class LWCInspector extends javax.swing.JPanel
     private Object[] labelTextPairs = {
         "-ID",      idField,
         "-Type",      typeField,
+        "-Parent",      parentField,
         "-Location",locationField,
         "-Size",    sizeField,
         "-ZeroTX",    transLocField,
@@ -306,8 +308,10 @@ class LWCInspector extends javax.swing.JPanel
             setSelection(selection);
     }
 
-    private void loadText(JTextComponent c, String text)
+    private void loadText(JTextComponent c, Object o)
     {
+        String text = (o == null ? "null" : o.toString());
+        
         String hasText = c.getText();
         // This prevents flashing where fields of
         // length greater the the visible area do
@@ -443,6 +447,8 @@ class LWCInspector extends javax.swing.JPanel
             typeField.setText(lwc.getClass().getName() + " [" + lwc.getTypeToken() + "]");
         else
             typeField.setText(lwc.getClass().getName());
+
+        parentField.setText(c.getParent() == null ? "null" : c.getParent().toString());
         loadLabel(c);
         loadText(notesField, c.getNotes());
         
