@@ -31,7 +31,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.8 $ / $Date: 2007-11-13 04:30:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.9 $ / $Date: 2007-11-17 00:12:12 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -273,11 +273,11 @@ public final class MasterSlide extends LWSlide
         return false;
     }
 
-    /** @return false: master slide applies no styles of it's own */
-    @Override
-    boolean applyStyle(LWComponent c) {
-        return false;
-    }
+//     /** @return false: master slide applies no styles of it's own */
+//     @Override
+//     boolean applyStyle(LWComponent c) {
+//         return false;
+//     }
     
     
 //     @Override
