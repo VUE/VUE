@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.494 $ / $Date: 2007-11-16 23:17:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.495 $ / $Date: 2007-11-17 00:34:13 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2538,7 +2538,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //-------------------------------------------------------
 
         if (indication != null && indication != mFocal && indication.hasAncestor(mFocal)) {
-            if (indication instanceof LWSlide && indication.isPathwayOwned() && (indication.getParent() == mFocal || !indication.isVisible())) {
+            if (indication instanceof MasterSlide) {
+                // never indicate master slide -- what we'd really like is for hasAcestor to stop at the master slide
+                // for our purposes here, tho that may break other hierarchy dependent code.
+                // TODO: We ALSO don't want to indicate anything that has an ancestor of the master slide at all... 
+            } else if (indication instanceof LWSlide && indication.isPathwayOwned() &&
+                       (indication.getParent() == mFocal || !indication.isVisible())) {
                 // special case: don't indicate a slide icon if it's parent is
                 // the focal -- slide icons are "special" children that are NOT drawn when
                 // an object is the focal, and also don't indicate if it currently
@@ -3377,7 +3382,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
             }
 
-            if (/* !ResizeControl.LOCAL_RESIZE && */ selection.size() > 1 && mFocal instanceof LWSlide) {
+            if (!DEBUG.CONTAINMENT && /* !ResizeControl.LOCAL_RESIZE && */ selection.size() > 1 && mFocal instanceof LWSlide) {
                 // hack for broken multi-resize on slides -- provide no selection handles
                 resizeControl.active = false;
             } else {
