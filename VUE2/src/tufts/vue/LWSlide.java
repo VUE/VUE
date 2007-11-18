@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.94 $ / $Date: 2007-11-18 20:11:59 $ / $Author: sfraize $
+ * @version $Revision: 1.95 $ / $Date: 2007-11-18 21:49:02 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -347,7 +347,7 @@ public class LWSlide extends LWContainer
         if (c.hasResource() && !c.hasChildren())
             c.setStyle(master.getLinkStyle());
         //else if (c instanceof LWNode && ((LWNode)c).isTextNode())
-        else if (c instanceof LWNode)
+        else if (c.getTypeToken() == LWNode.class)
             c.setStyle(master.getTextStyle());
         else if (c instanceof LWText)
             c.setStyle(master.getTextStyle());

@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.385 $ / $Date: 2007-11-16 23:44:07 $ / $Author: sfraize $
+ * @version $Revision: 1.386 $ / $Date: 2007-11-18 21:49:01 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -995,12 +995,12 @@ u                    getSlot(c).setFromString((String)value);
             if (value == newColor)
                 return;
 
-            // enforce the fixed alpha on the incoming color:
-            if (newColor != null && newColor.getAlpha() != fixedAlpha) {
+            // enforce the fixed alpha on any incoming color:
+            if (newColor != null && newColor.getAlpha() != fixedAlpha && newColor.getAlpha() != 0) {
                 //out("COLOR VALUE: " + newColor + " " + ColorToString(newColor) + " alpha=" + newColor.getAlpha());
                 newColor = new Color((newColor.getRGB() & 0xFFFFFF) + (fixedAlpha << 24), true);
-                //newColor = new Color(newColor.getRGB() + 0x80000000, true); // test -- hardcoded 50% alpha                
-                //out("used fixed alpha " + fixedAlpha + " producing " + newColor + " alpha=" + newColor.getAlpha() + " " + ColorToString(newColor));
+                //out("used fixed alpha " + fixedAlpha + " producing " + newColor + " alpha=" + newColor.getAlpha()
+                //+ " " + ColorToString(newColor));
             }
 
             super.set(newColor);
@@ -1008,7 +1008,6 @@ u                    getSlot(c).setFromString((String)value);
         
         @Override
         void take(Color c) {
-            //if (!allowTranslucence && (c == null || c.getAlpha() != 0xFF))
             if (fixedAlpha < NO_ALPHA_SET && (c == null || c.getAlpha() != 0xFF))
                 throw new PropertyValueVeto(key + "; color with translucence: "
                                             + c

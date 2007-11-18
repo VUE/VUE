@@ -33,22 +33,22 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.16 $ / $Date: 2007-11-05 16:59:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.17 $ / $Date: 2007-11-18 21:49:01 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
 {
-    private static final Color DarkFill = new Color(0,0,0,64);
-    private static final Color LightFill = new Color(255,255,255,64);
-    private static final Color DebugFill = new Color(0,255,0,128);
-    private static final Color DefaultFill = new Color(128,128,128,128);
-    
     public LWPortal() {
-        disablePropertyTypes(KeyType.STYLE);
-        //enableProperty(LWKey.StrokeWidth);
-        //enableProperty(LWKey.StrokeColor);
-        enableProperty(LWKey.Shape);
-        //disableProperty(LWKey.Label);
+        updateCapabilities();
+        mFillColor.setFixedAlpha(64);
+        mStrokeColor.setFixedAlpha(64);
+    }
+
+    @Override
+    public LWPortal duplicate(CopyContext cc) {
+        LWPortal newPortal = (LWPortal) super.duplicate(cc);
+        newPortal.updateCapabilities();
+        return newPortal;
     }
 
     public static LWPortal create() {
@@ -61,6 +61,38 @@ public class LWPortal extends LWNode
     }
 
 
+    @Override
+    protected void addEntryRef(LWPathway.Entry e) {
+        super.addEntryRef(e);
+        updateCapabilities();
+    }
+
+    @Override
+    protected void removeEntryRef(LWPathway.Entry e) {
+        super.removeEntryRef(e);
+        updateCapabilities();
+    }
+
+    private void updateCapabilities() {
+        disablePropertyTypes(KeyType.STYLE);
+        enableProperty(LWKey.StrokeWidth);
+        enableProperty(LWKey.StrokeColor);
+        enableProperty(LWKey.Shape);
+        if (inPathway()) {
+            // If a portal is on any pathway, it's fill-color is forced
+            // null and is always computed at draw time depending on the
+            // the current pathway.
+            setFillColor(null);
+            disableProperty(LWKey.FillColor);
+        } else {
+            // If a portal is "free", and not on a pathway,
+            // users can change the fill color (tho drawing
+            // either one of stroke or fill is enforced so
+            // as not to leave the portal invisible)
+            enableProperty(LWKey.FillColor);
+        }
+    }
+    
     /* override to do nothing so we aren't constrainted by LWNode's minimum size*/
     //@Override protected void layoutImpl(Object triggerKey) {}
     //@Override protected void layout(Object triggerKey, Size curSize, Size request) {} // overkill: shrinks to nothing?
@@ -104,12 +136,21 @@ public class LWPortal extends LWNode
             return super.containsImpl(x, y, pc);
     }
     
+    private static final Color DarkFill = new Color(0,0,0,64);
+    private static final Color LightFill = new Color(255,255,255,64);
+    private static final Color DebugFill = new Color(0,255,0,128);
+    private static final Color DefaultFill = new Color(128,128,128,128);
+    
     @Override
     public Color getRenderFillColor(DrawContext dc) {
-        if (false&&dc != null && dc.focal != null)
-            return dc.focal.mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
-        else
+        if (mFillColor.isTransparent())
             return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
+        else
+            return getFillColor();
+//         if (false&&dc != null && dc.focal != null)
+//             return dc.focal.mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
+//         else
+//             return getMap().mFillColor.brightness() > 0.5 ? DarkFill : LightFill;
     }
 
     @Override
@@ -118,7 +159,6 @@ public class LWPortal extends LWNode
         if (dc.skipDraw == this)
             return;
 
-        //if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
         if (dc.focal == this) {
 
             final AffineTransform zeroTransform = dc.g.getTransform();
@@ -150,8 +190,11 @@ public class LWPortal extends LWNode
                 getParent().draw(clipDC);
                 clipDC.dispose();
                 
-                dc.g.setTransform(zeroTransform);                
-                dc.setAbsoluteStroke(2);
+                dc.g.setTransform(zeroTransform);
+                if (true || this.stroke == STROKE_ZERO)
+                    dc.setAbsoluteStroke(2);
+                else
+                    dc.g.setStroke(this.stroke);
                 dc.g.setColor(getContrastColor(dc.getBackgroundFill()));
                 dc.g.draw(getZeroShape());
             }
@@ -160,14 +203,6 @@ public class LWPortal extends LWNode
             // no fill: don't show the portal fill if we, or any
             // other portal, is currently the focal
         } else if (hasEntries()) {
-//             final LWPathway exclusive = getExclusiveVisiblePathway();
-//             if (exclusive != null)
-//                 dc.g.setColor(exclusive.getColor());
-//             else if (inPathway(VUE.getActivePathway()))
-//                 dc.g.setColor(VUE.getActivePathway().getColor());
-//             else 
-//                 dc.g.setColor(getRenderFillColor(dc));
-
             final Color fill = getPriorityPathwayColor(dc);
             if (fill == null)
                 dc.g.setColor(getRenderFillColor(dc));
@@ -182,30 +217,22 @@ public class LWPortal extends LWNode
                 dc.g.fill(getZeroShape());
             }
         } else {
-            // Show the portal region:
-            dc.g.setColor(getRenderFillColor(dc));
-            dc.g.fill(getZeroShape());
+
+            if (this.stroke == STROKE_ZERO || !mFillColor.isTransparent()) {
+                // Show the portal region:
+                dc.g.setColor(getRenderFillColor(dc));
+                dc.g.fill(getZeroShape());
+            }
+
+            if (this.stroke != STROKE_ZERO) {
+                dc.g.setStroke(this.stroke);
+                dc.g.setColor(getStrokeColor());
+                dc.g.draw(getZeroShape());
+            }
+            
         }
-
-
-        
-//         if (DEBUG.BOXES || DEBUG.CONTAINMENT) {
-//             dc.g.setColor(DebugFill);
-//             dc.g.fill(getZeroShape());
-//         } else if (dc.focal instanceof LWPortal || !dc.isInteractive()) {
-//             // no fill: don't show the portal fill if we, or any
-//             // other portal, is currently the focal
-//             if (false) {
-//                 dc.g.setColor(Color.blue);
-//                 dc.g.setStroke(VueConstants.STROKE_TWO);
-//                 dc.g.draw(getZeroShape());
-//             }
-//         } else {
-//             // Show the portal region:
-//             dc.g.setColor(getRenderFillColor(dc));
-//             dc.g.fill(getZeroShape());
-//         }
     }
+    
 
     /*
     private boolean wasVisible = true;
