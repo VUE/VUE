@@ -815,7 +815,7 @@ public class LWImage extends
             drawImageBox(dc);
             
             // Forced border for node-icon's:
-            if (mImage != null && dc.isInteractive() && !getParent().isTransparent()) {
+            if (mImage != null && !getParent().isTransparent()) {
                 // this is somehow making itext PDF generation through a GC worse... (probably just a bad tickle)
                 dc.g.setStroke(STROKE_TWO);
                 //dc.g.setColor(IconBorderColor);
