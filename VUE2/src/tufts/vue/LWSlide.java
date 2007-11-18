@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.93 $ / $Date: 2007-11-16 23:54:22 $ / $Author: sfraize $
+ * @version $Revision: 1.94 $ / $Date: 2007-11-18 20:11:59 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -489,7 +489,7 @@ public class LWSlide extends LWContainer
         boolean drewBorder = false;
         boolean onMapSlideIcon = false;
         
-        if (isSlideIcon() && (dc.focal != this || dc.focused == this)) {
+        if (isSlideIcon() && dc.drawPathways() && (dc.focal != this || dc.focused == this)) {
             onMapSlideIcon = true;
             // we have an entry: draw a pathway hilite
             if (dc.isPresenting() || getEntry() == VUE.getActiveEntry()) {
