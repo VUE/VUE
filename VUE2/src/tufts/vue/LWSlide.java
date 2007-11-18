@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.95 $ / $Date: 2007-11-18 21:49:02 $ / $Author: sfraize $
+ * @version $Revision: 1.96 $ / $Date: 2007-11-18 22:15:34 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -500,7 +500,7 @@ public class LWSlide extends LWContainer
             }
         } else if (dc.focal != this) {
             if (isSelected() && dc.isInteractive()) {
-                // for on-map slides only: drag regular selection border if selection
+                // for on-map slides only: draw regular selection border if selection
                 dc.g.setColor(COLOR_HIGHLIGHT);
                 dc.setAbsoluteStroke(getStrokeWidth() + SelectionStrokeWidth);
                 dc.g.draw(getZeroShape());
