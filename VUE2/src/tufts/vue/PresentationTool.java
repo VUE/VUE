@@ -2369,7 +2369,7 @@ public class PresentationTool extends VueTool
         //            dc.setDrawPathways(mCurrentPage.node instanceof LWMap);
 
         //out("getDrawContext");
-        //dc.setInteractive(false); // draw no selections, tho we depend on this being interactive right now...
+        dc.setInteractive(false); // draw no selections, tho we depend on this being interactive right now...
 
         dc.setDrawPathways(dc.isAnimating() || mCurrentPage == null || mCurrentPage.node instanceof LWMap);
         
@@ -2432,9 +2432,8 @@ public class PresentationTool extends VueTool
             // the main viewer and the slide viewer... for now, the slide viewer ignores
             // all drawing effects of the active tool, so we don't have to worry about
             // it.
-        
-            //dc.g.setComposite(AlphaComposite.Src);
-            if (dc.isInteractive()) {
+
+            if (true || dc.isInteractive()) {
                 drawNavNodes(dc.push()); dc.pop();
             } else
                 out("NON-INTERACTIVE (no NavNodes)");
@@ -2453,7 +2452,7 @@ public class PresentationTool extends VueTool
             drawOverviewMap(dc.push()); dc.pop();
         }
 
-        if (dc.isInteractive()) {
+        if (true || dc.isInteractive()) {
             if (ResumeButton.isVisible()) {
                 dc.setFrameDrawing();
                 ResumeButton.setLocation(30, dc.frame.height - (ResumeButton.height+20)); 
