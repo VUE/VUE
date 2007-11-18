@@ -36,7 +36,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.58 $ / $Date: 2007-11-03 20:39:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.59 $ / $Date: 2007-11-18 23:22:41 $ / $Author: sfraize $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -392,7 +392,7 @@ public class MapInspectorPanel extends JPanel
             mLocation.setText(path);
             mLocation.setToolTipText(path);
             propertiesEditor.setProperties(pMap.getMetadata(),true);
-            Log.debug(getClass().getSimpleName() + ".updatePanel: " + VUE.getActiveMap().getFillColor());
+            if (DEBUG.EVENTS) Log.debug(getClass().getSimpleName() + ".updatePanel: " + VUE.getActiveMap().getFillColor());
             mMapColor.setColor(VUE.getActiveMap().getFillColor());
         }
         
