@@ -233,13 +233,17 @@ public class PresentationTool extends VueTool
                 return entry.isMapView();
         }
 
-        /** @return true if this is a map-view node that's on a pathway */
-        public boolean isMapViewNode() {
-            if (entry == null)
-                return true; // changed 2007-10-22
-              //return false; 
-            else
-                return entry.isMapView();
+//         /** @return true if this is a map-view node that's on a pathway */
+//         public boolean isMapViewNode() {
+//             if (entry == null)
+//                 return true; // changed 2007-10-22
+//               //return false; 
+//             else
+//                 return entry.isMapView();
+//         }
+
+        public boolean isOnMapNode() {
+            return entry == null;
         }
 
         public boolean isMap() {
@@ -950,6 +954,8 @@ public class PresentationTool extends VueTool
     private static final boolean GUESSING = true;
 
     private boolean goForward(boolean allTheWay) { return goForward(allTheWay, false); }
+
+    /** @return true if there was a meaninful way forward that was taken (even if current page doesn't change: e.g., end of pathway) */
     private boolean goForward(boolean allTheWay, boolean guessing)
     {
         boolean wentForward = true;
@@ -984,8 +990,8 @@ public class PresentationTool extends VueTool
                     mForceShowNavNodes = mShowNavNodes = true;
                     mDidAutoShowNavNodes = true;
                     repaint("guessForward");
-                    wentForward = false;
                 }
+                wentForward = false;
             } else {
                 if (DEBUG.NAV)
                     revisitNext(allTheWay);
@@ -1060,11 +1066,8 @@ public class PresentationTool extends VueTool
             break;
             
         case KeyEvent.VK_SPACE:
-            //if (mLastPathwayPage != null && mCurrentPage.node instanceof LWMap)
-            if (mLastPathwayPage != null && mCurrentPage.entry == null)
-                setPage(mLastPathwayPage);
-            else
-                goForward(SINGLE_STEP, GUESSING);
+
+            doDefaultForwardAction();
             break;            
 
         case KeyEvent.VK_DOWN:
@@ -1664,15 +1667,15 @@ public class PresentationTool extends VueTool
 //             return true;
 //         }
 
-        if (hit == null) {
-            // if we hit nothing / or the focal, attempt to go forward down the pathway.
-            // If that's possible, let it happen -- if not, focus up.
-            if (!goForward(SINGLE_STEP))
-                focusUp(e);
-            return true;
-        }
+//         if (hit == null) {
+//             // if we hit nothing / or the focal, attempt to go forward down the pathway.
+//             // If that's possible, let it happen -- if not, focus up.
+//             if (!goForward(SINGLE_STEP))
+//                 focusUp(e);
+//             return true;
+//         }
         
-        if (hit.getTypeToken() == LWNode.TYPE_TEXT) {
+        if (hit != null && hit.getTypeToken() == LWNode.TYPE_TEXT) {
             if (hit.hasResource()) {
                 hit.getResource().displayContent();
                 return true;
@@ -1681,42 +1684,44 @@ public class PresentationTool extends VueTool
             //return true;
         }
 
-        if (mCurrentPage.equals(hit)) {
-
+        if (hit == null || mCurrentPage.equals(hit)) {
+            
             if (DEBUG.PRESENT) out("hit on current page " + mCurrentPage);
 
-            if (goForward(SINGLE_STEP))
-                return true;
-            
-            if (mCurrentPage.onPathway() && mCurrentPage.isMapViewNode()) {
-                // a click on the current map-node page: stay put
-                return false;
-            }
-            
-            // hit on what what we just clicked on: backup,
-            // but only if it's not a full pathway entry
-            // (meant for intra-slide clicking)
-            //if (mCurrentPage.entry == null) {
+            doDefaultForwardAction();
 
-            // if we're non-linear nav off a pathway, revisit prior,
-            // OTHERWISE, if general "browse", pop the focal
-            if (mCurrentPage.insideSlide() || mLastPathwayPage == null) {
-                focusUp(e);
-            }
-            else if (mVisited.hasPrev()) {
-                
-                // TODO: ONLY DO THIS IF PREVIOUS IS AN ANCESTOR OF CURRENT
-                // (this could be tricky to figure out using pages tho...)
-                // E.g., only do this if delving into a slide.
-                // Current undesired behaviour: clicking on a map-view
-                // page is auto-backing up!
+//             if (goForward(SINGLE_STEP))
+//                 return true;
+            
+//             if (mCurrentPage.onPathway() && mCurrentPage.isMapViewNode()) {
+//                 // a click on the current map-node page: stay put
+//                 return false;
+//             }
+            
+//             // hit on what what we just clicked on: backup,
+//             // but only if it's not a full pathway entry
+//             // (meant for intra-slide clicking)
+//             //if (mCurrentPage.entry == null) {
 
-                // 2007-10-22 For now: changed Page.isMapViewNode to return TRUE
-                // if entry is null, so this code is cut off above -- the only
-                // place isMapViewNode() is ever used.  
+//             // if we're non-linear nav off a pathway, revisit prior,
+//             // OTHERWISE, if general "browse", pop the focal
+//             if (mCurrentPage.insideSlide() || mLastPathwayPage == null) {
+//                 focusUp(e);
+//             }
+//             else if (mVisited.hasPrev()) {
                 
-                revisitPrior();
-            }
+//                 // TODO: ONLY DO THIS IF PREVIOUS IS AN ANCESTOR OF CURRENT
+//                 // (this could be tricky to figure out using pages tho...)
+//                 // E.g., only do this if delving into a slide.
+//                 // Current undesired behaviour: clicking on a map-view
+//                 // page is auto-backing up!
+
+//                 // 2007-10-22 For now: changed Page.isMapViewNode to return TRUE
+//                 // if entry is null, so this code is cut off above -- the only
+//                 // place isMapViewNode() is ever used.  
+                
+//                 revisitPrior();
+//             }
         } else {
 
             if (DEBUG.PRESENT) out("default hit; focusing to: " + hit);
@@ -1727,6 +1732,70 @@ public class PresentationTool extends VueTool
         }
         return true;
     }
+
+    private void doDefaultForwardAction()
+    {
+        if (DEBUG.PRESENT) out("doDefaultForwardAction");
+        
+        if (mVisited.hasPrev() && mCurrentPage.entry == null) {
+            if (DEBUG.PRESENT) out(" CUR FOCAL: " + mFocal);
+            if (DEBUG.Enabled && mFocal != mCurrentPage.getPresentationFocal())
+                Util.printStackTrace("mFocal != curPagePresFocal; " + mFocal + " != " + mCurrentPage.getPresentationFocal());
+            final LWComponent lastFocal = mVisited.prev().getPresentationFocal();
+            boolean lastWasAncestor = mFocal.hasAncestor(lastFocal);
+            if (DEBUG.PRESENT) out("LAST FOCAL: " + lastFocal + "; ANCESTOR=" + lastWasAncestor);
+            if (lastWasAncestor) {
+                revisitPrior();
+                return;
+            }
+        }
+        
+        if (goForward(SINGLE_STEP)) {
+            if (DEBUG.PRESENT) out("went forward");
+        }
+        else if (mLastPathwayPage != null && mCurrentPage.entry == null) {
+            // final default: if we have a last pathway page, just go there
+            setPage(mLastPathwayPage);
+        }
+
+        
+//         if (goForward(SINGLE_STEP))
+//             return;
+            
+//         if (mCurrentPage.onPathway() && mCurrentPage.isMapViewNode()) {
+//             // a click on the current map-node page: stay put
+//             return false;
+//         }
+
+//         if (mVisited.hasPrev() && mCurrentPage.getPresentationFocal().hasAncestor(mVisited.prev().getPresentationFocal()))
+//             revisitPrior();
+        
+//         // hit on what what we just clicked on: backup,
+//         // but only if it's not a full pathway entry
+//         // (meant for intra-slide clicking)
+//         //if (mCurrentPage.entry == null) {
+
+//         // if we're non-linear nav off a pathway, revisit prior,
+//         // OTHERWISE, if general "browse", pop the focal
+//         if (mCurrentPage.insideSlide() || mLastPathwayPage == null) {
+//             focusUp(e);
+//         }
+//         else if (mVisited.hasPrev()) {
+                
+//             // TODO: ONLY DO THIS IF PREVIOUS IS AN ANCESTOR OF CURRENT
+//             // (this could be tricky to figure out using pages tho...)
+//             // E.g., only do this if delving into a slide.
+//             // Current undesired behaviour: clicking on a map-view
+//             // page is auto-backing up!
+
+//             // 2007-10-22 For now: changed Page.isMapViewNode to return TRUE
+//             // if entry is null, so this code is cut off above -- the only
+//             // place isMapViewNode() is ever used.  
+//         }
+    }
+
+
+    
 
         
     private boolean checkForNavNodeClick(MapMouseEvent e) {
