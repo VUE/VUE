@@ -40,7 +40,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.200 $ / $Date: 2007-11-13 04:34:52 $ / $Author: sfraize $
+ * @version $Revision: 1.201 $ / $Date: 2007-11-19 00:08:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2049,17 +2049,10 @@ public class LWNode extends LWContainer
         if (false && (dc.isPresenting() || isPresentationContext())) { // old-style "turn off the wrappers"
             ; // do nothing: no fill
         } else {
-
-            // itext debugging...
-            //dc.g.setColor(Color.blue);
-            //dc.g.fill(mShape);
-
             Color fillColor = getRenderFillColor(dc);
             if (fillColor != null && fillColor.getAlpha() != 0) { // transparent if null
                 dc.g.setColor(fillColor);
-                //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
                 dc.g.fill(mShape);
-                //if (isZoomedFocus()) dc.g.setComposite(AlphaComposite.Src);
             }
         }
 
