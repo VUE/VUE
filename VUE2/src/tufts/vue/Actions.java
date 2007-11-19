@@ -363,6 +363,7 @@ public class Actions implements VueConstants
 
     public static final Action SearchFilterAction =
         new VueAction("Search") {
+    		
             public void act() {
                 if(tufts.vue.ui.InspectorPane.META_VERSION == tufts.vue.ui.InspectorPane.OLD)
                 {    
@@ -891,7 +892,7 @@ public class Actions implements VueConstants
         public void act() {
         	VUE.getInfoDock().setVisible(true);
         	VUE.getInspectorPane().showKeywordView();
-        	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);
+        	GUI.makeVisibleOnScreen(this, tufts.vue.ui.InspectorPane.class);        	
         	VUE.getInfoDock().setRolledUp(false,true);
         }
         //public void act() { VUE.ObjectInspector.setVisible(true); }
@@ -1997,7 +1998,7 @@ public class Actions implements VueConstants
                 }            
      };
      
-     public static final LWCAction MergeNodeSlide = new LWCAction("actions.mergeNode.label") {        
+     public static final LWCAction MergeNodeSlide = new LWCAction(VueResources.getString("actions.mergeNode.label")) {        
          public void act(Iterator i) {
              final LWComponent node = VUE.getActivePathway().createMergedNode(VUE.getSelection());
              node.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
