@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.497 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.498 $ / $Date: 2007-11-19 23:29:08 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1702,19 +1702,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         indication = c;
         if (DEBUG.PARENTING) out("indication  set  to " + c);
         //c.setIndicated(true);
-        if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
-            repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
-        else
-            repaintMapRegion(indication.getBounds());
+        repaintMapRegion(indication.getBounds());
+//         if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
+//             repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
+//         else
+//             repaintMapRegion(indication.getBounds());
     }
     
     void clearIndicated() {
         if (indication != null) {
             //indication.setIndicated(false);
-            if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
-                repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
-            else
-                repaintMapRegion(indication.getBounds());
+            repaintMapRegion(indication.getBounds());
+//             if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
+//                 repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
+//             else
+//                 repaintMapRegion(indication.getBounds());
             if (DEBUG.PARENTING) out("clearing indication " + indication);
             indication = null;
         }
