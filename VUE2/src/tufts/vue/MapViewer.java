@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.495 $ / $Date: 2007-11-17 00:34:13 $ / $Author: sfraize $ 
+ * @version $Revision: 1.496 $ / $Date: 2007-11-19 00:10:32 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2654,6 +2654,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     protected static final Color DefaultFillColor = Color.white;
     protected static final Color DefaultFocalFillColor = Color.darkGray;
+    //protected static final Color DefaultFocalFillColor = new Color(32,32,32);    
     protected Color getBackgroundFillColor(DrawContext dc)
     {
         final Color bgFill;
@@ -2675,12 +2676,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // item or a portal), we won't know what to use...
             
         } else {
-            if (mMap == null)
+            if (mMap == null) {
                 bgFill = DefaultFillColor;
-            else if (mFocal != mMap)
-                bgFill = DefaultFocalFillColor;
-            else
+            } else if (mFocal != mMap) {
+                //if (mFocal.isTransparent())
+                if (mFocal instanceof LWGroup)
+                    bgFill = mFocal.getFinalFillColor(dc);
+                else
+                    bgFill = DefaultFocalFillColor;
+            } else
                 bgFill = mMap.getFillColor();
+              //bgFill = mFocal.getFinalFillColor(dc);
         }
 
         return bgFill;
@@ -2726,38 +2732,29 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // to clear out the prior graphics context).
             dc.fillBackground(getBackgroundFillColor(dc));
         }
-        
+
         if (mFocal == null)
             return;
 
         if (DEBUG.VIEWER && mRollover != null)
             mRollover.updateConnectedLinks(null);
         
-        if (false && mFocal instanceof LWPortal) {
-            final Shape curClip = dc.g.getClip();
-            final Shape focalClip = getFocalClip();
-            dc.g.clip(focalClip);
-            dc.setMasterClip(focalClip);
+//         if (!dc.isPresenting() && mFocal != mMap && mFocal.isTransparent() && !(mFocal instanceof LWPortal)) {
+//             // If a non-map focal, and the focal is transparent, fill with the first BG fill color we
+//             // find amongst it's ancestors.
+//             DrawContext fillDC = dc.push();
+//             // TODO: nodes will force a fill of getRenderFillColor(dc) when they're the focal, painting
+//             // back over this fill:
+//             mFocal.transformZero(fillDC.g);
+//             fillDC.g.setColor(mFocal.getFinalFillColor(dc));
+//             fillDC.g.fill(mFocal.getZeroShape());
+//             dc.pop();
+//         }
 
-            LWComponent parentSlide = mFocal.getParentOfType(LWSlide.class);
-            // don't need to re-draw the focal itself, it's being
-            // drawn in it's parent (slide or map)
-            if (parentSlide != null) {
-                parentSlide.draw(dc);
-            } else {
-                //dc.g.setColor(Color.blue);
-                //dc.g.fill(mFocal.getZeroShape());
-                //dc.g.fill(dc.getMasterClipRect());
-                mFocal.getMap().draw(dc);
-            }
-            if (curClip != null)
-                dc.setMasterClip(curClip);
-        } else {
-            // normally draw the map / focal
-            mFocal.draw(dc);
-        }
+        // normally draw the map / focal
+        mFocal.draw(dc);
 
-        if (mRollover != null) {
+        if (mRollover != null && mRollover.hasAncestor(mFocal)) {
             drawZoomedFocus(mRollover, dc.create()).dispose();
         }
     }
