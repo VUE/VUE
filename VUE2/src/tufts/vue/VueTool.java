@@ -36,7 +36,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.78 $ / $Date: 2007-11-15 05:51:13 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2007-11-19 21:40:25 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -340,6 +340,9 @@ public abstract class VueTool extends AbstractAction
         mLinkedButton = b;
     }
 
+    /** @return true of this tool supports any edit actions */
+    public boolean supportsEditActions() { return true; }
+    
     /** supports the click-selection of objects */
     public boolean supportsSelection() { return true; }
 

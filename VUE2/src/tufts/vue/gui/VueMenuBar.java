@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.74 $ / $Date: 2007-11-16 16:44:29 $ / $Author: mike $
+ * @version $Revision: 1.75 $ / $Date: 2007-11-19 21:40:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -797,7 +797,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     	}
 
         @Override
-        public boolean isUserEnabled() { return true; }
+        public boolean isUserEnabled() { return VUE.getActiveTool().permitsToolChange(); }
     	
     	public void act()
     	{
@@ -881,6 +881,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
             super("Keyboard Shortcuts");
         }
 
+        @Override
+        public boolean isUserEnabled() { return true; }
+        
         public void act() {
             if (window == null)
                 window = createWindow();

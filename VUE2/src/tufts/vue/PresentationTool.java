@@ -78,12 +78,29 @@ public class PresentationTool extends VueTool
             }
             
         };
+
+    public static final String ResumeActionName = "Resume Presentation";
+
+    public static void ResumePresentation() {
+        if (!VUE.inNativeFullScreen())
+            VUE.toggleFullScreen(true);
+    }
+        
     
     private final ImageButton ResumeButton = new ImageButton("resume", VueResources.getImageIcon("pathwayTool.resumeImageIcon")) {
             void doAction() {
                 if (DEBUG.PRESENT) out("resume pressed");
-                if (!VUE.inNativeFullScreen())
-                    VUE.toggleFullScreen(true);
+                ResumePresentation();
+            }
+            
+            @Override
+            void setVisible(boolean visible) {
+                super.setVisible(visible);
+                if (visible)
+                    Actions.ToggleFullScreen.setActionName(ResumeActionName);
+                else
+                    Actions.ToggleFullScreen.revertActionName();
+                
             }
         };
     
@@ -2903,6 +2920,8 @@ public class PresentationTool extends VueTool
     public boolean hasDecorations() { return true; }
     /** @return true */
     public boolean usesRightClick() { return true; }
+    /** @return false */
+    public boolean supportsEditActions() { return false; }
 
 
     /** @return false if in native full screen */

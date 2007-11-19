@@ -35,6 +35,10 @@ public class ShowURLAction extends tufts.vue.VueAction
         this.localName = fileName;
     }
     
+    @Override
+    public boolean isUserEnabled() { return true; }
+    
+    
     public void act()
     {
         String browserURL = null;

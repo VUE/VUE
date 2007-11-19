@@ -1943,16 +1943,23 @@ public class Actions implements VueConstants
     };
 
     
-    public static final Action ToggleFullScreen =
+    public static final VueAction ToggleFullScreen =
         new VueAction("Full Screen", VueUtil.isMacPlatform() ?
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
                       keyStroke(KeyEvent.VK_F11)) {
     	
     	//AbstractButton mlinkedButton = null;
     	
-        public void act() {
-            VUE.toggleFullScreen(false,true);
-        }
+            public void act() {
+                if (PresentationTool.ResumeActionName.equals(getActionName())) {
+                    PresentationTool.ResumePresentation();
+                    revertActionName(); // go back to original action
+                } else {
+                    VUE.toggleFullScreen(false,true);
+                }
+            }
+            
+            public boolean overrideIgnoreAllActions() { return true; }
         
         /*public void setLinkedButton(AbstractButton b) {
             mLinkedButton = b;         
@@ -2063,7 +2070,9 @@ public class Actions implements VueConstants
          * new-item actions, and new item actions auto-activate a label
          * edit, so we allow this even if everything is disabled */
         @Override
-        public boolean overrideIgnoreAllActions() { return VUE.getActiveViewer() != null; }
+        public boolean overrideIgnoreAllActions() {
+            return VUE.getActiveViewer() != null && VUE.getActiveTool().supportsEditActions();
+        }
 
         public void act() {
             final MapViewer viewer = VUE.getActiveViewer();

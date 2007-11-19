@@ -34,7 +34,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.31 $ / $Date: 2007-11-05 11:46:22 $ / $Author: sfraize $ 
+ * @version $Revision: 1.32 $ / $Date: 2007-11-19 21:40:25 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -59,14 +59,17 @@ public class VueAction extends javax.swing.AbstractAction
     // todo: may want to allow NewItem actions as they automatically
     // activate an edit, thus preventing a quick series of NewItem
     // actions to be done.
-    static void setAllActionsIgnored(boolean tv)
+    static void setAllActionsIgnored(boolean disabled)
     {
         if (DEBUG.Enabled) {
-            Log.debug("allIgnored=" + tv);
-            if (DEBUG.META) tufts.Util.printStackTrace("ALL ACTIONS IGNORED: " + tv);
+            Log.debug("allIgnored=" + disabled);
+            if (DEBUG.META) tufts.Util.printStackTrace("ALL ACTIONS IGNORED: " + disabled);
         }
         
-        allIgnored = tv;
+        allIgnored = disabled;
+
+        for (VueAction a : AllActionList)
+            a.setEnabled(a.isUserEnabled());
     }
 
 //     // todo: need to update Actions.java for all actions
@@ -178,6 +181,12 @@ public class VueAction extends javax.swing.AbstractAction
     {
         putValue(Action.NAME, s);
     }
+
+    public void revertActionName()
+    {
+        setActionName(getPermanentActionName());
+    }
+    
 
     public boolean overrideIgnoreAllActions() { return false; }
         

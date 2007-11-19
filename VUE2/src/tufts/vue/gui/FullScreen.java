@@ -18,7 +18,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.19 $ / $Date: 2007-11-16 22:16:46 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2007-11-19 21:40:26 $ / $Author: sfraize $
  *
  */
 
@@ -421,9 +421,18 @@ public class FullScreen
         }
 
         final LWMap activeMap = VUE.getActiveMap();
+        final MapViewer activeViewer = VUE.getActiveViewer();
+        tufts.vue.LWComponent activeFocal = null;
 
-        FullScreenLastActiveViewer = VUE.getActiveViewer();
-        FullScreenLastActiveViewer.setFocusable(false);
+        if (activeViewer != null)
+            activeFocal = activeViewer.getFocal();
+        if (activeFocal == null && activeMap != null)
+            activeFocal = activeMap;
+
+        if (activeViewer != FullScreenViewer) {
+            FullScreenLastActiveViewer = activeViewer;
+            activeViewer.setFocusable(false);
+        }
         
         if (goNative) {
             // Can't use heavy weights, as they're windows that can't be seen,
@@ -487,7 +496,7 @@ public class FullScreen
             GUI.setFullScreenVisible(FullScreenWindow);
         }
                 
-        FullScreenViewer.loadFocal(FullScreenLastActiveViewer.getFocal());
+        FullScreenViewer.loadFocal(activeFocal);
         FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -567,9 +576,12 @@ public class FullScreen
                 }
             }});
         }
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            FullScreenLastActiveViewer.grabVueApplicationFocus("FullScreen.exit", null);
-        }});
+
+        if (FullScreenLastActiveViewer != FullScreenViewer) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                FullScreenLastActiveViewer.grabVueApplicationFocus("FullScreen.exit", null);
+            }});
+        }
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             VueToolbarController.getActiveTool().handleFullScreen(false, wasNative);
