@@ -1627,6 +1627,16 @@ public class PresentationTool extends VueTool
         }
 
         if (e.onFocus) {
+            if (ResumeButton.isVisible() && e.isShiftDown()) {
+                
+                // shift-click anywhere on slide if we just gained focus is a shortcut
+                // to resume the presentation.  Note that onFocus will only be true if
+                // VUE did NOT have OS application focus before the click -- e.g., on
+                // the mac, Apple-TAB switching to VUE will give the focus to VUE, and
+                // the next click will not be marked with onFocus in VUE.
+                
+                ResumeButton.doAction();
+            }
             // never advance/change focal on focus
             return true;
         }
@@ -2524,7 +2534,7 @@ public class PresentationTool extends VueTool
         if (true || dc.isInteractive()) {
             if (ResumeButton.isVisible()) {
                 dc.setFrameDrawing();
-                ResumeButton.setLocation(30, dc.frame.height - (ResumeButton.height+20)); 
+                ResumeButton.setLocation(30, dc.frame.height - (ResumeButton.height+70)); 
                 ResumeButton.draw(dc);
             } else if (ExitButton.isVisible()) {
                 dc.setFrameDrawing();
