@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.508 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.509 $ / $Date: 2007-11-19 20:14:12 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -640,7 +640,10 @@ public class VUE
             */
         }
 
-
+        
+        // initialize enabled state of actions via a selection set:
+        VUE.getSelection().clearAndNotify();
+        
         VUE.isStartupUnderway = false;
         
         Log.info("startup completed.");
