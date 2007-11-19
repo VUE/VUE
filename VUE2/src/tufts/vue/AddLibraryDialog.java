@@ -24,7 +24,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.70 $ / $Date: 2007-11-02 18:37:42 $ / $Author: anoop $
+ * @version $Revision: 1.71 $ / $Date: 2007-11-19 08:36:29 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -546,16 +546,17 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             GUI.activateWaitCursor();
 							//System.out.println("setting config " + cui.getProperties());
                             this.newDataSource.setConfiguration(cui.getProperties());
-                            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                                try {
-                                    synchronized (dataSourceManager) {
-                                        dataSourceManager.save();
-                                        Log.info("saved");
-                                    }
-                                } catch (Throwable t) {
-                                    Log.error(t);
-                                }
-                            }});
+                            dataSourceManager.save();
+//                             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                                 try {
+//                                     synchronized (dataSourceManager) {
+//                                         dataSourceManager.save();
+//                                         Log.info("saved");
+//                                     }
+//                                 } catch (Throwable t) {
+//                                     Log.error(t);
+//                                 }
+//                             }});
                             
                         } catch (Throwable t2) {
                         	proceed=false;
