@@ -89,13 +89,13 @@ public class LWImage extends
     // support, say, dynamically generating icons (or even a document model) for HTML or
     // PDF content, the problem would then become a truly generic one.
 
-    private static final float NO_ASPECT = -1;
+    private static final double NO_ASPECT = -1;
     
     private Image mImage;
     private int mImageWidth = -1; // pixel width of raw image
     private int mImageHeight = -1; // pixel height of raw image
     private volatile Status mImageStatus = Status.UNLOADED;
-    private float mImageAspect = NO_ASPECT;
+    private double mImageAspect = NO_ASPECT;
     private long mDataSize = -1;
     private volatile long mDataSoFar = 0;
     private Object mUndoMarkForThread;
@@ -310,29 +310,36 @@ public class LWImage extends
         }
     }
     
-    private void setMaxSizeDimension(final float max)
+    private void setMaxSizeDimension(final double max)
     {
         if (DEBUG.IMAGE) out("setMaxSizeDimension " + max);
 
         if (mImageWidth <= 0)
             return;
 
-        final float width = mImageWidth;
-        final float height = mImageHeight;
+        final double width = mImageWidth;
+        final double height = mImageHeight;
 
         if (DEBUG.IMAGE) out("setMaxSizeDimension curSize " + width + "x" + height);
         
-        float newWidth, newHeight;
+        double newWidth, newHeight;
 
         if (width > height) {
             newWidth = max;
-            newHeight = Math.round(height * max / width);
+            newHeight = height * max / width;
+            //newHeight = Math.round(height * max / width);
         } else {
             newHeight = max;
-            newWidth = Math.round(width * max / height);
+            newWidth = width * max / height;
+            //newWidth = Math.round(width * max / height);
         }
-        if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + newWidth + "x" + newHeight);
-        setSize(newWidth, newHeight);
+        final float w = (float) newWidth;
+        final float h = (float) newHeight;
+        
+        //if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + newWidth + "x" + newHeight);
+        if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + w + "x" + h);
+
+        setSize(w, h);
     }
 
     @Override
@@ -466,7 +473,12 @@ public class LWImage extends
             
         // For the events triggered by the setSize below, make sure they go
         // to the right point in the undo queue.
-        UndoManager.attachCurrentThreadToMark(mUndoMarkForThread);
+        // The mark was generated synchronously in the main model accessing thread (AWT EDT),
+        // so it should point to a sane place in the undo queue to add modifications as
+        // a result of callbacks.
+
+        if (!javax.swing.SwingUtilities.isEventDispatchThread())
+            UndoManager.attachCurrentThreadToMark(mUndoMarkForThread);
         
         // If we're interrupted before this happens, and this is the drop of a new image,
         // we'll see a zombie event complaint from this setSize which is safely ignorable.
@@ -516,6 +528,7 @@ public class LWImage extends
     public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
         // Be sure to set the image before detaching from the thread,
         // or when the detach issues repaint events, we won't see the image.
+        if (DEBUG.IMAGE) out("gotImage " + image);
         mImageStatus = Status.LOADED;
         setImageSize(w, h);
         //mImageWidth = w;
@@ -578,10 +591,10 @@ public class LWImage extends
 
     /** record the actual pixel dimensions of the underlying raw image */
     void setImageSize(int w, int h)
-    {    	
+    {
         mImageWidth = w;
         mImageHeight = h;
-        mImageAspect = ((float)w) / ((float)h);
+        mImageAspect = ((double)w) / ((double)h);
         // todo: may want to just always update the node status here -- covers most cases, plus better when the drop code calls this?
         if (DEBUG.IMAGE) out("setImageSize " + w + "x" + h + " aspect=" + mImageAspect);
 
@@ -592,7 +605,9 @@ public class LWImage extends
 
     private void autoShapeToAspect() {
         if (mImageAspect > 0) {
+            if (DEBUG.IMAGE) out("autoShapeToAspect  in: " + width + "," + height);
             Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            //if (DEBUG.IMAGE) out("autoShapeToAspect out: " + newSize);
             setSize(newSize.width, newSize.height);
         }
     }
@@ -904,16 +919,40 @@ public class LWImage extends
             drawImage(dc);
         
         if (mImageStatus == Status.UNLOADED && getResource() != null) {
+
+            // Doing this here (in a draw method) prevents images from loading until
+            // they actually attempt to paint, which is handy when loading a map with
+            // lots of large images: you can quickly see the map before the images need
+            // to start loading.  Also handy if loading a large number of maps at once
+            // -- images on undisplayed maps won't start to load until the first time
+            // they're asked to paint.
+        
             synchronized (this) {
                 if (mImageStatus == Status.UNLOADED) {
                     mImageStatus = Status.LOADING;
+                    if (DEBUG.IMAGE) out("invokeLater loadResourceImage " + getResource());
                     tufts.vue.gui.GUI.invokeAfterAWT(new Runnable() { public void run() {
                         loadResourceImage(getResource(), null);
                     }});
                 }
             }
         }
+        
     }
+
+
+// This will cause images to start loading during parsing of persisted map files:
+//     @Override
+//     public void XML_completed() {
+//         super.XML_completed();
+//         if (mImageStatus == Status.UNLOADED) {
+//             mImageStatus = Status.LOADING;
+//             loadResourceImage(getResource(), null);
+//         }
+//     }
+    
+
+    
 
     private void drawImage(DrawContext dc)
     {

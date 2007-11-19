@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.175 $ / $Date: 2007-11-16 21:29:27 $ / $Author: sfraize $
+ * @version $Revision: 1.176 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -216,9 +216,11 @@ public class LWMap extends LWContainer
         return mUndoManager;
     }
     public void setUndoManager(UndoManager um) {
+        if (DEBUG.EVENTS) out("setUndoManager " + um);
         if (mUndoManager != null)
             throw new IllegalStateException(this + " already has undo manager " + mUndoManager);
         mUndoManager = um;
+        markAsSaved();
     }
     
     public File getFile() {
@@ -276,9 +278,8 @@ public class LWMap extends LWContainer
         // notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public void markAsSaved() {
-        if (DEBUG.Enabled) Log.debug("marking " + mChanges + " modifications as current: " + this);
+        if (DEBUG.Enabled && mChanges != 0) Log.debug("marking " + mChanges + " modifications as current: " + this);
         mChanges = 0;
-        // todo: notify with an event mark as not for repaint (and set same bit on "repaint" event)
     }
     public boolean isModified() {
         return mChanges > 0;
@@ -1176,21 +1177,6 @@ public class LWMap extends LWContainer
         if (e.isUndoable())
             markChange(e);
 
-        /*
-        final Object key = e.key;
-        if (key == LWKey.Repaint || key == LWKey.Scale || key == LWKey.RepaintAsync || key == LWKey.RepaintComponent) {
-            // nop
-            ;
-            // repaint is for non-permanent changes.
-            // scale sets not considered modifications as they can
-            // happen do to rollover -- any time a scale happens
-            // otherwise will be in conjunction with a reparenting
-            // event, and so we'll detect the change that way.
-        } else {
-            markChange(e);
-        }
-        */
-        
         flushBounds(); // TODO: optimize: need a bounds event yet again
         super.notifyLWCListeners(e);
 
@@ -1202,11 +1188,22 @@ public class LWMap extends LWContainer
     }
     
     private void markChange(Object e) {
+
+        if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+            
+            // for now, anything from a non EDT is assumed to not be a real undoable chage
+            // -- this mainly to prevent image size sets after the map loads from
+            // leaving the map appearing to have been modified.  A more complete
+            // solution might mark all events generated on specific threads known to
+            // be behaving this way.
+            
+            if (DEBUG.Enabled) Log.debug("ignoring non-EDT: " + e);
+            return;
+        }
+            
         if (mChanges == 0) {
-            if (DEBUG.EVENTS)
-                out(this + " First Modification Happening on " + e);
-            if (DEBUG.INIT||(DEBUG.EVENTS&&DEBUG.META))
-                new Throwable("FYI: FIRST MODIFICATION").printStackTrace();
+            if (DEBUG.EVENTS) out(this + " First Modification Happening on " + e);
+            if (DEBUG.INIT||(DEBUG.EVENTS&&DEBUG.META)) new Throwable("FYI: FIRST MODIFICATION").printStackTrace();
         }
         mChanges++;
     }

@@ -76,6 +76,10 @@ public class UndoManager
     /** map of threads currently attched to a particular undo mark */
     private Map mThreadsWithMark = Collections.synchronizedMap(new HashMap());
 
+    ///** map of threads currently attched to no undo manager (events to discard) */
+    //private static Map ThreadsToIgnore = Collections.synchronizedMap(new HashMap());
+    
+
     public UndoManager(LWMap map)
     {
         mMap = map;
@@ -100,7 +104,7 @@ public class UndoManager
         /** The total number of recorded or compressed changes that happened on our watch (will be >= undoSequence.size()) */
         private int eventCount = 0;
         private boolean sorted = false;
-        private List attachedThreads;
+        private List<Thread> attachedThreads;
 
         UndoAction() {
             undoSequence = new ArrayList();
@@ -157,16 +161,17 @@ public class UndoManager
 
             if (attachedThreads != null) {
                 // First: interrupt any running threads that may yet deliver events
-                // to this UndoAction. 
-                Iterator i = attachedThreads.iterator();
-                while (i.hasNext()) {
-                    Thread t = (Thread) i.next();
-                    if (DEBUG.Enabled) Log.debug(this + " INTERRUPTING " + t);
-                    if (t.isAlive())
+                // to this UndoAction.
+                if (DEBUG.Enabled) Log.debug(this + " making sure " + attachedThreads.size() + " attached threads are stopped");
+                for (Thread t : attachedThreads) {
+                    if (t.isAlive()) {
+                        if (DEBUG.Enabled) Log.debug(this + " INTERRUPTING " + t);
                         t.interrupt();
-                    // only interrupt the first time
-                    i.remove();
+                    }
                 }
+                // clear all attached threads: only need to interrupt the first time.
+                attachedThreads.clear();
+                attachedThreads = null;
             }
 
             if (!sorted) {
@@ -1081,7 +1086,7 @@ public class UndoManager
             UndoMark mark = (UndoMark) undoActionKey;
             // store the mark in the appropriate UndoManager, and notify of error if thread was already marked
             if (mark.manager.mThreadsWithMark.containsKey(thread)) {
-                Log.warn(thread + " already tied mark " + mark + " grouping as one undo for now");
+                if (DEBUG.Enabled) Log.debug(thread + " already tied mark " + mark + " grouping as one undo for now");
                 // this seems to actually be "working" as we get two undoables... ?
             } else {
                 mark.manager.mThreadsWithMark.put(thread, mark);

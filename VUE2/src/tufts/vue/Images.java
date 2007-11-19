@@ -42,7 +42,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-11-05 14:58:33 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -536,7 +536,7 @@ public class Images
          * @param resource - if this is tied to a resource to update with meta-data after loading
          */
         Loader(ImageSource imageSRC, Listener l) {
-            super("ImgLoader-" + LoaderCount++);
+            super(String.format("ImgLoader-%02d", LoaderCount++));
             //super(String.format("VUE-ImgLoader-%02d", LoaderCount++));
             if (l == null)
                 Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);

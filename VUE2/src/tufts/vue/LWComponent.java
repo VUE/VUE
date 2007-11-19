@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.386 $ / $Date: 2007-11-18 21:49:01 $ / $Author: sfraize $
+ * @version $Revision: 1.387 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -3641,13 +3641,15 @@ u                    getSlot(c).setFromString((String)value);
             notify(LWKey.Size, old); // todo perf: can we optimize this event out?
     }
 
-    public static Size ConstrainToAspect(float aspect, float w, float h)
+    public static Size ConstrainToAspect(double aspect, double w, double h)
     {
         // Given width & height are MINIMUM size: expand to keep aspect
             
         if (w <= 0) w = 1;
         if (h <= 0) h = 1;
         double tmpAspect = w / h; // aspect we would have if we did not constrain it
+
+        //if (DEBUG.IMAGE) Log.debug("ConstrainToAspect " + tmpAspect);
         // a = w / h
         // w = a*h
         // h = w/a

@@ -244,7 +244,8 @@ public class LWChangeSupport
                 Log.warn(msg);
         }
 
-        if (DEBUG.EVENTS && (DEBUG.META || !DEBUG.THREAD)) {
+        //if (DEBUG.EVENTS && (DEBUG.META || !DEBUG.THREAD)) {
+        if (DEBUG.EVENTS && (DEBUG.META || e.isUndoable())) {
             final String ldesc = (listeners == null
                                   ? " -> <no listeners>"
                                   : ((listeners.size()>0?TERM_GREEN:"") + " => (" + listeners.size() + " listeners)" + TERM_CLEAR
@@ -297,7 +298,9 @@ public class LWChangeSupport
 
     private static void eout(String s) {
         synchronized (System.err) {
-            if (DEBUG.THREAD) System.err.format("%-27s", Thread.currentThread().toString().substring(6));
+            //if (DEBUG.THREAD) System.err.format("%-27s", Thread.currentThread().toString().substring(6));
+            if (!javax.swing.SwingUtilities.isEventDispatchThread())
+                System.err.format("[%s]", Thread.currentThread().getName());
             for (int x = 0; x < sEventDepth; x++) System.err.print("--->");
             System.err.print(s);
         }

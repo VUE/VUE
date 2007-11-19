@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.496 $ / $Date: 2007-11-19 00:10:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.497 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -119,6 +119,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected LWComponent mFocal;
     /** The top-level map that owns the focal (usually the same as the focal) */
     protected LWMap mMap;
+    /** The active undo manager for the current map */
+    protected UndoManager mUndoManager;
     /** The focal we just unloaded if any */
     protected LWComponent mLastFocal;
     /** If the current focal was from an entry, this is the entry */
@@ -1275,12 +1277,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         } else
             mMap = null;
         
-        if (mMap != null && mMap.getUndoManager() == null) {
-            if (mMap.isModified()) {
-                out("Note: this map has modifications undo will not see");
-                //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
-            }
-            mMap.setUndoManager(new UndoManager(mMap));
+        if (mMap != null) {
+            if (mMap.getUndoManager() == null) {
+                if (mMap.isModified()) {
+                    out("Note: this map has modifications undo will not see");
+                    //VueUtil.alert(this, "This map has modifications undo will not see.", "Note");
+                }
+                mUndoManager = new UndoManager(mMap);
+                mMap.setUndoManager(mUndoManager);
+            } else
+                mUndoManager = mMap.getUndoManager();
         }
 
         //if (AutoZoomToMapOnLoad || autoZoom) {
@@ -1598,7 +1604,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return;
         }
 
-        if (mMap != null && mMap.getUndoManager().hasCleanupTasks()) {
+        if (mUndoManager != null && mUndoManager.hasCleanupTasks()) {
             // once we have cleanup tasks, we're in an intermediate state:
             // don't ever draw until we're complete.
             return;
@@ -6026,8 +6032,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // of this map that may now need to repaint (LWComponents currently
             // don't sent event notifications for location & size changes
             // for performance)
-            if (mouseWasDragged)
-                VUE.getUndoManager().mark("Drag");
+            if (mouseWasDragged && mUndoManager != null)
+                mUndoManager.mark("Drag");
             
             if (draggedSelectorBox != null && !dragSelectorEnabled(mme))
                 System.err.println("Illegal state warning: we've drawn a selector box w/out tool that supports it!");
@@ -6099,8 +6105,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //                 selectionSet(mFocal);
 //             }
             
-            //VUE.getUndoManager().mark(); // in case anything happened
-            VUE.getUndoManager().mark(); // in case anything happened
+            if (mUndoManager != null)
+                mUndoManager.mark(); // in case anything happened
             
             if (tempToolKeyReleased) {
                 tempToolKeyReleased = false;
