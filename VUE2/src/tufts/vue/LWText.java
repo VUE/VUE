@@ -69,12 +69,8 @@ public class LWText extends LWComponent {
 
     private void initText() {
         //enableProperty(KEY_Alignment);
-        //disablePropertyTypes(KeyType.STYLE);
-        disableProperty(LWKey.Font);
-        disableProperty(LWKey.FontName);
-        disableProperty(LWKey.FontSize);
-        disableProperty(LWKey.FontStyle);
-        disableProperty(LWKey.TextColor);
+        disablePropertyTypes(KeyType.STYLE);
+        enableProperty(LWKey.FillColor);
         //mShape = new java.awt.geom.Rectangle2D.Float();
     }
 
