@@ -583,13 +583,29 @@ public class SearchAction extends AbstractAction {
         {
           System.out.println("SearchAction: comps size after perform search - " + comps.size());
         }
-       
-        // this was the marquee approach -- may well be worth creating a new choice for this in future
-        // (it was the way select search worked with the old keyword system)
-        VUE.getSelection().setTo(comps.iterator());
         
         revertGlobalSearchSelection();
         globalResultsType = resultsType;
+        
+        // find Image Nodes within comps and add images to list (then add list)
+        ArrayList<LWImage> images = new ArrayList<LWImage>();
+        Iterator<LWComponent> compsIterator = comps.iterator();
+        while(compsIterator.hasNext())
+        {
+            LWComponent current = compsIterator.next();
+            if(current instanceof LWNode)
+            {
+                LWNode currentNode = (LWNode)current;
+                if(LWNode.isImageNode(currentNode))
+                {
+                    images.add(currentNode.getImage());
+                }
+            }
+        }
+        
+        comps.addAll(images);
+        
+        
         Iterator<LWComponent> it = comps.iterator();
         
         if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION)
@@ -604,6 +620,7 @@ public class SearchAction extends AbstractAction {
                }
                else
                {
+                 LWComponent current = it.next();
                  VUE.getSelection().add(it.next());
                }
              }
