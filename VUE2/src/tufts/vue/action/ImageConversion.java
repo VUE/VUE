@@ -27,7 +27,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.21 $ / $Date: 2007-10-16 20:35:38 $ / $Author: mike $ *
+ * @version $Revision: 1.22 $ / $Date: 2007-11-20 15:14:24 $ / $Author: mike $ *
  * @author  Daisuke Fujiwara
  */
 
@@ -61,15 +61,15 @@ public class ImageConversion extends VueAction {
     }
     
     /**A method which sets up for converting the active viewer to a Jpeg file*/
-    public static void createActiveMapJpeg(File location)
+    public static void createActiveMapJpeg(File location, double zoomFactor)
     {
-        convert(VUE.getActiveMap().getAsImage(1.0), location, "jpeg");
+        convert(VUE.getActiveMap().getAsImage(zoomFactor), location, "jpeg");
     }
     
     /**A method which sets up for converting the active viewer to a Jpeg file*/
-    public static void createActiveMapPng(File location)
+    public static void createActiveMapPng(File location,double zoomFactor)
     {
-        convert(VUE.getActiveMap().getAsImage(1.0), location, "png");
+        convert(VUE.getActiveMap().getAsImage(zoomFactor), location, "png");
     }
     
     public void act() {
@@ -78,7 +78,7 @@ public class ImageConversion extends VueAction {
            File selectedFile = ActionUtil.selectFile("Saving JPEG", "jpeg");
            
            if (selectedFile != null)
-               createActiveMapJpeg(selectedFile);
+               createActiveMapJpeg(selectedFile,tufts.vue.VueResources.getDouble("imageExportFactor"));
 
        } catch (Throwable t) {
             System.out.println("Couldn't convert to jpeg:" + t);

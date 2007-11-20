@@ -27,7 +27,7 @@ import java.awt.geom.Rectangle2D;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2007-10-16 20:34:35 $ / $Author: mike $ *
+ * @version $Revision: 1.14 $ / $Date: 2007-11-20 15:14:24 $ / $Author: mike $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -73,7 +73,7 @@ public class ImageMap extends VueAction {
        
        //createJpeg(imageLocation, "jpeg", currentMap, size);
        //ImageConversion.createActiveMapJpeg(new File(imageLocation));
-       ImageConversion.createActiveMapPng(imageLocationFile);
+       ImageConversion.createActiveMapPng(imageLocationFile,1.0);
        createHtml(imageName, fileName);
     }
     
