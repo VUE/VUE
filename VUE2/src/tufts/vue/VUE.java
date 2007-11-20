@@ -59,7 +59,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.509 $ / $Date: 2007-11-19 20:14:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.510 $ / $Date: 2007-11-20 20:51:57 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1981,7 +1981,7 @@ public class VUE
         //final Object[] macAquaOrderButtons = { "Cancel", "Don't Save", "Save" };
         
     	
-        if (!map.isModified())
+        if (!map.isModified() || !map.hasContent())
             return true;
 
         // todo: won't need this if full screen is child of root frame
