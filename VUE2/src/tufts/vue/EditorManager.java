@@ -489,7 +489,7 @@ public class EditorManager
             // node or link draw text and (using the font) while being dragged,
             // so unless that happens, we won't be hit by the font limitation.
 
-            StyleType styleType = StylesByType.get(c.getTypeToken());
+            StyleType styleType = StylesByType.get(typeToken(c));
             if (styleType != null) {
                 if (freeBits != 0)
                     c.copyProperties(styleType.provisional, freeBits);
@@ -541,7 +541,7 @@ public class EditorManager
     }
 
     private synchronized StyleType getStyleForType(LWComponent c) {
-        final Object token = c.getTypeToken();
+        final Object token = typeToken(c);
         StyleType styleType = token == null ? null : StylesByType.get(token);
         if (styleType == null && token != null) {
             styleType = putStyle(token, createStyle(c, token));
@@ -632,7 +632,7 @@ public class EditorManager
         
         if (typeToken instanceof LWComponent) {
             //Util.printStackTrace("oops; passed LWComponent as type-token: " + typeToken);
-            typeToken = ((LWComponent)typeToken).getTypeToken();
+            typeToken = typeToken((LWComponent)typeToken);
             if (DEBUG.STYLE) out("resolveToProvisionalStyle: " + typeToken);
         }
         
@@ -710,7 +710,7 @@ public class EditorManager
         Object typeToken;
         LWComponent curStyle;
         for (LWComponent c : allNodes) {
-            typeToken = c.getTypeToken();
+            typeToken = typeToken(c);
 
             if (typeToken == null)
                 continue;
@@ -736,6 +736,23 @@ public class EditorManager
             final LWComponent extractedStyle = createStyle(lastCreated, token);
             putStyle(token, extractedStyle);
         }
+    }
+
+    private static Object typeToken(LWComponent c) {
+
+        return c.getTypeToken();
+
+// This won't work for keeping separate slide styles until new objects created on the slide get
+// their SLIDE_STYLE bit immediately set before they're auto-styled: will probably need a
+// NewItem factory (may replace code that NodeTool currently has) fetchable from any LWContainer.
+// Also, anywhere we use token == value would need to be updated, at least using this method
+// of token differentiation, as it creates a new string object each time a SLIDE_STYLE token is
+// fetched (could get around that with another HashMap...)        
+//        
+//         if (c.hasFlag(Flag.SLIDE_STYLE))
+//             return c.getTypeToken() + "/slide";
+//         else
+//             return c.getTypeToken();
     }
     
     static void registerEditor(LWEditor editor) {
