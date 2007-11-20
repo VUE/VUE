@@ -1226,6 +1226,10 @@ public class Actions implements VueConstants
     	{    		
             Slides.synchronizeSlideToNode(getSyncable(s));
     	}
+    	public String getUndoName()
+    	{
+    		return "Sync";
+    	}
     };
     
     public static final LWCAction SyncToSlide = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.node2slide")) 
@@ -1235,6 +1239,10 @@ public class Actions implements VueConstants
     	{    		
             Slides.synchronizeNodeToSlide(getSyncable(s));
     	}
+    	public String getUndoName()
+    	{
+    		return "Sync";
+    	}
     };
     
     public static final LWCAction SyncAll = new LWCAction(VueResources.getString("mapViewer.componentMenu.syncMenu.all")) 
@@ -1243,6 +1251,10 @@ public class Actions implements VueConstants
     	public void act(LWSelection s)
     	{    		
             Slides.synchronizeAll(getSyncable(s));
+    	}
+    	public String getUndoName()
+    	{
+    		return "Sync";
     	}
     };
     

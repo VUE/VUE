@@ -34,7 +34,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.32 $ / $Date: 2007-11-19 21:40:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.33 $ / $Date: 2007-11-20 18:11:13 $ / $Author: mike $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -235,12 +235,8 @@ public class VueAction extends javax.swing.AbstractAction
         }
         //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
         if (VUE.getUndoManager() != null && undoable()) {
-            String undoName = ae.getActionCommand();
-            if (undoName == null)
-                undoName = getActionName();
-            if (hadException && DEBUG.Enabled)
-                undoName += " (!)";
-            VUE.getUndoManager().markChangesAsUndo(undoName);
+            
+            VUE.getUndoManager().markChangesAsUndo(getUndoName(ae,hadException));
         }
         //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
         updateActionListeners();
@@ -255,7 +251,25 @@ public class VueAction extends javax.swing.AbstractAction
         // disable the action based on enabled(), it has
         // no way of ever getting turned back on!
     }
-
+    
+    public String getUndoName()
+    {
+    	return null;
+    }
+    
+    public String getUndoName(ActionEvent e, boolean hadException)
+    {
+    	
+    	String undoName = getUndoName();
+    	if (undoName == null)
+    		undoName =	e.getActionCommand();
+        if (undoName == null)
+            undoName = getActionName();
+        if (hadException && DEBUG.Enabled)
+            undoName += " (!)";
+        
+        return undoName;
+    }
     public void fire(Object source) {
         actionPerformed(new ActionEvent(source, 0, (String) getValue(NAME)));
     }
