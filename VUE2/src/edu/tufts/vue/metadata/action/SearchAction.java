@@ -307,16 +307,17 @@ public class SearchAction extends AbstractAction {
     
     public void performSearch(final int searchLocationType) 
     {
-       Thread t = new Thread()
-       {
-           public void run()
-           {
+       //Thread t = new Thread()
+       //{
+       //    public void run()
+       //    {
              runSearchThread(searchLocationType);               
-           }
-       };
-       t.start();
+       //    }
+       //};
+       //t.start();
     }   
     
+    // note: performSearch determines if this is actually a seperate thread
     public void runSearchThread(int searchLocationType)
     {
         
@@ -341,7 +342,7 @@ public class SearchAction extends AbstractAction {
         
         long t0 = System.currentTimeMillis();
         
-        //synchronized(index) { 
+        synchronized(index) { 
         if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
         index.remove(index);
         
@@ -370,7 +371,7 @@ public class SearchAction extends AbstractAction {
           System.out.println("SearchAction: index - " + index);
         }
         if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
-        //} // end syncrhonized block
+        } // end synchronized block
         finds = new ArrayList<List<URI>>();
         
         List<URI> found = null;
@@ -518,12 +519,12 @@ public class SearchAction extends AbstractAction {
         
         // System.out.println("VUE Object Index: " + edu.tufts.vue.rdf.VueIndexedObjectsMap.objs);
         
-        SwingUtilities.invokeLater(new Thread(){
-           public void run()
-           {
+        //SwingUtilities.invokeLater(new Thread(){
+        //   public void run()
+        //   {
                displaySearchResults();
-           }
-        });
+        //   }
+        //});
     }
     
     public String getName() {
@@ -547,9 +548,6 @@ public class SearchAction extends AbstractAction {
           loadKeywords(searchInput.getText());
         }
         performSearch(searchLocationType);
-        
-        //actually call with invokeLater from indexing thread 
-        //displaySearchResults();
         
     }
     
@@ -604,7 +602,6 @@ public class SearchAction extends AbstractAction {
         }
         
         comps.addAll(images);
-        
         
         Iterator<LWComponent> it = comps.iterator();
         
@@ -664,6 +661,9 @@ public class SearchAction extends AbstractAction {
         // also need to save last results type...
         globalResultsType = resultsType;
         
+        //VueToolbarController.getController().selectionChanged(VUE.getSelection());
+        //VUE.getActiveViewer().requestFocus();
+        VUE.getActiveViewer().grabVueApplicationFocus("search",null);
         VUE.getActiveViewer().repaint();
 
     }
