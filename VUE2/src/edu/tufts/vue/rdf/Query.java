@@ -63,10 +63,10 @@ public class Query  {
             keyword ="keyword"+i;
             switch(criteria.qualifier)  {
                 case CONTAINS:
-                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\""+criteria.value+ "\") . ";
+                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\""+criteria.value+ "\",\"i\") . ";
                     break;
                 case STARTS_WITH:
-                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\"^"+criteria.value+ "\") . ";
+                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\"^"+criteria.value+ "\",\"i\") . ";
                     break;                 
             }
         }
