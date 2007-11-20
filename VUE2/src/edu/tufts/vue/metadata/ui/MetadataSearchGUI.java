@@ -480,8 +480,9 @@ public class MetadataSearchGUI extends JPanel {
         {
            public void actionPerformed(ActionEvent e)
            {
-               termsAction.revertSelections();
-               allSearch.revertSelections();
+               
+               SearchAction.revertGlobalSearchSelectionFromMSGUI();
+               
                VUE.getActiveViewer().repaint();
            }
         });

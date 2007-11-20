@@ -39,7 +39,7 @@ public class SearchAction extends AbstractAction {
    
     private final static boolean DEBUG_LOCAL = false; 
 
-    private final static boolean MARQUEE = false;
+    private final static boolean MARQUEE = true;
     
     public static final int FIELD = 0;
     public static final int QUERY = 1;
@@ -305,7 +305,20 @@ public class SearchAction extends AbstractAction {
         
     }
     
-    public void performSearch(int searchLocationType) {
+    public void performSearch(final int searchLocationType) 
+    {
+       Thread t = new Thread()
+       {
+           public void run()
+           {
+             runSearchThread(searchLocationType);               
+           }
+       };
+       t.start();
+    }   
+    
+    public void runSearchThread(int searchLocationType)
+    {
         
         if(searchType == QUERY && crossTermOperator == AND)
         {
@@ -328,7 +341,7 @@ public class SearchAction extends AbstractAction {
         
         long t0 = System.currentTimeMillis();
         
-        synchronized(index) { 
+        //synchronized(index) { 
         if(DEBUG.RDF)System.out.println("Time at the beginning: "+(System.currentTimeMillis()-t0));
         index.remove(index);
         
@@ -357,7 +370,7 @@ public class SearchAction extends AbstractAction {
           System.out.println("SearchAction: index - " + index);
         }
         if(DEBUG.RDF)System.out.println("Performed Index:"+(System.currentTimeMillis()-t0));
-        }
+        //} // end syncrhonized block
         finds = new ArrayList<List<URI>>();
         
         List<URI> found = null;
@@ -469,7 +482,7 @@ public class SearchAction extends AbstractAction {
                }*/
             }
            
-        }
+        } 
 
         Iterator<List<URI>> findsIterator = finds.iterator();
         
@@ -504,6 +517,13 @@ public class SearchAction extends AbstractAction {
         }
         
         // System.out.println("VUE Object Index: " + edu.tufts.vue.rdf.VueIndexedObjectsMap.objs);
+        
+        SwingUtilities.invokeLater(new Thread(){
+           public void run()
+           {
+               displaySearchResults();
+           }
+        });
     }
     
     public String getName() {
@@ -528,13 +548,14 @@ public class SearchAction extends AbstractAction {
         }
         performSearch(searchLocationType);
         
-        displaySearchResults();
+        //actually call with invokeLater from indexing thread 
+        //displaySearchResults();
         
     }
     
     public void displaySearchResults()
     {
-                if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
+        if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
         {
             Iterator<LWMap> allOpenMaps = VUE.getLeftTabbedPane().getAllMaps();
             
@@ -588,8 +609,8 @@ public class SearchAction extends AbstractAction {
              }
              if(resultsType == HIDE_ACTION)
              {
-               //it.next().setHidden(LWComponent.HideCause.DEFAULT);  
-               it.next().setFiltered(true);
+               it.next().setHidden(LWComponent.HideCause.DEFAULT);  
+               //it.next().setFiltered(true))
              }
           }
         }
@@ -612,8 +633,8 @@ public class SearchAction extends AbstractAction {
                       System.out.println("SearchAction adding " + comp.getLabel() + " to globalHides and hiding");
                   }
                   
-                  //comp.setHidden(LWComponent.HideCause.DEFAULT);
-                  comp.setFiltered(true);
+                  comp.setHidden(LWComponent.HideCause.DEFAULT);
+                  //comp.setFiltered(true);
                   globalHides.add(comp);
               }
 
@@ -632,13 +653,15 @@ public class SearchAction extends AbstractAction {
     }
     
     public void revertSelections()
-    {
-        //revertSelections(comps);
+    {   
         revertGlobalSearchSelection();
     }
     
     public static void revertSelections(List<LWComponent> toBeReverted)
     {
+        if(MARQUEE)
+            return;
+        
         if(toBeReverted == null)
             return;
         Iterator<LWComponent> it = toBeReverted.iterator();
@@ -650,9 +673,54 @@ public class SearchAction extends AbstractAction {
             }
             else
             {
-              VUE.getSelection().clear();
+              // already done on click on VUE map
+              //VUE.getSelection().clear();
             }
         } 
+    }
+    
+    public static void revertSelectionsFromMSGUI(List<LWComponent> toBeReverted)
+    {
+        //if(MARQUEE)
+        //    return;
+
+        if(MARQUEE)
+        {
+          VUE.getSelection().clear();
+          VUE.getActiveViewer().repaint();
+          return;
+        }
+        
+        if(toBeReverted == null)
+            return;
+        Iterator<LWComponent> it = toBeReverted.iterator();
+        while(it.hasNext())
+        {
+            if(MARQUEE == false)
+            {
+              it.next().setSelected(false);
+            }
+            else
+            {
+              /*Thread t = new Thread()
+              {
+                public void run()
+                {
+                  //VUE.getSelection().clear();
+                }
+              };
+              try
+              {        
+                //SwingUtilities.invokeLater(t);
+                //t.start();
+              }
+              catch(Exception e)
+              {
+                  System.out.println("SearchAction - Exception trying to clear selection: " + e);
+              }*/
+            }
+        } 
+
     }
     
     public void setResultsType(String type)
@@ -674,8 +742,8 @@ public class SearchAction extends AbstractAction {
         Iterator<LWComponent> it = toBeReverted.iterator();
         while(it.hasNext())
         {
-            //it.next().clearHidden(LWComponent.HideCause.DEFAULT);
-            it.next().setFiltered(false);
+            it.next().clearHidden(LWComponent.HideCause.DEFAULT);
+            //it.next().setFiltered(false);
         } 
     }
     
@@ -683,6 +751,16 @@ public class SearchAction extends AbstractAction {
     {
         if(globalResultsType == SELECT_ACTION)
           revertSelections(globalResults);
+        if(globalResultsType == HIDE_ACTION)
+          showHiddenComponents(globalResults);
+        if(globalResultsType == SHOW_ACTION)
+          showHiddenComponents(globalHides);
+    }
+    
+    public static void revertGlobalSearchSelectionFromMSGUI()
+    {
+        if(globalResultsType == SELECT_ACTION)
+          revertSelectionsFromMSGUI(globalResults);
         if(globalResultsType == HIDE_ACTION)
           showHiddenComponents(globalResults);
         if(globalResultsType == SHOW_ACTION)
