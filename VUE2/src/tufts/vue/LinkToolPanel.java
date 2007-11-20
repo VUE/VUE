@@ -31,7 +31,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.49 $ / $Date: 2007-05-24 21:01:36 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2007-11-20 01:34:39 $ / $Author: sfraize $
  * 
  */
 
@@ -68,59 +68,67 @@ public class LinkToolPanel extends ToolPanel
 	        //}
 	        
 	        /** factory for superclass buildMenu -- these are the icons that will appear in the pull-down menu */
+                @Override
 	        protected Icon makeIcon(LWComponent.StrokeStyle style) {
-	            LineIcon li = new LineIcon(24, 3);
-	            li.setStroke(style.makeStroke(1));
-	            return li;
+
+                    LineIcon li = new LineIcon(22, 13);
+                    //li.setColor(Color.gray);
+                    li.setStroke(style.makeStroke(1));
+                    return new GUI.ProxyEnabledIcon(li, StrokeStyleButton.this);
+                    
+// 	            LineIcon li = new LineIcon(24, 3);
+// 	            li.setStroke(style.makeStroke(1));
+// 	            return li;
 	        }
 	        
-	        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+                //class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+	        class ComboBoxRenderer extends DefaultListCellRenderer {
 	        	
-	        	public ComboBoxRenderer() {
-	        		setOpaque(true);
-	        		setHorizontalAlignment(CENTER);
-	        		setVerticalAlignment(CENTER);
-	        		
+                    public ComboBoxRenderer() {
+                        setHorizontalAlignment(CENTER);
+                        setVerticalAlignment(CENTER);
 
-	        	}
-
-	        
-	        	public Component getListCellRendererComponent(
-	                        JList list,
-	                        Object value,
-	                        int index,
-	                        boolean isSelected,
-	                        boolean cellHasFocus) {
-	        		Color bg = GUI.getTextHighlightColor();
-	        		if (isSelected) {
-	        			setBackground(bg);
-	        			setForeground(Color.black);
-	        		} else {
-	        			setBackground(Color.white);
-	        			setForeground(list.getForeground());
-	        		}
-	        	 
+                        if (GUI.isMacAqua())
+                            setBorder(BorderFactory.createEmptyBorder(3,2,3,4));
+                        else
+                            setBorder(BorderFactory.createEmptyBorder(5,5,2,2));
+                    }
+                    
+                    public Component getListCellRendererComponent(
+                                                                  JList list,
+                                                                  Object value,
+                                                                  int index,
+                                                                  boolean isSelected,
+                                                                  boolean cellHasFocus) {
+                        Color bg = GUI.getTextHighlightColor();
+                        if (isSelected) {
+                            setBackground(bg);
+                            setForeground(Color.black);
+                        } else {
+                            setBackground(Color.white);
+                            setForeground(list.getForeground());
+                        }
 	        		
-	        		//Set the icon and text.  If icon was null, say so.        		
-	        		LWComponent.StrokeStyle a = (LWComponent.StrokeStyle) value;
+                        //Set the icon and text.  If icon was null, say so.        		
+                        LWComponent.StrokeStyle a = (LWComponent.StrokeStyle) value;
 	        		
-	                Icon    icon = makeIcon(a);
-	                
-	                setIcon(icon);
+                        //Icon icon = getRenderIcon(a); // why create this every time we paint?
+                        //setIcon(icon);
+                        setIcon(getIconForValue(a));
 	        		
-	                this.setBorder(BorderFactory.createEmptyBorder(5,5,2,2));
-
-	        		return this;
-	        	}
-	        	  protected Icon makeIcon(LWComponent.StrokeStyle style) {
-	                  LineIcon li = new LineIcon(20, 13);
-	                  li.setStroke(style.makeStroke(1));
-	                  return li;
-	              }
-	        	 /** @return new icon for the given shape */
-	          //  protected Icon makeIcon(RectangularShape shape) {
-	          //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
-	          //  }
+                        return this;
+                    }
+                    
+//                     protected Icon getRenderIcon(LWComponent.StrokeStyle style) {
+//                         LineIcon li = new LineIcon(20, 13);
+//                         li.setStroke(style.makeStroke(1));
+//                         return new GUI.ProxyEnabledIcon(li, StrokeStyleButton.this);
+//                     }
+                    
+                    /** @return new icon for the given shape */
+                    //  protected Icon makeIcon(RectangularShape shape) {
+                    //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
+                    //  }
 	            
 	        }        
 		 

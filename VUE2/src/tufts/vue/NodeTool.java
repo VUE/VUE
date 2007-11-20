@@ -601,20 +601,30 @@ public class NodeTool extends VueTool
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 g2.translate(x,y);
 
-                if (false) {
-                    if (sShapeGradient != null)
-                        g2.setPaint(sShapeGradient);
-                    else
-                        g2.setColor(sShapeColor);
-                    g2.fill(mShape);
-                }
-                if (c.isEnabled()) {
-                    g2.setColor(Color.black);
-                    if (DEBUG.TOOL) System.out.println("DRAWING ENABLED:   " + this + " on " + c);
-                } else {
-                    g2.setColor(Color.lightGray);
-                    if (DEBUG.TOOL) System.out.println("DRAWING DISABLED:  " + this + " on " + c);
-                }
+//                 if (false) {
+//                     if (sShapeGradient != null)
+//                         g2.setPaint(sShapeGradient);
+//                     else
+//                         g2.setColor(sShapeColor);
+//                     g2.fill(mShape);
+//                 }
+
+//                 final boolean enabled;
+//                 if (c instanceof NodeToolPanel.ShapeMenuButton.ShapeComboRenderer) {
+//                     // hack to extract true enabled state thru the renderer: better to make more 
+//                     enabled = ((NodeToolPanel.ShapeMenuButton.ShapeComboRenderer)c).getActionEnabled();
+//                 } else {
+//                     enabled = c.isEnabled();
+//                 }
+//                 if (enabled) {
+//                     g2.setColor(Color.black);
+//                     if (DEBUG.TOOL) System.out.println("DRAWING ENABLED:   " + this + " on " + c);
+//                 } else {
+//                     g2.setColor(Color.lightGray);
+//                     if (DEBUG.TOOL) System.out.println("DRAWING DISABLED:  " + this + " on " + c);
+//                 }
+
+                g2.setColor(Color.black);
                 g2.setStroke(STROKE_ONE);
                 g2.draw(mShape);
                 g2.translate(-x,-y);

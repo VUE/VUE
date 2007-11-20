@@ -41,7 +41,7 @@ import javax.swing.border.*;
 /**
  * This creates an editor panel for LWNode's
  *
- * @version $Revision: 1.58 $ / $Date: 2007-05-31 21:52:51 $ / $Author: mike $
+ * @version $Revision: 1.59 $ / $Date: 2007-11-20 01:34:39 $ / $Author: sfraize $
  */
  
 public class NodeToolPanel extends ToolPanel
@@ -111,7 +111,7 @@ public class NodeToolPanel extends ToolPanel
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode;
     }
-    
+
     static class ShapeMenuButton extends VueComboMenu<Class<? extends RectangularShape>>
     {
         public ShapeMenuButton() {
@@ -121,25 +121,30 @@ public class NodeToolPanel extends ToolPanel
             this.setMaximumRowCount(10);
         }
 
+        @Override
         protected Icon makeIcon(Class<? extends RectangularShape> shapeClass) {
             try {
-                return new NodeTool.SubTool.ShapeIcon(shapeClass.newInstance());
+                return new GUI.ProxyEnabledIcon(new NodeTool.SubTool.ShapeIcon(shapeClass.newInstance()), ShapeMenuButton.this);
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t);
             }
             return null;
         }
 
-        class ShapeComboRenderer extends JLabel implements ListCellRenderer {
+        //class ShapeComboRenderer extends JLabel implements ListCellRenderer {
+        class ShapeComboRenderer extends javax.swing.DefaultListCellRenderer {
         	
             public ShapeComboRenderer() {
-                setOpaque(true);
                 setHorizontalAlignment(CENTER);
                 setVerticalAlignment(CENTER);
                 setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
             }
 
-        
+//             public boolean getActionEnabled() {
+//                 return ShapeMenuButton.this.isEnabled();
+//             }
+            
+            @Override
             public Component getListCellRendererComponent(
                                                           JList list,
                                                           Object value,
@@ -153,12 +158,13 @@ public class NodeToolPanel extends ToolPanel
                     setForeground(list.getSelectionForeground());
                 } else {
                     setBackground(Color.white);
-                    setForeground(list.getForeground());
+                    //setForeground(list.getForeground());
+                    setForeground(Color.green);
                 }
                 
                 //setEnabled(ShapeMenuButton.this.isEnabled());
                 // the combo box will NOT repaint our icon when it becomes disabled!
-                // Tho this works fine for the image-icons in the LinkMenuButton below!
+                // Tho this works fine for the image-icons in the LinkMenuButton below -- ??
                 
                 Icon icon = getIconForValue(value);
                 setIcon(icon);

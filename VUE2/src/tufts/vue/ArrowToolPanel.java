@@ -31,7 +31,7 @@ import javax.swing.*;
 /**
  * A property editor panel for LWLink's.
  *
- * @version $Revision: 1.7 $ / $Date: 2007-05-24 21:01:35 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2007-11-20 01:34:39 $ / $Author: sfraize $
  * 
  */
 
@@ -47,7 +47,7 @@ public class ArrowToolPanel extends ToolPanel
 	 */
 	private static class ArrowStyleButton extends JComboBox
     {
-        ImageIcon[] imageIcons;
+        Icon[] imageIcons;
         
         public ArrowStyleButton(Object[] a, boolean isHead) {
         	super(a);
@@ -57,65 +57,62 @@ public class ArrowToolPanel extends ToolPanel
             ComboBoxRenderer renderer= new ComboBoxRenderer();
     		setRenderer(renderer);
     	      
-    		imageIcons = new ImageIcon[1];
+    		imageIcons = new Icon[1];
     		if (isHead)
-    			imageIcons[0] = (ImageIcon) VueResources.getIcon("leftarrow.raw");
+                    imageIcons[0] = new GUI.ProxyEnabledIcon((Icon) VueResources.getIcon("leftarrow.raw"), this);
     		else
-    			imageIcons[0] = (ImageIcon) VueResources.getIcon("rightarrow.raw");
+                    imageIcons[0] = new GUI.ProxyEnabledIcon((Icon) VueResources.getIcon("rightarrow.raw"), this);
             //imageIcons[2] = (ImageIcon) VueResources.getIcon("botharrow.raw");                                               		
     		this.setMaximumRowCount(10);
         }
                 
         
-        class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+        //class ComboBoxRenderer extends JLabel implements ListCellRenderer {
+        class ComboBoxRenderer extends DefaultListCellRenderer {
         	
-        	public ComboBoxRenderer() {
-        		setOpaque(true);
-        		setHorizontalAlignment(CENTER);
-        		setVerticalAlignment(CENTER);		
-        	}
+            public ComboBoxRenderer() {
+                setHorizontalAlignment(CENTER);
+                setVerticalAlignment(CENTER);		
+                setBorder(BorderFactory.createEmptyBorder(3,1, 3,1));
+            }
 
         
-        	public Component getListCellRendererComponent(
-                        JList list,
-                        Object value,
-                        int index,
-                        boolean isSelected,
-                        boolean cellHasFocus) {
-        		Color bg = GUI.getTextHighlightColor();
-        		if (isSelected) {
-        			setBackground(bg);
-        			setForeground(Color.black);
-        		} else {
-        			setBackground(Color.white);
-        			setForeground(list.getForeground());
-        		}   		
+            public Component getListCellRendererComponent(
+                                                          JList list,
+                                                          Object value,
+                                                          int index,
+                                                          boolean isSelected,
+                                                          boolean cellHasFocus) {
+                Color bg = GUI.getTextHighlightColor();
+                if (isSelected) {
+                    setBackground(bg);
+                    setForeground(Color.black);
+                } else {
+                    setBackground(Color.white);
+                    setForeground(list.getForeground());
+                }   		
                 
                 int val = ((Integer)value).intValue();
                 if (val ==0)
-                {
+                    {
                 	setText("none");
                 	setIcon(null);
-                }
+                    }
                 else
-                {	val--;
+                    {	val--;
                 	setText("");
                 	setIcon(imageIcons[val]);
-                }
-        		//System.out.println(this.getPreferredSize());
-               this.setBorder(BorderFactory.createEmptyBorder(3,1, 3,1));
+                    }
+                //System.out.println(this.getPreferredSize());
 
-        		return this;
-        	}
-        	  protected Icon makeIcon(LWComponent.StrokeStyle style) {
-                  LineIcon li = new LineIcon(24, 3);
-                  li.setStroke(style.makeStroke(1));
-                  return li;
-              }
-        	 /** @return new icon for the given shape */
-          //  protected Icon makeIcon(RectangularShape shape) {
-          //      return new NodeTool.SubTool.ShapeIcon((RectangularShape) shape.clone());
-          //  }
+                return this;
+            }
+            
+//             protected Icon makeIcon(LWComponent.StrokeStyle style) {
+//                 LineIcon li = new LineIcon(24, 3);
+//                 li.setStroke(style.makeStroke(1));
+//                 return li;
+//             }
             
         }        
 	 

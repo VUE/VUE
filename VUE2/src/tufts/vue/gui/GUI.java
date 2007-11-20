@@ -48,7 +48,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.89 $ / $Date: 2007-11-09 23:20:03 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2007-11-20 01:34:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1496,6 +1496,45 @@ public class GUI
         }
         return null;
     }
+
+
+    private static final AlphaComposite DisabledIconAlpha = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, .5f);
+    
+    public static final class ProxyEnabledIcon implements javax.swing.Icon
+    {
+        private final javax.swing.Icon icon;
+        private final java.awt.Component trackingEnabled;
+        
+        public ProxyEnabledIcon(javax.swing.Icon icon, java.awt.Component c) {
+            this.icon = icon;
+            this.trackingEnabled = c;
+        }
+        
+        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+            
+            if (!trackingEnabled.isEnabled()) {
+                if (DEBUG.TOOL) {
+                    System.out.println("DISABLED " + trackingEnabled.getClass().getName()
+                                       + " disables " + icon
+                                       + "; painting on " + c.getClass().getName());
+                }
+                if (DEBUG.BOXES) {
+                    g.setColor(Color.red);
+                    g.drawLine(x,y,x+100,y+100);
+                }
+                ((Graphics2D)g).setComposite(DisabledIconAlpha);
+            }
+
+            
+            icon.paintIcon(c, g, x, y);
+                
+        }
+        public int getIconWidth() { return icon.getIconWidth(); }
+        public int getIconHeight() { return icon.getIconHeight(); }
+    }
+    
+    
+    
 
     private static final class EmptyIcon16 implements Icon {
         public final void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {}

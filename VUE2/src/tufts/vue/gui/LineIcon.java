@@ -103,7 +103,8 @@ public class LineIcon extends BlobIcon
      **/
     public void paintIcon(Component c, Graphics _g, int x, int y)
     {
-        Graphics2D g = (Graphics2D) _g;
+        final Graphics2D g = (Graphics2D) _g;
+        //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);        
         if (getWeight() > 0 || stroke != null) {
             if (getColor() == null)
                 g.setColor(Color.black);
