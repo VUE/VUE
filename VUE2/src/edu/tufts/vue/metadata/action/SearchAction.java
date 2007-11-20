@@ -620,7 +620,6 @@ public class SearchAction extends AbstractAction {
                }
                else
                {
-                 LWComponent current = it.next();
                  VUE.getSelection().add(it.next());
                }
              }
