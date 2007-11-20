@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.75 $ / $Date: 2007-11-19 21:40:26 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2007-11-20 14:50:22 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -132,11 +132,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Actions added by the power team
         final PrintAction printAction = PrintAction.getPrintAction();
     //    final PDFTransform pdfAction = new PDFTransform("PDF");
-        final HTMLConversion htmlAction = new HTMLConversion("HTML");
+    /*    final HTMLConversion htmlAction = new HTMLConversion("HTML");
         final ImageConversion imageAction = new ImageConversion("JPEG");
         final ImageMap imageMap = new ImageMap("IMAP");
         final SVGConversion svgAction = new SVGConversion("SVG");
-        final XMLView xmlAction = new XMLView("XML View");
+        final XMLView xmlAction = new XMLView("XML View");*/
         final RecentlyOpenedFilesManager rofm = RecentlyOpenedFilesManager.getInstance();
 
         rofm.getPreference().addVuePrefListener(new VuePrefListener()
@@ -207,7 +207,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             //menuBar.add(new tufts.vue.gui.VueButton(Actions.Undo)).setFocusable(false);
             // not picking up icon yet...
         }
-
+        /*
         if (false && DEBUG.Enabled) {
             // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG (see above)
             JMenu exportMenu = add(new VueMenu("Export"));
@@ -218,7 +218,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             exportMenu.add(xmlAction);
             exportMenu.add(imageMap);
         }
-        
+        */
         ////////////////////////////////////////////////////////////////////////////////////
         // Build File Menu
         ////////////////////////////////////////////////////////////////////////////////////
