@@ -221,6 +221,8 @@ public class MetaDataPane extends JPanel
 	    		 FontMetrics fm = mValues[i].getFontMetrics(mValues[i].getFont());
 	    		 height +=((lines * fm.getHeight()) + topPad + botPad);
 	    	 }
+	    	 //I wasn't taking into account the space between values
+	    	 height +=4;
 	   }
            
 	   if (height > size.getHeight())
