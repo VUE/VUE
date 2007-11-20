@@ -1,8 +1,11 @@
 package tufts.vue.gui;
 
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.EventQueue;
 import java.io.File;
 
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.FileChooserUI;
@@ -16,9 +19,31 @@ public class VueFileChooser extends JFileChooser{
 	{
 		super();
 		checkForChooser();
+		//an elaborate fix to avoid scrolling in the combobox drop downs in the filechooser
+		iterateContainerAndFixComboBoxes((Container)this);
+	
+		
 		 
 	}
-	
+	public void iterateContainerAndFixComboBoxes(Container c)
+	{
+		for (int i=0;i < c.getComponentCount(); i++)
+		{
+			if (c.getComponent(i) instanceof Container)
+			{
+				iterateContainerAndFixComboBoxes((Container)c.getComponent(i));
+			}
+			else
+			{
+				System.out.println(c.getComponent(i));
+			}
+			if (c instanceof JComboBox)
+			{
+				((JComboBox)c).setMaximumRowCount(12);
+			}
+				
+		}
+	}
 	public VueFileChooser(File f)
 	{
 		super(f);
@@ -43,7 +68,7 @@ public class VueFileChooser extends JFileChooser{
 		
 
 		final BasicFileChooserUI ui = (BasicFileChooserUI) this.getUI();
-		
+
 		final String name = ui.getFileName().trim();
 
 		if ((name == null) || (name.length() == 0)) {
