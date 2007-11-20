@@ -528,7 +528,13 @@ public class SearchAction extends AbstractAction {
         }
         performSearch(searchLocationType);
         
-        if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
+        displaySearchResults();
+        
+    }
+    
+    public void displaySearchResults()
+    {
+                if(searchLocationType == SEARCH_ALL_OPEN_MAPS)
         {
             Iterator<LWMap> allOpenMaps = VUE.getLeftTabbedPane().getAllMaps();
             
@@ -622,6 +628,7 @@ public class SearchAction extends AbstractAction {
         globalResultsType = resultsType;
         
         VUE.getActiveViewer().repaint();
+
     }
     
     public void revertSelections()
