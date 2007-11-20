@@ -38,6 +38,8 @@ import tufts.vue.*;
 public class SearchAction extends AbstractAction {
    
     private final static boolean DEBUG_LOCAL = false; 
+
+    private final static boolean MARQUEE = false;
     
     public static final int FIELD = 0;
     public static final int QUERY = 1;
@@ -569,8 +571,14 @@ public class SearchAction extends AbstractAction {
           {
              if(resultsType == SELECT_ACTION)
              {
-               //it.next().setSelected(true);
-               VUE.getSelection().add(it.next());
+               if(MARQUEE == false)
+               {
+                 it.next().setSelected(true);
+               }
+               else
+               {
+                 VUE.getSelection().add(it.next());
+               }
              }
              if(resultsType == HIDE_ACTION)
              {
@@ -629,8 +637,14 @@ public class SearchAction extends AbstractAction {
         Iterator<LWComponent> it = toBeReverted.iterator();
         while(it.hasNext())
         {
-            //it.next().setSelected(false);
-            VUE.getSelection().clear();
+            if(MARQUEE == false)
+            {
+              it.next().setSelected(false);
+            }
+            else
+            {
+              VUE.getSelection().clear();
+            }
         } 
     }
     
