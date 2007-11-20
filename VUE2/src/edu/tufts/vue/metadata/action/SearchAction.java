@@ -557,7 +557,7 @@ public class SearchAction extends AbstractAction {
        
         // this was the marquee approach -- may well be worth creating a new choice for this in future
         // (it was the way select search worked with the old keyword system)
-        // VUE.getSelection().setTo(comps.iterator());
+        VUE.getSelection().setTo(comps.iterator());
         
         revertGlobalSearchSelection();
         globalResultsType = resultsType;
@@ -569,7 +569,8 @@ public class SearchAction extends AbstractAction {
           {
              if(resultsType == SELECT_ACTION)
              {
-               it.next().setSelected(true);
+               //it.next().setSelected(true);
+               VUE.getSelection().add(it.next());
              }
              if(resultsType == HIDE_ACTION)
              {
@@ -628,7 +629,8 @@ public class SearchAction extends AbstractAction {
         Iterator<LWComponent> it = toBeReverted.iterator();
         while(it.hasNext())
         {
-            it.next().setSelected(false);
+            //it.next().setSelected(false);
+            VUE.getSelection().clear();
         } 
     }
     
