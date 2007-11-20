@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.50 $ / $Date: 2007-10-22 19:09:19 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2007-11-20 15:13:34 $ / $Author: mike $
  *
  */
 public class VueResources
@@ -490,6 +490,22 @@ public class VueResources
         if (s != null)
             value = Integer.parseInt(s);
 	return value;
+    }
+
+    /**
+     * getDouble
+     * This returns a double based on the double at the lookup key.
+     * Format: myDouble=1.0
+     * @param key - the lookup key
+     * @returns double - the double value in the properties file
+     **/
+    static public double getDouble(String key)
+    {
+        double value = 0;
+        String s = getString(key);
+        if (s != null)
+            value = Double.parseDouble(s);
+        return value;
     }
 
 	
