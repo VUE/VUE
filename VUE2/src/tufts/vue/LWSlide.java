@@ -33,7 +33,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.96 $ / $Date: 2007-11-18 22:15:34 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2007-11-20 06:59:35 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -344,15 +344,24 @@ public class LWSlide extends LWContainer
         c.setFlag(Flag.SLIDE_STYLE);
         c.mAlignment.set(Alignment.LEFT);
         
-        if (c.hasResource() && !c.hasChildren())
+        //if (c.hasResource() && !c.hasChildren())
+        if (c.hasResource() && !c.getResource().isImage())
             c.setStyle(master.getLinkStyle());
-        //else if (c instanceof LWNode && ((LWNode)c).isTextNode())
-        else if (c.getTypeToken() == LWNode.class)
-            c.setStyle(master.getTextStyle());
+        else if (c instanceof LWPortal)
+            ; // do nothing
         else if (c instanceof LWText)
             c.setStyle(master.getTextStyle());
+        else if (c instanceof LWNode)
+            c.setStyle(master.getTextStyle());
 
-        track("styled", c.getStyle() == null ? c : c + "; Style=" + c.getStyle().getLabel());
+        if (DEBUG.Enabled) {
+            if (c.getStyle() == null)
+                track("ignored", String.format("%-14s %s",
+                                               "(" + (c.getTypeToken() instanceof Class ? ((Class)c.getTypeToken()).getSimpleName() : c.getTypeToken()) + ")",
+                                               c));
+            else
+                track("styled-as", String.format("%-14s %s", c.getStyle().getLabel()+";", c));
+        }
     }
 
 
