@@ -47,6 +47,7 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -63,9 +64,9 @@ import java.io.*;
 
 /**
  * A class which defines utility methods for any of the action class.
- * Most of this code is for save/restore persistance thru castor XML.
+ * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.91 $ / $Date: 2007-11-07 15:31:06 $ / $Author: mike $
+ * @version $Revision: 1.92 $ / $Date: 2007-11-21 19:20:52 $ / $Author: peter $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -102,14 +103,14 @@ public class ActionUtil
     {
         File picked = null;
         final VueFileChooser chooser = new VueFileChooser();
-        
+      JFileChooser choose = new JFileChooser();
+     
         
         chooser.setDialogTitle(title);
         chooser.setAcceptAllFileFilterUsed(false);    
         //chooser.set
         chooser.addPropertyChangeListener(new PropertyChangeListener()
         {
-
 			public void propertyChange(PropertyChangeEvent arg0) {				
 				if (arg0.getPropertyName() == VueFileChooser.FILE_FILTER_CHANGED_PROPERTY)
 				{
@@ -123,19 +124,14 @@ public class ActionUtil
 			    		if (baseName.indexOf(".") > 0)
 			    			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
 			    		baseName = baseName.replaceAll("\\*","") + "-copy";
-			        	
 			        }
 			     
 			        if (fileType == null)
 			        {
-
 			        	chooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));
 			        }
-			        
 				}
-				
 			}
-        	
         });
         
         if (fileType != null && !fileType.equals("export"))
@@ -147,7 +143,7 @@ public class ActionUtil
         	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
         	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
         	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
-                chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
         	
         }
         else
@@ -182,7 +178,7 @@ public class ActionUtil
         if(VueUtil.isCurrentDirectoryPathSet()) 
           chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
         
-        int option = chooser.showDialog(VUE.getDialogParent(), "Save");
+        int option = chooser.showDialog(VUE.getDialogParentAsFrame(), "Save");
         
         if (option == VueFileChooser.APPROVE_OPTION) 
         {
@@ -191,7 +187,7 @@ public class ActionUtil
             String fileName = picked.getAbsolutePath();
             //String extension = chooser.getFileFilter().getDescription();
               String extension = ((VueFileFilter)chooser.getFileFilter()).getExtensions()[0];  
-            //if it isn't a file name with the right extention 
+            //if it isn't a file name with the right extension 
             if (!fileName.endsWith("." + extension)) {
                 fileName += "." + extension;
                 picked = new File(fileName);
@@ -443,8 +439,8 @@ public class ActionUtil
     }
     
     private static HashMap LoadedMappings = new HashMap();
-    /** return's a Mapping if succesful, or an Exception if not.
-     * Results are cahced (if load was successful) for future calls.*/
+    /** return's a Mapping if successful, or an Exception if not.
+     * Results are cached (if load was successful) for future calls.*/
     private static Object _loadMapping(URL mappingSource)
     //throws java.io.IOException //, org.exolab.castor.mapping.MappingException
     {
@@ -624,6 +620,137 @@ public class ActionUtil
 
     }
 
+    private static void doMarshallMap(Writer writer, LWMap map)
+    throws java.io.IOException,
+           org.exolab.castor.mapping.MappingException,
+           org.exolab.castor.xml.MarshalException,
+           org.exolab.castor.xml.ValidationException
+{
+    Marshaller marshaller = null;
+
+//    final String path = file.getAbsolutePath().replaceAll("%20"," ");
+//    final Writer writer;
+    if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
+//        writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
+    } else {
+//        writer = new FileWriter(path);
+        // For the actual file writer we can use the default encoding because
+        // we're marshalling specifically in US-ASCII.  E.g., because we direct
+        // castor to fully encode any special characters via
+        // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
+        // and any default encoding will handle that...
+            
+    }
+        
+    writer.write(VUE_COMMENT_START
+                 + " VUE mapping "
+                 + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
+                 + " " + XML_MAPPING_DEFAULT
+                 + " -->\n");
+    writer.write(VUE_COMMENT_START
+                 + " Saved date " + new java.util.Date()
+                 + " by " + VUE.getSystemProperty("user.name")
+                 + " on platform " + VUE.getSystemProperty("os.name")
+                 + " " + VUE.getSystemProperty("os.version")
+                 + " in JVM " + VUE.getSystemProperty("java.runtime.version")
+                 + " -->\n");
+    writer.write(VUE_COMMENT_START
+                 + " Saving version " + tufts.vue.Version.WhatString
+                 + " -->\n");
+    if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
+    marshaller = new Marshaller(writer);
+    //marshaller.setDebug(DEBUG.CASTOR);
+    marshaller.setEncoding(OUTPUT_ENCODING);
+    // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
+    marshaller.setMarshalAsDocument(true);
+    marshaller.setNoNamespaceSchemaLocation("none");
+    // setting to "none" gets rid of all the spurious tags like these:
+    // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+    //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
+
+    /*
+      marshaller.setMarshalListener(new MarshalListener() {
+      public boolean preMarshal(Object o) {
+      System.out.println(" preMarshal " + o.getClass().getName() + " " + o);
+      return true;
+      }
+      public void postMarshal(Object o) {
+      System.out.println("postMarshal " + o.getClass().getName() + " " + o);
+      }
+      });
+    */
+
+    //marshaller.setRootElement("FOOBIE"); // overrides name of root element
+        
+    marshaller.setMapping(getDefaultMapping());
+
+    //----------------------------------------------------------------------------------------
+    // 
+    // 2007-10-01 SMF -- turning off validation during marshalling now required
+    // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
+    // with any connected endpoints cause validation exceptions when attempting to
+    // save.  E.g, from a map with one node and one link connected to it:
+    //
+    // ValidationException: The following exception occured while validating field: childList of class:
+    // tufts.vue.LWMap: The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type
+    // class tufts.vue.LWNode has no ID!;
+    // - location of error: XPATH: /LW-MAP
+    // The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type class tufts.vue.LWNode has no ID!
+    //
+    // Even tho the node's getID() is correctly returning "2"
+    //
+    marshaller.setValidation(false); 
+    //----------------------------------------------------------------------------------------
+        
+    /*
+      Logger logger = new Logger(System.err);
+      logger.setPrefix("Castor ");
+      marshaller.setLogWriter(logger);
+    */
+    marshaller.setLogWriter(new PrintWriter(System.err));
+
+    // Make modifications to the map at the last minute, so any prior exceptions leave the map untouched.
+
+    final int oldModelVersion = map.getModelVersion();
+    final File oldSaveFile = map.getFile();
+    
+    map.setModelVersion(LWMap.getCurrentModelVersion());
+    // note that if this file is different from it's last save file, this
+    // operation may cause any/all of the resources in the map to be
+    // updated before returning.
+//    map.setFile(file);
+        
+    //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
+    Log.debug("marshalling " + map + " ...");
+
+    try {
+        marshaller.marshal(map);
+        Log.debug("marshalled " + map);
+        writer.flush();
+        writer.close();
+        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
+    } catch (Throwable t) {
+        try {
+            // revert map model version & save file
+            map.setModelVersion(oldModelVersion);
+            map.setFile(oldSaveFile);
+        } catch (Throwable tx) {
+            Util.printStackTrace(tx);
+        } finally {
+            throw new WrappedMarshallException(t);
+        }
+    }
+        
+    map.markAsSaved();
+    Log.debug("saved " + map);
+
+    //map.setFile(file);
+
+    //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
+
+}
+    
     private static class VueUnmarshalListener implements UnmarshalListener {
         public void initialized(Object o) {
             //if (DEBUG.XML) System.out.println("**** VUL initialized " + o.getClass().getName() + " " + tos(o));
