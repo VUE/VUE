@@ -172,13 +172,14 @@ public class MetadataList {
     
     public int getOtherListSize()
     {
-        int size = ((CategoryFirstList)metadataList).getOtherEndIndex() - ((CategoryFirstList)metadataList).getOntologyEndIndex();
+
         
-        // produces a lot of output..
-        /*if(DEBUG_LOCAL)
+        int size = ((CategoryFirstList)metadataList).getOtherEndIndex() - ((CategoryFirstList)metadataList).getOntologyEndIndex();
+
+        if(DEBUG_LOCAL)
         {
-            System.out.println("MetadataList - getOntologyListSize: " + size);
-        }*/
+            System.out.println("Metadatalist getOtherListSize() " + size );
+        }
         
         return size;
     }
@@ -224,10 +225,17 @@ public class MetadataList {
             mdList = getOtherList();
         }
         
-        if (getMetadata().size() > 0) {
+        //if (getMetadata().size() > 0) {
+        if(mdList.size() > 0) {
             String txt = "";
             for (int i=0;i<mdList.size();i++) {
                 String value = mdList.get(i).getValue();
+                
+                if(DEBUG_LOCAL)
+                {
+                    System.out.println("Metadatalist -- getMetadataAsHTML loop -- value for " + i + " type: " + type + " value: " + value);
+                }
+                
                 if(value.length() > 0)
                 {    
                   txt += "<br>" + value;
