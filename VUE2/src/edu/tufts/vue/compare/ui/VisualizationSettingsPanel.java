@@ -20,7 +20,7 @@
  *
  * Created on May 14, 2007, 2:45 PM
  *
- * @version $Revision: 1.17 $ / $Date: 2007-11-15 18:18:05 $ / $Author: dan $
+ * @version $Revision: 1.18 $ / $Date: 2007-11-21 21:26:02 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -90,11 +90,11 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         
         setOpaque(false);
         
-        if(tufts.Util.isWindowsPlatform())
+        /*if(tufts.Util.isWindowsPlatform())
         {
             setOpaque(true);
             setBackground(java.awt.Color.WHITE);
-        }
+        }*/
         
         gridBag = new GridBagLayout();
         gridBagConstraints = new GridBagConstraints();

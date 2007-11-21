@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.29 $ / $Date: 2007-11-01 01:19:43 $ / $Author: dan $
+ * @version $Revision: 1.30 $ / $Date: 2007-11-21 21:26:02 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -103,11 +103,11 @@ public class MapsSelectionPanel extends JPanel  {
     {
         setOpaque(false);
         
-        if(tufts.Util.isWindowsPlatform())
+        /*if(tufts.Util.isWindowsPlatform())
         {
             setOpaque(true);
             setBackground(java.awt.Color.WHITE);
-        }
+        }*/
         
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
@@ -413,6 +413,14 @@ public class MapsSelectionPanel extends JPanel  {
         //gridBag.setConstraints(scroll,gridBagConstraints);
         JPanel scrollPanel = new JPanel(new java.awt.BorderLayout());
         scrollPanel.setOpaque(false);
+        
+        /*if(tufts.Util.isWindowsPlatform())
+        {
+            scrollPanel.setOpaque(true);
+            scrollPanel.setBackground(java.awt.Color.WHITE);
+            maps.setOpaque(true);
+            maps.setBackground(java.awt.Color.WHITE);
+        }*/
         scrollPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
         scrollPanel.add(scroll);
         gridBag.setConstraints(scrollPanel,gridBagConstraints);
@@ -876,9 +884,12 @@ public class MapsSelectionPanel extends JPanel  {
             if(col == 3)
             {
                 typeLabel.setText(value.toString());
-                typeLabel.setBackground(Color.WHITE);
-                deletePanel.setOpaque(true);
-                deletePanel.setBackground(Color.WHITE);
+                /*if(!tufts.Util.isWindowsPlatform())
+                {    
+                  typeLabel.setBackground(Color.WHITE);
+                  deletePanel.setOpaque(true);
+                  deletePanel.setBackground(Color.WHITE);
+                }*/
                 deletePanel.add(typeLabel,BorderLayout.WEST);
                 if(model.getMapType(row)==LOCAL_FILE)
                 {
