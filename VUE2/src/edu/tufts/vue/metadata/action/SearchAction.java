@@ -540,6 +540,9 @@ public class SearchAction extends AbstractAction {
         
        // runIndex();
         
+        index = new  edu.tufts.vue.rdf.RDFIndex();
+        //edu.tufts.vue.rdf.VueIndexedObjectsMap.clear();
+        
         VUE.getSelection().clear();
 
         if(searchType == FIELD)
