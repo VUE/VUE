@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.388 $ / $Date: 2007-11-21 09:26:50 $ / $Author: dan $
+ * @version $Revision: 1.389 $ / $Date: 2007-11-21 11:14:32 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1576,58 +1576,51 @@ u                    getSlot(c).setFromString((String)value);
     
     
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
-    public boolean hasMetaData() {
-        return ( (metadataList != null) && (getMetaDataAsHTML().length() > 0) );
-    }
-    public String getMetaDataAsHTML() {
-        if (metadataList != null && metadataList.getMetadata().size() > 0) {
-            String txt = "";
-            //List allMetadata = metadataList;
-            for (int i=0;i<metadataList.getCategoryListSize();i++) {
-                String value = metadataList.getMetadata().get(i).getValue();//((edu.tufts.vue.metadata.VueMetadataElement)o).getValue();
-                if(value.length() > 0)
-                {    
-                  txt += "<br>" + value;
-                }
-            }
-            
-            if(txt.length() > 0)
-            {
-                txt = "Keywords: " + txt;
-            }
-            
-            return txt;
-        } else {
-            return "";
-        }
+
+    
+    public boolean hasMetaData()
+    {
+        return hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
     }
     
-    public boolean hasOntologicalMembershipMetaData() {
-        return ( (metadataList != null) && metadataList.hasOntologicalMetadata() && (getOntologicalMembershipMetaDataAsHTML().length() > 0) );
+    public String getMetaDataAsHTML()
+    {
+        return getMetaDataAsHTML(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
     }
     
-    public String getOntologicalMembershipMetaDataAsHTML() {
-        if (metadataList != null && metadataList.getOntologyListSize() > 0) {
-            String txt = "";
-            for (int i=0;i<metadataList.getOntologyListSize();i++) {
-                String value = metadataList.getOntologyListElement(i).getValue();
-                if(value.length() > 0)
-                {    
-                  txt += "<br>" + value;
-                }
-            }
-            
-            if(txt.length() > 0)
-            {
-                txt = "Ontology Type: " + txt;
-            }
-            
-            return txt;
-        } else {
-            return "";
+    /**
+     *
+     * see edu.tufts.vue.metadata.VueMetadataElement for metadata types
+     *
+     **/
+    public boolean hasMetaData(int type) {
+        if(metadataList != null)
+        {
+          return metadataList.hasMetadata(type);
+        }
+        else
+        {
+          return false;
+        }
+       // return ( (metadataList != null) && (getMetaDataAsHTML().length() > 0) );
+    }
+    
+    /**
+     *
+     * see edu.tufts.vue.metadata.VueMetadataElement for metadata types
+     *
+     **/
+    public String getMetaDataAsHTML(int type) {
+        
+        if(metadataList != null)
+        {
+          return metadataList.getMetadataAsHTML(type);
+        }
+        else
+        {
+          return "";
         }
     }
-   
     
     /**
      * This sets the flag for the component so that it is either

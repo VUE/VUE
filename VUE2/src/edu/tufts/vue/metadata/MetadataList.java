@@ -42,6 +42,17 @@ public class MetadataList {
     private List<VueMetadataElement> metadataList = new CategoryFirstList<VueMetadataElement>();
     
     private static List<MetadataListListener> listeners = new ArrayList<MetadataListListener>();
+    
+    private SubsetList categoryList;
+    private SubsetList ontologyList;
+    private SubsetList otherList;
+    
+    public MetadataList()
+    {
+        categoryList = new SubsetList(VueMetadataElement.CATEGORY);
+        ontologyList = new SubsetList(VueMetadataElement.ONTO_TYPE);
+        otherList = new SubsetList(VueMetadataElement.OTHER);
+    }
    
     public List<VueMetadataElement> getMetadata()
     {
@@ -92,6 +103,22 @@ public class MetadataList {
         }
         return false;
     }
+
+    public VueMetadataElement getCategoryListElement(int i)
+    {
+        int index = i;
+        try
+        {        
+          if(getCategoryListSize() > 0 && index < metadataList.size())
+            return metadataList.get(index);
+          else
+            return new VueMetadataElement();
+        }
+        catch(Exception e)
+        {
+            return new VueMetadataElement();
+        }
+    }
     
     public int getCategoryListSize()
     {
@@ -117,6 +144,42 @@ public class MetadataList {
     public int getOntologyListSize()
     {
         int size = ((CategoryFirstList)metadataList).getOntologyEndIndex() - ((CategoryFirstList)metadataList).getCategoryEndIndex();
+        
+        // produces a lot of output..
+        /*if(DEBUG_LOCAL)
+        {
+            System.out.println("MetadataList - getOntologyListSize: " + size);
+        }*/
+        
+        return size;
+    }
+    
+    public VueMetadataElement getOtherListElement(int i)
+    {
+        int index = i+((CategoryFirstList)metadataList).getOntologyEndIndex();
+        try
+        {        
+          if(getOtherListSize() > 0 && index < metadataList.size())
+            return metadataList.get(index);
+          else
+            return new VueMetadataElement();
+        }
+        catch(Exception e)
+        {
+            return new VueMetadataElement();
+        }
+    }
+    
+    public int getOtherListSize()
+    {
+        int size = ((CategoryFirstList)metadataList).getOtherEndIndex() - ((CategoryFirstList)metadataList).getOntologyEndIndex();
+        
+        // produces a lot of output..
+        /*if(DEBUG_LOCAL)
+        {
+            System.out.println("MetadataList - getOntologyListSize: " + size);
+        }*/
+        
         return size;
     }
     
@@ -138,6 +201,96 @@ public class MetadataList {
         return returnString;
     }
     
+    public boolean hasMetadata(int type)
+    {
+        return getMetadataAsHTML(type).length() > 0;
+    }
+    
+    public String getMetadataAsHTML(int type)
+    {
+        
+        SubsetList mdList = null;
+        
+        if(type == VueMetadataElement.CATEGORY)
+        {
+            mdList = getCategoryList();
+        }
+        else if(type == VueMetadataElement.ONTO_TYPE)
+        {
+            mdList = getOntologyList();
+        }
+        else
+        {
+            mdList = getOtherList();
+        }
+        
+        if (getMetadata().size() > 0) {
+            String txt = "";
+            for (int i=0;i<mdList.size();i++) {
+                String value = mdList.get(i).getValue();
+                if(value.length() > 0)
+                {    
+                  txt += "<br>" + value;
+                }
+            }
+            
+            if(txt.length() > 0)
+            {
+                txt = "Keywords: " + txt;
+            }
+            
+            return txt;
+        } 
+        else 
+        {
+            return "";
+        }
+    }
+    
+    public SubsetList getCategoryList()
+    {
+        return categoryList;
+    }
+    
+    public SubsetList getOntologyList()
+    {
+        return ontologyList;
+    }
+    
+    public SubsetList getOtherList()
+    {
+        return otherList;
+    }
+    public class SubsetList
+    {
+        private int type;
+        
+        public SubsetList(int type)
+        {
+            this.type = type;
+        }
+        
+        public int size()
+        {
+           if(type == VueMetadataElement.CATEGORY)
+               return getCategoryListSize();
+           else if(type == VueMetadataElement.ONTO_TYPE)
+               return getOntologyListSize();
+           else
+               return getOtherListSize();
+        }
+        
+        public VueMetadataElement get(int i)
+        {
+           if(type == VueMetadataElement.CATEGORY)
+               return getCategoryListElement(i);
+           else if(type == VueMetadataElement.ONTO_TYPE)
+               return getOntologyListElement(i);
+           else
+               return getOtherListElement(i);            
+        }
+    }
+    
     public class CategoryFirstList<E> extends java.util.ArrayList<E>
     {
         
@@ -154,6 +307,11 @@ public class MetadataList {
       {
           return ontologyEndIndex;
       }
+  
+      public int getOtherEndIndex()
+      {
+          return otherEndIndex;
+      }
       
       public boolean add(E o)
       {
@@ -163,16 +321,15 @@ public class MetadataList {
             if(o instanceof VueMetadataElement)
             {    
               VueMetadataElement e = (VueMetadataElement)o;
-              System.out.println("MetadataList adding object -- o.getObject() (may need set type) " + e.getObject()); 
               System.out.println("MetadataList adding object -- o.getObject() type " + e.getType());
             }
-            else
-            {
-              System.out.println("MetadataList non vme added to category first list " + o.getClass());
-            }
+            //else
+            //{
+              //System.out.println("MetadataList non vme added to category first list " + o.getClass());
+            //}
               
-            System.out.println("MetadataList categoryFirstList add - categoryEndIndex, ontologyEndIndex, size - " + o +"," +
-                  categoryEndIndex + "," + ontologyEndIndex + "," + size());
+            //System.out.println("MetadataList categoryFirstList add - categoryEndIndex, ontologyEndIndex, size - " + o +"," +
+            //      categoryEndIndex + "," + ontologyEndIndex + "," + size());
           }
           
           VueMetadataElement vme = null;
@@ -235,10 +392,6 @@ public class MetadataList {
       public E remove(int i)
       {
           if(i < categoryEndIndex)
-
-
-
-
           {
               categoryEndIndex--;
               if(ontologyEndIndex > 0)
@@ -252,9 +405,6 @@ public class MetadataList {
           }
           else if(i >= categoryEndIndex && i < ontologyEndIndex)
           {
-              //categoryEndIndex--;
-
-
               ontologyEndIndex--;
               otherEndIndex--;
           }
@@ -262,8 +412,6 @@ public class MetadataList {
 
           else
           {
-              //categoryEndIndex--;
-              //ontologyEndIndex--;
               otherEndIndex--;
           }
           

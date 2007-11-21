@@ -43,6 +43,7 @@ public class VueMetadataElement {
    public static final int CATEGORY = 1;
    public static final int ONTO_TYPE = 2;
    public static final int SEARCH_STATEMENT = 3;
+   public static final int OTHER = 4;
    
    public static final String ONT_SEPARATOR = "#";
    
@@ -141,5 +142,7 @@ public class VueMetadataElement {
    {
        return type;
    }
+   
+   
     
 }
