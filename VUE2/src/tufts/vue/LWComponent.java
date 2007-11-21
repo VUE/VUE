@@ -48,7 +48,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.387 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $
+ * @version $Revision: 1.388 $ / $Date: 2007-11-21 09:26:50 $ / $Author: dan $
  * @author Scott Fraize
  * @license Mozilla
  */
@@ -1594,6 +1594,32 @@ u                    getSlot(c).setFromString((String)value);
             if(txt.length() > 0)
             {
                 txt = "Keywords: " + txt;
+            }
+            
+            return txt;
+        } else {
+            return "";
+        }
+    }
+    
+    public boolean hasOntologicalMembershipMetaData() {
+        return ( (metadataList != null) && metadataList.hasOntologicalMetadata() && (getOntologicalMembershipMetaDataAsHTML().length() > 0) );
+    }
+    
+    public String getOntologicalMembershipMetaDataAsHTML() {
+        if (metadataList != null && metadataList.getOntologyListSize() > 0) {
+            String txt = "";
+            for (int i=0;i<metadataList.getOntologyListSize();i++) {
+                String value = metadataList.getOntologyListElement(i).getValue();
+                if(value.length() > 0)
+                {    
+                  txt += "<br>" + value;
+                }
+            }
+            
+            if(txt.length() > 0)
+            {
+                txt = "Ontology Type: " + txt;
             }
             
             return txt;
@@ -3969,7 +3995,7 @@ u                    getSlot(c).setFromString((String)value);
         if (uri == null) {
             try {
                 uri = new URI(edu.tufts.vue.rdf.RDFIndex.getUniqueId());
-                edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri, this);
+                //edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri, this);
             } catch (Throwable t) {
                 tufts.Util.printStackTrace(t, "Failed to create an uri for  "+label);
             }
@@ -3996,7 +4022,7 @@ u                    getSlot(c).setFromString((String)value);
 //         }
         try {
             uri = new URI(URIString);
-            edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri,this);
+            //edu.tufts.vue.rdf.VueIndexedObjectsMap.setID(uri,this);
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t, "Failed to set an uri for  "+label);
         }

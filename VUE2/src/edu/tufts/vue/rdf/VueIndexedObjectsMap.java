@@ -19,7 +19,7 @@
 package edu.tufts.vue.rdf;
 
 import java.net.URI;
-import java.util.HashMap;
+import java.util.WeakHashMap;
 
 /*
  * VueIndexedObjectsMap.java
@@ -37,7 +37,7 @@ public class VueIndexedObjectsMap {
     
     // RDFIndex (or this class) should do low level priority
     // garbage collection on currently unused objects
-    public static HashMap objs = new HashMap();
+    public static WeakHashMap objs = new WeakHashMap();
     
     public static void setID(URI uri,Object obj)
     {
@@ -45,17 +45,14 @@ public class VueIndexedObjectsMap {
        // System.out.println("VueIndexedObjectsMap: " + objs);
     }
     
+    public static void clear()
+    {
+        objs = new WeakHashMap();
+    }
+    
     public static Object getObjectForID(URI id)
     {
         return objs.get(id);
-    }
-    
-    /**
-     *  not yet implemented
-     **/
-    public static void garbageCollect(URI id)
-    {
-        
     }
     
 }

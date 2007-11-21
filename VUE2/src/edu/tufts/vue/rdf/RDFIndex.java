@@ -81,6 +81,14 @@ public class RDFIndex extends ModelCom
     }
     
     public void index(LWMap map,boolean metadataOnly) {
+        
+        boolean indexObjectsHere = true;
+        
+        if(indexObjectsHere)
+        {
+            VueIndexedObjectsMap.clear();
+        }
+        
         long t0 = System.currentTimeMillis();
         if(DEBUG.RDF)System.out.println("INDEX - begin index: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         
@@ -98,6 +106,12 @@ public class RDFIndex extends ModelCom
             
             for(LWComponent comp: map.getAllDescendents())
             {
+                
+                if(indexObjectsHere)
+                {
+                  VueIndexedObjectsMap.setID(comp.getURI(),comp);
+                }
+                
                 if(metadataOnly)
                 {
                   rdfize(comp,mapR,true);   
@@ -122,7 +136,6 @@ public class RDFIndex extends ModelCom
         if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         
         List<URI> r = new ArrayList<URI>();
-        //System.out.println("Searching for: "+keyword+ " size of index:"+this.size());
         if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         query = QueryFactory.create(queryString);
         qe = QueryExecutionFactory.create(query, this);
@@ -149,8 +162,6 @@ public class RDFIndex extends ModelCom
                 "SELECT ?resource ?keyword " +
                 "WHERE{" +
                 "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
-        
-        System.out.println("searchAllResources query string: " + queryString);
         
         return search(queryString);
     }
