@@ -260,29 +260,41 @@ public class Osid2AssetResource extends URLResource
         }
     }
 
-    @Override
-    public String getContentType() {
-        if (getSpec().endsWith("=jpeg")) {
-            // special case for MFA data source
-            return "jpeg";
-        } else if (getSpec().contains("fedora")) { // fix for fedora url
-            try  {
-                URL url = new URL(getSpec());
-                Log.info("opening URL " + url);
-                String mimeType = url.openConnection().getHeaderField("Content-type");
-                if(mimeType.contains("/")) {
-                    return mimeType.split("/")[1]; // returning the second part of mime-type
-                } else {
-                   return  super.getContentType();
-                }
-            } catch(Throwable t) {
-                t.printStackTrace();   
-                return super.getContentType();
-            }
+//     private static final String UNSET = "<unset-mimeType>";
+//     private String mimeType = UNSET;
+
+//     @Override
+//     public String getContentType() {
+
+//         //String type = super.getContentType();
+
+// //         if (type == EXTENSION_UNKNOWN || type == EXTENSION_DIR)
+// //             return type
+        
+//         if (getSpec().endsWith("=jpeg")) {
+//             // special case for MFA data source -- TODO: MFA OSID should handle this
+//             return "jpeg";
+//         } else if (mimeType != UNSET) {
+//             return mimeType;
+//         } else if (getSpec().contains("fedora")) { // fix for fedora url
+//             try {
+//                 URL url = new URL(getSpec());
+//                 Log.info("opening URL " + url);
+//                 String type = url.openConnection().getHeaderField("Content-type");
+//                 if (type.contains("/")) {
+//                     mimeType = type.split("/")[1]; // returning the second part of mime-type
+//                     return mimeType;
+//                 } else {
+//                     return super.getContentType();
+//                 }
+//             } catch (Throwable t) {
+//                 t.printStackTrace();
+//                 return super.getContentType();
+//             }
             
-        } else
-            return super.getContentType();
-    }
+//         } else
+//             return super.getContentType();
+//     }
     
     public org.osid.repository.Asset getAsset() 
     {

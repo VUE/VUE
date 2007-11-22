@@ -633,7 +633,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         {
             if (extension == null) {
                 if (mLWC.hasResource()) 
-                    extension = mLWC.getResource().getContentType();
+                    extension = mLWC.getResource().getDataType();
                 
                 if (extension == null || extension.length() < 1) {
                     extension = NoResource;

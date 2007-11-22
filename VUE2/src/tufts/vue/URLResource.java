@@ -82,7 +82,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.45 $ / $Date: 2007-11-16 16:34:58 $ / $Author: anoop $
+ * @version $Revision: 1.46 $ / $Date: 2007-11-22 07:28:50 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -117,7 +117,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
 
     private boolean mXMLrestoreUnderway = false;
-    private ArrayList mXMLpropertyList;
+    private ArrayList<PropertyEntry> mXMLpropertyList;
     
     // for castor to save and restore
     
@@ -225,7 +225,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             pretty += nl + spec + " (spec)";
             if (mRelativeURI != null) 
                 pretty += nl + "URI-RELATIVE: " + mRelativeURI;
-            pretty += nl + String.format("%s ext=[%s]", asDebug(), getContentType());
+            pretty += nl + String.format("%s ext=[%s]", asDebug(), getDataType());
 //             pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
 //                 + " impl=" + getClass().getName() + " ext=[" + getContentType() + "]";
             if (isLocalFile())
@@ -531,7 +531,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             } else {
                 setClientType(Resource.URL);
             }
-            setProperty("Content.type", java.net.URLConnection.guessContentTypeFromName(mURL_Browse.getPath()));
+            if (!hasProperty(CONTENT_TYPE))
+                setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL_Browse.getPath()));
         }
         return mURL_Browse;
         ///mURL = new java.net.URL(toURLString());
@@ -741,12 +742,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 //         }
 
 
-    private void setAsImage(boolean asImage) {
-        isImage = asImage;
-        if (DEBUG.DR || DEBUG.RESOURCE) setProperty("@isImage", ""+ asImage);
-    }
-
-    
     // TODO TODO TODO: resource's should be atomic: don't allow post construction setSpec,
     // or at least protected -- will need a dispatching factory to handle this properly,
     // as well as castor factories / creators
@@ -786,7 +781,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (spec == null)
             throw new Error("Resource.setSpec can't be null");
 
-
         if (spec.startsWith("resource:")) {
             final String classpathResource = spec.substring(9);
             System.err.println("Searching for classpath resource [" + classpathResource + "]");
@@ -796,8 +790,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         } else {
             if (!isImage) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
                 setAsImage(looksLikeImageFile(spec));
-                if(getContentType().equalsIgnoreCase("jpg") || getContentType().equalsIgnoreCase("jpeg") || getContentType().equalsIgnoreCase("gif"))
-                    setAsImage(true);
+                if (!isImage && !mXMLrestoreUnderway) {
+                    // if this is during a restore, wait for properties to come in
+                    // so we can check for a Content.type property
+                    checkForImageType();
+                }
             }
             mURL_Browse = makeURL(spec);
             //setURL_Browse(spec);
@@ -853,7 +850,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         
         //this.preview = null;
     }
-    
+
     /**
      * Search for meta-data: e.g.,
      *
@@ -1197,7 +1194,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     /** this is only meaninful if this resource points to a local file */
     protected Image getFileIconImage() {
-        return GUI.getSystemIconForExtension(getContentType(), 128);
+        return GUI.getSystemIconForExtension(getDataType(), 128);
     }
     
     @Override
@@ -1309,9 +1306,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     public void XML_completed()
     {
         if (DEBUG.CASTOR) System.out.println(this + " XML COMPLETED");
-        Iterator i = mXMLpropertyList.iterator();
-        while (i.hasNext()) {
-            final PropertyEntry entry = (PropertyEntry) i.next();
+
+        for (PropertyEntry entry : mXMLpropertyList) {
+            
             final Object key = entry.getEntryKey();
             final Object value = entry.getEntryValue();
 
@@ -1336,6 +1333,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         mXMLpropertyList = null;
         mXMLrestoreUnderway = false;
+        checkForImageType();
     }
     
     public void XML_addNotify(String name, Object parent) {
@@ -1360,15 +1358,43 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         */
     }
+
     
+    private void setAsImage(boolean asImage) {
+        isImage = asImage;
+        if (DEBUG.DR || DEBUG.RESOURCE) setProperty("@isImage", ""+ asImage);
+    }
 
     public boolean isImage() {
         //return isImage(this);
         return isImage;
     }
 
+    private void checkForImageType() {
+        if (!isImage) {
+            if (hasProperty(CONTENT_TYPE)) {
+                setAsImage(isImageMimeType(getProperty(CONTENT_TYPE)));
+            } else {
+                // TODO: on initial creation of resources with types unidentifiable from the spec,
+                // this code will load CONTENT_TYPE (in getDataType), and determine isImage
+                // with looksLikeImageFile, but then when saved/restored, the above case
+                // will use isImageMimeType, which isn't the exact same test -- fix this.
+                setAsImage(looksLikeImageFile('.' + getDataType()));
+            }
+        }
+    }
+
+    private static boolean isImageMimeType(final String s) {
+        return s != null && s.toLowerCase().startsWith("image/");
+    }
+
+    private static boolean isHtmlMimeType(final String s) {
+        return s != null && s.toLowerCase().startsWith("text/html");
+    }
+
     /* guiess if a URL or File contains image dta */
-    private static boolean looksLikeImageFile(String path) {
+    private boolean looksLikeImageFile(String path) {
+        if (DEBUG.WORK) out(spec + ": looksLikeImageFile [" + path + "]");
         String s = path.toLowerCase();
         if    (s.endsWith(".gif")
             || s.endsWith(".jpg")
@@ -1385,6 +1411,51 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
     
     
+    @Override
+    public String getDataType() {
+
+        final String superType = super.getDataType();
+        final String spec = getSpec();
+
+//         if (type == EXTENSION_UNKNOWN || type == EXTENSION_DIR)
+//             return type
+        
+        if (spec.endsWith("=jpeg")) {
+            // special case for MFA data source -- TODO: MFA OSID should handle this
+            return "jpeg";
+        } else if (mimeType != UNSET) {
+            return mimeType;
+        } else if (spec != SPEC_UNSET && spec.startsWith("http") && spec.contains("fedora")) { // fix for fedora url
+            try {
+                final URL url = new URL(getSpec());
+                //Log.info("opening URL " + url);
+                final String type = url.openConnection().getHeaderField("Content-type");
+                if (DEBUG.Enabled) {
+                    out("got contentType " + url + " [" + type + "]");
+                    //Util.printStackTrace("GOT CONTENT TYPE");
+                }
+                if (type != null && type.length() > 0)
+                    setProperty(CONTENT_TYPE, type);
+                if (type.contains("/")) {
+                    mimeType = type.split("/")[1]; // returning the second part of mime-type
+                    return mimeType;
+                } else {
+                    return superType;
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                return superType;
+            }
+            
+        } else
+            return superType;
+    }
+
+    private static final String UNSET = "<unset-mimeType>";
+    private String mimeType = UNSET;
+
+    
+
     /*
     private static boolean isImage(final Resource r)
     {
@@ -1433,14 +1504,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return asURL();
     }
     */
-
-    private static boolean isImageMimeType(final String s) {
-        return s != null && s.toLowerCase().startsWith("image/");
-    }
-
-    private static boolean isHtmlMimeType(final String s) {
-        return s != null && s.toLowerCase().startsWith("text/html");
-    }
 
 
     private static boolean isHTML(final Resource r) {
@@ -1567,6 +1630,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         else
             return makeURL(THUMBSHOT_FETCH + url);
     }
+
 
 //     // Could create an Images.Thumbshot class that can be a recognized special image
 //     // source (just the thumbshot URL), which getPreview can return, so ResourceIcon /

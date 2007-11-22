@@ -33,7 +33,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.55 $ / $Date: 2007-11-05 13:00:37 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2007-11-22 07:28:50 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -110,6 +110,21 @@ import javax.swing.ImageIcon;
 public abstract class Resource 
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Resource.class);
+
+    // Some standard property names
+    public static final String CONTENT_SIZE = "Content.size";
+    public static final String CONTENT_TYPE = "Content.type";
+    public static final String CONTENT_MODIFIED = "Content.modified";
+    public static final String CONTENT_ASOF = "Content.asOf";
+    public static final String CONTENT_SOURCE = "Content.source";
+    // VUE synthesized meta-data:
+    // content.type:    (content-type / mime-type -- from URL & File)
+    // content.size:    (file or URL on-disk content size)
+    // content.modified: (file / URL last modified)
+    // content.updated:  retrieved / URL "date", will always be the read time (image load) for local files
+    //  (accessed? asOf? retrieved?)
+    // content.source: e.g., "Local Disk", "Internet" (not Web, as confuses with FTP), "Black Ships"
+            
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(Resource.class);
@@ -436,7 +451,7 @@ public abstract class Resource
     // was getExtension
     // TODO: cache / allow setting (e.g. special data sources might be able to indicate type that's otherwise unclear
     // e.g., a URL query part that requests "type=jpeg")
-    public String getContentType() {
+    public String getDataType() {
 //         String type = null;
 //         if (getClientType() == DIRECTORY)
 //             type = EXTENSION_DIR;
@@ -523,7 +538,7 @@ public abstract class Resource
         if (mTinyIcon != null)
             return mTinyIcon;
         
-        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getContentType(), 16);
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getDataType(), 16);
         if (image != null) {
             if (image.getWidth(null) > 16) {
                 // see http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
@@ -550,7 +565,7 @@ public abstract class Resource
         if (mLargeIcon != null)
             return mLargeIcon;
         
-        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getContentType(), 32);
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getDataType(), 32);
         if (image != null) {
             if (image.getWidth(null) > 128) {
                 image = image.getScaledInstance(128, 128, 0); //Image.SCALE_SMOOTH);

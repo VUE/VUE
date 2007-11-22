@@ -20,6 +20,8 @@ package tufts.vue;
 
 import tufts.Util;
 
+import static tufts.vue.Resource.*;
+
 import java.util.*;
 import java.lang.ref.*;
 import java.net.URL;
@@ -42,7 +44,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.37 $ / $Date: 2007-11-19 06:20:27 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2007-11-22 07:28:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -850,21 +852,6 @@ public class Images
         // todo: set raw value for compares, but allow prop displayer to convert it?
         // or put a raw Date object in there?
     }
-
-    // TODO: standardize on VUE synthesized meta-data:
-    // content.type:    (content-type / mime-type -- from URL & File)
-    // content.size:    (file or URL on-disk content size)
-    // content.modified: (file / URL last modified)
-    // content.updated:  retrieved / URL "date", will always be the read time (image load) for local files
-    //  (accessed? asOf? retrieved?)
-    // content.source: e.g., "Local Disk", "Internet" (not Web, as confuses with FTP), "Black Ships"
-            
-    // todo: these constants to move to Resource.java
-    public static final String CONTENT_SIZE = "Content.size";
-    public static final String CONTENT_TYPE = "Content.type";
-    public static final String CONTENT_MODIFIED = "Content.modified";
-    public static final String CONTENT_ASOF = "Content.asOf";
-    public static final String CONTENT_SOURCE = "Content.source";
 
     // todo: this probably wants to move to a resource impl class
     private static void setResourceMetaData(Resource r, java.net.URLConnection uc) {
