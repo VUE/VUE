@@ -26,7 +26,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.76 $ / $Date: 2007-11-20 14:50:22 $ / $Author: mike $
+ * @version $Revision: 1.77 $ / $Date: 2007-11-22 07:24:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -797,7 +797,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
     	}
 
         @Override
-        public boolean isUserEnabled() { return VUE.getActiveTool().permitsToolChange(); }
+        public boolean isUserEnabled() { return true; }
+        // Don't allow if locked into a presentation:
+        //public boolean isUserEnabled() { return VUE.getActiveTool().permitsToolChange(); }
     	
     	public void act()
     	{
