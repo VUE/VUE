@@ -20,14 +20,20 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.5 $ / $Date: 2007-11-14 17:20:15 $ / $Author: peter $
+ * @version $Revision: 1.6 $ / $Date: 2007-11-25 17:08:06 $ / $Author: peter $
  */
 
 package tufts.vue;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
@@ -37,11 +43,14 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import javax.activation.MimetypesFileTypeMap;
+import javax.swing.JDialog;
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ServiceException;
 
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
+import org.apache.axis.encoding.*;
+import org.apache.log4j.Logger;
 
 import edu.tufts.vue.dsm.DataSource;
 
@@ -52,76 +61,82 @@ public class SakaiPublisher {
      * All references to _local resources have URLs with a "file" prefix
      */
 	public static final String FILE_PREFIX = "file://";
-    //private static final Map<String, Map<String,String>> HostMap = new HashMap();
-
-	private static final org.apache.log4j.Logger Log = 
-		org.apache.log4j.Logger.getLogger(SakaiPublisher.class);
-    
+ 	private static final Logger Log = Logger.getLogger(SakaiPublisher.class);
+	
+	// Text saved as description of VUE resource saved to Sakai
+	private static final String RESOURCE_DESC = "VUE resource";
+	// Text saved as description of VUE map saved to Sakai if map has no "notes" content
+	private static final String MAP_DESC = "VUE map";
+	    
     /** uploadMap
      *  
      * @param dataSource DataSource object for Sakai LMS
      * @param collectionId Workspace in Sakai to store map
      * @param map VUE map to store in Sakai
+     * @param publisher 
      */
-    public static void uploadMap(
-    		edu.tufts.vue.dsm.DataSource dataSource,  // target datasource
-    		Object collectionId,  // String representing collection within Sakai worksite           
-    		LWMap map)            // usually the current map 
+    public static void uploadMap( DataSource dataSource, Object collectionId, LWMap map)
     	throws Exception
     {
        	Properties dsConfig = dataSource.getConfiguration();
        	String sessionId = getSessionId(dsConfig);
-       	LWMap cloneMap = (LWMap)map.clone();
-        cloneMap.setLabel(map.getLabel());
-        File savedMap = saveMapToFile( cloneMap );
-        
-        if( !savedMap.exists() )
-        {
-        	// there is no saved file to write to Sakai.
+       	String hostUrl = getHostUrl( dsConfig );
+       	File savedMapFile = saveMapToFile( map );
+       	String resourceName = map.getLabel();
+       	
+		// create folder for map and resources
+		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
+        	
+        if( savedMapFile.exists() ) {
+        	hostUrl = getHostUrl( dsConfig );
+        	// put map in a folder of the same name
+	        uploadObjectToRepository( 
+	        		hostUrl,
+	        		sessionId,
+	        		resourceName,
+	        		folderName,
+	        		savedMapFile, 
+	        		map.hasNotes() ? map.getNotes() : MAP_DESC, false );
         }
-        uploadObjectToRepository( 
-        		dsConfig.getProperty("sakaiHost"),
-        		dsConfig.getProperty("sakaiPort"),
-        		sessionId, 
-        		savedMap.getName(), 
-        		collectionId.toString(), 
-        		savedMap, "VUE map", 
-        		cloneMap, 
-        		dataSource);
     }
     
     /** uploadMapAll
+     * Iterate over map, storing local resources in repository, rewriting the 
+     * references in the map so they point to the remote location.  Then store
+     * revised map in repository, leaving map in memory unchanged. (!?)
+     * 
+     * Based on method of the same name in tufts.vue.FedoraPublisher.java.
      *  
      * @param dataSource DataSource object for Sakai LMS
      * @param collectionId Workspace in Sakai to store map
      * @param map VUE map to store in Sakai
      */
-    public static void uploadMapAll(edu.tufts.vue.dsm.DataSource dataSource, Object collectionId, LWMap map) 
+    public static void uploadMapAll(DataSource dataSource, Object collectionId, LWMap map)
+    throws CloneNotSupportedException, IOException, ServiceException
     {        
     	Properties dsConfig = dataSource.getConfiguration();
-    	String sessionId = getSessionId(dsConfig);
+    	String hostUrl = getHostUrl( dsConfig );
+    	String sessionId = getSessionId( dsConfig );
+       	String resourceName = map.getLabel();
     	
-    }
-    
-    /**
-     * Iterate over map, storing local resources in repository, then rewriting the 
-     * references in the map so they point to the remote location.
-     * 
-     * Based on method of the same name in tufts.vue.FedoraPublisher.java.
-     * 
-     * @param host URL of repository 
-     * @param port that repository listens on
-     * @param userName of authorized user
-     * @param password of authorized user
-     * @param map the current map
-     * @param ds TODO
-     * @throws Exception
-     */
-     private static void uploadMapAll( String host, int port, String userName, String password, LWMap map, DataSource ds) throws Exception 
-     {
-    	LWMap cloneMap = (LWMap)map.clone();
-        cloneMap.setLabel(map.getLabel());
-        Iterator<LWComponent> i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+		// create folder for map and resources
+		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
+		
+       	File savedMapFile = saveMapToFile( map );
+        
+       	// if there isn't a locally-saved map, then abort.
+        if( !savedMapFile.exists() ) {
+        	throw new IOException();
+        }
+    	  	
+    	/* I had this clever idea: Why not work with a clone instead of the 
+    	 * real map, then if there was a problem I could roll back my changes 
+    	 * and leave the real map unmodified. Turns out that there is only one
+    	 * map in memory at a time.  So much for clever ideas.  pdw 19-nov-07 
+    	 */
+       	//LWMap cloneMap = (LWMap)map.clone();
+        //cloneMap.setLabel(map.getLabel());
+        Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()) 
         {
             LWComponent component = (LWComponent) i.next();
@@ -131,86 +146,135 @@ public class SakaiPublisher {
             		&& (component.getResource() instanceof URLResource))
             {
                 URLResource resource = (URLResource) component.getResource();
-                Log.debug("Component:" + component 
-                		+ "file:" + resource.getSpec() 
-                		+ " has file:"+resource.getSpec().startsWith(FILE_PREFIX));
-                if(resource.isLocalFile()) 
-                {                    
+                System.out.println("Component:" + component 
+                		         + "file:" + resource.getSpec() 
+                                 + " has file:"+resource.getSpec().startsWith(FILE_PREFIX));
+                if(resource.isLocalFile()) {                    
                     File file = new File(resource.getSpec().replace(FILE_PREFIX,""));
-                    Log.debug("LWComponent:" + component.getLabel() 
-                    		+ " Resource: "+resource.getSpec() 
-                    		+ " File:" + file + " exists:" + file.exists() 
-                    		+ " MimeType" + new MimetypesFileTypeMap().getContentType(file));
+                    System.out.println("LWComponent:" + component.getLabel() 
+                    		         + " Resource: "+resource.getSpec() 
+                    		         + " File:" + file + " exists:" + file.exists() 
+                    		         + " MimeType" + new MimetypesFileTypeMap().getContentType(file));
                     // Maps created on another computer could contain a reference to a local file
-                    // doesn't exist on this user's computer.  Don't process these.
-                    if( !file.exists() ) 
-                    {
+                    // that doesn't exist on this user's computer.  Don't process these.
+                    if( !file.exists() ) {
                     	continue;
                     }
-//                    uploadObjectToRepository( host, port, userName, file, VueResources.getFile("fedora.cm.other"), (new MimetypesFileTypeMap().getContentType(file)), component, cloneMap, null);
+        	        uploadObjectToRepository( 
+        	        		getHostUrl( dsConfig ),
+        	        		sessionId,
+        	        		file.getName(),
+        	        		folderName, 
+        	        		file, 
+        	        		RESOURCE_DESC, true );
 
                     //Replace the link for resource in the map
-                    String ingestUrl =  "http://"+host+":8080/fedora/get/"+"/RESOURCE";
+                    String ingestUrl =  hostUrl + "/access/content" + folderName + file.getName();
+                    System.out.println( ingestUrl );
                     resource.setSpec(ingestUrl);
                 }
             }
         }
-        //upload the map
-        //uploadMap( host, port, userName, password, cloneMap);
+        //upload the map 
+        /* TODO NOTE: The map that is uploaded has changed from the map that 
+         * was saved locally earlier this method.  The difference is that the
+         * resources that were local now point to Sakai.    
+         */
+        uploadObjectToRepository( 
+        		hostUrl,
+        		sessionId,
+        		resourceName,
+        		folderName,
+        		map.getFile(), 
+        		map.hasNotes() ? map.getNotes() : MAP_DESC, false );
     }
-
- 	
-	/**
-	 * @param sessionId a valid sessionid
-	 * @param resourceName a name of the resource to be added
-	 * @param collectionId  collectionId of the collection it is to be added to
-	 * @param file
-	 * @param file2
-	 * @param description of the resource to be added
-	 * @param component
-	 * @param cloneMap
-	 * @param ds
+    
+    /**
+     * Add a resource to a given collection.  The resource is passed encoded 
+     * using Base64.
+	 *
+     * @param hostUrl
+     * @param sessionId a valid sessionid
+     * @param resourceName a name of the resource to be added
+     * @param collectionId  collectionId of the collection it is to be added to
+     * @param file local resource
+     * @param description of the resource to be added
+     * @param isBinary if true, content is encoded using Base64, if false content is assumed to be text.
+     * @throws MalformedURLException
+	 * @throws RemoteException
+	 * @throws ServiceException
 	 */
-	private static void uploadObjectToRepository( String host, String port, String sessionId,
-			String resourceName, String collectionId, File file, String description,
-			LWMap cloneMap, DataSource ds) 
+	private static void uploadObjectToRepository( String hostUrl, String sessionId, 
+			String resourceName, String collectionId, File file, String description, boolean isBinary) 
+	throws IOException, MalformedURLException, RemoteException, ServiceException
 	{
-		/**
-		 *	Add a resource to a given collection.  The resource is passed either as text or encoded using Base64 flagged
-		 *	using the binary parameter.
-		 */
-		 //String sessionId = null; 		// a valid sessionid
-		 //String resourceName = null;	// a name of the resource to be added
-		 //String collectionId = null; 	// collectionId of the collection it is to be added to
-		 String contentMime = null;   	// contentMime content string 
-		 //String description = null; 	// description of the resource to be added
-		 boolean isBinary = true; 		// binary if true, content is encoded using Base64, if false content is assumed to be text.
-		 /*
-		public String createContentItem(String sessionid, String name, String collectionId, String contentMime, 
-			String description, String type, boolean binary) {
-		 	@returns 'Success' or 'Failure'
-		*/
+		String contentMime = null;   	// contentMime content string 
+		String type = "application/vue";
+		String retVal;
+
+		String endpoint = hostUrl + "/sakai-axis/ContentHosting.jws";
+		Service service = new Service();
+		Call call = (Call) service.createCall();
+
+		call.setTargetEndpointAddress(new java.net.URL(endpoint));
+		call.setOperationName(new QName(hostUrl + "/", "createContentItem"));
+
+		if( isBinary ) {
+			contentMime = Base64.encode(getByteArrayFromFile(file));
+		} else {
+			contentMime = getStringFromFile(file);
+		}
 		
+		// createContentItem returns either "Success" or "Failure"
+		retVal = (String) call.invoke( 
+				new Object[] { sessionId, resourceName, collectionId, 
+						contentMime, 
+						description, type, isBinary });			
+	}
+
+	/**
+	 * @param file
+	 * @return file contents as a String
+	 */
+	private static String getStringFromFile(File file) 
+	throws IOException {
+		
+	    String s;
+		StringBuffer sb = new StringBuffer();
+	    BufferedReader in = new BufferedReader( new FileReader(file));
+	      
+	    while( (s = in.readLine()) != null ) {
+	    	sb.append(s);
+	    	sb.append("\n");
+	    }
+	    in.close();
+	    return sb.toString();
+	    
+/* I had wanted to use the same routine for uploading the map as for uploading
+ * resources, but this code truncated the map file.  I couldn't determine why.
+ */  
+ /* 	int bufferSize = 1024 * 8;
+		ByteBuffer buff = ByteBuffer.allocate( bufferSize ); 
+		ByteArrayOutputStream outBuf = new ByteArrayOutputStream( bufferSize );
+		
+		int numRead = 0;
 		try {
-			String endpoint = host + ":" + port + "/sakai-axis/ContentHosting.jws";
-			Service service = new Service();
-			Call call = (Call) service.createCall();
-
-			call.setTargetEndpointAddress(new java.net.URL(endpoint));
-			call.setOperationName(new QName(sessionId + resourceName + "/", "createContentItem"));
-
-			String retVal = (String) call.invoke( 
-					new Object[] { sessionId, resourceName, collectionId, 
-							org.apache.axis.encoding.Base64.encode(getByteArrayFromFile(file)), 
-							description, isBinary });
+			FileChannel fc = new FileInputStream(file).getChannel();
+			while( (numRead = fc.read( buff )) >= 0 ) {
+				buff.flip();
+				outBuf.write( inBuf.array() );
+				inBuf.clear();
+			}
+			outBuf.flush();  // API docs say this is not necessary for this object
+			outBuf.close();  // API docs say this is not necessary for this object
 			
-		} catch (MalformedURLException e) {
+		} catch( FileNotFoundException e ) {
 			e.printStackTrace();
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (ServiceException e) {
+		} catch( IOException e ) {
 			e.printStackTrace();
 		}
+		return outBuf.toByteArray();
+*/
 	}
 
 	/**
@@ -220,47 +284,53 @@ public class SakaiPublisher {
 	 */
 	private static byte[] getByteArrayFromFile(File file)
 	{
-		int bufferSize = 1024;
-		ByteBuffer buff = ByteBuffer.allocate( bufferSize ); 
+		//TODO: Optimize buffer size for this operation
+		int bufferSize = 1024 * 8;
+		ByteBuffer inBuf = ByteBuffer.allocate( bufferSize ); 
+		ByteArrayOutputStream outBuf = new ByteArrayOutputStream( bufferSize );
+		// I don't think that buffering adds anything here, but if it did
+		// here are the lines to add.  Change outBuf to bos in the return statement.
+		//ByteArrayOutputStream bos = new ByteArrayOutputStream( bufferSize );
+		//BufferedOutputStream outBuf = new BufferedOutputStream( bos );
+		
+		int numRead = 0;
 		try {
 			FileChannel fc = new FileInputStream(file).getChannel();
-
-			fc.read( buff );
-			buff.flip();
-			while( buff.hasRemaining() )
-			{
-				buff.get();
+			while( (numRead = fc.read( inBuf )) >= 0 ) {
+				inBuf.flip();
+				outBuf.write( inBuf.array() );
+				inBuf.clear();
 			}
+			outBuf.flush();
+			outBuf.close();
+			
 		} catch( FileNotFoundException e ) {
 			e.printStackTrace();
 		} catch( IOException e ) {
 			e.printStackTrace();
 		}
-		return buff.array();
+		return outBuf.toByteArray();
 	}
 
    
+	/**
+	 * @param configuration
+	 * @return authenticated session id
+	 */
 	public static String getSessionId( Properties configuration ) 
 	{
 		String username = configuration.getProperty("sakaiUsername");
 		String password = configuration.getProperty("sakaiPassword");
-		String host = configuration.getProperty("sakaiHost");
-		String port = configuration.getProperty("sakaiPort");
-
+		String hostUrl = getHostUrl( configuration );
 		String sessionId = null;
 
-		if (!host.startsWith("http://")) {
-			// add http if it is not present
-			host = "http://" + host;
-		}
-
 		try {
-			String endpoint = host + ":" + port + "/sakai-axis/SakaiLogin.jws";
+			String endpoint = hostUrl + "/sakai-axis/SakaiLogin.jws";
 			Service service = new Service();
 			Call call = (Call) service.createCall();
 
 			call.setTargetEndpointAddress(new java.net.URL(endpoint));
-			call.setOperationName(new QName(host + port + "/", "login"));
+			call.setOperationName(new QName(hostUrl + "/", "login"));
 
 			sessionId = (String) call
 					.invoke(new Object[] { username, password });
@@ -275,25 +345,25 @@ public class SakaiPublisher {
 		return sessionId;
 	}
 
+	/**
+	 * @param configuration
+	 * @param sessionId
+	 * @return the server's id string. This is concatenated with the 
+	 * session id to create a JSESSIONID cookie.  VUE uses the cookie to 
+	 * access content using HTTP requests.
+	 */
 	public static String getServerId( Properties configuration, String sessionId )
 	{
-		String host = configuration.getProperty("sakaiHost");
-		String port = configuration.getProperty("sakaiPort");
-
+		String hostUrl = getHostUrl( configuration );
 		String serverId = null;
 
-		if (!host.startsWith("http://")) {
-			// add http if it is not present
-			host = "http://" + host;
-		}
-
 		try {
-			String endpoint = host + ":" + port + "/sakai-axis/SakaiServerUtil.jws";
+			String endpoint = hostUrl + "/sakai-axis/SakaiServerUtil.jws";
 			Service service = new Service();
 			Call call = (Call) service.createCall();
 
 			call.setTargetEndpointAddress(new java.net.URL(endpoint));
-			call.setOperationName(new QName(host + port + "/", "getSakaiServerId"));
+			call.setOperationName(new QName(hostUrl + "/", "getSakaiServerId"));
 
 			serverId = (String) call
 					.invoke(new Object[] { sessionId });
@@ -309,6 +379,10 @@ public class SakaiPublisher {
 		return serverId;
 	}
 	
+	/**
+	 * @param ds DataSource representing the Sakai repository
+	 * @return JSESSIONID cookie string
+	 */
 	public static String getCookieString( DataSource ds )
 	{
 	   	Properties dsConfig = ds.getConfiguration();
@@ -320,9 +394,10 @@ public class SakaiPublisher {
 	
 	/**
 	 * @param map
+	 * @param publisher 
 	 * @return File object that contains marshalled content of map parameter
 	 */
-	private static File saveMapToFile( LWMap map )
+	private static File saveMapToFile( LWMap map)
 	{
 		File tmpFile = map.getFile();
 		
@@ -341,4 +416,69 @@ public class SakaiPublisher {
 		
 		return tmpFile;
 	}
+	
+	/**
+	 * @param sessionId
+	 * @param hostUrl
+	 * @param collectionId
+	 * @param folderName
+	 * @return collectionId of  newly created folder
+	 */
+	private static String createFolder (String sessionId, String hostUrl, String collectionId, String folderName ) {
+	       	String resString = null;
+	       	String resId = collectionId + folderName;
+		    try {
+			      String endpoint = hostUrl + "/sakai-axis/ContentHosting.jws";
+			      Service  service = new Service();
+			      
+			      //	Set up content info.
+			      //String name = "testFolder-"+String.valueOf(System.currentTimeMillis());
+			      String content = "Test folder: "+ folderName;
+			      //String desc = "Test web service Folder creation.";
+			      
+			      Log.debug ("Folder name: "+ folderName +", content data: "+ content);
+
+			      // Create a folder on server.
+			      Call call = (Call) service.createCall();
+			      call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			      call.setOperationName(new QName(hostUrl + "/", "createFolder"));
+			      // String session, String collectionId, String name
+			      resString = (String) call.invoke( new Object[] {sessionId, collectionId, folderName} );
+			      System.out.println("Sent ContentHosting.createFolder(sessionId, collId, name), got '" + resString + "'");
+		    
+			      //	Get the newly created data from the server.
+//			      call = (Call) service.createCall();
+//			      call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+//			      call.setOperationName(new QName(hostUrl, "getContentData"));
+//			      resString = (String) call.invoke( new Object[] {sessionId, resId} );
+//			      byte[] intermediate = Base64.decode(resString);
+//			      String finalResult = new String (intermediate);
+//			      System.out.println("Sent ContentHosting.getContentData("+resId+"), got '" + finalResult + "'");
+		    }
+		    catch (Exception e) {
+			      System.err.println(e.toString());
+			}
+		    return resId + "/";
+	    }
+
+	   /**
+	 * @param configuration
+	 * @return 
+	 */
+	private static String getHostUrl( Properties configuration )
+	   {
+		   String hostUrl = configuration.getProperty("sakaiHost");
+		   String port = configuration.getProperty("sakaiPort");
+
+		   if (!hostUrl.startsWith("http://")) {
+			   // add http if it is not present
+			   hostUrl = "http://" + hostUrl;
+		   }
+		   if( port != null && port.length() > 0 )
+		   {
+			   hostUrl = hostUrl + ":" + port;
+		   }
+		   return hostUrl;
+	   }
+	   	   
 }
