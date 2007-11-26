@@ -1,35 +1,30 @@
 /*
- * SakaiPublisher.java
- *
- * Created on October 15, 2007, 5:03 PM
- *
- * <p><b>License and Copyright: </b>The contents of this file are subject to the
- * Mozilla Public License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License
- * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
- *
- * <p>Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.</p>
- *
- * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
- * Tufts University. All rights reserved.</p>
- *
- * -----------------------------------------------------------------------------
+ * Copyright 2003-2007 Tufts University  Licensed under the
+ * Educational Community License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
+ * 
+ * http://www.osedu.org/licenses/ECL-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS"
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 /**
  * @author  akumar03
- * @version $Revision: 1.6 $ / $Date: 2007-11-25 17:08:06 $ / $Author: peter $
+ * @version $Revision: 1.7 $ / $Date: 2007-11-26 01:09:47 $ / $Author: peter $
  */
 
 package tufts.vue;
 
-import java.io.BufferedOutputStream;
+//import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
+//import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
+//import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,7 +38,6 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import javax.activation.MimetypesFileTypeMap;
-import javax.swing.JDialog;
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ServiceException;
 
@@ -56,8 +50,7 @@ import edu.tufts.vue.dsm.DataSource;
 
 
 public class SakaiPublisher {
-	
-    /**
+	/**
      * All references to _local resources have URLs with a "file" prefix
      */
 	public static final String FILE_PREFIX = "file://";
@@ -117,78 +110,80 @@ public class SakaiPublisher {
     	Properties dsConfig = dataSource.getConfiguration();
     	String hostUrl = getHostUrl( dsConfig );
     	String sessionId = getSessionId( dsConfig );
-       	String resourceName = map.getLabel();
-    	
-		// create folder for map and resources
-		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
-		
-       	File savedMapFile = saveMapToFile( map );
-        
-       	// if there isn't a locally-saved map, then abort.
-        if( !savedMapFile.exists() ) {
-        	throw new IOException();
-        }
-    	  	
+    	String resourceName = map.getLabel();
+
+    	// create folder for map and resources
+    	String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
+
+    	File savedMapFile = saveMapToFile( map );
+
+    	// if there isn't a locally-saved map, then abort.
+    	if( !savedMapFile.exists() ) {
+    		throw new IOException();
+    	}
+
     	/* I had this clever idea: Why not work with a clone instead of the 
     	 * real map, then if there was a problem I could roll back my changes 
     	 * and leave the real map unmodified. Turns out that there is only one
     	 * map in memory at a time.  So much for clever ideas.  pdw 19-nov-07 
     	 */
-       	//LWMap cloneMap = (LWMap)map.clone();
-        //cloneMap.setLabel(map.getLabel());
-        Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
-        while(i.hasNext()) 
-        {
-            LWComponent component = (LWComponent) i.next();
-            Log.debug("Component:" + component +" has resource:" + component.hasResource());
-            if(component.hasResource()  
-            		&& (component instanceof LWNode || component instanceof LWLink) 
-            		&& (component.getResource() instanceof URLResource))
-            {
-                URLResource resource = (URLResource) component.getResource();
-                System.out.println("Component:" + component 
-                		         + "file:" + resource.getSpec() 
-                                 + " has file:"+resource.getSpec().startsWith(FILE_PREFIX));
-                if(resource.isLocalFile()) {                    
-                    File file = new File(resource.getSpec().replace(FILE_PREFIX,""));
-                    System.out.println("LWComponent:" + component.getLabel() 
-                    		         + " Resource: "+resource.getSpec() 
-                    		         + " File:" + file + " exists:" + file.exists() 
-                    		         + " MimeType" + new MimetypesFileTypeMap().getContentType(file));
-                    // Maps created on another computer could contain a reference to a local file
-                    // that doesn't exist on this user's computer.  Don't process these.
-                    if( !file.exists() ) {
-                    	continue;
-                    }
-        	        uploadObjectToRepository( 
-        	        		getHostUrl( dsConfig ),
-        	        		sessionId,
-        	        		file.getName(),
-        	        		folderName, 
-        	        		file, 
-        	        		RESOURCE_DESC, true );
+    	//LWMap cloneMap = (LWMap)map.clone();
+    	//cloneMap.setLabel(map.getLabel());
+    	Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+    	while(i.hasNext()) 
+    	{
+    		LWComponent component = (LWComponent) i.next();
+    		Log.debug("Component:" + component +" has resource:" + component.hasResource());
+    		if(component.hasResource()  
+    				&& (component instanceof LWNode || component instanceof LWLink) 
+    				&& (component.getResource() instanceof URLResource))
+    		{
+    			URLResource resource = (URLResource) component.getResource();
+    			System.out.println("Component:" + component 
+    					+ "file:" + resource.getSpec() 
+    					+ " has file:"+resource.getSpec().startsWith(FILE_PREFIX));
+    			if(resource.isLocalFile()) {                    
+    				File file = new File(resource.getSpec().replace(FILE_PREFIX,""));
+    				System.out.println("LWComponent:" + component.getLabel() 
+    						+ " Resource: "+resource.getSpec() 
+    						+ " File:" + file + " exists:" + file.exists() 
+    						+ " MimeType" + new MimetypesFileTypeMap().getContentType(file));
+    				// Maps created on another computer could contain a reference to a local file
+    				// that doesn't exist on this user's computer.  Don't process these.
+    				if( !file.exists() ) {
+    					continue;
+    				}
+    				uploadObjectToRepository( 
+    						getHostUrl( dsConfig ),
+    						sessionId,
+    						file.getName(),
+    						folderName, 
+    						file, 
+    						RESOURCE_DESC, true );
 
-                    //Replace the link for resource in the map
-                    String ingestUrl =  hostUrl + "/access/content" + folderName + file.getName();
-                    System.out.println( ingestUrl );
-                    resource.setSpec(ingestUrl);
-                }
-            }
-        }
-        //upload the map 
-        /* TODO NOTE: The map that is uploaded has changed from the map that 
-         * was saved locally earlier this method.  The difference is that the
-         * resources that were local now point to Sakai.    
-         */
-        uploadObjectToRepository( 
-        		hostUrl,
-        		sessionId,
-        		resourceName,
-        		folderName,
-        		map.getFile(), 
-        		map.hasNotes() ? map.getNotes() : MAP_DESC, false );
+    				//Replace the link for resource in the map
+    				String ingestUrl =  hostUrl + "/access/content" + folderName + file.getName();
+    				System.out.println( ingestUrl );
+    				resource.setSpec(ingestUrl);
+    			}
+    		}
+    	}
+    	//upload the map 
+    	/* TODO NOTE: The map that is uploaded has changed from the map that 
+    	 * was saved locally earlier this method.  The difference is that the
+    	 * resources that were local now point to Sakai.    
+    	 */
+    	File tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
+    	tufts.vue.action.ActionUtil.marshallMap( tmpFile );
+    	uploadObjectToRepository( 
+    			hostUrl,
+    			sessionId,
+    			resourceName,
+    			folderName,
+    			tmpFile, 
+    			map.hasNotes() ? map.getNotes() : MAP_DESC, false );
     }
-    
+
     /**
      * Add a resource to a given collection.  The resource is passed encoded 
      * using Base64.
