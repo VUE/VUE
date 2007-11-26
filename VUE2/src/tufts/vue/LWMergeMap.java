@@ -346,6 +346,10 @@ public class LWMergeMap extends LWMap {
            while(children.hasNext()) {
              //LWNode comp = (LWNode)children.next();
              LWComponent comp = children.next();
+             
+             if(comp instanceof LWPortal)
+                 continue;
+             
              boolean repeat = false;
              if(nodeAlreadyPresent(comp))
              {
@@ -412,12 +416,15 @@ public class LWMergeMap extends LWMap {
         while(i.hasNext())
         {
           Boolean b = Boolean.TRUE;
+          
+          LWMap next = i.next();
+          
           if(ci!=null && ci.hasNext())
           {    
              b = ci.next();
           }
-          if(b.booleanValue())
-            cms.add(new ConnectivityMatrix(i.next()));
+          if(b.booleanValue() /*&& (next != getBaseMap())*/ )
+            cms.add(new ConnectivityMatrix(next));
         }
         VoteAggregate voteAggregate= new VoteAggregate(cms);
         
@@ -505,11 +512,16 @@ public class LWMergeMap extends LWMap {
             return false;
         }*/
         
-        System.out.println("nodeAlreadyPresent -- getParent() " + node.getParent());
+        if(DEBUG_LOCAL)
+        {    
+          System.out.println("nodeAlreadyPresent -- getParent() " + node.getParent());
+        }
         
         // also need to check if parent *will* be visible
         if(! (node.getParent() instanceof LWMap ) )
             return true;
+       // if(node.getParent() instanceof LWNode && (LWNode.isImageNode((LWNode)(node.getParent()))) )
+       //     return true;
         
         Iterator<LWComponent> i = getChildList().iterator();
         while(i.hasNext())
@@ -610,7 +622,10 @@ public class LWMergeMap extends LWMap {
            
            while(children.hasNext()) {
                
-             LWComponent component = children.next();  
+             LWComponent component = children.next(); 
+             
+             if(component instanceof LWPortal)
+                 continue;
              
              LWNode comp = null;
              LWImage image = null;
