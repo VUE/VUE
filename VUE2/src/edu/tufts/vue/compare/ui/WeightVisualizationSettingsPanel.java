@@ -19,7 +19,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.30 $ / $Date: 2007-11-15 17:16:41 $ / $Author: dan $
+ * @version $Revision: 1.31 $ / $Date: 2007-11-26 01:54:30 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -280,6 +280,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                return new java.awt.Dimension(100,350);
            }
         };
+        
+        scroll.getViewport().setOpaque(true);
+        scroll.getViewport().setBackground(getBackground());
+        
        // scroll.setPreferredSize(new java.awt.Dimension(100,300));
         //c.gridx = 0;
         //c.gridy = 2;
