@@ -1,3 +1,17 @@
+/*
+ * Copyright 2003-2007 Tufts University  Licensed under the
+ * Educational Community License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
+ * 
+ * http://www.osedu.org/licenses/ECL-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS"
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package tufts.vue.gui;
 
 import tufts.vue.VUE;
@@ -25,7 +39,7 @@ import javax.swing.plaf.ColorUIResource;
  * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
  * when there isn't enough room to display all the tabs.
  *
- * @version $Revision: 1.6 $ / $Date: 2006-04-18 20:50:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.7 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $ 
  */
 // superclass of AquaJideLookAndFeel is apple.laf.AquaLookAndFeel
 //public class VueAquaLookAndFeel extends com.jidesoft.plaf.aqua.AquaJideLookAndFeel { // JIDE

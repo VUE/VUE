@@ -1,19 +1,16 @@
 /*
- * -----------------------------------------------------------------------------
- *
- * <p><b>License and Copyright: </b>The contents of this file are subject to the
- * Mozilla Public License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License
- * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
- *
- * <p>Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.</p>
- *
- * <p>The entire file consists of original code.  Copyright &copy; 2003, 2004 
- * Tufts University. All rights reserved.</p>
- *
- * -----------------------------------------------------------------------------
+ * Copyright 2003-2007 Tufts University  Licensed under the
+ * Educational Community License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
+ * 
+ * http://www.osedu.org/licenses/ECL-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS"
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 
@@ -33,7 +30,7 @@ import javax.swing.JComponent;
 
 /**
 
- * A convenice class for providing a wrapper for JComponents to go in
+ * A convenience class for providing a wrapper for JComponents to go in
  * WidgetStack's or DockWindow's.
 
  * Most usefully this actually provides static methods so that any
@@ -41,11 +38,11 @@ import javax.swing.JComponent;
  * parented to a WidgetStack or DockWindow) without having to wrap it
  * in a Widget / make it a subclass.  This is doable because we need
  * only add a few properties to the JComponent (e.g., a title,
- * title-suffix) and change events can be iss issued to the parent via AWT
+ * title-suffix) and change events can be issued to the parent via AWT
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.16 $ / $Date: 2007-10-25 15:53:14 $ / $Author: mike $
+ * @version $Revision: 1.17 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -77,7 +74,7 @@ public class Widget extends javax.swing.JPanel
     }
     /** Hide the entire widget, including it's title.  Do not affect expansion state. */
     public static void setHidden(JComponent c, boolean hidden) {
-        // make sure instance method called in case it was overriden
+        // make sure instance method called in case it was overridden
         if (c instanceof Widget)
             ((Widget)c).setHidden(hidden);
         else
@@ -102,7 +99,7 @@ public class Widget extends javax.swing.JPanel
     /** Make sure the Widget is expanded (visible).  Containing java.awt.Window
      * will be made visible if it's not */
     public static void setExpanded(JComponent c, boolean expanded) {
-        // make sure instance method called in case it was overriden
+        // make sure instance method called in case it was overridden
         if (c instanceof Widget)
             ((Widget)c).setExpanded(expanded);
         else
@@ -123,7 +120,7 @@ public class Widget extends javax.swing.JPanel
         
         // We do NOT auto-display the containing window if startup is
         // underway, otherwise all sorts of stuff will show while the
-        // windows are being pre-configed.
+        // windows are being pre-configured.
         
         if (expanded && !tufts.vue.VUE.isStartupUnderway()) {
             if (isBooleanTrue(c, HIDDEN_KEY) || !c.isVisible())
