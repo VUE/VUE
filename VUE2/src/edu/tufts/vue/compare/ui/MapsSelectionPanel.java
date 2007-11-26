@@ -20,7 +20,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.30 $ / $Date: 2007-11-21 21:26:02 $ / $Author: dan $
+ * @version $Revision: 1.31 $ / $Date: 2007-11-26 15:07:09 $ / $Author: dan $
  * @author dhelle01
  *
  *
@@ -884,12 +884,11 @@ public class MapsSelectionPanel extends JPanel  {
             if(col == 3)
             {
                 typeLabel.setText(value.toString());
-                /*if(!tufts.Util.isWindowsPlatform())
-                {    
-                  typeLabel.setBackground(Color.WHITE);
-                  deletePanel.setOpaque(true);
-                  deletePanel.setBackground(Color.WHITE);
-                }*/
+                
+                typeLabel.setBackground(Color.WHITE);
+                deletePanel.setOpaque(true);
+                deletePanel.setBackground(Color.WHITE);
+                
                 deletePanel.add(typeLabel,BorderLayout.WEST);
                 if(model.getMapType(row)==LOCAL_FILE)
                 {
