@@ -63,9 +63,9 @@ public class MetadataSearchGUI extends JPanel {
     public final static int HIDE_OPTIONS = 0;
     
     // search types
-    //public final static int EVERYTHING = 0;
-    public final static int LABEL = 0;
-    public final static int KEYWORD = 1;
+    public final static int EVERYTHING = 0;
+    public final static int LABEL = 1;
+    public final static int KEYWORD = 2;
     
     public final static String AND = "and";
     public final static String OR = "or";
@@ -98,8 +98,8 @@ public class MetadataSearchGUI extends JPanel {
     //private String[] searchTypes = {"Basic","Categories","Advanced"};
     //private String[] searchTypes = {"Basic","Categories"};
     
-   // private String[] searchTypes = {SEARCH_EVERYTHING,SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
-    private String[] searchTypes = {SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
+    private String[] searchTypes = {SEARCH_EVERYTHING,SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
+    //private String[] searchTypes = {SEARCH_LABELS_ONLY,SEARCH_ALL_KEYWORDS,SEARCH_CATEGORIES_AND_KEYWORDS};
             
     private String[] locationTypes = {SELECTED_MAP_STRING,ALL_MAPS_STRING};
     
@@ -203,7 +203,8 @@ public class MetadataSearchGUI extends JPanel {
         else
         {
            setUpFieldsSearch();
-           setLabelSearch();
+           //setLabelSearch();
+           setEverythingSearch();
         }
         
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
@@ -279,10 +280,10 @@ public class MetadataSearchGUI extends JPanel {
                    }*/
                    // end currently not in use
                    
-                   /*if(ie.getItem().equals(SEARCH_EVERYTHING))
+                   if(ie.getItem().equals(SEARCH_EVERYTHING))
                    {
                        setEverythingSearch();
-                   }*/
+                   }
                    if(ie.getItem().equals(SEARCH_LABELS_ONLY))
                    {
                        //setBasicSearch();
@@ -722,7 +723,7 @@ public class MetadataSearchGUI extends JPanel {
         searchButton.setAction(termsAction);
     }
     
-    /*public void setEverythingSearch()
+    public void setEverythingSearch()
     {
         searchType = EVERYTHING;
         
@@ -743,7 +744,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setOperator(getSelectedOperator());
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
-    }*/
+    }
     
     public void setBasicSearch()
     {
@@ -1191,10 +1192,10 @@ public class MetadataSearchGUI extends JPanel {
               comp.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
             else if( table.getModel().getColumnCount() == 2 && col == valueColumn)
             {    
-              /*if(searchType == EVERYTHING)
+              if(searchType == EVERYTHING)
               {
                 comp.setText("Search everything:");                  
-              }*/
+              }
               
               if(searchType == LABEL)
               {

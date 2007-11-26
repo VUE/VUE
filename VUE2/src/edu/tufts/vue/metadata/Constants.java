@@ -32,6 +32,7 @@ public class Constants {
    public static final String CHILD  = "child";
    public static final String AUTHOR = "author";
    public static final String COLOR = "color";
+   public static final String NOTES = "notes";
    public static final String TAG ="tag";
     
 }
