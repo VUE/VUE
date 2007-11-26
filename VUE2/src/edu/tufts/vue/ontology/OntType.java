@@ -68,6 +68,11 @@ public class OntType implements java.io.Serializable {
         {
             return VueResources.getString("metadata.vue.url");
         }
+        if( this.base.indexOf("custom.rdfs") != -1)
+        {    
+        //    return "file:///Users/dhelle01/.vue_2/custom.rdfs";
+              return "http://vue.tufts.edu/custom.rdfs";
+        }
         return this.base;
     }
     

@@ -128,6 +128,17 @@ public class VueMetadataElement {
            try {
                //old version before getBase modifications in OntType
                //String[] pairedValue = {getKey().substring(len,getKey().length()),getValue()};
+               
+               // fix for files saved before 11/27/2007 -- file:/ prefix didn't work in
+               // rdf search, so used http://vue.tufts.edu#custom.rdfs instead.
+               if(getKey().indexOf("file") != -1 && getKey().indexOf("custom.rdfs") != -1)
+               {
+                   if(getKey().indexOf("#") != -1)
+                   {
+                       key = "http://vue.tufts.edu/custom.rdfs" + getKey().substring(getKey().indexOf("#"),getKey().length());
+                   }    
+               }
+               
                String[] pairedValue = {getKey(),getValue()};
                obj = pairedValue;
                if (DEBUG) System.out.println("recover from: " + pairedValue[0] + "," + pairedValue[1]);
