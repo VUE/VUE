@@ -42,7 +42,8 @@ public class TextOpenAction  extends VueAction {
     public static final int CIRCLE_LAYOUT = 0;
     public static final int RANDOM_LAYOUT = 1;
     public static final int GRAVITY_LAYOUT = 2;
-public static int layout =  GRAVITY_LAYOUT ;
+    public static final int STAGGERED_LAYOUT = 3;
+    public static int layout = STAGGERED_LAYOUT;
     public static final int MAP_SIZE = 500;
     public static final int MAX_SIZE =5000;
     public TextOpenAction(String label) {
@@ -102,6 +103,12 @@ public static int layout =  GRAVITY_LAYOUT ;
         String line;
         reader.readLine(); // skip the first line
         int count = 0;
+        
+        // for staggered layout
+        float y = 20;
+        float x = 0;
+        int toggle = 0;
+        
         while((line=reader.readLine()) != null && count <MAX_SIZE) {
             System.out.println(line+" words: "+line.split(",").length);
             String[] words = line.split(",");
@@ -169,6 +176,32 @@ public static int layout =  GRAVITY_LAYOUT ;
                 map.add(link);
             }
             
+            if(layout == STAGGERED_LAYOUT)
+            {
+                //x += 150;
+                x += 300;
+                
+                if(toggle == 0)
+                {
+                    toggle++;
+                    y = y + 50;
+                }
+                else
+                if(toggle == 1)
+                {
+                    toggle = 0;
+                    y = y - 50;
+                }
+                if(count % 5 == 0)
+                {
+                    y += 100;
+                    x = 400;
+                    toggle = 0;
+                }
+                
+                node1.setLocation(x,y);
+                node2.setLocation(x+150,y);
+            }
             if(layout == CIRCLE_LAYOUT ) {
                 double angle = Math.random()*Math.PI*4;
                 node1.setLocation(MAP_SIZE*(1+Math.cos(angle)),MAP_SIZE*(1+Math.sin(angle)));
