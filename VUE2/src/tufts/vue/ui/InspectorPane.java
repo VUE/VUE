@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.58 $ / $Date: 2007-11-26 22:57:49 $ / $Author: peter $
+ * @version $Revision: 1.59 $ / $Date: 2007-11-27 20:38:53 $ / $Author: mike $
  */
 
 public class InspectorPane extends JPanel
@@ -258,7 +258,9 @@ public class InspectorPane extends JPanel
     	if (!Widget.isHidden(mUserMetaData) && !Widget.isExpanded(mUserMetaData))
     		Widget.setExpanded(mUserMetaData, true);
     	if (!Widget.isHidden(mNotePanel) && Widget.isExpanded(mNotePanel))
-    		Widget.setExpanded(mNotePanel, false);    	
+    		Widget.setExpanded(mNotePanel, false);    	    	
+    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
+    		Widget.setExpanded(mResourceMetaData, false);    	
     }
     
     public void showNotesView()
@@ -268,7 +270,9 @@ public class InspectorPane extends JPanel
     	if (!Widget.isHidden(mNotePanel) && !Widget.isExpanded(mNotePanel))
     		Widget.setExpanded(mNotePanel, true);
     	if (!Widget.isHidden(mUserMetaData) && Widget.isExpanded(mUserMetaData))
-    		Widget.setExpanded(mUserMetaData, false);
+    		Widget.setExpanded(mUserMetaData, false);    	
+    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
+    		Widget.setExpanded(mResourceMetaData, false);    
     	
     	SwingUtilities.invokeLater(new Runnable() { 
             public void run() { 
