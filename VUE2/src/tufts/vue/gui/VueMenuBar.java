@@ -40,7 +40,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.78 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.79 $ / $Date: 2007-11-27 16:45:56 $ / $Author: dan $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -138,7 +138,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //final JMenu publishAction =  Publish.getPublishMenu();
         final RDFOpenAction rdfOpen = new RDFOpenAction();
         
-        //final TextOpenAction textOpen = new TextOpenAction();
+        final TextOpenAction textOpen = new TextOpenAction();
         final CreateCM createCMAction = new CreateCM("Connectivity Analysis...");
         final AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps...");
         final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
@@ -244,8 +244,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
         fileMenu.add(Actions.Revert);
-        fileMenu.addSeparator();        
-        //fileMenu.add(textOpen);
+        fileMenu.addSeparator();   
+        String includeText = VueResources.getString("text.file.menu.include");
+        if(includeText != null && includeText.equals("TRUE"))
+        {
+          fileMenu.add(textOpen);
+        }
         //fileMenu.add(exportAction);
         fileMenu.add(rdfOpen);
         publishMenu.setEnabled(false);
