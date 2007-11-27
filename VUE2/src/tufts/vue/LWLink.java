@@ -45,7 +45,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.180 $ / $Date: 2007-11-14 06:33:33 $ / $Author: sfraize $
+ * @version $Revision: 1.181 $ / $Date: 2007-11-27 20:48:57 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2927,8 +2927,11 @@ public class LWLink extends LWComponent
 
         float lx = 0;
         float ly = 0;
-        if (hasLabel()) {
-            getLabelBox(); // make sure labelBox is set
+
+        if (labelBox == null && hasLabel())
+            getLabelBox(); // make sure labelBox is set if we have a label
+        
+        if (labelBox != null) {
             
             // Record the location of the TextBox (used later for picking).  The
             // coordinates are in the default coordinate space of the LWLink, which for
@@ -2979,6 +2982,7 @@ public class LWLink extends LWComponent
     public void initTextBoxLocation(TextBox textBox) {
         if (mRecompute)
             computeLink();
+        out("setboxcenter " + Util.fmt(new Point2D.Float(getZeroCenterX(), getZeroCenterY())));
         textBox.setBoxCenter(getZeroCenterX(), getZeroCenterY());
         
 //         if (mCurveControls > 0)
