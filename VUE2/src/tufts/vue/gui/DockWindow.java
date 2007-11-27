@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.119 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.120 $ / $Date: 2007-11-27 20:31:02 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -272,7 +272,16 @@ public class DockWindow extends javax.swing.JWindow
            });} */
         setFocusable(true);
     }
-
+   
+    public void scrollToTop()
+    {
+    	JScrollPane jsp = this.mContentPane.getScroller();
+    	if ( jsp != null)
+    	{
+    		jsp.getVerticalScrollBar().setValue(0);
+    		jsp.getVerticalScrollBar().setValueIsAdjusting(false);    		    		
+    	}    	
+    }
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar)
     {
     	this(title,owner,content,false,true);
@@ -3460,7 +3469,10 @@ public class DockWindow extends javax.swing.JWindow
             //mContent.setBackground(Color.green);
             mContent.setOpaque(false);
         }
-
+		public JScrollPane getScroller()
+		{
+			return mScroller;
+		}
         //public void validate() { out("validate"); super.validate(); }
         public void doLayout() {
 

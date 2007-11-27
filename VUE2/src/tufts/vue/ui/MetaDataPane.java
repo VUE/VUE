@@ -343,6 +343,7 @@ public class MetaDataPane extends JPanel
        try {
            // Always put the scroll-bar back at the top, as it defaults
            // to moving to the bottom.
+    	   VUE.getInfoDock().scrollToTop();
            if (scroll)
            mScrollPane.getVerticalScrollBar().setValue(0);
            // Now release all scroll-bar updates.
