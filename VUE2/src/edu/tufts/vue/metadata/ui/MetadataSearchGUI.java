@@ -43,7 +43,7 @@ public class MetadataSearchGUI extends JPanel {
     private static final boolean DEBUG_LOCAL = false;
     
     // "false' is inner scroll pane just around search terms table
-    private static final boolean SIDE_SCROLLBAR = true;
+    private static final boolean SIDE_SCROLLBAR = false;
     
     public static final int ONE_LINE = 0;
     public static final int MULTIPLE_FIELDS = 1;
@@ -409,12 +409,12 @@ public class MetadataSearchGUI extends JPanel {
         scroll.setBorder(BorderFactory.createEmptyBorder());
         scroll.getViewport().setBackground(getBackground());
 
-        if(!SIDE_SCROLLBAR)
-        {    
-          fieldsPanel.add(scroll);
-        }
-        else
-        {
+        //if(!SIDE_SCROLLBAR)
+        //{    
+        //  fieldsPanel.add(scroll);
+        //}
+        //else
+        //{
           fieldsInnerPanel = new JPanel();
           /*{
             public java.awt.Dimension getPreferredSize()
@@ -453,14 +453,22 @@ public class MetadataSearchGUI extends JPanel {
           JPanel tablePanel = new JPanel();
           tablePanel.setLayout(new BorderLayout());
           tablePanel.add(searchTermsTable.getTableHeader(),BorderLayout.NORTH);
-          tablePanel.add(searchTermsTable);    
+          
+          if(SIDE_SCROLLBAR)
+          {    
+            tablePanel.add(searchTermsTable);  
+          }
+          else
+          {
+            tablePanel.add(scroll);
+          }
           
           fieldsInnerPanel.add(tablePanel);
           // do this in toggleOptionsView
           //fieldsInnerPanel.add(radioButtonPanel,BorderLayout.SOUTH);
           
           fieldsPanel.add(fieldsInnerPanel);
-        }
+        //}
         
         topPanel.add(innerTopPanel,BorderLayout.NORTH);
         fieldsPanel.add(linePanel,BorderLayout.NORTH);
