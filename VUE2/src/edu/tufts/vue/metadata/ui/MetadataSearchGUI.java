@@ -216,8 +216,8 @@ public class MetadataSearchGUI extends JPanel {
             
             advanced.toggleOptionsView();
             
-            ((JTabbedPane)content).addTab("basic",basic);
-            ((JTabbedPane)content).addTab("advanced",advanced);
+            ((JTabbedPane)content).addTab("Basic",basic);
+            ((JTabbedPane)content).addTab("Advanced",advanced);
             
             initialized = true;
     }
