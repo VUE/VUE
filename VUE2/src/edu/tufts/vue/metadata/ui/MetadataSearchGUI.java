@@ -40,7 +40,7 @@ import java.util.*;
  */
 public class MetadataSearchGUI extends JPanel {
     
-    private static final boolean DEBUG_LOCAL = true;
+    private static final boolean DEBUG_LOCAL = false;
     
     // "false' is inner scroll pane just around search terms table
     private static final boolean SIDE_SCROLLBAR = false;
