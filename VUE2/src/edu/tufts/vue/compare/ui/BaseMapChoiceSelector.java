@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2003-2007 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may

@@ -1,3 +1,17 @@
+/*
+ * Copyright 2003-2007 Tufts University  Licensed under the
+ * Educational Community License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
+ * 
+ * http://www.osedu.org/licenses/ECL-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS"
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
 package tufts.vue;
 
 import tufts.Util;
@@ -15,7 +29,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.8 $ / $Date: 2007-11-16 23:05:56 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
  */
 class Slides {
 
