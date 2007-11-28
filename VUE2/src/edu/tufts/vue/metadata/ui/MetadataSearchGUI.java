@@ -40,7 +40,7 @@ import java.util.*;
  */
 public class MetadataSearchGUI extends JPanel {
     
-    private static final boolean DEBUG_LOCAL = false;
+    private static final boolean DEBUG_LOCAL = true;
     
     // "false' is inner scroll pane just around search terms table
     private static final boolean SIDE_SCROLLBAR = false;
@@ -142,6 +142,11 @@ public class MetadataSearchGUI extends JPanel {
     private JPanel radioButtonPanel;
     private JPanel fieldsInnerPanel;
     
+    private JPanel linePanel;
+    
+    private static MetadataSearchGUI basic;
+    private static MetadataSearchGUI advanced;
+    
     public static tufts.vue.gui.DockWindow getDockWindow()
     {
         if(dockWindow == null)
@@ -150,8 +155,32 @@ public class MetadataSearchGUI extends JPanel {
             
             dockWindow.setLocation(350,300);
             
-            content = new MetadataSearchGUI(MULTIPLE_FIELDS);
-
+            basic = new MetadataSearchGUI(MULTIPLE_FIELDS);
+            advanced = new MetadataSearchGUI(MULTIPLE_FIELDS);
+            
+            content = new JTabbedPane();
+            
+            ((JTabbedPane)content).addChangeListener(new javax.swing.event.ChangeListener(){
+               public void stateChanged(javax.swing.event.ChangeEvent c)
+               {
+                   if(DEBUG_LOCAL)
+                   {
+                       System.out.println("MetadataSearchGUI tab change " + c);
+                   }
+                   
+                   dockWindow.setSize(new java.awt.Dimension((int)dockWindow.getSize().getWidth() + 10,(int)dockWindow.getSize().getHeight() + 10));
+                   dockWindow.validate();
+                   basic.adjustColumnModel();
+                   advanced.adjustColumnModel();
+                   basic.validate();
+                   advanced.validate();
+                   content.validate();
+                   //dockWindow.setSize(new java.awt.Dimension(305,255));
+                   dockWindow.setSize(new java.awt.Dimension((int)dockWindow.getSize().getWidth() - 10,(int)dockWindow.getSize().getHeight() - 10));
+                   dockWindow.repaint();
+               }
+            });
+            
             if(SIDE_SCROLLBAR)
             {    
               stack = new tufts.vue.gui.WidgetStack();
@@ -182,7 +211,13 @@ public class MetadataSearchGUI extends JPanel {
               dockWindow.setContent(content); 
             }
      
-            dockWindow.setSize(305,255); 
+            //dockWindow.setSize(305,255); 
+            dockWindow.setSize(315,360);
+            
+            advanced.toggleOptionsView();
+            
+            ((JTabbedPane)content).addTab("basic",basic);
+            ((JTabbedPane)content).addTab("advanced",advanced);
             
             initialized = true;
     }
@@ -207,6 +242,11 @@ public class MetadataSearchGUI extends JPanel {
         
         setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         
+    }
+    
+    public java.awt.Dimension getPreferredSize()
+    {
+        return new java.awt.Dimension(314,359);
     }
     
     public void setUpOneLineSearch()
@@ -234,7 +274,7 @@ public class MetadataSearchGUI extends JPanel {
         
         optionsPanel = new OptionsPanel();
         
-        JPanel linePanel = new JPanel() {
+        linePanel = new JPanel() {
                 protected void paintComponent(java.awt.Graphics g) {
                     g.setColor(java.awt.Color.DARK_GRAY);
                     g.drawLine(5,getHeight()/2, MetadataSearchGUI.this.getWidth()-15, getHeight()/2);
@@ -353,7 +393,9 @@ public class MetadataSearchGUI extends JPanel {
         });
         advancedSearchPanel.add(optionsLabel);
         advancedSearchPanel.add(advancedSearch);
-        innerTopPanel.add(advancedSearchPanel,BorderLayout.NORTH);
+        
+        //disabling this button VUE-869
+        //innerTopPanel.add(advancedSearchPanel,BorderLayout.NORTH);
         
         //for default of advanced...
         //innerTopPanel.add(optionsPanel);
@@ -471,7 +513,7 @@ public class MetadataSearchGUI extends JPanel {
         //}
         
         topPanel.add(innerTopPanel,BorderLayout.NORTH);
-        fieldsPanel.add(linePanel,BorderLayout.NORTH);
+        //fieldsPanel.add(linePanel,BorderLayout.NORTH);
         topPanel.add(fieldsPanel);
         
         buttonPanel = new JPanel(new BorderLayout());
@@ -561,7 +603,7 @@ public class MetadataSearchGUI extends JPanel {
            //dockWindow.setSize(300,250 + optionsPanel.getHeight()); 
            
            dockWindow.validate();
-           
+           fieldsPanel.add(linePanel,BorderLayout.NORTH);
            fieldsInnerPanel.add(radioButtonPanel,BorderLayout.SOUTH);
            innerTopPanel.add(optionsPanel);
            remove(topPanel);
@@ -573,34 +615,15 @@ public class MetadataSearchGUI extends JPanel {
            optionsLabel.setText("hide options");
            optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
            
-           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + optionsPanel.getHeight());
-
-           //dockWindow.setSize(300,200 + optionsPanel.getHeight());
-           
-
-           
+           //re-enable next two lines if ever go back to non tabbed mode
+           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + 95);
            //dockWindow.validate();
-           
-           //dockWindow.setSize(300,250 + optionsPanel.getHeight());
-           
-           //dockWindow.validate();
-           
-           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + optionsPanel.getHeight());
-           //validate();
-           
-           dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + 95);
-           
-           dockWindow.validate();
-           
-           //dockWindow.setSize(300,200 + optionsPanel.getHeight());
-           
-           //if(dockWindow != null)
-           //  dockWindow.pack();
            
            optionsToggle = HIDE_OPTIONS;
         }
         else if(optionsToggle == HIDE_OPTIONS)
         {
+           fieldsPanel.remove(linePanel);
            fieldsInnerPanel.remove(radioButtonPanel); 
            innerTopPanel.remove(optionsPanel);
            remove(topPanel);
@@ -611,23 +634,10 @@ public class MetadataSearchGUI extends JPanel {
            advancedSearch.setIcon(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));
            optionsLabel.setText("show options");
            
-           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - optionsPanel.getHeight());
-           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - optionsPanel.getPreferredSize().getHeight());
            
-           //dockWindow.setSize(300,250);
-           
-           
-           dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - 50);
-           
-           
-           //validate();
-           dockWindow.validate();
-           
-           
-           /*if(dockWindow != null)
-           {
-              dockWindow.pack();
-           }*/
+           //re-enable next two lines if ever go back to non tabbed mode
+           //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() - 50);
+           //dockWindow.validate();
            
            optionsToggle = SHOW_OPTIONS;
         }
