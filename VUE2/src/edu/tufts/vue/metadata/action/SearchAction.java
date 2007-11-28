@@ -45,6 +45,7 @@ public class SearchAction extends AbstractAction {
     public static final int SHOW_ACTION = 0;
     public static final int HIDE_ACTION = 1;
     public static final int SELECT_ACTION = 2;
+    public static final int COPY_ACTION = 3;
     
     public static final int SEARCH_SELECTED_MAP = 0;
     public static final int SEARCH_ALL_OPEN_MAPS = 1;
@@ -578,6 +579,25 @@ public class SearchAction extends AbstractAction {
             return;
         }
         
+        if(resultsType == COPY_ACTION)
+        {
+            LWMap searchResultMap = new LWMap("Search Result #" + searchResultsMaps++);
+            
+            Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();   
+            while(components.hasNext())
+            {
+                LWComponent next = components.next();
+                if(comps.contains(next))
+                {
+                   searchResultMap.add(next.duplicate());
+                }
+            }
+            
+            VUE.displayMap(searchResultMap);
+            
+            return; 
+        }
+        
         if(DEBUG_LOCAL)
         {
           System.out.println("SearchAction: comps size after perform search - " + comps.size());
@@ -748,6 +768,8 @@ public class SearchAction extends AbstractAction {
             resultsType = HIDE_ACTION;
         if(type.equals("Select"))
             resultsType = SELECT_ACTION;
+        if(type.equals("Copy to new map"))
+            resultsType = COPY_ACTION;
         
         //globalResultsType = resultsType;
     }
