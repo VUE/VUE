@@ -131,7 +131,7 @@ public class MetadataSearchGUI extends JPanel {
     
     private static tufts.vue.gui.DockWindow dockWindow;
     
-    private static MetadataSearchGUI content;
+    private static JComponent content;
     
     private int searchType = LABEL;
     
@@ -588,7 +588,7 @@ public class MetadataSearchGUI extends JPanel {
            //dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + optionsPanel.getHeight());
            //validate();
            
-           dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + 50);
+           dockWindow.setSize(dockWindow.getWidth(),dockWindow.getHeight() + 95);
            
            dockWindow.validate();
            
