@@ -24,7 +24,7 @@ import java.awt.geom.Rectangle2D;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.15 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $ *
+ * @version $Revision: 1.16 $ / $Date: 2007-11-29 16:22:51 $ / $Author: dan $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -104,7 +104,7 @@ public class ImageMap extends VueAction {
             if(node.getResource() != null){
                 Resource resource = node.getResource();
                 res = resource.toString();
-                if(!res.startsWith("http://")) res = "file:///" + res;
+                if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
             } 
             else res = "null";
             
