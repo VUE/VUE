@@ -536,6 +536,11 @@ public class LWMergeMap extends LWMap {
                     System.out.println("LWMergeMap - returning true in nodeAlreadyPresent - for (node,c) (" +
                             Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
                   }
+                  
+                  edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                  vme.setObject("source: " + node.getMap().getLabel());
+                  c.getMetadataList().getMetadata().add(vme);
+                  
                   return true;
                 }
               }
