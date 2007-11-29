@@ -145,7 +145,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private LWComponent mLWC;
         
-        private LWIcon[] mIcons = new LWIcon[6];
+        private LWIcon[] mIcons = new LWIcon[7];
 
         //final private boolean mCoordsNodeLocal;
         //final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
@@ -179,6 +179,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             mIcons[3] = new LWIcon.Pathway(lwc, c);
             mIcons[4] = new LWIcon.MetaData(lwc, c);
             mIcons[5] = new LWIcon.Hierarchy(lwc, c);
+            mIcons[6] = new LWIcon.MergeSourceMetaData(lwc,c);
             
             for (int i = 0; i < mIcons.length; i++) {
                 mIcons[i].setSize(iconWidth, iconHeight);
@@ -1054,6 +1055,74 @@ public abstract class LWIcon extends Rectangle2D.Float
             dc.g.fill(ur);
             dc.g.fill(ll);
             dc.g.fill(lr);
+            
+            dc.g.translate(-x, -y);
+        }
+    }
+
+    static class MergeSourceMetaData extends LWIcon
+    {
+        //private final static int w = 28;
+        private final static int w = 16;
+        private final static float MaxX = 221;
+        private final static float MaxY = 114+w;
+
+        private final static double scale = DefaultScale;
+        private final static double scaleInv = 1/scale;
+        private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
+
+        private static float iconWidth = (float) (MaxX * scale);
+        private static float iconHeight = (float) (MaxY * scale);
+
+        //-------------------------------------------------------
+
+        private final static GeneralPath oval = new GeneralPath(new Ellipse2D.Float(0,0,3,3));
+        
+        MergeSourceMetaData(LWComponent lwc, Color c) { super(lwc, c); }
+        MergeSourceMetaData(LWComponent lwc) { super(lwc); }
+
+        boolean isShowing() {
+        	if (IconPref.getMetaDataIconValue())
+        		return mLWC.hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+        	else
+        		return false;
+        	}
+
+        void doDoubleClickAction() {
+            System.out.println(this + " Merge Source Meta-Data Action?");
+        }
+        
+        private JComponent ttMetaData;
+        private String ttMetaDataHtml;
+        public JComponent getToolTipComponent()
+        {
+            String html = "<html>";
+            html += mLWC.getMetaDataAsHTML(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+            if (ttMetaDataHtml == null || !ttMetaDataHtml.equals(html)) {
+                ttMetaData = new AALabel(html);
+                ttMetaData.setFont(FONT_MEDIUM);
+                ttMetaDataHtml = html;
+            }
+            return ttMetaData;
+        }
+
+        
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            double x = getX() + (getWidth() - iconWidth) / 2;
+            double y = getY() + (getHeight() - iconHeight) / 2;
+            
+            dc.g.translate(x, y);
+            dc.g.setColor(mColor);
+
+            //dc.g.fill(oval);
+            dc.g.draw(oval);
+            
+            //dc.g.fill(ul);
+            //dc.g.fill(ur);
+            //dc.g.fill(ll);
+            //dc.g.fill(lr);
             
             dc.g.translate(-x, -y);
         }

@@ -174,6 +174,17 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                             public void run()
                             {
                                VUE.displayMap(merge);
+                               
+                               java.util.Iterator<LWComponent> elements = merge.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+                               
+                               while(elements.hasNext())
+                               {
+                                   //if(elements instanceof LWNode)
+                                   //{
+                                     elements.next().layout();
+                                   //}
+                               }
+                               
                                dw.setContent(MergeMapsControlPanel.this);
                                dw.repaint();   
                                generateButton.setEnabled(true); 

@@ -242,7 +242,14 @@ public class MetadataList {
             
             if(txt.length() > 0)
             {
-                txt = "Keywords: " + txt;
+                if(type == VueMetadataElement.CATEGORY)
+                {    
+                  txt = "Keywords: " + txt;
+                }
+                else if(type == VueMetadataElement.OTHER)
+                {
+                  txt = "Merge: " + txt;
+                }
             }
             
             return txt;
