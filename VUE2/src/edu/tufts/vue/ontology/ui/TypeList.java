@@ -868,8 +868,8 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 	}
 	
 	JPopupMenu m = null;
-	private static final JMenuItem addToMap = new JMenuItem("Add to map");
-        private static final JMenuItem addToNode = new JMenuItem("Add to selected node");
+	private final JMenuItem addToMap = new JMenuItem("Add to map");
+        private final JMenuItem addToNode = new JMenuItem("Add to selected node");
     
 	private JPopupMenu getPopup(MouseEvent e) 
 	{
