@@ -937,8 +937,9 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                        VueMetadataElement vme = new VueMetadataElement();
                        vme.setObject(type);
                        ((LWComponent)VUE.getActive(LWComponent.class)).getMetadataList().getMetadata().add(vme);
-                       //refresh();
-                       //repaint();
+                       
+                       VUE.getInspectorPane().ontologicalMetadataUpdated();
+                       
                    }
 			
 			
