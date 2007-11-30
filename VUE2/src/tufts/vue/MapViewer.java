@@ -71,7 +71,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.499 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $ 
+ * @version $Revision: 1.500 $ / $Date: 2007-11-30 20:29:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2585,13 +2585,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         }
 
-        final LWSelection globalSelection = VUE.getSelection();
-        if (globalSelection.size() == 1) {
-            final LWComponent syncSource = globalSelection.first().getSyncSource();
-            if (syncSource != null && syncSource.hasAncestor(mFocal)) {
-                drawSyncSource(dc.push(), syncSource); dc.pop();
-            }
-        }
+//         final LWSelection globalSelection = VUE.getSelection();
+//         if (globalSelection.size() == 1) {
+//             final LWComponent syncSource = globalSelection.first().getSyncSource();
+//             if (syncSource != null && syncSource.hasAncestor(mFocal)) {
+//                 drawSyncSource(dc.push(), syncSource); dc.pop();
+//             }
+//         }
         
         //-------------------------------------------------------
         // Draw the dragged selector box
