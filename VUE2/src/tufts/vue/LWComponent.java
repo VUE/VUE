@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.390 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.391 $ / $Date: 2007-11-30 20:28:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2493,8 +2493,14 @@ u                    getSlot(c).setFromString((String)value);
     
     //protected void reparentNotify(LWContainer parent) {}
 
+    /**
+     * for now (2007-11-30) just records sync source in case we want to use it later,
+     * but does not set up data synchronization (as per Melanie 2007-11-14) 
+     */
     public void setSyncSource(LWComponent source) {
 
+        mSyncSource = source;
+        
         if (true) return; // all dynamic data syncing disabled for now as per Melanie -- SMF 2007-11-14
         
         if (mSyncClients != null) {
@@ -2503,7 +2509,6 @@ u                    getSlot(c).setFromString((String)value);
             mSyncClients.clear();
             mSyncClients = null;
         }
-        mSyncSource = source;
         mSyncSource.addSyncClient(this);
     }
 
