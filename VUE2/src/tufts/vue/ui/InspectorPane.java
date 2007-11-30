@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.59 $ / $Date: 2007-11-27 20:38:53 $ / $Author: mike $
+ * @version $Revision: 1.60 $ / $Date: 2007-11-30 18:11:49 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -455,6 +455,11 @@ public class InspectorPane extends JPanel
     }
     */
     
+    public void ontologicalMetadataUpdated()
+    {
+        ontologicalMetadata.refresh();
+    }
+    
     public static class UserMetaData extends JPanel
     {
         private NodeFilterEditor userMetaDataEditor = null;
@@ -472,6 +477,16 @@ public class InspectorPane extends JPanel
             // has selection loaded when map is added.
             // userMetaDataEditor = new NodeFilterEditor(mNode.getNodeFilter(),true);
             // add(userMetaDataEditor);
+        }
+        
+        // might someday be useful for Metadata version NEW
+        // but only in that case (see ontologicalMetadataUpdated() above)
+        public void refresh()
+        {
+            if(userMetadataEditor != null)
+            {
+              userMetadataEditor.listChanged();
+            }
         }
      
         void load(LWComponent c) {
