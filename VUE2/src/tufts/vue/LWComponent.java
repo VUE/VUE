@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.391 $ / $Date: 2007-11-30 20:28:53 $ / $Author: sfraize $
+ * @version $Revision: 1.392 $ / $Date: 2007-11-30 20:32:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -5517,8 +5517,9 @@ u                    getSlot(c).setFromString((String)value);
             if (isStyle() && key.isStyleProperty)
                 updateStyleWatchers(key, e);
             
-            if (key.type == KeyType.DATA)
-                syncUpdate(key);
+            // sync sources not in use: never do this 2007-11-30 SMF
+            //if (key.type == KeyType.DATA)
+            //  syncUpdate(key);
         }
 
         // labels need own call to this due to TextBox use of setLabel0
