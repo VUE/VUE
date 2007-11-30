@@ -863,9 +863,19 @@ public class TypeList extends JList implements MouseListener,ActionListener {
         
         return testPanel;
     }*/
-    private void displayContextMenu(MouseEvent e) {
+    private void displayContextMenu(MouseEvent e) 
+    {
+        Point mc = e.getPoint();
+        int index = this.locationToIndex(mc);
+	this.setSelectedIndex(index);
+        LWComponent o = this.getSelectedComponent();
+        if(o instanceof LWNode)
+            addToMap.setText("Add node to map");
+        if(o instanceof LWLink)
+            addToMap.setText("Add link to map");
+        
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
-	}
+    }
 	
 	JPopupMenu m = null;
 	private final JMenuItem addToMap = new JMenuItem("Add to map");
