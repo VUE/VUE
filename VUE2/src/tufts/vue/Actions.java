@@ -951,16 +951,37 @@ public class Actions implements VueConstants
             if (option == VueFileChooser.APPROVE_OPTION) 
             {
                 fileName = chooser.getSelectedFile();
-
+                
                 if (fileName == null) 
                 	return;
-              Resource r = c.getResource();
+                
+                if (c instanceof LWNode)
+                {
+                	//Resource r = c.getResource();
               
-            	  VUE.setActive(LWComponent.class, this, null);
+                	VUE.setActive(LWComponent.class, this, null);
               
-            	  //c.setResource(new URLResource(fileName.getAbsolutePath()));  
-            	  c.setResource(fileName);
-            	  VUE.setActive(LWComponent.class, this, c);
+                	c.setResource(fileName);
+                	VUE.setActive(LWComponent.class, this, c);
+                }
+                else if (c instanceof LWSlide)
+                {
+                	 
+                    
+                  	VUE.setActive(LWComponent.class, this, null);
+                    LWNode node = NodeModeTool.createNewNode();
+                    Resource resource = c.getResourceFactory().get(fileName);
+                    //node.setStyle(c.getStyle());                    
+                    //LWNode node= new LWNode(resource.getTitle());                  
+                    
+                    //node.addChild(image);
+                    VUE.getActiveViewer().getFocal().dropChild(node);
+                    
+                    node.setLabel(resource.getTitle());
+                    node.setResource(resource);
+                    VUE.setActive(LWComponent.class, this, c);
+                
+                }
             //  }
             /*  else            	  
               {
@@ -1040,10 +1061,31 @@ public class Actions implements VueConstants
                                                       JOptionPane.ERROR_MESSAGE);
                     } else
                     {
-                    	  VUE.setActive(LWComponent.class, this, null);
-                        c.setResource(r);
-                        //VUE.getInspectorPane().lo
-                        VUE.setActive(LWComponent.class, this, c);
+                    	if (c instanceof LWNode)
+                    	{
+                    		VUE.setActive(LWComponent.class, this, null);
+                    		c.setResource(r);                        
+                    		VUE.setActive(LWComponent.class, this, c);
+                    	}
+                        else if (c instanceof LWSlide)
+                        {
+                        	 
+                            
+                          	VUE.setActive(LWComponent.class, this, null);
+                            LWNode node = NodeModeTool.createNewNode();
+                            Resource resource = c.getResourceFactory().get(uri);
+                            //node.setStyle(c.getStyle());                    
+                            //LWNode node= new LWNode(resource.getTitle());                  
+                            
+                            //node.addChild(image);
+                            VUE.getActiveViewer().getFocal().dropChild(node);
+                            
+                            node.setLabel(uri.toString());
+                            node.setResource(resource);
+                            VUE.setActive(LWComponent.class, this, c);
+                        
+                        }
+                    		
                     }
 //                     try {
 //                         c.setResource(new URLResource(url.toURL()));
