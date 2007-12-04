@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.60 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $ 
+ * @version $Revision: 1.61 $ / $Date: 2007-12-04 20:20:45 $ / $Author: dan $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -85,6 +85,7 @@ public class MapInspectorPanel extends JPanel
         //mFilterCreatePanel = new FilterCreatePanel();
         //metadataPanel = new MetadataPanel();
         metadataPanel = new MetadataEditor(VUE.getActiveMap(),false,false);
+        
         metadataPanel.setName("Keywords");
         //mTabbedPane.addTab( mInfoPanel.getName(), mInfoPanel);
         //mTabbedPane.addTab( mPathPanel.getName(),  mPathPanel);
@@ -103,6 +104,8 @@ public class MapInspectorPanel extends JPanel
         metadataPanel.adjustColumnModel();
         
         //Widget.setWantsScroller(mapInfoStack, true);
+        
+        Widget.setHelpAction(metadataPanel,VueResources.getString("dockWindow.MapInfo.MapKeywords.helpText"));
         
         w.setContent(mapInfoStack);
         w.setHeight(450);
