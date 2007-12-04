@@ -121,7 +121,7 @@ public class MapChooser extends JDialog implements ActionListener{
         GridBagConstraints c = new GridBagConstraints();
         locationPanel.setLayout(gridBag);
         JLabel info = new JLabel(VueResources.getIcon("helpIcon.raw"));
-        info.setToolTipText("Create Connectivity Matrix Help Here - TBD");
+        info.setToolTipText(VueResources.getString("ConnectivityMatrix.helpText"));
         JLabel chooseLabel = new JLabel(generateMessage,JLabel.RIGHT);
         browseLabel = new JLabel(browseMessage,JLabel.CENTER);
         String[] choices = {"active map","map in a local folder"};
