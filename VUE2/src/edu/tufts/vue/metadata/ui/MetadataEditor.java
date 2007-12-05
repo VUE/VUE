@@ -731,6 +731,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            field.addFocusListener(new FocusAdapter(){
               public void focusLost(java.awt.event.FocusEvent fe)
               {  
+                  if(current == null || VUE.getActiveMap() == null || VUE.getActiveViewer() == null)
+                  {
+                      return;
+                  }
+                  
                   //tufts.vue.UndoManager undo = tufts.vue.VUE.getActiveMap().getUndoManager();
                   //undo.mark("metadata value");
                   VUE.getActiveMap().markAsModified();
@@ -812,11 +817,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   {
                     metadata.add(vme); 
                   }
-                  
-
+                     
                   current.layout();
+                  
                   VUE.getActiveViewer().repaint();
-
               }
               
               public void focusGained(java.awt.event.FocusEvent fe)
