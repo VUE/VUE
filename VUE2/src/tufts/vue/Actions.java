@@ -965,20 +965,28 @@ public class Actions implements VueConstants
                 	VUE.setActive(LWComponent.class, this, c);
                 }
                 else if (c instanceof LWSlide)
-                {
-                	 
-                    
+                {                	                     
                   	VUE.setActive(LWComponent.class, this, null);
-                    LWNode node = NodeModeTool.createNewNode();
-                    Resource resource = c.getResourceFactory().get(fileName);
-                    //node.setStyle(c.getStyle());                    
-                    //LWNode node= new LWNode(resource.getTitle());                  
+                 
+                  	String f = (fileName.getName()).toLowerCase();
+                  	String extension = f.substring(f.lastIndexOf(".")+1,f.length());
+                  	LWComponent node = null;
+                  	//System.out.println("STRING : " + extension);
+                  	if (extension.equals("jpg") || extension.equals("jpeg") || extension.equals("png") || extension.equals("gif"))
+                  		node = new LWImage();
+                  	else
+                  	{
+                  		node = NodeModeTool.createNewNode();
+                  		 ((LWNode)node).setAsTextNode(true);
+                  	}
+                                      	
+                    Resource resource = c.getResourceFactory().get(fileName);                    
+                    node.setAutoSized(false);
+                    node.setLabel(resource.getTitle());                                                            
                     
-                    //node.addChild(image);
-                    VUE.getActiveViewer().getFocal().dropChild(node);
-                    
-                    node.setLabel(resource.getTitle());
                     node.setResource(resource);
+                    VUE.getActiveViewer().getFocal().pasteChild(node);
+                    VUE.getActiveViewer().getSelection().setTo(node);
                     VUE.setActive(LWComponent.class, this, c);
                 
                 }
