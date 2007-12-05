@@ -30,7 +30,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.57 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.58 $ / $Date: 2007-12-05 22:10:19 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -278,6 +278,11 @@ public abstract class Resource
             if (!(value instanceof String && ((String)value).length() < 1))
                 mProperties.put(key, value);
         }
+    }
+
+    /** @return any prior value stored for this key, null otherwise */
+    public Object removeProperty(String key) {
+        return mProperties.remove(key);
     }
 
     /**
