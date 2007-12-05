@@ -143,6 +143,10 @@ public class TextOpenAction  extends VueAction {
                 }
                 
             }else {
+                
+                try
+                {
+                
                 if(!nodeMap.containsKey(words[0])) {
                     node1 = new LWNode(words[0]);
                     nodeMap.put(words[0],node1);
@@ -163,7 +167,18 @@ public class TextOpenAction  extends VueAction {
                       int nc= repeatMap.get(words[1]).intValue();
                     repeatMap.put(words[1],new Integer(nc+1));
                 }
+                
+                }
+                catch(Exception e)
+                {
+                    System.out.println("Exception in text import: " + e);
+                    node1 = new LWNode("exception");
+                    node2 = new LWNode("exception 2");
+                }
+                
             }
+            
+            
             
             System.out.println("COUNT: "+count+" Node1 :"+ node1.getLabel()+" Node2 : "+node2.getLabel());
             
