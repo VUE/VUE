@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.39 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.40 $ / $Date: 2007-12-07 00:46:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -785,12 +785,13 @@ public class Images
             image = readAndCreateImage(imageSRC, listener);
         } catch (Throwable t) {
             
-            if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
+            if (DEBUG.IMAGE) Util.printStackTrace(t);
 
             Cache.remove(imageSRC.key);
             
             if (listener != null) {
                 String msg;
+                boolean dumpTrace = false;
                 if (t instanceof java.io.FileNotFoundException)
                     msg = "Not Found: " + t.getMessage();
                 else if (t instanceof java.net.UnknownHostException)
@@ -800,16 +801,21 @@ public class Images
                     msg = null; // don't bother to report an error
                 else if (t instanceof ThreadDeath)
                     msg = "interrupted";
-                else if (t.getMessage() != null && t.getMessage().length() > 0)
+                else if (t.getMessage() != null && t.getMessage().length() > 0) {
                     msg = t.getMessage();
-                else
+                    dumpTrace = true;
+                } else {
                     msg = t.toString();
+                    dumpTrace = true;
+                }
 
                 // this is the one place we deliver caught exceptions
                 // during image loading:
                 listener.gotImageError(imageSRC.original, msg);
 
                 Log.warn(imageSRC + ": " + t);
+                if (dumpTrace)
+                    Util.printStackTrace(t);
             }
 
             if (imageSRC.resource != null)
