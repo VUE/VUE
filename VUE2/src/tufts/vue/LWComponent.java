@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.392 $ / $Date: 2007-11-30 20:32:17 $ / $Author: sfraize $
+ * @version $Revision: 1.393 $ / $Date: 2007-12-10 15:42:47 $ / $Author: dan $
  * @author Scott Fraize
  */
 
@@ -5203,7 +5203,8 @@ u                    getSlot(c).setFromString((String)value);
             drawZero(dc);
         }
         
-        if (drawSlides && mEntries != null)
+        // see VUE-896 (and VUE-892) only show slide icon if node is not filtered
+        if (drawSlides && mEntries != null && !isFiltered())
             drawSlideIconStack(dc);
         //else
         //farthestVisibleSlideCorner = null;
