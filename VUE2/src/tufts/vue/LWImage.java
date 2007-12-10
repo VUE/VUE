@@ -806,13 +806,16 @@ public class LWImage extends
     
     public void drawWithoutShape(DrawContext dc)
     {
+        // see comments on VUE-892 - this code does not seem to present the right behavior for search
+        // please re-enable this code and reopen the bug if this code is needed- Dan H
+        /*
         if (isNodeIcon()) {
             final LWComponent parent = getParent();
             if (parent != null && parent.isFiltered()) {
                 // this is a hack because images are currently special cased as tied to their parent node
                 return;
             }
-        }
+        }*/
 
         final Shape shape = getClipShape();
 
