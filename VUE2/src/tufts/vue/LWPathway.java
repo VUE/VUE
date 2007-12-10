@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.205 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.206 $ / $Date: 2007-12-10 15:11:33 $ / $Author: dan $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1693,6 +1693,11 @@ public class LWPathway extends LWContainer
 
     private static void drawPathwayDot(LWComponent node, DrawContext dc)
     {
+        
+        // VUE-892 fix shows dots still drawing even when node is filtered
+        if(node.isFiltered())
+            return;
+        
         LWPathway onlyPathway = null;
         int visiblePathMemberships = 0;
 
