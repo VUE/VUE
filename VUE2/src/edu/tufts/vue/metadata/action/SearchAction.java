@@ -643,8 +643,10 @@ public class SearchAction extends AbstractAction {
              }
              if(resultsType == HIDE_ACTION)
              {
-               it.next().setHidden(LWComponent.HideCause.DEFAULT);  
-               //it.next().setFiltered(true))
+               // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
+               // will handle child nodes/images correctly in non image nodes)
+               //it.next().setHidden(LWComponent.HideCause.DEFAULT);  
+               it.next().setFiltered(true);
              }
           }
         }
@@ -667,8 +669,10 @@ public class SearchAction extends AbstractAction {
                       System.out.println("SearchAction adding " + comp.getLabel() + " to globalHides and hiding");
                   }
                   
-                  comp.setHidden(LWComponent.HideCause.DEFAULT);
-                  //comp.setFiltered(true);
+                  // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
+                  // will handle child nodes/images correctly in non image nodes)
+                  //comp.setHidden(LWComponent.HideCause.DEFAULT);
+                  comp.setFiltered(true);
                   globalHides.add(comp);
               }
 
@@ -781,8 +785,10 @@ public class SearchAction extends AbstractAction {
         Iterator<LWComponent> it = toBeReverted.iterator();
         while(it.hasNext())
         {
-            it.next().clearHidden(LWComponent.HideCause.DEFAULT);
-            //it.next().setFiltered(false);
+            // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
+            // will handle child nodes/images correctly in non image nodes)
+            //it.next().clearHidden(LWComponent.HideCause.DEFAULT);
+            it.next().setFiltered(false);
         } 
     }
     
