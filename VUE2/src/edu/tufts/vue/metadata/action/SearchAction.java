@@ -589,7 +589,17 @@ public class SearchAction extends AbstractAction {
                 LWComponent next = components.next();
                 if(comps.contains(next))
                 {
-                   searchResultMap.add(next.duplicate());
+                   LWComponent duplicate = next.duplicate();
+                   LWComponent parent = next.getParent();
+                   if(parent !=null && !comps.contains(parent))
+                   {
+                       if(parent instanceof LWNode)
+                       {    
+                         duplicate.setLocation(parent.getLocation());
+                       }
+                       searchResultMap.add(duplicate);
+                   }
+                  
                 }
             }
             
