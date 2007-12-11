@@ -23,41 +23,28 @@ package tufts.vue;
 
 import javax.swing.*;
 import javax.swing.tree.*;
+
 import java.awt.*;
 import java.awt.event.*;
-//import javax.swing.border.LineBorder;
-//import java.util.Vector;
-//import java.util.Iterator;
-//import javax.swing.table.*;
 import javax.swing.event.*;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
+
+import org.osid.repository.RepositoryException;
+import org.osid.shared.SharedException;
+
 import java.io.*;
-//import java.net.*;
-//import org.apache.commons.net.ftp.*;
 import java.util.*;
-
-//import fedora.server.management.FedoraAPIM;
-//import fedora.server.utilities.StreamUtility;
-//import fedora.client.ingest.AutoIngestor;
-
-//import tufts.vue.action.*;
-
-//required for publishing to Fedora
-
-//import fedora.client.FedoraClient;
-//import fedora.client.utility.ingest.AutoIngestor;
-//import fedora.client.utility.AutoFinder;
-//import fedora.server.types.gen.Datastream;
-//import fedora.client.Uploader;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.84 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.85 $ / $Date: 2007-12-11 01:07:46 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
-	private static final org.apache.log4j.Logger Log = 
-		org.apache.log4j.Logger.getLogger(Publisher.class);
-    
+	private static final Logger logger = Logger.getLogger(Publisher.class);
+	
    /** Creates a new instance of Publisher */
     //TODO: Create an interface for datasources and have separate implementations for each type of datasource.
     public static final String TITLE = "Publisher";
@@ -121,21 +108,22 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     JTree wTree; // list of workspaces
     private TreePath _tp = null; // Selection from Sakai workspace panel
     
-    org.osid.shared.Type dataSourceType =edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
-    private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
+    org.osid.shared.Type fedoraDataSourceType = edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
+    private org.osid.shared.Type _collectionAssetType =  edu.tufts.vue.dsm.DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE; // new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
     
     public Publisher(edu.tufts.vue.dsm.DataSource dataSource) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
+        //logger.setLevel(Level.DEBUG);
         setUpButtonPanel();
         try {
-            dataSourceType = dataSource.getRepository().getType();
+            fedoraDataSourceType = dataSource.getRepository().getType();
         } catch(Throwable t) {
             t.printStackTrace();
         }
         repList = new JList();
-        repList.setModel(new DatasourceListModel(dataSourceType));
+        repList.setModel(new DatasourceListModel(fedoraDataSourceType));
         repList.setSelectedValue(dataSource,false);
-        if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+        if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
             setUpWorkspaceSelectionPanel();
             getContentPane().add(wPanel, BorderLayout.CENTER);
             nextButton.setActionCommand(AC_SETUP_M);  // "Next" on ws panel activates Mode panel - pdw 10-nov-07 
@@ -154,9 +142,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public Publisher(org.osid.shared.Type type) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
-        this.dataSourceType = type;
+        //logger.setLevel(Level.DEBUG);
+        this.fedoraDataSourceType = type;
         initialize();
-        if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+        if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
             nextButton.setActionCommand(AC_SETUP_W);
         } else{
             nextButton.setActionCommand(AC_SETUP_M);
@@ -196,7 +185,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         repositoryLabel.setBorder(BorderFactory.createEmptyBorder(15,10,0,0));
         rPanel.add(repositoryLabel,BorderLayout.NORTH);
         repList = new JList();
-        repList.setModel(new DatasourceListModel(dataSourceType));
+        repList.setModel(new DatasourceListModel(fedoraDataSourceType));
         repList.setCellRenderer(new DatasourceListCellRenderer());
         JScrollPane repPane = new JScrollPane(repList);
         JPanel scrollPanel = new JPanel(new BorderLayout());
@@ -333,7 +322,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             getContentPane().validate();
             validateTree();
         }  else if(e.getActionCommand().equals(AC_SETUP_M)) {
-            if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+            if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                 getContentPane().remove(wPanel);
             } else {
                 getContentPane().remove(rPanel);
@@ -350,7 +339,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             }
             getContentPane().remove(rPanel);
             //validateTree();
-            if(dataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+            if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
                 setUpWorkspaceSelectionPanel();
                 getContentPane().add(wPanel, BorderLayout.CENTER);
             } else {
@@ -398,7 +387,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     private void publishMapToDL() {
         if(repList.getSelectedValue() == null) {
-             alert(this,"No repository is selectd. Please go back and select a repository","Publish Error");  
+             alert(this,"No repository is selected. Please go back and select a repository","Publish Error");  
         }
         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
         try{
@@ -408,7 +397,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                  else if(publishMapAllRButton.isSelected())
                     FedoraPublisher.uploadMapAll(ds,VUE.getActiveMap());
                  else
-                    alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
+                    alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
             	DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
             	String siteId = ((SakaiSiteUserObject)(treeNode.getUserObject())).getId();
@@ -418,11 +407,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 }else if(publishMapAllRButton.isSelected()){
                 	SakaiPublisher.uploadMapAll( ds, siteId, VUE.getActiveMap());
                 }   else
-                    alert(VUE.getDialogParent(), "Publish mode not yet supported", "Mode Not Suported");
+                    alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
             }
         } catch(Throwable t) {
             t.printStackTrace();
-            alert(this,"You are not authorized to publish map to "+ds.getRepositoryDisplayName()+". Error message: "+t.getMessage(),"Publish Error");
+            alert(this,"You are not authorized to publish to "+ds.getRepositoryDisplayName()+". Error message: "+t.getMessage(),"Publish Error");
             this.dispose();
         }
     }
@@ -440,29 +429,61 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         try {
             org.osid.repository.Repository repository = dataSource.getRepository();
             org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
-            Log.debug( "repository is " + repository.getDisplayName());
+            logger.debug( "repository is " + repository.getDisplayName());
             
             while (assetIterator.hasNextAsset()) {
                 org.osid.repository.Asset asset = assetIterator.nextAsset();
-                Log.debug( "asset is " + asset.getDisplayName());
+                logger.debug( "asset is " + asset.getDisplayName());
                 
-                SakaiSiteUserObject userObject = new SakaiSiteUserObject();
-                userObject.setId(asset.getId().getIdString());
-                userObject.setDisplayName(asset.getDisplayName());
-                Log.debug( "another obj " + userObject);
-                
-                javax.swing.tree.DefaultMutableTreeNode nextTreeNode = new javax.swing.tree.DefaultMutableTreeNode(userObject);
-                treeModel.insertNodeInto(nextTreeNode,root,0);
-            }
-            
+        		// Populate only with Sakai collections, ignore non-folder types 
+                if( asset.getAssetType().isEqual(_collectionAssetType)) {
+        			addWorkSiteNode(root, treeModel, asset);
+        		}
+            }            
         } catch (Throwable t) {
             t.printStackTrace();
         }
         return treeModel;
     }
+
+
+	/**
+	 * @param parentNode Node in tree under which the new node is placed
+	 * @param treeModel Tree containing work sites
+	 * @param asset Asset representing work site
+	 * @throws SharedException
+	 */
+    private void addWorkSiteNode(
+    		DefaultMutableTreeNode parentNode,
+    		DefaultTreeModel treeModel, 
+    		org.osid.repository.Asset asset)
+    throws SharedException 
+    {
+    	if( !asset.getAssetType().isEqual(_collectionAssetType)) {
+    		return;
+    	}
+    	SakaiSiteUserObject userObject = new SakaiSiteUserObject();
+    	userObject.setId(asset.getId().getIdString());
+    	userObject.setDisplayName(asset.getDisplayName());
+    	logger.debug( "another obj " + userObject);
+
+    	DefaultMutableTreeNode nextTreeNode = new DefaultMutableTreeNode(userObject);
+    	treeModel.insertNodeInto( nextTreeNode, parentNode, 0 );
+
+
+    	org.osid.repository.AssetIterator assetIterator = asset.getAssetsByType(_collectionAssetType);
+    	logger.debug( "asset is " + asset.getDisplayName());
+
+    	while (assetIterator.hasNextAsset()) {
+    		org.osid.repository.Asset childAsset = assetIterator.nextAsset();
+    		logger.debug( "asset is " + childAsset.getDisplayName());
+
+    		addWorkSiteNode(nextTreeNode, treeModel, childAsset);
+    	}		
+    }
     
-    class DatasourceListCellRenderer extends   DefaultListCellRenderer  {
-        
+    class DatasourceListCellRenderer extends   DefaultListCellRenderer  
+    {    
         private JPanel composite = new JPanel(new BorderLayout());
         private JRadioButton radioButton;
         public Component getListCellRendererComponent(

@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.7 $ / $Date: 2007-11-26 01:09:47 $ / $Author: peter $
+ * @version $Revision: 1.8 $ / $Date: 2007-12-11 01:07:46 $ / $Author: peter $
  */
 
 package tufts.vue;
@@ -36,6 +36,7 @@ import java.nio.channels.FileChannel;
 import java.rmi.RemoteException;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.Vector;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.xml.namespace.QName;
@@ -45,6 +46,8 @@ import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.axis.encoding.*;
 import org.apache.log4j.Logger;
+
+import org.jdom.*;
 
 import edu.tufts.vue.dsm.DataSource;
 
@@ -75,7 +78,7 @@ public class SakaiPublisher {
        	String sessionId = getSessionId(dsConfig);
        	String hostUrl = getHostUrl( dsConfig );
        	File savedMapFile = saveMapToFile( map );
-       	String resourceName = map.getLabel();
+       	String resourceName = savedMapFile.getName();
        	
 		// create folder for map and resources
 		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
@@ -110,31 +113,31 @@ public class SakaiPublisher {
     	Properties dsConfig = dataSource.getConfiguration();
     	String hostUrl = getHostUrl( dsConfig );
     	String sessionId = getSessionId( dsConfig );
-    	String resourceName = map.getLabel();
-
-    	// create folder for map and resources
-    	String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
-
+    	
     	File savedMapFile = saveMapToFile( map );
+    	String resourceName = savedMapFile.getName();
 
     	// if there isn't a locally-saved map, then abort.
     	if( !savedMapFile.exists() ) {
     		throw new IOException();
     	}
 
+    	// create folder for map and resources
+    	String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
+ 
     	/* I had this clever idea: Why not work with a clone instead of the 
     	 * real map, then if there was a problem I could roll back my changes 
-    	 * and leave the real map unmodified. Turns out that there is only one
-    	 * map in memory at a time.  So much for clever ideas.  pdw 19-nov-07 
+    	 * and leave the real map unmodified. Anoop claims this works for him
+    	 * (see FedoraPublisher.java) but I didn't have the same luck. pdw 19-nov-07 
     	 */
     	//LWMap cloneMap = (LWMap)map.clone();
     	//cloneMap.setLabel(map.getLabel());
-    	Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+    	Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.ANY).iterator();
     	while(i.hasNext()) 
     	{
     		LWComponent component = (LWComponent) i.next();
     		Log.debug("Component:" + component +" has resource:" + component.hasResource());
-    		if(component.hasResource()  
+   		if(component.hasResource()
     				&& (component instanceof LWNode || component instanceof LWLink) 
     				&& (component.getResource() instanceof URLResource))
     		{
@@ -165,6 +168,11 @@ public class SakaiPublisher {
     				String ingestUrl =  hostUrl + "/access/content" + folderName + file.getName();
     				System.out.println( ingestUrl );
     				resource.setSpec(ingestUrl);
+    				//TODO The following call to setProperty() clears the "File" property.
+    				// this is necessary because currently setSpec() doesn't reset the File 
+    				// property, leaving a resource with both an URL and File property.  It
+    				// shouldn't have both. - pdw 28-nov-07
+    				resource.removeProperty( "File" );
     			}
     		}
     	}
@@ -173,7 +181,9 @@ public class SakaiPublisher {
     	 * was saved locally earlier this method.  The difference is that the
     	 * resources that were local now point to Sakai.    
     	 */
-    	File tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
+    	//File tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
+    	File tmpFile = File.createTempFile("~", "tmp", VueUtil.getDefaultUserFolder());
+    	tmpFile.deleteOnExit();  
     	tufts.vue.action.ActionUtil.marshallMap( tmpFile );
     	uploadObjectToRepository( 
     			hostUrl,
@@ -246,7 +256,9 @@ public class SakaiPublisher {
 	    return sb.toString();
 	    
 /* I had wanted to use the same routine for uploading the map as for uploading
- * resources, but this code truncated the map file.  I couldn't determine why.
+ * resources, but this code truncated the map file.  This code is based on the
+ * assumption that I can treat a plain text file (a .VUE map file) as a binary
+ * file.  For some reason that isn't apparent to me, it doesn't work.
  */  
  /* 	int bufferSize = 1024 * 8;
 		ByteBuffer buff = ByteBuffer.allocate( bufferSize ); 
@@ -461,19 +473,35 @@ public class SakaiPublisher {
 	 * @return 
 	 */
 	private static String getHostUrl( Properties configuration )
-	   {
-		   String hostUrl = configuration.getProperty("sakaiHost");
-		   String port = configuration.getProperty("sakaiPort");
+	{
+		String hostUrl = configuration.getProperty("sakaiHost");
+		String port = configuration.getProperty("sakaiPort");
 
-		   if (!hostUrl.startsWith("http://")) {
-			   // add http if it is not present
-			   hostUrl = "http://" + hostUrl;
-		   }
-		   if( port != null && port.length() > 0 )
-		   {
-			   hostUrl = hostUrl + ":" + port;
-		   }
-		   return hostUrl;
-	   }
-	   	   
+		if (!hostUrl.startsWith("http://")) {
+			// add http if it is not present
+			hostUrl = "http://" + hostUrl;
+		}
+		if( port != null && port.length() > 0 )
+		{
+			hostUrl = hostUrl + ":" + port;
+		}
+		return hostUrl;
+	}
+
+	/** Given a Sakai collection id, return its children, if any.  For example,
+	 * for this collection hierarchy:
+	 * Bedrock
+	 *    Fred
+	 *    	BamBam
+	 *    Wilma
+	 *    	Pebbles
+	 * a call to getChildCollections("/Bedrock/") would return Fred and Wilma, 
+	 * but not BamBam or Pebbles.
+	 * @param collectionId
+	 * @return
+	 */
+	public static Vector<String> getChildCollectionIds( String collectionId )
+	{
+		return new Vector();
+	}
 }
