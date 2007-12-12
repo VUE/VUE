@@ -41,12 +41,14 @@ import edu.tufts.vue.ontology.ui.*;
  *
  * @author dhelle01
  */
-public class OntologicalMembershipPane extends javax.swing.JPanel implements ActiveListener {
+public class OntologicalMembershipPane extends javax.swing.JPanel implements ActiveListener,OntologySelectionListener {
     
     private static OntologicalMembershipPane global;
     
     private LWComponent current;
     private javax.swing.JList list;
+    
+    private JButton addSelectedTerm;
     
     public static OntologicalMembershipPane getGlobal()
     {
@@ -105,7 +107,7 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         });
         
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton addSelectedTerm = new JButton("Add selected term");
+        addSelectedTerm = new JButton("Add selected term");
         addSelectedTerm.setFont(tufts.vue.gui.GUI.LabelFace);
         
         addSelectedTerm.addActionListener(new ActionListener(){
@@ -127,6 +129,12 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
            }
         });
         
+        // OntologyBrowser not yet initialized at startup, todo:
+        // should consider tying OntologyBrowser intitialization to getBrowser() method
+        //if(OntologyBrowser.getBrowser().getSelectedOntology() == null)
+        //{
+            addSelectedTerm.setEnabled(false);
+        //}
         buttonPanel.add(addSelectedTerm);
         
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(15,0,10,0));
@@ -139,6 +147,20 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         if(global == null)
         {
             global = this;
+        }
+        
+        OntologyBrowser.getBrowser().addOntologySelectionListener(this);
+    }
+    
+    public void ontologySelected(OntologySelectionEvent ose)
+    {
+        if(OntologyBrowser.getBrowser().getSelectedOntology() == null)
+        {
+            addSelectedTerm.setEnabled(false);
+        }
+        else
+        {
+            addSelectedTerm.setEnabled(true);
         }
     }
     
