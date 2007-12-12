@@ -109,6 +109,18 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
         customOntology.getOntTypes().add(ontType);
     }
     
+    public void addCustomCategory(String name,OntType value) {
+        OntType ontType = new OntType();
+        ontType.setLabel(name);
+        ontType.setBase(customOntology.getBase());
+        ontType.setId(customOntology.getBase()+name);
+        if(customOntology.getOntTypes().indexOf(value) > -1)
+        {
+          customOntology.getOntTypes().set(customOntology.getOntTypes().indexOf(value),ontType);  
+        }
+        //customOntology.getOntTypes().add(ontType);
+    }
+    
     public void removeCustomCategory(OntType ontType) {
         customOntology.getOntTypes().remove(ontType);
     }
