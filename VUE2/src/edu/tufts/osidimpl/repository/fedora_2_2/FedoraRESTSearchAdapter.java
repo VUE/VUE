@@ -46,6 +46,7 @@ public class FedoraRESTSearchAdapter {
     public static final String SEARCH_ADVANCED = "/fedora/search?pid=true&title=true&xml=true&cModel=true&description=true&maxResults=100&query=";
     public static final String SEARCH_RESUME = "/fedora/search?xml=true&sessionToken=";
     public static final String DS_ID_ATTRIBUTE = "dsid";
+    public static final String WILDCARD = "*";
     
     /** Creates a new instance of FedoraRESTSearchAdapter */
     public FedoraRESTSearchAdapter() {
@@ -56,7 +57,7 @@ public class FedoraRESTSearchAdapter {
             NodeList fieldNode = null;
             if(lSearchCriteria.getSearchOperation() == SearchCriteria.FIND_OBJECTS) {
                 
-                URL url = new URL("http",repository.getAddress(),repository.getPort(),SEARCH_STRING+URLEncoder.encode(lSearchCriteria.getKeywords(),"ISO-8859-1"));
+                URL url = new URL("http",repository.getAddress(),repository.getPort(),SEARCH_STRING+URLEncoder.encode(lSearchCriteria.getKeywords()+WILDCARD,"ISO-8859-1"));
                 XPathFactory  factory=XPathFactory.newInstance();
                 XPath xPath=factory.newXPath();
                 xPath.setNamespaceContext(new FedoraNamespaceContext());
