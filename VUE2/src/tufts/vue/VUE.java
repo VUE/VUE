@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.511 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $ 
+ * @version $Revision: 1.512 $ / $Date: 2007-12-13 16:42:21 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -890,7 +890,14 @@ public class VUE
         //------------------------------
         // Set popups heavyweight throughout the application
         //-------------------------------
-        //PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
+        /* Originally doing this created some problems, but it looks like previous
+         * changes I made in the heavyweight popup stuff have made.  I can't find 
+         * a case where this would *really* help out on the mac so I'm strictly 
+         * using this for windows/unix right now.  Unix because when i booted this 
+         * up in linux i noticed the same problem melanie reported on windows
+         */
+        if (Util.isWindowsPlatform() || Util.isUnixPlatform())
+        	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
         //-----------------------------------------------------------------------------
         // Man VUE Toolbar (map editing tool)
         //-----------------------------------------------------------------------------

@@ -40,7 +40,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.79 $ / $Date: 2007-11-27 16:45:56 $ / $Author: dan $
+ * @version $Revision: 1.80 $ / $Date: 2007-12-13 16:42:21 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -73,7 +73,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             /* on the mac this works fine on windows the menus paint behind the dockwindows
              * so we'll install our own UI which creates heavyweight popups.
              */
-            if (Util.isWindowsPlatform())
+            if (Util.isWindowsPlatform() ||Util.isUnixPlatform())
             	this.getPopupMenu().setUI(new VuePopupMenuUI());
             
                        
