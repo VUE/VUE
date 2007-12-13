@@ -71,7 +71,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.500 $ / $Date: 2007-11-30 20:29:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.501 $ / $Date: 2007-12-13 13:03:38 $ / $Author: dan $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5026,7 +5026,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // if a LWSlide picked, animate zoom into it, and then load as focal
                 mme.setPicked(hitComponent);
                 
-                SearchAction.revertGlobalSearchSelection();
+                if(!(hitComponent instanceof LWNode)  && !(hitComponent instanceof LWText)
+                   && !(hitComponent instanceof LWLink) && !(hitComponent instanceof LWImage) )
+                {
+                  SearchAction.revertGlobalSearchSelection();
+                }
                 
 //                 // this is a hack:
 //                 if (hitComponent instanceof LWSlide && mFocal instanceof LWMap) {
