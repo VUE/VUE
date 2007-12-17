@@ -35,7 +35,7 @@ import tufts.vue.*;
  */
 public class SearchAction extends AbstractAction {
    
-    private final static boolean DEBUG_LOCAL = false; 
+    private final static boolean DEBUG_LOCAL = true; 
 
     private final static boolean MARQUEE = true;
     
@@ -89,6 +89,8 @@ public class SearchAction extends AbstractAction {
     private boolean textOnly = false;
     private boolean metadataOnly = false;
     
+    private boolean everything = false;
+    
     public SearchAction(JTextField searchInput) {
         super("Search");
         this.searchInput = searchInput;
@@ -102,6 +104,11 @@ public class SearchAction extends AbstractAction {
         runIndex();
         searchType = QUERY;
         this.searchTerms = searchTerms;
+    }
+    
+    public void setEverything(boolean everything)
+    {
+        this.everything = everything;
     }
     
     public void setOperator(int operator)
@@ -153,7 +160,7 @@ public class SearchAction extends AbstractAction {
              }    
              else // default is SEARCH_SELECTED_MAP
              {    
-                    index.index(VUE.getActiveMap(),metadataOnly);
+                    index.index(VUE.getActiveMap(),metadataOnly,everything);
              }
                 
             }
@@ -361,7 +368,7 @@ public class SearchAction extends AbstractAction {
         }    
         else // default is SEARCH_SELECTED_MAP
         {    
-          index.index(VUE.getActiveMap(),metadataOnly);
+          index.index(VUE.getActiveMap(),metadataOnly,everything);
         }
         
         
@@ -403,10 +410,6 @@ public class SearchAction extends AbstractAction {
             }
             
             boolean firstFinds = true;
-            // may need to do AND by hand here...
-            // this is OR 
-            // do as list of text to finds? or cull the list before
-            // doing this loop for ands? thats in both createquery and createqueries right now...
             if(textToFind.size() != 0)
             {
                Iterator<String> textIterator = textToFind.iterator(); 
@@ -570,6 +573,13 @@ public class SearchAction extends AbstractAction {
                     if(comps.contains(next))
                     {
                         searchResultMap.add(next.duplicate());
+                        
+                        if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
+                        {
+                            LWSlide slide = (LWSlide)next.getParentOfType(LWSlide.class);
+                            //searchResultMap.add(slide);
+                            searchResultMap.add(slide.getSourceNode());
+                        }
                     }
                 }
             }
@@ -617,7 +627,13 @@ public class SearchAction extends AbstractAction {
         globalResultsType = resultsType;
         
         // find Image Nodes within comps and add images to list (then add list)
-        ArrayList<LWImage> images = new ArrayList<LWImage>();
+        // this ensures that image resources show up even if not found
+        // seperately. 
+        // Looks like we also may need to add the node if the image is in the list?
+        // may also need to check here that the image is not already in the search
+        // list (this is done when adding images currently, I believe)
+        //ArrayList<LWImage> images = new ArrayList<LWImage>();
+        ArrayList<LWComponent> images = new ArrayList<LWComponent>();
         Iterator<LWComponent> compsIterator = comps.iterator();
         while(compsIterator.hasNext())
         {
@@ -630,6 +646,20 @@ public class SearchAction extends AbstractAction {
                     images.add(currentNode.getImage());
                 }
             }
+            
+            if(current.hasFlag(LWComponent.Flag.SLIDE_STYLE))
+            {
+                            LWSlide slide = (LWSlide)current.getParentOfType(LWSlide.class);
+                            images.add(slide);
+                            LWNode source  = ((LWNode)slide.getSourceNode());
+                            images.add(source);
+                            if(LWNode.isImageNode(source))
+                            {
+                                images.add(source.getImage());
+                            }
+                            
+            }
+            
         }
         
         comps.addAll(images);
