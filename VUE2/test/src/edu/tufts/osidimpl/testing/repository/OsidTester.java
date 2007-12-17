@@ -93,10 +93,10 @@ public class OsidTester extends TestCase
 	private static boolean abort = false;
 	private static String _xmlFilepath = null;
 	
-	private static String _result = new String("");
 	private static String _exception = new String("");
 	public static final int PASSED = 0;
 	public static final int FAILED = -1;
+	private static int _result = PASSED;
 	
 	public String toString()
 	{
