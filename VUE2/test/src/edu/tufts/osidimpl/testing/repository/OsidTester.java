@@ -91,7 +91,34 @@ public class OsidTester extends TestCase
 	private org.w3c.dom.Document _document = null;
 	private String _packagename = null;
 	private static boolean abort = false;
-
+	private static String _xmlFilepath = null;
+	
+	private static String _result = new String("");
+	private static String _exception = new String("");
+	public static final int PASSED = 0;
+	public static final int FAILED = -1;
+	
+	public String toString()
+	{
+		return "OsidTester";
+	}
+	
+	public void run(String xmlFilepath)
+	{
+		_xmlFilepath = xmlFilepath;
+		setUp();
+	}
+	
+	public int getResult()
+	{
+		return _result;
+	}
+	
+	public String getException()
+	{
+		return _exception;
+	}
+	
 	protected void setUp()
 	{
 		try {
@@ -99,6 +126,7 @@ public class OsidTester extends TestCase
 			// get environment variable with test file
 			java.util.Properties systemProperties = System.getProperties();
 			String xmlFilepath = systemProperties.getProperty("testProfile");
+			if (xmlFilepath == null) xmlFilepath = _xmlFilepath;
 			
 			java.io.InputStream xmlStream = new java.io.FileInputStream(xmlFilepath);
 			javax.xml.parsers.DocumentBuilderFactory dbf = null;
@@ -110,7 +138,7 @@ public class OsidTester extends TestCase
 			
 			_repositoryManager = getRepositoryManager();
 		} catch (Throwable t) {
-			//t.printStackTrace();
+			t.printStackTrace();
 			fail(t.getMessage());
 		}
 	}
@@ -119,8 +147,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetRepositoriesTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -129,8 +160,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetRepositoryTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -139,8 +173,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetRepositoryTypesTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -149,8 +186,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetRepositoriesByTypeTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -159,8 +199,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetSearchTypesTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -169,8 +212,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetTypesTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -179,8 +225,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetsTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -189,8 +238,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetViaManagerTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -199,8 +251,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetViaRepositoryTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -209,8 +264,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetsBySearchTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -219,8 +277,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetAssetsByTypeTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -229,8 +290,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new SupportsBrowseTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -239,8 +303,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new SupportsSearchTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -249,8 +316,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new SupportsUpdateTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -259,8 +329,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new GetContentTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -269,8 +342,11 @@ public class OsidTester extends TestCase
 	{
 		try {
 			new UpdateContentTest(_repositoryManager,_document);
+			_result = PASSED;
 		} catch (Throwable t) {
 			//t.printStackTrace();
+			_result = FAILED;
+			_exception = t.getMessage();
 			fail(t.getMessage());
 		}
 	}
@@ -347,7 +423,7 @@ public class OsidTester extends TestCase
 																							 properties);
 			}
 		} catch (Throwable t) {
-			//t.printStackTrace();
+			t.printStackTrace();
 			abort = true;
 			throw new org.osid.repository.RepositoryException(org.osid.OsidException.CONFIGURATION_ERROR);
 		}
