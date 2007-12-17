@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.9 $ / $Date: 2007-12-12 19:04:22 $ / $Author: anoop $
+ * @version $Revision: 1.10 $ / $Date: 2007-12-17 21:55:44 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -514,4 +514,15 @@ public class SakaiPublisher {
 	{
 		return new Vector();
 	}
+        
+        /** This method is called to check whether a file already exists in sakai
+         * collection
+         * @param collectionId
+         * @param fileName
+         * @return 
+         * TODO: implement the method. Right now it always returns true.
+         */
+        public static boolean isFilePresention(String collectionId, String fileName) {
+            return true;
+        }
 }
