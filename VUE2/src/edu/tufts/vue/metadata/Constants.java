@@ -28,6 +28,7 @@ public class Constants {
    public static final String AUTHOR = "author";
    public static final String COLOR = "color";
    public static final String NOTES = "notes";
+   public static final String CONTENT_INFO_PROPERTY = "property";
    public static final String TAG ="tag";
     
 }
