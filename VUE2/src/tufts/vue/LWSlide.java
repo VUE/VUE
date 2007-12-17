@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.99 $ / $Date: 2007-11-30 20:06:26 $ / $Author: sfraize $
+ * @version $Revision: 1.100 $ / $Date: 2007-12-17 02:17:00 $ / $Author: dan $
  */
 public class LWSlide extends LWContainer
 {
@@ -232,7 +232,7 @@ public class LWSlide extends LWContainer
 //         }
     }
 
-    protected LWComponent getSourceNode() {
+    public LWComponent getSourceNode() {
         return mEntry == null ? null : mEntry.node;
     }
     
