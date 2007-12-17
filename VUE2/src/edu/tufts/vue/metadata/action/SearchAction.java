@@ -35,7 +35,7 @@ import tufts.vue.*;
  */
 public class SearchAction extends AbstractAction {
    
-    private final static boolean DEBUG_LOCAL = true; 
+    private final static boolean DEBUG_LOCAL = false; 
 
     private final static boolean MARQUEE = true;
     
@@ -700,6 +700,33 @@ public class SearchAction extends AbstractAction {
         
         if(resultsType == SHOW_ACTION)
         {    
+          // perhaps here do a new pass of comps and make sure to show image children of nodes??
+          // (different behavior for select)
+            
+          List<LWComponent> toBeAdded = new ArrayList<LWComponent>();  
+            
+          while(it.hasNext())
+          {
+              LWComponent current = it.next();
+              Iterator<LWComponent> children = current.getChildIterator();
+              while(children.hasNext())
+              {
+                  LWComponent next = children.next();
+                  if (( (next instanceof LWImage) || LWNode.isImageNode(next))
+                       && !comps.contains(next) )
+                  {
+                    toBeAdded.add(next);         
+                  }
+              }
+          }
+          
+          Iterator<LWComponent> addThese = toBeAdded.iterator();
+          while(addThese.hasNext())
+          {
+              comps.add(addThese.next());
+          }
+            
+            
           //globalHides = // opposite of comps 
           Collection<LWComponent> allComps = tufts.vue.VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER);
           globalHides = new ArrayList();
