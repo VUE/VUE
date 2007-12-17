@@ -78,10 +78,15 @@ public class RDFIndex extends ModelCom
     
     public void index(LWMap map)
     {
-        index(map,false);
+        index(map,false,false);
     }
     
-    public void index(LWMap map,boolean metadataOnly) {
+    public void index(LWMap map,boolean metadataOnly)
+    {
+        index(map,metadataOnly,false);
+    }
+    
+    public void index(LWMap map,boolean metadataOnly,boolean searchEverything) {
         
         boolean indexObjectsHere = true;
         
@@ -105,7 +110,18 @@ public class RDFIndex extends ModelCom
             }
             if(DEBUG.RDF) System.out.println("INDEX - added properties for map: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
             
-            for(LWComponent comp: map.getAllDescendents())
+            Collection<LWComponent> descendents = null;
+            
+            if(!searchEverything)
+            {
+                descendents = map.getAllDescendents();
+            }
+            else
+            {
+                descendents = map.getAllDescendents(LWComponent.ChildKind.ANY);
+            }
+            
+            for(LWComponent comp: descendents)
             {
                 
                 if(indexObjectsHere)
@@ -113,13 +129,16 @@ public class RDFIndex extends ModelCom
                   VueIndexedObjectsMap.setID(comp.getURI(),comp);
                 }
                 
-                if(metadataOnly)
+                if(! (comp instanceof LWPathway) )
                 {
-                  rdfize(comp,mapR,true);   
-                }
-                else
-                {    
-                  rdfize(comp,mapR);
+                  if(metadataOnly)
+                  {
+                    rdfize(comp,mapR,true);   
+                  }
+                  else
+                  {    
+                    rdfize(comp,mapR);
+                  }
                 }
             }    
             
