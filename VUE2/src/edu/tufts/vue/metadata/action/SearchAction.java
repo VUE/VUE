@@ -700,9 +700,13 @@ public class SearchAction extends AbstractAction {
         
         if(resultsType == SHOW_ACTION)
         {    
-          // perhaps here do a new pass of comps and make sure to show image children of nodes??
-          // (different behavior for select)
-            
+          
+          // checking all children of nodes in search results to see if they
+          // are images or image nodes
+          // to be done: for select, possibly actually remove selection for any 
+          // children of search results
+          // also to be done: image or image node results should also show
+          // parents (but not non image results)
           List<LWComponent> toBeAdded = new ArrayList<LWComponent>();  
             
           while(it.hasNext())
