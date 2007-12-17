@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -92,8 +92,17 @@ public class FedoraPublisher {
     
     public static void uploadMapAll(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception{
         Properties properties = ds.getConfiguration();
-        LWMap cloneMap = (LWMap)map.clone();
-        cloneMap.setLabel(map.getLabel());
+        String prefix = "concept_map";
+        String suffix = ".vue";
+        String mapLabel = map.getLabel();
+        File origFile = map.getFile();
+       
+        File tempFile  = new File(VueUtil.getDefaultUserFolder()+File.separator+origFile.getName());
+        tempFile.deleteOnExit();
+        tufts.vue.action.ActionUtil.marshallMap(tempFile,map);
+       
+        LWMap cloneMap =   tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
+        
         Iterator i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
         while(i.hasNext()) {
             LWComponent component = (LWComponent) i.next();
@@ -101,15 +110,22 @@ public class FedoraPublisher {
                 URLResource resource = (URLResource) component.getResource();
                 String pid = getFedoraPid(component);
                 if(resource.isLocalFile()) {
-                    File file = new File(resource.getSpec().replace(FILE_PREFIX,""));
-                    addObjectToRepository(ds,OTHER_CM, file,  component, map);
+                    File localFile = new File(resource.getSpec().replace(FILE_PREFIX,""));
+                    addObjectToRepository(ds,OTHER_CM, localFile,  component, cloneMap);
                 } else {
-                    addObjectToRepository(ds,REMOTE_CM,null,component,map);
+                    addObjectToRepository(ds,REMOTE_CM,null,component,cloneMap);
                 }
                 String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
+                //System.out.println("Replacing resource: "+resource+ " with "+ingestUrl);
+                component.setResource(URLResource.create(ingestUrl));
+        
             }
         }
-        uploadMap(ds,map);
+         tufts.vue.action.ActionUtil.marshallMap(tempFile,cloneMap);
+        uploadMap(ds,cloneMap);
+        tufts.vue.action.ActionUtil.marshallMap(origFile, map);
+       
+        
     }
     
     private static void  addObjectToRepository(edu.tufts.vue.dsm.DataSource ds,String cModel,File file,LWComponent comp,LWMap map) throws Exception{
@@ -206,7 +222,8 @@ public class FedoraPublisher {
             mimeType =VUE_MIME_TYPE;
         }
         if(!cModel.equals(REMOTE_CM)){
-            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), edu.tufts.vue.util.Encryption.decrypt(p.getProperty("fedora22Password")));
+            //Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), edu.tufts.vue.util.Encryption.decrypt(p.getProperty("fedora22Password")));
+            Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
             uploadId = uploader.upload(file);
         } else {
             controlGroup = "E";
@@ -313,5 +330,15 @@ public class FedoraPublisher {
         }
         return mimeType;
     }
-    
+    public static void replaceResource(LWMap map,Resource r1,Resource r2) {
+        Iterator i = map.getAllDescendentsIterator();
+        while(i.hasNext()) {
+            LWComponent component = (LWComponent) i.next();
+            if(component.hasResource()){
+                Resource resource = component.getResource();
+                if(resource.getSpec().equals(r1.getSpec()))
+                    component.setResource(r2);
+            }
+        }
+    }
 }
