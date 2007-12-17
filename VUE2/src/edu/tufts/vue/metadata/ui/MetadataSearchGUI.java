@@ -714,6 +714,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setBasic(false);
         termsAction.setMetadataOnly(false);
         termsAction.setOperator(getSelectedOperator());
+        termsAction.setEverything(false);
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
@@ -735,6 +736,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
         termsAction.setOperator(getSelectedOperator());
+        termsAction.setEverything(false);
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
@@ -758,6 +760,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setTextOnly(true);
         termsAction.setMetadataOnly(false);
         termsAction.setOperator(getSelectedOperator());
+        termsAction.setEverything(true);
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
@@ -777,6 +780,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
         termsAction.setOperator(getSelectedOperator());
+        termsAction.setEverything(false);
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
@@ -798,6 +802,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
         termsAction.setOperator(getSelectedOperator());
+        termsAction.setEverything(false);
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
@@ -820,6 +825,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setTextOnly(true);
         termsAction.setMetadataOnly(true);
         termsAction.setOperator(getSelectedOperator());
+        termsAction.setEverything(false);
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
@@ -839,6 +845,7 @@ public class MetadataSearchGUI extends JPanel {
         termsAction.setTextOnly(false);
         termsAction.setMetadataOnly(false);
         termsAction.setOperator(getSelectedOperator());
+        termsAction.setEverything(false);
         //termsAction.setOperator(andOrGroup.getSelection().getModel().getActionCommand());
         searchButton.setAction(termsAction);
     }
@@ -973,7 +980,12 @@ public class MetadataSearchGUI extends JPanel {
              
              String val = ((String[])searchTerms.get(row).getObject())[1];
              field.setText(val);
+             //#VUE-887 -- whoops -- metadataeditor not here
              comp.add(field);
+             
+             //JLabel label = new JLabel(val);
+             //add(label);
+             
            }
            else
            if(col == (categoryColumn))
