@@ -544,13 +544,32 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                if(value instanceof VueMetadataElement)
                {
                    VueMetadataElement vme = (VueMetadataElement)value;
-                   if(vme.getType() == VueMetadataElement.CATEGORY)
+                   if(vme.getType() == VueMetadataElement.CATEGORY  && !vme.getValue().equals(""))
                    {
-                      comp.add(new JTextField(vme.getValue()));
+                     //comp.add(new JTextField(vme.getValue()));
+                     comp.add(new JLabel(vme.getValue()));
+                   }
+                   else if(vme.getType() == VueMetadataElement.CATEGORY && vme.getValue().equals("") )
+                   {
+                     comp.add(new JTextField(vme.getValue()));
                    }
                }
                else
-                 comp.add(new JTextField(value.toString()));
+               {
+                 if(value.toString().trim().equals(""))
+                 {
+                   JTextField field = new JTextField(value.toString());
+                   field.setFont(tufts.vue.gui.GUI.LabelFace);
+                   comp.add(field);  
+                 }
+                 else
+                 {
+                   JLabel label = new JLabel(value.toString());
+                   label.setFont(tufts.vue.gui.GUI.LabelFace);
+                   comp.add(label);
+                 }
+               }
+                 
            }
            else if(col == buttonColumn)               
            {
