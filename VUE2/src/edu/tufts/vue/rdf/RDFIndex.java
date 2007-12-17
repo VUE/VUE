@@ -52,6 +52,7 @@ public class RDFIndex extends ModelCom
     com.hp.hpl.jena.rdf.model.Property authorOf = createProperty(VUE_ONTOLOGY,Constants.AUTHOR);
     com.hp.hpl.jena.rdf.model.Property colorOf = createProperty(VUE_ONTOLOGY,Constants.COLOR);
     com.hp.hpl.jena.rdf.model.Property notesOf = createProperty(VUE_ONTOLOGY,Constants.NOTES);
+    com.hp.hpl.jena.rdf.model.Property contentPropertyOf = createProperty(VUE_ONTOLOGY,Constants.CONTENT_INFO_PROPERTY);
     com.hp.hpl.jena.rdf.model.Property hasTag = createProperty(VUE_ONTOLOGY,Constants.TAG);
     
     private static RDFIndex defaultIndex;
@@ -223,6 +224,21 @@ public class RDFIndex extends ModelCom
               {
                   addProperty(r,notesOf,component.getNotes());
               }
+              
+              tufts.vue.Resource res = component.getResource();
+              if(res !=null)
+              {
+                PropertyMap map = res.getProperties();
+              
+                javax.swing.table.TableModel model = map.getTableModel();
+              
+                for(int i=0;i<model.getRowCount();i++)
+                {
+                  addProperty(r,contentPropertyOf,"" + model.getValueAt(i, 1));
+                }
+              }
+              
+              
             }
             
             com.hp.hpl.jena.rdf.model.Statement statement = this.createStatement(r,childOf,mapR);
