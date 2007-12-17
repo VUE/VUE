@@ -142,7 +142,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                        {
                          java.util.List<VueMetadataElement> metadataList = MetadataEditor.this.current.getMetadataList().getMetadata();
                          int selectedRow = metadataTable.getSelectedRow();
-                         if(selectedRow > 0 && metadataTable.getSelectedColumn()==buttonColumn && metadataList.size() > selectedRow)
+                         
+                         // VUE-912, stop short-circuiting on row 0, delete button has also been returned
+                         if(/*selectedRow > 0 &&*/ metadataTable.getSelectedColumn()==buttonColumn && metadataList.size() > selectedRow)
                          {
                             metadataList.remove(selectedRow);
                             metadataTable.repaint();
@@ -574,10 +576,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            else if(col == buttonColumn)               
            {
                JLabel buttonLabel = new JLabel();
-               if(row!=0)
-               {    
+               
+               // VUE-912, put delete button back -- also add back mouselistener
+               //if(row!=0)
+               //{    
                  buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
-               }
+               //}
                comp.add(buttonLabel);
            }
            
