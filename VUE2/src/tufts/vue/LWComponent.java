@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.393 $ / $Date: 2007-12-10 15:42:47 $ / $Author: dan $
+ * @version $Revision: 1.394 $ / $Date: 2007-12-17 02:14:52 $ / $Author: dan $
  * @author Scott Fraize
  */
 
@@ -5745,7 +5745,7 @@ u                    getSlot(c).setFromString((String)value);
         mFlags &= ~flag.bit;
     }
 
-    protected boolean hasFlag(Flag flag) {
+    public boolean hasFlag(Flag flag) {
         return (mFlags & flag.bit) != 0;
     }
     
