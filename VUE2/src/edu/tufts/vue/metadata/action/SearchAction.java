@@ -106,6 +106,11 @@ public class SearchAction extends AbstractAction {
         this.searchTerms = searchTerms;
     }
     
+    public static int getGlobalResultsType()
+    {
+        return globalResultsType;
+    }
+    
     public void setEverything(boolean everything)
     {
         this.everything = everything;
