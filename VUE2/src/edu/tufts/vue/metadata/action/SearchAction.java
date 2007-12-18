@@ -46,6 +46,7 @@ public class SearchAction extends AbstractAction {
     // meeting.
     private final static boolean AUTO_SHOW_NESTED_IMAGES = true;
     private final static boolean DO_NOT_SELECT_NESTED_IMAGES = true;
+    private final static boolean DO_NOT_SELECT_SLIDE_COMPONENTS = true;
     
     public static final int FIELD = 0;
     public static final int QUERY = 1;
@@ -679,9 +680,30 @@ public class SearchAction extends AbstractAction {
         
         Iterator<LWComponent> it = comps.iterator();
         
+        if(resultsType == SELECT_ACTION && DO_NOT_SELECT_SLIDE_COMPONENTS)
+        {
+           List<LWComponent> slideComponents = new ArrayList<LWComponent>();
+           
+           while(it.hasNext())
+           {
+              LWComponent next = it.next();
+              if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
+              {
+                  slideComponents.add(next);
+              }
+           }
+           
+           Iterator<LWComponent> slides = slideComponents.iterator();
+           while(slides.hasNext())
+           {
+              comps.remove(slides.next());
+           }
+           
+           it = comps.iterator();
+        }
+        
         if(resultsType == SELECT_ACTION && DO_NOT_SELECT_NESTED_IMAGES)
         {
-            
            while(it.hasNext())
            {
               LWComponent next = it.next();
