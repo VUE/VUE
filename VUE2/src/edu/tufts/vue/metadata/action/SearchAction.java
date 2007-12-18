@@ -595,7 +595,19 @@ public class SearchAction extends AbstractAction {
                          {    
                            duplicate.setLocation(parent.getLocation());
                          }
-                         searchResultMap.add(duplicate);
+                         
+                         
+                         if(LWNode.isImageNode(parent))
+                         {
+                           if(!comps.contains(parent))
+                           {
+                               searchResultMap.add(parent.duplicate());
+                           }
+                         }   
+                         else
+                         {    
+                           searchResultMap.add(duplicate);
+                         }
                          
                          if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
                          {
@@ -633,7 +645,20 @@ public class SearchAction extends AbstractAction {
                        {    
                          duplicate.setLocation(parent.getLocation());
                        }
-                       searchResultMap.add(duplicate);
+                       
+                       if(LWNode.isImageNode(parent))
+                       {
+                         if(!comps.contains(parent))
+                         {
+                               searchResultMap.add(parent.duplicate());
+                         }
+                       }   
+                       else
+                       {    
+                           searchResultMap.add(duplicate);
+                       }
+
+                       
                    }
                   
                 }
