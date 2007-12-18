@@ -39,6 +39,14 @@ public class SearchAction extends AbstractAction {
 
     private final static boolean MARQUEE = true;
     
+    // note: default for other nested nodes is currently to treat
+    // them as stand alone components for purposes of search
+    // considering perhaps showing parent for any component
+    // found nested within another as issue for dec19-2007 team
+    // meeting.
+    private final static boolean AUTO_SHOW_NESTED_IMAGES = true;
+    private final static boolean DO_NOT_SELECT_NESTED_IMAGES = true;
+    
     public static final int FIELD = 0;
     public static final int QUERY = 1;
     
@@ -671,6 +679,33 @@ public class SearchAction extends AbstractAction {
         
         Iterator<LWComponent> it = comps.iterator();
         
+        if(resultsType == SELECT_ACTION && DO_NOT_SELECT_NESTED_IMAGES)
+        {
+            
+           while(it.hasNext())
+           {
+              LWComponent next = it.next();
+              List<LWComponent> toNotBeSelected = new ArrayList<LWComponent>();
+              Iterator<LWComponent> nestedComponents = next.getAllDescendents().iterator();
+              while(nestedComponents.hasNext())
+              {
+                  LWComponent nextNested = nestedComponents.next();
+                  if(comps.contains(nextNested))
+                  {
+                      toNotBeSelected.add(nextNested);
+                  }
+              }
+              Iterator<LWComponent> dontSelect = toNotBeSelected.iterator();
+              while(dontSelect.hasNext())
+              {
+                  comps.remove(dontSelect.next());
+              }
+           }
+           
+           
+           it = comps.iterator();
+        }
+        
         if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION)
         {    
           while(it.hasNext())
@@ -701,18 +736,20 @@ public class SearchAction extends AbstractAction {
         if(resultsType == SHOW_ACTION)
         {    
           
-          // checking all children of nodes in search results to see if they
-          // are images or image nodes
-          // to be done: for select, possibly actually remove selection for any 
-          // children of search results
-          // also to be done: image or image node results should also show
-          // parents (but not non image results)
-          List<LWComponent> toBeAdded = new ArrayList<LWComponent>();  
+          if(AUTO_SHOW_NESTED_IMAGES)
+          {    
+            // checking all children of nodes in search results to see if they
+            // are images or image nodes
+            // to be done: for select, possibly actually remove selection for any 
+            // children of search results
+            // also to be done: image or image node results should also show
+            // parents (but not non image results)
+            List<LWComponent> toBeAdded = new ArrayList<LWComponent>();  
             
-          while(it.hasNext())
-          {
+            while(it.hasNext())
+            {
               LWComponent current = it.next();
-              Iterator<LWComponent> children = current.getChildIterator();
+              Iterator<LWComponent> children = current.getAllDescendents().iterator();
               while(children.hasNext())
               {
                   LWComponent next = children.next();
@@ -722,12 +759,13 @@ public class SearchAction extends AbstractAction {
                     toBeAdded.add(next);         
                   }
               }
-          }
+            }
           
-          Iterator<LWComponent> addThese = toBeAdded.iterator();
-          while(addThese.hasNext())
-          {
+            Iterator<LWComponent> addThese = toBeAdded.iterator();
+            while(addThese.hasNext())
+            {
               comps.add(addThese.next());
+            }
           }
             
             
