@@ -586,14 +586,26 @@ public class SearchAction extends AbstractAction {
                     LWComponent next = components.next();
                     if(comps.contains(next))
                     {
-                        searchResultMap.add(next.duplicate());
                         
-                        if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
-                        {
+                       LWComponent duplicate = next.duplicate();
+                       LWComponent parent = next.getParent();
+                       if(parent !=null && !comps.contains(parent))
+                       {
+                         if(parent instanceof LWNode)
+                         {    
+                           duplicate.setLocation(parent.getLocation());
+                         }
+                         searchResultMap.add(duplicate);
+                         
+                         if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
+                         {
                             LWSlide slide = (LWSlide)next.getParentOfType(LWSlide.class);
                             //searchResultMap.add(slide);
                             searchResultMap.add(slide.getSourceNode());
-                        }
+                         }
+                         
+                       } 
+
                     }
                 }
             }
