@@ -71,7 +71,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.503 $ / $Date: 2007-12-17 19:31:50 $ / $Author: dan $ 
+ * @version $Revision: 1.504 $ / $Date: 2007-12-18 16:57:33 $ / $Author: dan $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5029,7 +5029,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if(!(hitComponent instanceof LWNode)  && !(hitComponent instanceof LWText)
                    && !(hitComponent instanceof LWLink) && !(hitComponent instanceof LWImage)
                    && !(hitComponent instanceof LWSlide )
-                   && (SearchAction.getGlobalResultsType() != SearchAction.SHOW_ACTION) )
+                   && (SearchAction.getGlobalResultsType() != SearchAction.SHOW_ACTION) 
+                   && (SearchAction.getGlobalResultsType() != SearchAction.HIDE_ACTION))
                 {
                   SearchAction.revertGlobalSearchSelection();
                 }
