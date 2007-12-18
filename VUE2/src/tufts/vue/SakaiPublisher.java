@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.10 $ / $Date: 2007-12-17 21:55:44 $ / $Author: anoop $
+ * @version $Revision: 1.11 $ / $Date: 2007-12-18 22:56:14 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -522,7 +522,7 @@ public class SakaiPublisher {
          * @return 
          * TODO: implement the method. Right now it always returns true.
          */
-        public static boolean isFilePresention(String collectionId, String fileName) {
+        public static boolean isFilePresent(String collectionId, String fileName) {
             return true;
         }
 }
