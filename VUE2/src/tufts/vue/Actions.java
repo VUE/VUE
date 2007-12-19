@@ -2096,7 +2096,7 @@ public class Actions implements VueConstants
     new NewItemAction("Add Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
         @Override
         LWComponent createNewItem() {
-            return NodeModeTool.createTextNode("new text");
+            return NodeModeTool.createRichTextNode("new text");
         }
     };
 
