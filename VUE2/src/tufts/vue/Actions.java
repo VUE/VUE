@@ -2091,7 +2091,10 @@ public class Actions implements VueConstants
         }
     };
 
-        
+    //This doesn't really make a lot of sense to have 2 methods do the
+    //same thing but my MapViewer.java is a bit decomposed at the moment so
+    //TODO: Come back here eliminate one of these and only call one from mapviewer.
+    //MK
     public static final VueAction NewText =
     new NewItemAction("Add Text", keyStroke(KeyEvent.VK_T, COMMAND)) {
         @Override
