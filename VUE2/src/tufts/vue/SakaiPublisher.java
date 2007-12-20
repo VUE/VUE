@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.11 $ / $Date: 2007-12-18 22:56:14 $ / $Author: anoop $
+ * @version $Revision: 1.12 $ / $Date: 2007-12-20 03:11:17 $ / $Author: peter $
  */
 
 package tufts.vue;
@@ -57,6 +57,12 @@ public class SakaiPublisher {
      * All references to _local resources have URLs with a "file" prefix
      */
 	public static final String FILE_PREFIX = "file://";
+	/**
+	 * Maps published to Sakai are stored in folders that reflect their 
+	 * filename. The filename is transformed by replacing the ".vue" suffix
+	 * with " vue map". 
+	 */
+	public static final String VUE_MAP_FOLDER_SUFFIX = " vue map";
  	private static final Logger Log = Logger.getLogger(SakaiPublisher.class);
 	
 	// Text saved as description of VUE resource saved to Sakai
@@ -83,7 +89,7 @@ public class SakaiPublisher {
        	String sessionId = getSessionId(dsConfig);
        	String hostUrl = getHostUrl( dsConfig );
        	File savedMapFile = saveMapToFile( map );
-       	String resourceName = savedMapFile.getName();
+       	String resourceName = makeSakaiFolderFromVueMap( savedMapFile.getName() );
        	
 		// create folder for map and resources
 		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
@@ -120,7 +126,7 @@ public class SakaiPublisher {
     	String sessionId = getSessionId( dsConfig );
     	
     	File savedMapFile = saveMapToFile( map );
-    	String resourceName = savedMapFile.getName();
+       	String resourceName = makeSakaiFolderFromVueMap( savedMapFile.getName() );
 
     	// if there isn't a locally-saved map, then abort.
     	if( !savedMapFile.exists() ) {
@@ -463,14 +469,6 @@ public class SakaiPublisher {
 			      resString = (String) call.invoke( new Object[] {sessionId, collectionId, folderName} );
 			      System.out.println("Sent ContentHosting.createFolder(sessionId, collId, name), got '" + resString + "'");
 		    
-			      //	Get the newly created data from the server.
-//			      call = (Call) service.createCall();
-//			      call.setTargetEndpointAddress (new java.net.URL(endpoint) );
-//			      call.setOperationName(new QName(hostUrl, "getContentData"));
-//			      resString = (String) call.invoke( new Object[] {sessionId, resId} );
-//			      byte[] intermediate = Base64.decode(resString);
-//			      String finalResult = new String (intermediate);
-//			      System.out.println("Sent ContentHosting.getContentData("+resId+"), got '" + finalResult + "'");
 		    }
 		    catch (Exception e) {
 			      System.err.println(e.toString());
@@ -478,14 +476,14 @@ public class SakaiPublisher {
 		    return resId + "/";
 	    }
 
-	   /**
+	/**  
 	 * @param configuration
 	 * @return 
 	 */
 	private static String getHostUrl( Properties configuration )
 	{
-		String hostUrl = configuration.getProperty("sakaiHost");
-		String port = configuration.getProperty("sakaiPort");
+		String hostUrl = configuration.getProperty( "sakaiHost" );
+		String port = configuration.getProperty( "sakaiPort" );
 
 		if (!hostUrl.startsWith("http://")) {
 			// add http if it is not present
@@ -515,14 +513,29 @@ public class SakaiPublisher {
 		return new Vector();
 	}
         
-        /** This method is called to check whether a file already exists in sakai
-         * collection
-         * @param collectionId
-         * @param fileName
-         * @return 
-         * TODO: implement the method. Right now it always returns true.
-         */
-        public static boolean isFilePresent(String collectionId, String fileName) {
-            return true;
-        }
+	/** This method is called to check whether a folder exists in a Sakai 
+	 * folder that is the same as would be created if fileName was published
+	 * 
+	 * @param collectionId
+	 * @param fileName
+	 * @return true if publishing this fileName would attempt to overwrite an 
+	 * existing folder 
+	 */
+	public static boolean isFilePresent( String collectionId, String fileName ) 
+	{
+		return true;
+	}
+	
+	/** Create a a Sakai folder name by replacing the ".vue" suffix with the 
+	 * defined folder suffix defined in VUE_MAP_FOLDER_SUFFIX.
+	 * 
+	 * @param fileName is the name of the VUE map file
+	 * @return name of Sakai folder to publish map into
+	 */
+	public static String makeSakaiFolderFromVueMap( String fileName ) 
+	{
+		String sakaiFolder = fileName.replaceAll("\\.vue$", VUE_MAP_FOLDER_SUFFIX );
+		return sakaiFolder;
+	}
+
 }
