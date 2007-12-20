@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.12 $ / $Date: 2007-12-20 03:11:17 $ / $Author: peter $
+ * @version $Revision: 1.13 $ / $Date: 2007-12-20 19:21:58 $ / $Author: peter $
  */
 
 package tufts.vue;
@@ -89,10 +89,10 @@ public class SakaiPublisher {
        	String sessionId = getSessionId(dsConfig);
        	String hostUrl = getHostUrl( dsConfig );
        	File savedMapFile = saveMapToFile( map );
-       	String resourceName = makeSakaiFolderFromVueMap( savedMapFile.getName() );
+       	String resourceName = savedMapFile.getName();
        	
 		// create folder for map and resources
-		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
+		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), makeSakaiFolderFromVueMap( resourceName ) );
         	
         if( savedMapFile.exists() ) {
         	hostUrl = getHostUrl( dsConfig );
@@ -126,7 +126,7 @@ public class SakaiPublisher {
     	String sessionId = getSessionId( dsConfig );
     	
     	File savedMapFile = saveMapToFile( map );
-       	String resourceName = makeSakaiFolderFromVueMap( savedMapFile.getName() );
+       	String resourceName = savedMapFile.getName();
 
     	// if there isn't a locally-saved map, then abort.
     	if( !savedMapFile.exists() ) {
@@ -134,7 +134,7 @@ public class SakaiPublisher {
     	}
 
     	// create folder for map and resources
-    	String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), resourceName );
+    	String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), makeSakaiFolderFromVueMap( resourceName ) );
  
     	/* I had this clever idea: Why not work with a clone instead of the 
     	 * real map, then if there was a problem I could roll back my changes 
@@ -193,7 +193,7 @@ public class SakaiPublisher {
     	 * resources that were local now point to Sakai.    
     	 */
     	//File tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
-    	File tmpFile = File.createTempFile("~", "tmp", VueUtil.getDefaultUserFolder());
+    	File tmpFile = File.createTempFile("~vue-", ".tmp", VueUtil.getDefaultUserFolder());
     	tmpFile.deleteOnExit();  
     	tufts.vue.action.ActionUtil.marshallMap( tmpFile );
     	uploadObjectToRepository( 
@@ -448,33 +448,32 @@ public class SakaiPublisher {
 	 * @return collectionId of  newly created folder
 	 */
 	private static String createFolder (String sessionId, String hostUrl, String collectionId, String folderName ) {
-	       	String resString = null;
-	       	String resId = collectionId + folderName;
-		    try {
-			      String endpoint = hostUrl + "/sakai-axis/ContentHosting.jws";
-			      Service  service = new Service();
-			      
-			      //	Set up content info.
-			      //String name = "testFolder-"+String.valueOf(System.currentTimeMillis());
-			      String content = "Test folder: "+ folderName;
-			      //String desc = "Test web service Folder creation.";
-			      
-			      Log.debug ("Folder name: "+ folderName +", content data: "+ content);
+		String resString = null;
+		String resId = collectionId + folderName;
+		try {
+			String endpoint = hostUrl + "/sakai-axis/ContentHosting.jws";
+			Service  service = new Service();
 
-			      // Create a folder on server.
-			      Call call = (Call) service.createCall();
-			      call.setTargetEndpointAddress (new java.net.URL(endpoint) );
-			      call.setOperationName(new QName(hostUrl + "/", "createFolder"));
-			      // String session, String collectionId, String name
-			      resString = (String) call.invoke( new Object[] {sessionId, collectionId, folderName} );
-			      System.out.println("Sent ContentHosting.createFolder(sessionId, collId, name), got '" + resString + "'");
-		    
-		    }
-		    catch (Exception e) {
-			      System.err.println(e.toString());
-			}
-		    return resId + "/";
-	    }
+			//	Set up content info.
+			//String name = "testFolder-"+String.valueOf(System.currentTimeMillis());
+			String content = "Test folder: "+ folderName;
+			//String desc = "Test web service Folder creation.";
+
+			Log.debug ("Folder name: "+ folderName +", content data: "+ content);
+
+			// Create a folder on server.
+			Call call = (Call) service.createCall();
+			call.setTargetEndpointAddress (new java.net.URL(endpoint) );
+			call.setOperationName(new QName(hostUrl + "/", "createFolder"));
+			// String session, String collectionId, String name
+			resString = (String) call.invoke( new Object[] {sessionId, collectionId, folderName} );
+			System.out.println("Sent ContentHosting.createFolder(sessionId, collId, name), got '" + resString + "'");
+		}
+		catch (Exception e) {
+			System.err.println(e.toString());
+		}
+		return resId + "/";
+	}
 
 	/**  
 	 * @param configuration
@@ -512,20 +511,7 @@ public class SakaiPublisher {
 	{
 		return new Vector();
 	}
-        
-	/** This method is called to check whether a folder exists in a Sakai 
-	 * folder that is the same as would be created if fileName was published
-	 * 
-	 * @param collectionId
-	 * @param fileName
-	 * @return true if publishing this fileName would attempt to overwrite an 
-	 * existing folder 
-	 */
-	public static boolean isFilePresent( String collectionId, String fileName ) 
-	{
-		return true;
-	}
-	
+        	
 	/** Create a a Sakai folder name by replacing the ".vue" suffix with the 
 	 * defined folder suffix defined in VUE_MAP_FOLDER_SUFFIX.
 	 * 
