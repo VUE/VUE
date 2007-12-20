@@ -21,6 +21,8 @@
 
 package tufts.vue;
 
+import edu.tufts.vue.dsm.*;
+
 import javax.swing.*;
 import javax.swing.tree.*;
 
@@ -39,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.85 $ / $Date: 2007-12-11 01:07:46 $ / $Author: peter $
+ * @version $Revision: 1.86 $ / $Date: 2007-12-20 03:09:29 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -109,7 +111,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private TreePath _tp = null; // Selection from Sakai workspace panel
     
     org.osid.shared.Type fedoraDataSourceType = edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
-    private org.osid.shared.Type _collectionAssetType =  edu.tufts.vue.dsm.DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE; // new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
+//    private static final org.osid.shared.Type _collectionAssetType =  edu.tufts.vue.dsm.DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE; 
     
     public Publisher(edu.tufts.vue.dsm.DataSource dataSource) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
@@ -428,7 +430,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         DefaultTreeModel treeModel = new DefaultTreeModel(root);
         try {
             org.osid.repository.Repository repository = dataSource.getRepository();
-            org.osid.repository.AssetIterator assetIterator = repository.getAssetsByType(_collectionAssetType);
+            org.osid.repository.AssetIterator assetIterator = 
+            	repository.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
             logger.debug( "repository is " + repository.getDisplayName());
             
             while (assetIterator.hasNextAsset()) {
@@ -436,7 +439,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 logger.debug( "asset is " + asset.getDisplayName());
                 
         		// Populate only with Sakai collections, ignore non-folder types 
-                if( asset.getAssetType().isEqual(_collectionAssetType)) {
+                if( asset.getAssetType().isEqual(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE)) {
         			addWorkSiteNode(root, treeModel, asset);
         		}
             }            
@@ -459,7 +462,13 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     		org.osid.repository.Asset asset)
     throws SharedException 
     {
-    	if( !asset.getAssetType().isEqual(_collectionAssetType)) {
+    	// Only display folders, not the resources themselves, since we want
+    	// to show nodes that can contain the published map.
+    	if( !asset.getAssetType().isEqual(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE) ) {
+    		return;
+    	}
+    	// Don't display folders that are VUE maps
+    	if( isVueMapFolder(asset) ) {
     		return;
     	}
     	SakaiSiteUserObject userObject = new SakaiSiteUserObject();
@@ -470,8 +479,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     	DefaultMutableTreeNode nextTreeNode = new DefaultMutableTreeNode(userObject);
     	treeModel.insertNodeInto( nextTreeNode, parentNode, 0 );
 
-
-    	org.osid.repository.AssetIterator assetIterator = asset.getAssetsByType(_collectionAssetType);
+    	org.osid.repository.AssetIterator assetIterator = 
+    		asset.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
     	logger.debug( "asset is " + asset.getDisplayName());
 
     	while (assetIterator.hasNextAsset()) {
@@ -521,13 +530,11 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
         
         public int getSize() {
-            return getResources().size();
-            
+            return getResources().size();  
         }
         
         private java.util.List<edu.tufts.vue.dsm.DataSource> getResources() {
             return Publisher.getPublishableDatasources(type);
-            
         }
     }
     /**
@@ -556,5 +563,47 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         return resourceList;
     }
     
+    /**
+     * @param asset
+     * @return true if 
+     * @throws RepositoryException
+     */
+    private static boolean isVueMapFolder( org.osid.repository.Asset asset )
+    throws RepositoryException
+    {
+    	String folderName = asset.getDisplayName();
+    	if( folderName.endsWith( SakaiPublisher.VUE_MAP_FOLDER_SUFFIX )) {
+    		return true;
+    	} else {
+    		return false;
+    	} 	
+    }
+    
+	/** This method is called to check whether a folder exists in a Sakai 
+	 * folder that is the same as would be created if fileName was published
+	 * 
+	 * @param collectionId
+	 * @param fileName
+	 * @return true if publishing this fileName would attempt to overwrite an 
+	 * existing folder 
+	 */
+	public static boolean isFilePresent( org.osid.repository.Asset asset, String fileName )
+	throws RepositoryException
+	{
+	   	org.osid.repository.AssetIterator assetIterator = 
+	   		asset.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
+    	logger.debug( "asset is " + asset.getDisplayName());
+
+    	while( assetIterator.hasNextAsset() ) {
+    		org.osid.repository.Asset childAsset = assetIterator.nextAsset();
+    		logger.debug( "asset is " + childAsset.getDisplayName());
+
+    		if( (SakaiPublisher.makeSakaiFolderFromVueMap(fileName).equals(childAsset.getDisplayName())) ) {
+    			return true;
+    		}
+    	}		
+		return false;
+	}
+
 }
 
