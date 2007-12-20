@@ -51,21 +51,21 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	private Object previousHierarchyValue = null;
 	
 	private JCheckBox resourceCheckbox = new JCheckBox();	
-	private JCheckBox behaviorCheckbox = new JCheckBox();
+	//private JCheckBox behaviorCheckbox = new JCheckBox();
 	private JCheckBox notesCheckbox = new JCheckBox();
 	private JCheckBox pathwayCheckbox = new JCheckBox();
 	private JCheckBox metaDataCheckbox = new JCheckBox();
 	private JCheckBox hierarchyCheckbox = new JCheckBox();
 	
 	private String resourceIconName = "resourceIcon";
-	private String behaviorIconName = "behaviorIcon";
+	//private String behaviorIconName = "behaviorIcon";
 	private String notesIconName = "notesIcon";
 	private String pathwayIconName = "pathwayIcon";
 	private String metaDataIconName = "metaDataIcon";
 	private String hierarchyIconName = "hierarchyIcon";
     
 	private boolean resourceIconDefault = true;
-	private boolean behaviorIconDefault = true;
+//	private boolean behaviorIconDefault = true;
 	private boolean notesIconDefault = true;
 	private boolean pathwayIconDefault = true;
 	private boolean metaDataIconDefault = true;
@@ -120,7 +120,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.insets = new Insets(15,30,0,0);
               
         resourceCheckbox.setBackground(Color.WHITE);
-        behaviorCheckbox.setBackground(Color.WHITE);
+   //     behaviorCheckbox.setBackground(Color.WHITE);
         notesCheckbox.setBackground(Color.WHITE);
         pathwayCheckbox.setBackground(Color.WHITE);
         metaDataCheckbox.setBackground(Color.WHITE);
@@ -136,19 +136,19 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.insets = new Insets(18,0,0,0);
         panel.add(new JLabel("Resource Icon"),gbConstraints);
         
-        gbConstraints.gridx=0;
-        gbConstraints.gridy=3;
-        gbConstraints.weightx=.1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,30,0,0);
-        panel.add(behaviorCheckbox,gbConstraints);
+      //  gbConstraints.gridx=0;
+      //  gbConstraints.gridy=3;
+      //  gbConstraints.weightx=.1;
+      //  gbConstraints.weighty=.2;
+      //  gbConstraints.insets = new Insets(0,30,0,0);
+     //   panel.add(behaviorCheckbox,gbConstraints);
         
-        gbConstraints.gridx=1;
-        gbConstraints.gridy=3;
-        gbConstraints.weightx=1;
-        gbConstraints.weighty=.2;
-        gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel("Behavior Icon"),gbConstraints);
+      //  gbConstraints.gridx=0;
+      //  gbConstraints.gridy=3;
+      //  gbConstraints.weightx=1;
+      //  gbConstraints.weighty=.2;
+      //  gbConstraints.insets = new Insets(0,0,0,0);
+      //  panel.add(new JLabel("Behavior Icon"),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=4;
@@ -207,14 +207,14 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         panel.add(new JLabel("Hierarchy Icon"),gbConstraints);        
         
         resourceCheckbox.addItemListener(this);
-        behaviorCheckbox.addItemListener(this);
+     //   behaviorCheckbox.addItemListener(this);
         notesCheckbox.addItemListener(this);
         pathwayCheckbox.addItemListener(this);
         metaDataCheckbox.addItemListener(this);
         hierarchyCheckbox.addItemListener(this);
         
         resourceCheckbox.setSelected(((Boolean)getValue(resourceIconName)).booleanValue());
-        behaviorCheckbox.setSelected(((Boolean)getValue(behaviorIconName)).booleanValue());
+       // behaviorCheckbox.setSelected(((Boolean)getValue(behaviorIconName)).booleanValue());
         notesCheckbox.setSelected(((Boolean)getValue(notesIconName)).booleanValue());
         pathwayCheckbox.setSelected(((Boolean)getValue(pathwayIconName)).booleanValue());
         metaDataCheckbox.setSelected(((Boolean)getValue(metaDataIconName)).booleanValue());
@@ -242,7 +242,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	
 	public boolean getBehaviorIconValue()
 	{
-		return ((Boolean)getValue(behaviorIconName)).booleanValue();
+		return false;//((Boolean)getValue(behaviorIconName)).booleanValue();
 	}
 	
 	public boolean getNotesIconValue()
@@ -261,8 +261,8 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		//p.putBoolean(getPrefName(), box.isSelected());
 		if (box.equals(resourceCheckbox))
 			setValue(resourceIconName,Boolean.valueOf(box.isSelected()));
-		else if (box.equals(behaviorCheckbox))
-			setValue(behaviorIconName,Boolean.valueOf(box.isSelected()));
+		//else if (box.equals(behaviorCheckbox))
+		//	setValue(behaviorIconName,Boolean.valueOf(box.isSelected()));
 		else if (box.equals(notesCheckbox))
 			setValue(notesIconName,Boolean.valueOf(box.isSelected()));
 		else if (box.equals(pathwayCheckbox))
@@ -284,8 +284,8 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		
 		if (prefName.equals(resourceIconName))
 			previousResourceValue = Boolean.valueOf(resourceCheckbox.isSelected());
-		else if (prefName.equals(behaviorIconName))
-			previousBehaviorValue = Boolean.valueOf(behaviorCheckbox.isSelected());
+		//else if (prefName.equals(behaviorIconName))
+		//	previousBehaviorValue = Boolean.valueOf(behaviorCheckbox.isSelected());
 		else if (prefName.equals(notesIconName))
 			previousNotesValue = Boolean.valueOf(notesCheckbox.isSelected());
 		else if (prefName.equals(pathwayIconName))
@@ -313,8 +313,8 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	{
 		if (prefName.equals(resourceIconName))
 			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
-		else if (prefName.equals(behaviorIconName))
-			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
+		//else if (prefName.equals(behaviorIconName))
+		//	return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
 		else if (prefName.equals(notesIconName))
 			return (previousResourceValue != null) ?  getDefaultValue(prefName) :  previousResourceValue;
 		else if (prefName.equals(pathwayIconName))
@@ -331,8 +331,8 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 	{
 		if (prefName.equals(resourceIconName))
 			return resourceIconDefault;
-		else if (prefName.equals(behaviorIconName))
-			return  behaviorIconDefault;
+		//else if (prefName.equals(behaviorIconName))
+		//	return  behaviorIconDefault;
 		else if (prefName.equals(notesIconName))
 			return notesIconDefault;
 		else if (prefName.equals(pathwayIconName))

@@ -145,7 +145,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private LWComponent mLWC;
         
-        private LWIcon[] mIcons = new LWIcon[7];
+        private LWIcon[] mIcons = new LWIcon[6];
 
         //final private boolean mCoordsNodeLocal;
         //final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
@@ -174,12 +174,12 @@ public abstract class LWIcon extends Rectangle2D.Float
 
             // todo: create these lazily
             mIcons[0] = new LWIcon.Resource(lwc, c);
-            mIcons[1] = new LWIcon.Behavior(lwc, c);
-            mIcons[2] = new LWIcon.Notes(lwc, c);
-            mIcons[3] = new LWIcon.Pathway(lwc, c);
-            mIcons[4] = new LWIcon.MetaData(lwc, c);
-            mIcons[5] = new LWIcon.Hierarchy(lwc, c);
-            mIcons[6] = new LWIcon.MergeSourceMetaData(lwc,c);
+     //       mIcons[1] = new LWIcon.Behavior(lwc, c);
+            mIcons[1] = new LWIcon.Notes(lwc, c);
+            mIcons[2] = new LWIcon.Pathway(lwc, c);
+            mIcons[3] = new LWIcon.MetaData(lwc, c);
+            mIcons[4] = new LWIcon.Hierarchy(lwc, c);
+            mIcons[5] = new LWIcon.MergeSourceMetaData(lwc,c);
             
             for (int i = 0; i < mIcons.length; i++) {
                 mIcons[i].setSize(iconWidth, iconHeight);
@@ -1128,7 +1128,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         }
     }
 
-    static class Behavior extends LWIcon
+/*    static class Behavior extends LWIcon
     {
         private final static float sMaxX = 194;
         private final static float sMaxY = 155;
@@ -1205,7 +1205,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             dc.g.scale(scaleInv,scaleInv);
             dc.g.translate(-x, -y);
         }
-    }
+    }*/
     static class Hierarchy extends LWIcon
     {
         private final static float MaxX = 220;
