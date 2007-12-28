@@ -110,8 +110,8 @@ public class RDFOpenAction extends VueAction {
 // read the RDF/XML file
             model.read(in, "");
             
-// write it to standard out
-            model.write(System.out);
+// write it to standard out -- fails for zotero rdf so comment out for now..
+//            model.write(System.out);
             int totalResources = 0;
             Map<String,LWNode> hashMap = new HashMap<String,LWNode>();
             ResIterator resIterator = model.listSubjects();
