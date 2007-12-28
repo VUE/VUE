@@ -59,6 +59,11 @@ public class RDFIndex extends ModelCom
     private boolean isAutoIndexing = AUTO_INDEX;
     private  com.hp.hpl.jena.query.Query query;
     private QueryExecution qe;
+    
+    // could also index objects in LWComponent when get ID
+    private static boolean INDEX_OBJECTS_HERE = true;
+    //private boolean shouldClearMap = true;
+    
     public RDFIndex(com.hp.hpl.jena.graph.Graph base) {
         super(base);
         Log.debug("created from " + tufts.Util.tags(base));
@@ -79,19 +84,17 @@ public class RDFIndex extends ModelCom
     
     public void index(LWMap map)
     {
-        index(map,false,false);
+        index(map,false,false,true);
     }
     
     public void index(LWMap map,boolean metadataOnly)
     {
-        index(map,metadataOnly,false);
+        index(map,metadataOnly,false,true);
     }
     
-    public void index(LWMap map,boolean metadataOnly,boolean searchEverything) {
+    public void index(LWMap map,boolean metadataOnly,boolean searchEverything,boolean shouldClearMap) {
         
-        boolean indexObjectsHere = true;
-        
-        if(indexObjectsHere)
+        if(INDEX_OBJECTS_HERE && shouldClearMap)
         {
             VueIndexedObjectsMap.clear();
         }
@@ -125,7 +128,7 @@ public class RDFIndex extends ModelCom
             for(LWComponent comp: descendents)
             {
                 
-                if(indexObjectsHere)
+                if(INDEX_OBJECTS_HERE)
                 {
                   VueIndexedObjectsMap.setID(comp.getURI(),comp);
                 }
@@ -176,6 +179,8 @@ public class RDFIndex extends ModelCom
         qe.close();
         return r;
     }
+    
+    
     
     public List<URI> searchAllResources(String keyword) {
         String queryString =

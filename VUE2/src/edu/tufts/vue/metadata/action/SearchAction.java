@@ -168,13 +168,13 @@ public class SearchAction extends AbstractAction {
           
                     Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
                     while(maps.hasNext())
-                    {    
-                         index.index(maps.next(),metadataOnly);
+                    {   
+                         index.index(maps.next(),metadataOnly,everything,false);
                     }
              }    
              else // default is SEARCH_SELECTED_MAP
              {    
-                    index.index(VUE.getActiveMap(),metadataOnly,everything);
+                    index.index(VUE.getActiveMap(),metadataOnly,everything,true);
              }
                 
             }
@@ -377,12 +377,12 @@ public class SearchAction extends AbstractAction {
           Iterator<LWMap> maps = VUE.getLeftTabbedPane().getAllMaps();
           while(maps.hasNext())
           {
-              index.index(maps.next(),metadataOnly);
+              index.index(maps.next(),metadataOnly,everything,false);
           }
         }    
         else // default is SEARCH_SELECTED_MAP
         {    
-          index.index(VUE.getActiveMap(),metadataOnly,everything);
+          index.index(VUE.getActiveMap(),metadataOnly,everything,true);
         }
         
         
