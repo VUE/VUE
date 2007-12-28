@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.513 $ / $Date: 2007-12-28 14:14:03 $ / $Author: mike $ 
+ * @version $Revision: 1.514 $ / $Date: 2007-12-28 15:16:19 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1219,6 +1219,13 @@ public class VUE
         	else        		
         		ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
 
+        	if ((pos.getX() < 0) || (pos.getY() < 0))
+        	{
+        		ApplicationFrame.setLocation(GUI.GInsets.left,
+                        GUI.GInsets.top
+                        + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
+        	}
+        	else
         	ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());        	
         }
         else
