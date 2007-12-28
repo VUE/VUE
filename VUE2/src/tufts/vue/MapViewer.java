@@ -24,6 +24,7 @@ import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.FocusManager;
 import tufts.vue.gui.MapScrollPane;
 import tufts.vue.gui.TimedASComponent;
+import tufts.vue.gui.VuePopupFactory;
 import tufts.vue.gui.WindowDisplayAction;
 import tufts.vue.NodeTool;
 import java.util.List;
@@ -71,7 +72,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.504 $ / $Date: 2007-12-18 16:57:33 $ / $Author: dan $ 
+ * @version $Revision: 1.505 $ / $Date: 2007-12-28 14:36:48 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3755,8 +3756,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	   if (sMultiPopup != null)
            	sMultiPopup.removeAll();
            else
-           {
-           	sMultiPopup = new JPopupMenu();
+           {        	        	        	
+           	sMultiPopup = new JPopupMenu();           	
            }
     	sMultiPopup.add(Actions.Group);
     	sMultiPopup.add(Actions.Ungroup);
@@ -3994,6 +3995,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
         {
         	sSinglePopup = new JPopupMenu();
+           	
             syncMenu.add(Actions.SyncToNode);
             syncMenu.add(Actions.SyncToSlide);
             syncMenu.add(Actions.SyncAll);
@@ -5190,14 +5192,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // put's us to black screen and leaves us there!
                 return;
             }
-            
+            PopupFactory factory = PopupFactory.getSharedInstance();
+         	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance())); 
             if (VueSelection.isEmpty() || VueSelection.only() instanceof LWMap) {
+            	                       
                 getMapPopup().show(e.getComponent(), e.getX(), e.getY());
             } else if (VueSelection.size() == 1) {
+            	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
                 getSingleSelectionPopup(hitComponent).show(e.getComponent(), e.getX(), e.getY());
             } else {
                 getMultiSelectionPopup().show(e.getComponent(), e.getX(), e.getY());
             }
+            PopupFactory.setSharedInstance(factory);
         }
         
         
