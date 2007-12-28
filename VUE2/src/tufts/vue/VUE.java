@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.512 $ / $Date: 2007-12-13 16:42:21 $ / $Author: mike $ 
+ * @version $Revision: 1.513 $ / $Date: 2007-12-28 14:14:03 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -896,8 +896,8 @@ public class VUE
          * using this for windows/unix right now.  Unix because when i booted this 
          * up in linux i noticed the same problem melanie reported on windows
          */
-        if (Util.isWindowsPlatform() || Util.isUnixPlatform())
-        	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
+        //if (Util.isWindowsPlatform() || Util.isUnixPlatform())
+        //	PopupFactory.setSharedInstance(new VuePopupFactory(PopupFactory.getSharedInstance()));
         //-----------------------------------------------------------------------------
         // Man VUE Toolbar (map editing tool)
         //-----------------------------------------------------------------------------
