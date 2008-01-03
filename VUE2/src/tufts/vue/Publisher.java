@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.87 $ / $Date: 2008-01-03 19:38:51 $ / $Author: anoop $
+ * @version $Revision: 1.88 $ / $Date: 2008-01-03 19:40:08 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -334,7 +334,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
                 int confirm = 0;
                 try {
-                    if(isFilePresent( asset,   fileName ) ||  true) {
+                    if(isFilePresent( asset,   fileName )) {
                         confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
                     }
                 }catch(Throwable t) {
