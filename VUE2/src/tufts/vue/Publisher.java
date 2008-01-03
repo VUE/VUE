@@ -1,17 +1,17 @@
  /*
- * Copyright 2003-2007 Tufts University  Licensed under the
- * Educational Community License, Version 2.0 (the "License"); you may
- * not use this file except in compliance with the License. You may
- * obtain a copy of the License at
- * 
- * http://www.osedu.org/licenses/ECL-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an "AS IS"
- * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing
- * permissions and limitations under the License.
- */
+  * Copyright 2003-2007 Tufts University  Licensed under the
+  * Educational Community License, Version 2.0 (the "License"); you may
+  * not use this file except in compliance with the License. You may
+  * obtain a copy of the License at
+  *
+  * http://www.osedu.org/licenses/ECL-2.0
+  *
+  * Unless required by applicable law or agreed to in writing,
+  * software distributed under the License is distributed on an "AS IS"
+  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+  * or implied. See the License for the specific language governing
+  * permissions and limitations under the License.
+  */
 
 /*
  * Publisher.java
@@ -41,13 +41,13 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.86 $ / $Date: 2007-12-20 03:09:29 $ / $Author: peter $
+ * @version $Revision: 1.87 $ / $Date: 2008-01-03 19:38:51 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
-	private static final Logger logger = Logger.getLogger(Publisher.class);
-	
-   /** Creates a new instance of Publisher */
+    private static final Logger logger = Logger.getLogger(Publisher.class);
+    
+    /** Creates a new instance of Publisher */
     //TODO: Create an interface for datasources and have separate implementations for each type of datasource.
     public static final String TITLE = "Publisher";
     public static final String FILE_PREFIX = "file://";
@@ -56,6 +56,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
+    
+    private static final String DUPLICATE_OBJ_ERR_MESG  =  "The resource already exists in the Repostiory. Do you want to overwrite it?";
+    private static final String DUPLICATE_OBJ_ERR_TITLE =  "Duplicate Resource";
+    
     public static final String[] PUBLISH_INFORMATION = {"The \"Publish\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
     "\"Map only\" saves only the map to the digital repository. Digital resources are not attached, but the resource paths are maintained, whether to a local computer or the web.",
     "\"Publish IMSCP Map\" embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a \"zip\" file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
@@ -111,7 +115,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     private TreePath _tp = null; // Selection from Sakai workspace panel
     
     org.osid.shared.Type fedoraDataSourceType = edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE;
-//    private static final org.osid.shared.Type _collectionAssetType =  edu.tufts.vue.dsm.DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE; 
+//    private static final org.osid.shared.Type _collectionAssetType =  edu.tufts.vue.dsm.DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE;
     
     public Publisher(edu.tufts.vue.dsm.DataSource dataSource) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
@@ -128,7 +132,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
             setUpWorkspaceSelectionPanel();
             getContentPane().add(wPanel, BorderLayout.CENTER);
-            nextButton.setActionCommand(AC_SETUP_M);  // "Next" on ws panel activates Mode panel - pdw 10-nov-07 
+            nextButton.setActionCommand(AC_SETUP_M);  // "Next" on ws panel activates Mode panel - pdw 10-nov-07
         } else{
             setUpModeSelectionPanel();
             getContentPane().add(mPanel, BorderLayout.CENTER);
@@ -206,10 +210,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         wTree = new JTree(getWorkSpaceTreeModel(selectedDataSource));
         wTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         wTree.addTreeSelectionListener(new TreeSelectionListener() {
-        	public void valueChanged( TreeSelectionEvent tse ) {
-        		TreePath tp = tse.getNewLeadSelectionPath();
-        		_tp = tp;  
-        	}
+            public void valueChanged( TreeSelectionEvent tse ) {
+                TreePath tp = tse.getNewLeadSelectionPath();
+                _tp = tp;
+            }
         });
         JScrollPane wPane = new JScrollPane(wTree);
         JPanel scrollPanel = new JPanel(new BorderLayout());
@@ -225,7 +229,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         // adding the modes
         JPanel mainPanel = new JPanel();
         
-         mainPanel.setLayout(layout);
+        mainPanel.setLayout(layout);
         JLabel publishLabel = new JLabel("Publish as");
         publishLabel.setBorder(BorderFactory.createEmptyBorder(10,10,0,0));
         publishLabel.setFont(tufts.vue.gui.GUI.LabelFace);
@@ -325,6 +329,22 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             validateTree();
         }  else if(e.getActionCommand().equals(AC_SETUP_M)) {
             if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
+                String fileName = VUE.getActiveMap().getFile().getName();
+                org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
+                int confirm = 0;
+                try {
+                    if(isFilePresent( asset,   fileName ) ||  true) {
+                        confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
+                    }
+                }catch(Throwable t) {
+                    t.printStackTrace();
+                    alert(this,"An error occurrd while checking existence of resource in repository. Error message: "+t.getMessage(),"Publish Error");
+                    this.dispose();
+                }
+                if(confirm == JOptionPane.NO_OPTION) {
+                    return;
+                }
                 getContentPane().remove(wPanel);
             } else {
                 getContentPane().remove(rPanel);
@@ -335,7 +355,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             validateTree();
         }  else if(e.getActionCommand().equals(NEXT_BUTTON_TEXT)) {
             System.out.println("Selected Repository: "+repList.getSelectedValue());
-             if(repList.getSelectedValue() == null) {
+            if(repList.getSelectedValue() == null) {
                 alert(this,"No repository is selected. Please  select a repository","Publish Error");
                 return;
             }
@@ -376,7 +396,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     }
                 }
             };
-            invokeThread.start();           
+            invokeThread.start();
         }
         if(e.getActionCommand().equals(MODE_LABELS[0])){
             modeInfo.setText(PUBLISH_INFORMATION[1]);
@@ -389,25 +409,31 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     private void publishMapToDL() {
         if(repList.getSelectedValue() == null) {
-             alert(this,"No repository is selected. Please go back and select a repository","Publish Error");  
+            alert(this,"No repository is selected. Please go back and select a repository","Publish Error");
         }
         edu.tufts.vue.dsm.DataSource ds = (edu.tufts.vue.dsm.DataSource)repList.getSelectedValue();
         try{
             if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
-                 if(publishMapRButton.isSelected())
+                if(publishMapRButton.isSelected())
                     FedoraPublisher.uploadMap(ds,VUE.getActiveMap());
-                 else if(publishMapAllRButton.isSelected())
+                else if(publishMapAllRButton.isSelected())
                     FedoraPublisher.uploadMapAll(ds,VUE.getActiveMap());
-                 else
+                else
                     alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
-            	DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
-            	String siteId = ((SakaiSiteUserObject)(treeNode.getUserObject())).getId();
-            	// TODO: Verify that a site is selected before proceeding - pdw 10-nov-07 
+                DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
+                String siteId = ((SakaiSiteUserObject)(treeNode.getUserObject())).getId();
+                // TODO: Verify that a site is selected before proceeding - pdw 10-nov-07
+                String fileName = VUE.getActiveMap().getFile().getName();
+                org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
+                int confirm = 0;
+                if(isFilePresent( asset,   fileName )) {
+                    confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
+                }
                 if(publishMapRButton.isSelected()) {
                     SakaiPublisher.uploadMap( ds, siteId, VUE.getActiveMap());
                 }else if(publishMapAllRButton.isSelected()){
-                	SakaiPublisher.uploadMapAll( ds, siteId, VUE.getActiveMap());
+                    SakaiPublisher.uploadMapAll( ds, siteId, VUE.getActiveMap());
                 }   else
                     alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
             }
@@ -430,69 +456,68 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         DefaultTreeModel treeModel = new DefaultTreeModel(root);
         try {
             org.osid.repository.Repository repository = dataSource.getRepository();
-            org.osid.repository.AssetIterator assetIterator = 
-            	repository.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
+            org.osid.repository.AssetIterator assetIterator =
+                    repository.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
             logger.debug( "repository is " + repository.getDisplayName());
             
             while (assetIterator.hasNextAsset()) {
                 org.osid.repository.Asset asset = assetIterator.nextAsset();
                 logger.debug( "asset is " + asset.getDisplayName());
                 
-        		// Populate only with Sakai collections, ignore non-folder types 
+                // Populate only with Sakai collections, ignore non-folder types
                 if( asset.getAssetType().isEqual(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE)) {
-        			addWorkSiteNode(root, treeModel, asset);
-        		}
-            }            
+                    addWorkSiteNode(root, treeModel, asset);
+                }
+            }
         } catch (Throwable t) {
             t.printStackTrace();
         }
         return treeModel;
     }
-
-
-	/**
-	 * @param parentNode Node in tree under which the new node is placed
-	 * @param treeModel Tree containing work sites
-	 * @param asset Asset representing work site
-	 * @throws SharedException
-	 */
+    
+    
+    /**
+     * @param parentNode Node in tree under which the new node is placed
+     * @param treeModel Tree containing work sites
+     * @param asset Asset representing work site
+     * @throws SharedException
+     */
     private void addWorkSiteNode(
-    		DefaultMutableTreeNode parentNode,
-    		DefaultTreeModel treeModel, 
-    		org.osid.repository.Asset asset)
-    throws SharedException 
-    {
-    	// Only display folders, not the resources themselves, since we want
-    	// to show nodes that can contain the published map.
-    	if( !asset.getAssetType().isEqual(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE) ) {
-    		return;
-    	}
-    	// Don't display folders that are VUE maps
-    	if( isVueMapFolder(asset) ) {
-    		return;
-    	}
-    	SakaiSiteUserObject userObject = new SakaiSiteUserObject();
-    	userObject.setId(asset.getId().getIdString());
-    	userObject.setDisplayName(asset.getDisplayName());
-    	logger.debug( "another obj " + userObject);
-
-    	DefaultMutableTreeNode nextTreeNode = new DefaultMutableTreeNode(userObject);
-    	treeModel.insertNodeInto( nextTreeNode, parentNode, 0 );
-
-    	org.osid.repository.AssetIterator assetIterator = 
-    		asset.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
-    	logger.debug( "asset is " + asset.getDisplayName());
-
-    	while (assetIterator.hasNextAsset()) {
-    		org.osid.repository.Asset childAsset = assetIterator.nextAsset();
-    		logger.debug( "asset is " + childAsset.getDisplayName());
-
-    		addWorkSiteNode(nextTreeNode, treeModel, childAsset);
-    	}		
+            DefaultMutableTreeNode parentNode,
+            DefaultTreeModel treeModel,
+            org.osid.repository.Asset asset)
+            throws SharedException {
+        // Only display folders, not the resources themselves, since we want
+        // to show nodes that can contain the published map.
+        if( !asset.getAssetType().isEqual(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE) ) {
+            return;
+        }
+        // Don't display folders that are VUE maps
+        if( isVueMapFolder(asset) ) {
+            return;
+        }
+        SakaiSiteUserObject userObject = new SakaiSiteUserObject();
+        userObject.setId(asset.getId().getIdString());
+        userObject.setDisplayName(asset.getDisplayName());
+        userObject.setAsset(asset);
+        logger.debug( "another obj " + userObject);
+        
+        DefaultMutableTreeNode nextTreeNode = new DefaultMutableTreeNode(userObject);
+        treeModel.insertNodeInto( nextTreeNode, parentNode, 0 );
+        
+        org.osid.repository.AssetIterator assetIterator =
+                asset.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
+        logger.debug( "asset is " + asset.getDisplayName());
+        
+        while (assetIterator.hasNextAsset()) {
+            org.osid.repository.Asset childAsset = assetIterator.nextAsset();
+            logger.debug( "asset is " + childAsset.getDisplayName());
+            
+            addWorkSiteNode(nextTreeNode, treeModel, childAsset);
+        }
     }
     
-    class DatasourceListCellRenderer extends   DefaultListCellRenderer  
-    {    
+    class DatasourceListCellRenderer extends   DefaultListCellRenderer {
         private JPanel composite = new JPanel(new BorderLayout());
         private JRadioButton radioButton;
         public Component getListCellRendererComponent(
@@ -511,7 +536,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
             if (composite.getComponentCount() == 0) {
                 radioButton = new JRadioButton();
                 radioButton.setBackground(Color.WHITE);
-    
+                
                 composite.add(label, BorderLayout.CENTER);
                 composite.add(radioButton, BorderLayout.WEST);
             }
@@ -530,7 +555,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         }
         
         public int getSize() {
-            return getResources().size();  
+            return getResources().size();
         }
         
         private java.util.List<edu.tufts.vue.dsm.DataSource> getResources() {
@@ -565,45 +590,43 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     /**
      * @param asset
-     * @return true if 
+     * @return true if
      * @throws RepositoryException
      */
     private static boolean isVueMapFolder( org.osid.repository.Asset asset )
-    throws RepositoryException
-    {
-    	String folderName = asset.getDisplayName();
-    	if( folderName.endsWith( SakaiPublisher.VUE_MAP_FOLDER_SUFFIX )) {
-    		return true;
-    	} else {
-    		return false;
-    	} 	
+    throws RepositoryException {
+        String folderName = asset.getDisplayName();
+        if( folderName.endsWith( SakaiPublisher.VUE_MAP_FOLDER_SUFFIX )) {
+            return true;
+        } else {
+            return false;
+        }
     }
     
-	/** This method is called to check whether a folder exists in a Sakai 
-	 * folder that is the same as would be created if fileName was published
-	 * 
-	 * @param collectionId
-	 * @param fileName
-	 * @return true if publishing this fileName would attempt to overwrite an 
-	 * existing folder 
-	 */
-	public static boolean isFilePresent( org.osid.repository.Asset asset, String fileName )
-	throws RepositoryException
-	{
-	   	org.osid.repository.AssetIterator assetIterator = 
-	   		asset.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
-    	logger.debug( "asset is " + asset.getDisplayName());
-
-    	while( assetIterator.hasNextAsset() ) {
-    		org.osid.repository.Asset childAsset = assetIterator.nextAsset();
-    		logger.debug( "asset is " + childAsset.getDisplayName());
-
-    		if( (SakaiPublisher.makeSakaiFolderFromVueMap(fileName).equals(childAsset.getDisplayName())) ) {
-    			return true;
-    		}
-    	}		
-		return false;
-	}
-
+    /** This method is called to check whether a folder exists in a Sakai
+     * folder that is the same as would be created if fileName was published
+     *
+     * @param collectionId
+     * @param fileName
+     * @return true if publishing this fileName would attempt to overwrite an
+     * existing folder
+     */
+    public static boolean isFilePresent( org.osid.repository.Asset asset, String fileName )
+    throws RepositoryException {
+        org.osid.repository.AssetIterator assetIterator =
+                asset.getAssetsByType(DataSourceTypes.SAKAI_COLLECTION_ASSET_TYPE);
+        logger.debug( "asset is " + asset.getDisplayName());
+        
+        while( assetIterator.hasNextAsset() ) {
+            org.osid.repository.Asset childAsset = assetIterator.nextAsset();
+            logger.debug( "asset is " + childAsset.getDisplayName());
+            
+            if( (SakaiPublisher.makeSakaiFolderFromVueMap(fileName).equals(childAsset.getDisplayName())) ) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
 }
 
