@@ -18,7 +18,7 @@ public class SakaiSiteUserObject
 {
     private String id = null;
     private String displayName = null;
-
+    private org.osid.repository.Asset asset = null;
     public void setId(String id)
     {
         this.id = id;
@@ -33,9 +33,19 @@ public class SakaiSiteUserObject
     {
         return this.id;
     }
-
+     public void setAsset(org.osid.repository.Asset  asset)
+    {
+        this.asset  = asset;
+    }
+    public org.osid.repository.Asset  getAsset()
+    {
+        return this.asset;
+    }
+    
     public String toString()
     {
         return this.displayName;
     }
+    
+    
 }
