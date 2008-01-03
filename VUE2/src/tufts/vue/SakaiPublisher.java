@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.13 $ / $Date: 2007-12-20 19:21:58 $ / $Author: peter $
+ * @version $Revision: 1.14 $ / $Date: 2008-01-03 19:38:22 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -69,8 +69,6 @@ public class SakaiPublisher {
 	private static final String RESOURCE_DESC = "VUE resource";
 	// Text saved as description of VUE map saved to Sakai if map has no "notes" content
 	private static final String MAP_DESC = "VUE map";
-        private static final String DUPLICATE_OBJ_ERR_MESG  =  "The resource already exists in the Repostiory. Do you want to overwrite it?";
-        private static final String DUPLICATE_OBJ_ERR_TITLE =  "Duplicate Resource";
         
                 
         
@@ -240,11 +238,7 @@ public class SakaiPublisher {
 		} else {
 			contentMime = getStringFromFile(file);
 		}
-		boolean exists = true;
-                int confirm = 0;
-                if(exists) {
-                   confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
-                }
+		
                 
 		// createContentItem returns either "Success" or "Failure"
 		retVal = (String) call.invoke( 
