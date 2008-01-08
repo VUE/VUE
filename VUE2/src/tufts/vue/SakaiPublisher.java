@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.14 $ / $Date: 2008-01-03 19:38:22 $ / $Author: anoop $
+ * @version $Revision: 1.15 $ / $Date: 2008-01-08 19:29:41 $ / $Author: peter $
  */
 
 package tufts.vue;
@@ -191,15 +191,16 @@ public class SakaiPublisher {
     	 * resources that were local now point to Sakai.    
     	 */
     	//File tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
-    	File tmpFile = File.createTempFile("~vue-", ".tmp", VueUtil.getDefaultUserFolder());
-    	tmpFile.deleteOnExit();  
-    	tufts.vue.action.ActionUtil.marshallMap( tmpFile );
+    	//File tmpFile = File.createTempFile("~vue-", ".tmp", VueUtil.getDefaultUserFolder());
+    	//tmpFile.deleteOnExit();  
+//    	tufts.vue.action.ActionUtil.marshallMap( tmpFile );
+    	tufts.vue.action.ActionUtil.marshallMap( savedMapFile );
     	uploadObjectToRepository( 
     			hostUrl,
     			sessionId,
     			resourceName,
     			folderName,
-    			tmpFile, 
+    			savedMapFile,  //tmpFile, 
     			map.hasNotes() ? map.getNotes() : MAP_DESC, false );
     }
 
