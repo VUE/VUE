@@ -677,13 +677,6 @@ public class SearchAction extends AbstractAction {
         revertGlobalSearchSelection();
         globalResultsType = resultsType;
         
-        // find Image Nodes within comps and add images to list (then add list)
-        // this ensures that image resources show up even if not found
-        // seperately. 
-        // Looks like we also may need to add the node if the image is in the list?
-        // may also need to check here that the image is not already in the search
-        // list (this is done when adding images currently, I believe)
-        //ArrayList<LWImage> images = new ArrayList<LWImage>();
         ArrayList<LWComponent> images = new ArrayList<LWComponent>();
         Iterator<LWComponent> compsIterator = comps.iterator();
         while(compsIterator.hasNext())
@@ -711,14 +704,24 @@ public class SearchAction extends AbstractAction {
                             
             }
             
+            if(current instanceof LWImage)
+            {
+                LWImage currentImage = (LWImage)current;
+                if(currentImage.isNodeIcon() && currentImage.getParent() != null)
+                {
+                  images.add(currentImage.getParent());
+                }
+            }
+            
         }
         
         comps.addAll(images);
         
-        Iterator<LWComponent> it = comps.iterator();
-        
         if(resultsType == SELECT_ACTION && DO_NOT_SELECT_SLIDE_COMPONENTS)
         {
+                 
+           Iterator<LWComponent> it = comps.iterator();        
+                 
            List<LWComponent> slideComponents = new ArrayList<LWComponent>();
            
            while(it.hasNext())
@@ -736,15 +739,18 @@ public class SearchAction extends AbstractAction {
               comps.remove(slides.next());
            }
            
-           it = comps.iterator();
         }
         
         if(resultsType == SELECT_ACTION && DO_NOT_SELECT_NESTED_IMAGES)
         {
-           while(it.hasNext())
+           Iterator<LWComponent> it2 = comps.iterator(); 
+           
+           List<LWComponent> toNotBeSelected = new ArrayList<LWComponent>();
+           
+           while(it2.hasNext())
            {
-              LWComponent next = it.next();
-              List<LWComponent> toNotBeSelected = new ArrayList<LWComponent>();
+              LWComponent next = it2.next();
+              
               Iterator<LWComponent> nestedComponents = next.getAllDescendents().iterator();
               while(nestedComponents.hasNext())
               {
@@ -754,30 +760,43 @@ public class SearchAction extends AbstractAction {
                       toNotBeSelected.add(nextNested);
                   }
               }
-              Iterator<LWComponent> dontSelect = toNotBeSelected.iterator();
-              while(dontSelect.hasNext())
+              
+ 
+              if(next instanceof LWNode && LWNode.isImageNode(next))
               {
-                  comps.remove(dontSelect.next());
+                  toNotBeSelected.add(((LWNode)next).getImage());
+              }
+
+           }
+           
+           Iterator<LWComponent> dontSelect = toNotBeSelected.iterator();
+           while(dontSelect.hasNext())
+           {
+              LWComponent removeThis = dontSelect.next();
+              if(comps.contains(removeThis))
+              {
+                  comps.remove(removeThis);
               }
            }
            
-           
-           it = comps.iterator();
         }
         
         if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION)
         {    
-          while(it.hasNext())
+            
+          Iterator<LWComponent> it3 = comps.iterator();  
+            
+          while(it3.hasNext())
           {
              if(resultsType == SELECT_ACTION)
              {
                if(MARQUEE == false)
                {
-                 it.next().setSelected(true);
+                 it3.next().setSelected(true);
                }
                else
                {
-                 VUE.getSelection().add(it.next());
+                 VUE.getSelection().add(it3.next());
                }
              }
              if(resultsType == HIDE_ACTION)
@@ -785,7 +804,7 @@ public class SearchAction extends AbstractAction {
                // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
                // will handle child nodes/images correctly in non image nodes)
                //it.next().setHidden(LWComponent.HideCause.DEFAULT);  
-               it.next().setFiltered(true);
+               it3.next().setFiltered(true);
              }
           }
         }
@@ -795,6 +814,8 @@ public class SearchAction extends AbstractAction {
         if(resultsType == SHOW_ACTION)
         {    
           
+          Iterator<LWComponent> it4 = comps.iterator();  
+            
           if(AUTO_SHOW_NESTED_IMAGES)
           {    
             // checking all children of nodes in search results to see if they
@@ -805,9 +826,9 @@ public class SearchAction extends AbstractAction {
             // parents (but not non image results)
             List<LWComponent> toBeAdded = new ArrayList<LWComponent>();  
             
-            while(it.hasNext())
+            while(it4.hasNext())
             {
-              LWComponent current = it.next();
+              LWComponent current = it4.next();
               Iterator<LWComponent> children = current.getAllDescendents().iterator();
               while(children.hasNext())
               {
