@@ -204,7 +204,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         
-        final JLabel optionsLabel = new JLabel("Assign Categories");
+        final JLabel optionsLabel = new JLabel("Use full metadata schema");
         optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         final JCheckBox advancedSearch = new JCheckBox();
@@ -420,11 +420,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                
                if(((MetadataTableModel)table.getModel()).getColumnCount() == 2)
                {    
-                 comp =  new JLabel("Keywords:");
+                 comp =  new JLabel("Tags:");
                }
                else
                {
-                 comp = new JLabel("Categories:");
+                 comp = new JLabel("Fields:");
                }
                comp.setFont(tufts.vue.gui.GUI.LabelFace);
            }

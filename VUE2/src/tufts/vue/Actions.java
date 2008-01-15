@@ -877,7 +877,7 @@ public class Actions implements VueConstants
     // Context Menu Actions
     //-----------------------
     public static final Action KeywordAction = new KeywordActionClass(VueResources.getString("mapViewer.componentMenu.keywords.label"));
-    public static final Action ContextKeywordAction = new KeywordActionClass("Add Keywords");
+    public static final Action ContextKeywordAction = new KeywordActionClass("Add Tags/Metadata");
     
     public static class KeywordActionClass extends VueAction
     {
