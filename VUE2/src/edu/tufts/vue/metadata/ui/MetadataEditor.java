@@ -73,12 +73,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     private boolean focusToggle = false;
     
-    // also for VUE-846
-    public java.awt.Dimension getPreferrredSize()
+    // also for VUE-846 -- but not fully operational yet..
+    /*
+    public java.awt.Dimension getPreferredSize()
     {
         int height = Math.max(metadataTable.getModel().getRowCount()*50,200);
         return new java.awt.Dimension(300,metadataTable.getModel().getRowCount()*50);
-    }
+    }*/
     
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
@@ -113,6 +114,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            System.out.println("metadata table header: mouse pressed" + evt);
                            System.out.println("current at table header mouse press: " + MetadataEditor.this.current);
                          }
+                         
+                         
+                         addNewRow();
+                         /*
                          VueMetadataElement vme = new VueMetadataElement();
                          String[] emptyEntry = {NONE_ONT,""};
                          vme.setObject(emptyEntry);
@@ -120,6 +125,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                          //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
                          MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
                          ((MetadataTableModel)metadataTable.getModel()).refresh();
+                         */
                          
                          SwingUtilities.invokeLater(new Runnable(){
                             public void run()
@@ -197,7 +203,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         JPanel tablePanel = new JPanel(new BorderLayout());
 
         //add(scroll);
-        tablePanel.add(metadataTable.getTableHeader(),BorderLayout.NORTH);
+        //tablePanel.add(metadataTable.getTableHeader(),BorderLayout.NORTH);
         tablePanel.add(metadataTable);
         metaPanel.add(tablePanel);
         
@@ -238,7 +244,27 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         });
         optionsPanel.add(advancedSearch);
         optionsPanel.add(optionsLabel);
-        metaPanel.add(optionsPanel,BorderLayout.SOUTH);
+        
+        JPanel controlPanel = new JPanel(new BorderLayout());
+        JPanel addPanel = new JPanel();
+        JLabel addButton = new JLabel();
+        addButton.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
+        addPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,ROW_INSET+4));
+        
+        
+        addButton.addMouseListener(new MouseAdapter()
+        {
+            public void mousePressed(MouseEvent e)
+            {
+                addNewRow();
+            }
+        });
+        
+        addPanel.add(addButton);
+        controlPanel.add(optionsPanel);
+        controlPanel.add(addPanel,BorderLayout.EAST);
+        
+        metaPanel.add(controlPanel,BorderLayout.SOUTH);
         
         ontologicalMembershipPane = new JPanel();
         
@@ -287,6 +313,17 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         
         validate();
+    }
+    
+    public void addNewRow()
+    {
+        VueMetadataElement vme = new VueMetadataElement();
+        String[] emptyEntry = {NONE_ONT,""};
+        vme.setObject(emptyEntry);
+        vme.setType(VueMetadataElement.CATEGORY);
+        //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
+        MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
+        ((MetadataTableModel)metadataTable.getModel()).refresh();
     }
     
     public void listChanged()
