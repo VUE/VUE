@@ -88,7 +88,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.15 $ / $Date: 2008-01-18 03:44:20 $ / $Author: mike $
+ * @version $Revision: 1.16 $ / $Date: 2008-01-18 18:12:27 $ / $Author: mike $
  *
  */
 
@@ -332,6 +332,8 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     {
         super.setText(text);       
         setSize(getPreferredSize());
+    	if (lwc.getParent() !=null)
+    		lwc.getParent().layoutChildren();
         //setSize(getPreferredSize());
     	
     }
@@ -419,13 +421,14 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
                 
                     //adjustSizeDynamically();
                 //else {
-                    //setSize(getPreferredSize());
+                    setSize(getPreferredSize());
                     setSize(getPreferredSize());
                // }
            // }
         } else {
             if (!TestHarness)
                 new Throwable(this + " UNPARENTED doLayout").printStackTrace();
+            
         }
         //super.layout();
     }
@@ -1046,8 +1049,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     		//setSize(getPreferredSize());   		
     		//lwc.notify(this, LWKey.Repaint);
     		
-    		if (lwc.getParent() !=null)
-        		lwc.getParent().layout();
+        if (lwc.getParent() !=null)
+        {
+    		lwc.getParent().layout();
+        System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
+        }
+    	setSize(getPreferredSize());
+    	lwc.notify(this, LWKey.Repaint);
     }
     public void changedUpdate(DocumentEvent de) {
         if (TestDebug||DEBUG.TEXT) 
@@ -1056,8 +1064,14 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 			//setSize(getPreferredSize());
         	//lwc.notify(this, LWKey.Repaint);
         	
-        	if (lwc.getParent() !=null)
+        	if (lwc.getParent() !=null){
         		lwc.getParent().layout();
+        
+        	System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
+        	}
+         	setSize(getPreferredSize());
+        	lwc.notify(this, LWKey.Repaint);
+        	
     }
     public void insertUpdate(DocumentEvent de) {
         if (TestDebug||DEBUG.TEXT) 
@@ -1066,8 +1080,12 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 	//	setSize(getPreferredSize());
 		//lwc.notify(this, LWKey.Repaint);
 		
-		if (lwc.getParent() !=null)
+        if (lwc.getParent() !=null){
     		lwc.getParent().layout();
+        System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
+        }
+    	setSize(getPreferredSize());
+    	lwc.notify(this, LWKey.Repaint);
     }
     
     public String toString()
