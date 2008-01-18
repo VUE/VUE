@@ -31,47 +31,49 @@ public class LWText extends LWComponent {
 	public static final Object TYPE_RICHTEXT = "richTextNode";
 	protected transient RichTextBox labelBox = null;
     //protected RectangularShape mShape;
-	private boolean WrapText = false;
+	public static final boolean WrapText = false;
 
-	protected boolean isAutoSized = true; // compute size from label &
+	protected boolean isAutoSized = false; // compute size from label &
 											// children
-	public LWText() {
+	public LWText() 
+	{
 		super();
-		
-                // VUE-747
+	    // VUE-747
 		Float p = null; 
                  
-                if(VUE.getActiveViewer() != null)
-                {
-                       p =  VUE.getActiveViewer().getLastMapMousePoint();
-                }
-                
-                if(p!=null)
-                {    
-		   setLocation(p.x, p.y);
-                }
-                // end VUE-747 mods
-               
-                super.label = label; // make sure label initially set for debugging
-                initText();
+        if(VUE.getActiveViewer() != null)
+        {
+        	p =  VUE.getActiveViewer().getLastMapMousePoint();
+        }
+              
+        if(p!=null)
+        {    
+           	setLocation(p.x, p.y);
+        }
+        // end VUE-747 mods
+             
+        super.label = label; // make sure label initially set for debugging
+        initText();
 	}
-
+	
+	public boolean isAutoSized() { return isAutoSized; }
+	
 	public String getRichText()
 	{
 		return labelBox.getRichText();
 	}
+	
 	public void setRichText(String text)
 	{
 		super.label = text;
+		
 		return;
 	}
+	
 	public LWText(String label) {
 		super();
 		super.label = label; // make sure label initially set for debugging
-		// super(label, 0, 0);
-		// setAsTextNode(true);
-                initText();
-
+	    initText();
 	}
 
 	public LWText(String label, RectangularShape shape) {
@@ -85,6 +87,7 @@ public class LWText extends LWComponent {
         //enableProperty(KEY_Alignment);
         disablePropertyTypes(KeyType.STYLE);
         enableProperty(LWKey.FillColor);
+        
         //mShape = new java.awt.geom.Rectangle2D.Float();
     }
 
@@ -114,6 +117,15 @@ public class LWText extends LWComponent {
 
 	}
 
+    /** does this support user resizing? */
+    // TODO: change these "supports" calls to an arbitrary property list
+    // that could have arbitrary properties added to it by plugged-in non-standard tools
+    public boolean supportsUserResize() {
+    	  
+    	  
+        return (VUE.getActiveViewer().hasActiveTextEdit()) ? false : true;
+    }
+	
 	protected void drawNode(DrawContext dc) {
 		// -------------------------------------------------------
 		// Fill the shape (if it's not transparent)
@@ -269,13 +281,20 @@ public class LWText extends LWComponent {
 	// (Almost uneeded
 	// in new Mac JVM's)
 
+	protected Size getMinimumTextSize()
+	{
+		Size s = new Size(getRichLabelBox().getMinimumSize());
+		s.width *= TextWidthFudgeFactor;
+		s.width += 3;
+		return s;
+	}
 	protected Size getTextSize() {
 
-		if (WrapText) {
-			Size s = new Size(getRichLabelBox().getSize());
-			// s.width += 3;
-			return s;
-		} else {
+	//	if (WrapText) {
+	//		Size s = new Size(getRichLabelBox().getSize());
+//			// s.width += 3;
+//			return s;
+//		} else {
 
 			// TODO: Check if this hack still needed in current JVM's
 
@@ -287,15 +306,17 @@ public class LWText extends LWComponent {
 			// getPreferredSize.
 
 			Size s = new Size(getRichLabelBox().getPreferredSize());
-			Size ps = new Size(getRichLabelBox().getSize());
+			//Size ps = new Size(getRichLabelBox().getSize());
 			// if (ps.width > s.width)
 			// s.width = s.width; // what the hell
-			if (ps.height < s.height)
-				s.height = ps.height;
+			//System.out.println("PS : " + ps.height);
+			//MKSystem.out.println("S:" + s.height);
+			//if (ps.height < s.height)
+			//	s.height = ps.height;
 			s.width *= TextWidthFudgeFactor;
 			s.width += 3;
 			return s;
-		}
+	//	}
 	}
 
     @Override
@@ -357,7 +378,7 @@ public class LWText extends LWComponent {
 		}
 
 		final LWText containerCopy = (LWText) super.duplicate(cc);
-		containerCopy.getRichLabelBox().setText(this.getRichLabelBox().getRichText());
+		//containerCopy.getRichLabelBox().setText(this.getRichLabelBox().getRichText());
 
 		if (isPatcherOwner)
 			cc.patcher.reconnectLinks();
@@ -479,10 +500,8 @@ public class LWText extends LWComponent {
 		final float newWidth;
 		final float newHeight;
 
-		if (isAutoSized()) {
-			newWidth = min.width;
-			newHeight = min.height;
-		} else {
+	
+	
 			// we always compute the minimum size, and
 			// never let us get smaller than that -- so
 			// only use given size if bigger than min size.
@@ -490,12 +509,16 @@ public class LWText extends LWComponent {
 				newWidth = request.width;
 			else
 				newWidth = min.width;
-			if (request.height > min.height)
-				newHeight = request.height;
-			else
-				newHeight = min.height;
-		}
+			
+			//MK
+			newHeight = Math.max(min.height,request.height);
+			//newHeight = min.height;
+			//System.out.println("MIN.WIDTH : " + min.width);
+			//System.out.println("MIN.HEIGHT : " + min.height);
 
+			//System.out.println("NEW WIDTH : " + newWidth);
+			//System.out.println("NEW HEIGHT : " + newHeight);
+	
 		setSizeNoLayout(newWidth, newHeight);
 
 		// layout label last in case size is bigger than min and label is
@@ -509,20 +532,19 @@ public class LWText extends LWComponent {
 		if (this.parent != null && this.parent instanceof LWMap == false) {
 			// todo: should only need to do if size changed
 			this.parent.layout();
+			//System.out.println("layout parent");
 		}
-
+		   if (!isAutoSized())
+	            notify(LWKey.Size, min); // todo perf: can we optimize this event out?
+		   //System.out.println("OUT OF LAYOUT*************");
 		inLayout = false;
 	}
 
-// 	@Override
-// 	public boolean isImageNode() {
-// 		return false;
-// 	}
-
 	private void setSizeNoLayout(float w, float h) {
-		if (DEBUG.LAYOUT)
+		//if (DEBUG.LAYOUT)
 			out("*** setSizeNoLayout " + w + "x" + h);
 		setSize(w, h);
+		labelBox.setSize(w,h);
 		//mShape.setFrame(0, 0, getWidth(), getHeight());
 	}
 
@@ -561,17 +583,14 @@ public class LWText extends LWComponent {
 	private Size layoutBoxed(Size request, Size oldSize, Object triggerKey) {
 		final Size min;
 
-		// if (WrapText)
-		// min = layoutBoxed_floating_text(request, oldSize, triggerKey);
-		// else
 		min = layoutBoxed_vanilla(request);
 
 		return min;
 
 	}
 
-	private static final int EdgePadY = 4; // Was 3 in VUE 1.5
-	private static final int LabelPadLeft = 8; // Was 6 in VUE 1.5; fixed
+	private static final int EdgePadY = 0; // Was 3 in VUE 1.5
+	private static final int LabelPadLeft = 0; // Was 6 in VUE 1.5; fixed
 
 	// distance to right of
 	// iconMargin dividerLine
@@ -580,18 +599,25 @@ public class LWText extends LWComponent {
 
 	private Size layoutBoxed_vanilla(final Size request) {
 		final Size min = new Size();
-		final Size text = getTextSize();
+		final Size text = getMinimumTextSize();
 
-		min.width = text.width;
+		min.width = 150;//text.width;
+		
 		min.height = EdgePadY + text.height + EdgePadY;
-
+		//System.out.println("Text.height : " + text.height);
 		// *** set icon Y position in all cases to a centered vertical
 		// position, but never such that baseline is below bottom of
 		// first icon -- this is tricky tho, as first icon can move
 		// down a bit to be centered with the label!
 
 		min.width += LabelPadLeft;
-
+		
+		min.width = Math.max(min.width,text.width);
+		
+		
+		//System.out.println("Min.Wdith : " + min.width);
+		//System.out.println("Text.Width : " + text.width);
+		//System.out.println("Text.Min.Width : " + getMinimumTextSize().width);
 		return min;
 	}
 
