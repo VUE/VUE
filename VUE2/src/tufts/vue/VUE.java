@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.515 $ / $Date: 2008-01-02 15:22:53 $ / $Author: mike $ 
+ * @version $Revision: 1.516 $ / $Date: 2008-01-18 03:44:00 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -651,7 +651,7 @@ public class VUE
         }
     }
 
-    private static void initApplication()
+    static void initApplication()
     {
         final Window splashScreen;
 
@@ -661,7 +661,7 @@ public class VUE
         } else
             splashScreen = new SplashScreen();
         
-        //------------------------------------------------------------------
+        //------------------------------------------------------------------	
         // Make sure these classes are all fully loaded to establish
         // their Keys.  todo: can get all subclasses of LWComponent
         // and newInstance them just to be sure.  In any case, this
@@ -675,6 +675,8 @@ public class VUE
         new LWLink();
         new LWImage();
         new LWNode();
+        new LWText();
+        
 
         //------------------------------------------------------------------
         
