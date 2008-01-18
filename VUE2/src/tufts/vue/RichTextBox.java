@@ -88,7 +88,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.16 $ / $Date: 2008-01-18 18:12:27 $ / $Author: mike $
+ * @version $Revision: 1.17 $ / $Date: 2008-01-18 20:24:03 $ / $Author: mike $
  *
  */
 
@@ -1052,7 +1052,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (lwc.getParent() !=null)
         {
     		lwc.getParent().layout();
-        System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
+      //  System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
         }
     	setSize(getPreferredSize());
     	lwc.notify(this, LWKey.Repaint);
@@ -1067,7 +1067,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         	if (lwc.getParent() !=null){
         		lwc.getParent().layout();
         
-        	System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
+        	//System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
         	}
          	setSize(getPreferredSize());
         	lwc.notify(this, LWKey.Repaint);
@@ -1082,7 +1082,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 		
         if (lwc.getParent() !=null){
     		lwc.getParent().layout();
-        System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
+       // System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
         }
     	setSize(getPreferredSize());
     	lwc.notify(this, LWKey.Repaint);
