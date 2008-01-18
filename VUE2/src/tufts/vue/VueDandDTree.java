@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.34 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.35 $ / $Date: 2008-01-18 20:07:29 $ / $Author: mike $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -83,6 +83,12 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         
     }
     
+    public void insertInto(MutableTreeNode newNode)
+    {
+        DefaultTreeModel model = (DefaultTreeModel)this.getModel();
+  	    ResourceNode o2 = (ResourceNode)getModel().getRoot();
+		model.insertNodeInto(newNode, (MutableTreeNode)o2, (o2.getChildCount()));
+    }
     
     public void drop(DropTargetDropEvent e ) {
         java.awt.Point dropLocation = e.getLocation();
@@ -409,9 +415,10 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
 
 	public void addResource(Resource resource) {
 		// TODO Auto-generated method stub
-		   Object rootNode = getModel().getRoot();
+		   ResourceNode rootNode = (ResourceNode)getModel().getRoot();
 		   ResourceNode newNode = new ResourceNode(resource);
 		   ((DefaultTreeModel) getModel()).insertNodeInto((MutableTreeNode)newNode,  (MutableTreeNode)rootNode, ((DefaultMutableTreeNode)rootNode).getChildCount());
+		   this.expandPath(new TreePath(rootNode.getPath()));
 
 	}
 }
