@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.33 $ / $Date: 2008-01-19 17:33:44 $ / $Author: dan $
+ * @version $Revision: 1.34 $ / $Date: 2008-01-19 17:38:51 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -476,7 +476,7 @@ public class MapsSelectionPanel extends JPanel  {
                     System.out.println("MSP: IO Exception: " + exc);
                 }
               
-                if(model.isSelected(i))
+                //if(model.isSelected(i))
                    mapList.add(map);
             }
         }
