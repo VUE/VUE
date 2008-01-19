@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.32 $ / $Date: 2007-11-26 20:35:49 $ / $Author: peter $
+ * @version $Revision: 1.33 $ / $Date: 2008-01-19 17:33:44 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -502,7 +502,7 @@ public class MapsSelectionPanel extends JPanel  {
         return checkList;
     }
     
-    public LWMap getBaseMap()
+    /*public LWMap getBaseMap()
     {
         MapTableModel model = (MapTableModel)maps.getModel();
         int i = model.getBaseMapIndex();
@@ -527,6 +527,12 @@ public class MapsSelectionPanel extends JPanel  {
            return map;
         }      
         
+    }*/
+    
+    public int getBaseMapIndex()
+    {
+        MapTableModel model = (MapTableModel)maps.getModel();
+        return model.getBaseMapIndex();
     }
     
     public boolean getFilterOnBaseMap()

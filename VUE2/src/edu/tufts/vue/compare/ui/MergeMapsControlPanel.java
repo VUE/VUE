@@ -263,8 +263,9 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     
     public void setMergeMapSettings(LWMergeMap map)
     {
-        map.setMapList(mapSelectionPanel.getMapList());
-        map.setBaseMap(mapSelectionPanel.getBaseMap());
+        java.util.List<LWMap> mapList = mapSelectionPanel.getMapList();
+        map.setMapList(mapList);
+        map.setBaseMap(mapList.get(mapSelectionPanel.getBaseMapIndex()));
         map.setActiveMapList(mapSelectionPanel.getCheckList());
         map.setIntervalBoundaries(); 
         map.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
