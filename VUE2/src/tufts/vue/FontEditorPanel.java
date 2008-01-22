@@ -17,18 +17,14 @@ package tufts.vue;
 
 import tufts.vue.gui.*;
 import tufts.vue.gui.formattingpalette.AlignmentDropDown;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-import java.io.*;
 import java.beans.*;
-
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
-import javax.swing.plaf.basic.BasicComboBoxEditor;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
@@ -37,14 +33,9 @@ import javax.swing.text.StyledEditorKit;
 import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.StyleSheet;
-
-import com.lightdev.app.shtm.AttributeComponent;
 import com.lightdev.app.shtm.SHTMLDocument;
-import com.lightdev.app.shtm.SHTMLEditorKit;
 import com.lightdev.app.shtm.SHTMLEditorKitActions;
-import com.lightdev.app.shtm.SHTMLEditorPane;
 import com.lightdev.app.shtm.SHTMLPanelImpl;
-import com.lightdev.app.shtm.StyleSelector;
 import com.lightdev.app.shtm.Util;
 
 
@@ -52,7 +43,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.65 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.66 $ / $Date: 2008-01-22 21:35:24 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -78,11 +69,7 @@ public class FontEditorPanel extends JPanel
     private final AbstractButton unorderedListButton = new VueButton("list.button.unordered");
 	
     /** the property name **/
-    private final Object mPropertyKey;
- 	
-    private static final Insets NoInsets = new Insets(0,0,0,0);
-    private static final Insets ButtonInsets = new Insets(-3,-3,-3,-2);
-    private static final int VertSqueeze = 5;
+    private final Object mPropertyKey; 
     
     //plain text action listener
     final ActionListener styleChangeHandler;
@@ -101,7 +88,7 @@ public class FontEditorPanel extends JPanel
     private final SHTMLEditorKitActions.FontSizeAction fontSizeAction = new SHTMLEditorKitActions.FontSizeAction(null);
     private final SHTMLEditorKitActions.FontColorAction fontColorAction = new SHTMLEditorKitActions.FontColorAction(null);
     private final AlignmentListener alignmentListener = new AlignmentListener();
-    
+    private LWPropertyHandler sizeHandler = null;    
 //    dynRes.addAction(fontFamilyAction, new SHTMLEditorKitActions.FontFamilyAction(this));
 //    dynRes.addAction(fontSizeAction, new SHTMLEditorKitActions.FontSizeAction(this));
 //    dynRes.addAction(fontColorAction, new SHTMLEditorKitActions.FontColorAction(this));
@@ -222,12 +209,12 @@ public class FontEditorPanel extends JPanel
         //mSizeField.getEditor().getEditorComponent().setSize(30,10);
         
         //mSizeField.addActionListener( this);
-        mSizeField.addActionListener(new LWPropertyHandler<Integer>(LWKey.FontSize, mSizeField) {
+        sizeHandler  = new LWPropertyHandler<Integer>(LWKey.FontSize, mSizeField) {
                 public Integer produceValue() { return new Integer((String) mSizeField.getSelectedItem()); }
                 public void displayValue(Integer value) { mSizeField.setSelectedItem(""+value); }
-            });
+            };
 
-
+        mSizeField.addActionListener(sizeHandler);
         f = mSizeField.getFont();
         //Font sizeFont = f.deriveFont((float) f.getSize()-2);
         Font sizeFont= f.deriveFont((float) 9);        
@@ -840,7 +827,7 @@ public class FontEditorPanel extends JPanel
             activeText.setNumberList(toggleNumbersAction);
             mBoldButton.removeActionListener(styleChangeHandler);
             mBoldButton.addActionListener(richBoldAction);			
-			
+            EditorManager.unregisterEditor(sizeHandler);
             mItalicButton.removeActionListener(styleChangeHandler);
             mItalicButton.addActionListener(richItalicAction);			
 			
@@ -876,7 +863,7 @@ public class FontEditorPanel extends JPanel
 			VUE.getFormatDock().setFocusableWindowState(true);
             mBoldButton.removeActionListener(richBoldAction);
             mBoldButton.addActionListener(styleChangeHandler);			
-            
+            EditorManager.registerEditor(sizeHandler);
             mItalicButton.removeActionListener(richItalicAction);
             mItalicButton.addActionListener(styleChangeHandler);
             
