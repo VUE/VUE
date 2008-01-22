@@ -769,6 +769,23 @@ public class EditorManager
 //             return c.getTypeToken();
     }
     
+
+    static void unregisterEditor(LWEditor editor) {
+
+        if (editor.getPropertyKey() == null) {
+            //if (DEBUG.Enabled) System.out.println("EditorManager: registration ignoring editor w/null key: " + dumpEditor(editor));
+            Log.debug("unregistration ignoring editor w/null key: " + dumpEditor(editor));
+            return;
+        }
+        
+        if (mEditors.remove(editor)) {
+            if (DEBUG.TOOL || DEBUG.INIT) out("UNREGISTERED EDITOR: " + editor);
+            if (editor instanceof java.awt.Component)
+                ((java.awt.Component)editor).removePropertyChangeListener(singleton);
+        } else
+            System.out.println(" REGISTERED AGAIN: " + editor);
+    }
+    
     static void registerEditor(LWEditor editor) {
 
         if (editor.getPropertyKey() == null) {
