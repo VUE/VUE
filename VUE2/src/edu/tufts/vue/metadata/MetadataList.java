@@ -223,7 +223,6 @@ public class MetadataList {
             mdList = getOtherList();
         }
         
-        //if (getMetadata().size() > 0) {
         if(mdList.size() > 0) {
             String txt = "";
             for (int i=0;i<mdList.size();i++) {
@@ -236,6 +235,15 @@ public class MetadataList {
                 
                 if(value.length() > 0)
                 {    
+                  if(type == VueMetadataElement.ONTO_TYPE)
+                  {
+                      int nameLocation = value.indexOf(VueMetadataElement.ONT_SEPARATOR);
+                      if(nameLocation > -1 && value.length() > nameLocation + 1)
+                      {
+                          value = value.substring(nameLocation + 1);
+                      }
+                  }
+                    
                   txt += "<br>" + value;
                 }
             }
