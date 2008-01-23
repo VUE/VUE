@@ -246,6 +246,10 @@ public class MetadataList {
                 {    
                   txt = "Tags: " + txt;
                 }
+                else if(type == VueMetadataElement.ONTO_TYPE)
+                {
+                  txt = "Ontological Membership: " + txt;
+                }
                 else if(type == VueMetadataElement.OTHER)
                 {
                   txt = "Merge: " + txt;

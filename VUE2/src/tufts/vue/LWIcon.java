@@ -145,7 +145,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         private LWComponent mLWC;
         
-        private LWIcon[] mIcons = new LWIcon[6];
+        private LWIcon[] mIcons = new LWIcon[7];
 
         //final private boolean mCoordsNodeLocal;
         //final private boolean mCoordsNoShrink; // don't let icon's get less than 100% zoom
@@ -180,6 +180,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             mIcons[3] = new LWIcon.MetaData(lwc, c);
             mIcons[4] = new LWIcon.Hierarchy(lwc, c);
             mIcons[5] = new LWIcon.MergeSourceMetaData(lwc,c);
+            mIcons[6] = new LWIcon.OntologicalMetaData(lwc,c);
             
             for (int i = 0; i < mIcons.length; i++) {
                 mIcons[i].setSize(iconWidth, iconHeight);
@@ -1123,6 +1124,118 @@ public abstract class LWIcon extends Rectangle2D.Float
             //dc.g.fill(ur);
             //dc.g.fill(ll);
             //dc.g.fill(lr);
+            
+            dc.g.translate(-x, -y);
+        }
+    }
+    
+    
+    static class OntologicalMetaData extends LWIcon
+    {
+        //private final static int w = 28;
+        private final static int w = 16;
+        private final static float MaxX = 221;
+        private final static float MaxY = 114+w;
+
+        private final static double scale = DefaultScale;
+        private final static double scaleInv = 1/scale;
+        private final static AffineTransform t = AffineTransform.getScaleInstance(scale, scale);
+
+        private static float iconWidth = (float) (MaxX * scale);
+        private static float iconHeight = (float) (MaxY * scale);
+
+        //-------------------------------------------------------
+        
+        private final static GeneralPath one = new GeneralPath();
+        private final static GeneralPath two = new GeneralPath();
+        private final static GeneralPath three = new GeneralPath();
+        private final static GeneralPath four = new GeneralPath();
+        private final static GeneralPath five = new GeneralPath();
+        static {
+            one.moveTo(73,96);
+            one.lineTo(0,81);
+            one.lineTo(11,46);
+            one.lineTo(79,77);
+            one.lineTo(74,84);
+            one.closePath();
+            one.transform(t);
+
+            two.moveTo(83,73);
+            two.lineTo(76,0);
+            two.lineTo(111,0);
+            two.lineTo(104,75);
+            two.lineTo(94,72);
+            two.closePath();
+            two.transform(t);
+
+            three.moveTo(107,77);
+            three.lineTo(176,47);
+            three.lineTo(186,80);
+            three.lineTo(113,96);
+            three.lineTo(112,86);
+            three.closePath();
+            three.transform(t);
+            
+            four.moveTo(113,100);
+            four.lineTo(162,156);
+            four.lineTo(133,177);
+            four.lineTo(95,112);
+            four.lineTo(106,109);
+            four.closePath();
+            four.transform(t);
+            
+            five.moveTo(91,112);
+            five.lineTo(53,177);
+            five.lineTo(24,156);
+            five.lineTo(74,100);
+            five.lineTo(81,109);
+            five.closePath();
+            five.transform(t);
+        }
+        
+        OntologicalMetaData(LWComponent lwc, Color c) { super(lwc, c); }
+        OntologicalMetaData(LWComponent lwc) { super(lwc); }
+
+        boolean isShowing() {
+        	if (IconPref.getMetaDataIconValue())
+        		return mLWC.hasMetaData(edu.tufts.vue.metadata.VueMetadataElement.ONTO_TYPE);
+        	else
+        		return false;
+        	}
+
+        void doDoubleClickAction() {
+            System.out.println(this + " Ontological Meta-Data Action?");
+        }
+        
+        private JComponent ttMetaData;
+        private String ttMetaDataHtml;
+        public JComponent getToolTipComponent()
+        {
+            String html = "<html>";
+            html += mLWC.getMetaDataAsHTML(edu.tufts.vue.metadata.VueMetadataElement.ONTO_TYPE);
+            if (ttMetaDataHtml == null || !ttMetaDataHtml.equals(html)) {
+                ttMetaData = new AALabel(html);
+                ttMetaData.setFont(FONT_MEDIUM);
+                ttMetaDataHtml = html;
+            }
+            return ttMetaData;
+        }
+
+        
+        void draw(DrawContext dc)
+        {
+            super.draw(dc);
+            double x = getX() + (getWidth() - iconWidth) / 2;
+            double y = getY() + (getHeight() - iconHeight) / 2;
+            
+            dc.g.translate(x, y);
+            dc.g.setColor(mColor);
+
+            dc.g.fill(one);
+            dc.g.fill(two);
+            dc.g.fill(three);
+            dc.g.fill(four);
+            dc.g.fill(five);
             
             dc.g.translate(-x, -y);
         }
