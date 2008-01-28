@@ -203,14 +203,19 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         JPanel tablePanel = new JPanel(new BorderLayout());
 
         //add(scroll);
-        //tablePanel.add(metadataTable.getTableHeader(),BorderLayout.NORTH);
+        
+        //re-enable for VUE-953 (revert back to categories/keywords) 
+        tablePanel.add(metadataTable.getTableHeader(),BorderLayout.NORTH);
+        
         tablePanel.add(metadataTable);
         metaPanel.add(tablePanel);
         
         JPanel optionsPanel = new JPanel();
         optionsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
         
-        final JLabel optionsLabel = new JLabel("Use full metadata schema");
+        //back to "assign categories" as per VUE-953
+        //final JLabel optionsLabel = new JLabel("Use full metadata schema");
+        final JLabel optionsLabel = new JLabel("Assign Categories");
         optionsLabel.setFont(tufts.vue.gui.GUI.LabelFace);
         //final JButton advancedSearch = new JButton(new ImageIcon(VueResources.getURL("advancedSearchMore.raw")));//tufts.vue.gui.VueButton("advancedSearchMore");
         final JCheckBox advancedSearch = new JCheckBox();
@@ -246,23 +251,27 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         optionsPanel.add(optionsLabel);
         
         JPanel controlPanel = new JPanel(new BorderLayout());
-        JPanel addPanel = new JPanel();
-        JLabel addButton = new JLabel();
-        addButton.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-        addPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,ROW_INSET+4));
         
+        //reverts to top of table as per VUE-953
+        //JPanel addPanel = new JPanel();
+        //JLabel addButton = new JLabel();
+        //addButton.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
+        //addPanel.setBorder(BorderFactory.createEmptyBorder(0,0,0,ROW_INSET+4));
         
+        /*
         addButton.addMouseListener(new MouseAdapter()
         {
             public void mousePressed(MouseEvent e)
             {
                 addNewRow();
             }
-        });
+        });*/
         
-        addPanel.add(addButton);
+        //see above: VUE-953
+        //addPanel.add(addButton);
         controlPanel.add(optionsPanel);
-        controlPanel.add(addPanel,BorderLayout.EAST);
+        // see above: VUE-953
+        //controlPanel.add(addPanel,BorderLayout.EAST);
         
         metaPanel.add(controlPanel,BorderLayout.SOUTH);
         
@@ -457,11 +466,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                
                if(((MetadataTableModel)table.getModel()).getColumnCount() == 2)
                {    
-                 comp =  new JLabel("Tags:");
+                 // back to "Keywords:" -- VUE-953  
+                 comp =  new JLabel("Keywords:");
                }
                else
                {
-                 comp = new JLabel("Fields:");
+                 // back to "Categories" -- VUE-953
+                 //comp = new JLabel("Fields:");
+                 comp = new JLabel("Categories:");
                }
                comp.setFont(tufts.vue.gui.GUI.LabelFace);
            }

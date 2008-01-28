@@ -252,7 +252,7 @@ public class MetadataList {
             {
                 if(type == VueMetadataElement.CATEGORY)
                 {    
-                  txt = "Tags: " + txt;
+                  txt = "Keywords: " + txt;
                 }
                 else if(type == VueMetadataElement.ONTO_TYPE)
                 {

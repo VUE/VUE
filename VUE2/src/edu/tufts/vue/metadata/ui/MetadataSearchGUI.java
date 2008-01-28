@@ -73,8 +73,8 @@ public class MetadataSearchGUI extends JPanel {
     
     public final static String SEARCH_EVERYTHING = "Search everything";
     public final static String SEARCH_LABELS_ONLY = "Labels";
-    public final static String SEARCH_ALL_KEYWORDS = "Tags";
-    public final static String SEARCH_CATEGORIES_AND_KEYWORDS = "Full metadata schema";
+    public final static String SEARCH_ALL_KEYWORDS = "Keywords";
+    public final static String SEARCH_CATEGORIES_AND_KEYWORDS = "Categories + Keywords";
     
     // combo box numbers within optionsPanel
     public final static int TYPES = 0;
@@ -1209,7 +1209,7 @@ public class MetadataSearchGUI extends JPanel {
             comp.setFont(tufts.vue.gui.GUI.LabelFace);
             if(singleLine == true && (col == (valueColumn)))
             {
-              comp.setText("Tags:");
+              comp.setText("Keywords:");
             }
             if(singleLine == true && (col == (buttonColumn)))
             {
@@ -1232,23 +1232,23 @@ public class MetadataSearchGUI extends JPanel {
                 
               if(searchType == KEYWORD)
               {
-                comp.setText("Tags:"); 
+                comp.setText("Keywords:"); 
               }
 
             }
             else if( (table.getModel().getColumnCount() == 3 || table.getModel().getColumnCount() == 4) && col == categoryColumn)
             {
-              comp.setText(SEARCH_CATEGORIES_AND_KEYWORDS);
+              comp.setText("Category:");
               //comp.setBorder(BorderFactory.createEmptyBorder(0,5,0,0));
             }
             else if( (table.getModel().getColumnCount() == 3  || table.getModel().getColumnCount() == 4 ) && col == valueColumn )
-              comp.setText("");
+              comp.setText("Keyword:");
             else if(table.getModel().getColumnCount() == 4 && col == conditionColumn)
               comp.setText("Operator");
             else
               comp.setText("");
             
-            if(comp.getText().equals(SEARCH_CATEGORIES_AND_KEYWORDS) || comp.getText().equals("Operator"))
+            if(comp.getText().equals("Category:") || comp.getText().equals("Operator"))
             {    
               comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,5+ROW_INSET,ROW_GAP,ROW_INSET-5));
             }

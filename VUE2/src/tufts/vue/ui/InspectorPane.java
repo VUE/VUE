@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.62 $ / $Date: 2008-01-15 17:52:04 $ / $Author: dan $
+ * @version $Revision: 1.63 $ / $Date: 2008-01-28 19:07:14 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -93,8 +93,7 @@ public class InspectorPane extends JPanel
         }
         else
         {
-          // Previously experimented with "Tags" here
-          stack.addPane("Tags/Metadata",               mUserMetaData,          1f);  
+          stack.addPane("Keywords",               mUserMetaData,          1f);  
         }
         stack.addPane("Ontological Membership",   ontologicalMetadata,    1f);
         //stack.addPane("Nested Nodes",           mNodeTree,              1f);
