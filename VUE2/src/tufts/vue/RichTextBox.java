@@ -93,7 +93,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.18 $ / $Date: 2008-01-31 03:34:51 $ / $Author: mike $
+ * @version $Revision: 1.19 $ / $Date: 2008-01-31 04:12:31 $ / $Author: mike $
  *
  */
 
@@ -559,7 +559,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (TestDebug||DEBUG.FOCUS) outc("focusLost to " + e.getOppositeComponent());
         if (TestHarness == false && getParent() != null)
             getParent().remove(this);
-        if (keyWasPressed) { // TODO: as per VueTextField, need to handle drag & drop detect
+        if (keyWasPressed || !keyWasPressed) { // TODO: as per VueTextField, need to handle drag & drop detect
             // only do this if they typed something (so we don't wind up with "label"
             // for the label on an accidental edit activation)
             if (TestDebug||DEBUG.FOCUS) out("key was pressed; setting label to: [" + getText() + "]");
@@ -574,6 +574,9 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
            
             VUE.getUndoManager().mark();
         }
+        setSize(getPreferredSize());
+        if (lwc.getParent() !=null && lwc.getParent() instanceof LWNode)
+    		lwc.getParent().layout();
         lwc.notify(this, LWKey.Repaint);
     }
 
