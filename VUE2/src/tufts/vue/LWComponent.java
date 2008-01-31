@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.395 $ / $Date: 2008-01-31 03:33:52 $ / $Author: mike $
+ * @version $Revision: 1.396 $ / $Date: 2008-01-31 21:57:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2273,7 +2273,7 @@ u                    getSlot(c).setFromString((String)value);
         }
 
     }
-    private static String escapeWhitespace(String text)
+    protected static String escapeWhitespace(String text)
     {
         if (text == null)
             return null;
