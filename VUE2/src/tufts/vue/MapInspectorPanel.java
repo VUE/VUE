@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.61 $ / $Date: 2007-12-04 20:20:45 $ / $Author: dan $ 
+ * @version $Revision: 1.62 $ / $Date: 2008-01-31 18:55:22 $ / $Author: dan $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -45,6 +45,8 @@ public class MapInspectorPanel extends JPanel
     static public final int ALL_MODE = 1;
     static public final int NOT_ANY_MODE = 2;
     static public final int NONE_MODE = 3;
+    
+    static public final String dcCreator = "http://purl.org/dc/elements/1.1/#Creator";
     
     /** The tabbed panel **/
     //private JTabbedPane mTabbedPane = null;
@@ -216,7 +218,8 @@ public class MapInspectorPanel extends JPanel
     public class InfoPanel extends JPanel implements PropertyChangeListener, FocusListener
     {
         //JTextField mTitleEditor = null;
-        //JTextField mAuthorEditor = null;
+        JTextField mAuthorEditor = null;
+        //VueTextPane mAuthorEditor = null;
         JLabel mDate = null;
         JLabel mLocation = null;
         VueTextPane mDescriptionEditor = null;
@@ -224,7 +227,7 @@ public class MapInspectorPanel extends JPanel
         PropertiesEditor propertiesEditor = null;
         ColorMenuButton mMapColor = new ColorMenuButton(VueResources.getColorArray("fillColorValues"),true);
         public InfoPanel() {
-             
+        
              mMapColor.setToolTipText("Map Color");
              mMapColor.setName("Map-Color");
   
@@ -263,7 +266,7 @@ public class MapInspectorPanel extends JPanel
             //BoxLayout boxLayout = new BoxLayout(innerPanel,BoxLayout.Y_AXIS);
             innerPanel.setLayout(gridbag);
             //mTitleEditor = new JTextField();
-            //mAuthorEditor = new JTextField();
+            mAuthorEditor = new JTextField();
             
             mDescriptionEditor = new VueTextPane("Map Description");
             mDescriptionEditor.setMinimumSize(new Dimension(180, 60));
@@ -304,7 +307,7 @@ public class MapInspectorPanel extends JPanel
             //saveButton.addActionListener(this);
             mPropPanel  = new PropertyPanel();
             //mPropPanel.addProperty( "Label:", mTitleEditor); // initially Label was title
-            //mPropPanel.addProperty("Author:", mAuthorEditor); //added through metadata
+            mPropPanel.addProperty("Creator:", mAuthorEditor); //added through metadata
             mPropPanel.addProperty("Background:",mMapColor);
             mPropPanel.addProperty("Created:", mDate);
             mPropPanel.addProperty("Location:",mLocation);            
@@ -348,6 +351,25 @@ public class MapInspectorPanel extends JPanel
             }
             //metadataPanel.setBorder(BorderFactory.createEmptyBorder(0,9,0,6));
             
+            
+             mAuthorEditor.setFont(GUI.LabelFace);
+             mDate.setFont(GUI.LabelFace);
+             mLocation.setFont(GUI.LabelFace);
+             mDescriptionEditor.setFont(GUI.LabelFace);
+             
+             mAuthorEditor.addFocusListener(new FocusAdapter(){
+                public void focusLost(FocusEvent e)
+                {
+                    LWMap currentMap = VUE.getActiveMap();
+                    edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                    String[] pairedValue = {dcCreator,mAuthorEditor.getText()};
+                    vme.setObject(pairedValue);
+                    mMap.getMetadataList().modify(vme);
+                }
+             });
+             
+            
+            
             c.weighty = 1.0;
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.fill = GridBagConstraints.BOTH;
@@ -382,7 +404,14 @@ public class MapInspectorPanel extends JPanel
             // update the display
             mDate.setText( mMap.getDate() );
             //mTitleEditor.setText( mMap.getLabel() );
-            //mAuthorEditor.setText( mMap.getAuthor() );
+            edu.tufts.vue.metadata.VueMetadataElement creator = 
+                    mMap.getMetadataList().get(dcCreator);
+            String creatorValue = "";
+            if(creator != null)
+            {
+                creatorValue = creator.getValue();
+            }
+            mAuthorEditor.setText(creatorValue);
             mDescriptionEditor.attachProperty(mMap, LWKey.Notes);
             File file = mMap.getFile() ;
             String path = "";
@@ -400,6 +429,7 @@ public class MapInspectorPanel extends JPanel
             //System.out.println("MIP saveInfo " + mDescriptionEditor.getText());
             if( mMap != null) {
                 // for now, only description/notes needs saving, and it handles that it itself
+                // add back in Author until/unless synched with metadata list: VUE-951
                 //mMap.setLabel( mTitleEditor.getText() );
                 //mMap.setAuthor(  mAuthorEditor.getText() );
                 //mMap.setNotes(mDescriptionEditor.getText());

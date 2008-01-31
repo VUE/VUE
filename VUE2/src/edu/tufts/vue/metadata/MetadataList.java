@@ -82,6 +82,74 @@ public class MetadataList {
       fireListChanged();
     }
     
+    public void modify(VueMetadataElement element)
+    {
+      if(element.getType() == VueMetadataElement.CATEGORY)
+      {
+          int i = findCategory(element.getKey());
+          if(i!=-1)
+          {    
+            metadataList.set(i,element);
+            fireListChanged();
+          }
+      }
+    }
+    
+    public VueMetadataElement get(String key)
+    {
+        int index = findCategory(key);
+        if(index != -1)
+            return getCategoryListElement(index);
+        else
+            return null;
+    }
+
+     /**
+     *
+     * finds the first entered (last in order)
+     * category element with the supplied key
+     *
+     * returns -1 if not found.
+     * 
+     **/
+    public int findCategory(String key)
+    {
+        int foundAt = -1;
+        for(int i=0;i<getCategoryListSize();i++)
+        {
+            VueMetadataElement vme = getCategoryListElement(i);
+            if(vme.getKey().equals(key) && foundAt == -1)
+            {
+                foundAt = i;
+            }
+        }
+        
+        return foundAt;
+    }
+    
+    /**
+     *
+     * finds the most recently entered (last in order)
+     * category element with the supplied key
+     *
+     * returns -1 if not found.
+     * 
+     **/
+    public int findMostRecentCategory(String key)
+    {
+        int foundAt = -1;
+        for(int i=0;i<getCategoryListSize();i++)
+        {
+            VueMetadataElement vme = getCategoryListElement(i);
+            if(vme.getKey().equals(key))
+            {
+                foundAt = i;
+            }
+        }
+        
+        return foundAt;
+    }
+    
     public void setMetadata(List<VueMetadataElement> list)
     {
       metadataList = list;
