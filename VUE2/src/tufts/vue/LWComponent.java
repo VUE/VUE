@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.394 $ / $Date: 2007-12-17 02:14:52 $ / $Author: dan $
+ * @version $Revision: 1.395 $ / $Date: 2008-01-31 03:33:52 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1452,8 +1452,16 @@ u                    getSlot(c).setFromString((String)value);
         //c.setFillColor(getFillColor());
         //c.setTextColor(getTextColor());
         //c.setStrokeColor(getStrokeColor());
-        c.setLabel(this.label); // use setLabel so new TextBox will be created [!no longer an effect]
-        c.getLabelBox().setSize(getLabelBox().getSize());
+        if (c instanceof LWText)
+        {
+        	c.label=this.label;
+        	((LWText)c).getRichLabelBox().setText(((LWText)this).getRichLabelBox().getRichText());
+        }
+        else
+        {
+        	c.setLabel(this.label); // use setLabel so new TextBox will be created [!no longer an effect]
+        	c.getLabelBox().setSize(getLabelBox().getSize());
+        }
 
         
         if (hasResource())
