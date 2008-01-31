@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.88 $ / $Date: 2008-01-03 19:40:08 $ / $Author: anoop $
+ * @version $Revision: 1.89 $ / $Date: 2008-01-31 18:41:10 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -57,7 +57,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final int X_LOCATION = 300; // x co-ordinate of location where the publisher appears
     public static final int Y_LOCATION = 300; // y co-ordinate of location where the publisher appears
     
-    private static final String DUPLICATE_OBJ_ERR_MESG  =  "The resource already exists in the Repostiory. Do you want to overwrite it?";
+    private static final String DUPLICATE_OBJ_ERR_MESG  =  "The map already exists in the Repostiory. Do you want to overwrite it?";
     private static final String DUPLICATE_OBJ_ERR_TITLE =  "Duplicate Resource";
     
     public static final String[] PUBLISH_INFORMATION = {"The \"Publish\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
@@ -332,6 +332,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 DefaultMutableTreeNode treeNode = (DefaultMutableTreeNode)_tp.getLastPathComponent();
                 String fileName = VUE.getActiveMap().getFile().getName();
                 org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
+                /**
                 int confirm = 0;
                 try {
                     if(isFilePresent( asset,   fileName )) {
@@ -345,6 +346,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 if(confirm == JOptionPane.NO_OPTION) {
                     return;
                 }
+                 */
                 getContentPane().remove(wPanel);
             } else {
                 getContentPane().remove(rPanel);
@@ -430,6 +432,10 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 if(isFilePresent( asset,   fileName )) {
                     confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
                 }
+                 if(confirm == JOptionPane.NO_OPTION) {
+                    this.dispose();
+                    return;
+                 }
                 if(publishMapRButton.isSelected()) {
                     SakaiPublisher.uploadMap( ds, siteId, VUE.getActiveMap());
                 }else if(publishMapAllRButton.isSelected()){
