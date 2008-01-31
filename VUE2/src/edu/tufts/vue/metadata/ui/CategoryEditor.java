@@ -391,13 +391,20 @@ public class CategoryEditor extends JPanel
                        {
                            CategoryModel cats = tufts.vue.VUE.getCategoryModel();
                            cats.addCustomCategory(label.getText());
+                           
+                           ((MetadataCategoryTableModel)customCategoryTable.getModel()).refresh();
+                           
                            cats.saveCustomOntology();
+                           
                            newCategoryRequested = false;
                        }
                        else
                        {
                            CategoryModel cats = tufts.vue.VUE.getCategoryModel();
                            cats.addCustomCategory(label.getText(),cats.getCustomOntology().getOntTypes().get(row));
+                           
+                           ((MetadataCategoryTableModel)customCategoryTable.getModel()).refresh();
+                           
                            cats.saveCustomOntology(); 
                        }
                    }
