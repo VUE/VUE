@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.117 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.118 $ / $Date: 2008-01-31 18:57:31 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -997,8 +997,8 @@ public class PathwayPanel extends JPanel
         		   int response = JOptionPane.showOptionDialog
                    (VUE.getDialogParent(),
                
-                    "Are you sure you want to delete this presentation?" ,         
-                    "Delete presentation",
+                    "Are you sure you want to delete this pathway?" ,         
+                    "Delete pathway",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.PLAIN_MESSAGE,
                     null,

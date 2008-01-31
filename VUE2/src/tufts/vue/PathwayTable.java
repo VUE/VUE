@@ -60,7 +60,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.93 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.94 $ / $Date: 2008-01-31 18:57:31 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -1173,8 +1173,8 @@ public class PathwayTable extends JTable
 		   int response = JOptionPane.showOptionDialog
            (VUE.getDialogParent(),
        
-            "Are you sure you want to delete this presentation?" ,         
-            "Delete presentation",
+            "Are you sure you want to delete this pathway?" ,         
+            "Delete pathway",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.PLAIN_MESSAGE,
             null,
