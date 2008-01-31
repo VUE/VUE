@@ -186,7 +186,9 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
             customOntology = new RDFSOntology();
             customOntology.setBase(url.toString());
             add(customOntology);
-            Log.error("Problem loading custom metadata, creating new one - Error:"+t.getMessage());
+            Log.info("Didn't load custom metadata, probably just hasn't been created yet - users can enter custom "
+                      + "metadata through the info window GUI to create file in user directory, if needed. " 
+                      + "Additional details on specific condition follow: "+t.getMessage());
         }
     }
 }
