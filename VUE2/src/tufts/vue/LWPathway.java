@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.206 $ / $Date: 2007-12-10 15:11:33 $ / $Author: dan $
+ * @version $Revision: 1.207 $ / $Date: 2008-01-31 21:57:00 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -429,6 +429,14 @@ public class LWPathway extends LWContainer
         public String getNotes() {
             return notes;
         }
+
+        public String XMLgetNotes() {
+            return LWComponent.escapeWhitespace(this.notes);
+        }
+        public void XMLsetNotes(String notes) {
+            setNotes(LWComponent.decodeCastorMultiLineText(notes));
+        }
+        
         public void setNotes(String s) {
             if (notes == s || notes.equals(s))
                 return;

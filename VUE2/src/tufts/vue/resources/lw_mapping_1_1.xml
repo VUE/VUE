@@ -422,7 +422,8 @@
           <map-to xml="pathEntry"/>
           <field name="mapView" get-method="isMapView" set-method="setMapView"><bind-xml name="isMapView" node="attribute"/></field>
           <field name="node" direct="true"><bind-xml name="nodeID" node="attribute" reference="true"/></field>
-          <field name="notes"><bind-xml node="element"/></field>
+          <!--field name="notes"><bind-xml node="element"/></field -->
+	  <field name="notes" get-method="XMLgetNotes" set-method="XMLsetNotes"><bind-xml name="notes" node="element"/></field>
 	  <field name="persistSlide" type="tufts.vue.LWSlide">
 	    <bind-xml name="slide" node="element"/>
           </field>
