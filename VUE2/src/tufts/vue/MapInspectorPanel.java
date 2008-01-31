@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.62 $ / $Date: 2008-01-31 18:55:22 $ / $Author: dan $ 
+ * @version $Revision: 1.63 $ / $Date: 2008-01-31 21:07:25 $ / $Author: dan $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -364,7 +364,14 @@ public class MapInspectorPanel extends JPanel
                     edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
                     String[] pairedValue = {dcCreator,mAuthorEditor.getText()};
                     vme.setObject(pairedValue);
-                    mMap.getMetadataList().modify(vme);
+                    if(currentMap.getMetadataList().findCategory(dcCreator) != -1)
+                    {
+                      mMap.getMetadataList().modify(vme);
+                    }
+                    else
+                    {
+                      mMap.getMetadataList().getMetadata().add(vme);
+                    }
                 }
              });
              
