@@ -207,9 +207,13 @@
 	</class>
 	<class name="tufts.vue.LWText" extends="tufts.vue.LWComponent">
 		<map-to xml="text"/>	
-		 <field name="richText"  node="attribute" type="string">
+				 <field name="richText"  node="attribute" type="string">
         	<bind-xml name="richText" />
     	</field>
+    	<field name="label"  node="attribute" type="string">
+        	<bind-xml name="label" />
+    	</field>
+    	
 	</class>
 	<class name="tufts.vue.MasterSlide" extends="tufts.vue.LWSlide">
 		<map-to xml="masterSlide"/>
