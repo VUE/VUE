@@ -17,6 +17,7 @@ package tufts.vue.gui;
 
 import tufts.vue.DEBUG;
 import tufts.vue.LWPropertyChangeEvent;
+import tufts.vue.RichTextBox;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -50,7 +51,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.21 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.22 $ / $Date: 2008-01-31 17:56:17 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -89,6 +90,8 @@ implements ActionListener, tufts.vue.LWEditor
  
         // use frame
         popupWindow = new JFrame();
+        if (tufts.Util.isWindowsPlatform())
+        	popupWindow.setAlwaysOnTop(true);
         popupWindow.setName(COLOR_POPUP_NAME);
         popupWindow.setUndecorated(true);
     //    popupWindow.setAlwaysOnTop(true);
@@ -189,9 +192,9 @@ implements ActionListener, tufts.vue.LWEditor
             }
 
             public void windowLostFocus(WindowEvent e) {
-            //	System.out.println("Opposite component" + e.getOppositeWindow().getClass().toString());
+            	//System.out.println("Opposite component" + e.getOppositeWindow().getClass().toString());
             	
-            	if (e.getOppositeWindow() != null && e.getOppositeWindow().getClass() == VueFrame.class)
+            	if (e.getOppositeWindow() != null && ((e.getOppositeWindow().getClass() == VueFrame.class)))
             	{            		
             		return;
             	}
@@ -242,7 +245,15 @@ implements ActionListener, tufts.vue.LWEditor
     	JButton item = new JButton("other...");
     	item.setFocusable(false);
         item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) { handleValueSelection(runCustomChooser()); doClick();}});
+            public void actionPerformed(ActionEvent e) 
+            { 
+            	handleValueSelection(runCustomChooser()); 
+            	doClick();
+            	if (tufts.Util.isWindowsPlatform())
+            		popupWindow.setAlwaysOnTop(true);
+            }
+            
+            });
     	item.setBorderPainted(false);
 		item.setContentAreaFilled(false);		
 		parent.add(colorPanel,BorderLayout.CENTER);
@@ -410,7 +421,9 @@ implements ActionListener, tufts.vue.LWEditor
     }
 
     protected Object runCustomChooser() {
-        return tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor(), tufts.vue.VUE.getDialogParent());
+    	if (tufts.Util.isWindowsPlatform())
+    		popupWindow.setAlwaysOnTop(false);
+        return tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor(), this);
         // todo: set up own listeners for color change in chooser
         // --that way way can actually tweak color on map as they play
         // with it in the chooser

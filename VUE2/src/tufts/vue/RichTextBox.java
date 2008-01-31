@@ -93,7 +93,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.19 $ / $Date: 2008-01-31 04:12:31 $ / $Author: mike $
+ * @version $Revision: 1.20 $ / $Date: 2008-01-31 17:56:18 $ / $Author: mike $
  *
  */
 
@@ -536,13 +536,16 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             if (opposite.getClass() == FontEditorPanel.class ||
                 opposite.getClass() == DockWindow.class ||
                 // todo: something more generic than this getName check: set a property on the JComponent tagging it as a tool/editor?
-                opposite.getName() == tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME)
+                opposite.getName().equals(tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME) ||
+                //quaqua makes this a bit awkard, this is for quaqua's color chooser.
+                opposite.getName().equals("dialog0"))
             {
             	//Earlier i was just returning here, but this creates a problem
             	//because the component has already lost the focus...and so it doesn't 
             	//get another focusLost the next time....so re-request the focus if you've lost
             	//it so that we get the event again when we really want to get rid of the focus
             	//so we can properly remove the edit control.
+            	            	
             	requestFocus();
             	return;
             }
@@ -552,11 +555,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     	{
     		if (DEBUG.FOCUS)
     			outc("Focus not lost because opposite component = null");
+    		requestFocus();
+        	return;
     	}
     	
     	//System.out.println(e.getComponent().toString());
     	//System.out.println(e.getOppositeComponent().toString());
-        if (TestDebug||DEBUG.FOCUS) outc("focusLost to " + e.getOppositeComponent());
+        if (TestDebug||DEBUG.FOCUS) outc("focusLost to " + e.getOppositeComponent() + "   " + opposite.getName());
         if (TestHarness == false && getParent() != null)
             getParent().remove(this);
         if (keyWasPressed || !keyWasPressed) { // TODO: as per VueTextField, need to handle drag & drop detect
