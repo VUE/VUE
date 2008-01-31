@@ -507,9 +507,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     }
     
     
-    public void findCategory(Object currValue,int row,int col,int n,JComboBox categories)
+    public boolean findCategory(Object currValue,int row,int col,int n,JComboBox categories)
     {
     
+               boolean found = false;
+        
                if(DEBUG_LOCAL)
                {
                    System.out.println("MetadataEditor findCategory - " + currValue);
@@ -546,9 +548,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                    {
                        //System.out.println("found category");
                        categories.setSelectedIndex(i);
+                       found = true;
                    }
                    
                }
+               
+               return found;
                
     }
     
@@ -581,9 +586,23 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                    return comp;
                }
                Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[0]);
-               findCategory(currValue,row,col,n,categories); 
+               boolean found = findCategory(currValue,row,col,n,categories); 
               
-               comp.add(categories); 
+               if(found)
+               {    
+                 comp.add(categories); 
+               }
+               else
+               {
+                 String customName = currValue.toString();
+                 int ontSeparatorLocation = customName.indexOf(edu.tufts.vue.rdf.RDFIndex.ONT_SEPARATOR);
+                 if( ontSeparatorLocation != -1 && ontSeparatorLocation != customName.length() - 1)
+                 {
+                     customName = customName.substring(ontSeparatorLocation + 1,customName.length());
+                 }
+                 JLabel custom = new JLabel(customName);
+                 comp.add(custom);
+               }
            }
            else if(col == buttonColumn-1)
            {
