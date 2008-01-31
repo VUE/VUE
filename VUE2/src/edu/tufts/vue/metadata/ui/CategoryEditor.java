@@ -235,7 +235,10 @@ public class CategoryEditor extends JPanel
             if(col == 1)
             {
                 
-                System.out.println("CategoryEditor: " + value.getClass());
+                if(DEBUG_LOCAL)
+                {    
+                  System.out.println("CategoryEditor: " + value.getClass());
+                }
                 
                 if(value instanceof Ontology)
                 {
@@ -274,7 +277,10 @@ public class CategoryEditor extends JPanel
             if(col == 1)
             {
                 
-                System.out.println("CategoryEditor: " + value.getClass());
+                if(DEBUG_LOCAL)
+                {    
+                  System.out.println("CategoryEditor: " + value.getClass());
+                }
                 
                 if(value instanceof Ontology)
                 {
@@ -311,13 +317,20 @@ public class CategoryEditor extends JPanel
             {
                 //label.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
                 
-                System.out.println("CategoryEditor: " + value.getClass());
+                if(DEBUG_LOCAL)
+                {    
+                  System.out.println("CategoryEditor: " + value.getClass());
+                }
                 
                 if(value instanceof OntType)
                 {
                     label.setText(((OntType)value).getLabel());
-                    System.out.println("Label text in category component: " + label.getText());
+                    if(DEBUG_LOCAL)
+                    {    
+                      System.out.println("Label text in category component: " + label.getText());
+                    }
                 }
+                    
                 else
                 {
                   label.setText(value.toString());
@@ -362,8 +375,10 @@ public class CategoryEditor extends JPanel
             {
                 label = new JTextField();
                 
-                System.out.println("CategoryEditor: " + value.getClass());
-                
+                if(DEBUG_LOCAL)
+                {    
+                  System.out.println("CategoryEditor: " + value.getClass());
+                }
                 if(value instanceof OntType)
                 {
                     label.setText(((OntType)value).getLabel());
