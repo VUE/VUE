@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.15 $ / $Date: 2008-01-08 19:29:41 $ / $Author: peter $
+ * @version $Revision: 1.16 $ / $Date: 2008-01-31 19:18:18 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -428,7 +428,9 @@ public class SakaiPublisher {
 		// map has changed in memory. (may exist on disk, but may not.)
 		if( map.isModified() )
 		{
-			tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
+                     tmpFile  = new File(VueUtil.getDefaultUserFolder()+File.separator+map.getFile().getName());
+        
+//			tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
 			tufts.vue.action.ActionUtil.marshallMap( tmpFile );
 		}
 		
