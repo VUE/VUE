@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.16 $ / $Date: 2008-01-31 19:18:18 $ / $Author: anoop $
+ * @version $Revision: 1.17 $ / $Date: 2008-01-31 23:34:03 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -57,6 +57,7 @@ public class SakaiPublisher {
      * All references to _local resources have URLs with a "file" prefix
      */
 	public static final String FILE_PREFIX = "file://";
+        public static final String DEFAULT_MIME_TYPE = "application/vue";
 	/**
 	 * Maps published to Sakai are stored in folders that reflect their 
 	 * filename. The filename is transformed by replacing the ".vue" suffix
@@ -224,7 +225,7 @@ public class SakaiPublisher {
 	throws IOException, MalformedURLException, RemoteException, ServiceException
 	{
 		String contentMime = null;   	// contentMime content string 
-		String type = "application/vue";
+		String type = getMimeType(file);
 		String retVal;
 
 		String endpoint = hostUrl + "/sakai-axis/ContentHosting.jws";
@@ -429,7 +430,7 @@ public class SakaiPublisher {
 		if( map.isModified() )
 		{
                      tmpFile  = new File(VueUtil.getDefaultUserFolder()+File.separator+map.getFile().getName());
-        
+                     tmpFile.deleteOnExit();
 //			tmpFile = tufts.vue.action.ActionUtil.selectFile("Save Map", "vue");
 			tufts.vue.action.ActionUtil.marshallMap( tmpFile );
 		}
@@ -520,5 +521,13 @@ public class SakaiPublisher {
 		String sakaiFolder = fileName.replaceAll("\\.vue$", VUE_MAP_FOLDER_SUFFIX );
 		return sakaiFolder;
 	}
+        
+        private static String getMimeType(File file) {
+            String mimeType = DEFAULT_MIME_TYPE;
+            if(file!= null) {
+                mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
+            }  
+            return mimeType;
+        }
 
 }
