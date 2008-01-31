@@ -33,6 +33,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.util.Date;
+import java.util.Enumeration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
@@ -42,7 +45,9 @@ import javax.swing.text.*;
 import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 
+import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.SHTMLEditorKit;
 
 /**
@@ -88,7 +93,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.17 $ / $Date: 2008-01-18 20:24:03 $ / $Author: mike $
+ * @version $Revision: 1.18 $ / $Date: 2008-01-31 03:34:51 $ / $Author: mike $
  *
  */
 
@@ -330,11 +335,23 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     @Override
     public void setText(String text)
     {
-        super.setText(text);       
+        super.setText(text);
+     
+        
         setSize(getPreferredSize());
+       //
     	if (lwc.getParent() !=null)
     		lwc.getParent().layoutChildren();
         //setSize(getPreferredSize());
+    	
+    }
+    
+    public void setXMLText(String text)
+    {
+        super.setText(text);
+     
+        
+    
     	
     }
 
@@ -469,7 +486,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         //== false; // reversed logic of below description
         
     }   
-    
+    private boolean revert = false;
     public void keyPressed(KeyEvent e)
     {
         if (DEBUG.KEYS) out(e.toString());
@@ -478,9 +495,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         //if (VueUtil.isAbortKey(e)) // check for ESCAPE for CTRL-Z or OPTION-Z if on mac
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             e.consume();
+       
+       //     System.out.println(mUnchangedText);
+            //setText(mUnchangedText);
+            revert = true;
             getParent().remove(this); // will trigger a save (via focusLost)
-            super.setText(mUnchangedText); 
-            setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
+            return;
+           // setSize(mUnchangedSize); // todo: won't be good enough if we ever resize the actual node as we type
         } else if (isFinishEditKeyPress(e)) {
             keyWasPressed = true;
             e.consume();
@@ -542,9 +563,15 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             // only do this if they typed something (so we don't wind up with "label"
             // for the label on an accidental edit activation)
             if (TestDebug||DEBUG.FOCUS) out("key was pressed; setting label to: [" + getText() + "]");
-            final String text = getText();
-           
+            String text = getText();
+            if (revert)
+            {
+            	text = mUnchangedText;
+            	revert =false;
+            //	setText(text);
+            }
             lwc.setLabel0(text, false);
+           
             VUE.getUndoManager().mark();
         }
         lwc.notify(this, LWKey.Repaint);
@@ -1069,7 +1096,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         
         	//System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
         	}
-         	setSize(getPreferredSize());
+      //   	setSize(getPreferredSize());
         	lwc.notify(this, LWKey.Repaint);
         	
     }
@@ -1084,7 +1111,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     		lwc.getParent().layout();
        // System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
         }
-    	setSize(getPreferredSize());
+    	//setSize(getPreferredSize());
     	lwc.notify(this, LWKey.Repaint);
     }
     
@@ -1099,7 +1126,19 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
 
     public String getRichText()
     {
-    	return super.getText();
+    	String html = super.getText();
+    	String patternStr = "size=\"(\\d*)\"";
+        String replacementStr = "size=\"$1\" style=\"font-size:$1;\"";
+   
+        // Compile regular expression
+        Pattern pattern = Pattern.compile(patternStr);
+  
+        // Replace all occurrences of pattern in input
+        Matcher matcher = pattern.matcher(html);
+        String output = matcher.replaceAll(replacementStr);
+       
+    	return output;
+    //	return html;
     }
     
     public String getText()

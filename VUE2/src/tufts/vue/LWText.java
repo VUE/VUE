@@ -29,7 +29,8 @@ public class LWText extends LWComponent {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWText.class);
     
 	public static final Object TYPE_RICHTEXT = "richTextNode";
-	protected transient RichTextBox labelBox = null;
+	protected transient RichTextBox richLabelBox = null;
+	private String richLabel = null;
     //protected RectangularShape mShape;
 	public static final boolean WrapText = false;
 
@@ -60,13 +61,14 @@ public class LWText extends LWComponent {
 	
 	public String getRichText()
 	{
-		return labelBox.getRichText();
+		return richLabelBox.getRichText();
 	}
 	
 	public void setRichText(String text)
 	{
-		super.label = text;
-		
+	//	super.label = text;
+		richLabel = text;
+
 		return;
 	}
 	
@@ -96,15 +98,16 @@ public class LWText extends LWComponent {
 		return TYPE_RICHTEXT;
 	}
 
-	protected RichTextBox getRichLabelBox() {
-		if (this.labelBox == null) {
+	
+	public RichTextBox getRichLabelBox() {
+		if (this.richLabelBox == null) {
 			synchronized (this) {
-				if (this.labelBox == null)
-					this.labelBox = new RichTextBox(this, this.label);
+				if (this.richLabelBox == null)
+					this.richLabelBox = new RichTextBox(this, this.richLabel != null ? this.richLabel : this.label);
 			}
 		}
 
-		return this.labelBox;
+		return this.richLabelBox;
 	}
 
     @Override
@@ -215,10 +218,10 @@ public class LWText extends LWComponent {
 		// if they type nothing we don't set a label, but that's not working
 		// entirely -- it manages to not trigger an update event, but somehow
 		// this.label is still getting set -- maybe we have to null it out
-		// manually (and maybe labelBox also)
+		// manually (and maybe richLabelBox also)
 
-		if (hasLabel() && this.labelBox != null
-				&& this.labelBox.getParent() == null) {
+		if (hasLabel() && this.richLabelBox != null
+				&& this.richLabelBox.getParent() == null) {
 
 			// if parent is not null, this box is an active edit on the map
 			// and we don't want to paint it here as AWT/Swing is handling
@@ -248,7 +251,7 @@ public class LWText extends LWComponent {
 		//dc.g.translate(lx, ly);
 		// if (DEBUG.CONTAINMENT) System.out.println("*** " + this + " drawing
 		// label at " + lx + "," + ly);
-		this.labelBox.draw(dc);
+		this.richLabelBox.draw(dc);
 		//dc.g.translate(-lx, -ly);
 
 		// todo: this (and in LWLink) is a hack -- can't we
@@ -321,19 +324,19 @@ public class LWText extends LWComponent {
 
     @Override
     public float getWidth() {
-        if (labelBox == null)
+        if (richLabelBox == null)
             return super.getWidth();
         else
-            return labelBox.getWidth();
+            return richLabelBox.getWidth();
     }
     
     @Override
     public float getHeight() {
     	//The line height is always off by a 1 line..
-        if (labelBox == null)
+        if (richLabelBox == null)
             return super.getHeight();
         else
-            return labelBox.getHeight();
+            return richLabelBox.getHeight();
     }
 
     @Override
@@ -378,21 +381,72 @@ public class LWText extends LWComponent {
 		}
 
 		final LWText containerCopy = (LWText) super.duplicate(cc);
+		 java.awt.Dimension d = getRichLabelBox().getPreferredSize();
+		 containerCopy.getRichLabelBox().setSize(d);
+		//containerCopy.setLabel0(getRichLabelBox().getText(), true);
+//		containerCopy.getRichLabelBox().setText(getRichLabelBox().getRichText());
+		 //containerCopy.getRichLabelBox().setText(this.getRichText());
 		//containerCopy.getRichLabelBox().setText(this.getRichLabelBox().getRichText());
 
 		if (isPatcherOwner)
 			cc.patcher.reconnectLinks();
 
-		containerCopy.setSize(getWidth(), getHeight());
+		//containerCopy.setSize(getWidth(), getHeight());
 		return containerCopy;
 	}
 
 	public void setStyle(LWComponent parentStyle)
 	{
-		if (labelBox != null)
-		 labelBox.overrideTextColor(parentStyle.getTextColor());
+		if (richLabelBox != null)
+		 richLabelBox.overrideTextColor(parentStyle.getTextColor());
 	}
 	
+	@Override
+    public void setXMLlabel(String text)
+    {
+        setLabel(text);
+    }
+	  @Override
+	  public void setLabel(String label)
+	    {
+	        setLabel0(label, true);
+	    }
+
+
+	    /**
+	     * Called directly by TextBox after document edit with setDocument=false,
+	     * so we don't attempt to re-update the TextBox, which has just been
+	     * updated.
+	     */
+	  	@Override
+	    void setLabel0(String newLabel, boolean setDocument)
+	    {
+	        Object old = this.label;
+	        if (this.label == newLabel)
+	            return;
+	        if (this.label != null && this.label.equals(newLabel))
+	            return;
+	        if (newLabel == null || newLabel.length() == 0) {
+	            this.label = null;
+	            if (richLabelBox != null)
+	                richLabelBox.setText("");
+	        } else {
+	            this.label = newLabel;
+	            // todo opt: only need to do this if node or link (LWImage?)
+	            // Handle this more completely -- shouldn't need to create
+	            // label box at all -- why can't do entirely lazily?
+	            if (this.richLabelBox == null) {
+	                // figure out how to skip this:
+	                //getLabelBox();
+	            } else if (setDocument) {
+	                getRichLabelBox().setText(newLabel);
+	                System.out.println("SETTING DOCUMENT ON RESTORE : " + newLabel);
+	            }
+	        }
+	        layout();
+	        notify(LWKey.Label, old);
+	    }
+
 	@Override
 	protected void layoutImpl(Object triggerKey) {
             if (triggerKey == LWKey.Alignment) {
@@ -525,9 +579,9 @@ public class LWText extends LWComponent {
 		// centered
 		layoutBoxed_label();
 
-		if (labelBox != null)
-			labelBox.setBoxLocation(0,0);
-			//labelBox.setBoxLocation(relativeLabelX(), relativeLabelY());
+		if (richLabelBox != null)
+			richLabelBox.setBoxLocation(0,0);
+			//richLabelBox.setBoxLocation(relativeLabelX(), relativeLabelY());
 
 		if (this.parent != null && this.parent instanceof LWMap == false) {
 			// todo: should only need to do if size changed
@@ -544,7 +598,7 @@ public class LWText extends LWComponent {
 		//if (DEBUG.LAYOUT)
 			out("*** setSizeNoLayout " + w + "x" + h);
 		setSize(w, h);
-		labelBox.setSize(w,h);
+		richLabelBox.setSize(w,h);
 		//mShape.setFrame(0, 0, getWidth(), getHeight());
 	}
 
@@ -626,10 +680,10 @@ public class LWText extends LWComponent {
     public String getDisplayLabel() {
         String txt;
 
-        if (labelBox == null) {
+        if (richLabelBox == null) {
             txt = "";
         } else {
-            txt = labelBox.getText();
+            txt = richLabelBox.getText();
             txt = txt.replaceAll("\\s+", " ");        
         }
         return txt;
@@ -641,14 +695,18 @@ public class LWText extends LWComponent {
 
         String txt;
 
-        if (labelBox == null)
+        if (richLabelBox == null)
             txt = "<null-RichTextBox>";
         else {
-            txt = labelBox.getText();
+            txt = richLabelBox.getText();
             txt = txt.replaceAll("\\s+", " ");        
         }
 
         return "LWText[" + getID() + "; " + txt + "]";
     }
+   
+	public void setRichLabelBox(RichTextBox richLabelBox) {
+		this.richLabelBox = richLabelBox;
+	}
 
 }
