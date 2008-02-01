@@ -43,7 +43,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     private static final boolean DEBUG_LOCAL = false;
     
-    public final static String CC_ADD_LOCATION_MESSAGE = "Click [+] to add this custom category to your own list.";
+    public final static String CC_ADD_LOCATION_MESSAGE = "<html> Click [+] to add this <br> custom category to your own list. </html>";
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
