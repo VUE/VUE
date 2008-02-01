@@ -72,7 +72,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.506 $ / $Date: 2008-01-18 03:41:52 $ / $Author: mike $ 
+ * @version $Revision: 1.507 $ / $Date: 2008-02-01 18:40:15 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4927,7 +4927,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         public void mousePressed(MouseEvent e) {
 
             final boolean wasFocusOwner;
-
+         
             if (activeTool == ToolPresentation) {
 
                 // If presentation tool, it's worth risking the below bug to make
@@ -5093,13 +5093,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 
                 if (mme.getDragRequest() != null) {
                     setDragger(mme.getDragRequest()); // TODO: okay, at least HERE, dragComponent CAN be a real component...
-                    //dragOffset.setLocation(0,0); // todo: want this? control poins also need dragOffset
+                    //dragOffset.setLocation(0,0); // todo: want this? control poins also need dragOffset                  
                 }
                 else if (e.isShiftDown() || (Util.isWindowsPlatform() && e.isControlDown())) {
                     //-------------------------------------------------------
                     // Shift was down: TOGGLE SELECTION STATUS
                     //-------------------------------------------------------
-                    selectionToggle(hitComponent);
+                    selectionToggle(hitComponent);                   
                     
                 }
                 else {
@@ -5110,10 +5110,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // Clear any existing selection, and set to hitComponent.
                     // Also: mark drag start in case they start dragging
                     //-------------------------------------------------------
-                    
+
                     // TODO: don't do this unless current tool willing to select this object
                     if (!hitComponent.isSelected())
+                    {
                         selectionSet(justSelected = hitComponent);
+                    }
                     
                     //-------------------------------------------------------
                     // Something is now selected -- get prepared to drag
@@ -5124,8 +5126,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     //if (VueSelection.size() > 1) {
                     // pick up a group selection for dragging
 
-                    setToDrag(VUE.getSelection());
-
+                    setToDrag(VUE.getSelection());                   
                     //} else {
                     // [ We never drag just single components anymore --
                     // just the entire selection ]
@@ -5152,7 +5153,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // the bounds of an existing selection, pick it
                     // up for dragging.
                     //-------------------------------------------------------
-                    setToDrag(VUE.getSelection());
+                   setToDrag(VUE.getSelection());
+                
                     //draggedSelectionGroup.useSelection(VueSelection);
                     //setDragger(draggedSelectionGroup);
                 } else if (!e.isShiftDown() && activeTool.supportsSelection()) {
@@ -6268,7 +6270,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         */
 
-        private final int SYSTEM_DRAG_MODIFIER = VueUtil.isMacPlatform() ? InputEvent.META_MASK : InputEvent.ALT_MASK;
+        private final int SYSTEM_DRAG_MODIFIER = VueUtil.isMacPlatform() ? InputEvent.META_MASK : (InputEvent.ALT_MASK + InputEvent.CTRL_MASK);
     
         private final boolean isSystemDragStart(MouseEvent e) {
             //out("   MODIFIERS ACCORDING TO InputEvent [" + InputEvent.getModifiersExText(e.getModifiers()) + "]");
@@ -6277,8 +6279,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //out("EX MODIFIERS ACCORDING TO MouseEvent [" + MouseEvent.getMouseModifiersText(e.getModifiersEx()) + "]");
             // button is 0 (!) on the PC, which is why <= 1 compare for getB
 
-            if (VueSelection != null && VueSelection.size() == 1 && VueSelection.first().supportsCopyOnDrag())
-                return true;
+            if (VueSelection != null && VueSelection.size() == 1 && VueSelection.first().supportsCopyOnDrag())            
+                return true;            
             else
                 return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
         }
