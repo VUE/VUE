@@ -16,6 +16,7 @@
 
 package edu.tufts.vue.metadata.ui;
 
+import edu.tufts.vue.metadata.CategoryModel;
 import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.ontology.OntType;
@@ -40,7 +41,7 @@ import tufts.vue.*;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = false;
+    private static final boolean DEBUG_LOCAL = true;
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -52,6 +53,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     public final static int BUTTON_COL_WIDTH = 35;
     
     public final static boolean LIMITED_FOCUS = false;
+    
+    public final static int CC_ADD_LEFT = 0;
+    public final static int CC_ADD_RIGHT = 1;
     
     //public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
     public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none";
@@ -117,15 +121,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                          
                          
                          addNewRow();
-                         /*
-                         VueMetadataElement vme = new VueMetadataElement();
-                         String[] emptyEntry = {NONE_ONT,""};
-                         vme.setObject(emptyEntry);
-                         vme.setType(VueMetadataElement.CATEGORY);
-                         //metadataTable.getModel().setValueAt(vme,metadataTable.getRowCount()+1,0);
-                         MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
-                         ((MetadataTableModel)metadataTable.getModel()).refresh();
-                         */
                          
                          SwingUtilities.invokeLater(new Runnable(){
                             public void run()
@@ -134,12 +129,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                             }
                          });
                          
-                         //MetadataEditor.this.getRootPane().repaint();
-                         //MetadataEditor.this.validateTree();
-                         //MetadataEditor.this.repaint();
                        }
                    }
        });
+       
        metadataTable.addMouseListener(new java.awt.event.MouseAdapter()
                {
                    public void mouseReleased(java.awt.event.MouseEvent evt)
@@ -157,6 +150,45 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                             requestFocusInWindow();
                          }
                        }
+
+                       if(DEBUG_LOCAL)
+                       {
+                           System.out.println("MetadataEditor: getCustomCategoryAddLocation(CC_ADD_LEFT) " +
+                                   getCustomCategoryAddLocation(CC_ADD_LEFT));
+                           System.out.println("MetadataEditor mouse pressed, x location: " + evt.getX());
+                       }
+                               
+                       if(evt.getX() > getCustomCategoryAddLocation(CC_ADD_LEFT) && 
+                          evt.getX() < getCustomCategoryAddLocation(CC_ADD_RIGHT) )
+                       {
+                           
+                           if(DEBUG_LOCAL)
+                           {
+                               System.out.println("MetadataEditor: Mouse pressed over custom add widget");
+                           }
+                           
+                           CategoryModel cats = tufts.vue.VUE.getCategoryModel();
+                           
+                           
+                           int row = evt.getY()/metadataTable.getRowHeight();
+                           
+                           if(((MetadataTableModel)metadataTable.getModel()).getCategoryFound(row))
+                               return;
+                           
+                           String category = metadataTable.getModel().getValueAt(
+                                                              row,
+                                                              0).toString();
+                           
+                           int separatorLocation = category.indexOf(RDFIndex.ONT_SEPARATOR);
+                           if(separatorLocation != -1)
+                           {
+                               category = category.substring(separatorLocation + 1);
+                           }
+                           
+                           cats.addCustomCategory(category);
+                           cats.saveCustomOntology();
+                           metadataTable.repaint();
+                       }
                    }
         }); 
 
@@ -164,7 +196,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         metadataTable.setDefaultRenderer(Object.class,new MetadataTableRenderer());
         metadataTable.setDefaultEditor(Object.class, new MetadataTableEditor());
-        ((DefaultCellEditor)metadataTable.getDefaultEditor(java.lang.Object.class)).setClickCountToStart(1);
+        ((DefaultCellEditor)metadataTable.getDefaultEditor(java.lang.Object.class)).setClickCountToStart(2);
         
         metadataTable.setRowHeight(ROW_HEIGHT);
         metadataTable.getTableHeader().setReorderingAllowed(false);
@@ -350,6 +382,33 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         validate();
     }
     
+    /**
+     *
+     *  returns -1 if add widget is not available (i.e. if in basic
+     *  mode and/or not in "assign categories" mode)
+     *
+     **/
+    public int getCustomCategoryAddLocation(int ccLocationConstant)
+    {
+        if(metadataTable.getModel().getColumnCount() == 2)
+        {
+            return -1;
+        }
+        
+        if(ccLocationConstant == CC_ADD_LEFT)
+        {
+            return metadataTable.getColumnModel().getColumn(0).getWidth() - 20;
+        }
+        else if(ccLocationConstant == CC_ADD_RIGHT)
+        {
+            return metadataTable.getColumnModel().getColumn(0).getWidth();
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    
     public void adjustColumnModel()
     {
         int editorWidth = MetadataEditor.this.getWidth();
@@ -506,7 +565,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        }
     }
     
-    
     public boolean findCategory(Object currValue,int row,int col,int n,JComboBox categories)
     {
     
@@ -588,21 +646,44 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[0]);
                boolean found = findCategory(currValue,row,col,n,categories); 
               
+               MetadataTableModel model = (MetadataTableModel)table.getModel();
+               
                if(found)
                {    
-                 comp.add(categories); 
+                 model.setCategoryFound(row,true);  
+                   
+                 if((((String[])currObject)[1]).length() == 0)  
+                  comp.add(categories);
+                 else
+                 {
+                   String customName = currValue.toString();
+                   int ontSeparatorLocation = customName.indexOf(edu.tufts.vue.rdf.RDFIndex.ONT_SEPARATOR);
+                   if( ontSeparatorLocation != -1 && ontSeparatorLocation != customName.length() - 1)
+                   {
+                       customName = customName.substring(ontSeparatorLocation + 1,customName.length());
+                   }
+                   JLabel custom = new JLabel(customName);
+                   comp.add(custom);
+                 }
                }
                else
                {
+                 model.setCategoryFound(row,false);  
                  String customName = currValue.toString();
                  int ontSeparatorLocation = customName.indexOf(edu.tufts.vue.rdf.RDFIndex.ONT_SEPARATOR);
                  if( ontSeparatorLocation != -1 && ontSeparatorLocation != customName.length() - 1)
                  {
                      customName = customName.substring(ontSeparatorLocation + 1,customName.length());
                  }
-                 JLabel custom = new JLabel(customName);
+                 JLabel custom = new JLabel(customName+"*");
                  comp.add(custom);
+                 JLabel addLabel = new JLabel("[+]");
+                 //starLabel.setBorder(BorderFactory.createLineBorder(java.awt.Color.WHITE));
+                 comp.add(addLabel,BorderLayout.EAST);
+                // metadataTable.setToolTipText("add as custom metadata");
                }
+               
+               //comp.setBorder(BorderFactory.createLineBorder(java.awt.Color.RED,1));
            }
            else if(col == buttonColumn-1)
            {
@@ -654,6 +735,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            
            comp.setOpaque(false);
+           comp.setBorder(BorderFactory.createCompoundBorder(
+                     BorderFactory.createLineBorder(java.awt.Color.RED,1),
+                     BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET)
+                     ));
+           
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
            
            //comp.setOpaque(true);
@@ -1023,7 +1109,28 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
          // in future will be heard here and reflected in this data
          // (there will be 3 columns for "advanced view"
          private int cols = 2;
+         
+         private java.util.ArrayList<Boolean> categoryIncluded = new java.util.ArrayList<Boolean>();
         
+         public boolean getCategoryFound(int row)
+         {
+            return Boolean.parseBoolean(categoryIncluded.get(row).toString());   
+         }
+         
+         public void setCategoryFound(int row,boolean found)
+         {
+             
+             if(categoryIncluded.size() <= row)
+             {
+                 for(int i = categoryIncluded.size();i<row + 1;i++)
+                 {
+                     categoryIncluded.add(Boolean.TRUE);
+                 }
+             } 
+             
+            categoryIncluded.set(row,Boolean.valueOf(found));
+         }
+         
          public int getRowCount()
          {
              // awkward? -- current getMetadata in LWcomponent does something else
@@ -1065,6 +1172,16 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
          
          public Object getValueAt(int row, int column)
          {
+             
+             /*if(categoryIncluded.size() < row + 1)
+             {
+                 while(categoryIncluded.size() < row)
+                 {
+                     categoryIncluded.add(Boolean.TRUE);
+                 }
+             }*/
+             
+             categoryIncluded.trimToSize();
              
              if(current == null)
                  return "null";
