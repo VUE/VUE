@@ -92,15 +92,13 @@ public class FedoraPublisher {
     
     public static void uploadMapAll(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception{
         Properties properties = ds.getConfiguration();
-        String prefix = "concept_map";
-        String suffix = ".vue";
         String mapLabel = map.getLabel();
         File origFile = map.getFile();
-       
+        
         File tempFile  = new File(VueUtil.getDefaultUserFolder()+File.separator+origFile.getName());
         tempFile.deleteOnExit();
         tufts.vue.action.ActionUtil.marshallMap(tempFile,map);
-       
+        
         LWMap cloneMap =   tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
         
         Iterator i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
@@ -118,13 +116,13 @@ public class FedoraPublisher {
                 String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
                 //System.out.println("Replacing resource: "+resource+ " with "+ingestUrl);
                 component.setResource(URLResource.create(ingestUrl));
-        
+                
             }
         }
-         tufts.vue.action.ActionUtil.marshallMap(tempFile,cloneMap);
+        tufts.vue.action.ActionUtil.marshallMap(tempFile,cloneMap);
         uploadMap(ds,cloneMap);
         tufts.vue.action.ActionUtil.marshallMap(origFile, map);
-       
+        
         
     }
     
