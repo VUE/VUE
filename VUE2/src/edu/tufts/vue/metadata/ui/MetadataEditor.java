@@ -41,7 +41,9 @@ import tufts.vue.*;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = true;
+    private static final boolean DEBUG_LOCAL = false;
+    
+    public final static String CC_ADD_LOCATION_MESSAGE = "Click [+] to add this custom category to your own list.";
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
@@ -101,7 +103,20 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
             System.out.println("MetadataEditor - just created new instance for (current,followActive) (" + current +"," + followAllActive + ")");
         }
         
-        metadataTable = new JTable(new MetadataTableModel());
+        metadataTable = new JTable(new MetadataTableModel())
+        {
+            public String getToolTipText(MouseEvent location)
+            {
+                if(getEventIsOverAddLocation(location))
+                {
+                    return CC_ADD_LOCATION_MESSAGE;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        };
        // metadataTable.setGridColor(new java.awt.Color(255,255,255,0));
         metadataTable.setGridColor(new java.awt.Color(getBackground().getRed(),getBackground().getBlue(),getBackground().getGreen(),0));
         //metadataTable.setGridColor(getBackground());
@@ -158,8 +173,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            System.out.println("MetadataEditor mouse pressed, x location: " + evt.getX());
                        }
                                
-                       if(evt.getX() > getCustomCategoryAddLocation(CC_ADD_LEFT) && 
-                          evt.getX() < getCustomCategoryAddLocation(CC_ADD_RIGHT) )
+                       if(getEventIsOverAddLocation(evt))
                        {
                            
                            if(DEBUG_LOCAL)
@@ -172,8 +186,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            
                            int row = evt.getY()/metadataTable.getRowHeight();
                            
-                           if(((MetadataTableModel)metadataTable.getModel()).getCategoryFound(row))
-                               return;
+                          // if(((MetadataTableModel)metadataTable.getModel()).getCategoryFound(row))
+                          //     return;
                            
                            String category = metadataTable.getModel().getValueAt(
                                                               row,
@@ -380,6 +394,19 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         ((MetadataTableModel)metadataTable.getModel()).refresh();
         ((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
         validate();
+    }
+    
+    public boolean getEventIsOverAddLocation(MouseEvent evt)
+    {
+       boolean locationIsOver =  evt.getX() > getCustomCategoryAddLocation(CC_ADD_LEFT) && 
+                          evt.getX() < getCustomCategoryAddLocation(CC_ADD_RIGHT);
+       
+       int row = evt.getY()/metadataTable.getRowHeight();
+                           
+       boolean categoryIsNotInList = !((MetadataTableModel)metadataTable.getModel()).getCategoryFound(row);
+                               
+       return locationIsOver && categoryIsNotInList;
+       
     }
     
     /**
