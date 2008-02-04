@@ -43,7 +43,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.66 $ / $Date: 2008-01-22 21:35:24 $ / $Author: mike $
+ * @version $Revision: 1.67 $ / $Date: 2008-02-04 19:11:49 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -57,6 +57,7 @@ public class FontEditorPanel extends JPanel
     /** the font list **/
     static String[] sFontNames = null;
  	
+    public final static String SIZE_FIELD_NAME ="richFontSizeEditor";
     /** the Font selection combo box **/
     private final JComboBox mFontCombo;
     private final JComboBox mSizeField;
@@ -164,7 +165,7 @@ public class FontEditorPanel extends JPanel
         mSizeField.setOpaque(false);
         mSizeField.setMaximumRowCount(30);
         mSizeField.setSelectedItem("13");
-        mSizeField.setFocusable(false);
+        mSizeField.setFocusable(true);
         
         /*
         if (GUI.isMacAqua()) {
@@ -842,12 +843,12 @@ public class FontEditorPanel extends JPanel
 //             unorderedListButton.addActionListener(toggleBulletsAction);
 			
             mFontCombo.addActionListener(fontFamilyAction);
-            mFontCombo.removeActionListener(fontPropertyHandler);
-			
+            mFontCombo.removeActionListener(fontPropertyHandler);			
+			mSizeField.getEditor().getEditorComponent().setName(SIZE_FIELD_NAME);
             mSizeField.removeActionListener(fontPropertyHandler);
             mSizeField.addActionListener(fontSizeAction);
-			VUE.getFormatDock().setFocusable(false);
-			VUE.getFormatDock().setFocusableWindowState(false);
+			//VUE.getFormatDock().setFocusable(false);
+			//VUE.getFormatDock().setFocusableWindowState(false);
 			
             //mTextColorButton.removeActionListener(mTextColorButton);
             //mTextColorButton.addActionListener(TextColorListener);
@@ -1001,13 +1002,13 @@ public class FontEditorPanel extends JPanel
 		{
 			Font f = ((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getFont();
 			//LWComponent style = ((LWSlide)VUE.getActiveViewer().getFocal()).getMasterSlide().getStyle();
-			mSizeField.setSelectedItem(Integer.toString(f.getSize()));
+			mSizeField.getEditor().setItem(Integer.toString(f.getSize()));
 			mFontCombo.setSelectedItem(f.getFontName());
 		//	System.out.println("SLIDE FONT DEFAULTS");			
 		}
 		else
 		{
-			mSizeField.setSelectedItem("13");
+			mSizeField.getEditor().setItem("13");
 			mFontCombo.setSelectedItem("Arial");
 		}
 		
@@ -1035,7 +1036,7 @@ public class FontEditorPanel extends JPanel
 	       // 	if ((o.toString().equals("font-face")) || (o.toString().equals("face")))
 	        //		System.out.println("B:"+charSet.getAttribute(o).toString());
 	        	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
-	        		mSizeField.setSelectedItem(charSet.getAttribute(o).toString());	
+	        		mSizeField.getEditor().setItem(charSet.getAttribute(o).toString());	
 	        			
 	        	if ((o.toString().equals("font-face")) || (o.toString().equals("face")))
 	        		mFontCombo.setSelectedItem(charSet.getAttribute(o).toString());

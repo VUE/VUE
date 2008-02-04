@@ -37,6 +37,8 @@ import java.util.Enumeration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -93,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.20 $ / $Date: 2008-01-31 17:56:18 $ / $Author: mike $
+ * @version $Revision: 1.21 $ / $Date: 2008-02-04 19:11:49 $ / $Author: mike $
  *
  */
 
@@ -532,13 +534,19 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     {
         final java.awt.Component opposite = e.getOppositeComponent();
         
+        
     	if (opposite != null) {
-            if (opposite.getClass() == FontEditorPanel.class ||
+    		if (opposite.getName() != null && opposite.getName().equals(FontEditorPanel.SIZE_FIELD_NAME))
+    			return;
+            else if (opposite.getClass() == FontEditorPanel.class ||
                 opposite.getClass() == DockWindow.class ||
                 // todo: something more generic than this getName check: set a property on the JComponent tagging it as a tool/editor?
-                opposite.getName().equals(tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME) ||
+                //opposite.getClass() == JComboBox.class ||
+                
+                
+                (opposite.getName() != null && opposite.getName().equals(tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME)) ||
                 //quaqua makes this a bit awkard, this is for quaqua's color chooser.
-                opposite.getName().equals("dialog0"))
+                (opposite.getName() != null && opposite.getName().equals("dialog0")))
             {
             	//Earlier i was just returning here, but this creates a problem
             	//because the component has already lost the focus...and so it doesn't 
