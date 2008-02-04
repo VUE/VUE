@@ -72,7 +72,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.507 $ / $Date: 2008-02-01 18:40:15 $ / $Author: mike $ 
+ * @version $Revision: 1.508 $ / $Date: 2008-02-04 22:09:49 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1054,7 +1054,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             ZoomTool.setZoomFitRegion(this,
                                       getFocalBounds(mLastFocal),
                                       0,
-                                      NO_ANIMATE);
+                                      NO_ANIMATE,true);
         }
 
         if (ScrollBarHiding && mFocal instanceof LWMap) {
@@ -1080,7 +1080,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             ZoomTool.setZoomFitRegion(this,
                                       zoomBounds,
                                       mFocal.getFocalMargin(),
-                                      animate);
+                                      animate,true);
             if (mFocal != mMap) {
                 mFocalMapLocation.setLocation(mFocal.getMapXPrecise(), mFocal.getMapYPrecise());
                 //if (DEBUG.Enabled) out("recording new focal position: " + Util.fmt(mFocalMapLocation));

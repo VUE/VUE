@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.74 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.75 $ / $Date: 2008-02-04 22:09:49 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -528,8 +528,12 @@ public class ZoomTool extends VueTool
             viewer.setZoomFactor(newZoomFactor, reset, null, true);
     }
     
-    /** @param currently only works if NOT in a scroll pane */
     public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, float borderGap, boolean animate)
+    {
+    	setZoomFitRegion(viewer,mapRegion,borderGap,animate,false);
+    }
+    /** @param currently only works if NOT in a scroll pane */    
+    public static void setZoomFitRegion(MapViewer viewer, Rectangle2D mapRegion, float borderGap, boolean animate, boolean fitAndCenterMap)
     {
         if (mapRegion == null) {
             new Throwable("setZoomFitRegion: mapRegion is null for " + viewer).printStackTrace();
@@ -547,7 +551,15 @@ public class ZoomTool extends VueTool
 //             if (newZoom > MaxZoom)
 //                 newZoom = MaxZoom;
 
-            viewer.setZoomFactor(newZoom, false, center, true);
+            
+            
+            if (	(newZoom > 1 && 
+            		((VUE.getActiveViewer() == null) ||
+            		 (VUE.getActiveViewer() != null && (VUE.getActiveViewer().getFocal() == null || VUE.getActiveViewer().getFocal() instanceof LWMap ))) && 
+            		 fitAndCenterMap))
+            	viewer.setZoomFactor(1, false, center, true);
+            else
+            	viewer.setZoomFactor(newZoom, false, center, true);
             
         } else {
 //             if (newZoom > MaxZoom) {
