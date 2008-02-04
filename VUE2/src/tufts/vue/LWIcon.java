@@ -822,7 +822,8 @@ public abstract class LWIcon extends Rectangle2D.Float
                     ta.setFont(FONT_SMALL);
                     ta.setLineWrap(true);
                     ta.setWrapStyleWord(true);
-                    //System.out.println("    size="+ta.getSize());
+					ta.setSize(ta.getPreferredSize());      
+                     //System.out.println("    size="+ta.getSize());
                     //Dimension ps = ta.getPreferredSize();
                     //System.out.println("prefsize="+ps);
                     //System.out.println(" minsize="+ta.getMinimumSize());
@@ -830,8 +831,10 @@ public abstract class LWIcon extends Rectangle2D.Float
                 } else {
                     ttNotes = new JLabel(ttLastNotes);
                     ttNotes.setFont(FONT_SMALL);
+                  
                 }
             }
+            
             return ttNotes;
         }
 
