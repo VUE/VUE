@@ -60,7 +60,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.94 $ / $Date: 2008-01-31 18:57:31 $ / $Author: mike $
+ * @version $Revision: 1.95 $ / $Date: 2008-02-04 22:28:16 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -452,6 +452,7 @@ public class PathwayTable extends JTable
             return c;
         }
 
+      
 		public void mouseClicked(MouseEvent arg0) {
 		
 		}
@@ -1116,8 +1117,29 @@ public class PathwayTable extends JTable
 		// not implemented'
 	//	System.out.println("dropactionchanged");
 	}
-	public void mouseClicked(MouseEvent arg0) {
-		  
+	
+	  private final boolean isDoubleClickEvent(MouseEvent e) {
+          return (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
+              && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0;
+
+      }
+	public void mouseClicked(MouseEvent e) {
+		if (isDoubleClickEvent(e))
+		{
+	    	final PresentationTool presTool = PresentationTool.getTool();
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                VUE.toggleFullScreen(true);
+            }});
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                //VueToolbarController.getController().setSelectedTool(presTool);
+                VUE.setActive(VueTool.class, this, presTool);
+            }});
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                presTool.startPresentation();
+            }});
+		}
+			
+			
 		
 	}
 	private void displayContextMenu(MouseEvent e) {
@@ -1364,10 +1386,10 @@ public class PathwayTable extends JTable
    // 	public void paintChildren(Graphics g){}
     //	public void update(){}
 
-		public void mouseClicked(MouseEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
+    	public void mouseClicked(MouseEvent e)
+    	{
+    		
+    	}
 
 		public void mouseEntered(MouseEvent e) {
 			// TODO Auto-generated method stub
