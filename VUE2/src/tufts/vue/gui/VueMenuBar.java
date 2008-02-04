@@ -41,7 +41,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.82 $ / $Date: 2008-02-04 22:31:13 $ / $Author: mike $
+ * @version $Revision: 1.83 $ / $Date: 2008-02-04 22:59:59 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -256,14 +256,25 @@ public class VueMenuBar extends javax.swing.JMenuBar
         publishMenu.setEnabled(false);
         fileMenu.add(publishMenu);
         
-        JMenu pdfExportMenu = new JMenu("Export Handouts and Notes (PDF)");
+        final JMenu pdfExportMenu = new JMenu("Export Handouts and Notes (PDF)");
         //pdfExportMenu.add(Actions.MapAsPDF);
         pdfExportMenu.add(Actions.FullPageSlideNotes);
         pdfExportMenu.add(Actions.Slides8PerPage);
         pdfExportMenu.add(Actions.SpeakerNotes1);
         pdfExportMenu.add(Actions.SpeakerNotes4);
         pdfExportMenu.add(Actions.AudienceNotes);
-        pdfExportMenu.add(Actions.SpeakerNotesOutline);                                       
+        pdfExportMenu.add(Actions.SpeakerNotesOutline);   
+        fileMenu.addMouseListener(new MouseAdapter()
+        {			
+			public void mousePressed(MouseEvent e) {
+				LWPathway p =VUE.getActivePathway();
+				if (p == null || p.length() == 0)
+					pdfExportMenu.setEnabled(false);
+				else	
+					pdfExportMenu.setEnabled(true);
+				
+			}
+        });
       //  pdfExportMenu.add(Actions.NodeNotesOutline);
         fileMenu.addSeparator();
         fileMenu.add(printAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, metaMask));
