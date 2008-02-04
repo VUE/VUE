@@ -28,6 +28,7 @@ import java.util.List;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.event.MouseAdapter;
 
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
@@ -40,7 +41,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.80 $ / $Date: 2007-12-13 16:42:21 $ / $Author: mike $
+ * @version $Revision: 1.81 $ / $Date: 2008-02-04 20:01:27 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -375,7 +376,32 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Build Content Menu
         ////////////////////////////////////////////////////////////////////////////////////
         GUI.addToMenu(contentMenu, Actions.NEW_OBJECT_ACTIONS);
-        contentMenu.add(Actions.AddFileAction);
+        
+        final JMenuItem addFileItem = new JMenuItem(Actions.AddFileAction);
+        final JMenuItem addURLItem = new JMenuItem(Actions.AddURLAction);
+        
+        contentMenu.add(addFileItem);
+        contentMenu.add(addURLItem);
+        contentMenu.addMouseListener(new MouseAdapter()
+        {			
+			public void mousePressed(MouseEvent e) {
+				LWComponent c =VUE.getActiveComponent();
+				if (c instanceof LWNode)
+				{
+					if ((c).hasResource())
+					{
+						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
+						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));						
+					}
+					else
+					{
+						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
+						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
+					}
+				}
+				
+			}
+        });
   //      contentMenu.addSeparator();
   //      contentMenu.add(Actions.AddResource);
   //      contentMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
