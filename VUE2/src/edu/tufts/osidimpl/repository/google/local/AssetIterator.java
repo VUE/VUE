@@ -23,6 +23,7 @@ import org.exolab.castor.mapping.MappingException;
 import java.io.OutputStreamWriter;
 import java.io.*;
 import java.net.*;
+import tufts.Util;
 import tufts.vue.*;
 import org.xml.sax.InputSource;
 
@@ -51,7 +52,20 @@ implements org.osid.repository.AssetIterator
 		try {
 			factory = edu.tufts.vue.dsm.impl.VueOsidFactory.getInstance();
 			String path = factory.getResourcePath("google.xml");
-			XML_MAPPING = new URL("file://" + path);
+                        
+                        String urlString = path;
+                        
+                        // Windows requires extra "/" for start of path
+                        // see for example: http://blogs.msdn.com/ie/archive/2006/12/06/file-uris-in-windows.aspx
+                        
+                        if(Util.isWindowsPlatform())
+                        {
+                            urlString = "/" + urlString;
+                        }
+                        
+                        urlString = "file://" + urlString;
+                        
+			XML_MAPPING = new URL(urlString);
 		} catch (Throwable t) {
 			Utilities.log(t);
 		}
@@ -103,7 +117,7 @@ implements org.osid.repository.AssetIterator
 				while((c=input.read())!= -1) {
 					result = result + (char) c;
 				}
-				String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("google_results.xml");
+				String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.google.results.xml");
 				FileWriter fileWriter = new FileWriter(googleResultsFile);
 				fileWriter.write(result);
 				fileWriter.close();
