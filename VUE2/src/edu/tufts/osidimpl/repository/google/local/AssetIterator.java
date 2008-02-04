@@ -117,7 +117,7 @@ implements org.osid.repository.AssetIterator
 				while((c=input.read())!= -1) {
 					result = result + (char) c;
 				}
-				String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.google.results.xml");
+				String googleResultsFile = VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.google.results");
 				FileWriter fileWriter = new FileWriter(googleResultsFile);
 				fileWriter.write(result);
 				fileWriter.close();
