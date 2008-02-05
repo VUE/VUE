@@ -95,7 +95,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.21 $ / $Date: 2008-02-04 19:11:49 $ / $Author: mike $
+ * @version $Revision: 1.22 $ / $Date: 2008-02-05 16:21:49 $ / $Author: mike $
  *
  */
 
@@ -541,7 +541,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             else if (opposite.getClass() == FontEditorPanel.class ||
                 opposite.getClass() == DockWindow.class ||
                 // todo: something more generic than this getName check: set a property on the JComponent tagging it as a tool/editor?
-                //opposite.getClass() == JComboBox.class ||
+                opposite.getClass() == JComboBox.class ||
                 
                 
                 (opposite.getName() != null && opposite.getName().equals(tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME)) ||
