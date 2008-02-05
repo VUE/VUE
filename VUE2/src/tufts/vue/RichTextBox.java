@@ -15,6 +15,7 @@
 
 package tufts.vue;
 
+import tufts.vue.gui.ColorMenuButton;
 import tufts.vue.gui.DockWindow;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.TextRow;
@@ -95,7 +96,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.22 $ / $Date: 2008-02-05 16:21:49 $ / $Author: mike $
+ * @version $Revision: 1.23 $ / $Date: 2008-02-05 19:42:56 $ / $Author: mike $
  *
  */
 
@@ -536,7 +537,8 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         
         
     	if (opposite != null) {
-    		if (opposite.getName() != null && opposite.getName().equals(FontEditorPanel.SIZE_FIELD_NAME))
+    		if ((opposite.getName() != null && opposite.getName().equals(FontEditorPanel.SIZE_FIELD_NAME)) ||
+    		opposite.getClass() == ColorMenuButton.class)
     			return;
             else if (opposite.getClass() == FontEditorPanel.class ||
                 opposite.getClass() == DockWindow.class ||
@@ -569,7 +571,8 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     	
     	//System.out.println(e.getComponent().toString());
     	//System.out.println(e.getOppositeComponent().toString());
-        if (TestDebug||DEBUG.FOCUS) outc("focusLost to " + e.getOppositeComponent() + "   " + opposite.getName());
+        //if (TestDebug||DEBUG.FOCUS)
+        	outc("focusLost to " + e.getOppositeComponent() + "   " + opposite.getName());
         if (TestHarness == false && getParent() != null)
             getParent().remove(this);
         if (keyWasPressed || !keyWasPressed) { // TODO: as per VueTextField, need to handle drag & drop detect
