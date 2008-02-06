@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.17 $ / $Date: 2008-01-31 23:34:03 $ / $Author: anoop $
+ * @version $Revision: 1.18 $ / $Date: 2008-02-06 22:57:18 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -142,7 +142,18 @@ public class SakaiPublisher {
     	 */
     	//LWMap cloneMap = (LWMap)map.clone();
     	//cloneMap.setLabel(map.getLabel());
-    	Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.ANY).iterator();
+        String mapLabel = map.getLabel();
+        File origFile = map.getFile();
+        
+        File tempFile  = new File(VueUtil.getDefaultUserFolder()+File.separator+origFile.getName());
+        tempFile.deleteOnExit();
+        tufts.vue.action.ActionUtil.marshallMap(tempFile,map);
+        
+        LWMap cloneMap =   tufts.vue.action.OpenAction.loadMap(tempFile.getAbsolutePath());
+        
+    	//Iterator<LWComponent> i = map.getAllDescendents(LWComponent.ChildKind.ANY).iterator();
+        Iterator<LWComponent> i = cloneMap.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        
     	while(i.hasNext()) 
     	{
     		LWComponent component = (LWComponent) i.next();
@@ -195,14 +206,18 @@ public class SakaiPublisher {
     	//File tmpFile = File.createTempFile("~vue-", ".tmp", VueUtil.getDefaultUserFolder());
     	//tmpFile.deleteOnExit();  
 //    	tufts.vue.action.ActionUtil.marshallMap( tmpFile );
-    	tufts.vue.action.ActionUtil.marshallMap( savedMapFile );
+    	//tufts.vue.action.ActionUtil.marshallMap( savedMapFile );
+        tufts.vue.action.ActionUtil.marshallMap(tempFile,cloneMap);
+        
     	uploadObjectToRepository( 
     			hostUrl,
     			sessionId,
     			resourceName,
     			folderName,
-    			savedMapFile,  //tmpFile, 
-    			map.hasNotes() ? map.getNotes() : MAP_DESC, false );
+    			cloneMap.getFile(),  //tmpFile, 
+    			cloneMap.hasNotes() ? cloneMap.getNotes() : MAP_DESC, false );
+        tufts.vue.action.ActionUtil.marshallMap(origFile, map);
+        
     }
 
     /**
