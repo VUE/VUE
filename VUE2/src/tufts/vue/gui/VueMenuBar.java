@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.84 $ / $Date: 2008-02-07 16:55:52 $ / $Author: mike $
+ * @version $Revision: 1.85 $ / $Date: 2008-02-07 16:59:50 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -622,6 +622,17 @@ public class VueMenuBar extends javax.swing.JMenuBar
         notesMenu.add(Actions.SpeakerNotesOutline);   
         
         presentationMenu.add(notesMenu);
+        presentationMenu.addMenuListener(new MenuListener(){
+			public void menuCanceled(MenuEvent e) {/* no op	*/}
+			public void menuDeselected(MenuEvent e) {/*no op */}
+			public void menuSelected(MenuEvent e) {handleActivation();}
+			private void handleActivation() {
+				LWPathway p =VUE.getActivePathway();
+				if (p == null || p.length() == 0)
+					notesMenu.setEnabled(false);			
+				else	
+					notesMenu.setEnabled(true);				
+			}});             
         presentationMenu.addSeparator();
         presentationMenu.add(playbackMenu);
         
