@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.18 $ / $Date: 2008-02-06 22:57:18 $ / $Author: anoop $
+ * @version $Revision: 1.19 $ / $Date: 2008-02-07 13:47:11 $ / $Author: peter $
  */
 
 package tufts.vue;
@@ -39,6 +39,7 @@ import java.util.Properties;
 import java.util.Vector;
 
 import javax.activation.MimetypesFileTypeMap;
+import javax.swing.JOptionPane;
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ServiceException;
 
@@ -79,9 +80,10 @@ public class SakaiPublisher {
      * @param dataSource DataSource object for Sakai LMS
      * @param collectionId Workspace in Sakai to store map
      * @param map VUE map to store in Sakai
+     * @param overwrite TODO
      * @param publisher 
      */
-    public static void uploadMap( DataSource dataSource, Object collectionId, LWMap map)
+    public static void uploadMap( DataSource dataSource, Object collectionId, LWMap map, int overwrite)
     	throws Exception
     {
        	Properties dsConfig = dataSource.getConfiguration();
@@ -89,6 +91,11 @@ public class SakaiPublisher {
        	String hostUrl = getHostUrl( dsConfig );
        	File savedMapFile = saveMapToFile( map );
        	String resourceName = savedMapFile.getName();
+       	
+       	if( overwrite == JOptionPane.YES_OPTION)
+       	{
+       		
+       	}
        	
 		// create folder for map and resources
 		String folderName = createFolder( sessionId, hostUrl, collectionId.toString(), makeSakaiFolderFromVueMap( resourceName ) );
@@ -116,8 +123,9 @@ public class SakaiPublisher {
      * @param dataSource DataSource object for Sakai LMS
      * @param collectionId Workspace in Sakai to store map
      * @param map VUE map to store in Sakai
+     * @param overwrite TODO
      */
-    public static void uploadMapAll(DataSource dataSource, Object collectionId, LWMap map)
+    public static void uploadMapAll(DataSource dataSource, Object collectionId, LWMap map, int overwrite)
     throws CloneNotSupportedException, IOException, ServiceException
     {        
     	Properties dsConfig = dataSource.getConfiguration();
@@ -539,7 +547,7 @@ public class SakaiPublisher {
         
         private static String getMimeType(File file) {
             String mimeType = DEFAULT_MIME_TYPE;
-            if(file!= null) {
+            if(file != null) {
                 mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
             }  
             return mimeType;

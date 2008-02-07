@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.89 $ / $Date: 2008-01-31 18:41:10 $ / $Author: anoop $
+ * @version $Revision: 1.90 $ / $Date: 2008-02-07 13:47:11 $ / $Author: peter $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -340,7 +340,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     }
                 }catch(Throwable t) {
                     t.printStackTrace();
-                    alert(this,"An error occurrd while checking existence of resource in repository. Error message: "+t.getMessage(),"Publish Error");
+                    alert(this,"An error occurred while checking existence of resource in repository. Error message: "+t.getMessage(),"Publish Error");
                     this.dispose();
                 }
                 if(confirm == JOptionPane.NO_OPTION) {
@@ -428,18 +428,18 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 // TODO: Verify that a site is selected before proceeding - pdw 10-nov-07
                 String fileName = VUE.getActiveMap().getFile().getName();
                 org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
-                int confirm = 0;
+                int confirm = JOptionPane.YES_OPTION;  //TODO: do we really want the default to be overwrite? - pdw 05-feb-07
                 if(isFilePresent( asset,   fileName )) {
-                    confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
+                	confirm = JOptionPane.showConfirmDialog(this, DUPLICATE_OBJ_ERR_MESG, DUPLICATE_OBJ_ERR_TITLE, JOptionPane.YES_NO_OPTION );
                 }
                  if(confirm == JOptionPane.NO_OPTION) {
                     this.dispose();
                     return;
                  }
                 if(publishMapRButton.isSelected()) {
-                    SakaiPublisher.uploadMap( ds, siteId, VUE.getActiveMap());
+                    SakaiPublisher.uploadMap( ds, siteId, VUE.getActiveMap(), confirm );
                 }else if(publishMapAllRButton.isSelected()){
-                    SakaiPublisher.uploadMapAll( ds, siteId, VUE.getActiveMap());
+                    SakaiPublisher.uploadMapAll( ds, siteId, VUE.getActiveMap(), confirm );
                 }   else
                     alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
             }
