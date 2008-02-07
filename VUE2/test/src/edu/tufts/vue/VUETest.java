@@ -37,8 +37,6 @@ public class VUETest {
         suite.addTestSuite(edu.tufts.vue.CSSTest.class);
         suite.addTestSuite(edu.tufts.vue.FedoraOntologyTest.class);
 //        suite.addTestSuite(edu.tufts.osidimpl.repository.fedora_2_0.TestRepository.class);
-        suite.addTestSuite(tufts.vue.UrlAuthenticationTest.class);
-      
         return suite;
     }
     
