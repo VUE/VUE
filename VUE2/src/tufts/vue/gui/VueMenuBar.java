@@ -29,10 +29,14 @@ import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.event.MouseAdapter;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 
 
 import edu.tufts.vue.preferences.VuePrefEvent;
@@ -41,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.83 $ / $Date: 2008-02-04 22:59:59 $ / $Author: mike $
+ * @version $Revision: 1.84 $ / $Date: 2008-02-07 16:55:52 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -263,18 +267,20 @@ public class VueMenuBar extends javax.swing.JMenuBar
         pdfExportMenu.add(Actions.SpeakerNotes1);
         pdfExportMenu.add(Actions.SpeakerNotes4);
         pdfExportMenu.add(Actions.AudienceNotes);
-        pdfExportMenu.add(Actions.SpeakerNotesOutline);   
-        fileMenu.addMouseListener(new MouseAdapter()
-        {			
-			public void mousePressed(MouseEvent e) {
+        pdfExportMenu.add(Actions.SpeakerNotesOutline);
+        pdfExportMenu.setEnabled(false);
+      
+        fileMenu.addMenuListener(new MenuListener(){
+			public void menuCanceled(MenuEvent e) {/* no op	*/}
+			public void menuDeselected(MenuEvent e) {/*no op */}
+			public void menuSelected(MenuEvent e) {handleActivation();}
+			private void handleActivation() {
 				LWPathway p =VUE.getActivePathway();
 				if (p == null || p.length() == 0)
-					pdfExportMenu.setEnabled(false);
+					pdfExportMenu.setEnabled(false);			
 				else	
-					pdfExportMenu.setEnabled(true);
-				
-			}
-        });
+					pdfExportMenu.setEnabled(true);				
+			}});                   
       //  pdfExportMenu.add(Actions.NodeNotesOutline);
         fileMenu.addSeparator();
         fileMenu.add(printAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, metaMask));
@@ -393,9 +399,13 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         contentMenu.add(addFileItem);
         contentMenu.add(addURLItem);
-        contentMenu.addMouseListener(new MouseAdapter()
-        {			
-			public void mousePressed(MouseEvent e) {
+        
+        contentMenu.addMenuListener(new MenuListener(){
+			public void menuCanceled(MenuEvent e) {/* no op	*/}
+			public void menuDeselected(MenuEvent e) {/*no op */}
+			public void menuSelected(MenuEvent e) {handleActivation();}
+			private void handleActivation()
+			{
 				LWComponent c =VUE.getActiveComponent();
 				if (c instanceof LWNode)
 				{
@@ -410,9 +420,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
 					}
 				}
-				
-			}
-        });
+			}});
+        
   //      contentMenu.addSeparator();
   //      contentMenu.add(Actions.AddResource);
   //      contentMenu.add(Actions.UpdateResource).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_U, metaMask));
