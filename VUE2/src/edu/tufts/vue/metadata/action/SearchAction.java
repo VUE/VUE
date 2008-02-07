@@ -629,7 +629,7 @@ public class SearchAction extends AbstractAction {
         
         if(resultsType == COPY_ACTION)
         {
-            LWMap searchResultMap = new LWMap("Search Result #" + searchResultsMaps++);
+            LWMap searchResultMap = new LWMap("Search Result " + searchResultsMaps++);
             
             Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();   
             while(components.hasNext())
