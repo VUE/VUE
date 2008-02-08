@@ -22,13 +22,13 @@
 package tufts.vue.action;
 
 import javax.swing.*;
-
 import java.awt.event.*;
 import java.io.*;
 import java.util.Iterator;
 import java.util.Vector;
 
 import tufts.vue.*;
+import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 
 /**
@@ -84,8 +84,8 @@ public class SaveAction extends VueAction
     public void actionPerformed(ActionEvent e)
     {
         if (inSave) // otherwise rapid Ctrl-S's will trigger multiple dialog boxes
-            return;
-
+            return;            	
+        
         try {
             inSave = true;
             Log.info("Action["+e.getActionCommand()+"] invoked...");
@@ -104,7 +104,10 @@ public class SaveAction extends VueAction
       
     public static boolean saveMap(LWMap map, boolean saveAs, boolean export)
     {
-        System.out.println("SaveAction.saveMap: " + map);
+        Log.info("SaveAction.saveMap: " + map);        
+        
+        GUI.activateWaitCursor();         
+       
         
         if (map == null)
             return false;
@@ -136,10 +139,20 @@ public class SaveAction extends VueAction
         else if (export)
         	file = ActionUtil.selectFile("Export Map", "export");
         if (file == null)
-            return false;
+        {	//GUI.clearWaitCursor();
+        	try{
+        	return false;
+        	}
+        	finally
+        	{
+        		GUI.clearWaitCursor();
+        	}
+        }
+
+    	
         
         try {
-            VUE.activateWaitCursor();
+        	         	
             String name = file.getName().toLowerCase();
 
             System.out.println("Save name[" + name + "]");
@@ -277,7 +290,7 @@ public class SaveAction extends VueAction
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
         } finally {
-            VUE.clearWaitCursor();
+            GUI.clearWaitCursor();
         }
 
         return false;
