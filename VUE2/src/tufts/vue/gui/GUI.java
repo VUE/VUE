@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.91 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.92 $ / $Date: 2008-02-08 15:16:36 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -986,13 +986,27 @@ public class GUI
         if (c == null)
             return;
         Cursor curCursor = c.getCursor();
+        
         if (curCursor != CURSOR_DEFAULT && curCursor != CURSOR_WAIT)
             CursorMap.put(c, curCursor);
-        c.setCursor(CURSOR_WAIT);
+        
+        if (c instanceof JComponent)
+        {
+        	RootPaneContainer root = (RootPaneContainer) ((JComponent)c).getTopLevelAncestor();
+        	root.getGlassPane().setCursor(CURSOR_WAIT);
+        	root.getGlassPane().setVisible(true);
+        }
+        else if (c instanceof JFrame)
+        {        	        
+        	((JFrame)c).getGlassPane().setCursor(CURSOR_WAIT);
+        	((JFrame)c).getGlassPane().setVisible(true);        
+        }
+        else
+        	c.setCursor(CURSOR_WAIT);
+        
         if (DEBUG.THREAD) Log.info("set wait cursor on " + name(c) + " (old=" + curCursor + ")");
     }
-    
-    
+          
     public static synchronized void clearWaitCursor() {
         //tufts.Util.printStackTrace("CLEAR WAIT-CURSOR");
         if (DEBUG.THREAD) Log.info("CLEAR WAIT CURSOR SCHEDULED");
@@ -1025,9 +1039,37 @@ public class GUI
             if (oldCursor == CURSOR_WAIT)
                 Log.error("old cursor on " + name(c) + " was wait cursor!  Restoring to default.");
             if (DEBUG.THREAD) Log.info("cleared wait cursor on " + name(c) + " to default");
+            
+            if (c instanceof JComponent)
+            {
+            	RootPaneContainer root = (RootPaneContainer) ((JComponent)c).getTopLevelAncestor();
+            	root.getGlassPane().setCursor(CURSOR_DEFAULT);
+            	root.getGlassPane().setVisible(false);
+            }
+            else if (c instanceof JFrame)
+            {
+            	((JFrame)c).getGlassPane().setCursor(CURSOR_DEFAULT);
+            	((JFrame)c).getGlassPane().setVisible(false);    
+            }
+            	
+                        
             c.setCursor(CURSOR_DEFAULT);
         } else {
             if (DEBUG.THREAD) Log.info("cleared wait cursor on " + name(c) + " to old: " + oldCursor);
+            
+            if (c instanceof JComponent)
+            {
+            	RootPaneContainer root = (RootPaneContainer) ((JComponent)c).getTopLevelAncestor();
+            	root.getGlassPane().setCursor((Cursor) oldCursor);
+            	root.getGlassPane().setVisible(false);
+            }
+            else if (c instanceof JFrame)            
+            {
+            	((JFrame)c).getGlassPane().setCursor((Cursor) oldCursor);
+            	((JFrame)c).getGlassPane().setVisible(false);
+            }
+            	
+            
             c.setCursor((Cursor) oldCursor);
         }
     }
