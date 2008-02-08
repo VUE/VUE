@@ -848,10 +848,14 @@ public class PresentationTool extends VueTool
     }
     
     public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
-        if (isActive()) {
+        if (entry == null) {
+            // Last pathway was deleted:
+            loadPathway(null);
+        } else if (isActive()) {
             // only do this if this is the active tool,
             // as we use the globally active viewer
             // when we change the page!
+           
             if (!entry.isPathway())
                 setEntry(entry, BACKING_UP);
         }
