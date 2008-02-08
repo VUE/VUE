@@ -34,7 +34,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.57 $ / $Date: 2008-02-08 17:24:45 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -42,7 +42,6 @@ public final class DrawContext
 {
     public final Graphics2D g;
     public final double zoom;
-    public final boolean drawAbsoluteLinks = false;
     
     public final float offsetX;
     public final float offsetY;

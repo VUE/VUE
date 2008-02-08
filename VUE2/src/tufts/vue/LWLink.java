@@ -42,7 +42,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.182 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.183 $ / $Date: 2008-02-08 17:24:45 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2580,10 +2580,10 @@ public class LWLink extends LWComponent
         if (strokeWidth <= 0)
             strokeWidth = 0.5f;
 
-        if (dc.drawAbsoluteLinks) {
-            //dc.setAbsoluteStroke(stroke.getLineWidth() * getMapScale());
-            g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth / g.getTransform().getScaleX()));
-        } else {
+//         if (dc.drawAbsoluteLinks) {
+//             //dc.setAbsoluteStroke(stroke.getLineWidth() * getMapScale());
+//             g.setStroke(mStrokeStyle.get().makeStroke(strokeWidth / g.getTransform().getScaleX()));
+//         } else {
             if (stroke == STROKE_ZERO) { // mStrokeWidth.get() was 0
                 // never draw an invisible link: draw zero strokes at small absolute scale tho
                 float curScale = (float) g.getTransform().getScaleX();
@@ -2593,7 +2593,7 @@ public class LWLink extends LWComponent
             } else {
                 g.setStroke(stroke);
             }
-        }
+//         }
         
         if (mCurve != null) {
             //-------------------------------------------------------
