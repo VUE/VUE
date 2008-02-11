@@ -228,6 +228,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            
                            cats.addCustomCategory(category);
                            cats.saveCustomOntology();
+                           //((MetadataTableModel)metadataTable.getModel()).refresh();
+                           metadataTable.getCellEditor().stopCellEditing();
                            metadataTable.repaint();
                        }
                    }
@@ -902,6 +904,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            //ecd.pack();
                            ecd.setVisible(true);
                            
+                           metadataTable.getCellEditor().stopCellEditing();
+                           ((MetadataTableModel)metadataTable.getModel()).refresh();
+                           
                           /* int n = categories.getModel().getSize();
                            Object currObject = current.getMetadataList().getMetadata().get(row).getObject();
                            Object currValue = (((String[])currObject)[0]);
@@ -1150,7 +1155,18 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                    
                    //categoryLabel.setText(displayString);
                    categoryLabel.setFont(GUI.LabelFace);
-                   comp.add(categoryLabel);
+                   
+                   boolean found = findCategory(currValue,row,col,n,categories);
+                   
+                   if(found)
+                   {    
+                     comp.add(categoryLabel);
+                   }
+                   else
+                   {
+                     categoryLabel.setText(categoryLabel.getText() + "*"); 
+                     comp.add(categoryLabel);
+                   }    
                    comp.setBorder(getMetadataCellBorder(row,col));
                    return comp;
                }
@@ -1263,8 +1279,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
       Border leftLeadingFullBox = BorderFactory.createMatteBorder(1,1,1,0,SAVED_KEYWORD_BORDER_COLOR);
       Border leftLeadingVerticalFollowingBox = BorderFactory.createMatteBorder(1,1,0,0,SAVED_KEYWORD_BORDER_COLOR);
         
-      if(col != buttonColumn && row != metadataTable.getModel().getRowCount() - 1 
-              && row != metadataTable.getModel().getRowCount() - 2 )
+      if(col != buttonColumn &&  
+              (
+                row != metadataTable.getModel().getRowCount() - 1 
+                && row != metadataTable.getModel().getRowCount() - 2 
+              )
+        )
       {    
         if(col == buttonColumn - 2)
         {    
