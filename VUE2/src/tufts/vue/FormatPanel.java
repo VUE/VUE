@@ -81,8 +81,8 @@ public class FormatPanel extends JPanel
         this.add(textToolPanel);
 	}
 	
-	public TextPropsPane getTextPropsPane()
+	public TextToolPanel getTextPropsPane()
     {
-    	return null;
+    	return textToolPanel;
     }
 }
