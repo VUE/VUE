@@ -29,6 +29,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
 import javax.swing.text.StyledEditorKit;
 import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
@@ -43,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.67 $ / $Date: 2008-02-04 19:11:49 $ / $Author: mike $
+ * @version $Revision: 1.68 $ / $Date: 2008-02-12 20:53:35 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -59,8 +60,8 @@ public class FontEditorPanel extends JPanel
  	
     public final static String SIZE_FIELD_NAME ="richFontSizeEditor";
     /** the Font selection combo box **/
-    private final JComboBox mFontCombo;
-    private final JComboBox mSizeField;
+    public final JComboBox mFontCombo;
+    public final JComboBox mSizeField;
     private final AbstractButton mBoldButton;
     private final AbstractButton mItalicButton;
     private final AbstractButton mUnderlineButton;
@@ -119,7 +120,9 @@ public class FontEditorPanel extends JPanel
         */
 
         mFontCombo = new JComboBox(getFontNames());
-        mFontCombo.setRenderer(new CustomComboBoxRenderer());        
+        mFontCombo.setRenderer(new CustomComboBoxRenderer());
+        mFontCombo.setEditable(true);
+        mFontCombo.getEditor().getEditorComponent().setFocusable(false);
         Font f = mFontCombo.getFont();
         Font menuFont = f.deriveFont((float) 9);        
         mFontCombo.setFont(menuFont);
@@ -886,35 +889,6 @@ public class FontEditorPanel extends JPanel
 
     private class AlignmentListener implements ActionListener    
 	{
-			/*public void itemStateChanged(ItemEvent arg0) 
-			{
-			      JComponent c = (JComponent) arg0.getSource();
-			      if (c.getVerifyInputWhenFocusTarget()) {
-			            c.requestFocusInWindow();
-			            if (!c.hasFocus())
-			                return;
-			      }
-				if (arg0.getStateChange() == ItemEvent.SELECTED)					
-				{						
-					int itemCase = ((Integer)arg0.getItem()).intValue();
-					switch (itemCase)
-					{
-						case 0:
-							paraAlignLeftAction.actionPerformed(null);
-							break;
-						case 1:
-							paraAlignCenterAction.actionPerformed(null);
-							break;
-						case 2:
-							paraAlignRightAction.actionPerformed(null);
-							break;
-						default:
-							//if in doubt
-							paraAlignLeftAction.actionPerformed(null);
-							break;
-					}														
-				}
-			}*/
 
 			public void actionPerformed(ActionEvent arg0) {
 					if (arg0.getModifiers() == 0)
@@ -954,64 +928,67 @@ public class FontEditorPanel extends JPanel
 	      maxAttributes.addAttributes(inputAttributes);
 	      return maxAttributes;
 	  }
-
 	private final void updateFormatControls(CaretEvent e)
 	{
-		final RichTextBox text = (RichTextBox)e.getSource();
+		if (e != null)
+			updateFormatControlsTB((RichTextBox)e.getSource());
+		else
+			updateFormatControlsTB(null);
+	}
+	
+	public final void updateFormatControlsTB(RichTextBox text)
+	{
+		
+
 		SHTMLDocument doc = (SHTMLDocument)text.getDocument();
-	    Element element = doc.getParagraphElement(text.getCaretPosition());
-	    AttributeSet set = element.getAttributes();
+	    
+	    //Assembling appropriate attribute sets
+		Element paragraphElement = doc.getParagraphElement(text.getCaretPosition());
+		
+		if (paragraphElement.getName().equals("p-implied")) //we're in a list item
+			paragraphElement = paragraphElement.getParentElement();
+	    
+		AttributeSet paragraphAttributeSet = paragraphElement.getAttributes();
 	    Element charElem =doc.getCharacterElement(text.getCaretPosition() > 0 ? text.getCaretPosition()-1 : 0);
 	    AttributeSet charSet = charElem.getAttributes();
-	    Enumeration enume = charSet.getAttributeNames();
-	    	    
+	    Enumeration characterAttributeEnum = charSet.getAttributeNames();
+	    Enumeration elementEnum = paragraphAttributeSet.getAttributeNames();
+	    int so = text.getSelectionStart();
+	    int eo = text.getSelectionEnd();
+	    //	  Done Assembling appropriate attribute sets
+	    
+	 
+	
+		//************************************ SET DEFAULTS
 		alignmentButton.getComboBox().setSelectedIndex(0);
-	    Enumeration elementEnum = set.getAttributeNames();
-	    while (elementEnum.hasMoreElements())
-	    {
-	    	Object o = elementEnum.nextElement();
-	    	//if (o.toString().equals("text-align"))
-	    		//System.out.println(" P: " + o.toString() + "  ***  " + set.getAttribute(o).toString());
-	       	if (o.toString().equals("text-align") && set.getAttribute(o).toString().equals("left"))
-	       	{//	System.out.println("SET LEFT");
-	       		alignmentButton.getComboBox().setSelectedIndex(0);
-	       		alignmentButton.getComboBox().repaint();
-	       	}
-	       	else if (o.toString().equals("text-align") && set.getAttribute(o).toString().equals("center"))
-	       	{
-	       		//System.out.println("SET CENTER");
-	       		alignmentButton.getComboBox().setSelectedIndex(1);
-	       		alignmentButton.getComboBox().repaint();
-	       		
-	       	}
-	       	else if	(o.toString().equals("text-align") && set.getAttribute(o).toString().equals("right"))
-	       	{
-	       		//System.out.println("SET RIGHT");
-	       		alignmentButton.getComboBox().setSelectedIndex(2);
-	       		alignmentButton.getComboBox().repaint();
-	       	}
-	       	
-	       	
-	       	
- 	        
-	    }
+		
+	    //Start with all these turned off.
 	    mBoldButton.setSelected(false);
 		mItalicButton.setSelected(false);
 		mUnderlineButton.setSelected(false);
+		
+	    
+		//Set Font size / face defaults.
 		if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
 		{
 			Font f = ((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getFont();
-			//LWComponent style = ((LWSlide)VUE.getActiveViewer().getFocal()).getMasterSlide().getStyle();
 			mSizeField.getEditor().setItem(Integer.toString(f.getSize()));
-			mFontCombo.setSelectedItem(f.getFontName());
-		//	System.out.println("SLIDE FONT DEFAULTS");			
+			mFontCombo.getEditor().setItem(f.getFontName());			
 		}
 		else
 		{
-			mSizeField.getEditor().setItem("13");
-			mFontCombo.setSelectedItem("Arial");
+			Style r = doc.getStyleSheet().getRule("ul");
+			
+			mSizeField.getEditor().setItem(r.getAttribute(CSS.Attribute.FONT_SIZE));
+			String s = r.getAttribute(CSS.Attribute.FONT_FAMILY).toString();
+			int p = s.indexOf(",");
+			s = s.substring(0,p > 0 ? p : s.length());
+			if (s.length() > 1)
+				mFontCombo.getEditor().setItem(s);
 		}
+		//end font size /face defaults.
 		
+		//set the default color
 		if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
 		{
 			Color c = ((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getTextColor();
@@ -1020,44 +997,90 @@ public class FontEditorPanel extends JPanel
 		}
 		else
 			mTextColorButton.setColor(Color.black);
-	        while (enume.hasMoreElements())
-	        {
-	        	
-	        	Object o = enume.nextElement();
-	//        	System.out.println(o.toString() + " **** " + charSet.getAttribute(o).toString());
-	        	if ((o.toString().equals("color")))
-	        	{
-	        		mTextColorButton.setColor(edu.tufts.vue.style.Style.hexToColor(charSet.getAttribute(o).toString()));
-	        	//	System.out.println("COLOR : " + charSet.getAttribute(o).toString());
-	        	}
-	        	//if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
-	        	//	System.out.println("C:"+charSet.getAttribute(o).toString());
-	        	
-	       // 	if ((o.toString().equals("font-face")) || (o.toString().equals("face")))
-	        //		System.out.println("B:"+charSet.getAttribute(o).toString());
-	        	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
-	        		mSizeField.getEditor().setItem(charSet.getAttribute(o).toString());	
+		//done setting the default color.
+		//**********************************************DONE SETTING DEFAULTS
+		
+		    
+		//If you're looking at a selection blank out the size and face combos unselect
+		//every other relevant field and return there's not much we can do here.
+		if (so != eo && Math.abs(eo-so) > 1)
+	    {
+		//	System.out.println("so : " + so + " eo : " + eo);
+	    	//blank out the appropriate fields, set stuff unselected and return
+	    	mSizeField.getEditor().setItem("");
+			mFontCombo.getEditor().setItem("");
+	    	return;
+	    }
+	    	    	    	     	    	   
+		
+		boolean isFontFaceSet4Paragraph = false;
+		boolean isFontSIzeSet4Paragraph = false;
+		
+	    while (elementEnum.hasMoreElements())
+	    {
+	    	
+	    	Object o = elementEnum.nextElement();
+	    	//System.out.println("pargraph element : " + o.toString() + " , " + paragraphAttributeSet.getAttribute(o));
+	    	//if (o.toString().equals("text-align"))
+	    		//System.out.println(" P: " + o.toString() + "  ***  " + set.getAttribute(o).toString());
+	       	if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("left"))
+	       	{//	System.out.println("SET LEFT");
+	       		alignmentButton.getComboBox().setSelectedIndex(0);
+	       		alignmentButton.getComboBox().repaint();
+	       	}
+	       	else if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("center"))
+	       	{
+	       		//System.out.println("SET CENTER");
+	       		alignmentButton.getComboBox().setSelectedIndex(1);
+	       		alignmentButton.getComboBox().repaint();
+	       		
+	       	}
+	       	else if	(o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("right"))
+	       	{
+	       		//System.out.println("SET RIGHT");
+	       		alignmentButton.getComboBox().setSelectedIndex(2);
+	       		alignmentButton.getComboBox().repaint();
+	       	}
+	       	else if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+	       	{
+        		mSizeField.getEditor().setItem(paragraphAttributeSet.getAttribute(o).toString());        		
+	       	}
 	        			
-	        	if ((o.toString().equals("font-face")) || (o.toString().equals("face")))
-	        		mFontCombo.setSelectedItem(charSet.getAttribute(o).toString());
-	        	if ((o.toString().equals("font-weight") && charSet.getAttribute(o).toString().equals("bold")) || o.toString().equals("b"))
-	        	{
-	        	//	System.out.println("SET BOLD");
-	        		mBoldButton.setSelected(true);
-	        	}
+	       	else if ((o.toString().equals("font-family")) || (o.toString().equals("font-face")) || (o.toString().equals("face")))
+	       	{
+        		mFontCombo.getEditor().setItem(paragraphAttributeSet.getAttribute(o).toString());
+	       	}
+	       	
+	       	
+ 	        
+	    }
+	    
+	
+		
+	    while (characterAttributeEnum.hasMoreElements())
+	    {
+	    
+	      	Object o = characterAttributeEnum.nextElement();
+	      	System.out.println("Character element : " + o.toString() + " , " + charSet.getAttribute(o));
+        	if ((o.toString().equals("color")))        
+        		mTextColorButton.setColor(edu.tufts.vue.style.Style.hexToColor(charSet.getAttribute(o).toString()));        	
+        	
+        	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+        		mSizeField.getEditor().setItem(charSet.getAttribute(o).toString());	
+	        			
+        	if ((o.toString().equals("font-family")) || (o.toString().equals("font-face")) || (o.toString().equals("face")))
+        		mFontCombo.getEditor().setItem(charSet.getAttribute(o).toString());
+        	
+        	if ((o.toString().equals("font-weight") && charSet.getAttribute(o).toString().equals("bold")) || o.toString().equals("b"))
+        		mBoldButton.setSelected(true);
+
 	        		
-	        	if ((o.toString().equals("font-style") && charSet.getAttribute(o).toString().equals("italic")) || o.toString().equals("i"))
-	        	{
-	        		//System.out.println("SET ITALIC");
-	        		mItalicButton.setSelected(true);
-	        	}
+	        if ((o.toString().equals("font-style") && charSet.getAttribute(o).toString().equals("italic")) || o.toString().equals("i"))	       
+	        	mItalicButton.setSelected(true);
 	        	
-	        	if ((o.toString().equals("text-decoration") && charSet.getAttribute(o).toString().equals("underline")) || o.toString().equals("u"))	        	
-	        	{
-	        	//	System.out.println("SET UNDERLINE");
-	        		mUnderlineButton.setSelected(true);
-	        	}	        		        			        		            	        	
-	        }	        	   	        	        	      
+	        if ((o.toString().equals("text-decoration") && charSet.getAttribute(o).toString().equals("underline")) || o.toString().equals("u"))	        		        
+        		mUnderlineButton.setSelected(true);	        		        			        		            	        	
+        }//done looking at character attributes	        	   	        	        	      
 	}
 	
 	  public void caretUpdate(final CaretEvent e) {
