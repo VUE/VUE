@@ -96,7 +96,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.23 $ / $Date: 2008-02-05 19:42:56 $ / $Author: mike $
+ * @version $Revision: 1.24 $ / $Date: 2008-02-12 20:56:29 $ / $Author: mike $
  *
  */
 
@@ -1100,7 +1100,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     		lwc.getParent().layout();
       //  System.out.println("FULL CONTAINS CHILDREN : " + lwc.getParent().fullyContainsChildren());
         }
-    	setSize(getPreferredSize());
+    //	setSize(getPreferredSize());
     	lwc.notify(this, LWKey.Repaint);
     }
     public void changedUpdate(DocumentEvent de) {
