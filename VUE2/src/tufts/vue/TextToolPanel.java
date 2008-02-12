@@ -34,6 +34,11 @@ public class TextToolPanel extends ToolPanel
     public boolean isPreferredType(Object o) {
         return o instanceof LWNode && ((LWNode)o).isTextNode();
     }
+    
+    public FontEditorPanel getFontEditorPanel()
+    {
+    	return mFontPanel;
+    }
 
     protected void buildBox() {
     	
