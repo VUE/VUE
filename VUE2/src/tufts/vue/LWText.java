@@ -130,8 +130,8 @@ public class LWText extends LWComponent {
 	    {
 	    	FontEditorPanel fep = VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel();   
 	    		    
-	    	String fontName = (String)fep.mFontCombo.getEditor().getItem();
-	    	String fontSize = (String)fep.mSizeField.getEditor().getItem();			
+	    	String fontName = fep.mFontCombo.getEditor().getItem().toString();
+	    	String fontSize = fep.mSizeField.getEditor().getItem().toString();			
 			VueStyleSheet ss =(VueStyleSheet)((SHTMLDocument)richLabelBox.getDocument()).getStyleSheet();
 			Color color = fep.mTextColorButton.getColor();
 			final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
