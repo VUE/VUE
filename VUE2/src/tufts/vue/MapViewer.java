@@ -72,7 +72,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.509 $ / $Date: 2008-02-12 20:50:49 $ / $Author: mike $ 
+ * @version $Revision: 1.510 $ / $Date: 2008-02-12 21:39:54 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2901,8 +2901,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     void cancelLabelEdit() {
         if (activeTextEdit != null)
             remove(activeTextEdit);
-        if (activeRichTextEdit != null)        	
+        if (activeRichTextEdit != null)  
+        {
+         
             remove(activeRichTextEdit);
+            VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(activeRichTextEdit);
+        }
     }
     
     boolean isEditingLabel() {
@@ -2946,8 +2950,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             remove(activeTextEdit);
         if (activeRichTextEdit != null)
         {
-        	System.out.println("REMOVE RICH TEXT EDITOR");
+        	//System.out.println("REMOVE RICH TEXT EDITOR");
+
         	remove(activeRichTextEdit);
+            VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(activeRichTextEdit);
         }
         // todo robust: make sure can never accidentally happen on a
         // closed map viewer, or all actions will go off and never

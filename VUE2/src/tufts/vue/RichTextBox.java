@@ -96,7 +96,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.24 $ / $Date: 2008-02-12 20:56:29 $ / $Author: mike $
+ * @version $Revision: 1.25 $ / $Date: 2008-02-12 21:39:54 $ / $Author: mike $
  *
  */
 
@@ -509,6 +509,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
             keyWasPressed = true;
             e.consume();
             getParent().remove(this); // will trigger a save (via focusLost)
+            VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(this);
         } else if (e.getKeyCode() == KeyEvent.VK_U && e.isMetaDown()) {
             e.consume();
             String t = getText();
@@ -571,10 +572,13 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     	
     	//System.out.println(e.getComponent().toString());
     	//System.out.println(e.getOppositeComponent().toString());
-        //if (TestDebug||DEBUG.FOCUS)
+        if (TestDebug||DEBUG.FOCUS)
         	outc("focusLost to " + e.getOppositeComponent() + "   " + opposite.getName());
         if (TestHarness == false && getParent() != null)
+        {
             getParent().remove(this);
+            VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(this);
+        }
         if (keyWasPressed || !keyWasPressed) { // TODO: as per VueTextField, need to handle drag & drop detect
             // only do this if they typed something (so we don't wind up with "label"
             // for the label on an accidental edit activation)
