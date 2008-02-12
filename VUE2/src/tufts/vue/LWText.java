@@ -16,10 +16,17 @@ package tufts.vue;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.Point2D.Float;
+
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.html.HTML;
+
+import com.lightdev.app.shtm.SHTMLDocument;
+import com.lightdev.app.shtm.VueStyleSheet;
 
 import tufts.Util;
 
@@ -100,13 +107,40 @@ public class LWText extends LWComponent {
 
 	
 	public RichTextBox getRichLabelBox() {
-		if (this.richLabelBox == null) {
+		if (this.richLabelBox == null) 
+		{
 			synchronized (this) {
 				if (this.richLabelBox == null)
 					this.richLabelBox = new RichTextBox(this, this.richLabel != null ? this.richLabel : this.label);
 			}
 		}
-
+		
+		if (VUE.getActiveViewer() != null && VUE.getActiveViewer().getFocal() instanceof LWSlide)
+	    {			 
+			   String fontName = (String)((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getPropertyValue(LWKey.FontName);		
+			   Integer fontSize = (Integer)((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getPropertyValue(LWKey.FontSize);
+			   VueStyleSheet ss =(VueStyleSheet)((SHTMLDocument)richLabelBox.getDocument()).getStyleSheet();
+			   Color color = ((LWSlide)VUE.getActivePathway().getMasterSlide()).getMasterSlide().getTextStyle().getTextColor();
+			   final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
+		       ss.addRule("body {margin-top:0px;margin-bottom:0px;margin-left:0px;margin-right:0px;font-size:"+ fontSize +";font-family:"+ fontName +";color: "+colorString+";}");
+		       ss.addRule("ol { margin-top:6;font-family:"+fontName+";vertical-align: middle;margin-left:30;font-size:"+ fontSize +";list-style-position:outside;}");
+		       ss.addRule("p  { margin-top:0;margin-left:0;margin-right:0;margin-bottom:0;color: "+ colorString +";}");
+		       ss.addRule("ul { margin-top:6;font-size:"+fontSize +";margin-left:30;vertical-align: middle;list-style-position:outside;font-family:"+fontName+";}");		       
+	    }else
+	    {
+	    	FontEditorPanel fep = VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel();   
+	    		    
+	    	String fontName = (String)fep.mFontCombo.getEditor().getItem();
+	    	String fontSize = (String)fep.mSizeField.getEditor().getItem();			
+			VueStyleSheet ss =(VueStyleSheet)((SHTMLDocument)richLabelBox.getDocument()).getStyleSheet();
+			Color color = fep.mTextColorButton.getColor();
+			final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
+		    ss.addRule("body {margin-top:0px;margin-bottom:0px;margin-left:0px;margin-right:0px;font-size:"+ fontSize +";font-family:"+ fontName +";color: "+colorString+";}");
+		    ss.addRule("ol { margin-top:6;font-family:"+fontName+";vertical-align: middle;margin-left:30;font-size:"+ fontSize +";list-style-position:outside;}");
+		    ss.addRule("p  { margin-top:0;margin-left:0;margin-right:0;margin-bottom:0;color: "+ colorString +";}");
+		    ss.addRule("ul { margin-top:6;font-size:"+fontSize +";margin-left:30;vertical-align: middle;list-style-position:outside;font-family:"+fontName+";}");
+	    }
+		
 		return this.richLabelBox;
 	}
 
