@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.19 $ / $Date: 2008-02-07 13:47:11 $ / $Author: peter $
+ * @version $Revision: 1.20 $ / $Date: 2008-02-13 22:42:20 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -547,7 +547,9 @@ public class SakaiPublisher {
         
         private static String getMimeType(File file) {
             String mimeType = DEFAULT_MIME_TYPE;
-            if(file != null) {
+            if(file.getName().endsWith("vue")) {
+                mimeType = DEFAULT_MIME_TYPE;
+            } else if(file != null) {
                 mimeType =  new MimetypesFileTypeMap().getContentType(file) ;
             }  
             return mimeType;
