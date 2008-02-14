@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.68 $ / $Date: 2008-02-12 20:53:35 $ / $Author: mike $
+ * @version $Revision: 1.69 $ / $Date: 2008-02-14 21:35:26 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -90,7 +90,12 @@ public class FontEditorPanel extends JPanel
     private final SHTMLEditorKitActions.FontSizeAction fontSizeAction = new SHTMLEditorKitActions.FontSizeAction(null);
     private final SHTMLEditorKitActions.FontColorAction fontColorAction = new SHTMLEditorKitActions.FontColorAction(null);
     private final AlignmentListener alignmentListener = new AlignmentListener();
-    private LWPropertyHandler sizeHandler = null;    
+    private LWPropertyHandler sizeHandler = null;
+    
+    private ActionListener globalSizeListener=null;
+    private ActionListener globalFaceListener=null;
+   
+    private LWText lwtext = null;
 //    dynRes.addAction(fontFamilyAction, new SHTMLEditorKitActions.FontFamilyAction(this));
 //    dynRes.addAction(fontSizeAction, new SHTMLEditorKitActions.FontSizeAction(this));
 //    dynRes.addAction(fontColorAction, new SHTMLEditorKitActions.FontColorAction(this));
@@ -103,6 +108,9 @@ public class FontEditorPanel extends JPanel
     	//ActiveInstance.addAllActiveListener(this);
     	//VUE.addActiveListener(LWComponent.class, this);
     	VUE.addActiveListener(RichTextBox.class, this);
+    	VUE.addActiveListener(LWComponent.class, this);
+  //  	VUE.addActiveListener(LWComponent.class,this);
+    	
         mPropertyKey = propertyKey;
         
         setFocusable(false);
@@ -150,7 +158,61 @@ public class FontEditorPanel extends JPanel
 //                     System.err.println(mFontCombo + ": itemStateChanged " + e);
 //                 }
 //             });
+        /* LWText ActionListeners Start */
+        globalSizeListener = new ActionListener(){
         
+        	public void actionPerformed(ActionEvent fe)
+        	{
+        		lwtext.richLabelBox.selectAll();
+        		final String textSize = mSizeField.getSelectedItem().toString();
+        		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
+        		SimpleAttributeSet set = new SimpleAttributeSet();
+                Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_SIZE,
+            				 textSize);
+                set.addAttribute(HTML.Attribute.SIZE, textSize);
+                lwtext.richLabelBox.applyAttributes(set, false);
+                
+        		lwtext.richLabelBox.select(0,0);
+        		//lwtext.setLabel0(lwtext.richLabelBox.getRichText(), false);
+        		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+         		
+         		   if (lwtext.getParent() !=null)
+         	    		lwtext.getParent().layout();
+         		  
+         		  
+         		 
+      	        
+         		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint);            		   
+         		
+         		
+        	}
+         };
+            		   
+          globalFaceListener = new ActionListener(){ 
+          	public void actionPerformed(ActionEvent fe)
+          	{
+          		lwtext.richLabelBox.selectAll();
+        		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
+        		SimpleAttributeSet set = new SimpleAttributeSet();
+                Util.styleSheet().addCSSAttribute(set, CSS.Attribute.FONT_FAMILY,
+            				 mFontCombo.getSelectedItem().toString());
+                set.addAttribute(HTML.Attribute.FACE, mFontCombo.getSelectedItem().toString());
+                lwtext.richLabelBox.applyAttributes(set, false);
+                
+        		lwtext.richLabelBox.select(0,0);
+       
+        		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+         		
+         		   if (lwtext.getParent() !=null)
+         	    		lwtext.getParent().layout();
+         		  
+         		  
+         		 
+      	        
+         		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint); 
+          	}
+           };
+        /* End LWText ActionListeners */
         //mFontCombo.setBorder(new javax.swing.border.LineBorder(Color.green, 2));
         //mFontCombo.setBackground(Color.white); // handled by L&F tweaks in VUE.java
         //mFontCombo.setMaximumSize(new Dimension(50,50)); // no effect
@@ -214,8 +276,12 @@ public class FontEditorPanel extends JPanel
         
         //mSizeField.addActionListener( this);
         sizeHandler  = new LWPropertyHandler<Integer>(LWKey.FontSize, mSizeField) {
-                public Integer produceValue() { return new Integer((String) mSizeField.getSelectedItem()); }
-                public void displayValue(Integer value) { mSizeField.setSelectedItem(""+value); }
+                public Integer produceValue() { 
+                	return new Integer(mSizeField.getSelectedItem().toString()); 
+                	}
+                public void displayValue(Integer value) { 
+                	mSizeField.setSelectedItem(""+value); 
+                }
             };
 
         mSizeField.addActionListener(sizeHandler);
@@ -785,13 +851,18 @@ public class FontEditorPanel extends JPanel
                     return;
                 
                 final RichTextBox activeRTB = (RichTextBox) VUE.getActive(RichTextBox.class);
-
-                if (activeRTB == null) {
+                
+                
+                if (activeRTB == null && lwtext == null) {
                     // no problem: just ignore if there's no active edit
                     //tufts.Util.printStackTrace("FEP propertyChange: no active RichTextBox: " + e);
                     return;
                 }
                 
+                if (lwtext !=null)
+                	lwtext.richLabelBox.selectAll();
+                
+               
                 final Color color = (Color) e.getNewValue();
                 final SimpleAttributeSet set = new SimpleAttributeSet();
                 final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
@@ -800,21 +871,70 @@ public class FontEditorPanel extends JPanel
                 Util.styleSheet().addCSSAttribute(set, CSS.Attribute.COLOR, colorString);
                 
                 set.addAttribute(HTML.Attribute.COLOR, colorString);
-
-                activeRTB.applyAttributes(set, false);
+                if (activeRTB != null)
+                	activeRTB.applyAttributes(set, false);
+                else
+                	lwtext.richLabelBox.applyAttributes(set, false);
+                
+                if (lwtext !=null)
+                {
+                	lwtext.richLabelBox.select(0,0);
+                    
+                	lwtext.richLabelBox.select(0,0);
+            		//lwtext.setLabel0(lwtext.richLabelBox.getRichText(), false);
+            		lwtext.richLabelBox.setSize(lwtext.richLabelBox.getPreferredSize());        		        	         		
+             		
+             		   if (lwtext.getParent() !=null)
+             	    		lwtext.getParent().layout();
+             		  
+             		  
+             		 
+          	        
+             		lwtext.notify(lwtext.richLabelBox, LWKey.Repaint); 
+                }
             }
         };
-
-
-
-
-    public void activeChanged(ActiveEvent e, RichTextBox activeText)
+    public void activeChanged(final ActiveEvent e, LWComponent activeText)
     {
+    	if (e.active instanceof LWText)
+    	{    	
+             mFontCombo.setEnabled(true);
+             mSizeField.setEnabled(true);
+             mTextColorButton.setEnabled(true);             
+             
+             lwtext = (LWText)activeText;
+             lwtext.richLabelBox.removeCaretListener(this);
+             mFontCombo.removeActionListener(fontPropertyHandler);             
+             mSizeField.removeActionListener(sizeHandler);
+             
+             EditorManager.unregisterEditor(sizeHandler);
+             EditorManager.unregisterEditor(fontPropertyHandler);
+             
+             mSizeField.addActionListener(globalSizeListener);
+             mFontCombo.addActionListener(globalFaceListener);
+             
+             
+    	}
+    	else
+    	{              
+    		lwtext=null;
+    		
+    		mSizeField.removeActionListener(globalSizeListener);
+            mFontCombo.removeActionListener(globalFaceListener);
+            mFontCombo.addActionListener(fontPropertyHandler);
+            EditorManager.registerEditor(sizeHandler);
+            EditorManager.registerEditor(fontPropertyHandler);
+            mSizeField.addActionListener(fontPropertyHandler);
+    	}
+    }
+    public void activeChanged(ActiveEvent e, RichTextBox activeText)
+    {    	
         if (e.active == e.oldActive)
             return;
         
-        if (activeText != null) {
-        	
+        
+        if (activeText != null) 
+        {        
             activeText.addCaretListener(this);
             richBoldAction.setEditorPane(activeText);
             richItalicAction.setEditorPane(activeText);
@@ -832,6 +952,7 @@ public class FontEditorPanel extends JPanel
             mBoldButton.removeActionListener(styleChangeHandler);
             mBoldButton.addActionListener(richBoldAction);			
             EditorManager.unregisterEditor(sizeHandler);
+            EditorManager.unregisterEditor(fontPropertyHandler);
             mItalicButton.removeActionListener(styleChangeHandler);
             mItalicButton.addActionListener(richItalicAction);			
 			
@@ -868,6 +989,7 @@ public class FontEditorPanel extends JPanel
             mBoldButton.removeActionListener(richBoldAction);
             mBoldButton.addActionListener(styleChangeHandler);			
             EditorManager.registerEditor(sizeHandler);
+            EditorManager.registerEditor(fontPropertyHandler);
             mItalicButton.removeActionListener(richItalicAction);
             mItalicButton.addActionListener(styleChangeHandler);
             
@@ -876,7 +998,8 @@ public class FontEditorPanel extends JPanel
             
             mFontCombo.removeActionListener(fontFamilyAction);
             mFontCombo.addActionListener(fontPropertyHandler);
-
+            mSizeField.removeActionListener(fontSizeAction);
+            mSizeField.addActionListener(fontPropertyHandler);
             //mTextColorButton.addActionListener(mTextColorButton);
             
             
@@ -938,7 +1061,6 @@ public class FontEditorPanel extends JPanel
 	
 	public final void updateFormatControlsTB(RichTextBox text)
 	{
-		
 
 		SHTMLDocument doc = (SHTMLDocument)text.getDocument();
 	    
