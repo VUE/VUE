@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.85 $ / $Date: 2008-02-07 16:59:50 $ / $Author: mike $
+ * @version $Revision: 1.86 $ / $Date: 2008-02-15 18:25:26 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -172,33 +172,51 @@ public class VueMenuBar extends javax.swing.JMenuBar
            
                 int count = 0;
                 publishMenu.removeAll();
-                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
-                publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
-                publishMenu.addSeparator();
-                for(int i =0;i<dataSource.length;i++) {
+                boolean fedoraFlag = false;
+                boolean sakaiFlag = false;
+                for(int i =0;i<dataSource.length &&  !(fedoraFlag && sakaiFlag);i++) {
                  try {
                      final org.osid.repository.Repository r = dataSource[i].getRepository();
                      if (r == null) {
                          Log.warn("null repository in " + dataSource[i]);
                          continue;
                      }
-                     if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE) ||
-                         r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
-                         publishMenu.add(PublishActionFactory.createPublishAction(dataSource[i])); 
-                         count++;
+                     if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE)) {
+                       fedoraFlag = true;
+                     } else if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                         sakaiFlag = true;
                      }
                  } catch(org.osid.repository.RepositoryException ex) {
                      Log.error("changed:", ex);
                  }
                 }
-                fileMenu.remove(publishMenu);
-                
-                fileMenu.add(publishMenu,10);
-                if(count > 0) {
-                    publishMenu.setEnabled(true);
+                if(fedoraFlag) publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE));
+                if(sakaiFlag) publishMenu.add(PublishActionFactory.createPublishAction(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE));
+                if(fedoraFlag || sakaiFlag) {
+                    publishMenu.addSeparator();    
+                    for(int i =0;i<dataSource.length;i++) {
+                        try {
+                            final org.osid.repository.Repository r = dataSource[i].getRepository();
+                            if (r == null) {
+                                Log.warn("null repository in " + dataSource[i]);
+                                continue;
+                            }
+                            if (r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.FEDORA_REPOSITORY_TYPE) ||
+                                    r.getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                                publishMenu.add(PublishActionFactory.createPublishAction(dataSource[i]));
+                                count++;
+                            }
+                        } catch(org.osid.repository.RepositoryException ex) {
+                            Log.error("changed:", ex);
+                        }
+                    }
                 } else {
-                    publishMenu.setEnabled(false);
+                    publishMenu.add((createWindowItem(VUE.getContentDock(),KeyEvent.VK_5, "Add publishable resources through Resource Window")));
                 }
+                publishMenu.setEnabled(true);
+                fileMenu.remove(publishMenu);
+                fileMenu.add(publishMenu,11);
+                
             }
         });
         
