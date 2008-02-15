@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.90 $ / $Date: 2008-02-07 13:47:11 $ / $Author: peter $
+ * @version $Revision: 1.91 $ / $Date: 2008-02-15 18:40:27 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -63,7 +63,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     public static final String[] PUBLISH_INFORMATION = {"The \"Publish\" function allows a user to deposit a concept map into a registered digital repository. Select the different modes to learn more.",
     "\"Map only\" saves only the map to the digital repository. Digital resources are not attached, but the resource paths are maintained, whether to a local computer or the web.",
     "\"Publish IMSCP Map\" embeds digital resources within the map. The resources are accessible to all users viewing the map. This mode creates a \"zip\" file, which can be uploaded to a registered digital repository or saved locally. VUE can open zip files it originally created. (IMSCP: Instructional Management Services Content Package.)",
-    "\"Map and resources\" create a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resouces are accessible to all users viewing the map.",
+    "\"Map and resources\" creates a duplicate of all digital resources and uploads these resources and the map to a registered digital repository. The resouces are accessible to all users viewing the map.",
     "\"Publish IMSCP Map to Sakai\" saves concept map in Sakai content hosting system.","Zips map with local resources."
     };
     public static final String[] MODE_LABELS = {"Map only","Map and resources","Zip bundle"};
