@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.69 $ / $Date: 2008-02-14 21:35:26 $ / $Author: mike $
+ * @version $Revision: 1.70 $ / $Date: 2008-02-15 20:25:21 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -163,6 +163,9 @@ public class FontEditorPanel extends JPanel
         
         	public void actionPerformed(ActionEvent fe)
         	{
+        		
+        		if (lwtext == null)
+        			return;
         		lwtext.richLabelBox.selectAll();
         		final String textSize = mSizeField.getSelectedItem().toString();
         		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
@@ -191,6 +194,8 @@ public class FontEditorPanel extends JPanel
           globalFaceListener = new ActionListener(){ 
           	public void actionPerformed(ActionEvent fe)
           	{
+          		if (lwtext == null)
+        			return;
           		lwtext.richLabelBox.selectAll();
         		SHTMLDocument doc = (SHTMLDocument)lwtext.richLabelBox.getDocument();
         		SimpleAttributeSet set = new SimpleAttributeSet();
@@ -894,118 +899,161 @@ public class FontEditorPanel extends JPanel
                 }
             }
         };
+        
+    private void setEditorPanes(RichTextBox activeText)
+    {
+       richBoldAction.setEditorPane(activeText);
+       richItalicAction.setEditorPane(activeText);
+       richUnderlineAction.setEditorPane(activeText);
+       toggleBulletsAction.setEditorPane(activeText);
+       toggleNumbersAction.setEditorPane(activeText);
+       paraAlignLeftAction.setEditorPane(activeText);
+       paraAlignCenterAction.setEditorPane(activeText);
+       paraAlignRightAction.setEditorPane(activeText);
+       fontFamilyAction.setEditorPane(activeText);
+       fontSizeAction.setEditorPane(activeText);
+       fontColorAction.setEditorPane(activeText);
+    }
+    private boolean LWTextListenersAdded = false;
+    private boolean RTBListenersAdded =false;
+    
+    private void establishLWTextListeners(LWComponent activeText)
+    {
+    	System.out.println("lw text");
+        mFontCombo.setEnabled(true);
+        mSizeField.setEnabled(true);
+        mTextColorButton.setEnabled(true);             
+        
+        lwtext = (LWText)activeText;
+        lwtext.richLabelBox.removeCaretListener(this);
+        
+        mFontCombo.removeActionListener(fontPropertyHandler);             
+        mSizeField.removeActionListener(sizeHandler);
+        
+        EditorManager.unregisterEditor(sizeHandler);
+        EditorManager.unregisterEditor(fontPropertyHandler);
+        
+        mSizeField.addActionListener(globalSizeListener);
+        mFontCombo.addActionListener(globalFaceListener);
+        LWTextListenersAdded = true;
+    }
+    
+    private void breakdownLWTextListeners()
+    {
+    	lwtext=null;
+		System.out.println("lost lw text");
+		mSizeField.removeActionListener(globalSizeListener);
+        mFontCombo.removeActionListener(globalFaceListener);
+        
+        mFontCombo.addActionListener(fontPropertyHandler);
+        mSizeField.addActionListener(fontPropertyHandler);
+        
+        if (!EditorManager.isRegistered(sizeHandler))
+        	EditorManager.registerEditor(sizeHandler);
+        if (!EditorManager.isRegistered(fontPropertyHandler))
+        	EditorManager.registerEditor(fontPropertyHandler);
+        LWTextListenersAdded = false;
+
+    }
+    
+    private void breakdownRichTextListeners()
+    {
+    	System.out.println("lost rtb rich text box");
+        disableSpecialEditors();
+
+        VUE.getFormatDock().setFocusable(true);
+		VUE.getFormatDock().setFocusableWindowState(true);
+        
+		mBoldButton.removeActionListener(richBoldAction);
+        mBoldButton.addActionListener(styleChangeHandler);
+        
+        if (!EditorManager.isRegistered(sizeHandler))
+        	EditorManager.registerEditor(sizeHandler);
+        if (!EditorManager.isRegistered(fontPropertyHandler))
+        	EditorManager.registerEditor(fontPropertyHandler);
+        
+        mItalicButton.removeActionListener(richItalicAction);
+        mItalicButton.addActionListener(styleChangeHandler);
+        
+        mFontCombo.removeActionListener(fontFamilyAction);
+        mFontCombo.addActionListener(fontPropertyHandler);
+        
+        mSizeField.removeActionListener(fontSizeAction);
+        mSizeField.addActionListener(fontPropertyHandler);              
+        RTBListenersAdded = false;
+    }
+    
+     
+    private void establishRichTextListeners(RichTextBox activeText)
+    {
+    	System.out.println("rtb rich text box");
+        activeText.addCaretListener(this);
+        setEditorPanes(activeText);
+        
+        activeText.setToggleBulletList(toggleBulletsAction);
+        activeText.setNumberList(toggleNumbersAction);
+        
+        EditorManager.unregisterEditor(sizeHandler);
+        EditorManager.unregisterEditor(fontPropertyHandler);
+        
+        //shuffle listeners...
+        mBoldButton.removeActionListener(styleChangeHandler);
+        mBoldButton.addActionListener(richBoldAction);			
+        
+        mItalicButton.removeActionListener(styleChangeHandler);
+        mItalicButton.addActionListener(richItalicAction);			
+		
+        mFontCombo.addActionListener(fontFamilyAction);
+        mFontCombo.removeActionListener(fontPropertyHandler);
+        
+		mSizeField.getEditor().getEditorComponent().setName(SIZE_FIELD_NAME);
+        
+		mSizeField.removeActionListener(fontPropertyHandler);
+        mSizeField.addActionListener(fontSizeAction);
+        
+        alignmentButton.getComboBox().addActionListener(alignmentListener);
+
+        enableSupportedEditors();
+        RTBListenersAdded = true;
+    }
+    
     public void activeChanged(final ActiveEvent e, LWComponent activeText)
     {
+    	  if (e.active == e.oldActive)
+              return;
+    	System.out.println("new active : " + e.active + " Old active : " + e.oldActive);
     	if (e.active instanceof LWText)
-    	{    	
-             mFontCombo.setEnabled(true);
-             mSizeField.setEnabled(true);
-             mTextColorButton.setEnabled(true);             
-             
-             lwtext = (LWText)activeText;
-             lwtext.richLabelBox.removeCaretListener(this);
-             mFontCombo.removeActionListener(fontPropertyHandler);             
-             mSizeField.removeActionListener(sizeHandler);
-             
-             EditorManager.unregisterEditor(sizeHandler);
-             EditorManager.unregisterEditor(fontPropertyHandler);
-             
-             mSizeField.addActionListener(globalSizeListener);
-             mFontCombo.addActionListener(globalFaceListener);
-             
-             
+    	{    
+    		if (RTBListenersAdded)
+    			breakdownRichTextListeners();
+    		if (!LWTextListenersAdded)
+    			establishLWTextListeners(activeText);             
     	}
-    	else
+    	else if (e.oldActive instanceof LWText)
     	{              
-    		lwtext=null;
-    		
-    		mSizeField.removeActionListener(globalSizeListener);
-            mFontCombo.removeActionListener(globalFaceListener);
-            mFontCombo.addActionListener(fontPropertyHandler);
-            EditorManager.registerEditor(sizeHandler);
-            EditorManager.registerEditor(fontPropertyHandler);
-            mSizeField.addActionListener(fontPropertyHandler);
+    		if (LWTextListenersAdded)
+    			breakdownLWTextListeners();            
     	}
     }
+    
     public void activeChanged(ActiveEvent e, RichTextBox activeText)
     {    	
         if (e.active == e.oldActive)
             return;
         
-        
+        System.out.println("new active : " + e.active + " Old active : " + e.oldActive);
         if (activeText != null) 
         {        
-            activeText.addCaretListener(this);
-            richBoldAction.setEditorPane(activeText);
-            richItalicAction.setEditorPane(activeText);
-            richUnderlineAction.setEditorPane(activeText);
-            toggleBulletsAction.setEditorPane(activeText);
-            toggleNumbersAction.setEditorPane(activeText);
-            paraAlignLeftAction.setEditorPane(activeText);
-            paraAlignCenterAction.setEditorPane(activeText);
-            paraAlignRightAction.setEditorPane(activeText);
-            fontFamilyAction.setEditorPane(activeText);
-            fontSizeAction.setEditorPane(activeText);
-            fontColorAction.setEditorPane(activeText);
-            activeText.setToggleBulletList(toggleBulletsAction);
-            activeText.setNumberList(toggleNumbersAction);
-            mBoldButton.removeActionListener(styleChangeHandler);
-            mBoldButton.addActionListener(richBoldAction);			
-            EditorManager.unregisterEditor(sizeHandler);
-            EditorManager.unregisterEditor(fontPropertyHandler);
-            mItalicButton.removeActionListener(styleChangeHandler);
-            mItalicButton.addActionListener(richItalicAction);			
+        	if (LWTextListenersAdded)
+        		breakdownLWTextListeners();
+        	if (!RTBListenersAdded)
+        		establishRichTextListeners(activeText);
 			
-            // as underline / ordered / unordered are special to LWText,
-            // (not property based -- no other components can use them),
-            // we probably don't need to change their action listeners
-            // here -- setting them once above should suffice.
-
-//             mUnderlineButton.removeActionListener(styleChangeHandler);			
-//             mUnderlineButton.addActionListener(richUnderlineAction);						
-//             orderedListButton.addActionListener(toggleNumbersAction);
-//             unorderedListButton.addActionListener(toggleBulletsAction);
-			
-            mFontCombo.addActionListener(fontFamilyAction);
-            mFontCombo.removeActionListener(fontPropertyHandler);			
-			mSizeField.getEditor().getEditorComponent().setName(SIZE_FIELD_NAME);
-            mSizeField.removeActionListener(fontPropertyHandler);
-            mSizeField.addActionListener(fontSizeAction);
-			//VUE.getFormatDock().setFocusable(false);
-			//VUE.getFormatDock().setFocusableWindowState(false);
-			
-            //mTextColorButton.removeActionListener(mTextColorButton);
-            //mTextColorButton.addActionListener(TextColorListener);
-            
-            alignmentButton.getComboBox().addActionListener(alignmentListener);
-
-            enableSupportedEditors();
-			
-        } else {
-
-            disableSpecialEditors();
-            VUE.getFormatDock().setFocusable(true);
-			VUE.getFormatDock().setFocusableWindowState(true);
-            mBoldButton.removeActionListener(richBoldAction);
-            mBoldButton.addActionListener(styleChangeHandler);			
-            EditorManager.registerEditor(sizeHandler);
-            EditorManager.registerEditor(fontPropertyHandler);
-            mItalicButton.removeActionListener(richItalicAction);
-            mItalicButton.addActionListener(styleChangeHandler);
-            
-            //mUnderlineButton.removeActionListener(richUnderlineAction);			
-            //mUnderlineButton.addActionListener(styleChangeHandler);
-            
-            mFontCombo.removeActionListener(fontFamilyAction);
-            mFontCombo.addActionListener(fontPropertyHandler);
-            mSizeField.removeActionListener(fontSizeAction);
-            mSizeField.addActionListener(fontPropertyHandler);
-            //mTextColorButton.addActionListener(mTextColorButton);
-            
-            
-            //orderedListButton.removeActionListener(toggleNumbersAction);
-            //unorderedListButton.removeActionListener(toggleBulletsAction);
-            
+        } 
+        else if (e.oldActive instanceof RichTextBox)
+        {       
+        	if (RTBListenersAdded)
+        		breakdownRichTextListeners();
         }
 				
     }
@@ -1183,7 +1231,7 @@ public class FontEditorPanel extends JPanel
 	    {
 	    
 	      	Object o = characterAttributeEnum.nextElement();
-	      	System.out.println("Character element : " + o.toString() + " , " + charSet.getAttribute(o));
+	      	//System.out.println("Character element : " + o.toString() + " , " + charSet.getAttribute(o));
         	if ((o.toString().equals("color")))        
         		mTextColorButton.setColor(edu.tufts.vue.style.Style.hexToColor(charSet.getAttribute(o).toString()));        	
         	
