@@ -79,7 +79,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.47 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.48 $ / $Date: 2008-02-15 18:45:42 $ / $Author: anoop $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1433,7 +1433,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 }
                 if (type != null && type.length() > 0)
                     setProperty(CONTENT_TYPE, type);
-                if (type.contains("/")) {
+                if (type != null && type.contains("/")) {
                     mimeType = type.split("/")[1]; // returning the second part of mime-type
                     return mimeType;
                 } else {
