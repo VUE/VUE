@@ -70,20 +70,28 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     //public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
     public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none";
     
+    public final static Border insetBorder = BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET);
+    public final static Border fullBox = BorderFactory.createMatteBorder(1,1,1,1,SAVED_KEYWORD_BORDER_COLOR);
+    public final static Border verticalStartingBox = BorderFactory.createMatteBorder(0,1,1,1,SAVED_KEYWORD_BORDER_COLOR);
+    public final static Border verticalFollowingBox = BorderFactory.createMatteBorder(1,1,0,1,SAVED_KEYWORD_BORDER_COLOR);
+    public final static Border leftLeadingFullBox = BorderFactory.createMatteBorder(1,1,1,0,SAVED_KEYWORD_BORDER_COLOR);
+    public final static Border leftLeadingVerticalFollowingBox = BorderFactory.createMatteBorder(1,1,0,0,SAVED_KEYWORD_BORDER_COLOR);
+    
+    
     private JTable metadataTable;
-    private JScrollPane scroll;
+    //private JScrollPane scroll;
     private LWComponent current;
     private LWComponent previousCurrent;
     
-    private JList ontologyTypeList;
+    //private JList ontologyTypeList;
     
     private int buttonColumn = 1;
     
-    private boolean showOntologicalMembership;
+    //private boolean showOntologicalMembership;
     
-    private boolean ontologicalMembershipVisible;
+    //private boolean ontologicalMembershipVisible;
     
-    private JPanel ontologicalMembershipPane;
+    //private JPanel ontologicalMembershipPane;
     
     private boolean focusToggle = false;
     
@@ -108,10 +116,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         this.current = current;
         
-        if(DEBUG_LOCAL)
-        {
-            System.out.println("MetadataEditor - just created new instance for (current,followActive) (" + current +"," + followAllActive + ")");
-        }
+        //if(DEBUG_LOCAL)
+        //{
+        //    System.out.println("MetadataEditor - just created new instance for (current,followActive) (" + current +"," + followAllActive + ")");
+        //}
         
         metadataTable = new JTable(new MetadataTableModel())
         {
@@ -128,7 +136,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
             }
         };
 
-        //metadataTable.setGridColor(new java.awt.Color(getBackground().getRed(),getBackground().getBlue(),getBackground().getGreen(),0));
         metadataTable.setShowGrid(false);
         metadataTable.setIntercellSpacing(new java.awt.Dimension(0,0));
         
@@ -139,29 +146,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                    {
                        if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {
-                         if(DEBUG_LOCAL) 
-                         {
-                           System.out.println("metadata table header: mouse pressed" + evt);
-                           System.out.println("current at table header mouse press: " + MetadataEditor.this.current);
-                         }
-                         
-                         
-                         addNewRow();
-                         
-                         SwingUtilities.invokeLater(new Runnable(){
-                            public void run()
-                            {
-                              scroll.getVerticalScrollBar().setValue(scroll.getVerticalScrollBar().getMaximum());                              
-                            }
-                         });
-                         
+                         addNewRow();                         
                        }
                    }
        });
        
        metadataTable.addMouseListener(new java.awt.event.MouseAdapter()
        {
-          public void mouseClicked(java.awt.event.MouseEvent evt)
+          /*public void mouseClicked(java.awt.event.MouseEvent evt)
           {
              if(DEBUG_LOCAL)
              {
@@ -170,11 +162,24 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                        
              if(evt.getClickCount() == 2)
              {
-               /*int row = evt.getY()/metadataTable.getRowHeight();
-               ((MetadataTableModel)metadataTable.getModel()).setClickedTwice(row);
-               ((MetadataTableModel)metadataTable.getModel()).refresh();
-               metadataTable.repaint();*/
+               //int row = evt.getY()/metadataTable.getRowHeight();
+               //((MetadataTableModel)metadataTable.getModel()).setClickedTwice(row);
+               //((MetadataTableModel)metadataTable.getModel()).refresh();
+               //metadataTable.repaint();
              }
+          }*/
+           
+          public void mousePressed(java.awt.event.MouseEvent evt)
+          {
+              int row = metadataTable.rowAtPoint(evt.getPoint());
+              int lsr = ((MetadataTableModel)metadataTable.getModel()).lastSavedRow;
+              if(lsr != row)
+              {    
+                ((MetadataTableModel)metadataTable.getModel()).setSaved(lsr,true);  
+                ((MetadataTableModel)metadataTable.getModel()).lastSavedRow = -1;
+              }
+              ((MetadataTableModel)metadataTable.getModel()).refresh();
+              metadataTable.repaint();
           }
            
           public void mouseReleased(java.awt.event.MouseEvent evt)
@@ -192,21 +197,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                  requestFocusInWindow();
                }
              }
-
-                       if(DEBUG_LOCAL)
-                       {
-                           System.out.println("MetadataEditor: ClickCustomCategoryAddLocation(CC_ADD_LEFT) " +
-                                   getCustomCategoryAddLocation(CC_ADD_LEFT));
-                           System.out.println("MetadataEditor mouse pressed, x location: " + evt.getX());
-                       }
                                
                        if(getEventIsOverAddLocation(evt))
                        {
                            
-                           if(DEBUG_LOCAL)
-                           {
-                               System.out.println("MetadataEditor: Mouse pressed over custom add widget");
-                           }
                            
                            CategoryModel cats = tufts.vue.VUE.getCategoryModel();
                            
@@ -216,9 +210,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                           // if(((MetadataTableModel)metadataTable.getModel()).getCategoryFound(row))
                           //     return;
                            
-                           String category = metadataTable.getModel().getValueAt(
+                           String category = ((VueMetadataElement)(metadataTable.getModel().getValueAt(
                                                               row,
-                                                              0).toString();
+                                                              0))).getKey();
                            
                            int separatorLocation = category.indexOf(RDFIndex.ONT_SEPARATOR);
                            if(separatorLocation != -1)
@@ -229,7 +223,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                            cats.addCustomCategory(category);
                            cats.saveCustomOntology();
                            //((MetadataTableModel)metadataTable.getModel()).refresh();
-                           metadataTable.getCellEditor().stopCellEditing();
+                           if(metadataTable.getCellEditor() != null)
+                             metadataTable.getCellEditor().stopCellEditing();
                            metadataTable.repaint();
                        }
                    }
@@ -239,15 +234,15 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         metadataTable.setDefaultRenderer(Object.class,new MetadataTableRenderer());
         metadataTable.setDefaultEditor(Object.class, new MetadataTableEditor());
-        ((DefaultCellEditor)metadataTable.getDefaultEditor(java.lang.Object.class)).setClickCountToStart(1);
+        ((DefaultCellEditor)metadataTable.getDefaultEditor(java.lang.Object.class)).setClickCountToStart(2);
         
         metadataTable.setRowHeight(ROW_HEIGHT);
         metadataTable.getTableHeader().setReorderingAllowed(false);
         
-        scroll = new JScrollPane(metadataTable);
+        //scroll = new JScrollPane(metadataTable);
         //scroll.setOpaque(false);
-        scroll.setBackground(getBackground());
-        scroll.getViewport().setBackground(getBackground());
+        //scroll.setBackground(getBackground());
+        //scroll.getViewport().setBackground(getBackground());
         //System.out.println("MetadataEditor - scroll background: " + getBackground());
        /* metadataTable.addFocusListener(new FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent fe)
@@ -350,34 +345,34 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         metaPanel.add(controlPanel,BorderLayout.SOUTH);
         
-        ontologicalMembershipPane = new JPanel();
+        //ontologicalMembershipPane = new JPanel();
         
         //ontologicalMembershipPane.setAlignmentX(0.5f);
         
         //ontologicalMembershipPane.setLayout(new BoxLayout(ontologicalMembershipPane,BoxLayout.Y_AXIS));
         
-        ontologicalMembershipPane.setLayout(new BorderLayout());
-        ontologicalMembershipPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
-        ontologyTypeList = new JList(new OntologyTypeListModel());
-        JScrollPane ontologyListScroll = new JScrollPane(ontologyTypeList);
+        //ontologicalMembershipPane.setLayout(new BorderLayout());
+        //ontologicalMembershipPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5,5,5,5),BorderFactory.createLoweredBevelBorder()));
+        //ontologyTypeList = new JList(new OntologyTypeListModel());
+        //JScrollPane ontologyListScroll = new JScrollPane(ontologyTypeList);
         //ontologyListScroll.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
-        ontologyListScroll.getViewport().setOpaque(false);
-        JLabel membershipLabel = new JLabel("Ontological Membership: ");
-        membershipLabel.setFont(GUI.LabelFace);
-        ontologicalMembershipPane.add(membershipLabel,BorderLayout.NORTH);
+        //ontologyListScroll.getViewport().setOpaque(false);
+        //JLabel membershipLabel = new JLabel("Ontological Membership: ");
+        //membershipLabel.setFont(GUI.LabelFace);
+        //ontologicalMembershipPane.add(membershipLabel,BorderLayout.NORTH);
         //ontologicalMembershipPane.add(ontologyListScroll);
-        ontologicalMembershipPane.add(ontologyTypeList);
+        //ontologicalMembershipPane.add(ontologyTypeList);
         //ontologyListScroll.setAlignmentX(0.0f);
         //membershipLabel.setAlignmentX(0.0f);
         
         add(metaPanel,BorderLayout.NORTH);
         
-        if(showOntologicalMembership && current !=null && current.getMetadataList().getOntologyListSize() > 0)
-        {
+        //if(showOntologicalMembership && current !=null && current.getMetadataList().getOntologyListSize() > 0)
+        //{
           // this functionality is now in a seperate pane  
           //add(ontologicalMembershipPane/*,BorderLayout.SOUTH*/);
-          ontologicalMembershipVisible = true;
-        }
+          //ontologicalMembershipVisible = true;
+        //}
         
         // followAllActive needed for MapInspector
         if(followAllActive)
@@ -394,7 +389,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         MetadataList.addListener(this);
         
         setBorder(BorderFactory.createEmptyBorder(10,8,15,6));
-        scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        //scroll.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         
         validate();
     }
@@ -421,7 +416,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         }
         
         ((MetadataTableModel)metadataTable.getModel()).refresh();
-        ((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
+        //((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
         validate();
     }
     
@@ -546,28 +541,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
          }
         
-         if(current != null && current.getMetadataList().getOntologyListSize() > 0)
-         {
-             if(!ontologicalMembershipVisible)
-             {
-                // this functionality is now in a seperate pane
-                //add(ontologicalMembershipPane);
-                ontologicalMembershipVisible = true;
-             }
-         }
-         else
-         {
-             if(ontologicalMembershipVisible)
-             {
-                // this functionality is now in a seperate pane
-                //remove(ontologicalMembershipPane);
-                ontologicalMembershipVisible = false;
-             } 
-         }
+
          
+         // clear focus and saved information
+         ((MetadataTableModel)metadataTable.getModel()).clearGUIInfo();
          
          ((MetadataTableModel)metadataTable.getModel()).refresh();
-         ((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
+         //((OntologyTypeListModel)ontologyTypeList.getModel()).refresh();
         
          
          //adjustColumnModel();
@@ -629,10 +609,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
                boolean found = false;
         
-               if(DEBUG_LOCAL)
-               {
-                   System.out.println("MetadataEditor findCategory - " + currValue);
-               }
+               //if(DEBUG_LOCAL)
+               //{
+               //    System.out.println("MetadataEditor findCategory - " + currValue);
+               //}
         
                //Object currValue = table.getModel().getValueAt(row,col); //.toString();
                //System.out.println("Editor -- currValue: " + currValue);
@@ -677,10 +657,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     class MetadataTableRenderer extends DefaultTableCellRenderer
     {   
         
+       private JComboBox categories = new JComboBox(); 
+        
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
            JPanel comp = new JPanel();
-           JComboBox categories = new JComboBox();
+           //JComboBox categories = new JComboBox();
+           categories.setFont(GUI.LabelFace);
            categories.setModel(new CategoryComboBoxModel());
            categories.setRenderer(new CategoryComboBoxRenderer());
            
@@ -689,29 +672,31 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            {
                int n = categories.getModel().getSize();
                
-               if(current.getMetadataList().getMetadata().size() <= row)
+               /*if(current.getMetadataList().getMetadata().size() <= row)
                {
                    comp.add(categories);
                    return comp;
-               }
+               }*/
                
                
                Object currObject = current.getMetadataList().getMetadata().get(row).getObject();//table.getModel().getValueAt(row,col);
-               if(!(currObject instanceof String[]))
+               /*if(!(currObject instanceof String[]))
                {
                    comp.add(categories);
                    return comp;
-               }
+               }*/
                Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[0]);
                boolean found = findCategory(currValue,row,col,n,categories); 
               
                MetadataTableModel model = (MetadataTableModel)table.getModel();
                
-               if(found || model.getClickedTwice(row))
+               if((found) || !model.getIsSaved(row))//model.getClickedTwice(row))
                {    
                  model.setCategoryFound(row,true);  
                    
-                 if((((String[])currObject)[1]).length() == 0)  
+                 //if((((String[])currObject)[1]).length() == 0)
+                // if(model.getClickedTwice(row) || (((String[])currObject)[1]).length() == 0 )
+                 if(!model.getIsSaved(row) )//|| (((String[])currObject)[1]).length() == 0 )
                   comp.add(categories);
                  else
                  {
@@ -745,39 +730,74 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            else if(col == buttonColumn-1)
            {
-               if(value instanceof OntType)
-               {
-                 comp.add(new JLabel(((OntType)value).getLabel()));
-               }
-               else
+               //if(value instanceof OntType)
+               //{
+               //  comp.add(new JLabel(((OntType)value).getLabel()));
+               //}
+               //else
+               
+               boolean saved = ((MetadataTableModel)metadataTable.getModel()).getIsSaved(row);
+
+                   /*if(saved == true)
+                   //if(vme.getType() == VueMetadataElement.CATEGORY  
+                   //   && !vme.getValue().equals("") )
+                   {
+                     //comp.add(new JTextField(vme.getValue()));
+                     comp.add(new JLabel(value));
+                   }
+                   else //if(vme.getType() == VueMetadataElement.CATEGORY 
+                        //   && vme.getValue().equals("")
+                        //   && saved == fals)
+                   if(saved == false)
+                   {
+                     comp.add(new JTextField(value));
+                   }*/
+               
+               
                if(value instanceof VueMetadataElement)
                {
                    VueMetadataElement vme = (VueMetadataElement)value;
-                   if(vme.getType() == VueMetadataElement.CATEGORY  && !vme.getValue().equals(""))
+                   if(saved == true)
+                   //if(vme.getType() == VueMetadataElement.CATEGORY  
+                   //   && !vme.getValue().equals("") )
                    {
                      //comp.add(new JTextField(vme.getValue()));
-                     comp.add(new JLabel(vme.getValue()));
+                     JLabel custom = new JLabel(vme.getValue());
+                     custom.setFont(GUI.LabelFace);
+                     comp.add(custom);
                    }
-                   else if(vme.getType() == VueMetadataElement.CATEGORY && vme.getValue().equals("") )
+                   else //if(vme.getType() == VueMetadataElement.CATEGORY 
+                        //   && vme.getValue().equals("")
+                        //   && saved == fals)
+                   if(saved == false)
                    {
-                     comp.add(new JTextField(vme.getValue()));
+                     JTextField field = new JTextField(vme.getValue());
+                     field.setFont(GUI.LabelFace);
+                     comp.add(field);
                    }
-               }
+               } 
                else
                {
-                 if(value.toString().trim().equals(""))
-                 {
-                   JTextField field = new JTextField(value.toString());
-                   field.setFont(GUI.LabelFace);
-                   comp.add(field);  
-                 }
-                 else
-                 {
-                   JLabel label = new JLabel(value.toString());
-                   label.setFont(GUI.LabelFace);
-                   comp.add(label);
-                 }
+                   if(DEBUG_LOCAL)
+                   {
+                       System.out.println("MetadataEditor -- renderer for field not vme: " + value.getClass());
+                   }
                }
+               //else
+               //{
+               //  if(value.toString().trim().equals(""))
+               //  {
+               //    JTextField field = new JTextField(value.toString());
+               //    field.setFont(GUI.LabelFace);
+               //    comp.add(field);  
+               //  }
+               //  else
+               //  {
+               //    JLabel label = new JLabel(value.toString());
+               //    label.setFont(GUI.LabelFace);
+               //    comp.add(label);
+               //  }
+               //}
                  
            }
            else if(col == buttonColumn)               
@@ -796,25 +816,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            
            comp.setBorder(getMetadataCellBorder(row,col));
            
-           /*if(col != buttonColumn && row != metadataTable.getModel().getRowCount() - 1)
-           {    
-             comp.setBorder(BorderFactory.createCompoundBorder(
-                     BorderFactory.createMatteBorder(1,1,0,1,SAVED_KEYWORD_BORDER_COLOR),
-                     BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET)
-                     ));
-           }
-           else if(col != buttonColumn)
-           {
-             comp.setBorder(BorderFactory.createCompoundBorder(
-                     BorderFactory.createMatteBorder(1,1,1,1,SAVED_KEYWORD_BORDER_COLOR),
-                     BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET)
-                     ));  
-           }
-           else
-           {    
-             comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
-           }*/
-           
            return comp;
        } 
            
@@ -823,15 +824,100 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     class MetadataTableEditor extends DefaultCellEditor
     {   
         
+       // main entry point for editor interaction 
+       public boolean isCellEditable(java.util.EventObject object)
+       {
+           if(DEBUG_LOCAL)
+           {
+               //System.out.println("MetadataTableEditor cell editor isCellEditable -- source :" + object.getSource());
+               //System.out.println("MetadataTableEditor cell editor isCellEditable -- object :" + object);
+               
+               //if(object.getClass().getSuperclass() != null)
+               //{
+               //  System.out.println("MetadataTableEditor cell editor isCellEditable -- object super class :" + object.getClass().getSuperclass());
+               //}
+               
+               //if(object instanceof MouseEvent)
+               //{    
+               //  System.out.println("MetadataTableEditor cell editor isCellEditable -- row selected: " + 
+               //                       metadataTable.rowAtPoint(((MouseEvent)object).getPoint()));
+               //}
+ 
+           }
+
+           int row = -1;
+           
+           if(object instanceof MouseEvent)
+           {    
+                row = metadataTable.rowAtPoint(((MouseEvent)object).getPoint());
+           }
+           
+           //can get click count and then choose if editable or not -- thereby removing
+           // need for some of the visual components currently used.. (editors -- fake editor like looking
+           // renderers still needed
+           
+           
+           //and then set desired visual appearance -- avoid all the click
+           //info in the model -- maybe get saved info from model here too...
+           
+           if(object instanceof MouseEvent)
+           {    
+             MouseEvent event = (MouseEvent)object;
+             if(event.getClickCount() == 2 ) // || single click on visible renderer that looks like editor-- i.e.
+                     //"not saved" */ )
+             {    
+               ((MetadataTableModel)metadataTable.getModel()).setSaved(row,false);
+               int lsr = ((MetadataTableModel)metadataTable.getModel()).lastSavedRow;
+               if(lsr != row)
+               {    
+                 ((MetadataTableModel)metadataTable.getModel()).setSaved(lsr,true);
+               }
+               
+               ((MetadataTableModel)metadataTable.getModel()).refresh();
+               metadataTable.repaint();
+               
+               return true;
+             }
+             else if( row != -1 &&
+                      !(((MetadataTableModel)metadataTable.getModel()).getIsSaved(row)) )
+                      // really need "not saved" on row -for single click (not "value empty or anything like that"
+             {
+                 ((MetadataTableModel)metadataTable.getModel()).setSaved(row,false);
+                 return true;
+             }
+             else
+             {
+               return false;
+             }
+           }
+           else
+             return false;
+       }
+        
+        
        private JTextField field; 
-       private JComboBox categories;
+       //private JComboBox categories = new JComboBox();
+       //private JLabel categoryLabel = new JLabel();
+       //private JLabel notEditable = new JLabel();
+       //private JPanel comp = new JPanel();
+       
+       private int currentRow;
         
        public MetadataTableEditor()
        {
            super(new JTextField());
            field = (JTextField)getComponent();
-           //field.attachProperty(current, tufts.vue.LWKey.Notes);
-           //setClickCountToStart(1);
+           
+           //categories.setFont(GUI.LabelFace);
+           //categories.setModel(new CategoryComboBoxModel());
+           //categories.setRenderer(new CategoryComboBoxRenderer());
+
+           
+       }
+       
+       public int getRow()
+       {
+           return currentRow;
        }
        
        public void focusField()
@@ -839,19 +925,17 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            field.requestFocus();
        }
        
-       public void focusCombo()
+       /*public void focusCombo()
        {
-          // categories.requestFocus();
-           //categories.firePopupMenuWillBecomeVisible();
            categories.showPopup();
-       }
+       }*/
        
        public boolean stopCellEditing()
        {
-           if(DEBUG_LOCAL)
-           {
-               System.out.println("MetadataEditor MetadataTableEditor - stop cell editing - set previousCurrent to current");
-           }
+           //if(DEBUG_LOCAL)
+           //{
+           //    System.out.println("MetadataEditor MetadataTableEditor - stop cell editing - set previousCurrent to current");
+           //}
            previousCurrent = current;
            return super.stopCellEditing();
        } 
@@ -859,12 +943,15 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        public java.awt.Component getTableCellEditorComponent(final JTable table,final Object value,boolean isSelected,final int row,final int col)
        {
            final JTextField field = new JTextField();
-           categories = new JComboBox();
+           final JComboBox categories = new JComboBox();
+           categories.setFont(GUI.LabelFace);
            categories.setModel(new CategoryComboBoxModel());
            categories.setRenderer(new CategoryComboBoxRenderer());
            final JLabel categoryLabel = new JLabel();
            final JLabel notEditable = new JLabel();
            final JPanel comp = new JPanel();
+           
+           currentRow = row;
            
            notEditable.setFont(GUI.LabelFace);
            field.setFont(GUI.LabelFace);
@@ -873,6 +960,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            {
                System.out.println("MetadataEditor getTableCellEditorComponent -- about to add item listener -- ");
            }
+           
+           /*categories.addMouseListener(new MouseAdapter(){
+              public void mouseClicked(MouseEvent e)
+              {
+                  MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+                  model.setClickedTwice(row);
+              }
+           });*/
            
            categories.addItemListener(new ItemListener() 
            {
@@ -888,10 +983,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                    {   
                        if(e.getItem() instanceof edu.tufts.vue.metadata.gui.EditCategoryItem)
                        {
-                           if(DEBUG_LOCAL)
-                           {    
-                             System.out.println("MetdataEditor edit item selected: " + e);
-                           }
+                           //if(DEBUG_LOCAL)
+                           //{    
+                           //  System.out.println("MetdataEditor edit item selected: " + e);
+                           //}
                            //tufts.vue.gui.DockWindow ec = tufts.vue.gui.GUI.createDockWindow("Edit Categories", new CategoryEditor());
                            //ec.setBounds(475,300,300,250);
                            //ec.pack();
@@ -916,15 +1011,23 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                }
            });
            
-          /* categories.addFocusListener(new FocusAdapter(){
+           categories.addFocusListener(new FocusAdapter(){
                public void focusLost(java.awt.event.FocusEvent fe)
                {
-                   System.out.println("MetadataEditor - focus lost on categories drop down ");
-                   System.out.println("value: " + value);
-                   System.out.println("vme value " + table.getModel().getValueAt(row,buttonColumn - 1));
+                   //System.out.println("MetadataEditor - focus lost on categories drop down ");
+                   //System.out.println("value: " + value);
+                   //System.out.println("vme value " + table.getModel().getValueAt(row,buttonColumn - 1));
                    //table.getModel().setValueAt(vme,row,col);
+                   //((MetadataTableModel)metadataTable.getModel()).setClickedNone(row);
+                   
+                   
+                   MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+                   if(model.lastSavedRow != row)
+                   {    
+                     model.setSaved(row,true);
+                   }
                }
-           });*/
+           });
            
            categories.addItemListener(new java.awt.event.ItemListener(){
               public void itemStateChanged(java.awt.event.ItemEvent ie)
@@ -943,29 +1046,30 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                         return;
                     }
                       
-                    if(!(categories.getSelectedItem() instanceof OntType) || !(ie.getItem() instanceof OntType))
+                    /*if(!(categories.getSelectedItem() instanceof OntType) || !(ie.getItem() instanceof OntType))
                     {
                         if(DEBUG_LOCAL)
                         {
                             System.out.println("MetadataEditor -- non ontology category type selected " + categories.getSelectedItem().getClass());
                         }
                         return;
-                    }
+                    }*/
                     
-                    if(DEBUG_LOCAL)
-                    {
-                      OntType item = (OntType)(ie.getItem());//categories.getSelectedItem();  
+                    //if(DEBUG_LOCAL)
+                    //{
+                    //  OntType item = (OntType)(ie.getItem());//categories.getSelectedItem();  
                         
-                      System.out.println("MetadataEditor - categories item state changed: " + ie);
-                      System.out.println("MetadataEditor - category item base - " + item.getBase());
-                      System.out.println("MetadataEditor - category item label - " + item.getLabel());
+                    //  System.out.println("MetadataEditor - categories item state changed: " + ie);
+                    //  System.out.println("MetadataEditor - category item base - " + item.getBase());
+                    //  System.out.println("MetadataEditor - category item label - " + item.getLabel());
                       
-                      //System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
-                    }
+                      // //System.out.println("MetadataEditor -- textfield value: " + table.getModel().getValueAt(row,buttonColumn - 1));
+                    //}
                     VueMetadataElement vme = new VueMetadataElement();
                     
                     // was temporarily rolled back for search bug
-                    String[] keyValuePair = {((OntType)categories.getSelectedItem()).getBase()+"#"+((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
+                    String[] keyValuePair = {((OntType)categories.getSelectedItem()).getBase()+"#"+((OntType)categories.getSelectedItem()).getLabel(),
+                                               ((VueMetadataElement)table.getModel().getValueAt(row,buttonColumn - 1)).getValue()};
                     //old version:
                     //String[] keyValuePair = {((OntType)categories.getSelectedItem()).getLabel(),table.getModel().getValueAt(row,buttonColumn - 1).toString()};
                     
@@ -981,6 +1085,20 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                     {
                       current.getMetadataList().getMetadata().add(vme); 
                     }
+                    
+                    //MetadataTableModel model = ((MetadataTableModel)metadataTable.getModel());
+                    //model.setClickedNone(row);
+                    
+                  }
+              }
+           });
+           
+           field.addKeyListener(new java.awt.event.KeyAdapter(){
+              public void keyPressed(java.awt.event.KeyEvent e)
+              {
+                  if(e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER)
+                  {
+                      ((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
                   }
               }
            });
@@ -992,25 +1110,57 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   {
                       return;
                   }
+                 
+                  //$
+                  
+                    if(DEBUG_LOCAL)
+                    {
+                      Object editor = metadataTable.getCellEditor();
+                      
+                      MetadataTableEditor mte = null;
+                      
+                      System.out.println("MetadataEditor -- field focus lost -- CellEditor: " + 
+                                           editor);
+                      
+                      if(editor != null)
+                      {
+                          mte = (MetadataTableEditor)editor;
+                          System.out.println("MetadataEditor -- field focus lost -- CellEditor row: " + 
+                                           mte.getRow());
+                      }
+                      
+                      
+                    }
+                  
+                  
+                   MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+                   if(model.lastSavedRow != row)
+                   {    
+                     model.setSaved(row,true);
+                   }
+                  
+                    //((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
+                  //$
+                  
                   
                   //tufts.vue.UndoManager undo = tufts.vue.VUE.getActiveMap().getUndoManager();
                   //undo.mark("metadata value");
                   VUE.getActiveMap().markAsModified();
                   
-                  if(DEBUG_LOCAL)
-                  {
-                    System.out.println("metadata value change marked...");
-                    System.out.println("MetadataEditor focuslost row -- " + row);
-                    System.out.println("MetadataEditor focuslost current -- " + current);
-                    try
-                    {
-                      System.out.println("MetadataEditor focuslost opposite component " + fe.getOppositeComponent().getClass() );
-                    }
-                    catch(Exception e)
-                    {
-                      System.out.println("MetadataEditor debug -- exception in finding focus lost opposite component: " + e);
-                    }
-                  }
+                  //if(DEBUG_LOCAL)
+                  //{
+                  //  System.out.println("metadata value change marked...");
+                  //  System.out.println("MetadataEditor focuslost row -- " + row);
+                  //  System.out.println("MetadataEditor focuslost current -- " + current);
+                  //  try
+                  //  {
+                  //    System.out.println("MetadataEditor focuslost opposite component " + fe.getOppositeComponent().getClass() );
+                  //  }
+                  //  catch(Exception e)
+                  //  {
+                  //    System.out.println("MetadataEditor debug -- exception in finding focus lost opposite component: " + e);
+                  //  }
+                  //}
                   
                   if(fe!= null && fe.getOppositeComponent() == categories)
                   {
@@ -1021,11 +1171,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   
                   if(previousCurrent == null && current == null)
                   {
-                      if(DEBUG_LOCAL)
-                      {
-                          System.out.println("MetadataEditor - there was no previous current or current");
-                          System.out.println("exiting focusLost");
-                      }
+                      //if(DEBUG_LOCAL)
+                      //{
+                      //    System.out.println("MetadataEditor - there was no previous current or current");
+                      //    System.out.println("exiting focusLost");
+                      //}
                       return;
                   }
                   else
@@ -1056,7 +1206,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                       
                     //vme.setObject(field.getText());   
                   }
-                  else
+                  /*else
                   if(!(currentVME.getObject() instanceof String[]))
                   {
                     //vme.setObject(field.getText());
@@ -1065,7 +1215,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                      String[] emptyEntry = {NONE_ONT,""};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);
-                  }
+                  }*/
                   else
                   {
                     String[] obj = (String[])currentVME.getObject();  
@@ -1082,12 +1232,16 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                     metadata.add(vme); 
                   }
                   
-                  ((MetadataTableModel)metadataTable.getModel()).setClickedOnce(row);
+                  // only if this is not the currently selected ("editing"?) row...
+                  //((MetadataTableModel)metadataTable.getModel()).setClickedNone(row);
                      
                   current.layout();
                   
                   VUE.getActiveViewer().repaint();
                   
+                  // only if this is not the currently selected ("editing"?) -- only if not "saved"
+                  // (and can't be saved if empty info? just do in getter...)
+                  // row....
                   comp.remove(field);
                   comp.add(notEditable);
                   metadataTable.repaint();
@@ -1106,22 +1260,24 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                //int loc = 0;
                final int n = categories.getModel().getSize();
                
-               if(current.getMetadataList().getMetadata().size() <= row)
+               /*if(current.getMetadataList().getMetadata().size() <= row)
                {
                    comp.add(categories);
                    return comp;
-               }
+               }*/
 
                Object currObject = current.getMetadataList().getMetadata().get(row).getObject();//table.getModel().getValueAt(row,col);
-               if(!(currObject instanceof String[]))
+               /*if(!(currObject instanceof String[]))
                {
                    comp.add(categories);
                    return comp;
-               }
+               }*/
                final Object currValue = /*(edu.tufts.vue.ontology.OntType)*/(((String[])currObject)[0]);
                Object currFieldValue = (((String[])currObject)[1]);
                
-               if(currFieldValue.toString().length() != 0)
+               //if(currFieldValue.toString().length() != 0
+               //   && !((MetadataTableModel)table.getModel()).getClickedTwice(row))
+               if(false) /// with new isCellEditable()...
                {
                    String displayString = currValue.toString();
                    int nameIndex = displayString.indexOf("#");
@@ -1132,7 +1288,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                    //JLabel categoryLabel = new JLabel(displayString);
                    categoryLabel.setText(displayString);
                    
-                   categoryLabel.addMouseListener(new MouseAdapter(){
+                   // mouse listener -- replace to some extent with isCellEditable()
+                   /*categoryLabel.addMouseListener(new MouseAdapter(){
                     public void mouseClicked(MouseEvent me)
                     {
                         if(DEBUG_LOCAL)
@@ -1145,12 +1302,26 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                             comp.remove(categoryLabel);
                             findCategory(currValue,row,col,n,categories);
                             comp.add(categories);
+
                             //field.requestFocusInWindow();
-                            //((MetadataTableModel)table.getModel()).setClickedTwice(row);
+                            ((MetadataTableModel)table.getModel()).setClickedTwice(row);
+                            comp.setBorder(getMetadataCellBorder(row,col));
+                            //comp.setBorder(getMetadataCellBorder(row,col));
                             ((MetadataTableModel)table.getModel()).refresh();
+                            metadataTable.repaint();
                         }
+                        if(me.getClickCount() == 1)
+                        {
+                            if(!((MetadataTableModel)table.getModel()).getClickedTwice(row))
+                              ((MetadataTableModel)table.getModel()).setClickedOnce(row);
+                        }
+                        
+                        comp.setBorder(getMetadataCellBorder(row,col));
+                        ((MetadataTableModel)table.getModel()).refresh();
+                        metadataTable.repaint();
+                        
                     }
-                   });
+                   }); */ // mouse listener
                //}
                    
                    //categoryLabel.setText(displayString);
@@ -1168,37 +1339,23 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                      comp.add(categoryLabel);
                    }    
                    comp.setBorder(getMetadataCellBorder(row,col));
+                   
+                                               //comp.setBorder(getMetadataCellBorder(row,col));
+                            //comp.setBorder(getMetadataCellBorder(row,col));
+                            ((MetadataTableModel)table.getModel()).refresh();
+                            metadataTable.repaint();
+                   
                    return comp;
                }
                findCategory(currValue,row,col,n,categories); 
                
-               /*
-               //System.out.println("Editor -- currValue: " + currValue);
-               for(int i=0;i<n;i++)
-               {
-                   System.out.println("MetadataTable looking for category currValue: " + currValue);
-                   System.out.println("MetadataTable looking for category model element at " + i + " " +
-                           categories.getModel().getElementAt(i));
-                   
-                   Object item = categories.getModel().getElementAt(i);
-                   String currLabel = "";
-                   if(currValue instanceof OntType)
-                       currLabel = ((OntType)currValue).getLabel();
-                   else
-                       currLabel = currValue.toString();
-                   
-                   if(item instanceof OntType)
-                     System.out.println("MetadataTable looking at category model OntType element at " + i + " " +
-                           ((OntType)item).getLabel());
-                   
-                   if(item instanceof OntType &&
-                           ((OntType)item).getLabel().equals(currLabel))
-                   {
-                       //System.out.println("found category");
-                       categories.setSelectedIndex(i);
-                   }
-               }*/
+
                comp.add(categories);
+               
+               comp.setBorder(getMetadataCellBorder(row,col));
+               //comp.setBorder(getMetadataCellBorder(row,col));
+               ((MetadataTableModel)table.getModel()).refresh();
+               metadataTable.repaint();
            }
            else
            if(col == (buttonColumn - 1))
@@ -1210,7 +1367,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                  VueMetadataElement vme = (VueMetadataElement)value;
                  field.setText(vme.getValue());
                }
-               if(((MetadataTableModel)table.getModel()).getClickedTwice(row) || value.toString().equals(""))
+               //if(((MetadataTableModel)table.getModel()).getClickedTwice(row) || value.toString().equals(""))
+               if(true) // new isCellEditable stuff
                {
                  comp.add(field);
                }
@@ -1219,7 +1377,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                  //final JLabel notEditable = new JLabel(field.getText() + "test");  
                  notEditable.setText(field.getText());
                  comp.add(notEditable);
-                 notEditable.addMouseListener(new MouseAdapter(){
+                 /*notEditable.addMouseListener(new MouseAdapter(){
                     public void mouseClicked(MouseEvent me)
                     {
                         if(DEBUG_LOCAL)
@@ -1232,11 +1390,21 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                             comp.remove(notEditable);
                             comp.add(field);
                             field.requestFocusInWindow();
-                            ((MetadataTableModel)table.getModel()).setClickedTwice(row);
+                            //((MetadataTableModel)table.getModel()).setClickedTwice(row);
+                            ((MetadataTableModel)table.getModel()).setSaved(row,false);
                             ((MetadataTableModel)table.getModel()).refresh();
+                            metadataTable.repaint();
                         }
+                        //if(me.getClickCount() == 1)
+                        //{
+                        //    ((MetadataTableModel)table.getModel()).setClickedOnce(row);
+                        //}
+                        
+                        comp.setBorder(getMetadataCellBorder(row,col));
+                        ((MetadataTableModel)table.getModel()).refresh();
+                        //metadataTable.repaint();
                     }
-                 });
+                 }); */ // mouse listener -- replacing with isCellEditable perhaps..
                }
            }
            else if(col ==  buttonColumn)               
@@ -1247,7 +1415,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            
            comp.setOpaque(false);
-           //comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
            comp.setBorder(getMetadataCellBorder(row,col));
            
            if(LIMITED_FOCUS)
@@ -1265,6 +1432,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            //comp.setOpaque(true);
            //comp.setBackground(java.awt.Color.RED);
            
+           //field.setFont(GUI.LabelFace);
+           
+           comp.setBorder(getMetadataCellBorder(row,col));
            return comp;
        }
        
@@ -1272,17 +1442,108 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     public Border getMetadataCellBorder(int row,int col)
     {
-      Border border = BorderFactory.createEmptyBorder();
-      Border insetBorder = BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET);
-      Border fullBox = BorderFactory.createMatteBorder(1,1,1,1,SAVED_KEYWORD_BORDER_COLOR);
-      Border verticalFollowingBox = BorderFactory.createMatteBorder(1,1,0,1,SAVED_KEYWORD_BORDER_COLOR);
-      Border leftLeadingFullBox = BorderFactory.createMatteBorder(1,1,1,0,SAVED_KEYWORD_BORDER_COLOR);
-      Border leftLeadingVerticalFollowingBox = BorderFactory.createMatteBorder(1,1,0,0,SAVED_KEYWORD_BORDER_COLOR);
+
+      
+      if(col == buttonColumn)
+          return insetBorder;
+      
+      MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+      
+      boolean saved = model.getIsSaved(row);
+      
+      if(saved)
+      {
+          boolean aboveSaved = false;
+          
+          if(row > 0)
+              aboveSaved = model.getIsSaved(row - 1);
+          else if(row == -1)
+              aboveSaved = false;
+          
+          boolean belowSaved = false;
+          
+          if(row < model.getRowCount()/* && row > 0 */)
+            belowSaved = model.getIsSaved(row + 1);
+          else if(row == model.getRowCount() - 1 && row > 0)
+            belowSaved = false;
+          
+          if(col == buttonColumn -1 )
+          {    
+            if(!aboveSaved && !belowSaved)
+            {    
+              return BorderFactory.createCompoundBorder(fullBox,insetBorder);
+            }
+            else if(!aboveSaved && belowSaved)
+            {
+              return BorderFactory.createCompoundBorder(verticalFollowingBox,insetBorder);
+            }
+            else if(aboveSaved && !belowSaved)
+            {
+              return BorderFactory.createCompoundBorder(fullBox,insetBorder);
+            }
+            else if(aboveSaved && belowSaved)
+            {
+              return BorderFactory.createCompoundBorder(verticalFollowingBox,insetBorder);
+            }
+          }
+          else
+          {
+            if(!aboveSaved && !belowSaved)
+            {    
+              return BorderFactory.createCompoundBorder(leftLeadingFullBox,insetBorder);
+            }
+            else if(!aboveSaved && belowSaved)
+            {
+              return BorderFactory.createCompoundBorder(leftLeadingVerticalFollowingBox,insetBorder);
+            }
+            else if(aboveSaved && !belowSaved)
+            {
+              return BorderFactory.createCompoundBorder(leftLeadingFullBox,insetBorder);
+            }
+            else if(aboveSaved && belowSaved)
+            {
+              return BorderFactory.createCompoundBorder(leftLeadingVerticalFollowingBox,insetBorder);
+            }
+          }    
+      }
+      
+      return insetBorder;
         
-      if(col != buttonColumn &&  
+      /*if(col == buttonColumn)
+          return insetBorder;
+      
+      if(metadataTable.getSelectedRow() != row ||
+               ((MetadataTableModel)metadataTable.getModel()).getClickedTwice(row))
+          return BorderFactory.createCompoundBorder(fullBox,insetBorder);
+      
+      return insetBorder;*/
+        
+      /*if(col == buttonColumn || 
+                (
+                  ((MetadataTableEditor)metadataTable.getCellEditor()) != null && 
+                  ((MetadataTableEditor)metadataTable.getCellEditor()).getRow() == row 
+                  && !((MetadataTableModel)metadataTable.getModel()).getClickedOnce(row)
+                  && !((MetadataTableModel)metadataTable.getModel()).getClickedNone(row)
+                ) ||
+                  //((MetadataTableModel)metadataTable.getModel()).getValueAt(row,col).toString().length() == 0
+                  current.getMetadataList().getMetadata().get(row).getValue().length() == 0
+                ||
+                 ((MetadataTableModel)metadataTable.getModel()).getClickedTwice(row)
+        )
+          return insetBorder;
+      else
+          return BorderFactory.createCompoundBorder(fullBox,insetBorder); */
+      
+      /*if(col != buttonColumn &&  
               (
-                row != metadataTable.getModel().getRowCount() - 1 
-                && row != metadataTable.getModel().getRowCount() - 2 
+                (
+                  row != metadataTable.getModel().getRowCount() - 1 
+                  && row != metadataTable.getModel().getRowCount() - 2 
+                )
+                !(
+                  ((MetadataTableEditor)metadataTable.getCellEditor()) != null && 
+                  ((MetadataTableEditor)metadataTable.getCellEditor()).getRow() == row
+                )
               )
         )
       {    
@@ -1295,7 +1556,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
           border = BorderFactory.createCompoundBorder(verticalFollowingBox,insetBorder);
         }
       }
-      else if(col != buttonColumn && (row == metadataTable.getModel().getRowCount() - 2 )  )
+      else if( (col != buttonColumn ) 
+               &&
+                !(
+                  ((MetadataTableEditor)metadataTable.getCellEditor()) != null && 
+                  ((MetadataTableEditor)metadataTable.getCellEditor()).getRow() == row
+                )
+      
+             )
       {
         if(col == buttonColumn - 2)
         {
@@ -1311,7 +1579,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         border = insetBorder;
       }
         
-       return border;
+       return border; */
      }
     
     /**
@@ -1321,14 +1589,45 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
      **/
     class MetadataTableModel extends AbstractTableModel
     {
-         // this is only the default, hopefully any changes to column model
-         // in future will be heard here and reflected in this data
-         // (there will be 3 columns for "advanced view"
+         //default:
          private int cols = 2;
          
          private java.util.ArrayList<Boolean> categoryIncluded = new java.util.ArrayList<Boolean>();
          private java.util.HashMap<Integer,Integer> rowClicks = new java.util.HashMap<Integer,Integer>();
+         private java.util.ArrayList<Boolean> saved = new java.util.ArrayList<Boolean>();
         
+         //on focus lost
+         private int lastFocus = -1;
+         //on focus gained
+         private int currentFocus = -1;
+         
+         //private int selectedRow = -1;
+         private int lastSavedRow = -1;
+         
+         public void clearGUIInfo()
+         {
+             // actually if current!=null should probably fill saved with TRUES up 
+             // to row count
+             saved = new java.util.ArrayList<Boolean>();
+             
+             for(int i=0;i<getRowCount();i++)
+             {
+                 saved.add(Boolean.TRUE);
+             }
+             
+             lastFocus = currentFocus = -1;
+         }
+         
+         private void setWasFocused(int row)
+         {
+             lastFocus = row;
+         }
+         
+         private void setIsFocused(int row)
+         {
+             currentFocus = row;
+         }
+         
          public void setClickedTwice(int row)
          {
             rowClicks.put(new Integer(row),new Integer(2));
@@ -1339,9 +1638,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
             rowClicks.put(new Integer(row),new Integer(1));
          }
          
-         public boolean getClickedTwice(int row)
+         public void setClickedNone(int row)
          {
-             if(rowClicks.get(new Integer(row)) == null || rowClicks.get(new Integer(row)).equals(new Integer(1)))
+            rowClicks.put(new Integer(row),new Integer(0));
+         }
+         
+         public boolean getClickedOnce(int row)
+         {
+             if(rowClicks.get(new Integer(row)) == null || !rowClicks.get(new Integer(row)).equals(new Integer(1)))
              {
                  return false;
              }
@@ -1350,6 +1654,64 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                  return true;
              }
                
+         }
+         
+         public boolean getClickedTwice(int row)
+         {
+             if(rowClicks.get(new Integer(row)) == null || !rowClicks.get(new Integer(row)).equals(new Integer(2)))
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+               
+         }
+         
+         public boolean getClickedNone(int row)
+         {
+             if(rowClicks.get(new Integer(row)) == null || !rowClicks.get(new Integer(row)).equals(new Integer(0)))
+             {
+                 return false;
+             }
+             else
+             {
+                 return true;
+             }
+               
+         }
+         
+         public boolean getIsSaved(int row)
+         {
+            try
+            {  
+              return Boolean.parseBoolean(saved.get(row).toString()) && 
+                       ((VueMetadataElement)getValueAt(row,buttonColumn -1)).getValue().length() != 0;
+            }
+            catch(Exception e)
+            {
+              return Boolean.FALSE;
+            }
+         }
+         
+         public void setSaved(int row,boolean isSaved)
+         {
+             
+             if(row == -1)
+                 return;
+             
+             if(saved.size() <= row)
+             {
+                 //for(int i = saved.size();i<row + 1;i++)
+                 for(int i = 0;i<row-saved.size() + 1;i++)
+                 {
+                     saved.add(Boolean.TRUE);
+                 }
+             } 
+             
+            saved.set(row,Boolean.valueOf(isSaved));
+            lastSavedRow = row;
          }
          
          public boolean getCategoryFound(int row)
@@ -1433,7 +1795,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
              if(current == null)
                  return "null";
              
-             if(column == buttonColumn - 2)
+             java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();
+             while(list.size() < row + 1)
+               addNewRow();
+             
+             //if(col == )
+             return current.getMetadataList().getMetadata().get(row);
+             
+             /*if(column == buttonColumn - 2)
              {
                 java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();  
                 MetadataList.CategoryFirstList cfList = (MetadataList.CategoryFirstList)list;
@@ -1475,22 +1844,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                MetadataList.CategoryFirstList cfList = (MetadataList.CategoryFirstList)list;
                if(row!=0 || cfList.getCategoryEndIndex() > 0)  
                {
-                 /*if(list.size() == 0)
-                 {
-                   VueMetadataElement vme = new VueMetadataElement();
-                   String[] emptyEntry = {NONE_ONT,""};
-                   vme.setObject(emptyEntry);
-                   vme.setType(VueMetadataElement.CATEGORY);
-                   current.getMetadataList().getMetadata().add(vme);
-                   return vme;
-                 }*/
                  VueMetadataElement ele = list.get(row);
-                 /*if(ele.getObject()!=null)
-                 {    
-                   return ele.getObject();
-                 }
-                 else
-                 {*/
                    if(ele.getType() == VueMetadataElement.ONTO_TYPE)
                    {
                       OntType type = new OntType();
@@ -1530,43 +1884,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
              else
              {
                return "delete button";
-             }
+             } */
          }
          
          public void setValueAt(Object value,int row, int column)
          {
-             
-             //System.out.println("MetadataEditor setValueAt -- value class -- " + value.getClass());
-             //System.out.println("MetadataEditor setValueAt -- value -- " + value);
-             
-             /*
-             
-             if(row == (buttonColumn - 2))
-             {
-                   
-             }
-             if(row == (buttonColumn - 1))
-             {
-                 
-             }
-             
-             if(current.getMetadataList().getMetadata().size() > row)
-             {
-               if(value instanceof String)
-                 current.getMetadataList().getMetadata().get(row).setObject(value);
-               if(value instanceof VueMetadataElement)  
-                 current.getMetadataList().getMetadata().set(row,(VueMetadataElement)value);
-             }
-             else
-             {
-               VueMetadataElement vme = new VueMetadataElement();
-               if(value instanceof VueMetadataElement)    
-                 vme.setObject(((VueMetadataElement)value).getObject());
-               else 
-                 vme.setObject(value);
-               current.getMetadataList().getMetadata().add(vme);
-             }
-             fireTableDataChanged(); */
+             //fireTableDataChanged(); 
          }
          
          public void refresh()
@@ -1574,43 +1897,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
              fireTableDataChanged();
          }
          
-    }
-    
-    class OntologyTypeListModel extends DefaultListModel
-    {
-        /*public void removeListDataListener(ListDataListener l)
-        {
-            
-        }
-        
-        public void addListDataListener(ListDataListener l)
-        {
-            
-        }*/
-        
-        public Object getElementAt(int i)
-        {
-            Object ele = current.getMetadataList().getOntologyListElement(i).getObject();
-            if(ele != null && ele instanceof OntType)
-                return ((OntType)ele).getLabel();
-            else if(ele != null)
-                return ele.toString();
-            else
-                return "";
-        }
-        
-        public int getSize()
-        {
-            if(current !=null)
-              return current.getMetadataList().getOntologyListSize();
-            else
-              return 0;
-        }
-        
-        public void refresh()
-        {
-             fireContentsChanged(this,0,getSize());
-        }
     }
     
 }
