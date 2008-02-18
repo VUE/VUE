@@ -47,7 +47,7 @@ import tufts.vue.gui.GUI;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = true;
+    private static final boolean DEBUG_LOCAL = false;
     
     public final static String CC_ADD_LOCATION_MESSAGE = "<html> Click [+] to add this <br> custom category to your own list. </html>";
     
@@ -1242,8 +1242,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   // only if this is not the currently selected ("editing"?) -- only if not "saved"
                   // (and can't be saved if empty info? just do in getter...)
                   // row....
-                  comp.remove(field);
-                  comp.add(notEditable);
+                  //comp.remove(field);
+                  //comp.add(notEditable);
                   metadataTable.repaint();
               }
               
