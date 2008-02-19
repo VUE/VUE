@@ -154,10 +154,17 @@ abstract public class Ontology {
             type.setBase(base);
             type.setComment(c.getComment(null));
             Style style;
-            if(c instanceof OntClass)
+            
+            // disable for now, see VUE-866 reapplying style without rereading
+            // ontology loses this styling information
+            /*if(c instanceof OntClass)
                 style = NodeStyle.DEFAULT_NODE_STYLE;
             else
-                style = edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE;
+                style = edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE;*/
+            
+            // just default to node for now (as is done in case of no style
+            // found for consistency --- again see VUE-866)
+            style = NodeStyle.DEFAULT_NODE_STYLE;
             type.setStyle(style);
             types.add(type);
             
