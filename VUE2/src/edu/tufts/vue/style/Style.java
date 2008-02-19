@@ -295,7 +295,7 @@ public abstract class Style {
     }
     
     public static final Style getDefaultStyle() {
-        return LinkStyle.DEFAULT_LINK_STYLE;
+        return NodeStyle.DEFAULT_NODE_STYLE;
     }
     public String toString() {
         return attributes == null ? "null" : attributes.toString();
