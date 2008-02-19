@@ -119,9 +119,20 @@ public class OntologyViewer extends javax.swing.JPanel implements MouseListener{
             		}
             	}
             	if (enabledCount == 0)
+                {
             		  VueToolbarController.getController().hideOntologicalTools();
+                          edu.tufts.vue.metadata.ui.OntologicalMembershipPane
+                                  .getGlobal().disableOrEnableAddButton(false);
+                }
             	else
+                {
             		  VueToolbarController.getController().showOntologicalTools();
+                          if(!(OntologyBrowser.getBrowser().getSelectedOntology() == null))
+                          {
+                            edu.tufts.vue.metadata.ui.OntologicalMembershipPane
+                                  .getGlobal().disableOrEnableAddButton(true);
+                          }
+                }
                 w.validate();
             	ontologyList.repaint();
             }

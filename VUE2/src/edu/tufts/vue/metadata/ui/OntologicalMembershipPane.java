@@ -152,6 +152,12 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
         OntologyBrowser.getBrowser().addOntologySelectionListener(this);
     }
     
+    public void disableOrEnableAddButton(boolean disable)
+    {
+        addSelectedTerm.setEnabled(disable);
+        repaint();
+    }
+    
     public void ontologySelected(OntologySelectionEvent ose)
     {
         if(OntologyBrowser.getBrowser().getSelectedOntology() == null)
