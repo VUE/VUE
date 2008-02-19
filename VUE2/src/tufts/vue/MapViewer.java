@@ -42,6 +42,8 @@ import java.util.*;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import edu.tufts.vue.metadata.action.SearchAction;
 import edu.tufts.vue.ontology.ui.TypeList;
@@ -72,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.510 $ / $Date: 2008-02-12 21:39:54 $ / $Author: mike $ 
+ * @version $Revision: 1.511 $ / $Date: 2008-02-19 19:54:10 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3806,8 +3808,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         formatAction.setTitle("Format");      
         sMultiPopup.add(formatBox);
         //end Format Box
+        final JMenu extendMenu = new JMenu("Extend");
         
         sMultiPopup.add(GUI.buildMenu("Align", Actions.ARRANGE_MENU_ACTIONS));        
+        sMultiPopup.add(GUI.buildMenu(extendMenu, Actions.EXTEND_MENU_ACTIONS));
+        LWSelection selection = VUE.getSelection();
+		
+        if (selection.size() > 1 && selection.countTypes(LWLink.class) ==0)
+		{
+			extendMenu.setEnabled(true);
+		}
+		else
+		{
+			extendMenu.setEnabled(false);
+		}
+		
         JMenu arrangeMenu = new JMenu("Arrange");
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
@@ -4221,15 +4236,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private static JPopupMenu sMapPopup;
     private JPopupMenu getMapPopup() {
+    	
         if (sMapPopup == null) {
             sMapPopup = new JPopupMenu("Map Menu");
    
             GUI.addToMenu(sMapPopup, Actions.NEW_OBJECT_ACTIONS);
             sMapPopup.addSeparator();
+            
             sMapPopup.add(Actions.ZoomFit);
             sMapPopup.add(Actions.ZoomActual);
             sMapPopup.add(Actions.ToggleFullScreen);
-            sMapPopup.addSeparator();
+            sMapPopup.addSeparator();            
+            sMapPopup.add(Actions.Paste);
             sMapPopup.add(Actions.SelectAll);
             sMapPopup.add(new VueAction(VueResources.getString("mapViewer.mapMenu.info.label")) {
                     public void act() { /*GUI.makeVisibleOnScreen(this, MapInspectorPanel.class);*/

@@ -1902,7 +1902,11 @@ public class Actions implements VueConstants
         }
     };
     
-    
+   
+    public static final Action[] EXTEND_MENU_ACTIONS = {
+    	  FillWidth,
+          FillHeight
+    };
     /** Helper for menu creation.  Null's indicate good places
      * for menu separators. */
     public static final Action[] ARRANGE_MENU_ACTIONS = {
@@ -1913,10 +1917,7 @@ public class Actions implements VueConstants
         null,
         AlignCentersRow,
         AlignCentersColumn,
-        null,
-        FillWidth,
-        FillHeight,
-        null,
+        null,    
         MakeRow,
         MakeColumn,
         null,
