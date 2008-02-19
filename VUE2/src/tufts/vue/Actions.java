@@ -1184,9 +1184,24 @@ public class Actions implements VueConstants
             	{
             		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
             		VUE.setActive(LWMap.class, this, VUE.getActiveMap());
+            		/*ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),
+                            zoomBounds,
+                            0,
+                            false);
+                            */
+            		ZoomTool.setZoom(zoomFactor);
+            		if (originOffset != null)
+            			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+            		VUE.getReturnToMapButton().setVisible(false);
             	}
             	else
             	{
+            		if (!(VUE.getActiveViewer().getFocal() instanceof LWSlide))
+            		{
+            			zoomFactor = VUE.getActiveViewer().getZoomFactor();
+            			VUE.getReturnToMapButton().setVisible(true);
+            			originOffset=VUE.getActiveMap().getUserOrigin();
+            		}
             		VUE.getActiveViewer().loadFocal(masterSlide);
             		 // update inspectors (optional -- may not actually want to do this, but
                     // currently required if you want up/down arrows to subsequently navigate
@@ -1207,17 +1222,18 @@ public class Actions implements VueConstants
 //     		((LWSlide)c).getPathwayEntry().pathway.getMasterSlide().doZoomingDoubleClick(mme);
     	}
     };
-    
+
+	private static double zoomFactor =0;  
+	private static Point2D originOffset = null;
+
     public static final LWCAction EditSlide = new LWCAction("Edit slide")
     {
-    	double zoomFactor =0;  
-    	Point2D point = null;
     	public void act(LWSlide slide)
     	{
             //final LWSlide masterSlide = slide.getPathwayEntry().pathway.getMasterSlide();
     		if (VUE.getActiveViewer() != null)
             {
-            	if (VUE.getActiveViewer().getFocal().equals(slide))
+            	if (VUE.getActiveViewer().getFocal().equals(slide) || VUE.getActiveViewer().getFocal() instanceof MasterSlide)
             	{
             		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
             		VUE.setActive(LWMap.class, this, VUE.getActiveMap());
@@ -1227,8 +1243,9 @@ public class Actions implements VueConstants
                             false);
                             */
             		ZoomTool.setZoom(zoomFactor);
-            		VUE.getActiveViewer().setMapOriginOffset(point.getX(), point.getY());
-            		
+            		if (originOffset != null)
+            			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+            		VUE.getReturnToMapButton().setVisible(false);
             		//ZoomTool.setZoom(zoomFactor);
             	    
 
@@ -1237,10 +1254,10 @@ public class Actions implements VueConstants
             	else
             	{
             		zoomFactor = VUE.getActiveViewer().getZoomFactor();
-            		 
-            		 point=VUE.getActiveMap().getUserOrigin();
+            		VUE.getReturnToMapButton().setVisible(true);
+            		 originOffset=VUE.getActiveMap().getUserOrigin();
             		//VUE.getActiveViewer().getO
-            		//point = VUE.getActiveViewer().get
+            		//originOffset = VUE.getActiveViewer().get
             		//zoomBounds = VUE.getActiveViewer().getDisplayableMapBounds();
             		VUE.getActiveViewer().loadFocal(slide);
             		

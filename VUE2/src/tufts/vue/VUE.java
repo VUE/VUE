@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.516 $ / $Date: 2008-01-18 03:44:00 $ / $Author: mike $ 
+ * @version $Revision: 1.517 $ / $Date: 2008-02-19 18:23:23 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -103,7 +103,8 @@ public class VUE
     private static FloatingZoomPanel floatingZoomPanel; 
     private static PathwayPanel pathwayPanel = null;
     private static MapInspectorPanel mapInspectorPanel = null;
-
+    private static JButton returnToMapButton = null;
+    
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
     private static final class HolderCM {
         static final edu.tufts.vue.metadata.CategoryModel _CategoryModel = new edu.tufts.vue.metadata.CategoryModel();
@@ -119,7 +120,11 @@ public class VUE
     public static edu.tufts.vue.rdf.RDFIndex getRDFIndex() {
         return SKIP_RDF_INDEX ? null : HolderRDFIndex._RDFIndex;
     }
-
+    public static JButton getReturnToMapButton()
+    {
+    	return returnToMapButton;
+    }
+    
    
     /** active pathway handler -- will update active pathway-entry handler if needed */
     private static final ActiveInstance<LWPathway>
@@ -912,17 +917,30 @@ public class VUE
         DockWindow toolbarDock = null;
 
         final JComponent toolbar;
+        final JPanel toolbarPanel = new JPanel();
         
         if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
             toolbar = tbc.getToolbar();
         else
             toolbar = tbc.getToolbar().getMainToolbar();
-
-
+        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT);
+        flowLayout.setVgap(0);
+        //toolbarPanel.
+        toolbarPanel.setLayout(flowLayout);
+        toolbarPanel.add(toolbar);
+        returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));
+        returnToMapButton.addActionListener(new ActionListener(){
+        	public void actionPerformed(ActionEvent e)
+        	{
+        		Actions.EditSlide.act();
+        	}
+        });
+        returnToMapButton.setVisible(false);
+        toolbarPanel.add(returnToMapButton);
         if (ToolbarAtTopScreen) {
             toolbarDock = GUI.createToolbar("Toolbar", toolbar);
         } else {
-            ApplicationFrame.addComp(toolbar, BorderLayout.NORTH);
+            ApplicationFrame.addComp(toolbarPanel, BorderLayout.NORTH);
         }
         
         if (DEBUG.INIT) out("created ToolBar");
