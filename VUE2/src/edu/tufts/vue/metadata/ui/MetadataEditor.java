@@ -1477,7 +1477,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
              while(list.size() < row + 1)
                addNewRow();
              
-             return current.getMetadataList().getMetadata().get(row);
+             return current.getMetadataList().getCategoryListElement(row);
          }
          
          public void setValueAt(Object value,int row, int column)
