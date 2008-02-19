@@ -1061,7 +1061,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   
                   VueMetadataElement currentVME = null;
                   
-                  if(metadata.size() > 0)
+                  if(current.getMetadataList().getCategoryListSize() > 0)
                    currentVME = metadata.get(row);
                   
                   VueMetadataElement vme = new VueMetadataElement();
@@ -1070,7 +1070,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   if(currentVME==null)
                   {
                                //VueMetadataElement vme = new VueMetadataElement();
-                     String[] emptyEntry = {NONE_ONT,""};
+                     String[] emptyEntry = {NONE_ONT,field.getText()};
                      vme.setObject(emptyEntry);
                      vme.setType(VueMetadataElement.CATEGORY);  
                       
@@ -1094,7 +1094,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                     vme.setObject(pairedValue);
                   }
                   //table.getModel().setValueAt(vme,row,col);
-                  if(metadata.size() > (row))
+                  if(current.getMetadataList().getCategoryListSize() > (row))
                   {
                     metadata.set(row,vme);
                   }
@@ -1478,6 +1478,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                addNewRow();
              
              return current.getMetadataList().getCategoryListElement(row);
+             //return current.getMetadataList().getMetadata().get(row);
          }
          
          public void setValueAt(Object value,int row, int column)
