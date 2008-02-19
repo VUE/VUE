@@ -11,47 +11,160 @@
    Syntax recommendation http://www.w3.org/TR/REC-CSS2/
 */
 
-link.isPartOf { 
-    stroke-width: 1px; 
-    	font-family: "Gill Sans", Arial, Helvetica, sans-serif;
-	font-size: 16.0px; 
-	font-color: #FF0000; 
-	font-style: italic; 
-        font-weight: bold;
-        vue-head: 10px;
-}
-
-link.hasPart { 
-    font-family: sans-serif;
-    font-size: 20.0pt;
-    stroke-width: 1px; vue-head: 10px;
-}
-
 link.isDerivationOf { 
-    font-weight: bold;
-    stroke-width: 2px; font-size: 20px; vue-head: 11px;
-}
-
-link.hasDerivation { 
-    stroke-width: 2px; font-size: 20px; vue-head: 11px;
-}
-
-link.isDependentOf { 
-    stroke-width: 3px; font-size: 10px; vue-head: ARROW_HEAD;
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
 }
 
 link.hasDependent { 
-    stroke-width: 3px; font-size: 10px; vue-head: 12px;
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.HasMetadata { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isPartOf { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.HasAnnotation { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.hasMember { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.hasCollectionMember { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.hasSubset { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
 }
 
 link.isDescriptionOf { 
-    stroke-width: 4px; font-size: 11px; vue-head: 12px;
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
 }
 
-link.hasDescription { 
-    stroke-width: 4px; font-size: 11px; vue-head: 12px;
+link.HasDescription { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isMemberOfCollection { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.hasPart { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.hasConstituent { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isDependentOf { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isMetadataFor { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isConstituentOf { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.fedoraRelationship { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isMemberOf { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isSubsetOf { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.hasDerivation { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
+}
+
+link.isAnnotationOf { 
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
 }
 
 link.hasEquivalent { 
-    stroke-width: 5px; font-size: 12px; vue-head: 13px;
+        stroke-width: 1px; 
+	font-size: 11.0px; 
+	font-color: #333333;
+        border-color: #999999; 
 }
+
+
+
+
