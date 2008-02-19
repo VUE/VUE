@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.396 $ / $Date: 2008-01-31 21:57:46 $ / $Author: sfraize $
+ * @version $Revision: 1.397 $ / $Date: 2008-02-19 16:27:31 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -5930,7 +5930,14 @@ u                    getSlot(c).setFromString((String)value);
             out("Displaying content for: " + getResource());
             getResource().displayContent();
             return true;
-        } else if (this instanceof LWSlide || this instanceof LWGroup) {
+        } 
+        else if (this instanceof LWSlide)
+        {
+        	Actions.EditSlide.act((LWSlide)this);
+        	return true;
+        }
+        else if (this instanceof LWGroup) 
+        {
             //} else if (this instanceof LWSlide || this instanceof LWGroup || this instanceof LWPortal)
             // MapViewer "null remote focal" code would need fixing to enable selection if a portal is the focal
             // (the selected objects are not children of the focal, so they don't look like we should be seeing them)
@@ -5944,6 +5951,8 @@ u                    getSlot(c).setFromString((String)value);
 
     protected boolean doZoomingDoubleClick(MapMouseEvent e)
     {
+    //	System.out.println("zooming double click");
+    	
         final MapViewer viewer = e.getViewer();
 
         if (viewer.getFocal() == this) {

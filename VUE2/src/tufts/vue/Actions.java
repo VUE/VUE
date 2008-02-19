@@ -25,6 +25,7 @@ import java.awt.Component;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -1209,6 +1210,8 @@ public class Actions implements VueConstants
     
     public static final LWCAction EditSlide = new LWCAction("Edit slide")
     {
+    	double zoomFactor =0;  
+    	Point2D point = null;
     	public void act(LWSlide slide)
     	{
             //final LWSlide masterSlide = slide.getPathwayEntry().pathway.getMasterSlide();
@@ -1218,9 +1221,27 @@ public class Actions implements VueConstants
             	{
             		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
             		VUE.setActive(LWMap.class, this, VUE.getActiveMap());
+            		/*ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),
+                            zoomBounds,
+                            0,
+                            false);
+                            */
+            		ZoomTool.setZoom(zoomFactor);
+            		VUE.getActiveViewer().setMapOriginOffset(point.getX(), point.getY());
+            		
+            		//ZoomTool.setZoom(zoomFactor);
+            	    
+
+            		
             	}
             	else
             	{
+            		zoomFactor = VUE.getActiveViewer().getZoomFactor();
+            		 
+            		 point=VUE.getActiveMap().getUserOrigin();
+            		//VUE.getActiveViewer().getO
+            		//point = VUE.getActiveViewer().get
+            		//zoomBounds = VUE.getActiveViewer().getDisplayableMapBounds();
             		VUE.getActiveViewer().loadFocal(slide);
             		
             		 // update inspectors (optional -- may not actually want to do this, but
