@@ -966,7 +966,8 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                         // but inside map
                         
                         MapViewer viewer = VUE.getActiveViewer();
-                        o.setLocation(viewer.getVisibleWidth()/2,viewer.getVisibleHeight()/2);
+                        o.setLocation(viewer.getVisibleWidth()/2-o.getWidth()/2,
+                                      viewer.getVisibleHeight()/2-o.getHeight()/2);
 		}
 	}
 
