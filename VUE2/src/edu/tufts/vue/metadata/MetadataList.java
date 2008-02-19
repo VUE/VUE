@@ -328,7 +328,10 @@ public class MetadataList {
                 }
                 else if(type == VueMetadataElement.OTHER)
                 {
-                  txt = "Merge: " + txt;
+                  int dotLocation = txt.indexOf(".");
+                  if(dotLocation > 0)
+                      txt = txt.substring(0,dotLocation);
+                  txt = "Maps of Origin (merge): " + txt;
                 }
             }
             
