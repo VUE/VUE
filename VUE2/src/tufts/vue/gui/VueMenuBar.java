@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.86 $ / $Date: 2008-02-15 18:25:26 $ / $Author: anoop $
+ * @version $Revision: 1.87 $ / $Date: 2008-02-19 19:58:53 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -114,7 +114,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu presentationMenu = new VueMenu(VueResources.getString("menu.pathway.label"));
         final JMenu analysisMenu = new VueMenu("Analysis");
         final JMenu windowMenu = new VueMenu("Windows");
-        final JMenu alignMenu = new VueMenu("Align");         
+        final JMenu alignMenu = new VueMenu("Align");
+        final JMenu extendMenu = new VueMenu("Extend");
         final JMenu linkMenu = new VueMenu("Link");
         final JMenu helpMenu = add(new VueMenu("Help"));
         
@@ -387,6 +388,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.addSeparator();        
         
         //build format submenus...
+        buildMenu(extendMenu,Actions.EXTEND_MENU_ACTIONS);
         buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
@@ -399,6 +401,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.add(transformMenu);        
         formatMenu.add(arrangeMenu);
         formatMenu.add(alignMenu);
+        formatMenu.add(extendMenu);
         formatMenu.addSeparator();
         formatMenu.add(Actions.Group);
         formatMenu.add(Actions.Ungroup);
@@ -418,6 +421,22 @@ public class VueMenuBar extends javax.swing.JMenuBar
         contentMenu.add(addFileItem);
         contentMenu.add(addURLItem);
         
+        formatMenu.addMenuListener(new MenuListener(){        	
+        	public void menuCanceled(MenuEvent e) {/* no op	*/}
+			public void menuDeselected(MenuEvent e) {/*no op */}
+			public void menuSelected(MenuEvent e) {handleActivation();}
+			private void handleActivation()
+			{
+				LWSelection selection = VUE.getSelection();
+				if (selection.size() > 1 && selection.countTypes(LWLink.class) ==0)
+				{
+					extendMenu.setEnabled(true);
+				}
+				else
+				{
+					extendMenu.setEnabled(false);
+				}
+			}});
         contentMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
 			public void menuDeselected(MenuEvent e) {/*no op */}
