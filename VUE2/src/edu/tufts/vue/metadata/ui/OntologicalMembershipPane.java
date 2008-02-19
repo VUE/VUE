@@ -194,6 +194,8 @@ public class OntologicalMembershipPane extends javax.swing.JPanel implements Act
     public void refresh()
     {
         ((OntologyTypeListModel)list.getModel()).refresh();
+        
+        current.layout();
             
         adjustVisibility();   
     }
