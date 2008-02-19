@@ -544,6 +544,10 @@ public class TypeList extends JList implements MouseListener,ActionListener {
           {
               System.out.println("TypeList: malformed url exception attempting to enable ontology " + mue);
           }
+          catch(Exception npe)
+          {
+              System.out.println("TypeList: Exception, likely npe enabling ontology  -- " + npe);
+          }
           
           try
           {
@@ -951,10 +955,18 @@ public class TypeList extends JList implements MouseListener,ActionListener {
 			
 			LWComponent o = this.getSelectedComponentCopy();
 
+                        LWMap active = VUE.getActiveMap();
+                        
 			if (o instanceof LWNode)
-				VUE.getActiveMap().add((LWNode)o);
+				active.add((LWNode)o);
 			else if (o instanceof LWLink)
-				VUE.getActiveMap().add((LWLink)o);
+				active.add((LWLink)o);
+                        
+                        // should be outside ontology panel default location
+                        // but inside map
+                        
+                        MapViewer viewer = VUE.getActiveViewer();
+                        o.setLocation(viewer.getVisibleWidth()/2,viewer.getVisibleHeight()/2);
 		}
 	}
 
