@@ -104,6 +104,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            setSize(new java.awt.Dimension(300,200)); 
         }
         
+        setMinimumSize(new java.awt.Dimension(300,200));
         
         this.current = current;
         
