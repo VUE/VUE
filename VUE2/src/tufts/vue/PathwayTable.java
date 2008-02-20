@@ -60,7 +60,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.96 $ / $Date: 2008-02-13 19:39:34 $ / $Author: mike $
+ * @version $Revision: 1.97 $ / $Date: 2008-02-20 16:02:46 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -1166,7 +1166,9 @@ public class PathwayTable extends JTable
 	{
 		if (e.getSource().equals(renamePresentation))
 		{
-			boolean a = this.editCellAt(selectedY,selectedX);			
+			//System.out.println("selectedX : " + selectedX);
+			//the pathway name column is always column 2
+			boolean a = this.editCellAt(selectedY,2);			
 		}
 		else if (e.getSource().equals(playbackPresentation))
 		{
