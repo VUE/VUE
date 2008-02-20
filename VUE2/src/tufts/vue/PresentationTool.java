@@ -63,7 +63,39 @@ public class PresentationTool extends VueTool
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
 
+    private final ImageButton ZoomButton = new ImageButton("zoomOut", VueResources.getImageIcon("pathwayTool.zoomOutImageIcon")){
+        void doAction() {
+        	out("ZOOM BUTTON ACTION");
+        	boolean handled=false;
+        	 if (!Actions.Rename.isUserEnabled() && // messy: encoding that we know Rename uses ENTER here...
+                     !(mFocal instanceof LWMap) && !(VUE.getActiveViewer() instanceof tufts.vue.ui.SlideViewer)) { // total SlideViewer hack...
+        		    ZoomButton.setIcon(VueResources.getImageIcon("pathwayTool.zoomBackImageIcon"));
+        		 	handled = VUE.getActiveViewer().popFocal(false, true);
+                     
+        	 }
+        	 if (!handled)
+        	 {
+        		 ZoomButton.setIcon(VueResources.getImageIcon("pathwayTool.zoomOutImageIcon"));        		 
+        		 handleEnterKey();
+        			
+        	 }
+        }
+        void trackVisible(MouseEvent e) {
+            // set us visible if the given mouse even is between us and the lower right hand corner of the screen
+        	if (!Actions.Rename.isUserEnabled() && // messy: encoding that we know Rename uses ENTER here...
+                    !(mFocal instanceof LWMap) && !(VUE.getActiveViewer() instanceof tufts.vue.ui.SlideViewer)) {
+        		ZoomButton.setIcon(VueResources.getImageIcon("pathwayTool.zoomOutImageIcon"));
+        	}
+        	else
+        		ZoomButton.setIcon(VueResources.getImageIcon("pathwayTool.zoomBackImageIcon"));
+        	
+        	//System.out.println("e.x : " + e.getX() + " e.y : " + e.getY() + " x : " + (x+width) + " y : " + y);
+        	
+            setVisible(e.getX() > x && e.getY() > y);
+        }
+    };
     private final ImageButton ExitButton = new ImageButton("exit", VueResources.getImageIcon("pathwayTool.exitImageIcon")) {
+    
             void doAction() {
                 if (VUE.inFullScreen())
                     VUE.toggleFullScreen(false, true);
@@ -130,7 +162,7 @@ public class PresentationTool extends VueTool
 
     private class ImageButton {
 
-        final ImageIcon icon;
+        ImageIcon icon;
         final int width, height;
         final String name;
 
@@ -154,6 +186,10 @@ public class PresentationTool extends VueTool
             setVisible(true);
         }
         
+        void setIcon(ImageIcon ic)
+        {
+        	icon = ic;
+        }
         void setVisible(boolean t) {
             if (visible != t) {
                 visible = t;
@@ -1059,21 +1095,7 @@ public class PresentationTool extends VueTool
             // todo: all our VueTool handled calls that come from the MapViewer
             // should take a viewer as an argument...
             
-            if (mFocal instanceof LWMap && mLastPage != null) {
-                setPage(mLastPage);
-            } else if (mVisited.hasPrev()) {
-                setPage(mVisited.prev());
-            } else if (mLastPathwayPage != null) {
-                setPage(mLastPathwayPage);
-            } else {
-                // non-pathway navigation: just zoom back out to entire map
-                VUE.getActiveViewer().fitToFocal(); // TODO: viewer should be passed in..
-                // TODO: want to animate zoom!
-                // Really need that Page object, probably at the MapViewer level,
-                // that knows if we've EVER been zoomed and/or panned off the main focal,
-                // so that we could "reload" the focal by zoom-fitting to it even
-                // if it's the same focal
-            }
+        	handleEnterKey();
             break;
 
         case KeyEvent.VK_R:
@@ -1187,7 +1209,24 @@ public class PresentationTool extends VueTool
         return handled;
     }
 
-
+    private void handleEnterKey()
+    {
+    	  if (mFocal instanceof LWMap && mLastPage != null) {
+              setPage(mLastPage);
+          } else if (mVisited.hasPrev()) {
+              setPage(mVisited.prev());
+          } else if (mLastPathwayPage != null) {
+              setPage(mLastPathwayPage);
+          } else {
+              // non-pathway navigation: just zoom back out to entire map
+              VUE.getActiveViewer().fitToFocal(); // TODO: viewer should be passed in..
+              // TODO: want to animate zoom!
+              // Really need that Page object, probably at the MapViewer level,
+              // that knows if we've EVER been zoomed and/or panned off the main focal,
+              // so that we could "reload" the focal by zoom-fitting to it even
+              // if it's the same focal
+          }
+    }
     @Override
     public boolean handleKeyReleased(java.awt.event.KeyEvent e) {
         if (DEBUG.PRESENT) out("handleKeyReleased " + e);
@@ -1441,6 +1480,8 @@ public class PresentationTool extends VueTool
 //         }
         
         ExitButton.trackVisible(e);
+        
+        ZoomButton.trackVisible(e);
 
         if (mForceShowNavNodes) {
             // no state to change
@@ -1638,7 +1679,11 @@ public class PresentationTool extends VueTool
             ExitButton.doAction();
             return true;
         }
-        
+        if (ZoomButton.contains(e)){
+        	ZoomButton.doAction();
+        	return true;
+        }
+        	
         if (ResumeButton.contains(e)) {
             ResumeButton.doAction();
             return true;
@@ -1894,7 +1939,7 @@ public class PresentationTool extends VueTool
         }
 
         ExitButton.setVisible(true);
-
+        ZoomButton.setVisible(true);
         //GUI.refreshGraphicsInfo();
         //MouseRightActivationPixel = GUI.GScreenWidth - 40;
         //MouseRightClearAfterActivationPixel = GUI.GScreenWidth - 200;
@@ -2560,6 +2605,12 @@ public class PresentationTool extends VueTool
                 // in case the screen size should change...
                 ExitButton.setLocation(30, dc.frame.height - (ExitButton.height+20)); 
                 ExitButton.draw(dc);
+            } else if (ZoomButton.isVisible()){            
+            	   dc.setFrameDrawing();
+                   // only really need to set location when this tool actives, but just
+                   // in case the screen size should change...
+                   ZoomButton.setLocation(dc.frame.width-80, dc.frame.height - (ZoomButton.height+20)); 
+                   ZoomButton.draw(dc);
             }
         }
         
