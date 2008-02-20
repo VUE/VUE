@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.70 $ / $Date: 2008-02-15 20:25:21 $ / $Author: mike $
+ * @version $Revision: 1.71 $ / $Date: 2008-02-20 16:01:27 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -1021,7 +1021,7 @@ public class FontEditorPanel extends JPanel
     {
     	  if (e.active == e.oldActive)
               return;
-    	System.out.println("new active : " + e.active + " Old active : " + e.oldActive);
+    //	System.out.println("new active : " + e.active + " Old active : " + e.oldActive);
     	if (e.active instanceof LWText)
     	{    
     		if (RTBListenersAdded)
