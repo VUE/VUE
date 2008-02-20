@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.34 $ / $Date: 2008-01-19 17:38:51 $ / $Author: dan $
+ * @version $Revision: 1.35 $ / $Date: 2008-02-20 13:49:02 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -97,12 +97,6 @@ public class MapsSelectionPanel extends JPanel  {
     private MapsSelectionPanel() 
     {
         setOpaque(false);
-        
-        /*if(tufts.Util.isWindowsPlatform())
-        {
-            setOpaque(true);
-            setBackground(java.awt.Color.WHITE);
-        }*/
         
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
@@ -409,13 +403,12 @@ public class MapsSelectionPanel extends JPanel  {
         JPanel scrollPanel = new JPanel(new java.awt.BorderLayout());
         scrollPanel.setOpaque(false);
         
-        /*if(tufts.Util.isWindowsPlatform())
+        // VUE-924
+        if(tufts.Util.isWindowsPlatform())
         {
-            scrollPanel.setOpaque(true);
-            scrollPanel.setBackground(java.awt.Color.WHITE);
-            maps.setOpaque(true);
-            maps.setBackground(java.awt.Color.WHITE);
-        }*/
+            scroll.getViewport().setBackground(java.awt.Color.WHITE);
+        }
+        
         scrollPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
         scrollPanel.add(scroll);
         gridBag.setConstraints(scrollPanel,gridBagConstraints);
