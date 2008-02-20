@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -39,6 +39,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import edu.tufts.vue.preferences.PreferencesManager;
+import tufts.vue.UrlAuthentication;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -52,31 +53,34 @@ import javax.swing.ListCellRenderer;
 
 import java.net.URL;
 import java.net.URI;
+import java.net.URLConnection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Locale;
 import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
 
+
+
 /**
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.93 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.94 $ / $Date: 2008-02-20 17:49:41 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
 // TODO: rename / relocate most of this code! -- SMF
-public class ActionUtil
-{
+public class ActionUtil {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ActionUtil.class);
     
     private final static String XML_MAPPING_CURRENT_VERSION_ID = VueResources.getString("mapping.lw.current_version");
     private final static URL XML_MAPPING_DEFAULT =      VueResources.getURL("mapping.lw.version_" + XML_MAPPING_CURRENT_VERSION_ID);
     private final static URL XML_MAPPING_UNVERSIONED =  VueResources.getURL("mapping.lw.version_none");
     private final static URL XML_MAPPING_OLD_RESOURCES =VueResources.getURL("mapping.lw.version_resource_fix");
-
+    
     private final static String VUE_COMMENT_START = "<!-- Do Not Remove:";
     private final static String OUTPUT_ENCODING = "US-ASCII";
     private final static String DEFAULT_WINDOWS_ENCODING = "windows-1252"; // (a.k.a Cp1252) for reading pre ASCII enforced save files from Windows
@@ -95,59 +99,51 @@ public class ActionUtil
     public ActionUtil() {}
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
-       It returns the selected file or null if the process didn't complete*/
-    public static File selectFile(String title, final String fileType)
-    {
+     * It returns the selected file or null if the process didn't complete*/
+    public static File selectFile(String title, final String fileType) {
         File picked = null;
         final VueFileChooser chooser = new VueFileChooser();
-      JFileChooser choose = new JFileChooser();
-     
+        JFileChooser choose = new JFileChooser();
+        
         
         chooser.setDialogTitle(title);
-        chooser.setAcceptAllFileFilterUsed(false);    
+        chooser.setAcceptAllFileFilterUsed(false);
         //chooser.set
-        chooser.addPropertyChangeListener(new PropertyChangeListener()
-        {
-			public void propertyChange(PropertyChangeEvent arg0) {				
-				if (arg0.getPropertyName() == VueFileChooser.FILE_FILTER_CHANGED_PROPERTY)
-				{
-				
-					String baseName = null;
-			        if (VUE.getActiveMap().getFile() == null)
-			        	baseName = VUE.getActiveMap().getLabel();
-			        else
-			        {			        	
-			        	baseName = VUE.getActiveMap().getLabel();
-			    		if (baseName.indexOf(".") > 0)
-			    			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
-			    		baseName = baseName.replaceAll("\\*","") + "-copy";
-			        }
-			     
-			        if (fileType == null)
-			        {
-			        	chooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));
-			        }
-				}
-			}
+        chooser.addPropertyChangeListener(new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent arg0) {
+                if (arg0.getPropertyName() == VueFileChooser.FILE_FILTER_CHANGED_PROPERTY) {
+                    
+                    String baseName = null;
+                    if (VUE.getActiveMap().getFile() == null)
+                        baseName = VUE.getActiveMap().getLabel();
+                    else {
+                        baseName = VUE.getActiveMap().getLabel();
+                        if (baseName.indexOf(".") > 0)
+                            baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
+                        baseName = baseName.replaceAll("\\*","") + "-copy";
+                    }
+                    
+                    if (fileType == null) {
+                        chooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));
+                    }
+                }
+            }
         });
         
         if (fileType != null && !fileType.equals("export"))
-         chooser.setFileFilter(new VueFileFilter(fileType)); 
-        else if (fileType != null && fileType.equals("export"))
-        {
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
+            chooser.setFileFilter(new VueFileFilter(fileType));
+        else if (fileType != null && fileType.equals("export")) {
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
-        	
-        }
-        else
-        {
+            
+        } else {
             VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
             
-            chooser.addChoosableFileFilter(defaultFilter);  
+            chooser.addChoosableFileFilter(defaultFilter);
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter("PDF"));
             
@@ -162,41 +158,40 @@ public class ActionUtil
             
             //chooser.addChoosableFileFilter(new VueFileFilter("HTML Outline", "htm"));
             
-            chooser.setFileFilter(defaultFilter); 
+            chooser.setFileFilter(defaultFilter);
         }
-         
-    //    JPanel p1 = (JPanel)chooser.getComponent(2);
-      //  JPanel p2 = (JPanel)p1.getComponent(2);
-       // JPanel p3 = (JPanel)p2.getComponent(2);
-       // JComboBox box = (JComboBox)p3.getComponent(3);
-        //box.g
-       // box.setRenderer(new PaddedCellRenderer());
         
-        if(VueUtil.isCurrentDirectoryPathSet()) 
-          chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
+        //    JPanel p1 = (JPanel)chooser.getComponent(2);
+        //  JPanel p2 = (JPanel)p1.getComponent(2);
+        // JPanel p3 = (JPanel)p2.getComponent(2);
+        // JComboBox box = (JComboBox)p3.getComponent(3);
+        //box.g
+        // box.setRenderer(new PaddedCellRenderer());
+        
+        if(VueUtil.isCurrentDirectoryPathSet())
+            chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
         
         int option = chooser.showDialog(VUE.getDialogParentAsFrame(), "Save");
         
-        if (option == VueFileChooser.APPROVE_OPTION) 
-        {
+        if (option == VueFileChooser.APPROVE_OPTION) {
             picked = chooser.getSelectedFile();
             
             String fileName = picked.getAbsolutePath();
             //String extension = chooser.getFileFilter().getDescription();
-              String extension = ((VueFileFilter)chooser.getFileFilter()).getExtensions()[0];  
-            //if it isn't a file name with the right extension 
+            String extension = ((VueFileFilter)chooser.getFileFilter()).getExtensions()[0];
+            //if it isn't a file name with the right extension
             if (!fileName.endsWith("." + extension)) {
                 fileName += "." + extension;
                 picked = new File(fileName);
             }
             
             if (picked.exists()) {
-                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'", 
+                int n = JOptionPane.showConfirmDialog(null, VueResources.getString("replaceFile.text") + " \'" + picked.getName() + "\'",
                         VueResources.getString("replaceFile.title"), JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-                  
+                
                 if (n == JOptionPane.NO_OPTION)
                     picked = null;
-            } 
+            }
             
             if (picked != null)
                 VueUtil.setCurrentDirectoryPath(picked.getParent());
@@ -205,41 +200,35 @@ public class ActionUtil
         return picked;
     }
     
-   
-    /**A static method which displays a file chooser for the user to choose which file to open.
-       It returns the selected file or null if the process didn't complete
-    TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
-    will open two open file dialogs. */
     
-    public static File openFile(String title, String extension)
-    {
-        File file = null;              
+    /**A static method which displays a file chooser for the user to choose which file to open.
+     * It returns the selected file or null if the process didn't complete
+     * TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
+     * will open two open file dialogs. */
+    
+    public static File openFile(String title, String extension) {
+        File file = null;
         
-        VueFileChooser chooser = null;        
-    	
-    	if (!Util.isMacPlatform())
-    	{
-    		chooser = new VueFileChooser();
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
-    	}
-    	else
-    	{
-    		
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    		{
-    			/*
-    			 * Despite Quaqua fixes in 3.9 you can still only set the 
-    			 * current directory if you set it in the constructor, 
-    			 * setCurrentDirectory fails to do anything but cause the
-    			 * top bar and the panels to be out of sync.... -MK 10/29
-    			 */
-    			chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
-    		}
-    		else
-    			chooser = new VueFileChooser();
-
-    	}  
+        VueFileChooser chooser = null;
+        
+        if (!Util.isMacPlatform()) {
+            chooser = new VueFileChooser();
+            if (VueUtil.isCurrentDirectoryPathSet())
+                chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
+        } else {
+            
+            if (VueUtil.isCurrentDirectoryPathSet()) {
+                        /*
+                         * Despite Quaqua fixes in 3.9 you can still only set the
+                         * current directory if you set it in the constructor,
+                         * setCurrentDirectory fails to do anything but cause the
+                         * top bar and the panels to be out of sync.... -MK 10/29
+                         */
+                chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
+            } else
+                chooser = new VueFileChooser();
+            
+        }
         
         int option = chooser.showOpenDialog(VUE.getDialogParent());
         
@@ -255,9 +244,9 @@ public class ActionUtil
                 fileName = chosenPath + "." + extension;
             else
                 fileName = chosenPath;
-
+            
             file = new File(fileName);
-
+            
             if (file.exists()) {
                 VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
             } else {
@@ -276,121 +265,110 @@ public class ActionUtil
     }
     
     /**A static method which displays a file chooser for the user to choose which file to open.
-    It returns the selected file or null if the process didn't complete
- 	TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
- 	will open two open file dialogs. */
- 
-    public static File[] openMultipleFiles(String title, String extension)
-    {
-    	File file = null;
-     
-    	VueFileChooser chooser = null;        
-    	
-    	if (!Util.isMacPlatform())
-    	{
-    		chooser = new VueFileChooser();
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
-    	}
-    	else
-    	{
-    		
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    		{
-    			/*
-    			 * Despite Quaqua fixes in 3.9 you can still only set the 
-    			 * current directory if you set it in the constructor, 
-    			 * setCurrentDirectory fails to do anything but cause the
-    			 * top bar and the panels to be out of sync.... -MK 10/29
-    			 */
-    			chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
-    		}
-    		else
-    			chooser = new VueFileChooser();
-
-    	}
-    	chooser.setDialogTitle(title);
-    	chooser.setMultiSelectionEnabled(true);
-    	chooser.setFileFilter(new VueFileFilter(extension));
-     
-    	int option = chooser.showOpenDialog(VUE.getDialogParent());
-     
-    	if (option == VueFileChooser.APPROVE_OPTION) {
-         final File[] chooserFile = chooser.getSelectedFiles();
-         if (chooserFile == null)
-             return null;
-         final String fileName;
-         
-         if (chooserFile.length == 1)
-         {
-        	 //this scenario can only happen if there's only 1 file in the array...
-         
-        	 final String chosenPath = chooserFile[0].getAbsolutePath();
-         
-        	 // if they type a file name w/out an extension
-        	 if (chooserFile[0].getName().indexOf('.') < 0)
-        		 fileName = chosenPath + "." + extension;
-        	 else
-        		 fileName = chosenPath;
-
-        	 chooserFile[0] = new File(fileName);
-
-        	 if (chooserFile[0].exists()) {
-        		 VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
-        	 } else {
-        		 File dir = new File(chosenPath);
-        		 if (dir.exists() && dir.isDirectory()) {
-                 //System.out.println("chdir " + chosenPath);
-        			 VueUtil.setCurrentDirectoryPath(chosenPath);
-        		 } else {
-        			 Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
-        			 tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
-        		 }
-        		 chooserFile[0] = null;
-        	 }
-         	}
-         return chooserFile;
-    	}
-    	return null;
+     * It returns the selected file or null if the process didn't complete
+     * TODO BUG: do not allow more than one dialog open at a time -- two "Ctrl-O" in quick succession
+     * will open two open file dialogs. */
+    
+    public static File[] openMultipleFiles(String title, String extension) {
+        File file = null;
+        
+        VueFileChooser chooser = null;
+        
+        if (!Util.isMacPlatform()) {
+            chooser = new VueFileChooser();
+            if (VueUtil.isCurrentDirectoryPathSet())
+                chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
+        } else {
+            
+            if (VueUtil.isCurrentDirectoryPathSet()) {
+                        /*
+                         * Despite Quaqua fixes in 3.9 you can still only set the
+                         * current directory if you set it in the constructor,
+                         * setCurrentDirectory fails to do anything but cause the
+                         * top bar and the panels to be out of sync.... -MK 10/29
+                         */
+                chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
+            } else
+                chooser = new VueFileChooser();
+            
+        }
+        chooser.setDialogTitle(title);
+        chooser.setMultiSelectionEnabled(true);
+        chooser.setFileFilter(new VueFileFilter(extension));
+        
+        int option = chooser.showOpenDialog(VUE.getDialogParent());
+        
+        if (option == VueFileChooser.APPROVE_OPTION) {
+            final File[] chooserFile = chooser.getSelectedFiles();
+            if (chooserFile == null)
+                return null;
+            final String fileName;
+            
+            if (chooserFile.length == 1) {
+                //this scenario can only happen if there's only 1 file in the array...
+                
+                final String chosenPath = chooserFile[0].getAbsolutePath();
+                
+                // if they type a file name w/out an extension
+                if (chooserFile[0].getName().indexOf('.') < 0)
+                    fileName = chosenPath + "." + extension;
+                else
+                    fileName = chosenPath;
+                
+                chooserFile[0] = new File(fileName);
+                
+                if (chooserFile[0].exists()) {
+                    VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+                } else {
+                    File dir = new File(chosenPath);
+                    if (dir.exists() && dir.isDirectory()) {
+                        //System.out.println("chdir " + chosenPath);
+                        VueUtil.setCurrentDirectoryPath(chosenPath);
+                    } else {
+                        Log.debug("File '" + chosenPath + "' " + file + " can't  be found.");
+                        tufts.vue.VueUtil.alert(chooser, "Could not find " + file, "File Not Found");
+                    }
+                    chooserFile[0] = null;
+                }
+            }
+            return chooserFile;
+        }
+        return null;
     }
-
+    
     
     /**
      * Return the current mapping used for saving new VUE data.
      */
-    public static Mapping getDefaultMapping()
-    {
+    public static Mapping getDefaultMapping() {
         Object result = _loadMapping(XML_MAPPING_DEFAULT);
         if (result instanceof Exception) {
             JOptionPane.showMessageDialog(null, "Mapping file error: will be unable to load or save maps!"
-                                          + "\nMapping url: " + XML_MAPPING_DEFAULT
-                                          + "\n" + result,
-                                          "XML Mapping File Exception", JOptionPane.ERROR_MESSAGE);
+                    + "\nMapping url: " + XML_MAPPING_DEFAULT
+                    + "\n" + result,
+                    "XML Mapping File Exception", JOptionPane.ERROR_MESSAGE);
         }
         return (Mapping) result;
     }
-
+    
     public static Unmarshaller getDefaultUnmarshaller()
-        throws org.exolab.castor.mapping.MappingException
-    {
+    throws org.exolab.castor.mapping.MappingException {
         return getDefaultUnmarshaller(null, "(unknown source)");
     }
     public static Unmarshaller getDefaultUnmarshaller(String sourceName)
-        throws org.exolab.castor.mapping.MappingException
-    {
+    throws org.exolab.castor.mapping.MappingException {
         return getDefaultUnmarshaller(null, sourceName);
     }
-
-
-	    
+    
+    
+    
     
     /**
      * Return the default unmarshaller for VUE data, which includes an installed
      * unmarshall listener, which is required for the proper restoration of VUE objects.
      */
     public static Unmarshaller getDefaultUnmarshaller(Mapping mapping, String sourceName)
-        throws org.exolab.castor.mapping.MappingException
-    {
+    throws org.exolab.castor.mapping.MappingException {
         if (mapping == null)
             mapping = getDefaultMapping();
         
@@ -411,21 +389,21 @@ public class ActionUtil
         else
             logger.setPrefix("Castor");
         unmarshaller.setLogWriter(logger);
-        */
+         */
         unmarshaller.setLogWriter(new PrintWriter(System.err));
-
+        
         if (DEBUG.XML) unmarshaller.setDebug(true);
         
         unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
         unmarshaller.setMapping(mapping);
-
+        
         if (DEBUG.CASTOR || DEBUG.XML || DEBUG.IO)
             Log.debug("got default unmarshaller for mapping " + mapping + " source " + sourceName);
-
+        
         return unmarshaller;
     }
     
-
+    
     private static Mapping getMapping(URL mappingSource) {
         if (DEBUG.IO) System.out.println("Fetching mapping: " + mappingSource);
         Object result = _loadMapping(mappingSource);
@@ -458,11 +436,10 @@ public class ActionUtil
     }
     
     /**A static method which creates an appropriate marshaller and marshal the active map*/
-    public static void marshallMap(File file)
-    {
+    public static void marshallMap(File file) {
         marshallMap(file, tufts.vue.VUE.getActiveMap());
     }
-
+    
     /**
      * Marshall the given map to XML and write it out to the given file.
      */
@@ -479,21 +456,20 @@ public class ActionUtil
             throw new RuntimeException(t);
         }
     }
-
+    
     private static class WrappedMarshallException extends RuntimeException {
         WrappedMarshallException(Throwable cause) {
             super(cause);
         }
     }
-
+    
     private static void doMarshallMap(File file, LWMap map)
-        throws java.io.IOException,
-               org.exolab.castor.mapping.MappingException,
-               org.exolab.castor.xml.MarshalException,
-               org.exolab.castor.xml.ValidationException
-    {
+    throws java.io.IOException,
+            org.exolab.castor.mapping.MappingException,
+            org.exolab.castor.xml.MarshalException,
+            org.exolab.castor.xml.ValidationException {
         Marshaller marshaller = null;
-
+        
         final String path = file.getAbsolutePath().replaceAll("%20"," ");
         final Writer writer;
         if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
@@ -505,24 +481,24 @@ public class ActionUtil
             // castor to fully encode any special characters via
             // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
             // and any default encoding will handle that...
-                
-        }
             
+        }
+        
         writer.write(VUE_COMMENT_START
-                     + " VUE mapping "
-                     + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
-                     + " " + XML_MAPPING_DEFAULT
-                     + " -->\n");
+                + " VUE mapping "
+                + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
+                + " " + XML_MAPPING_DEFAULT
+                + " -->\n");
         writer.write(VUE_COMMENT_START
-                     + " Saved date " + new java.util.Date()
-                     + " by " + VUE.getSystemProperty("user.name")
-                     + " on platform " + VUE.getSystemProperty("os.name")
-                     + " " + VUE.getSystemProperty("os.version")
-                     + " in JVM " + VUE.getSystemProperty("java.runtime.version")
-                     + " -->\n");
+                + " Saved date " + new java.util.Date()
+                + " by " + VUE.getSystemProperty("user.name")
+                + " on platform " + VUE.getSystemProperty("os.name")
+                + " " + VUE.getSystemProperty("os.version")
+                + " in JVM " + VUE.getSystemProperty("java.runtime.version")
+                + " -->\n");
         writer.write(VUE_COMMENT_START
-                     + " Saving version " + tufts.vue.Version.WhatString
-                     + " -->\n");
+                + " Saving version " + tufts.vue.Version.WhatString
+                + " -->\n");
         if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
         marshaller = new Marshaller(writer);
         //marshaller.setDebug(DEBUG.CASTOR);
@@ -532,9 +508,9 @@ public class ActionUtil
         marshaller.setNoNamespaceSchemaLocation("none");
         // setting to "none" gets rid of all the spurious tags like these:
         // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-
+        
         //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
-
+        
         /*
           marshaller.setMarshalListener(new MarshalListener() {
           public boolean preMarshal(Object o) {
@@ -545,14 +521,14 @@ public class ActionUtil
           System.out.println("postMarshal " + o.getClass().getName() + " " + o);
           }
           });
-        */
-
+         */
+        
         //marshaller.setRootElement("FOOBIE"); // overrides name of root element
-            
+        
         marshaller.setMapping(getDefaultMapping());
-
+        
         //----------------------------------------------------------------------------------------
-        // 
+        //
         // 2007-10-01 SMF -- turning off validation during marshalling now required
         // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
         // with any connected endpoints cause validation exceptions when attempting to
@@ -566,18 +542,18 @@ public class ActionUtil
         //
         // Even tho the node's getID() is correctly returning "2"
         //
-        marshaller.setValidation(false); 
+        marshaller.setValidation(false);
         //----------------------------------------------------------------------------------------
-            
+        
         /*
           Logger logger = new Logger(System.err);
           logger.setPrefix("Castor ");
           marshaller.setLogWriter(logger);
-        */
+         */
         marshaller.setLogWriter(new PrintWriter(System.err));
-
+        
         // Make modifications to the map at the last minute, so any prior exceptions leave the map untouched.
-
+        
         final int oldModelVersion = map.getModelVersion();
         final File oldSaveFile = map.getFile();
         
@@ -586,10 +562,10 @@ public class ActionUtil
         // operation may cause any/all of the resources in the map to be
         // updated before returning.
         map.setFile(file);
-            
+        
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
         Log.debug("marshalling " + map + " ...");
-
+        
         try {
             marshaller.marshal(map);
             Log.debug("marshalled " + map);
@@ -607,65 +583,64 @@ public class ActionUtil
                 throw new WrappedMarshallException(t);
             }
         }
-            
+        
         map.markAsSaved();
         Log.debug("saved " + map);
-
+        
         //map.setFile(file);
-
+        
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
-
+        
     }
-
+    
     private static void doMarshallMap(Writer writer, LWMap map)
     throws java.io.IOException,
-           org.exolab.castor.mapping.MappingException,
-           org.exolab.castor.xml.MarshalException,
-           org.exolab.castor.xml.ValidationException
-{
-    Marshaller marshaller = null;
-
+            org.exolab.castor.mapping.MappingException,
+            org.exolab.castor.xml.MarshalException,
+            org.exolab.castor.xml.ValidationException {
+        Marshaller marshaller = null;
+        
 //    final String path = file.getAbsolutePath().replaceAll("%20"," ");
 //    final Writer writer;
-    if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
+        if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
 //        writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
-    } else {
+        } else {
 //        writer = new FileWriter(path);
-        // For the actual file writer we can use the default encoding because
-        // we're marshalling specifically in US-ASCII.  E.g., because we direct
-        // castor to fully encode any special characters via
-        // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
-        // and any default encoding will handle that...
+            // For the actual file writer we can use the default encoding because
+            // we're marshalling specifically in US-ASCII.  E.g., because we direct
+            // castor to fully encode any special characters via
+            // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
+            // and any default encoding will handle that...
             
-    }
+        }
         
-    writer.write(VUE_COMMENT_START
-                 + " VUE mapping "
-                 + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
-                 + " " + XML_MAPPING_DEFAULT
-                 + " -->\n");
-    writer.write(VUE_COMMENT_START
-                 + " Saved date " + new java.util.Date()
-                 + " by " + VUE.getSystemProperty("user.name")
-                 + " on platform " + VUE.getSystemProperty("os.name")
-                 + " " + VUE.getSystemProperty("os.version")
-                 + " in JVM " + VUE.getSystemProperty("java.runtime.version")
-                 + " -->\n");
-    writer.write(VUE_COMMENT_START
-                 + " Saving version " + tufts.vue.Version.WhatString
-                 + " -->\n");
-    if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
-    marshaller = new Marshaller(writer);
-    //marshaller.setDebug(DEBUG.CASTOR);
-    marshaller.setEncoding(OUTPUT_ENCODING);
-    // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
-    marshaller.setMarshalAsDocument(true);
-    marshaller.setNoNamespaceSchemaLocation("none");
-    // setting to "none" gets rid of all the spurious tags like these:
-    // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-
-    //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
-
+        writer.write(VUE_COMMENT_START
+                + " VUE mapping "
+                + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
+                + " " + XML_MAPPING_DEFAULT
+                + " -->\n");
+        writer.write(VUE_COMMENT_START
+                + " Saved date " + new java.util.Date()
+                + " by " + VUE.getSystemProperty("user.name")
+                + " on platform " + VUE.getSystemProperty("os.name")
+                + " " + VUE.getSystemProperty("os.version")
+                + " in JVM " + VUE.getSystemProperty("java.runtime.version")
+                + " -->\n");
+        writer.write(VUE_COMMENT_START
+                + " Saving version " + tufts.vue.Version.WhatString
+                + " -->\n");
+        if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
+        marshaller = new Marshaller(writer);
+        //marshaller.setDebug(DEBUG.CASTOR);
+        marshaller.setEncoding(OUTPUT_ENCODING);
+        // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
+        marshaller.setMarshalAsDocument(true);
+        marshaller.setNoNamespaceSchemaLocation("none");
+        // setting to "none" gets rid of all the spurious tags like these:
+        // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        
+        //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
+        
     /*
       marshaller.setMarshalListener(new MarshalListener() {
       public boolean preMarshal(Object o) {
@@ -676,77 +651,77 @@ public class ActionUtil
       System.out.println("postMarshal " + o.getClass().getName() + " " + o);
       }
       });
-    */
-
-    //marshaller.setRootElement("FOOBIE"); // overrides name of root element
+     */
         
-    marshaller.setMapping(getDefaultMapping());
-
-    //----------------------------------------------------------------------------------------
-    // 
-    // 2007-10-01 SMF -- turning off validation during marshalling now required
-    // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
-    // with any connected endpoints cause validation exceptions when attempting to
-    // save.  E.g, from a map with one node and one link connected to it:
-    //
-    // ValidationException: The following exception occured while validating field: childList of class:
-    // tufts.vue.LWMap: The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type
-    // class tufts.vue.LWNode has no ID!;
-    // - location of error: XPATH: /LW-MAP
-    // The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type class tufts.vue.LWNode has no ID!
-    //
-    // Even tho the node's getID() is correctly returning "2"
-    //
-    marshaller.setValidation(false); 
-    //----------------------------------------------------------------------------------------
+        //marshaller.setRootElement("FOOBIE"); // overrides name of root element
+        
+        marshaller.setMapping(getDefaultMapping());
+        
+        //----------------------------------------------------------------------------------------
+        //
+        // 2007-10-01 SMF -- turning off validation during marshalling now required
+        // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
+        // with any connected endpoints cause validation exceptions when attempting to
+        // save.  E.g, from a map with one node and one link connected to it:
+        //
+        // ValidationException: The following exception occured while validating field: childList of class:
+        // tufts.vue.LWMap: The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type
+        // class tufts.vue.LWNode has no ID!;
+        // - location of error: XPATH: /LW-MAP
+        // The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type class tufts.vue.LWNode has no ID!
+        //
+        // Even tho the node's getID() is correctly returning "2"
+        //
+        marshaller.setValidation(false);
+        //----------------------------------------------------------------------------------------
         
     /*
       Logger logger = new Logger(System.err);
       logger.setPrefix("Castor ");
       marshaller.setLogWriter(logger);
-    */
-    marshaller.setLogWriter(new PrintWriter(System.err));
-
-    // Make modifications to the map at the last minute, so any prior exceptions leave the map untouched.
-
-    final int oldModelVersion = map.getModelVersion();
-    final File oldSaveFile = map.getFile();
-    
-    map.setModelVersion(LWMap.getCurrentModelVersion());
-    // note that if this file is different from it's last save file, this
-    // operation may cause any/all of the resources in the map to be
-    // updated before returning.
+     */
+        marshaller.setLogWriter(new PrintWriter(System.err));
+        
+        // Make modifications to the map at the last minute, so any prior exceptions leave the map untouched.
+        
+        final int oldModelVersion = map.getModelVersion();
+        final File oldSaveFile = map.getFile();
+        
+        map.setModelVersion(LWMap.getCurrentModelVersion());
+        // note that if this file is different from it's last save file, this
+        // operation may cause any/all of the resources in the map to be
+        // updated before returning.
 //    map.setFile(file);
         
-    //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
-    Log.debug("marshalling " + map + " ...");
-
-    try {
-        marshaller.marshal(map);
-        Log.debug("marshalled " + map);
-        writer.flush();
-        writer.close();
-        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
-    } catch (Throwable t) {
-        try {
-            // revert map model version & save file
-            map.setModelVersion(oldModelVersion);
-            map.setFile(oldSaveFile);
-        } catch (Throwable tx) {
-            Util.printStackTrace(tx);
-        } finally {
-            throw new WrappedMarshallException(t);
-        }
-    }
+        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
+        Log.debug("marshalling " + map + " ...");
         
-    map.markAsSaved();
-    Log.debug("saved " + map);
-
-    //map.setFile(file);
-
-    //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
-
-}
+        try {
+            marshaller.marshal(map);
+            Log.debug("marshalled " + map);
+            writer.flush();
+            writer.close();
+            //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
+        } catch (Throwable t) {
+            try {
+                // revert map model version & save file
+                map.setModelVersion(oldModelVersion);
+                map.setFile(oldSaveFile);
+            } catch (Throwable tx) {
+                Util.printStackTrace(tx);
+            } finally {
+                throw new WrappedMarshallException(t);
+            }
+        }
+        
+        map.markAsSaved();
+        Log.debug("saved " + map);
+        
+        //map.setFile(file);
+        
+        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
+        
+    }
     
     private static class VueUnmarshalListener implements UnmarshalListener {
         public void initialized(Object o) {
@@ -777,13 +752,13 @@ public class ActionUtil
             if (child instanceof XMLUnmarshalListener)
                 ((XMLUnmarshalListener)child).XML_addNotify(name, parent);
         }
-
+        
 //         // exception trapping toString in case the object isn't initialized enough
 //         // for it's toString to work...
 //         private String tos(Object o) {
 //             if (o == null)
 //                 return "<null-object>";
-            
+        
 //             String s = o.getClass().getName() + " ";
 //             //String s = null;
 //             String txt = null;
@@ -797,17 +772,16 @@ public class ActionUtil
 //             return s;
 //         }
     }
-
+    
     /** Unmarshall a LWMap from the given file (XML map data) */
     public static LWMap unmarshallMap(File file)
-        throws IOException
-    {
+    throws IOException {
 //         if (file.isDirectory())
 //             throw new Error("Is a directory, not a map: " + file);
         return unmarshallMap(file.toURL());
         //return unmarshallMap(file.toURI().toURL());
     }
-
+    
     /** Unmarshall a LWMap from the given URL (XML map data) */
     /*
     public static LWMap unmarshallMap(java.net.URL url)
@@ -816,8 +790,8 @@ public class ActionUtil
         //return unmarshallMap(url, getDefaultMapping());
         return unmarshallMap(url, null);
     }
-    */
-
+     */
+    
     /** Unmarshall a LWMap from the given URL using the given mapping */
     /*
     private static LWMap unmarshallMap(java.net.URL url, Mapping mapping)
@@ -825,29 +799,32 @@ public class ActionUtil
     {
         return unmarshallMap(url, mapping, DEFAULT_INPUT_ENCODING);
     }
-    */
-
+     */
+    
     public static LWMap unmarshallMap(java.net.URL url)
-        throws IOException
-    {
+    throws IOException {
         // We scan for lines at top of file that are comments.  If there are NO comment lines, the
         // file is of one of our original save formats that is not versioned, and that may need
         // special processing for the Resource class to Resource interface change over.  If there
         // are comments, the version instance of the string "@version(##)" will set the version ID
         // to ##, and we'll use the mapping appropriate for that version of the save file.
-
+        
         // We ALWAYS read with an input encoding of UTF-8, even if the XML was written with a
         // US-ASCII encoding.  This is because pure ascii will translate fine through UTF-8, but in
         // case it winds up being that the XML was written out my the marshaller with a UTF-8
         // encoding, we're covered.
-
+        
         // (tho maybe with very old save files with platform specific encodings, (e.g, MacRoman or
         // windows-1255/Cp1255) we'll lose a special char here or there, such as left-quote /
         // right-quote).
         
         if (DEBUG.CASTOR || DEBUG.IO) System.out.println("\nSCANNING: " + url);
-
+        
         final BufferedReader reader;
+        
+        final Map<String,String> sessionKeys = UrlAuthentication.getRequestProperties(url);
+        URL cleanURL = new URL(url.toString().replaceAll(" ", "%20"));
+        final URLConnection conn = cleanURL.openConnection();
         
         if ("file".equals(url.getProtocol())) {
             File file = new File(url.getPath());
@@ -855,7 +832,17 @@ public class ActionUtil
                 throw new MapException("is directory");
             reader = new BufferedReader(new FileReader(file));
         } else {
-            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            if (sessionKeys != null) {
+                for (Map.Entry<String,String> e : sessionKeys.entrySet()) {
+                    conn.setRequestProperty(e.getKey(), e.getValue());
+                }
+                InputStream urlStream = conn.getInputStream();
+                reader = new BufferedReader(new InputStreamReader(urlStream));
+                
+            } else {
+                reader = new BufferedReader(new InputStreamReader(url.openStream()));
+                
+            }
         }
         
         String firstNonCommentLine;
@@ -864,15 +851,15 @@ public class ActionUtil
         boolean savedOnMacPlatform = false;
         String guessedEncoding = null;
         Mapping mapping = null;
-    
+        
         // We need to skip past the comments to position the reader at the <?xml line for
         // unmarshalling to start.  Also, we look at these comments to determine version of the
         // mapping to use, as well as if it's a pre VUE 1.5 (August 2006) save file, in which case
         // we must guess an encoding, and re-open the file using an InputStreamReader with the
         // proper encoding.
-
+        
         String savingVersion = "unknown VUE version";
-
+        
         for (;;) {
             reader.mark(2048); // a single comment line can't be longer than this...
             String line = reader.readLine();
@@ -886,9 +873,9 @@ public class ActionUtil
                 firstNonCommentLine = line;
                 break;
             }
-
+            
             if (line.startsWith(VUE_COMMENT_START + " Saved")) {
-
+                
                 // The "saved on platform" comments were never expected to be used functionally
                 // (only for debug), so determining if the save file was written on a Windows box
                 // it's not 100% reliable: e.g., if a user somehow had the name "platform Windows",
@@ -919,7 +906,7 @@ public class ActionUtil
                 }
                 if (DEBUG.IO) System.out.println("Saving version: [" + savingVersion + "]");
             }
-                
+            
             
             
             // Scan the comment line for a version tag to base our mapping on:
@@ -946,7 +933,7 @@ public class ActionUtil
             }
         }
         reader.close();
-
+        
         if (firstNonCommentLine.startsWith("<?xml")) {
             // Check to see if we need to use a non-default input encoding.
             // NOTE: We make sure we only attempt guessedEncoding if the given encoding is
@@ -955,7 +942,7 @@ public class ActionUtil
             if (DEBUG.IO) System.out.println("XML head [" + firstNonCommentLine + "]");
             
             if (firstNonCommentLine.indexOf("encoding=\"UTF-8\"") > 0) {
-
+                
                 boolean localEncoding = false;
                 
                 // If encoding is UTF-8, this a 2nd generation save file (mapping is
@@ -985,11 +972,11 @@ public class ActionUtil
                 
                 if (localEncoding)
                     guessedEncoding = Util.getDefaultPlatformEncoding();
-                    
+                
                 Log.info(url + "; assuming "
-                             + (localEncoding ? "LOCAL " : "PLATFORM DEFAULT ")
-                             + "\'" + guessedEncoding + "\' charset encoding");
-
+                        + (localEncoding ? "LOCAL " : "PLATFORM DEFAULT ")
+                        + "\'" + guessedEncoding + "\' charset encoding");
+                
                 // Note: doing this is a real tradeoff amongst bugs: any old save file
                 // that had fancy unicode characters in UTF, such as something in a
                 // japanese charset, will be screwed by this, so we optimizing for what
@@ -1003,9 +990,9 @@ public class ActionUtil
         } else {
             Log.warn("Missing XML header in [" + firstNonCommentLine + "]");
         }
-
+        
         boolean oldFormat = false;
-
+        
         if (versionID == null && mapping == null) {
             oldFormat = true;
             Log.info(url + "; save file is of old pre-versioned type.");
@@ -1013,27 +1000,40 @@ public class ActionUtil
         }
         
         if (mapping == null)
-            mapping = getDefaultMapping();        
-
+            mapping = getDefaultMapping();
+        
         final String encoding = guessedEncoding == null ? DEFAULT_INPUT_ENCODING : guessedEncoding;
-
+        
         return unmarshallMap(url, mapping, encoding, oldFormat, savingVersion);
     }
-
-
+    
+    
     private static LWMap unmarshallMap(final java.net.URL url, Mapping mapping, String charsetEncoding, boolean allowOldFormat, String savingVersion)
-      //throws IOException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException
-        throws IOException
-    {
+    //throws IOException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException
+    throws IOException {
         LWMap map = null;
-
+        
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("UNMARSHALLING: " + url + " charset=" + charsetEncoding);
         Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
         
-        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), charsetEncoding));
-
+        BufferedReader reader;
+        final Map<String,String> sessionKeys = UrlAuthentication.getRequestProperties(url);
+        URL cleanURL = new URL(url.toString().replaceAll(" ", "%20"));
+        final URLConnection conn = cleanURL.openConnection();
+        if (sessionKeys != null) {
+            for (Map.Entry<String,String> e : sessionKeys.entrySet()) {
+                conn.setRequestProperty(e.getKey(), e.getValue());
+            }
+            InputStream urlStream = conn.getInputStream();
+            reader = new BufferedReader(new InputStreamReader(urlStream, charsetEncoding));
+            
+        } else {
+            reader = new BufferedReader(new InputStreamReader(url.openStream(), charsetEncoding));
+            
+        }
+        
         // Skip over comments to get to start of XML
-
+        
         for (;;) {
             reader.mark(2048); // a single comment line can't be longer than this...
             String line = reader.readLine();
@@ -1047,16 +1047,16 @@ public class ActionUtil
             }
             if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Skipping[" + line + "]");
         }
-
+        
         // Reset the reader to the start of the last line read, which should be the <?xml line,
         // which is what castor needs to see at start (it can't handle ignoring comments...)
         reader.reset();
-
+        
         final String sourceName = url.toString();
-
+        
         try {
             Unmarshaller unmarshaller = getDefaultUnmarshaller(mapping, sourceName);
-
+            
             // unmarshall the map:
             
             try {
@@ -1075,29 +1075,29 @@ public class ActionUtil
             }
             
             reader.close();
-
+            
             final File file = new File(url.getFile());
             final String fileName = file.getName();
-
+            
             map.setFile(file); // VUE-713: do this always:
-
+            
             if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
                 VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
-                                            + "\nThe data model in this map is #%d, and this version of VUE only understands up to model #%d.\n",
-                                            file, map.getModelVersion(), LWMap.getCurrentModelVersion())
-                              + "\nVersion of VUE that saved this file:\n        " + savingVersion
-                              + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
-                                + " (public v" + VueResources.getString("vue.version") + ")"
-                              + "\n"
-                              + "\nThis version of VUE may not display this map properly.  Saving"
-                              + "\nthis map in this version of VUE may result in a corrupted map."
-                              ,
-                              String.format("Version Warning: %s", fileName));
-
+                        + "\nThe data model in this map is #%d, and this version of VUE only understands up to model #%d.\n",
+                        file, map.getModelVersion(), LWMap.getCurrentModelVersion())
+                        + "\nVersion of VUE that saved this file:\n        " + savingVersion
+                        + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
+                        + " (public v" + VueResources.getString("vue.version") + ")"
+                        + "\n"
+                        + "\nThis version of VUE may not display this map properly.  Saving"
+                        + "\nthis map in this version of VUE may result in a corrupted map."
+                        ,
+                        String.format("Version Warning: %s", fileName));
+                
                 map.setLabel(fileName + " (as available)");
                 // Skip setting the file: this will force save-as if they try to save.
             } else {
-
+                
 // VUE-713: don't do this conditionallly
 //                 // This setFile also sets the label name, so it appears as a modification in the map.
 //                 // So be sure to do completeXMLRestore last, as it will reset the modification count.
@@ -1111,56 +1111,54 @@ public class ActionUtil
                 
                 if (DEBUG.Enabled) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
             }
-                
-
+            
+            
             Log.debug("unmarshalled: " + map);
             // Note that map.setFile must have been done before map.completeXMLResource is called.
             map.completeXMLRestore();
             Log.debug("restored: " + map);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             tufts.Util.printStackTrace(e, "Exception restoring map from [" + url + "]: " + e.getClass().getName());
             map = null;
             throw new Error("Exception restoring map from [" + url + "]", e);
         }
-
+        
         
         return map;
     }
-
+    
 }
 
 final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory {
-
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLObjectFactory.class);        
-		
+    
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLObjectFactory.class);
+    
     @Override
     public Object createInstance(Class type, Object[] args) throws IllegalAccessException, InstantiationException {
         //System.err.println("VOF0 ASKED FOR " + type + " args=" + args);
         Log.warn("ASKED FOR " + type + " args=" + args);
         return this.createInstance(type, null, null);
     }
-
+    
     @Override
     public Object createInstance(Class type) throws IllegalAccessException, InstantiationException {
         //System.err.println("VOF1 ASKED FOR " + type);
         Log.warn("ASKED FOR " + type);
         return this.createInstance(type, null, null);
     }
-
+    
     @Override
     public Object createInstance(Class _type, Class[] argTypes, Object[] args)
-        throws IllegalAccessException, InstantiationException
-    {
+    throws IllegalAccessException, InstantiationException {
         Class type = _type;
-            
+        
 //         if (_type == tufts.vue.MapResource.class || _type == tufts.vue.CabinetResource.class)
 //             type = tufts.vue.URLResource.class;
-
+        
 //         if (_type != type) {
 //             Log.info("CONVERTED " + _type + " to " + type);
 //         }
-
+        
         //System.err.println("VOF ASKED FOR " + type + " argTypes=" + argTypes);
         //Object o = super.createInstance(type);
         final Object o = type.newInstance();
@@ -1168,7 +1166,7 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
             // don't use tags (allow toString to be called) -- unmarshalling can fail
             // if there are side-effects (!!!) due to calling it -- this happens
             // with a FavoritesDataSource in any case...
-            Log.debug("new " + Util.tag(o)); 
+            Log.debug("new " + Util.tag(o));
             //System.err.println("new " + Util.tag(o));
         }
         return o;
@@ -1180,27 +1178,26 @@ class MapException extends IOException {
         super(s);
     }
 }
-    
-    
 
 
-class PaddedCellRenderer extends DefaultListCellRenderer
-{	  
-	   public Component  getListCellRendererComponent(JList list,
-	         Object value, // value to display
-	         int index,    // cell index
-	         boolean iss,  // is selected
-	         boolean chf)  // cell has focus?
-	   {
-		   super.getListCellRendererComponent(list, 
-                   value, 
-                   index, 
-                   iss, 
-                   chf);
-		   
-		    setText(((VueFileFilter)value).getDescription());
-		   this.setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 1));
-		   
-		  return this;
-	   }			        	
+
+
+class PaddedCellRenderer extends DefaultListCellRenderer {
+    public Component  getListCellRendererComponent(JList list,
+            Object value, // value to display
+            int index,    // cell index
+            boolean iss,  // is selected
+            boolean chf)  // cell has focus?
+    {
+        super.getListCellRendererComponent(list,
+                value,
+                index,
+                iss,
+                chf);
+        
+        setText(((VueFileFilter)value).getDescription());
+        this.setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 1));
+        
+        return this;
+    }
 }
