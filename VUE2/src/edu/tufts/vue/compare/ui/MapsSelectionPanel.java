@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.35 $ / $Date: 2008-02-20 13:49:02 $ / $Author: dan $
+ * @version $Revision: 1.36 $ / $Date: 2008-02-20 17:59:41 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -548,7 +548,7 @@ public class MapsSelectionPanel extends JPanel  {
     public static String getShortNameForFile(String absolutePath)
     {
        int lastDot = absolutePath.lastIndexOf(".");
-       int lastSlash = absolutePath.lastIndexOf("/");
+       int lastSlash = absolutePath.lastIndexOf(java.io.File.separator);
        int endIndex = absolutePath.length();
        if(lastSlash!=-1 && (lastSlash < (absolutePath.length() - 1) ))
        {
