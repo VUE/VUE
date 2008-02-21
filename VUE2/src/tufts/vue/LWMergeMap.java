@@ -689,7 +689,7 @@ public class LWMergeMap extends LWMap {
           {    
              b = ci.next();
           }
-          if(b.booleanValue() || (m==getBaseMap()))
+          if(b.booleanValue()) //|| (m==getBaseMap()))
           {
             if(DEBUG_LOCAL)
             {    
