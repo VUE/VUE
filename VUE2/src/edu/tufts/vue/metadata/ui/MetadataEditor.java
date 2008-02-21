@@ -1392,8 +1392,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
              
              if(saved.size() <= row)
              {
-                 //for(int i = saved.size();i<row + 1;i++)
-                 for(int i = 0;i<row-saved.size() + 1;i++)
+                 while(saved.size() < row + 1)
                  {
                      saved.add(Boolean.TRUE);
                  }
