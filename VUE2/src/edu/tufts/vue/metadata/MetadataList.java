@@ -311,7 +311,16 @@ public class MetadataList {
                           value = value.substring(nameLocation + 1);
                       }
                   }
-                    
+                  
+                  if(type == VueMetadataElement.OTHER)
+                  {
+                     int cLocation = value.indexOf(":");
+                     if(cLocation > -1 && value.length() > cLocation + 1);
+                       value = value.substring(cLocation + 1);
+                       
+                     value = "-" + value;
+                  }    
+                  
                   txt += "<br>" + value;
                 }
             }
