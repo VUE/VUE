@@ -257,8 +257,11 @@ public class FedoraPublisher {
         dc +="<oai_dc:dc xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\">";
         dc += "<dc:title>"+title+"</dc:title>";
         dc += "<dc:identifier>"+identifier+"</dc:identifier>";
+        if(c.getNotes() != null) {
+            dc += "<dc:description>"+c.getNotes()+"</dc:description>";
+        }
         for(VueMetadataElement element: c.getMetadataList().getMetadata()) {
-//            System.out.println("Publishing Metadata: key:"+element.getKey()+ " value: "+ element.getValue()+"  for "+c.getLabel());      
+ //          System.out.println("Publishing Metadata: key:"+element.getKey()+ " value: "+ element.getValue()+"  for "+c.getLabel());      
             if(element.getKey().contains(DC_URL)) {
                 String key = "dc:"+element.getKey().substring(DC_URL.length()+1).toLowerCase();
                 dc += "<"+key+">"+element.getValue()+"</"+key+">";
