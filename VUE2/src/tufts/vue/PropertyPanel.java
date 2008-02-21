@@ -57,6 +57,7 @@ public class PropertyPanel extends JPanel {
     
     public JLabel createLabel( String pText) {
         JLabel label = new JLabel( pText);
+        label.setFont(tufts.vue.gui.GUI.LabelFace);
         
         return label;
         
