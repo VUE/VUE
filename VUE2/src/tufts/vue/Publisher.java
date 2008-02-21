@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.91 $ / $Date: 2008-02-15 18:40:27 $ / $Author: anoop $
+ * @version $Revision: 1.92 $ / $Date: 2008-02-21 21:47:48 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -119,43 +119,61 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
     
     public Publisher(edu.tufts.vue.dsm.DataSource dataSource) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
-        //logger.setLevel(Level.DEBUG);
-        setUpButtonPanel();
-        try {
-            fedoraDataSourceType = dataSource.getRepository().getType();
-        } catch(Throwable t) {
-            t.printStackTrace();
+        // perform this only when map is saved.
+        if(isMapSaved()) {
+            //logger.setLevel(Level.DEBUG);
+            setUpButtonPanel();
+            try {
+                fedoraDataSourceType = dataSource.getRepository().getType();
+            } catch(Throwable t) {
+                t.printStackTrace();
+            }
+            repList = new JList();
+            repList.setModel(new DatasourceListModel(fedoraDataSourceType));
+            repList.setSelectedValue(dataSource,false);
+            if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                setUpWorkspaceSelectionPanel();
+                getContentPane().add(wPanel, BorderLayout.CENTER);
+                nextButton.setActionCommand(AC_SETUP_M);  // "Next" on ws panel activates Mode panel - pdw 10-nov-07
+            } else{
+                setUpModeSelectionPanel();
+                getContentPane().add(mPanel, BorderLayout.CENTER);
+                nextButton.setActionCommand(AC_SETUP_M);
+            }
+            setLocation(X_LOCATION,Y_LOCATION);
+            setModal(true);
+            setSize(PUB_WIDTH, PUB_HEIGHT);
+            setResizable(false);
+            setVisible(true);
         }
-        repList = new JList();
-        repList.setModel(new DatasourceListModel(fedoraDataSourceType));
-        repList.setSelectedValue(dataSource,false);
-        if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
-            setUpWorkspaceSelectionPanel();
-            getContentPane().add(wPanel, BorderLayout.CENTER);
-            nextButton.setActionCommand(AC_SETUP_M);  // "Next" on ws panel activates Mode panel - pdw 10-nov-07
-        } else{
-            setUpModeSelectionPanel();
-            getContentPane().add(mPanel, BorderLayout.CENTER);
-            nextButton.setActionCommand(AC_SETUP_M);
-        }
-        setLocation(X_LOCATION,Y_LOCATION);
-        setModal(true);
-        setSize(PUB_WIDTH, PUB_HEIGHT);
-        setResizable(false);
-        setVisible(true);
     }
     
     
     public Publisher(org.osid.shared.Type type) {
         super(VUE.getDialogParentAsFrame(),TITLE,true);
-        //logger.setLevel(Level.DEBUG);
-        this.fedoraDataSourceType = type;
-        initialize();
-        if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
-            nextButton.setActionCommand(AC_SETUP_W);
-        } else{
-            nextButton.setActionCommand(AC_SETUP_M);
+        // perform this only when map is saved.
+        if(isMapSaved())  {
+            
+            //logger.setLevel(Level.DEBUG);
+            this.fedoraDataSourceType = type;
+            initialize();
+            if(fedoraDataSourceType.isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
+                nextButton.setActionCommand(AC_SETUP_W);
+            } else{
+                nextButton.setActionCommand(AC_SETUP_M);
+            }
         }
+    }
+    
+    public boolean  isMapSaved()  {
+        if(VUE.getActiveMap() == null) {
+            VueUtil.alert("The map is not saved. Please save the map and then publish.","Not Active Map");
+            return false;
+        } else if(VUE.getActiveMap().getFile() == null) {
+            VueUtil.alert("The map is not saved. Please save the map and then publish.","Map Not Saved");
+            return false;
+        } else return true;
+        
     }
     private void initialize() {
         
@@ -333,19 +351,19 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 String fileName = VUE.getActiveMap().getFile().getName();
                 org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
                 /**
-                int confirm = 0;
-                try {
-                    if(isFilePresent( asset,   fileName )) {
-                        confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
-                    }
-                }catch(Throwable t) {
-                    t.printStackTrace();
-                    alert(this,"An error occurred while checking existence of resource in repository. Error message: "+t.getMessage(),"Publish Error");
-                    this.dispose();
-                }
-                if(confirm == JOptionPane.NO_OPTION) {
-                    return;
-                }
+                 * int confirm = 0;
+                 * try {
+                 * if(isFilePresent( asset,   fileName )) {
+                 * confirm = VueUtil.confirm(DUPLICATE_OBJ_ERR_MESG,DUPLICATE_OBJ_ERR_TITLE);
+                 * }
+                 * }catch(Throwable t) {
+                 * t.printStackTrace();
+                 * alert(this,"An error occurred while checking existence of resource in repository. Error message: "+t.getMessage(),"Publish Error");
+                 * this.dispose();
+                 * }
+                 * if(confirm == JOptionPane.NO_OPTION) {
+                 * return;
+                 * }
                  */
                 getContentPane().remove(wPanel);
             } else {
@@ -430,12 +448,12 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                 org.osid.repository.Asset asset =  ((SakaiSiteUserObject)(treeNode.getUserObject())).getAsset();
                 int confirm = JOptionPane.YES_OPTION;  //TODO: do we really want the default to be overwrite? - pdw 05-feb-07
                 if(isFilePresent( asset,   fileName )) {
-                	confirm = JOptionPane.showConfirmDialog(this, DUPLICATE_OBJ_ERR_MESG, DUPLICATE_OBJ_ERR_TITLE, JOptionPane.YES_NO_OPTION );
+                    confirm = JOptionPane.showConfirmDialog(this, DUPLICATE_OBJ_ERR_MESG, DUPLICATE_OBJ_ERR_TITLE, JOptionPane.YES_NO_OPTION );
                 }
-                 if(confirm == JOptionPane.NO_OPTION) {
+                if(confirm == JOptionPane.NO_OPTION) {
                     this.dispose();
                     return;
-                 }
+                }
                 if(publishMapRButton.isSelected()) {
                     SakaiPublisher.uploadMap( ds, siteId, VUE.getActiveMap(), confirm );
                 }else if(publishMapAllRButton.isSelected()){
