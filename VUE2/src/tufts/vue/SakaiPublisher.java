@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.20 $ / $Date: 2008-02-13 22:42:20 $ / $Author: anoop $
+ * @version $Revision: 1.21 $ / $Date: 2008-02-22 18:30:34 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -194,16 +194,18 @@ public class SakaiPublisher {
     						RESOURCE_DESC, true );
 
     				//Replace the link for resource in the map
-    				String ingestUrl =  hostUrl + "/access/content" + folderName + file.getName();
-    				System.out.println( ingestUrl );
-    				resource.setSpec(ingestUrl);
+    				
     				//TODO The following call to setProperty() clears the "File" property.
     				// this is necessary because currently setSpec() doesn't reset the File 
     				// property, leaving a resource with both an URL and File property.  It
     				// shouldn't have both. - pdw 28-nov-07
     				resource.removeProperty( "File" );
     			}
-    		}
+                        String ingestUrl =  hostUrl + "/access/content" + folderName + (new File(resource.getSpec().replace(FILE_PREFIX,""))).getName();
+                        System.out.println( ingestUrl );
+                        // resource.setSpec(ingestUrl);
+                        component.setResource(URLResource.create(ingestUrl));
+   		}
     	}
     	//upload the map 
     	/* TODO NOTE: The map that is uploaded has changed from the map that 
