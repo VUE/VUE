@@ -32,14 +32,14 @@ public class PropertyEntry {
     public PropertyEntry() {
     }
     
-    Object entryKey;
+    String entryKey;
     Object entryValue;
     
-    public Object getEntryKey() {
+    public String getEntryKey() {
         return this.entryKey;
     }
     
-    public void setEntryKey(Object entryKey) {
+    public void setEntryKey(String entryKey) {
         this.entryKey = entryKey;
     }
     
