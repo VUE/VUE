@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.33 $ / $Date: 2008-02-20 15:39:13 $ / $Author: dan $
+ * @version $Revision: 1.34 $ / $Date: 2008-02-22 14:52:14 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -571,13 +571,19 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);
             //JLabel hotSpot = new JLabel("[edit style]");
-            javax.swing.JButton hotSpot = new javax.swing.JButton("[edit style]") {
+            javax.swing.JPanel hotSpot = new javax.swing.JPanel() {
                 public void paintComponent(java.awt.Graphics g) {
                     g.drawString("  [Edit Style]",0,buttonImage.getY()+ 12);
                 }
             };
             renderer.add(buttonImage);
             renderer.add(hotSpot);
+            
+            //$
+              //renderer.setOpaque(true);
+              //renderer.setBackground(java.awt.Color.RED);
+            //$
+                    
             return renderer;
         }
     }
@@ -590,7 +596,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         
         private JLabel buttonImage;
         // private JLabel hotSpot;
-        private javax.swing.JButton hotSpot;
+        private javax.swing.JPanel hotSpot;
         private JPanel panel = new JPanel();
         //private IntervalStylePreview current;
         private int currentRow = 0;
@@ -603,7 +609,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             buttonImage.setForeground(textColor);
             buttonImage.setBackground(backColor);
             //hotSpot = new JLabel("[edit style]");
-            hotSpot = new javax.swing.JButton() {
+            hotSpot = new javax.swing.JPanel() {
                 public void paintComponent(java.awt.Graphics g) {
                     g.drawString("  [Edit Style]",0,buttonImage.getY()+ 12);
                 }
@@ -629,10 +635,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                             currStyle.setAttribute("background",Style.colorToHex(chooser.getColor()));
                         }
                     }
+                    
+                    panel.repaint();
                 }
+                //stopCellEditing();
+
             };
             hotSpot.addMouseListener(new java.awt.event.MouseAdapter(){
-                public void mouseReleased(java.awt.event.MouseEvent e) {
+                public void mousePressed(java.awt.event.MouseEvent e) {
                     //System.out.println("wvsp: " + e);
                     chooser.setColor(backColor);
                     try {
@@ -641,7 +651,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                         ex.printStackTrace();
                     }
                     backColor = chooser.getColor();
-                    stopCellEditing();
+                    repaint();
+                  //  stopCellEditing();
                 }
             });
             //$
