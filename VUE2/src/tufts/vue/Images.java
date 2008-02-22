@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-12-07 00:46:28 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2008-02-22 22:15:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -110,6 +110,43 @@ public class Images
             return null;
         }
     }
+
+//     /**
+//      * synchronously retrive the raw byte-stream for the original image data if we don't already have it, and
+//      * return a stream.
+//      */
+//     public static InputStream getImageData(Object imageSRC)
+//     {
+//         if (imageSRC instanceof BufferedImage) {
+//             Util.printStackTrace("can't get original byte-stream from BufferedImage " + imageSRC);
+//             return null;
+//         }
+        
+//         try {
+//             return getCachedOrLoad(imageSRC, null);
+//         } catch (Throwable t) {
+//             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
+//             Log.error("getImage " + imageSRC + ": " + t);
+//             return null;
+//         }
+//     }
+
+    public static File getCacheFile(Resource r) {
+
+        final ImageSource imageSRC = new ImageSource(r);
+
+        if (imageSRC.key != null) {
+            final Object entry = Cache.get(imageSRC.key);
+            if (entry instanceof CacheEntry) {
+                return ((CacheEntry)entry).file;
+            } else {
+                Log.warn("Cache is loading, no cache file yet for " + r);
+            }
+        }
+        Log.warn("Failed to find cache file for " + r);
+        return null;
+    }
+    
 
     private static class CacheEntry {
         private Reference imageRef;
@@ -239,7 +276,7 @@ public class Images
         return null;
     }
 
-    private static String keyToCacheFileName(URI key)
+    public static String keyToCacheFileName(URI key)
         throws java.io.UnsupportedEncodingException
     {
         //return key.toASCIIString();
@@ -259,16 +296,16 @@ public class Images
     }
 
 
-    // TODO: Using a URL as the key is very slow: it actually does host name resolution
-    // for the IP address to do compares!
-
+    // Note: we use a URI, not a URL as the cache key.  URL's are slow to compare: they host name resolution
+    // to produce the IP address and compare by that.
 
     private static class ImageSource {
         final Object original;  // anything plausably covertable image source (e.g. a Resource, URL, File, stream)
         final Resource resource;// if original was a resource, it goes here.
         final URI key;          // Unique key for caching
         Object readable;        // the readable image source (not a Resource, and URL's converted to stream before ImageIO)
-        File cacheFile;         // If later stored in a file cache, is marked here.
+
+        File _cacheFile;         // If later stored in a file cache, is marked here.
 
         boolean isThumbshot = false;
 
@@ -334,6 +371,21 @@ public class Images
             
         }
 
+        void setCacheFile(File file) {
+            _cacheFile = file;
+//             if (resource != null)
+//                 resource.setCacheFile(file);
+        }
+
+        File getCacheFile() {
+            return _cacheFile;
+        }
+
+        boolean hasCacheFile() {
+            return _cacheFile != null;
+        }
+        
+
         boolean useCacheFile() {
             return !isThumbshot;
         }
@@ -342,8 +394,8 @@ public class Images
             String s = tag(original);
             if (readable != original)
                 s += "; readable=[" + tag(readable) + "]";
-            if (cacheFile != null)
-                s += "; cache=" + cacheFile;
+            if (_cacheFile != null)
+                s += "; cache=" + _cacheFile;
             return "ImageSource[" + s + "]";
         }
 
@@ -699,8 +751,8 @@ public class Images
             // garbage collected, or the entry may actually be for a file
             // on disk.
 
-            CacheEntry ce = (CacheEntry) entry;
-            BufferedImage cachedImage = ce.getCachedImage();
+            final CacheEntry ce = (CacheEntry) entry;
+            final BufferedImage cachedImage = ce.getCachedImage();
                      	
             // if we have the image, we're done (it was loaded this runtime, and not GC'd)
             // if not, either it was GC'd, or it's a cache file entry from the persistent
@@ -713,7 +765,7 @@ public class Images
                 emptyEntry = false;
             } else if (ce.getFile() != null) {
                 if (ce.file.canRead()) {
-                    imageSRC.cacheFile = ce.file;
+                    imageSRC.setCacheFile(ce.file);
                     emptyEntry = false;
                 } else
                     Log.warn("cache file no longer available: " + ce.file);
@@ -826,22 +878,29 @@ public class Images
         // replacing the existing CacheEntry with a new one, instead of
         // updating the old with the new in-memory image buffer.
 
-        
-//         if (imageSRC.isThumbshot) {
-//             // always cache the result for a thumbshot, even if null
-//             Cache.put(imageSRC.key, new CacheEntry(image, null)); // oops: we don't currently support fully null cache entries
-//         } else
-        if (!imageSRC.useCacheFile()) {
+        if (imageSRC.useCacheFile()) {
+            if (image != null) {
+                File permanentCacheFile = null;
+                if (imageSRC.hasCacheFile())
+                    permanentCacheFile = ensurePermanentCacheFile(imageSRC.getCacheFile());
+                
+                if (DEBUG.IMAGE) out("getting cache lock for storing result; " + imageSRC);
+                Cache.put(imageSRC.key, new CacheEntry(image, permanentCacheFile));
+                
+                
+                // If the cache file has moved from tmp to permanent, we'd need to do this to keep imageSRC
+                // current, tho at the moment this is a bit overkill as we should no longer need imageSRC
+                // at this point, but just in case it wants to update something such as a Resource with
+                // a reference to the right cache file, we do this here.
+                if (permanentCacheFile != null)
+                    imageSRC.setCacheFile(permanentCacheFile);
+                
+//                 if (imageSRC.resource != null && permanentCacheFile != null)
+//                     imageSRC.resource.setCacheFile(permanentCacheFile);
+            }
+        } else {
             if (image != null)
                 Cache.put(imageSRC.key, new CacheEntry(image, null));
-        } else
-        if (image != null) {
-            File permanentCacheFile = null;
-            if (imageSRC.cacheFile != null)
-                permanentCacheFile = ensurePermanentCacheFile(imageSRC.cacheFile);
-            
-            if (DEBUG.IMAGE) out("getting cache lock for storing result");
-            Cache.put(imageSRC.key, new CacheEntry(image, permanentCacheFile));
         }
 
         return image;
@@ -945,8 +1004,10 @@ public class Images
                 return file;
             }
             File permanentFile = new File(file.getParentFile(), permanentName);
-            if (file.renameTo(permanentFile))
+            if (file.renameTo(permanentFile)) {
+                Log.debug("new perm cache file: " + permanentFile);
                 return permanentFile;
+            }
         } catch (Throwable t) {
             tufts.Util.printStackTrace(t, "Unable to create permanent cache file from tmp " + file);
         }
@@ -1022,10 +1083,10 @@ public class Images
 
         int dataSize = -1;
         
-        if (imageSRC.cacheFile != null) {
+        if (imageSRC.hasCacheFile()) {
             // just point us at the cache file: ImageIO will create the input stream
-            imageSRC.readable = imageSRC.cacheFile;
-            if (DEBUG.IMAGE) out("reading cache file: " + imageSRC.cacheFile);
+            imageSRC.readable = imageSRC.getCacheFile();
+            if (DEBUG.IMAGE) out("reading cache file: " + imageSRC.getCacheFile());
 
             // note: can get away with this because imageSRC.resource will
             // be null if this is for a preview icon, so don't need to worry
@@ -1033,12 +1094,14 @@ public class Images
             // in clean-up of meta-data setting
 
             if (imageSRC.resource != null) {
-                imageSRC.resource.setProperty(CONTENT_SIZE, imageSRC.cacheFile.length());
+                imageSRC.resource.setProperty(CONTENT_SIZE, imageSRC.getCacheFile().length());
                 // java has no creation date for Files!  Well, last modified good enough...
-                setDateValue(imageSRC.resource, CONTENT_ASOF, imageSRC.cacheFile.lastModified());
+                setDateValue(imageSRC.resource, CONTENT_ASOF, imageSRC.getCacheFile().lastModified());
             }
         
         } else if (imageSRC.readable instanceof java.net.URL) {
+            /*
+            
             final URL url = (URL) imageSRC.readable;
             final String asText = url.toString();
             URL cleanURL = url;
@@ -1106,7 +1169,33 @@ public class Images
                             System.out.format("%20s: %s\n", e.getKey(), e.getValue());
                     }
                 }
+            */
 
+            final URL url = (URL) imageSRC.readable;
+
+            int tries = 0;
+            boolean success = false;
+
+            final boolean debug = DEBUG.IMAGE || DEBUG.IO;
+
+            do {
+
+                final URLConnection conn = UrlAuthentication.getAuthenticatedConnection(url);
+                urlStream = conn.getInputStream();
+
+                if (imageSRC.resource != null) {
+                    dataSize = conn.getContentLength();
+                    try {
+                        setResourceMetaData(imageSRC.resource, conn);
+                    } catch (Throwable t) {
+                        // Don't fail if a problem with meta data: still give
+                        // a chance for the content to work...
+                        Util.printStackTrace(t, "URLConnection Meta Data Failure");
+                        //imageSRC.resource.setProperty("MetaDataFailure", t.toString());
+                    }
+                }
+                
+                
                 if (!imageSRC.useCacheFile()) {
                     
                     imageSRC.readable = urlStream;
@@ -1115,9 +1204,9 @@ public class Images
                 } else {
 
                     tmpCacheFile = makeTmpCacheFile(imageSRC.key);
-                    imageSRC.cacheFile = tmpCacheFile;  // will be made permanent if no errors
+                    imageSRC.setCacheFile(tmpCacheFile);  // will be made permanent if no errors
                     
-                    if (imageSRC.cacheFile != null) {
+                    if (imageSRC.hasCacheFile()) {
                         try {
                             imageSRC.readable = new FileBackedImageInputStream(urlStream, tmpCacheFile, listener);
                             success = true;
