@@ -30,7 +30,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.58 $ / $Date: 2007-12-05 22:10:19 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2008-02-22 19:08:47 $ / $Author: anoop $
  */
 
 // TODO:
@@ -445,6 +445,7 @@ public abstract class Resource
     public static final String EXTENSION_DIR = "dir";
     public static final String EXTENSION_HTTP = "web";
     public static final String EXTENSION_UNKNOWN = "---";
+    public static final String EXTENSION_VUE  = "vue";
 
     /**
      * Return a filename extension / file type of this resource (if any) suitable for identify it
@@ -539,7 +540,6 @@ public abstract class Resource
     public Icon getTinyIcon() {
         if (mTinyIcon != null)
             return mTinyIcon;
-        
         Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getDataType(), 16);
         if (image != null) {
             if (image.getWidth(null) > 16) {
