@@ -29,19 +29,22 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
 	public static final String XML_DESCRIPTION=VueResources.getString("vueFileFilter.vue.text");
 	public static final String ZIP_DESCRIPTION=VueResources.getString("vueFileFilter.zip.text");
 	public static final String PNG_DESCRIPTION=VueResources.getString("vueFileFilter.png.text");
+	public static final String VPK_DESCRIPTION=VueResources.getString("vueFileFilter.vpk.text");
 
-	private String[]
-        jpeg = {"jpeg", "jpg"},
-        svg = {"svg"},
-        pdf = {"pdf"},
-        html = {"html","htm"},
-        imap = {"imap"},
-        png = {"png"},
-        vue = {"vue", "xml"},
-        rdf = {"rdf","owl","rdfs"},
-        txt = {"txt"},
-        zip = {"zip"},
-		rli = {"rli.xml"};
+	private static final String[]
+            jpeg = {"jpeg", "jpg"},
+            svg = {"svg"},
+            pdf = {"pdf"},
+            html = {"html","htm"},
+            imap = {"imap"},
+            png = {"png"},
+            vue = {"vue", "xml"},
+            rdf = {"rdf","owl","rdfs"},
+            txt = {"txt"},
+            zip = {"zip"},
+            rli = {"rli.xml"},
+            VuePackage = { VueUtil.VueArchiveExtension.substring(1) };
+    
     private final String[] extensions;
     private final String description;
     
@@ -62,6 +65,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         if (description.equalsIgnoreCase(JPEG_DESCRIPTION))
           extensions = jpeg;
         
+        else if (description.equalsIgnoreCase(VPK_DESCRIPTION))
+            extensions = VuePackage;
+        
         else if (description.equalsIgnoreCase(SVG_DESCRIPTION))
           extensions = svg;
         
@@ -74,9 +80,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
         else if (description.equalsIgnoreCase("rdf")) 
             extensions = rdf;
         else if (description.equalsIgnoreCase("pdf"))
-        	extensions = pdf;
+            extensions = pdf;
         else if (description.equalsIgnoreCase(ZIP_DESCRIPTION))
-        	extensions=zip;
+            extensions=zip;
         else if (description.equalsIgnoreCase(IMAGEMAP_DESCRIPTION))
         {
           //extensions = imap;
