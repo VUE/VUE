@@ -55,7 +55,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.177 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.178 $ / $Date: 2008-02-22 22:05:49 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -496,6 +496,35 @@ public class LWMap extends LWContainer
         }
         return bag;
     }
+
+    public Collection<Resource> getAllResources() {
+
+        Collection<Resource> resources = new ArrayList();
+
+        for (LWComponent c : getAllDescendents(ChildKind.ANY))
+            if (c.hasResource())
+                resources.add(c.getResource());
+
+        return resources;
+    }
+
+    public Collection<Resource> getAllUniqueResources() {
+
+        Set resources = new HashSet();
+
+        for (LWComponent c : getAllDescendents(ChildKind.ANY)) {
+            if (c.hasResource()) {
+                Resource r = c.getResource();
+                if (resources.add(r))
+                    Log.debug("Found resource " + r);
+                else
+                    Log.debug("   Already had " + r);
+            }
+        }
+
+        return resources;
+    }
+    
     
     private int nextID = 1;
     protected synchronized String getNextUniqueID() {
@@ -697,6 +726,8 @@ public class LWMap extends LWContainer
 //                 if (c instanceof LWGroup)
 //                     ((LWGroup)c).normalize();
 
+if (!tufts.vue.action.SaveAction.VAR_DEBUG) // tmp: we get exceptions when testing just SaveAction on this code
+        
         // Layout non-links:
         for (LWComponent c : allRestored) {
             // mark all, including links, now, as when we get to them, links-to-links may
@@ -712,6 +743,8 @@ public class LWMap extends LWContainer
             }
         }
 
+if (!tufts.vue.action.SaveAction.VAR_DEBUG)
+            
         // Layout links -- will trigger recomputes & layout any link-labels that need it.
         for (LWComponent c : allRestored) {
             if (c instanceof LWLink == false)
@@ -1522,7 +1555,7 @@ public class LWMap extends LWContainer
     
     
     /**
-     * @return the current deata-model version
+     * @return the current data-model version
      *
      * Model version 0: absolute children: pre-model versions / unknown (assumed all absolute coordinates)
      * Model version 1: relative children, including groups (excepting link members)
