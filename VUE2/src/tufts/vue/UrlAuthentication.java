@@ -19,8 +19,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.HashMap;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.Properties;
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ServiceException;
@@ -109,6 +110,85 @@ public class UrlAuthentication
             
         return HostMap.get(key);
     }
+
+    /**
+     * This will return a URLConnection, authenticated if need be, with it's
+     * connection already open.  Calling getInputStream() on the returned
+     * connection will returned the cached open input stream, positioned
+     * at the top of the content, reading for reading.
+     */
+    public static java.net.URLConnection getAuthenticatedConnection(URL url)
+        throws java.io.IOException
+    {
+        //-----------------------------------------------------------------------------
+        // We don't need authorization for any local file access
+
+        if ("file".equals(url.getProtocol())) {
+            if (DEBUG.IO) Log.debug("Skipping auth checks for local access: " + url);
+            return url.openConnection();
+        }
+        
+        //-----------------------------------------------------------------------------
+
+        
+        final String asText = url.toString();
+        URL cleanURL = url;
+
+        if (asText.indexOf(' ') > 0) {
+            // Added 2007-09-20 SMF -- Sakai HTTP server is rejecting spaces in the URL path.
+            try {
+                cleanURL = new URL(asText.replaceAll(" ", "%20"));
+            } catch (Throwable t) {
+                tufts.Util.printStackTrace(t, asText);
+                return null;
+            }
+        }
+
+        final boolean debug = DEBUG.IMAGE || DEBUG.IO;
+
+        final Map<String,String> sessionKeys = UrlAuthentication.getRequestProperties(url);
+
+        if (debug) Log.debug("opening URLConnection... (sessionKeys=" + sessionKeys + ") " + cleanURL);
+        final java.net.URLConnection conn = cleanURL.openConnection();
+
+        if (sessionKeys != null) {
+            for (Map.Entry<String,String> e : sessionKeys.entrySet()) {
+                if (debug) System.out.println("\tHTTP request[" + e.getKey() + ": " + e.getValue() + "]");
+                conn.setRequestProperty(e.getKey(), e.getValue());
+            }
+        }
+
+        if (debug) {
+            Log.debug("got URLConnection: " + conn);
+            // Note: getting the request properties will throw an exception if called
+            // after the connection is open (getInputStream is called)
+            final Map<String,List<String>> rp = conn.getRequestProperties();
+            for (Map.Entry<String,List<String>> e : rp.entrySet()) {
+                System.out.println("\toutbound HTTP header[" +e.getKey() + ": " + e.getValue() + "]");
+            }
+        }
+                
+        if (debug) Log.debug("opening URL stream...");
+        final java.io.InputStream urlStream = conn.getInputStream();
+        if (debug) Log.debug("got URL stream");
+
+        if (debug) {
+            Log.debug("Connected; Headers from [" + conn + "];");
+            // Note: asking for the header fields will force the connection open (getInputStream will be called)
+            final Map<String,List<String>> headers = conn.getHeaderFields();
+            List<String> response = headers.get(null);
+            if (response != null)
+                System.out.format("%20s: %s\n", "HTTP-RESPONSE", response);
+            for (Map.Entry<String,List<String>> e : headers.entrySet()) {
+                if (e.getKey() != null)
+                    System.out.format("%20s: %s\n", e.getKey(), e.getValue());
+            }
+        }
+
+        return conn;
+    }
+
+
 
 	/** 
 	 * Extract credentials from configuration of installed datasources
