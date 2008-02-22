@@ -27,7 +27,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.91 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.92 $ / $Date: 2008-02-22 22:11:12 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -37,7 +37,8 @@ public class VueUtil extends tufts.Util
     
     public static final String DEFAULT_WINDOWS_FOLDER = "vue_2";
     public static final String DEFAULT_MAC_FOLDER = ".vue_2";
-    private static final String VueExtension = VueResources.getString("vue.extension", ".vue");
+    public static final String VueExtension = VueResources.getString("vue.extension", ".vue");
+    public static final String VueArchiveExtension = VueResources.getString("vue.archive.extension", ".vpk");
     private static String currentDirectoryPath = "";
     
     public static void openURL(String platformURL)
@@ -64,10 +65,11 @@ public class VueUtil extends tufts.Util
         if (!isMailto) {
             String lowCaseURL = platformURL.toLowerCase();
                      
-            if (lowCaseURL.endsWith(VueExtension)
-                || lowCaseURL.endsWith(".zip")
-                || (DEBUG.Enabled && lowCaseURL.endsWith(".xml"))) {
-            
+            if (lowCaseURL.endsWith(VueExtension) ||
+                lowCaseURL.endsWith(VueArchiveExtension) ||
+                lowCaseURL.endsWith(".zip") ||
+                (DEBUG.Enabled && lowCaseURL.endsWith(".xml")))
+            {
                 if (lowCaseURL.startsWith("resource:")) {
                     // Special case for startup.vue which can be embedded in the classpath
                     java.net.URL url = VueResources.getURL(platformURL.substring(9));
