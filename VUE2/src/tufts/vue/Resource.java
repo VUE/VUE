@@ -30,7 +30,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.59 $ / $Date: 2008-02-22 19:08:47 $ / $Author: anoop $
+ * @version $Revision: 1.60 $ / $Date: 2008-02-22 22:15:58 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -104,7 +104,7 @@ import javax.swing.ImageIcon;
 // not having a massaged version that leaves (that does stuff like create spaces, removes
 // the extension, etc).
 
-public abstract class Resource 
+public abstract class Resource implements Cloneable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Resource.class);
 
@@ -662,9 +662,12 @@ public abstract class Resource
 //     public abstract Object getPreview(Object preferredSize);
 
 
-    //public abstract boolean isCached();
-    // todo: should be protected or not have it
-    public abstract void setCached(boolean cached);
+    public abstract void setCached(boolean isCached);
+
+    //public abstract java.io.InputStream getByteStream();
+    
+//     public abstract void setCacheFile(java.io.File cacheFile);
+//     public abstract java.io.File getCacheFile();
 
     /** if possible, make this Resource relatve to the given root */
     public abstract void relativize(URI root);    
@@ -686,6 +689,19 @@ public abstract class Resource
 
     public String toString() {
         return asDebug();
+    }
+
+    public Resource clone() {
+
+        // TODO: properties need to be cloned also -- will need
+        // to make mProperties non-final though (java limitation)
+        
+        try {
+            return (Resource) super.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
     
 //     public String toString() {
