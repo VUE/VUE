@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.93 $ / $Date: 2008-02-22 19:08:52 $ / $Author: anoop $
+ * @version $Revision: 1.94 $ / $Date: 2008-02-22 19:30:23 $ / $Author: anoop $
  * @author Scott Fraize
  */
 
@@ -653,7 +653,17 @@ public class GUI
     {
           
         if(ext.equalsIgnoreCase(Resource.EXTENSION_VUE)) {
-             return tufts.vue.VueResources.getImage("vueIcon32x32");
+            String desiredKey = "vueIcon32x32";
+// commenting this for now. The image looks small in the Resource Window            
+//            if(sizeRequest == 16) {
+//                desiredKey = "vueIcon16x16";
+//            }
+            Image image = IconCache.get(desiredKey);
+            if(image == null)  {
+                image= tufts.vue.VueResources.getImage(desiredKey);
+                IconCache.put(desiredKey,image);
+            }
+             return image;
         }
         if (ext == Resource.EXTENSION_HTTP)
             ext = "htm";
