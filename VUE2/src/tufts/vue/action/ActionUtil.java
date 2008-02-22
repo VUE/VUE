@@ -63,7 +63,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.95 $ / $Date: 2008-02-20 19:36:04 $ / $Author: anoop $
+ * @version $Revision: 1.96 $ / $Date: 2008-02-22 22:10:17 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -135,19 +135,19 @@ public class ActionUtil
          chooser.setFileFilter(new VueFileFilter(fileType)); 
         else if (fileType != null && fileType.equals("export"))
         {
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
-        	chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
-        	
         }
         else
         {
             VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
             
             chooser.addChoosableFileFilter(defaultFilter);  
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter("PDF"));
             
@@ -492,8 +492,6 @@ public class ActionUtil
                org.exolab.castor.xml.MarshalException,
                org.exolab.castor.xml.ValidationException
     {
-        Marshaller marshaller = null;
-
         final String path = file.getAbsolutePath().replaceAll("%20"," ");
         final Writer writer;
         if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
@@ -507,7 +505,58 @@ public class ActionUtil
             // and any default encoding will handle that...
                 
         }
-            
+
+        marshallMapToWriter(writer, map, file);
+        writer.close();
+    }
+    
+    private static class VueMarshalListener implements MarshalListener {
+        public boolean preMarshal(Object o) {
+            //if (true||DEBUG.XML) Log.debug("VML  pre: " + Util.tags(o));
+            //if (o instanceof tufts.vue.Resource)
+            try {
+                // TODO: create a ConditionalMarshalling interface for embedding this logic
+                // in the client classes so it's not kept here.
+                if (o instanceof tufts.vue.PropertyEntry && ((tufts.vue.PropertyEntry)o).getEntryKey().startsWith("@")) {
+                    if (DEBUG.Enabled) Log.debug("Skipping " + Util.tags(o));
+                    return false;
+                } else {
+                    if (DEBUG.XML) Log.debug("Marshalling " + Util.tags(o));
+                    return true;
+                }
+            } catch (Throwable t) {
+                Util.printStackTrace(t, "Marshalling condition failure on " + o);
+            }
+            return true;
+        }
+        public void postMarshal(Object o) {
+            //if (true||DEBUG.XML) Log.debug("VML post: " + Util.tags(o));
+        }
+    }
+    /**
+     * Marshall the given map to the given Writer without touching the map in any
+     * way.
+     */
+    public static void marshallMapToWriter(final LWMap map, final Writer writer)
+        throws java.io.IOException,
+               org.exolab.castor.mapping.MappingException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.xml.ValidationException
+    {
+        marshallMapToWriter(writer, map, null);
+    }
+    
+    /**
+     * @param file - if null, map state is untouched, otherwise, map state is updated
+     */
+    private static void marshallMapToWriter(final Writer writer, final LWMap map, final File file)
+        throws java.io.IOException,
+               org.exolab.castor.mapping.MappingException,
+               org.exolab.castor.xml.MarshalException,
+               org.exolab.castor.xml.ValidationException
+    {
+
+        Marshaller marshaller = null;
         writer.write(VUE_COMMENT_START
                      + " VUE mapping "
                      + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
@@ -530,6 +579,7 @@ public class ActionUtil
         // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
         marshaller.setMarshalAsDocument(true);
         marshaller.setNoNamespaceSchemaLocation("none");
+        marshaller.setMarshalListener(new VueMarshalListener());
         // setting to "none" gets rid of all the spurious tags like these:
         // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
@@ -580,27 +630,29 @@ public class ActionUtil
 
         final int oldModelVersion = map.getModelVersion();
         final File oldSaveFile = map.getFile();
-        
-        map.setModelVersion(LWMap.getCurrentModelVersion());
-        // note that if this file is different from it's last save file, this
-        // operation may cause any/all of the resources in the map to be
-        // updated before returning.
-        map.setFile(file);
+        if (file != null) {
+            map.setModelVersion(LWMap.getCurrentModelVersion());
+            // note that if this file is different from it's last save file, this
+            // operation may cause any/all of the resources in the map to be
+            // updated before returning.
+            map.setFile(file);
+        }
             
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
         Log.debug("marshalling " + map + " ...");
 
         try {
             marshaller.marshal(map);
-            Log.debug("marshalled " + map);
+            Log.debug("marshalled " + map + " to " + writer + "; file=" + file);
             writer.flush();
-            writer.close();
             //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
         } catch (Throwable t) {
             try {
-                // revert map model version & save file
-                map.setModelVersion(oldModelVersion);
-                map.setFile(oldSaveFile);
+                if (file != null) {
+                    // revert map model version & save file
+                    map.setModelVersion(oldModelVersion);
+                    map.setFile(oldSaveFile);
+                }
             } catch (Throwable tx) {
                 Util.printStackTrace(tx);
             } finally {
@@ -608,8 +660,10 @@ public class ActionUtil
             }
         }
             
-        map.markAsSaved();
-        Log.debug("saved " + map);
+        if (file != null) {
+            map.markAsSaved();
+            Log.debug("saved " + map + " to " + file);
+        }
 
         //map.setFile(file);
 
@@ -617,137 +671,6 @@ public class ActionUtil
 
     }
 
-    private static void doMarshallMap(Writer writer, LWMap map)
-    throws java.io.IOException,
-           org.exolab.castor.mapping.MappingException,
-           org.exolab.castor.xml.MarshalException,
-           org.exolab.castor.xml.ValidationException
-{
-    Marshaller marshaller = null;
-
-//    final String path = file.getAbsolutePath().replaceAll("%20"," ");
-//    final Writer writer;
-    if (OUTPUT_ENCODING.equals("UTF-8") || OUTPUT_ENCODING.equals("UTF8")) {
-//        writer = new OutputStreamWriter(new FileOutputStream(path), OUTPUT_ENCODING);
-    } else {
-//        writer = new FileWriter(path);
-        // For the actual file writer we can use the default encoding because
-        // we're marshalling specifically in US-ASCII.  E.g., because we direct
-        // castor to fully encode any special characters via
-        // setEncoding("US-ASCII"), we'll only have ASCII chars to write anyway,
-        // and any default encoding will handle that...
-            
-    }
-        
-    writer.write(VUE_COMMENT_START
-                 + " VUE mapping "
-                 + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
-                 + " " + XML_MAPPING_DEFAULT
-                 + " -->\n");
-    writer.write(VUE_COMMENT_START
-                 + " Saved date " + new java.util.Date()
-                 + " by " + VUE.getSystemProperty("user.name")
-                 + " on platform " + VUE.getSystemProperty("os.name")
-                 + " " + VUE.getSystemProperty("os.version")
-                 + " in JVM " + VUE.getSystemProperty("java.runtime.version")
-                 + " -->\n");
-    writer.write(VUE_COMMENT_START
-                 + " Saving version " + tufts.vue.Version.WhatString
-                 + " -->\n");
-    if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
-    marshaller = new Marshaller(writer);
-    //marshaller.setDebug(DEBUG.CASTOR);
-    marshaller.setEncoding(OUTPUT_ENCODING);
-    // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
-    marshaller.setMarshalAsDocument(true);
-    marshaller.setNoNamespaceSchemaLocation("none");
-    // setting to "none" gets rid of all the spurious tags like these:
-    // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-
-    //marshaller.setDoctype("foo", "bar"); // not in 0.9.4.3, must wait till we can run 0.9.5.3+
-
-    /*
-      marshaller.setMarshalListener(new MarshalListener() {
-      public boolean preMarshal(Object o) {
-      System.out.println(" preMarshal " + o.getClass().getName() + " " + o);
-      return true;
-      }
-      public void postMarshal(Object o) {
-      System.out.println("postMarshal " + o.getClass().getName() + " " + o);
-      }
-      });
-    */
-
-    //marshaller.setRootElement("FOOBIE"); // overrides name of root element
-        
-    marshaller.setMapping(getDefaultMapping());
-
-    //----------------------------------------------------------------------------------------
-    // 
-    // 2007-10-01 SMF -- turning off validation during marshalling now required
-    // w/castor-1.1.2.1-xml.jar, otherwise, for some unknown reason, LWLink's
-    // with any connected endpoints cause validation exceptions when attempting to
-    // save.  E.g, from a map with one node and one link connected to it:
-    //
-    // ValidationException: The following exception occured while validating field: childList of class:
-    // tufts.vue.LWMap: The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type
-    // class tufts.vue.LWNode has no ID!;
-    // - location of error: XPATH: /LW-MAP
-    // The object associated with IDREF "LWNode[2         "New Node"  +415,+24 69x22]" of type class tufts.vue.LWNode has no ID!
-    //
-    // Even tho the node's getID() is correctly returning "2"
-    //
-    marshaller.setValidation(false); 
-    //----------------------------------------------------------------------------------------
-        
-    /*
-      Logger logger = new Logger(System.err);
-      logger.setPrefix("Castor ");
-      marshaller.setLogWriter(logger);
-    */
-    marshaller.setLogWriter(new PrintWriter(System.err));
-
-    // Make modifications to the map at the last minute, so any prior exceptions leave the map untouched.
-
-    final int oldModelVersion = map.getModelVersion();
-    final File oldSaveFile = map.getFile();
-    
-    map.setModelVersion(LWMap.getCurrentModelVersion());
-    // note that if this file is different from it's last save file, this
-    // operation may cause any/all of the resources in the map to be
-    // updated before returning.
-//    map.setFile(file);
-        
-    //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
-    Log.debug("marshalling " + map + " ...");
-
-    try {
-        marshaller.marshal(map);
-        Log.debug("marshalled " + map);
-        writer.flush();
-        writer.close();
-        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
-    } catch (Throwable t) {
-        try {
-            // revert map model version & save file
-            map.setModelVersion(oldModelVersion);
-            map.setFile(oldSaveFile);
-        } catch (Throwable tx) {
-            Util.printStackTrace(tx);
-        } finally {
-            throw new WrappedMarshallException(t);
-        }
-    }
-        
-    map.markAsSaved();
-    Log.debug("saved " + map);
-
-    //map.setFile(file);
-
-    //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
-
-}
-    
     private static class VueUnmarshalListener implements UnmarshalListener {
         public void initialized(Object o) {
             //if (DEBUG.XML) System.out.println("**** VUL initialized " + o.getClass().getName() + " " + tos(o));
@@ -1029,8 +952,15 @@ public class ActionUtil
 
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("UNMARSHALLING: " + url + " charset=" + charsetEncoding);
         Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
+
+        final InputStream urlStream;
+
+        if ("file".equals(url.getProtocol()))
+            urlStream = url.openStream();
+        else
+            urlStream = tufts.vue.UrlAuthentication.getAuthenticatedConnection(url).getInputStream();
         
-        BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), charsetEncoding));
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(urlStream, charsetEncoding));
 
         // Skip over comments to get to start of XML
 
@@ -1109,7 +1039,7 @@ public class ActionUtil
 //                     map.setFile(file);
 //                 }
                 
-                if (DEBUG.Enabled) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
+                if (DEBUG.DATA) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
             }
                 
 
