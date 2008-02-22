@@ -33,7 +33,7 @@ import tufts.vue.gui.*;
  * A tabbed-pane collection of property sheets that apply
  * globally to a given map.
  *
- * @version $Revision: 1.63 $ / $Date: 2008-01-31 21:07:25 $ / $Author: dan $ 
+ * @version $Revision: 1.64 $ / $Date: 2008-02-22 15:10:02 $ / $Author: dan $ 
  *
  */
 public class MapInspectorPanel extends JPanel
@@ -221,7 +221,9 @@ public class MapInspectorPanel extends JPanel
         JTextField mAuthorEditor = null;
         //VueTextPane mAuthorEditor = null;
         JLabel mDate = null;
-        JLabel mLocation = null;
+        
+        // VUE-1001
+        //JLabel mLocation = null;
         VueTextPane mDescriptionEditor = null;
         PropertyPanel mPropPanel = null;
         PropertiesEditor propertiesEditor = null;
@@ -302,7 +304,11 @@ public class MapInspectorPanel extends JPanel
                         
             
             mDate = new JLabel();
-            mLocation = new JLabel();
+            
+            // VUE-1001
+            //mLocation = new JLabel();
+            
+
             //saveButton = new JButton("Save");
             //saveButton.addActionListener(this);
             mPropPanel  = new PropertyPanel();
@@ -310,7 +316,10 @@ public class MapInspectorPanel extends JPanel
             mPropPanel.addProperty("Creator:", mAuthorEditor); //added through metadata
             mPropPanel.addProperty("Background:",mMapColor);
             mPropPanel.addProperty("Created:", mDate);
-            mPropPanel.addProperty("Location:",mLocation);            
+            
+            // VUE-1001
+            //mPropPanel.addProperty("Location:",mLocation);            
+            
             //mPropPanel.addProperty("Background:", mapFill);
             mPropPanel.addProperty("Description:", descriptionScroller);
             //mPropPanel.addProperty("Description:", descriptionScroller);
@@ -354,7 +363,8 @@ public class MapInspectorPanel extends JPanel
             
              mAuthorEditor.setFont(GUI.LabelFace);
              mDate.setFont(GUI.LabelFace);
-             mLocation.setFont(GUI.LabelFace);
+             // VUE 1001
+             //mLocation.setFont(GUI.LabelFace);
              mDescriptionEditor.setFont(GUI.LabelFace);
              
              mAuthorEditor.addFocusListener(new FocusAdapter(){
@@ -425,8 +435,10 @@ public class MapInspectorPanel extends JPanel
             if( file != null) {
                 path = file.getPath();
             }
-            mLocation.setText(path);
-            mLocation.setToolTipText(path);
+            
+            // VUE-1001
+            //mLocation.setText(path);
+            //mLocation.setToolTipText(path);
             propertiesEditor.setProperties(pMap.getMetadata(),true);
             if (DEBUG.EVENTS) Log.debug(getClass().getSimpleName() + ".updatePanel: " + VUE.getActiveMap().getFillColor());
             mMapColor.setColor(VUE.getActiveMap().getFillColor());
