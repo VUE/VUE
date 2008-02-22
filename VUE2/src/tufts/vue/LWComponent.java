@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.397 $ / $Date: 2008-02-19 16:27:31 $ / $Author: mike $
+ * @version $Revision: 1.398 $ / $Date: 2008-02-22 22:05:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1763,11 +1763,15 @@ u                    getSlot(c).setFromString((String)value);
     }
     */
     
+    public void takeResource(Resource resource) {
+        this.resource = resource;
+    }
+    
     public void setResource(Resource resource)
     {
         if (DEBUG.CASTOR) out("SETTING RESOURCE TO " + (resource==null?"":resource.getClass()) + " [" + resource + "]");
         Object old = this.resource;
-        this.resource = resource;
+        takeResource(resource);
         layout();
         if (DEBUG.CASTOR) out("NOTIFYING");
         notify(LWKey.Resource, old);
