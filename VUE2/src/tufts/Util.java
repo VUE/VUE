@@ -1679,6 +1679,8 @@ public class Util
                     txt = txt.substring(stdShortTag.length());
                 } else if (txt.startsWith(stdShortTag0)) {
                     txt = txt.substring(stdShortTag0.length());
+                } else if (txt.startsWith(simpleType)) {
+                    txt = txt.substring(simpleType.length());
                 }
             }
         } catch (Throwable t) {
