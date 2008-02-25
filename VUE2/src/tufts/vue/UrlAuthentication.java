@@ -188,6 +188,18 @@ public class UrlAuthentication
         return conn;
     }
 
+    public static java.io.InputStream getAuthenticatedStream(URL url)
+        throws java.io.IOException
+    {
+        java.net.URLConnection conn = null;
+        try {
+            conn = getAuthenticatedConnection(url);
+        } catch (java.io.IOException ioe) {
+            Log.warn(url + ": " + ioe);
+            throw ioe;
+        }
+        return conn.getInputStream();
+    }
 
 
 	/** 
