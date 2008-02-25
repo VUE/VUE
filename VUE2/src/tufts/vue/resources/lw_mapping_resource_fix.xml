@@ -300,7 +300,7 @@
          
          <class name="tufts.vue.PropertyEntry">
             <map-to xml="propertyEntry"/>
-            <field name="entryKey" type="java.lang.Object" >
+            <field name="entryKey" type="java.lang.String" >
                 <bind-xml name="entryKey" node="element" />
             </field>
             <field name="entryValue" type="java.lang.Object" >
