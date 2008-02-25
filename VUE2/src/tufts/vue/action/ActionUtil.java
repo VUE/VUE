@@ -63,7 +63,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.97 $ / $Date: 2008-02-25 20:47:01 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2008-02-25 20:49:49 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -962,7 +962,7 @@ public class ActionUtil
         if ("file".equals(url.getProtocol()))
             urlStream = url.openStream();
         else
-            urlStream = tufts.vue.UrlAuthentication.getAuthenticatedConnection(url).getInputStream();
+            urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
         
         final BufferedReader reader = new BufferedReader(new InputStreamReader(urlStream, charsetEncoding));
 
