@@ -63,7 +63,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.96 $ / $Date: 2008-02-22 22:10:17 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2008-02-25 20:47:01 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -768,7 +768,10 @@ public class ActionUtil
         // windows-1255/Cp1255) we'll lose a special char here or there, such as left-quote /
         // right-quote).
         
-        if (DEBUG.CASTOR || DEBUG.IO) System.out.println("\nSCANNING: " + url);
+        if (DEBUG.CASTOR || DEBUG.IO) {
+            Log.debug("\nunmarshallMap: " + url);
+            //Util.printStackTrace("UM " + url);
+        }
 
         final BufferedReader reader;
         
@@ -778,7 +781,8 @@ public class ActionUtil
                 throw new MapException("is directory");
             reader = new BufferedReader(new FileReader(file));
         } else {
-            reader = new BufferedReader(new InputStreamReader(url.openStream()));
+            reader = new BufferedReader(new InputStreamReader(tufts.vue.UrlAuthentication.getAuthenticatedStream(url)));
+            //reader = new BufferedReader(new InputStreamReader(url.openStream()));
         }
         
         String firstNonCommentLine;
@@ -803,7 +807,7 @@ public class ActionUtil
                 System.err.println("Unexpected end-of-stream in [" + url + "]");
                 throw new java.io.IOException("end of stream in " + url);
             }
-            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Scanning[" + line + "]");
+            if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Scanning[" + line + "]");
             if (line.startsWith("<!--") == false) {
                 // we should have just hit thie "<?xml ..." line -- done with comments
                 firstNonCommentLine = line;
