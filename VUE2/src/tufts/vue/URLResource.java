@@ -79,7 +79,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.49 $ / $Date: 2008-02-22 22:16:14 $ / $Author: sfraize $
+ * @version $Revision: 1.50 $ / $Date: 2008-02-25 23:02:20 $ / $Author: mike $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1566,6 +1566,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
      * that can be fed to Images.getImage and fetch asynchronously w/callbacks if it
      * isn't already in the cache.
      */
+    final String vueExtension = ".vue";
     public Object getPreview()
     {
         if (isCached)
@@ -1580,8 +1581,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         else if (isLocalFile()) {
             return getFileIconImage();
         }
-        else if (mURL_Browse != null && !isLocalFile()) {
-            return getThumbshotURL(mURL_Browse);
+        else if (mURL_Browse != null && !isLocalFile()) 
+        {
+        	 
+        	if (mURL_Browse.toString().toLowerCase().endsWith(vueExtension))
+        		return VueResources.getURL("vueIcon32x32");
+        	else
+        		return getThumbshotURL(mURL_Browse);
 //             if (mThumbShot == null) {
 //                 mThumbShot = fetchThumbshot(mURL_Browse);
 
