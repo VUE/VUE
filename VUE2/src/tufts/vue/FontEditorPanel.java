@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.72 $ / $Date: 2008-02-25 19:21:03 $ / $Author: mike $
+ * @version $Revision: 1.73 $ / $Date: 2008-02-25 21:29:03 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -286,6 +286,7 @@ public class FontEditorPanel extends JPanel
                 	}
                 public void displayValue(Integer value) { 
                 	mSizeField.setSelectedItem(""+value); 
+             
                 }
             };
 
@@ -477,6 +478,8 @@ public class FontEditorPanel extends JPanel
         //displayValue(VueConstants.FONT_DEFAULT);
 
         //initColors(VueTheme.getToolbarColor());
+        VUE.getFormatDock().setFocusable(true);
+   		VUE.getFormatDock().setFocusableWindowState(true);
     }
 
     public static ColorMenuButton getTextColorButton()
@@ -916,10 +919,15 @@ public class FontEditorPanel extends JPanel
     }
     private boolean LWTextListenersAdded = false;
     private boolean RTBListenersAdded =false;
+    private boolean defaultListenersAdded=false;
     
     private void establishLWTextListeners(LWComponent activeText)
     {
-    	System.out.println("lw text");
+    	breakdownDefaultListeners();
+    	VUE.getFormatDock().setFocusable(false);
+   		VUE.getFormatDock().setFocusableWindowState(false);
+   		
+    	//System.out.println("lw text");
         mFontCombo.setEnabled(true);
         mSizeField.setEnabled(true);
         mTextColorButton.setEnabled(true);             
@@ -927,11 +935,11 @@ public class FontEditorPanel extends JPanel
         lwtext = (LWText)activeText;
         lwtext.richLabelBox.removeCaretListener(this);
         
-        mFontCombo.removeActionListener(fontPropertyHandler);             
-        mSizeField.removeActionListener(sizeHandler);
+        //mFontCombo.removeActionListener(fontPropertyHandler);             
+        //mSizeField.removeActionListener(sizeHandler);
         
-        EditorManager.unregisterEditor(sizeHandler);
-        EditorManager.unregisterEditor(fontPropertyHandler);
+        //EditorManager.unregisterEditor(sizeHandler);
+        //EditorManager.unregisterEditor(fontPropertyHandler);
         
         mSizeField.addActionListener(globalSizeListener);
         mFontCombo.addActionListener(globalFaceListener);
@@ -941,18 +949,19 @@ public class FontEditorPanel extends JPanel
     private void breakdownLWTextListeners()
     {
     	lwtext=null;
-		System.out.println("lost lw text");
+		//System.out.println("lost lw text");
 		mSizeField.removeActionListener(globalSizeListener);
         mFontCombo.removeActionListener(globalFaceListener);
         
-        mFontCombo.addActionListener(fontPropertyHandler);
-        mSizeField.addActionListener(fontPropertyHandler);
+   //     mFontCombo.addActionListener(fontPropertyHandler);
+    //    mSizeField.addActionListener(fontPropertyHandler);
         
-        if (!EditorManager.isRegistered(sizeHandler))
-        	EditorManager.registerEditor(sizeHandler);
-        if (!EditorManager.isRegistered(fontPropertyHandler))
-        	EditorManager.registerEditor(fontPropertyHandler);
+    //    if (!EditorManager.isRegistered(sizeHandler))
+    //    	EditorManager.registerEditor(sizeHandler);
+     //   if (!EditorManager.isRegistered(fontPropertyHandler))
+      //  	EditorManager.registerEditor(fontPropertyHandler);
         LWTextListenersAdded = false;
+        establishDefaultListeners();
 
     }
     
@@ -961,31 +970,34 @@ public class FontEditorPanel extends JPanel
     	System.out.println("lost rtb rich text box");
         disableSpecialEditors();
 
- //       VUE.getFormatDock().setFocusable(true);
-	//	VUE.getFormatDock().setFocusableWindowState(true);
+        VUE.getFormatDock().setFocusable(true);
+		VUE.getFormatDock().setFocusableWindowState(true);
         
 		mBoldButton.removeActionListener(richBoldAction);
-        mBoldButton.addActionListener(styleChangeHandler);
+      //  mBoldButton.addActionListener(styleChangeHandler);
         
-        if (!EditorManager.isRegistered(sizeHandler))
-        	EditorManager.registerEditor(sizeHandler);
-        if (!EditorManager.isRegistered(fontPropertyHandler))
-        	EditorManager.registerEditor(fontPropertyHandler);
+  //      if (!EditorManager.isRegistered(sizeHandler))
+   //     	EditorManager.registerEditor(sizeHandler);
+    //    if (!EditorManager.isRegistered(fontPropertyHandler))
+     //   	EditorManager.registerEditor(fontPropertyHandler);
         
         mItalicButton.removeActionListener(richItalicAction);
-        mItalicButton.addActionListener(styleChangeHandler);
+     //   mItalicButton.addActionListener(styleChangeHandler);
         
         mFontCombo.removeActionListener(fontFamilyAction);
-        mFontCombo.addActionListener(fontPropertyHandler);
+      //  mFontCombo.addActionListener(fontPropertyHandler);
         
         mSizeField.removeActionListener(fontSizeAction);
-        mSizeField.addActionListener(fontPropertyHandler);              
+      //  mSizeField.addActionListener(fontPropertyHandler);              
         RTBListenersAdded = false;
+        establishDefaultListeners();
     }
     
      
     private void establishRichTextListeners(RichTextBox activeText)
     {
+    	breakdownDefaultListeners();
+    	
     	System.out.println("rtb rich text box");
         activeText.addCaretListener(this);
         setEditorPanes(activeText);
@@ -993,26 +1005,57 @@ public class FontEditorPanel extends JPanel
         activeText.setToggleBulletList(toggleBulletsAction);
         activeText.setNumberList(toggleNumbersAction);
         
-        EditorManager.unregisterEditor(sizeHandler);
-        EditorManager.unregisterEditor(fontPropertyHandler);
+     //   EditorManager.unregisterEditor(sizeHandler);
+      //  EditorManager.unregisterEditor(fontPropertyHandler);
         
         //shuffle listeners...
-        mBoldButton.removeActionListener(styleChangeHandler);
+      //  mBoldButton.removeActionListener(styleChangeHandler);
         mBoldButton.addActionListener(richBoldAction);			
         
-        mItalicButton.removeActionListener(styleChangeHandler);
+       // mItalicButton.removeActionListener(styleChangeHandler);
         mItalicButton.addActionListener(richItalicAction);			
 		
         mFontCombo.addActionListener(fontFamilyAction);
-        mFontCombo.removeActionListener(fontPropertyHandler);       
+       // mFontCombo.removeActionListener(fontPropertyHandler);       
         
-		mSizeField.removeActionListener(fontPropertyHandler);
+	//	mSizeField.removeActionListener(fontPropertyHandler);
         mSizeField.addActionListener(fontSizeAction);
         
         alignmentButton.getComboBox().addActionListener(alignmentListener);
 
         enableSupportedEditors();
         RTBListenersAdded = true;
+    }
+    
+    public void establishDefaultListeners()
+    {              
+    
+      VUE.getFormatDock().setFocusable(true);
+  	  VUE.getFormatDock().setFocusableWindowState(true);
+  	  
+      if (!EditorManager.isRegistered(sizeHandler))
+         EditorManager.registerEditor(sizeHandler);
+      if (!EditorManager.isRegistered(fontPropertyHandler))
+    	 EditorManager.registerEditor(fontPropertyHandler);
+    	        
+      mBoldButton.addActionListener(styleChangeHandler);
+      mItalicButton.addActionListener(styleChangeHandler);    	            	
+      mFontCombo.addActionListener(fontPropertyHandler);    	          	
+      mSizeField.addActionListener(fontPropertyHandler);              
+      defaultListenersAdded=true;
+    }
+    
+    public void breakdownDefaultListeners()
+    {
+     EditorManager.unregisterEditor(sizeHandler);
+     EditorManager.unregisterEditor(fontPropertyHandler);
+          
+    
+     mBoldButton.removeActionListener(styleChangeHandler);
+     mItalicButton.removeActionListener(styleChangeHandler);
+     mFontCombo.removeActionListener(fontPropertyHandler);
+     mSizeField.removeActionListener(fontPropertyHandler);
+     defaultListenersAdded=false;
     }
     
     public void activeChanged(final ActiveEvent e, LWComponent activeText)
@@ -1031,6 +1074,11 @@ public class FontEditorPanel extends JPanel
     	{              
     		if (LWTextListenersAdded)
     			breakdownLWTextListeners();            
+    	}
+    	else
+    	{
+    		if (!defaultListenersAdded)
+    			establishDefaultListeners();
     	}
     }
     
@@ -1107,7 +1155,6 @@ public class FontEditorPanel extends JPanel
 	
 	public final void updateFormatControlsTB(RichTextBox text)
 	{
-
 		SHTMLDocument doc = (SHTMLDocument)text.getDocument();
 	    
 	    //Assembling appropriate attribute sets
