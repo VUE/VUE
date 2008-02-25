@@ -140,6 +140,16 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                        {
                          addNewRow();                         
                        }
+                       else
+                       {
+                           int row = metadataTable.rowAtPoint(evt.getPoint());
+                           ((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
+                           if(metadataTable.getCellEditor() !=null)
+                           {    
+                             metadataTable.getCellEditor().stopCellEditing();
+                           }
+                           metadataTable.repaint();
+                       }
                    }
        });
        
@@ -847,6 +857,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            final JLabel categoryLabel = new JLabel();
            final JLabel notEditable = new JLabel();
            final JPanel comp = new JPanel();
+           
+           comp.addMouseListener(new MouseAdapter(){
+              public void mousePressed(MouseEvent e)
+              {
+                  ((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
+                  stopCellEditing();
+              }
+           });
            
            currentRow = row;
            
