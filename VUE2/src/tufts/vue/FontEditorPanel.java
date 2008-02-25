@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.71 $ / $Date: 2008-02-20 16:01:27 $ / $Author: mike $
+ * @version $Revision: 1.72 $ / $Date: 2008-02-25 19:21:03 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -135,7 +135,7 @@ public class FontEditorPanel extends JPanel
         Font menuFont = f.deriveFont((float) 9);        
         mFontCombo.setFont(menuFont);
         Component[] c =mFontCombo.getComponents();
-       
+        
         mFontCombo.setPrototypeDisplayValue("Ludica Sans Typewriter"); // biggest font name to bother sizing to
         if (false) {
             Dimension comboSize = mFontCombo.getPreferredSize();
@@ -236,7 +236,7 @@ public class FontEditorPanel extends JPanel
         mSizeField.setMaximumRowCount(30);
         mSizeField.setSelectedItem("13");
         mSizeField.setFocusable(true);
-        
+        mSizeField.getEditor().getEditorComponent().setName(SIZE_FIELD_NAME);
         /*
         if (GUI.isMacAqua()) {
             mFontCombo.setBackground(VueTheme.getToolbarColor());
@@ -961,8 +961,8 @@ public class FontEditorPanel extends JPanel
     	System.out.println("lost rtb rich text box");
         disableSpecialEditors();
 
-        VUE.getFormatDock().setFocusable(true);
-		VUE.getFormatDock().setFocusableWindowState(true);
+ //       VUE.getFormatDock().setFocusable(true);
+	//	VUE.getFormatDock().setFocusableWindowState(true);
         
 		mBoldButton.removeActionListener(richBoldAction);
         mBoldButton.addActionListener(styleChangeHandler);
@@ -1004,9 +1004,7 @@ public class FontEditorPanel extends JPanel
         mItalicButton.addActionListener(richItalicAction);			
 		
         mFontCombo.addActionListener(fontFamilyAction);
-        mFontCombo.removeActionListener(fontPropertyHandler);
-        
-		mSizeField.getEditor().getEditorComponent().setName(SIZE_FIELD_NAME);
+        mFontCombo.removeActionListener(fontPropertyHandler);       
         
 		mSizeField.removeActionListener(fontPropertyHandler);
         mSizeField.addActionListener(fontSizeAction);
