@@ -325,6 +325,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         validate();
     }
     
+    public void refresh()
+    {
+    	validate();
+        repaint();
+    	((MetadataTableModel)metadataTable.getModel()).refresh();    
+    }
     public void addNewRow()
     {
         VueMetadataElement vme = new VueMetadataElement();
@@ -492,7 +498,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                if(((MetadataTableModel)table.getModel()).getColumnCount() == 2)
                {    
                  // back to "Keywords:" -- VUE-953  
-                 comp =  new JLabel("Keywords:");
+                 comp =  new JLabel("Keywords:");                 
                }
                else
                {
@@ -517,7 +523,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            else
            {
-               comp = new JLabel("");
+               comp = new JLabel("");            
            }
 
            comp.setOpaque(true);
@@ -1392,7 +1398,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
              
              if(saved.size() <= row)
              {
-                 while(saved.size() < row + 1)
+                 //for(int i = saved.size();i<row + 1;i++)
+                 for(int i = 0;i<row-saved.size() + 1;i++)
                  {
                      saved.add(Boolean.TRUE);
                  }

@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.517 $ / $Date: 2008-02-19 18:23:23 $ / $Author: mike $ 
+ * @version $Revision: 1.518 $ / $Date: 2008-02-25 19:12:53 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1029,7 +1029,8 @@ public class VUE
 
         MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
         mapInspectorPanel = new MapInspectorPanel(MapInspector);
-        //MapInspector.setContent(mapInspectorPanel);
+//        MapInspector.setContent(mapInspectorPanel.getMapInfoStack());
+  //      MapInspector.setHeight(450);
         
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
@@ -1437,8 +1438,10 @@ public class VUE
         pannerDock.positionWindowFromProperties();
         MapInspector.positionWindowFromProperties();
         ObjectInspector.positionWindowFromProperties();
-        outlineDock.positionWindowFromProperties();
-
+        outlineDock.positionWindowFromProperties();       
+    
+        mapInspectorPanel.metadataPanel.refresh();
+        
         if (!SKIP_DR && (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || DR_BROWSER_DOCK.getWindowProperties().isAllValuesDefaults()))
         {
         	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
