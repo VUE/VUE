@@ -28,7 +28,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.11 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $ 
+ * @version $Revision: 1.12 $ / $Date: 2008-02-25 19:19:34 $ / $Author: mike $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -353,7 +353,12 @@ public final class MasterSlide extends LWSlide
         if (mXMLRestoreUnderway)
             return null;
         else
-            return getEntry().pathway.getLabel();
+        {
+        	if (getEntry() != null && getEntry().pathway != null)
+        		return getEntry().pathway.getLabel();
+        	else
+        		return null;
+        }
     }
 
     @Override
