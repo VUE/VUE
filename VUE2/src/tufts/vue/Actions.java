@@ -1202,7 +1202,7 @@ public class Actions implements VueConstants
             		//	zoomFactor = VUE.getActiveViewer().getZoomFactor();
             			VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
             			VUE.getReturnToMapButton().setVisible(true);
-            			VUE.getActiveMap().setTempUserOrigin(VUE.getActiveMap().getUserOrigin());
+            			VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
             		}
             		VUE.getActiveViewer().loadFocal(masterSlide);
             		 // update inspectors (optional -- may not actually want to do this, but
@@ -1243,8 +1243,11 @@ public class Actions implements VueConstants
                             0,
                             false);
                             */
+            		
             		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
-            		ZoomTool.setZoom(VUE.getActiveMap().getTempZoom());
+            		double tempZoom = VUE.getActiveMap().getTempZoom();
+            		//System.out.println("temp #s : " +originOffset + " " + tempZoom);
+            		ZoomTool.setZoom(tempZoom);
             		if (originOffset != null)
             			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
             		VUE.getReturnToMapButton().setVisible(false);
@@ -1273,8 +1276,11 @@ public class Actions implements VueConstants
                             0,
                             false);
                             */
+            		
             		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
-            		ZoomTool.setZoom(VUE.getActiveMap().getTempZoom());
+            		double tempZoom = VUE.getActiveMap().getTempZoom();
+            		//System.out.println("temp #s : " +originOffset + " " + tempZoom);
+            		ZoomTool.setZoom(tempZoom);
             		if (originOffset != null)
             			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
             		VUE.getReturnToMapButton().setVisible(false);
@@ -1285,13 +1291,19 @@ public class Actions implements VueConstants
             	}
             	else
             	{
+            		
             		VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
             		VUE.getReturnToMapButton().setVisible(true);
-            		VUE.getActiveMap().setTempUserOrigin(VUE.getActiveMap().getUserOrigin());
+            		
+            		VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
+            		
             		//VUE.getActiveMap().setUserOrigin(p)
             		//VUE.getActiveViewer().getO
             		//originOffset = VUE.getActiveViewer().get
             		//zoomBounds = VUE.getActiveViewer().getDisplayableMapBounds();
+            		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+            		double tempZoom = VUE.getActiveMap().getTempZoom();
+            		//System.out.println("2temp #s : " +originOffset + " " + tempZoom);
             		VUE.getActiveViewer().loadFocal(slide);
             		
             		 // update inspectors (optional -- may not actually want to do this, but
