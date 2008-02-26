@@ -26,8 +26,10 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import java.io.*;
 import org.apache.xerces.dom.*;
+import org.apache.batik.dom.GenericDOMImplementation;
 import org.apache.batik.svggen.*;
 import org.w3c.dom.*;
+
 import tufts.vue.*;
 /**
  *
@@ -60,7 +62,8 @@ public class SVGConversion extends AbstractAction {
         LWMap currentMap = VUE.getActiveMap();
         
         //sets up the document object model
-        Document document = new DocumentImpl();
+        DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
+        Document document = domImpl.createDocument(null, "svg", null);//new DocumentImpl();
         SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
        
         //Rectangle2D bounds = map.getAllComponentBounds();
@@ -78,12 +81,23 @@ public class SVGConversion extends AbstractAction {
         //translate and set the clip for the map content
         svgGenerator.translate(-(int)bounds.getX(), -(int)bounds.getY());
         svgGenerator.setClip(bounds);   
-                
+        
         //renders the map image into the SVGGraphics object
         //map.paintComponent(svgGenerator);
           
         DrawContext dc = new DrawContext(svgGenerator);
-        dc.setAntiAlias(true);
+        dc.setMapDrawing();
+        dc.setPrioritizeQuality(false);
+        dc.setAntiAlias(false);
+        
+        dc.setClipOptimized(true);	
+        dc.setDraftQuality(true);
+      //  dc.setRawDrawing();
+        //dc.setClipOptimized(false);
+        
+        dc.setInteractive(false);
+        dc.setDrawPathways(false);
+
         // render the map
         LWPathway.setShowSlides(false);
         currentMap.draw(dc);
@@ -93,7 +107,9 @@ public class SVGConversion extends AbstractAction {
         try
         {
             //using the SVGGraphics object, write the SVG content to the given file
-            FileWriter out = new FileWriter(location);
+        //    FileWriter out = new FileWriter(location);
+        	
+        	Writer out = new OutputStreamWriter(new FileOutputStream(location),"UTF-8");
             svgGenerator.stream(out, false);
             out.flush();
             out.close();
