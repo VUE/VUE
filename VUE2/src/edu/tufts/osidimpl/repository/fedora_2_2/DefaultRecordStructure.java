@@ -280,7 +280,7 @@ public class DefaultRecordStructure
                     for (int i=0; i < numDCs; i++) {
                         org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
                         if (dc.hasChildNodes()) {
-                            creator = dc.getFirstChild().getNodeValue();
+                            source = dc.getFirstChild().getNodeValue();
                             record.createPart(SourcePartStructure.getInstance().getId(),source);
                         }
                     }
@@ -289,7 +289,7 @@ public class DefaultRecordStructure
                     for (int i=0; i < numDCs; i++) {
                         org.w3c.dom.Element dc = (org.w3c.dom.Element)dcs.item(i);
                         if (dc.hasChildNodes()) {
-                            creator = dc.getFirstChild().getNodeValue();
+                            subject = dc.getFirstChild().getNodeValue();
                             record.createPart(SubjectPartStructure.getInstance().getId(),subject);
                         }
                     }
