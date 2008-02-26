@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.202 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.203 $ / $Date: 2008-02-26 20:34:40 $ / $Author: anoop $
  * @author Scott Fraize
  */
 
@@ -120,7 +120,6 @@ public class LWNode extends LWContainer
 
     private java.awt.Dimension textSize = null; // only for use with wrapped text
 
-    
 
     private final LWIcon.Block mIconBlock =
         new LWIcon.Block(this,
@@ -169,8 +168,7 @@ public class LWNode extends LWContainer
         setResource(resource);
     }
 
-    public void setResource(Resource r)
-    {
+    public void setResource(Resource r) {
         super.setResource(r);
         if (r == null || mXMLRestoreUnderway)
             return;
@@ -183,6 +181,70 @@ public class LWNode extends LWContainer
                 }
             } else {
                 deleteChildPermanently(image);
+            }
+            // adding metadtaa for Osid2AssetResource. 
+            //TODO: This should be refactored into Osit2AssetResource or some other place.  Similar stuff is done with properties
+            if(r instanceof Osid2AssetResource) {
+                try {
+                    org.osid.repository.Asset asset = ((Osid2AssetResource)r).getAsset();
+                    org.osid.repository.RecordIterator recordIterator = asset.getRecords();
+                     while (recordIterator.hasNextRecord()) {
+                        org.osid.repository.Record record = recordIterator.nextRecord();
+                //        System.out.println("-Processing Record: "+record.getDisplayName());
+                        org.osid.repository.PartIterator partIterator = record.getParts();
+                        String recordDesc = null;
+                        while (partIterator.hasNextPart()) {
+                             org.osid.repository.Part part = partIterator.nextPart();
+                  //           System.out.println("--Processing Part: "+part.getDisplayName());
+                          org.osid.repository.PartStructure partStructure = part.getPartStructure();
+                            if ( (part != null) && (partStructure != null) ) {
+                                org.osid.shared.Type partStructureType = partStructure.getType();
+                                final String description = partStructure.getDescription();
+                                java.io.Serializable value = part.getValue();
+                               String key;
+                                if (description != null && description.trim().length() > 0) {
+                                    key = description;
+                                } else {
+                                    key = partStructureType.getKeyword();
+                                }
+                                 if (key == null) {
+                                    Log.warn(this + " Asset Part [" + part + "] has null key.");
+                                    continue;
+                                }
+                                if (value == null) {
+                                    Log.warn(this + " Asset Part [" + key + "] has null value.");
+                                    continue;
+                                }
+                                if (value instanceof String) {
+                                    String s = ((String)value).trim(); 
+                                    // Don't add field if it's empty
+                                    if (s.length() <= 0)
+                                        continue;
+                                    
+                                    if (s.startsWith("<p>") && s.endsWith("</p>")) {
+                                        // Ignore empty HTML paragraphs
+                                        String body = s.substring(3, s.length()-4);
+                                        if (body.trim().length() == 0) {
+                                            if (DEBUG.DR)
+                                                value = "[empty <p></p> ignored]";
+                                            else
+                                                continue;
+                                        }
+                                    }
+//                                  addProperty(key, value);
+                                    edu.tufts.vue.metadata.VueMetadataElement vueMDE = new edu.tufts.vue.metadata.VueMetadataElement();
+                                    vueMDE.setKey(key);
+                                    vueMDE.setValue(value.toString());
+                                    vueMDE.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+                                    getMetadataList().addElement(vueMDE);
+                                }
+                            }
+                        }
+                    }
+                    
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t);
+                }
             }
         } else if (r.isImage()) {
             final LWImage imageIcon = new LWImage();
