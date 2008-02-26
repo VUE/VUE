@@ -121,7 +121,7 @@ public class SaveAction extends VueAction
             response = JOptionPane.showOptionDialog
             (VUE.getDialogParent(),
         
-       		"Saving "+ map.getLabel()+ " Sin this version of VUE will prevent older versions of VUE" +       				
+       		"Saving "+ map.getLabel()+ " in this version of VUE will prevent older versions of VUE" +       				
               "\nfrom displaying it properly.  You may wish to save this map under a new name.",         
              "Version Notice: " + map.getLabel(),
              JOptionPane.YES_NO_OPTION,
