@@ -110,12 +110,15 @@ public class FedoraPublisher {
                 if(resource.isLocalFile()) {
                     File localFile = new File(resource.getSpec().replace(FILE_PREFIX,""));
                     addObjectToRepository(ds,OTHER_CM, localFile,  component, cloneMap);
-                } else {
+                    String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
+                   component.setResource(URLResource.create(ingestUrl));
+                } else if(!(resource instanceof Osid2AssetResource)) {
                     addObjectToRepository(ds,REMOTE_CM,null,component,cloneMap);
+                    String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
+                     component.setResource(URLResource.create(ingestUrl));
                 }
-                String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
-                //System.out.println("Replacing resource: "+resource+ " with "+ingestUrl);
-                component.setResource(URLResource.create(ingestUrl));
+          //        System.out.println("Replacing resource: "+resource+ " with "+ingestUrl+" resource is "+resource.getClass());
+                   
                 
             }
         }
@@ -253,7 +256,7 @@ public class FedoraPublisher {
     
     private static String getDC(LWComponent c,String title,String identifier) {
         String dc = new String();
-//      System.out.println("getDC: LWComponent: "+c+ " metadata elements: "+  c.getMetadataList().getMetadata().size());    
+//      System.out.println("getDC: LWComponent: "+c+ " metadata elements: "+  c.getMetadataList().getMetadata().size());
         dc +="<oai_dc:dc xmlns:dc=\"http://purl.org/dc/elements/1.1/\" xmlns:oai_dc=\"http://www.openarchives.org/OAI/2.0/oai_dc/\">";
         dc += "<dc:title>"+title+"</dc:title>";
         dc += "<dc:identifier>"+identifier+"</dc:identifier>";
@@ -261,7 +264,7 @@ public class FedoraPublisher {
             dc += "<dc:description>"+c.getNotes()+"</dc:description>";
         }
         for(VueMetadataElement element: c.getMetadataList().getMetadata()) {
- //          System.out.println("Publishing Metadata: key:"+element.getKey()+ " value: "+ element.getValue()+"  for "+c.getLabel());      
+            //          System.out.println("Publishing Metadata: key:"+element.getKey()+ " value: "+ element.getValue()+"  for "+c.getLabel());
             if(element.getKey().contains(DC_URL)) {
                 String key = "dc:"+element.getKey().substring(DC_URL.length()+1).toLowerCase();
                 dc += "<"+key+">"+element.getValue()+"</"+key+">";
