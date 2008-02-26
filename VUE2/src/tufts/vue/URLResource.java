@@ -79,7 +79,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.50 $ / $Date: 2008-02-25 23:02:20 $ / $Author: mike $
+ * @version $Revision: 1.51 $ / $Date: 2008-02-26 15:50:54 $ / $Author: mike $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1583,9 +1583,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         else if (mURL_Browse != null && !isLocalFile()) 
         {
-        	 
+        	System.out.println("mURL_Browse : " + mURL_Browse);
+        	
         	if (mURL_Browse.toString().toLowerCase().endsWith(vueExtension))
-        		return VueResources.getURL("vueIcon32x32");
+        		return VueResources.getBufferedImage("vueIcon32x32");
         	else
         		return getThumbshotURL(mURL_Browse);
 //             if (mThumbShot == null) {
