@@ -20,6 +20,9 @@ import java.util.*;
 
 import java.text.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+
 import javax.swing.*;
 import java.net.URL;
 import java.io.File;
@@ -29,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.52 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.53 $ / $Date: 2008-02-26 15:50:41 $ / $Author: mike $
  *
  */
 public class VueResources
@@ -178,6 +181,19 @@ public class VueResources
         return key.indexOf('/') >= 0;
     }
     
+    public static BufferedImage getBufferedImage(String key)
+    {
+    	Image i = getImage(key);
+    	int w = i.getWidth(null);
+    	int h = i.getHeight(null);
+    	BufferedImage bi = new BufferedImage(w,h,BufferedImage.TYPE_INT_RGB);
+    	Graphics bg = bi.createGraphics();
+    	bg.drawImage(i,0,0,(ImageObserver)null);
+    	bg.dispose();
+    	return bi;
+
+
+    }
     public static Image getImage(String key)  {
         ImageIcon icon = null;
         if (key.charAt(0) == '/')
