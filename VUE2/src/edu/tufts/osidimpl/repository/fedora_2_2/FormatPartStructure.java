@@ -18,7 +18,7 @@ public class FormatPartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Format";
-    private String description = "Format";
+    private String description = "http://purl.org/dc/elements/1.1/#Format";
     private String idString = "Format.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","format","Format");

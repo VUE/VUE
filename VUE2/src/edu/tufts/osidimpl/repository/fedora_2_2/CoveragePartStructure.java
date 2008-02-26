@@ -18,7 +18,7 @@ public class CoveragePartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Coverage";
-    private String description = "Coverage";
+    private String description = "http://purl.org/dc/elements/1.1/#Coverage";
     private String idString = "Coverage.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","coverage","Coverage");

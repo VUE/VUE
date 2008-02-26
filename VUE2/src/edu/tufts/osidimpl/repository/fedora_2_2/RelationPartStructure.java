@@ -18,7 +18,7 @@ public class RelationPartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Relation";
-    private String description = "Relation";
+    private String description = "http://purl.org/dc/elements/1.1/#Relation";
     private String idString = "Relation.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","relation","Relation");

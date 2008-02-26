@@ -18,7 +18,7 @@ public class ContributorPartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Contributor";
-    private String description = "Contributor";
+    private String description = "http://purl.org/dc/elements/1.1/#Contributor";
     private String idString = "Contributor.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","contributor","Contributor");

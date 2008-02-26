@@ -18,7 +18,7 @@ public class RightsPartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Rights";
-    private String description = "Rights";
+    private String description = "http://purl.org/dc/elements/1.1/#Rights";
     private String idString = "Rights.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","rights","Rights");

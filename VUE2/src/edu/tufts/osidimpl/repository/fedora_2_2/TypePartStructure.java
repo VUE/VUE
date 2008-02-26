@@ -18,7 +18,7 @@ public class TypePartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Type";
-    private String description = "Type";
+    private String description = "http://purl.org/dc/elements/1.1/#Type";
     private String idString = "Type.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","type","Type");

@@ -18,7 +18,7 @@ public class PublisherPartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Publisher";
-    private String description = "Publisher";
+    private String description = "http://purl.org/dc/elements/1.1/#Publisher";
     private String idString = "Publisher.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","publisher","Publisher");

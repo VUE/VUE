@@ -18,7 +18,7 @@ public class DatePartStructure
 implements org.osid.repository.PartStructure
 {
     private String displayName = "Date";
-    private String description = "Date";
+    private String description = "http://purl.org/dc/elements/1.1/#Date";
     private String idString = "Date.PartStructureId";
     private org.osid.shared.Id id = null;
     private org.osid.shared.Type type = new Type("mit.edu","partStructure","date","Date");
