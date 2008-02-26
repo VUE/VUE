@@ -1189,7 +1189,8 @@ public class Actions implements VueConstants
                             0,
                             false);
                             */
-            		ZoomTool.setZoom(zoomFactor);
+            		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+            		ZoomTool.setZoom(VUE.getActiveMap().getTempZoom());
             		if (originOffset != null)
             			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
             		VUE.getReturnToMapButton().setVisible(false);
@@ -1198,9 +1199,10 @@ public class Actions implements VueConstants
             	{
             		if (!(VUE.getActiveViewer().getFocal() instanceof LWSlide))
             		{
-            			zoomFactor = VUE.getActiveViewer().getZoomFactor();
+            		//	zoomFactor = VUE.getActiveViewer().getZoomFactor();
+            			VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
             			VUE.getReturnToMapButton().setVisible(true);
-            			originOffset=VUE.getActiveMap().getUserOrigin();
+            			VUE.getActiveMap().setTempUserOrigin(VUE.getActiveMap().getUserOrigin());
             		}
             		VUE.getActiveViewer().loadFocal(masterSlide);
             		 // update inspectors (optional -- may not actually want to do this, but
@@ -1223,8 +1225,8 @@ public class Actions implements VueConstants
     	}
     };
 
-	private static double zoomFactor =0;  
-	private static Point2D originOffset = null;
+	//private static double zoomFactor =0;  
+	//private static Point2D originOffset = null;
 
 	public static class ReturnToMapAction extends VueAction
     {
@@ -1241,7 +1243,8 @@ public class Actions implements VueConstants
                             0,
                             false);
                             */
-            		ZoomTool.setZoom(zoomFactor);
+            		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+            		ZoomTool.setZoom(VUE.getActiveMap().getTempZoom());
             		if (originOffset != null)
             			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
             		VUE.getReturnToMapButton().setVisible(false);
@@ -1270,7 +1273,8 @@ public class Actions implements VueConstants
                             0,
                             false);
                             */
-            		ZoomTool.setZoom(zoomFactor);
+            		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+            		ZoomTool.setZoom(VUE.getActiveMap().getTempZoom());
             		if (originOffset != null)
             			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
             		VUE.getReturnToMapButton().setVisible(false);
@@ -1281,9 +1285,10 @@ public class Actions implements VueConstants
             	}
             	else
             	{
-            		zoomFactor = VUE.getActiveViewer().getZoomFactor();
+            		VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
             		VUE.getReturnToMapButton().setVisible(true);
-            		 originOffset=VUE.getActiveMap().getUserOrigin();
+            		VUE.getActiveMap().setTempUserOrigin(VUE.getActiveMap().getUserOrigin());
+            		//VUE.getActiveMap().setUserOrigin(p)
             		//VUE.getActiveViewer().getO
             		//originOffset = VUE.getActiveViewer().get
             		//zoomBounds = VUE.getActiveViewer().getDisplayableMapBounds();

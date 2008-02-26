@@ -55,7 +55,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.178 $ / $Date: 2008-02-22 22:05:49 $ / $Author: sfraize $
+ * @version $Revision: 1.179 $ / $Date: 2008-02-26 20:13:53 $ / $Author: mike $
  */
 
 public class LWMap extends LWContainer
@@ -1080,6 +1080,26 @@ if (!tufts.vue.action.SaveAction.VAR_DEBUG)
      */
     public void setUserZoom(double zoom) {
         this.userZoom = zoom;
+    }
+    
+    private double tempZoom = 0;
+    private Point2D.Float tempOrigin = null;
+    
+    public void setTempZoom(double zoom){
+    	this.tempZoom = zoom;
+    }
+    public double getTempZoom()
+    {
+    	return tempZoom;
+    }
+    
+    public void setTempUserOrigin(Point2D.Float origin)
+    {
+    	this.tempOrigin = origin;
+    }
+    public Point2D.Float getTempUserOrigin()
+    {
+    	return tempOrigin;
     }
     /** for persistance */
     public double getUserZoom() {

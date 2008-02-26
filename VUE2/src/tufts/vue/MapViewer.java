@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.512 $ / $Date: 2008-02-26 02:18:33 $ / $Author: mike $ 
+ * @version $Revision: 1.513 $ / $Date: 2008-02-26 20:13:53 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1327,7 +1327,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             PoppingToTop = true;
             try {
             	VUE.getReturnToMapButton().setVisible(false);
-                switchFocal(mFocal.getMap(), animate);
+            	Actions.ReturnToMap.act();
+                //switchFocal(mFocal.getMap(), animate);
             } finally {
                 PoppingToTop = false;
             }
