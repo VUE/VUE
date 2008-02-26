@@ -1226,6 +1226,34 @@ public class Actions implements VueConstants
 	private static double zoomFactor =0;  
 	private static Point2D originOffset = null;
 
+	public static class ReturnToMapAction extends VueAction
+    {
+        public void act() 
+        {
+        	if (VUE.getActiveViewer() != null)
+            {
+            	if (VUE.getActiveViewer().getFocal() instanceof LWSlide || VUE.getActiveViewer().getFocal() instanceof MasterSlide)
+            	{
+            		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
+            		VUE.setActive(LWMap.class, this, VUE.getActiveMap());
+            		/*ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),
+                            zoomBounds,
+                            0,
+                            false);
+                            */
+            		ZoomTool.setZoom(zoomFactor);
+            		if (originOffset != null)
+            			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+            		VUE.getReturnToMapButton().setVisible(false);
+            		//ZoomTool.setZoom(zoomFactor);
+            	    
+
+            		
+            	}
+            }
+        }
+    };
+    public static final VueAction ReturnToMap = new ReturnToMapAction();
     public static final LWCAction EditSlide = new LWCAction("Edit slide")
     {
     	public void act(LWSlide slide)

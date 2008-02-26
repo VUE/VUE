@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.518 $ / $Date: 2008-02-25 19:12:53 $ / $Author: mike $ 
+ * @version $Revision: 1.519 $ / $Date: 2008-02-26 02:02:52 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -932,9 +932,23 @@ public class VUE
         returnToMapButton.addActionListener(new ActionListener(){
         	public void actionPerformed(ActionEvent e)
         	{
-        		Actions.EditSlide.act();
+        		Actions.ReturnToMap.act();
         	}
         });
+        tufts.vue.VUE.addActiveListener(tufts.vue.LWMap.class,new ActiveListener()
+        {
+
+			public void activeChanged(ActiveEvent e) {
+				if (VUE.getActiveViewer().getFocal() instanceof LWSlide || 
+					VUE.getActiveViewer().getFocal() instanceof MasterSlide)
+				{
+					returnToMapButton.setVisible(true);		
+				}
+				else
+					returnToMapButton.setVisible(false);
+				
+			}
+        }); 
         returnToMapButton.setVisible(false);
         toolbarPanel.add(returnToMapButton);
         if (ToolbarAtTopScreen) {
