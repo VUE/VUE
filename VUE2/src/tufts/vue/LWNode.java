@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.203 $ / $Date: 2008-02-26 20:34:40 $ / $Author: anoop $
+ * @version $Revision: 1.204 $ / $Date: 2008-02-26 20:52:06 $ / $Author: anoop $
  * @author Scott Fraize
  */
 
@@ -207,6 +207,7 @@ public class LWNode extends LWContainer
                                 } else {
                                     key = partStructureType.getKeyword();
                                 }
+                               if(!key.startsWith(VueResources.getString("metadata.dublincore.url"))) continue;
                                  if (key == null) {
                                     Log.warn(this + " Asset Part [" + part + "] has null key.");
                                     continue;
