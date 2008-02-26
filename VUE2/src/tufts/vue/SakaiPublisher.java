@@ -15,7 +15,7 @@
 
 /**
  * @author  akumar03
- * @version $Revision: 1.21 $ / $Date: 2008-02-22 18:30:34 $ / $Author: anoop $
+ * @version $Revision: 1.22 $ / $Date: 2008-02-26 22:03:13 $ / $Author: anoop $
  */
 
 package tufts.vue;
@@ -200,11 +200,12 @@ public class SakaiPublisher {
     				// property, leaving a resource with both an URL and File property.  It
     				// shouldn't have both. - pdw 28-nov-07
     				resource.removeProperty( "File" );
+                                  String ingestUrl =  hostUrl + "/access/content" + folderName + (new File(resource.getSpec().replace(FILE_PREFIX,""))).getName();
+                            //System.out.println( ingestUrl );
+                            // resource.setSpec(ingestUrl);
+                            component.setResource(URLResource.create(ingestUrl));
     			}
-                        String ingestUrl =  hostUrl + "/access/content" + folderName + (new File(resource.getSpec().replace(FILE_PREFIX,""))).getName();
-                        System.out.println( ingestUrl );
-                        // resource.setSpec(ingestUrl);
-                        component.setResource(URLResource.create(ingestUrl));
+                      
    		}
     	}
     	//upload the map 
