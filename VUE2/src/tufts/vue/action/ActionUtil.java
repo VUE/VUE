@@ -63,7 +63,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.100 $ / $Date: 2008-02-26 21:06:54 $ / $Author: mike $
+ * @version $Revision: 1.101 $ / $Date: 2008-02-26 21:22:00 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -517,13 +517,13 @@ public class ActionUtil
             try {
                 // TODO: create a ConditionalMarshalling interface for embedding this logic
                 // in the client classes so it's not kept here.
-                if (o instanceof tufts.vue.PropertyEntry && ((tufts.vue.PropertyEntry)o).getEntryKey().startsWith("@")) {
-                    if (DEBUG.Enabled) Log.debug("Skipping " + Util.tags(o));
-                    return false;
-                } else {
+//                 if (o instanceof tufts.vue.PropertyEntry && ((tufts.vue.PropertyEntry)o).getEntryKey().startsWith("@")) {
+//                     if (DEBUG.Enabled) Log.debug("Skipping " + Util.tags(o));
+//                     return false;
+//                 } else {
                     if (DEBUG.XML) Log.debug("Marshalling " + Util.tags(o));
                     return true;
-                }
+                    //                }
             } catch (Throwable t) {
                 Util.printStackTrace(t, "Marshalling condition failure on " + o);
             }
