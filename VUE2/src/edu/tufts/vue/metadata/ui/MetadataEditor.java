@@ -176,6 +176,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        
        metadataTable.addMouseListener(new java.awt.event.MouseAdapter()
        {
+          public void mousePressed(MouseEvent evt)
+          {
+              MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+              if(model.lastSavedRow != metadataTable.rowAtPoint(evt.getPoint()))
+                model.setSaved(model.lastSavedRow,true);
+              metadataTable.repaint();
+          }  
+           
            
           public void mouseReleased(java.awt.event.MouseEvent evt)
           {
@@ -1416,13 +1424,16 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
              
              if(saved.size() <= row)
              {
-                 //for(int i = saved.size();i<row + 1;i++)
-                 for(int i = 0;i<row-saved.size() + 1;i++)
+
+                 //saved.ensureCapacity(row + 1);
+                 //for(int i = 0;i<row-saved.size() + 1;i++)
+                 for(int i = 0;i<row + 1;i++)
                  {
                      saved.add(Boolean.TRUE);
                  }
              } 
-             
+            
+
             saved.set(row,Boolean.valueOf(isSaved));
             lastSavedRow = row;
          }
