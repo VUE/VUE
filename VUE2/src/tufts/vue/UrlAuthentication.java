@@ -89,6 +89,11 @@ public class UrlAuthentication
             Log.error(e);
             // VueUtil.alert("Error loading Resource", "Error");
         } catch (Throwable t) {
+            // Even if we fail to load any needed authorization keys for any web hosts,
+            // make sure UrlAuthentication successfully initializes, otherwise every
+            // single URL data fetch (e.g., for images at open access on the web)
+            // could fail, as their data fetches all go through this code to check
+            // for possible needed authorization.  SMF 2008-02-28
             Log.error(t);
         }
     }
