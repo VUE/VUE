@@ -40,10 +40,10 @@ public class SakaiExport
                     final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
                     Log.info(" Which has repository: " + repository + "; name=" + name);
                     if (dataSources[i].supportsUpdate() && repository != null) {
-                        Log.debug("Supports Update, Now Checking Type");
-                        Log.debug("checking type " + repository.getType().getAuthority() );
+                        Log.info("Supports Update, Now Checking Type");
+                        Log.info("checking type " + repository.getType().getAuthority() );
                         if (repository.getType().isEqual(_sakaiRepositoryType)) {
-                            Log.debug("checking type worked" );
+                            Log.info("checking type worked" );
                             dataSourceVector.addElement(dataSources[i]);
                         }
                     }
