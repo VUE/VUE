@@ -43,7 +43,7 @@ public class SakaiExport
                         Log.debug("Supports Update, Now Checking Type");
                         Log.debug("checking type " + repository.getType().getAuthority() );
                         if (repository.getType().isEqual(_sakaiRepositoryType)) {
-                            System.out.println("checking type worked" );
+                            Log.debug("checking type worked" );
                             dataSourceVector.addElement(dataSources[i]);
                         }
                     }
