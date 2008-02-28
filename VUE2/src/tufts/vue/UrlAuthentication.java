@@ -80,6 +80,9 @@ public class UrlAuthentication
                     //VUE.Log .info("Sakai session id = " + _sessionId);
                 }
             }
+
+            Log.info("Done loading authentication keys.");
+            
         } catch (OsidException e) {
             Log.error(e);
             // VueUtil.alert("Error loading Resource", "Error");
@@ -278,9 +281,10 @@ public class UrlAuthentication
                         httpRequestProperties = Collections.singletonMap("Cookie", sessionId);
                     }
                     HostMap.put(hostPortKey, httpRequestProperties);
-                    if (DEBUG.Enabled)
-                        System.out.println("URLAuthentication: cached auth keys for [" + hostPortKey + "]; "
-                                           + httpRequestProperties);
+                    Log.info("cached auth keys for [" + hostPortKey + "]; " + httpRequestProperties);
+//                     if (DEBUG.Enabled)
+//                         System.out.println("URLAuthentication: cached auth keys for [" + hostPortKey + "]; "
+//                                            + httpRequestProperties);
 		}
 		catch( MalformedURLException e ) {
 			
