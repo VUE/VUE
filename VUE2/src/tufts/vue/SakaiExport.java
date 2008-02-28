@@ -36,18 +36,17 @@ public class SakaiExport
 		edu.tufts.vue.dsm.DataSource dataSources[] = _dsm.getDataSources();
 		for (int i=0; i < dataSources.length; i++) {
                     Log.info("Examining data source: " + dataSources[i]);
-                    final org.osid.repository.Repository r = dataSources[i].getRepository();
-                    final String name = (r == null ? "<null-repository>" : r.getDisplayName());
-                    Log.info("Which has repository " + r + "; name=" + name);
-			if (dataSources[i].supportsUpdate()) {
-				System.out.println("Supports Update, Now Checking Type");
-				org.osid.repository.Repository repository = dataSources[i].getRepository();
-				System.out.println("checking type " + repository.getType().getAuthority() );
-				if (repository.getType().isEqual(_sakaiRepositoryType)) {
-					System.out.println("checking type worked" );
-					dataSourceVector.addElement(dataSources[i]);
-				}
-			}
+                    final org.osid.repository.Repository repository = dataSources[i].getRepository();
+                    final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
+                    Log.info(" Which has repository: " + repository + "; name=" + name);
+                    if (dataSources[i].supportsUpdate() && repository != null) {
+                        Log.debug("Supports Update, Now Checking Type");
+                        Log.debug("checking type " + repository.getType().getAuthority() );
+                        if (repository.getType().isEqual(_sakaiRepositoryType)) {
+                            System.out.println("checking type worked" );
+                            dataSourceVector.addElement(dataSources[i]);
+                        }
+                    }
 		}
 		// convert to array for return
 		int size = dataSourceVector.size();
