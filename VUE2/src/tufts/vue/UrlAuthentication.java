@@ -88,6 +88,8 @@ public class UrlAuthentication
         } catch (OsidException e) {
             Log.error(e);
             // VueUtil.alert("Error loading Resource", "Error");
+        } catch (Throwable t) {
+            Log.error(t);
         }
     }
 	
