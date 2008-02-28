@@ -431,7 +431,7 @@ public class LWMergeMap extends LWMap {
         
         //compute and create nodes in Merge Map
         
-        if(!excludeNodesFromBaseMap)
+        if(!excludeNodesFromBaseMap && baseMapIsActive())
         {    
           addMergeNodesFromSourceMap(baseMap,voteAggregate,nodes);
         }
@@ -722,7 +722,7 @@ public class LWMergeMap extends LWMap {
         
         WeightAggregate weightAggregate = new WeightAggregate(cms);
         
-        if(!excludeNodesFromBaseMap)
+        if(!excludeNodesFromBaseMap && baseMapIsActive())
         {
           addMergeNodesForMap(getBaseMap(),weightAggregate,nodeStyles);
         }
@@ -847,6 +847,20 @@ public class LWMergeMap extends LWMap {
                }
            }
         }
+    }
+    
+    public boolean baseMapIsActive()
+    {
+        Iterator<Boolean> actives = activeFiles.iterator();
+        Iterator<LWMap> maps = mapList.iterator();
+        while(actives.hasNext() && maps.hasNext())
+        {
+            LWMap map = maps.next();
+            boolean active = actives.next().booleanValue();
+            if(map == baseMap && !active)
+                return false;
+        }
+        return true;
     }
         
 }
