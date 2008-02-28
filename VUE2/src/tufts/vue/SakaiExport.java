@@ -16,6 +16,8 @@ package tufts.vue;
 
 public class SakaiExport
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SakaiExport.class);
+    
 	private org.osid.shared.Type _collectionAssetType = new edu.tufts.vue.util.Type("sakaiproject.org","asset","siteCollection");
 	private org.osid.shared.Type _sakaiRepositoryType = new edu.tufts.vue.util.Type("sakaiproject.org","repository","contentHosting");
 	private edu.tufts.vue.dsm.DataSourceManager _dsm = null;
@@ -33,7 +35,10 @@ public class SakaiExport
 		
 		edu.tufts.vue.dsm.DataSource dataSources[] = _dsm.getDataSources();
 		for (int i=0; i < dataSources.length; i++) {
-			System.out.println("Examining Repository " + dataSources[i].getRepository().getDisplayName());
+                    Log.info("Examining data source: " + dataSources[i]);
+                    final org.osid.repository.Repository r = dataSources[i].getRepository();
+                    final String name = (r == null ? "<null-repository>" : r.getDisplayName());
+                    Log.info("Which has repository " + r + "; name=" + name);
 			if (dataSources[i].supportsUpdate()) {
 				System.out.println("Supports Update, Now Checking Type");
 				org.osid.repository.Repository repository = dataSources[i].getRepository();
