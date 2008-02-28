@@ -65,10 +65,10 @@ public class UrlAuthentication
 				
         try {
             // load new data sources
-            Log.info("loading installed data sources via VueDataSourceManager");
+            Log.info("Fetching VueDataSourceManager");
             dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
 			
-            Log.info("fetching Sakai data sources");
+            Log.info("Fetching Sakai data sources from VDSM");
             
             // Sakai specific code begins
             SakaiExport se = new SakaiExport(dsm);
