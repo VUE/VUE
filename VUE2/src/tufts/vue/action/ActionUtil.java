@@ -63,7 +63,7 @@ import java.io.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.101 $ / $Date: 2008-02-26 21:22:00 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2008-02-28 16:13:06 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -147,7 +147,7 @@ public class ActionUtil
             VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
             
             chooser.addChoosableFileFilter(defaultFilter);  
-            //chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter("PDF"));
             
