@@ -387,10 +387,10 @@ public abstract class LWIcon extends Rectangle2D.Float
                     //avoidRegion = mLWC.getBounds();
                 }
                 
-                if (!(tipIcon instanceof LWIcon.Resource))
-                {
+                //if (!(tipIcon instanceof LWIcon.Resource))
+               // {
                     e.getViewer().setTip(tipComponent, avoidRegion, tipRegion);
-                }
+               // }
             }
         }
         
@@ -474,7 +474,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             
             final tufts.vue.Resource r = mLWC.getResource();
             final boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
-            final String prettyResource = r.getToolTipText();
+            final String prettyResource = r.getSpec();
             ttResource.setIcon(r.getTinyIcon());
             ttResource.setVerticalTextPosition(SwingConstants.TOP);
             // already has a border -- either make compound or put in a panel
@@ -484,9 +484,9 @@ public abstract class LWIcon extends Rectangle2D.Float
 //                 ttResource.setBorder(BorderFactory.createEmptyBorder(1,1,0,1));
             ttResource.setText(
                     "<html>"
-                    + (hasTitle ? (indent + "<b>" + r.getTitle() + "</b>&nbsp;<br>") : "")
-                    + indent + prettyResource + gap
-                    + "<font size=-2 color=#999999><br>" + indent + "Double-click to open in new window&nbsp;"
+                    + (hasTitle ? (indent + r.getTitle() + "&nbsp;<br>") : "")
+                    + indent + prettyResource// + gap
+                    //+ "<font size=-2 color=#999999><br>" + indent + "Double-click to open in new window&nbsp;"
                                );
                 
             return ttResource;
