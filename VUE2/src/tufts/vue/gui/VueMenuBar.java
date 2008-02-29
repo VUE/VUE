@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.87 $ / $Date: 2008-02-19 19:58:53 $ / $Author: mike $
+ * @version $Revision: 1.88 $ / $Date: 2008-02-29 21:02:39 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -417,9 +417,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         final JMenuItem addFileItem = new JMenuItem(Actions.AddFileAction);
         final JMenuItem addURLItem = new JMenuItem(Actions.AddURLAction);
-        
+        final JMenuItem removeResourceItem = new JMenuItem(Actions.RemoveResourceAction);
         contentMenu.add(addFileItem);
         contentMenu.add(addURLItem);
+        contentMenu.add(removeResourceItem);
         
         formatMenu.addMenuListener(new MenuListener(){        	
         	public void menuCanceled(MenuEvent e) {/* no op	*/}
@@ -448,11 +449,14 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				{
 					if ((c).hasResource())
 					{
+					
+						removeResourceItem.setEnabled(true);
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.replaceURL.label"));						
 					}
 					else
 					{
+						removeResourceItem.setEnabled(false);
 						addFileItem.setLabel(VueResources.getString("mapViewer.componentMenu.addFile.label"));
 						addURLItem.setLabel(VueResources.getString("mapViewer.componentMenu.addURL.label"));
 					}
