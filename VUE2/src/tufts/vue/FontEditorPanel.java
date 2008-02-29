@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.73 $ / $Date: 2008-02-25 21:29:03 $ / $Author: mike $
+ * @version $Revision: 1.74 $ / $Date: 2008-02-29 16:20:37 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -967,7 +967,7 @@ public class FontEditorPanel extends JPanel
     
     private void breakdownRichTextListeners()
     {
-    	System.out.println("lost rtb rich text box");
+    	//System.out.println("lost rtb rich text box");
         disableSpecialEditors();
 
         VUE.getFormatDock().setFocusable(true);
@@ -998,7 +998,7 @@ public class FontEditorPanel extends JPanel
     {
     	breakdownDefaultListeners();
     	
-    	System.out.println("rtb rich text box");
+    	//System.out.println("rtb rich text box");
         activeText.addCaretListener(this);
         setEditorPanes(activeText);
         
@@ -1087,7 +1087,7 @@ public class FontEditorPanel extends JPanel
         if (e.active == e.oldActive)
             return;
         
-        System.out.println("new active : " + e.active + " Old active : " + e.oldActive);
+       // System.out.println("new active : " + e.active + " Old active : " + e.oldActive);
         if (activeText != null) 
         {        
         	if (LWTextListenersAdded)
@@ -1175,7 +1175,7 @@ public class FontEditorPanel extends JPanel
 	 
 	
 		//************************************ SET DEFAULTS
-		alignmentButton.getComboBox().setSelectedIndex(0);
+		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(0));
 		
 	    //Start with all these turned off.
 	    mBoldButton.setSelected(false);
@@ -1240,20 +1240,20 @@ public class FontEditorPanel extends JPanel
 	    		//System.out.println(" P: " + o.toString() + "  ***  " + set.getAttribute(o).toString());
 	       	if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("left"))
 	       	{//	System.out.println("SET LEFT");
-	       		alignmentButton.getComboBox().setSelectedIndex(0);
+	       		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(0));
 	       		alignmentButton.getComboBox().repaint();
 	       	}
 	       	else if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("center"))
 	       	{
 	       		//System.out.println("SET CENTER");
-	       		alignmentButton.getComboBox().setSelectedIndex(1);
+	       		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(1));
 	       		alignmentButton.getComboBox().repaint();
 	       		
 	       	}
 	       	else if	(o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("right"))
 	       	{
 	       		//System.out.println("SET RIGHT");
-	       		alignmentButton.getComboBox().setSelectedIndex(2);
+	       		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(2));
 	       		alignmentButton.getComboBox().repaint();
 	       	}
 	       	else if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
