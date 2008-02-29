@@ -20,6 +20,8 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.AlphaComposite;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -71,6 +73,16 @@ public class AlignmentDropDown extends JPanel {
         
     }
 
+    public void quietlySelectIndex(int p)
+    {
+    	ActionListener[] l = alignList.getActionListeners();
+    	for (int i=0;i<l.length;i++)
+    		alignList.removeActionListener(l[i]);
+    	alignList.setSelectedItem(new Integer(p));
+    	for (int i=0;i<l.length;i++)
+    		alignList.addActionListener(l[i]);
+    	
+    }
     public JComboBox getComboBox()
     {
     	return alignList;
@@ -78,7 +90,7 @@ public class AlignmentDropDown extends JPanel {
     
     class ComboBoxRenderer extends JLabel
                            implements ListCellRenderer {
-        private Font uhOhFont;
+
 
         public ComboBoxRenderer() {
             setOpaque(true);

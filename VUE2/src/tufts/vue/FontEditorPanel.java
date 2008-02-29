@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.74 $ / $Date: 2008-02-29 16:20:37 $ / $Author: mike $
+ * @version $Revision: 1.75 $ / $Date: 2008-02-29 20:15:33 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -75,6 +75,7 @@ public class FontEditorPanel extends JPanel
     
     //plain text action listener
     final ActionListener styleChangeHandler;
+    ActionListener alignmentHandler;
     private FontPropertyHandler fontPropertyHandler = null;
     
     //rich text actions
@@ -334,22 +335,23 @@ public class FontEditorPanel extends JPanel
         orderedListButton.addActionListener(toggleNumbersAction);
         unorderedListButton.addActionListener(toggleBulletsAction);
         
-
-        alignmentButton.getComboBox().addActionListener
-            (new LWPropertyHandler<LWComponent.Alignment>(LWKey.Alignment, alignmentButton.getComboBox()) {
-                public LWComponent.Alignment produceValue() {
-                    switch (alignmentButton.getComboBox().getSelectedIndex()) {
-                    case 0: return LWComponent.Alignment.LEFT;
-                    case 1: return LWComponent.Alignment.CENTER;
-                    case 2: return LWComponent.Alignment.RIGHT;
-                    }
-                    return LWComponent.Alignment.LEFT;
+        alignmentHandler  = new LWPropertyHandler<LWComponent.Alignment>(LWKey.Alignment, alignmentButton.getComboBox()) 
+        {
+            public LWComponent.Alignment produceValue() {
+                switch (alignmentButton.getComboBox().getSelectedIndex()) {
+                case 0: return LWComponent.Alignment.LEFT;
+                case 1: return LWComponent.Alignment.CENTER;
+                case 2: return LWComponent.Alignment.RIGHT;
                 }
-                public void displayValue(LWComponent.Alignment align) {
-                    alignmentButton.getComboBox().setSelectedIndex(align.ordinal());
-                }
-            });
+                return LWComponent.Alignment.LEFT;
+            }
+            public void displayValue(LWComponent.Alignment align) {
+                alignmentButton.getComboBox().setSelectedIndex(align.ordinal());
+            }
+    
+        };
 
+        alignmentButton.getComboBox().addActionListener(alignmentHandler);
         
          Color[] textColors = VueResources.getColorArray("textColorValues");
         //String[] textColorNames = VueResources.getStringArray("textColorNames");
@@ -988,7 +990,9 @@ public class FontEditorPanel extends JPanel
       //  mFontCombo.addActionListener(fontPropertyHandler);
         
         mSizeField.removeActionListener(fontSizeAction);
-      //  mSizeField.addActionListener(fontPropertyHandler);              
+      //  mSizeField.addActionListener(fontPropertyHandler);
+        alignmentButton.getComboBox().removeActionListener(alignmentListener);
+        
         RTBListenersAdded = false;
         establishDefaultListeners();
     }
@@ -1029,7 +1033,7 @@ public class FontEditorPanel extends JPanel
     
     public void establishDefaultListeners()
     {              
-    
+    	
       VUE.getFormatDock().setFocusable(true);
   	  VUE.getFormatDock().setFocusableWindowState(true);
   	  
@@ -1041,7 +1045,8 @@ public class FontEditorPanel extends JPanel
       mBoldButton.addActionListener(styleChangeHandler);
       mItalicButton.addActionListener(styleChangeHandler);    	            	
       mFontCombo.addActionListener(fontPropertyHandler);    	          	
-      mSizeField.addActionListener(fontPropertyHandler);              
+      mSizeField.addActionListener(fontPropertyHandler);
+      alignmentButton.getComboBox().addActionListener(alignmentHandler);
       defaultListenersAdded=true;
     }
     
@@ -1050,7 +1055,7 @@ public class FontEditorPanel extends JPanel
      EditorManager.unregisterEditor(sizeHandler);
      EditorManager.unregisterEditor(fontPropertyHandler);
           
-    
+     alignmentButton.getComboBox().removeActionListener(alignmentHandler);
      mBoldButton.removeActionListener(styleChangeHandler);
      mItalicButton.removeActionListener(styleChangeHandler);
      mFontCombo.removeActionListener(fontPropertyHandler);
@@ -1106,19 +1111,14 @@ public class FontEditorPanel extends JPanel
 
     private class AlignmentListener implements ActionListener    
 	{
-
-			public void actionPerformed(ActionEvent arg0) {
-					if (arg0.getModifiers() == 0)
-						return;
-					else
-					{
-						if (alignmentButton.getComboBox().getSelectedIndex() == 0)
-							paraAlignLeftAction.actionPerformed(null);
-						else if (alignmentButton.getComboBox().getSelectedIndex() == 1)
-							paraAlignCenterAction.actionPerformed(null);
-						else if (alignmentButton.getComboBox().getSelectedIndex() == 2)
-							paraAlignRightAction.actionPerformed(null);
-					}
+		public void actionPerformed(ActionEvent arg0) 
+		{
+			if (alignmentButton.getComboBox().getSelectedIndex() == 0)
+				paraAlignLeftAction.actionPerformed(null);
+			else if (alignmentButton.getComboBox().getSelectedIndex() == 1)
+				paraAlignCenterAction.actionPerformed(null);
+			else if (alignmentButton.getComboBox().getSelectedIndex() == 2)
+				paraAlignRightAction.actionPerformed(null);
 			}			
 	}
 	
@@ -1129,6 +1129,7 @@ public class FontEditorPanel extends JPanel
 	      final StyleSheet styleSheet = ((SHTMLDocument)text.getDocument()).getStyleSheet();
 	      return SHTMLPanelImpl.getMaxAttributes(paragraphElement, styleSheet);
 	}
+	
 	AttributeSet getMaxAttributes(RichTextBox editorPane,
 	          String elemName)
 	  {
@@ -1175,7 +1176,9 @@ public class FontEditorPanel extends JPanel
 	 
 	
 		//************************************ SET DEFAULTS
-		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(0));
+	    
+		alignmentButton.quietlySelectIndex(0);	
+		alignmentButton.getComboBox().repaint();
 		
 	    //Start with all these turned off.
 	    mBoldButton.setSelected(false);
@@ -1237,26 +1240,26 @@ public class FontEditorPanel extends JPanel
 	    	Object o = elementEnum.nextElement();
 	    	//System.out.println("pargraph element : " + o.toString() + " , " + paragraphAttributeSet.getAttribute(o));
 	    	//if (o.toString().equals("text-align"))
-	    		//System.out.println(" P: " + o.toString() + "  ***  " + set.getAttribute(o).toString());
+	    		//System.out.println(" P: " + o.toString() + "  ***  " + .getAttribute(o).toString());
 	       	if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("left"))
 	       	{//	System.out.println("SET LEFT");
-	       		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(0));
+	       		alignmentButton.quietlySelectIndex(0);	
 	       		alignmentButton.getComboBox().repaint();
 	       	}
 	       	else if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("center"))
 	       	{
 	       		//System.out.println("SET CENTER");
-	       		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(1));
+	       		alignmentButton.quietlySelectIndex(1);	
 	       		alignmentButton.getComboBox().repaint();
 	       		
 	       	}
 	       	else if	(o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("right"))
 	       	{
 	       		//System.out.println("SET RIGHT");
-	       		alignmentButton.getComboBox().getEditor().setItem(alignmentButton.getComboBox().getItemAt(2));
+	       		alignmentButton.quietlySelectIndex(2);	
 	       		alignmentButton.getComboBox().repaint();
 	       	}
-	       	else if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
+	       	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
 	       	{
         		mSizeField.getEditor().setItem(paragraphAttributeSet.getAttribute(o).toString());        		
 	       	}
