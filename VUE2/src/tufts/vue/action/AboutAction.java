@@ -54,7 +54,7 @@ public class AboutAction extends tufts.vue.VueAction
 
     private static Window createAboutWindow()
     {
-        JDialog window = new JDialog(VUE.getDialogParentAsFrame(), "About " + VUE.getName(), true);
+        final JDialog window = new JDialog(VUE.getApplicationFrame(), "About " + VUE.getName(), true);
         
         JPanel backPanel = new JPanel();
         //backPanel.setBorder(new LineBorder(Color.WHITE,20));
@@ -96,6 +96,8 @@ public class AboutAction extends tufts.vue.VueAction
                 public void mouseClicked(MouseEvent evt) {
                     try {
                         VueUtil.openURL("http://vue.tccs.tufts.edu");
+                        window.setVisible(false);
+                        window.dispose();
                     } catch (Exception ex) {}
                 }
             });
