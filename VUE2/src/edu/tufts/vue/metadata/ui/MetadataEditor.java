@@ -889,7 +889,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                   if(fe.getOppositeComponent() instanceof tufts.vue.gui.DockWindow)
                   {
                       model.setSaved(row,true);
-                      metadataTable.getCellEditor().stopCellEditing();
+                      TableCellEditor tce = metadataTable.getCellEditor();
+                      
+                      if(tce != null)
+                      {    
+                        metadataTable.getCellEditor().stopCellEditing();
+                      }
                   }
                   
                   java.util.List<VueMetadataElement> metadata = null;
