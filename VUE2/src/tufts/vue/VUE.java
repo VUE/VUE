@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.519 $ / $Date: 2008-02-26 02:02:52 $ / $Author: mike $ 
+ * @version $Revision: 1.520 $ / $Date: 2008-03-03 13:59:45 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -682,6 +682,7 @@ public class VUE
         new LWNode();
         new LWText();
         
+        
 
         //------------------------------------------------------------------
         
@@ -827,6 +828,8 @@ public class VUE
         // load the category model
         getCategoryModel();
         Log.debug("initApplication completed.");
+        //VUE-879
+        UrlAuthentication.getInstance();
     }
 
     private static void installMacOSXApplicationEventHandlers()
