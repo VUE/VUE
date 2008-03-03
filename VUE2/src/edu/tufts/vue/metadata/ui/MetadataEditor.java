@@ -53,8 +53,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
-    public final static int ROW_HEIGHT = 39;
-    public final static int ROW_GAP = 7;
+    public final static int ROW_HEIGHT = 25;
+    public final static int ROW_GAP = 3;
     
     public final static int ROW_INSET = 5;
     
