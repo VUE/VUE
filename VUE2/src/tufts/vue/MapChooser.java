@@ -325,7 +325,7 @@ public class MapChooser extends JDialog implements ActionListener{
                                 md +=",";
                         }
                         if(ji < jmax-1)
-                            md += "\n";
+                            md += System.getProperty("line.separator");
                     }
                     
                     if(md.length() > 0)
