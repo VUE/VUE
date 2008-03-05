@@ -181,13 +181,13 @@ public class ConnectivityMatrix {
             int endIndex = Math.min(TRUNCATE_LENGTH,label.length());
             output += label.substring(0,endIndex)+"\t";
         }
-        output +="\n";
+        output += System.getProperty("line.separator");
         for(int i=0;i<size;i++){
 //            output += labels.get(i)+"\t";
             for(int j=0;j<size;j++) {
                 output  += c[i][j]+"\t";
             }
-            output +="\n";
+            output +=System.getProperty("line.separator");
         }
         return output;
     }
