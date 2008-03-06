@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.204 $ / $Date: 2008-02-26 20:52:06 $ / $Author: anoop $
+ * @version $Revision: 1.205 $ / $Date: 2008-03-06 16:02:09 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -167,6 +167,35 @@ public class LWNode extends LWContainer
         this(label, 0, 0);
         setResource(resource);
     }
+
+// For VUE-954: below code won't work -- doesn't handle drops within-map (and not for system drag's
+// to map either, as MapDropTarget is wrapping the Resource into a wrapped image node first).  We
+// could hack this into MapViewer .checkAndHandleDroppedReparenting, or better would be generic
+// LWComponent heirarchy drop API code, which took a VUE DropContext, indicating the type of drag,
+// it's source, etc...  or maybe even better than that, somehow also isolate what is essentially
+// VUE tool logic on how to create things from the internal model, that is clearer and more
+// powerful that having the method checkAndHandleDroppedReparenting in MapViewer, and very
+// different code in MapDropTarget.  We can dream anyway...
+    
+
+//     @Override
+//     public void dropChild(LWComponent c) {
+//         Log.debug(this + ": dropChild " + c);
+//         if (c instanceof LWImage && numChildren() == 0 && !hasResource() && c.hasResource()) {
+//             addChild(c);
+//             takeResource(c.getResource());
+//         } else {
+//             super.dropChild(c);
+//         }
+//     }
+
+//     @Override
+//     public void dropChildren(Iterable<LWComponent> iterable) {
+//         Log.debug(this + ": dropChildren " + iterable);
+//         super.dropChildren(iterable);
+//     }
+    
+    
 
     public void setResource(Resource r) {
         super.setResource(r);
