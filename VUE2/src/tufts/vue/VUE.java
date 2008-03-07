@@ -56,7 +56,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.520 $ / $Date: 2008-03-03 13:59:45 $ / $Author: mike $ 
+ * @version $Revision: 1.521 $ / $Date: 2008-03-07 18:02:35 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1469,9 +1469,11 @@ public class VUE
         	//Different sized combobox components on each platform require this box to be two different
         	//sizes.
         	if (Util.isMacPlatform())
-                    ;//formatDock.setSize(new Dimension(690,54));
-        	else
+                    ;//formatDock.setSize(new Dimension(690,54));        	
+        	else if (Util.isWindowsPlatform())
         		formatDock.setSize(new Dimension(620,54));
+        	else
+        		;
         	//DR_BROWSER_DOCK.showRolledUp();
         	
         	formatDock.setLocation(GUI.GInsets.left+VueResources.getInt("formatting.location.x"),
