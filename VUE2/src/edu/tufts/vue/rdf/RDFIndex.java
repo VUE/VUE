@@ -154,13 +154,60 @@ public class RDFIndex extends ModelCom
         if(DEBUG.RDF) System.out.println("Size of index:"+this.size());
     }
     
-    public List<URI> search(String queryString)
+    /***
+     * 
+     *  todo: factor this code correctly in with similar code
+     *  in single argument search(String)
+     * 
+     * */
+    public List<URI> search(String keyword,String queryString)
     {
         long t0 = System.currentTimeMillis();
         if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
         
         List<URI> r = new ArrayList<URI>();
         if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        query = QueryFactory.create(queryString);
+        qe = QueryExecutionFactory.create(query, this);
+        if(DEBUG.RDF) System.out.println("SEARCH- created query "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        ResultSet results = qe.execSelect();
+        if(DEBUG.RDF) System.out.println("SEARCH- executed query: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        while(results.hasNext())  {
+            QuerySolution qs = results.nextSolution();
+            try {
+                
+                String fullKeyword = qs.getLiteral("keyword").toString();
+                
+                int slashLocation = fullKeyword.indexOf("#");
+                int keywordLocation = fullKeyword.toString().toLowerCase().
+                                          lastIndexOf(keyword.toString().toLowerCase());
+                
+                if(keywordLocation > slashLocation)
+                {
+                  r.add(new URI(qs.getResource("resource").toString()));
+                }
+            }catch(Throwable t) {
+                t.printStackTrace();
+            }
+        }
+        qe.close();
+        return r;
+   
+    }
+    
+    public List<URI> search(String queryString)
+    {
+        
+        long t0 = System.currentTimeMillis();
+        if(DEBUG.RDF) System.out.println("SEARCH- beginning of search: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        List<URI> r = new ArrayList<URI>();
+        if(DEBUG.RDF) System.out.println("SEARCH- created arraylist and query string: "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
+        
+        
         query = QueryFactory.create(queryString);
         qe = QueryExecutionFactory.create(query, this);
         if(DEBUG.RDF) System.out.println("SEARCH- created query "+(System.currentTimeMillis()-t0)+" Memory: "+Runtime.getRuntime().freeMemory());
@@ -183,13 +230,14 @@ public class RDFIndex extends ModelCom
     
     
     public List<URI> searchAllResources(String keyword) {
+        
         String queryString =
                 "PREFIX vue: <"+VUE_ONTOLOGY+">"+
                 "SELECT ?resource ?keyword " +
                 "WHERE{" +
                 "      ?resource ?x ?keyword FILTER regex(?keyword,\""+keyword+ "\",\"i\") } ";
         
-        return search(queryString);
+        return search(keyword,queryString);
     }
     
     public List<URI> search(Query query) 
