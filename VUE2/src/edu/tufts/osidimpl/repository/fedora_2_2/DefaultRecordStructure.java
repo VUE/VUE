@@ -147,11 +147,10 @@ public class DefaultRecordStructure
             record = new Record(new PID(pid),recordStructure);
             String listDSUrl= Utilities.getRESTUrl(objectId.getIdString(),"listDatastreams", "?xml=true", repository);
             List<String> dataStreams = FedoraRESTSearchAdapter.getDataStreams(listDSUrl);
-            if(dataStreams.contains(DEFAULT_RESOURCE_DS)) {
-                record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_RESOURCE_DS, repository));
-            }  else if(dataStreams.contains(DEFAULT_MAP_DS)) {
-                record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_MAP_DS, repository));
-
+            if(dataStreams.contains(DEFAULT_MAP_DS)) {
+                   record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_MAP_DS, repository));
+              }  else if(dataStreams.contains(DEFAULT_RESOURCE_DS)) {
+                      record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_RESOURCE_DS, repository));
             }else {
                 record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),"",repository));
             }
