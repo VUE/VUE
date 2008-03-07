@@ -26,7 +26,7 @@ import javax.swing.*;
  * Display the VUE splash screen.  Show the VUE splash graphic with current version
  * text drawn on top of it,
  *
- * @version $Revision: 1.11 $ / $Date: 2008-03-07 22:35:26 $ / $Author: anoop $ 
+ * @version $Revision: 1.12 $ / $Date: 2008-03-07 23:23:08 $ / $Author: anoop $ 
  * @author  akumar03
  */
 
@@ -63,7 +63,7 @@ public class SplashScreen extends Frame
               g.setFont(new Font("Verdana", Font.PLAIN, 11));
               g.drawString("VISUAL UNDERSTANDING ENVIRONMENT",172,225);
               g.drawString("Developed by Academic Technology",202,245);
-              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,260);
+              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,265);
               g.drawString("Version "+VueResources.getString("vue.version"),25,275);
               
           }  
