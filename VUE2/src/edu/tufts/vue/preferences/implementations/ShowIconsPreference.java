@@ -77,7 +77,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
 		this.category=edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY;
 		//this.key = "showNodeIcons";
 		this.name = "Show Icons";
-		this.description = "Display rollover icons in map nodes";
+		this.description = "Display rollover icons on the map.";
 		this.defaultValue = true;
 	
 		edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
@@ -134,7 +134,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
         gbConstraints.insets = new Insets(18,0,0,0);
-        panel.add(new JLabel("Resource Icon"),gbConstraints);
+        panel.add(new JLabel("Resource"),gbConstraints);
         
       //  gbConstraints.gridx=0;
       //  gbConstraints.gridy=3;
@@ -162,7 +162,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel("Notes Icon"),gbConstraints);
+        panel.add(new JLabel("Notes"),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=5;
@@ -176,7 +176,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel("Pathway Icon"),gbConstraints);
+        panel.add(new JLabel("Pathway"),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=6;
@@ -190,7 +190,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,0,0);
-        panel.add(new JLabel("MetaData Icon"),gbConstraints);
+        panel.add(new JLabel("Keywords"),gbConstraints);
         
         gbConstraints.gridx=0;
         gbConstraints.gridy=7;
@@ -204,7 +204,7 @@ public class ShowIconsPreference extends BasePref implements ItemListener
         gbConstraints.weightx=1;
         gbConstraints.weighty=.2;
         gbConstraints.insets = new Insets(0,0,130,0);
-        panel.add(new JLabel("Hierarchy Icon"),gbConstraints);        
+        panel.add(new JLabel("Hierarchy"),gbConstraints);        
         
         resourceCheckbox.addItemListener(this);
      //   behaviorCheckbox.addItemListener(this);
