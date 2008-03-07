@@ -631,6 +631,8 @@ public class SearchAction extends AbstractAction {
         {
             LWMap searchResultMap = new LWMap("Search Result " + searchResultsMaps++);
             
+            HashMap<LWComponent,LWComponent> duplicates = new HashMap<LWComponent,LWComponent>();
+            
             Iterator<LWComponent> components = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();   
             while(components.hasNext())
             {
@@ -638,6 +640,9 @@ public class SearchAction extends AbstractAction {
                 if(comps.contains(next))
                 {
                    LWComponent duplicate = next.duplicate();
+                   
+                   duplicates.put(next,duplicate);
+                   
                    LWComponent parent = next.getParent();
                    if(parent !=null && !comps.contains(parent))
                    {
@@ -646,6 +651,23 @@ public class SearchAction extends AbstractAction {
                          duplicate.setLocation(parent.getLocation());
                        }
                        
+                       /*if(next instanceof LWLink)
+                       {
+                         LWLink link = (LWLink)next;
+                         LWComponent head = link.getHead();
+                         if(head != null && comps.contains(head))
+                             ((LWLink)duplicate).setHead(head); // OOPS needs to be
+                                                                // head's duplicate
+                         LWComponent tail = link.getTail();
+                         if(tail != null && comps.contains(tail))
+                             ((LWLink)duplicate).setTail(tail); // double OOPS
+                       }*/
+                       
+                       
+                       // do we need this code any more? see
+                       // "raw image" search bug in jira
+                       // if we do, links may have to be handled
+                       // correctly for these nodes as well
                        if(LWNode.isImageNode(parent))
                        {
                          if(!comps.contains(parent))
@@ -662,6 +684,24 @@ public class SearchAction extends AbstractAction {
                    }
                   
                 }
+            }
+            
+            
+            Iterator<LWComponent> components2 = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator(); 
+            while(components2.hasNext())
+            {
+                       LWComponent next = components2.next();
+                
+                       if(next instanceof LWLink && duplicates.get(next) != null)
+                       {
+                         LWLink link = (LWLink)next;
+                         LWComponent head = link.getHead();
+                         if(head != null && comps.contains(head))
+                             ((LWLink)duplicates.get(next)).setHead(duplicates.get(head)); 
+                         LWComponent tail = link.getTail();
+                         if(tail != null && comps.contains(tail))
+                             ((LWLink)duplicates.get(next)).setTail(duplicates.get(tail)); 
+                       }
             }
             
             VUE.displayMap(searchResultMap);
