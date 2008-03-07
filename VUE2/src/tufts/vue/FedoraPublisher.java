@@ -46,6 +46,7 @@ public class FedoraPublisher {
     public static final String HTTPS = "https";
     public static final String HTTP = "http";
     public static final String FEDORA_URL_PATH = "/fedora/";
+    public static final String ENCODING = "UTF-8";
     public static final String COMMENT = "Object published through VUE";
     public static final boolean VERSIONABLE  = true;
     
@@ -115,7 +116,7 @@ public class FedoraPublisher {
                 } else if(!(resource instanceof Osid2AssetResource)) {
                     addObjectToRepository(ds,REMOTE_CM,null,component,cloneMap);
                     String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
-                     component.setResource(URLResource.create(ingestUrl));
+                    component.setResource(URLResource.create(ingestUrl));
                 }
           //        System.out.println("Replacing resource: "+resource+ " with "+ingestUrl+" resource is "+resource.getClass());
                    
@@ -153,10 +154,10 @@ public class FedoraPublisher {
     
     private static void addObject(FedoraClient fc,Properties p, String cModel,File file,LWComponent comp,LWMap map) throws Exception{
         String ingestFoxml =  getDigitalObjectXML(p,comp,map,cModel,file);
-        //BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
-        //writer.write(ingestFoxml);
-        //writer.close();
-        //System.out.println("INGEST XML:\n"+ingestFoxml);
+//        BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
+//        writer.write(ingestFoxml);
+//        writer.close();
+//        System.out.println("INGEST XML:\n"+ingestFoxml);
         StringBufferInputStream s = new StringBufferInputStream(ingestFoxml);
         AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,FORMAT, COMMENT);
     }
@@ -177,6 +178,7 @@ public class FedoraPublisher {
         if(cModel.equals(REMOTE_CM)){
             fc.getAPIM().modifyDatastreamByReference(pid, dsName,  null,comp.getLabel(), mimeType, VUE_FORMAT_URL, comp.getResource().getSpec(), null,null,  COMMENT,true);
         }else {
+            dsName = file.getName();
             Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
             String uploadId = uploader.upload(file);
             fc.getAPIM().modifyDatastreamByReference(pid, dsName,  null,comp.getLabel(), mimeType, VUE_FORMAT_URL, uploadId, null,null,  COMMENT,true);
@@ -211,6 +213,8 @@ public class FedoraPublisher {
     }
     
     private static String getOjectDSXML(Properties p,LWComponent comp,String cModel, File file) throws Exception {
+        System.out.println("Getting object XML for "+comp.getLabel()+" file: "+file);
+        String r = "";
         String dateString = getDateString();
         String uploadId = new String();
         String pid = getFedoraPid(comp);
@@ -219,28 +223,39 @@ public class FedoraPublisher {
         String controlGroup = "M";
         String contentLocationType = "INTERNAL_ID";
         if(cModel.equals(VUE_CM)) {
-            dsName = VUE_DS;
+            dsName = file.getName();
             mimeType =VUE_MIME_TYPE;
-        }
+            r += getDSXML("R",MAP_DS,dateString,comp.getLabel(),"http://local.fedora.server/fedora/get/"+pid+"/"+dsName,"URL",mimeType);
+        } 
         if(!cModel.equals(REMOTE_CM)){
+            //dsName = URLEncoder.encode(file.getName(), ENCODING);
+            dsName = file.getName();
             //Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), edu.tufts.vue.util.Encryption.decrypt(p.getProperty("fedora22Password")));
             Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
-            uploadId = uploader.upload(file);
+            uploadId = uploader.upload(file);   
+            r+= getDSXML("R",RESOURCE_DS,dateString,comp.getLabel(), "http://local.fedora.server/fedora/get/"+pid+"/"+dsName,"URL",mimeType);
         } else {
             controlGroup = "E";
             contentLocationType = "URL";
             uploadId = comp.getResource().getSpec();
+          
         }
         
+       return r+ getDSXML(controlGroup,dsName,dateString,comp.getLabel(), uploadId,contentLocationType,mimeType);
+    }
+    
+    public static String getDSXML(String controlGroup,String dsName,String dateString,String label, String uploadId,String contentLocationType, String mimeType) {
         StringBuffer xml = new StringBuffer();
         xml.append("<foxml:datastream CONTROL_GROUP=\""+controlGroup+"\" ID=\""+dsName+"\" STATE=\"A\" VERSIONABLE=\"true\">\n");
         xml.append("<foxml:datastreamVersion CREATED=\""+dateString+"\" FORMAT_URI=\"http://vue.tufts.edu/docs/vueformat/\"");
-        xml.append(" ID=\""+dsName+".0\" LABEL=\""+comp.getLabel()+"\" MIMETYPE=\""+mimeType+"\">\n");
+        xml.append(" ID=\""+dsName+".0\" LABEL=\""+label+"\" MIMETYPE=\""+mimeType+"\">\n");
         xml.append("<foxml:contentDigest DIGEST=\"none\" TYPE=\"DISABLED\"/>\n");
         xml.append("<foxml:contentLocation  REF=\""+uploadId+"\" TYPE=\""+contentLocationType+"\"/>\n");
         xml.append("</foxml:datastreamVersion></foxml:datastream>\n");
         return xml.toString();
     }
+    
+ 
     
     private static String getDCXML(LWComponent comp) {
         String dateString = getDateString();
