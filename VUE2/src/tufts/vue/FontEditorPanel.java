@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.75 $ / $Date: 2008-02-29 20:15:33 $ / $Author: mike $
+ * @version $Revision: 1.76 $ / $Date: 2008-03-07 20:21:36 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -65,17 +65,20 @@ public class FontEditorPanel extends JPanel
     private final AbstractButton mBoldButton;
     private final AbstractButton mItalicButton;
     private final AbstractButton mUnderlineButton;
-    private final AlignmentDropDown alignmentButton;
+    //private final AlignmentDropDown alignmentButton;
+    private final AbstractButton mLeftAlignButton;
+    private final AbstractButton mCenterAlignButton;
+    private final AbstractButton mRightAlignButton;
     public static ColorMenuButton mTextColorButton;
     private final AbstractButton orderedListButton = new VueButton("list.button.ordered");
     private final AbstractButton unorderedListButton = new VueButton("list.button.unordered");
 	
     /** the property name **/
     private final Object mPropertyKey; 
-    
+    private final ButtonGroup buttonGroup = new ButtonGroup();
     //plain text action listener
     final ActionListener styleChangeHandler;
-    ActionListener alignmentHandler;
+    ActionListener alignmentHandler;      
     private FontPropertyHandler fontPropertyHandler = null;
     
     //rich text actions
@@ -328,30 +331,47 @@ public class FontEditorPanel extends JPanel
         mItalicButton = new VueButton.Toggle("font.button.italic", styleChangeHandler);
         mUnderlineButton = new VueButton.Toggle("font.button.underline"); // regular components don't support this style
         //mUnderlineButton = new VueButton.Toggle("font.button.underline", styleChangeHandler);
-        alignmentButton = new AlignmentDropDown();
-
+        //alignmentButton = new AlignmentDropDown();
+        mLeftAlignButton = new VueButton.Toggle("list.button.leftalignment");
+        mCenterAlignButton = new VueButton.Toggle("list.button.centeralignment");
+        mRightAlignButton = new VueButton.Toggle("list.button.rightalignment");
+        buttonGroup.add(mLeftAlignButton);
+    	buttonGroup.add(mCenterAlignButton);
+    	buttonGroup.add(mRightAlignButton);
         // We can set these once -- they're not property based:
         mUnderlineButton.addActionListener(richUnderlineAction);						
         orderedListButton.addActionListener(toggleNumbersAction);
         unorderedListButton.addActionListener(toggleBulletsAction);
         
-        alignmentHandler  = new LWPropertyHandler<LWComponent.Alignment>(LWKey.Alignment, alignmentButton.getComboBox()) 
+        alignmentHandler  = new LWPropertyHandler<LWComponent.Alignment>(LWKey.Alignment) 
         {
             public LWComponent.Alignment produceValue() {
-                switch (alignmentButton.getComboBox().getSelectedIndex()) {
-                case 0: return LWComponent.Alignment.LEFT;
-                case 1: return LWComponent.Alignment.CENTER;
-                case 2: return LWComponent.Alignment.RIGHT;
-                }
-                return LWComponent.Alignment.LEFT;
+                if (mLeftAlignButton.isSelected())
+                	return LWComponent.Alignment.LEFT;
+                else if (mCenterAlignButton.isSelected())
+                	return LWComponent.Alignment.CENTER;
+                else if (mRightAlignButton.isSelected())
+                	return LWComponent.Alignment.RIGHT;
+                else
+                	return LWComponent.Alignment.LEFT;
             }
             public void displayValue(LWComponent.Alignment align) {
-                alignmentButton.getComboBox().setSelectedIndex(align.ordinal());
+            	 mLeftAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.LEFT.ordinal() ? true : false);
+            	 mCenterAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.CENTER.ordinal() ? true : false);
+            	 mRightAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.RIGHT.ordinal() ? true : false);
+
             }
     
+            public void setEnabled(boolean enabled) {
+                mLeftAlignButton.setEnabled(enabled);
+                mCenterAlignButton.setEnabled(enabled);
+                mRightAlignButton.setEnabled(enabled);
+            }
         };
 
-        alignmentButton.getComboBox().addActionListener(alignmentHandler);
+        mLeftAlignButton.addActionListener(alignmentHandler);
+        mCenterAlignButton.addActionListener(alignmentHandler);
+        mRightAlignButton.addActionListener(alignmentHandler);
         
          Color[] textColors = VueResources.getColorArray("textColorValues");
         //String[] textColorNames = VueResources.getStringArray("textColorNames");
@@ -412,18 +432,19 @@ public class FontEditorPanel extends JPanel
         
         gbc.gridy=0;
         gbc.gridx=6;        
-        gbc.fill=GridBagConstraints.NONE;
-        gbc.anchor=GridBagConstraints.WEST;
-        gbc.gridwidth=1;
-        gbc.weightx=0.3;
+        gbc.fill=GridBagConstraints.HORIZONTAL;
+        gbc.anchor=GridBagConstraints.CENTER;
+        gbc.gridwidth=3;
+        gbc.weightx=0.5;
         //   gbc.gridheight=1;
         gbc.ipady=5;
         //gbc.ipadx=5;        
         gbc.insets=new Insets(1,5,1,1);
         add(mSizeField,gbc);
         
+        gbc.anchor=GridBagConstraints.WEST;
         gbc.gridy=0;
-        gbc.gridx=7;
+        gbc.gridx=9;
         gbc.fill=GridBagConstraints.REMAINDER;
         gbc.anchor=GridBagConstraints.WEST;
         gbc.gridheight=1;
@@ -469,13 +490,26 @@ public class FontEditorPanel extends JPanel
         add(unorderedListButton,gbc);
                                         
         gbc.gridy=1;
+        gbc.gridx=6;
+        gbc.insets=new Insets(1,5,1,1);
+        gbc.anchor=GridBagConstraints.EAST;
+        gbc.fill=GridBagConstraints.NONE;
+        add(mLeftAlignButton,gbc);
+        
+        gbc.gridy=1;
         gbc.gridx=7;
-        gbc.fill=GridBagConstraints.BOTH;
-        gbc.insets = new Insets(5,0,0,0);
-        alignmentButton.setBorder(BorderFactory.createEmptyBorder());
-        alignmentButton.getComboBox().setBorder(BorderFactory.createEmptyBorder());
-        //alignmentButton.getComboBox().setEnabled(false);
-        add(alignmentButton,gbc);
+        gbc.insets=new Insets(1,1,1,1);
+        gbc.anchor=GridBagConstraints.EAST;
+        gbc.fill=GridBagConstraints.NONE;
+        add(mCenterAlignButton,gbc);
+        
+        gbc.gridy=1;
+        gbc.gridx=8;
+        gbc.anchor=GridBagConstraints.WEST;
+        gbc.fill=GridBagConstraints.NONE;
+        add(mRightAlignButton,gbc);
+        
+        
  	
         //displayValue(VueConstants.FONT_DEFAULT);
 
@@ -768,7 +802,9 @@ public class FontEditorPanel extends JPanel
         mFontCombo.setEnabled(true);
         mSizeField.setEnabled(true);
         mTextColorButton.setEnabled(true);
-        alignmentButton.getComboBox().setEnabled(true);
+        mLeftAlignButton.setEnabled(true);
+        mCenterAlignButton.setEnabled(true);
+        mRightAlignButton.setEnabled(true);
     }
 
     private void disableSpecialEditors() {
@@ -991,8 +1027,10 @@ public class FontEditorPanel extends JPanel
         
         mSizeField.removeActionListener(fontSizeAction);
       //  mSizeField.addActionListener(fontPropertyHandler);
-        alignmentButton.getComboBox().removeActionListener(alignmentListener);
-        
+
+        mLeftAlignButton.removeActionListener(paraAlignLeftAction);
+        mCenterAlignButton.removeActionListener(paraAlignCenterAction);
+        mRightAlignButton.removeActionListener(paraAlignRightAction);
         RTBListenersAdded = false;
         establishDefaultListeners();
     }
@@ -1025,8 +1063,10 @@ public class FontEditorPanel extends JPanel
 	//	mSizeField.removeActionListener(fontPropertyHandler);
         mSizeField.addActionListener(fontSizeAction);
         
-        alignmentButton.getComboBox().addActionListener(alignmentListener);
-
+        mLeftAlignButton.addActionListener(paraAlignLeftAction);
+        mCenterAlignButton.addActionListener(paraAlignCenterAction);
+        mRightAlignButton.addActionListener(paraAlignRightAction);
+        
         enableSupportedEditors();
         RTBListenersAdded = true;
     }
@@ -1046,7 +1086,9 @@ public class FontEditorPanel extends JPanel
       mItalicButton.addActionListener(styleChangeHandler);    	            	
       mFontCombo.addActionListener(fontPropertyHandler);    	          	
       mSizeField.addActionListener(fontPropertyHandler);
-      alignmentButton.getComboBox().addActionListener(alignmentHandler);
+      mLeftAlignButton.addActionListener(alignmentHandler);
+      mCenterAlignButton.addActionListener(alignmentHandler);
+      mRightAlignButton.addActionListener(alignmentHandler);
       defaultListenersAdded=true;
     }
     
@@ -1055,7 +1097,10 @@ public class FontEditorPanel extends JPanel
      EditorManager.unregisterEditor(sizeHandler);
      EditorManager.unregisterEditor(fontPropertyHandler);
           
-     alignmentButton.getComboBox().removeActionListener(alignmentHandler);
+
+     mLeftAlignButton.removeActionListener(alignmentHandler);
+     mCenterAlignButton.removeActionListener(alignmentHandler);
+     mRightAlignButton.removeActionListener(alignmentHandler);
      mBoldButton.removeActionListener(styleChangeHandler);
      mItalicButton.removeActionListener(styleChangeHandler);
      mFontCombo.removeActionListener(fontPropertyHandler);
@@ -1113,13 +1158,14 @@ public class FontEditorPanel extends JPanel
 	{
 		public void actionPerformed(ActionEvent arg0) 
 		{
-			if (alignmentButton.getComboBox().getSelectedIndex() == 0)
-				paraAlignLeftAction.actionPerformed(null);
+	//MK		if (alignmentButton.getComboBox().getSelectedIndex() == 0)
+	/*			paraAlignLeftAction.actionPerformed(null);
 			else if (alignmentButton.getComboBox().getSelectedIndex() == 1)
 				paraAlignCenterAction.actionPerformed(null);
 			else if (alignmentButton.getComboBox().getSelectedIndex() == 2)
 				paraAlignRightAction.actionPerformed(null);
-			}			
+			}*/			
+		}
 	}
 	
 	public AttributeSet getMaxAttributes(RichTextBox text,final int caretPosition) 
@@ -1176,9 +1222,7 @@ public class FontEditorPanel extends JPanel
 	 
 	
 		//************************************ SET DEFAULTS
-	    
-		alignmentButton.quietlySelectIndex(0);	
-		alignmentButton.getComboBox().repaint();
+	    mLeftAlignButton.setSelected(true);
 		
 	    //Start with all these turned off.
 	    mBoldButton.setSelected(false);
@@ -1227,6 +1271,17 @@ public class FontEditorPanel extends JPanel
 	    	//blank out the appropriate fields, set stuff unselected and return
 	    	mSizeField.getEditor().setItem("");
 			mFontCombo.getEditor().setItem("");
+			while (elementEnum.hasMoreElements())
+		    {
+		    	
+		    	Object o = elementEnum.nextElement();
+		       	if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("left"))
+		       		mLeftAlignButton.setSelected(true);
+		       	else if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("center"))
+		       		mCenterAlignButton.setSelected(true);
+		       	else if	(o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("right"))
+		       		mRightAlignButton.setSelected(true);		        			       		 	        
+		    }
 	    	return;
 	    }
 	    	    	    	     	    	   
@@ -1243,21 +1298,17 @@ public class FontEditorPanel extends JPanel
 	    		//System.out.println(" P: " + o.toString() + "  ***  " + .getAttribute(o).toString());
 	       	if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("left"))
 	       	{//	System.out.println("SET LEFT");
-	       		alignmentButton.quietlySelectIndex(0);	
-	       		alignmentButton.getComboBox().repaint();
+	       		mLeftAlignButton.setSelected(true);
 	       	}
 	       	else if (o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("center"))
 	       	{
 	       		//System.out.println("SET CENTER");
-	       		alignmentButton.quietlySelectIndex(1);	
-	       		alignmentButton.getComboBox().repaint();
+	       		mCenterAlignButton.setSelected(true);
 	       		
 	       	}
 	       	else if	(o.toString().equals("text-align") && paragraphAttributeSet.getAttribute(o).toString().equals("right"))
 	       	{
-	       		//System.out.println("SET RIGHT");
-	       		alignmentButton.quietlySelectIndex(2);	
-	       		alignmentButton.getComboBox().repaint();
+	       		mRightAlignButton.setSelected(true);
 	       	}
 	       	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
 	       	{
