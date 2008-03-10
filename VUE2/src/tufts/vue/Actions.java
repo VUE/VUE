@@ -22,6 +22,7 @@ import tufts.vue.NodeTool.NodeModeTool;
 import static tufts.vue.LWComponent.Flag;
 import java.util.*;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Point;
 import java.awt.Font;
@@ -1033,18 +1034,37 @@ public class Actions implements VueConstants
             {
     		File fileName = null;
     		final Object[] defaultButtons = { "OK","Cancel"};
-    		String option = (String)JOptionPane.showInputDialog((Component)VUE.getApplicationFrame(), 
-                                                                    "Enter the URL to add: ",
+    		/*String option = (String)JOptionPane.showInputDialog((Component)VUE.getApplicationFrame(), 
+                                                                    ,
                                                                     "Add URL to Node",
-                                                                    JOptionPane.PLAIN_MESSAGE	,
+                                                                    	,
                                                                     null,
                                                                     null,
-                                                                    "http://");
-                
-                if (option == null || option.length() <= 0)
+                                                                    "http://");*/
+    		//JOptionPane.
+    		String resourceString = "http://";
+    		Resource r =c.getResource();
+    		if (r != null)
+    			resourceString = r.getSpec();
+    		
+    			
+            JOptionPane optionPane= new JOptionPane("Enter the URL to add: ",JOptionPane.PLAIN_MESSAGE,JOptionPane.OK_CANCEL_OPTION,null,defaultButtons);
+            javax.swing.JDialog dialog = optionPane.createDialog((Component)VUE.getApplicationFrame(), "Add URL to Node");
+            dialog.setModal(true);
+            optionPane.setWantsInput(true);
+            optionPane.setInitialSelectionValue(resourceString);
+            
+            dialog.setSize(new Dimension(350,125));
+            dialog.setVisible(true);
+            
+            String option = (String)optionPane.getInputValue();
+            
+                if (option == null || option.length() <= 0 || optionPane.getValue().equals("Cancel"))
                     return;
                 
-    												
+    				
+                if (!option.startsWith("http://") || !option.startsWith("https://") || !option.startsWith("file://"))
+                	option = "http://" + option;
                 //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
                 //if (option != null && option.length() > 0) {
 
@@ -1060,7 +1080,7 @@ public class Actions implements VueConstants
                     return;
                 }
              
-                Resource r = c.getResource();
+                r = c.getResource();
                // if (r == null) {
                     r = c.getResourceFactory().get(uri);
                     if (r == null) {
