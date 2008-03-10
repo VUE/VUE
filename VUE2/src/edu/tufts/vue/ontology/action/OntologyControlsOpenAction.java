@@ -39,7 +39,7 @@ public class OntologyControlsOpenAction extends tufts.vue.VueAction {
     public OntologyControlsOpenAction(String label) 
     {
         super(label);
-        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_8, Actions.COMMAND);
+        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_4, Actions.COMMAND);
     	putValue(Action.ACCELERATOR_KEY, acceleratorKey);    	
     }
     

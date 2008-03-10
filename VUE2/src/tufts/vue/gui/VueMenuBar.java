@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.88 $ / $Date: 2008-02-29 21:02:39 $ / $Author: mike $
+ * @version $Revision: 1.89 $ / $Date: 2008-03-10 15:06:14 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -379,7 +379,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         if (VUE.getFormatDock() != null)
         {
-        	formatMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_4,"Formatting Palette"));
+        	formatMenu.add(createWindowItem(VUE.getFormatDock(),-1,"Formatting Palette"));
         	formatMenu.addSeparator();
         }
         
@@ -472,7 +472,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
         if (VUE.getPresentationDock() != null)
         {
-        	presentationMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_6, null));        
+        	presentationMenu.add(createWindowItem(VUE.getPresentationDock(),-1, null));        
         	presentationMenu.addSeparator();
     
         }
@@ -694,32 +694,33 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
         windowMenu.add(Actions.KeywordAction);
         windowMenu.add(Actions.NotesAction);
+        windowMenu.addSeparator();
         if (VUE.getMapInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
-        windowMenu.addSeparator();
-      //  if (VUE.getSlideDock() !=null)	
-      //  	windowMenu.add(createWindowItem(VUE.getSlideDock(),KeyEvent.VK_8, "Slide Viewer"));
-        if (VUE.getPresentationDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_4, "Pathways"));
-        if (VUE.getContentDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_5, "Resources"));
-        if (VUE.getPannerDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, "Panner"));        
+        windowMenu.add(ontcontrls);
         if (VUE.getOutlineDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_7, "Outline"));        
-        
-        windowMenu.addSeparator();
-        if (VUE.getFloatingZoomDock()!=null)
-        {
-        	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_9, "FullScreen Toolbar");
-        	fullScreenToolbarItem.setEnabled(false);
-        	windowMenu.add(fullScreenToolbarItem);        	
-        }        
-        windowMenu.addSeparator();
-        windowMenu.add(ontcontrls);   
+        	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_5, "Outline"));
+        if (VUE.getPannerDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, "Panner"));
+        if (VUE.getPresentationDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_7, "Pathways"));
+        if (VUE.getContentDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_8, "Resources"));
+                
+                
+           
         final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
     	Actions.SearchFilterAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
         windowMenu.add(Actions.SearchFilterAction);
+        windowMenu.addSeparator();
+        if (VUE.getFloatingZoomDock()!=null)
+        {
+        	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_0, "FullScreen Toolbar");
+        	fullScreenToolbarItem.setEnabled(false);
+        	windowMenu.add(fullScreenToolbarItem);        	
+        }        
+        
+        
         
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Help Menu
@@ -779,7 +780,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
     {
     	final WindowDisplayAction windowAction = new WindowDisplayAction(dock);
     	final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(accelKey, Actions.COMMAND);
-    	windowAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);    	
+    	if (accelKey > 0)
+    		windowAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);    	
     	if (text !=null)
     		windowAction.setTitle(text);
     	
