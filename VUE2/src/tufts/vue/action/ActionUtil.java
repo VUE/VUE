@@ -58,12 +58,13 @@ import java.awt.Component;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.net.*;
 
 /**
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.102 $ / $Date: 2008-02-28 16:13:06 $ / $Author: mike $
+ * @version $Revision: 1.103 $ / $Date: 2008-03-10 17:52:07 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -727,6 +728,7 @@ public class ActionUtil
     {
 //         if (file.isDirectory())
 //             throw new Error("Is a directory, not a map: " + file);
+         
         return unmarshallMap(file.toURL());
         //return unmarshallMap(file.toURI().toURL());
     }
@@ -776,10 +778,15 @@ public class ActionUtil
         final BufferedReader reader;
         
         if ("file".equals(url.getProtocol())) {
+           
             File file = new File(url.getPath());
+             if(url.toString().contains("#"))  {
+                 file = new File(url.getPath()+"#"+url.getRef()); // special case for dealing with # in filename
+            }
+             
             if (file.isDirectory())
                 throw new MapException("is directory");
-            reader = new BufferedReader(new FileReader(file));
+            reader = new BufferedReader(new FileReader( file));
         } else {
             reader = new BufferedReader(new InputStreamReader(tufts.vue.UrlAuthentication.getAuthenticatedStream(url)));
             //reader = new BufferedReader(new InputStreamReader(url.openStream()));
@@ -958,9 +965,10 @@ public class ActionUtil
         Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
 
         final InputStream urlStream;
-
         if ("file".equals(url.getProtocol()))
-            urlStream = url.openStream();
+            //FIX to deal with # problems in the filename
+            urlStream =  new BufferedInputStream(new FileInputStream(new File(url.toString().substring(6))));
+        //    urlStream = url.openStream();
         else
             urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
         
