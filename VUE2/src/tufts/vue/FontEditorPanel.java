@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.76 $ / $Date: 2008-03-07 20:21:36 $ / $Author: mike $
+ * @version $Revision: 1.77 $ / $Date: 2008-03-10 14:15:32 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -93,7 +93,7 @@ public class FontEditorPanel extends JPanel
     private final SHTMLEditorKitActions.FontFamilyAction fontFamilyAction = new SHTMLEditorKitActions.FontFamilyAction(null);
     private final SHTMLEditorKitActions.FontSizeAction fontSizeAction = new SHTMLEditorKitActions.FontSizeAction(null);
     private final SHTMLEditorKitActions.FontColorAction fontColorAction = new SHTMLEditorKitActions.FontColorAction(null);
-    private final AlignmentListener alignmentListener = new AlignmentListener();
+   // private final AlignmentListener alignmentListener = new AlignmentListener();
     private LWPropertyHandler sizeHandler = null;
     
     private ActionListener globalSizeListener=null;
@@ -363,16 +363,20 @@ public class FontEditorPanel extends JPanel
             }
     
             public void setEnabled(boolean enabled) {
-                mLeftAlignButton.setEnabled(enabled);
-                mCenterAlignButton.setEnabled(enabled);
-                mRightAlignButton.setEnabled(enabled);
+                mLeftAlignButton.setEnabled(false);
+                mCenterAlignButton.setEnabled(false);
+                mRightAlignButton.setEnabled(false);
             }
         };
 
         mLeftAlignButton.addActionListener(alignmentHandler);
         mCenterAlignButton.addActionListener(alignmentHandler);
         mRightAlignButton.addActionListener(alignmentHandler);
-        
+      
+        mLeftAlignButton.setEnabled(false);
+    	mCenterAlignButton.setEnabled(false);
+    	mRightAlignButton.setEnabled(false);
+    	
          Color[] textColors = VueResources.getColorArray("textColorValues");
         //String[] textColorNames = VueResources.getStringArray("textColorNames");
         mTextColorButton = new ColorMenuButton(textColors, true);
@@ -965,6 +969,10 @@ public class FontEditorPanel extends JPanel
     	VUE.getFormatDock().setFocusable(false);
    		VUE.getFormatDock().setFocusableWindowState(false);
    		
+   		mLeftAlignButton.setEnabled(false);
+    	mCenterAlignButton.setEnabled(false);
+    	mRightAlignButton.setEnabled(false);
+    	
     	//System.out.println("lw text");
         mFontCombo.setEnabled(true);
         mSizeField.setEnabled(true);
@@ -988,6 +996,9 @@ public class FontEditorPanel extends JPanel
     {
     	lwtext=null;
 		//System.out.println("lost lw text");
+    	mLeftAlignButton.setEnabled(false);
+      	mCenterAlignButton.setEnabled(false);
+      	mRightAlignButton.setEnabled(false);
 		mSizeField.removeActionListener(globalSizeListener);
         mFontCombo.removeActionListener(globalFaceListener);
         
@@ -1008,6 +1019,10 @@ public class FontEditorPanel extends JPanel
     	//System.out.println("lost rtb rich text box");
         disableSpecialEditors();
 
+        mLeftAlignButton.setEnabled(false);
+    	mCenterAlignButton.setEnabled(false);
+    	mRightAlignButton.setEnabled(false);
+    	
         VUE.getFormatDock().setFocusable(true);
 		VUE.getFormatDock().setFocusableWindowState(true);
         
@@ -1044,6 +1059,10 @@ public class FontEditorPanel extends JPanel
         activeText.addCaretListener(this);
         setEditorPanes(activeText);
         
+        mLeftAlignButton.setEnabled(true);
+    	mCenterAlignButton.setEnabled(true);
+    	mRightAlignButton.setEnabled(true);
+    	
         activeText.setToggleBulletList(toggleBulletsAction);
         activeText.setNumberList(toggleNumbersAction);
         
@@ -1077,6 +1096,10 @@ public class FontEditorPanel extends JPanel
       VUE.getFormatDock().setFocusable(true);
   	  VUE.getFormatDock().setFocusableWindowState(true);
   	  
+  	  mLeftAlignButton.setEnabled(false);
+  	  mCenterAlignButton.setEnabled(false);
+  	  mRightAlignButton.setEnabled(false);
+  	  
       if (!EditorManager.isRegistered(sizeHandler))
          EditorManager.registerEditor(sizeHandler);
       if (!EditorManager.isRegistered(fontPropertyHandler))
@@ -1096,7 +1119,10 @@ public class FontEditorPanel extends JPanel
     {
      EditorManager.unregisterEditor(sizeHandler);
      EditorManager.unregisterEditor(fontPropertyHandler);
-          
+      
+     mLeftAlignButton.setEnabled(false);
+ 	 mCenterAlignButton.setEnabled(false);
+ 	 mRightAlignButton.setEnabled(false);
 
      mLeftAlignButton.removeActionListener(alignmentHandler);
      mCenterAlignButton.removeActionListener(alignmentHandler);
@@ -1152,21 +1178,7 @@ public class FontEditorPanel extends JPanel
         		breakdownRichTextListeners();
         }
 				
-    }
-
-    private class AlignmentListener implements ActionListener    
-	{
-		public void actionPerformed(ActionEvent arg0) 
-		{
-	//MK		if (alignmentButton.getComboBox().getSelectedIndex() == 0)
-	/*			paraAlignLeftAction.actionPerformed(null);
-			else if (alignmentButton.getComboBox().getSelectedIndex() == 1)
-				paraAlignCenterAction.actionPerformed(null);
-			else if (alignmentButton.getComboBox().getSelectedIndex() == 2)
-				paraAlignRightAction.actionPerformed(null);
-			}*/			
-		}
-	}
+    }   
 	
 	public AttributeSet getMaxAttributes(RichTextBox text,final int caretPosition) 
 	{
