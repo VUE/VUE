@@ -60,7 +60,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.98 $ / $Date: 2008-03-11 15:28:56 $ / $Author: mike $
+ * @version $Revision: 1.99 $ / $Date: 2008-03-11 15:29:32 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -615,7 +615,8 @@ public class PathwayTable extends JTable
             final LWPathway.Entry entry = getTableModel().getEntry(row);
             String debug = "";
             
-            ArrowIconFont = new Font("DejaVu Sans", Font.PLAIN, 20);
+            if (Util.isUnixPlatform())
+            	ArrowIconFont = new Font("DejaVu Sans", Font.PLAIN, 20);
             
             if (entry == null)
                 return this;
