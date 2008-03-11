@@ -60,7 +60,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.97 $ / $Date: 2008-02-20 16:02:46 $ / $Author: mike $
+ * @version $Revision: 1.98 $ / $Date: 2008-03-11 15:28:56 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -599,7 +599,7 @@ public class PathwayTable extends JTable
         }  
     }
     
-    private static final Font ArrowIconFont = new Font("Lucida Sans Unicode", Font.PLAIN, 20);
+    private static Font ArrowIconFont = new Font("Lucida Sans Unicode", Font.PLAIN, 20);
 
     private class LabelRenderer extends DefaultTableCellRenderer{
         
@@ -614,6 +614,8 @@ public class PathwayTable extends JTable
         {
             final LWPathway.Entry entry = getTableModel().getEntry(row);
             String debug = "";
+            
+            ArrowIconFont = new Font("DejaVu Sans", Font.PLAIN, 20);
             
             if (entry == null)
                 return this;
@@ -639,7 +641,7 @@ public class PathwayTable extends JTable
                           bool = ((Boolean)value).booleanValue();
                       
                       setFont(ArrowIconFont);
-                      setForeground(Color.white);
+                      setForeground(Color.white);                      
                       setText(bool ? " "+DownArrowChar : " "+RightArrowChar);                  
                   }
             	  else
