@@ -327,8 +327,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
  	   int height = 120;
  	   //int lines = 1;
  	  int rowCount = metadataTable.getRowCount(); 	   	  
+ 	  int rowHeight = metadataTable.getRowHeight();
+ //	  System.out.println("rowHeight :"  + rowHeight);
  	  
- 		   return new Dimension(300,(height+((rowCount-1) * 30)));
+ 		   return new Dimension(300,(height+((rowCount-1) * rowHeight)));
  	      	
     }
     
