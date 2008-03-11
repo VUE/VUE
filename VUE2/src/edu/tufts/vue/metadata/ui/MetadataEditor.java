@@ -22,6 +22,8 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.ontology.OntType;
 import edu.tufts.vue.rdf.RDFIndex;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.event.FocusAdapter;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -104,7 +106,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            setSize(new java.awt.Dimension(300,200)); 
         }
         
-        setMinimumSize(new java.awt.Dimension(300,200));
+     //   setMinimumSize(new java.awt.Dimension(300,200));
         
         this.current = current;
         
@@ -316,7 +318,20 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         
         validate();
     }
+    public Dimension getMinimumSize()
+    { 	   
+ 	   int height = 120;
+ 	   //int lines = 1;
+ 	  int rowCount = metadataTable.getRowCount(); 	   	  
+ 	  
+ 		   return new Dimension(300,(height+((rowCount-1) * 30)));
+ 	      	
+    }
     
+    public Dimension getPreferredSize()
+    { 	   
+ 	   return getMinimumSize();
+    }
     public void refresh()
     {
     	validate();
