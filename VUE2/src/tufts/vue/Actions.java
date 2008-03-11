@@ -1048,12 +1048,14 @@ public class Actions implements VueConstants
     			resourceString = r.getSpec();
     		
     			
-            JOptionPane optionPane= new JOptionPane("Enter the URL to add: ",JOptionPane.PLAIN_MESSAGE,JOptionPane.OK_CANCEL_OPTION,null,defaultButtons);
+            JOptionPane optionPane= new JOptionPane("Enter the URL to add: ",JOptionPane.PLAIN_MESSAGE,JOptionPane.OK_CANCEL_OPTION,null,defaultButtons,"OK");
             javax.swing.JDialog dialog = optionPane.createDialog((Component)VUE.getApplicationFrame(), "Add URL to Node");
             dialog.setModal(true);
-            optionPane.setWantsInput(true);
-            optionPane.setInitialSelectionValue(resourceString);
             
+            optionPane.setInitialSelectionValue(resourceString);
+            optionPane.setWantsInput(true);
+            optionPane.enableInputMethods(true);
+
             dialog.setSize(new Dimension(350,125));
             dialog.setVisible(true);
             
@@ -1063,8 +1065,8 @@ public class Actions implements VueConstants
                     return;
                 
     				
-                if (!option.startsWith("http://") || !option.startsWith("https://") || !option.startsWith("file://"))
-                	option = "http://" + option;
+              //  if (!option.startsWith("http://") || !option.startsWith("https://") || !option.startsWith("file://"))
+                //	option = "http://" + option;
                 //int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
                 //if (option != null && option.length() > 0) {
 
