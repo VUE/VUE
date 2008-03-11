@@ -49,7 +49,7 @@ import tufts.vue.gui.GUI;
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
     
-    private static final boolean DEBUG_LOCAL = false;
+    private static final boolean DEBUG_LOCAL = true;
     
     public final static String CC_ADD_LOCATION_MESSAGE = "<html> Click [+] to add this <br> custom category to your own list. </html>";
     
@@ -97,13 +97,16 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         int height = Math.max(metadataTable.getModel().getRowCount()*50,200);
         return new java.awt.Dimension(300,metadataTable.getModel().getRowCount()*50);
     }*/
-    
+   
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
+   
         //VUE-846 -- special case related to VUE-845 (see comment on opening from keyword item in menu) 
         if(getSize().width < 100)
         {
-           setSize(new java.awt.Dimension(300,200)); 
+   
+           setSize(new java.awt.Dimension(300,200));
+           
         }
         
      //   setMinimumSize(new java.awt.Dimension(300,200));
@@ -137,14 +140,14 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         metadataTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter()
         {
                    public void mousePressed(java.awt.event.MouseEvent evt)
-                   {
+                   {  
                        if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
-                       {
+                       {                     
                          addNewRow();                         
                        }
                        else
-                       {
-                           int row = metadataTable.rowAtPoint(evt.getPoint());
+                       {                    	
+                    	   int row = metadataTable.rowAtPoint(evt.getPoint());
                            ((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
                            if(metadataTable.getCellEditor() !=null)
                            {    
@@ -179,7 +182,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        metadataTable.addMouseListener(new java.awt.event.MouseAdapter()
        {
           public void mousePressed(MouseEvent evt)
-          {
+          {        	
               MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
               if(model.lastSavedRow != metadataTable.rowAtPoint(evt.getPoint()))
                 model.setSaved(model.lastSavedRow,true);
@@ -188,7 +191,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            
            
           public void mouseReleased(java.awt.event.MouseEvent evt)
-          {
+          {        	
              if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
              {
                java.util.List<VueMetadataElement> metadataList = MetadataEditor.this.current.getMetadataList().getMetadata();
@@ -237,7 +240,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         metadataTable.setDefaultRenderer(Object.class,new MetadataTableRenderer());
         metadataTable.setDefaultEditor(Object.class, new MetadataTableEditor());
         ((DefaultCellEditor)metadataTable.getDefaultEditor(java.lang.Object.class)).setClickCountToStart(2);
-        
+        //metadataTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         metadataTable.setRowHeight(ROW_HEIGHT);
         metadataTable.getTableHeader().setReorderingAllowed(false);
 
@@ -266,7 +269,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         advancedSearch.addActionListener(new java.awt.event.ActionListener(){
            public void actionPerformed(java.awt.event.ActionEvent e)
            {
-               MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();
+        	   
+               MetadataTableModel model = (MetadataTableModel)metadataTable.getModel();           
                if(model.getColumnCount() == 2)
                {
                  buttonColumn = 2;
@@ -413,7 +417,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         {
           metadataTable.getColumnModel().getColumn(0).setHeaderRenderer(new MetadataTableHeaderRenderer());
           metadataTable.getColumnModel().getColumn(1).setHeaderRenderer(new MetadataTableHeaderRenderer());
-          metadataTable.getColumnModel().getColumn(0).setMaxWidth(editorWidth-BUTTON_COL_WIDTH);
+          metadataTable.getColumnModel().getColumn(0).setWidth(editorWidth-BUTTON_COL_WIDTH);
           metadataTable.getColumnModel().getColumn(1).setMaxWidth(BUTTON_COL_WIDTH);   
         }
         else
@@ -421,8 +425,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
           metadataTable.getColumnModel().getColumn(0).setHeaderRenderer(new MetadataTableHeaderRenderer());
           metadataTable.getColumnModel().getColumn(1).setHeaderRenderer(new MetadataTableHeaderRenderer());
           metadataTable.getColumnModel().getColumn(2).setHeaderRenderer(new MetadataTableHeaderRenderer());
-          metadataTable.getColumnModel().getColumn(0).setMaxWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
-          metadataTable.getColumnModel().getColumn(1).setMaxWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
+          metadataTable.getColumnModel().getColumn(0).setWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
+          metadataTable.getColumnModel().getColumn(1).setWidth(editorWidth/2-BUTTON_COL_WIDTH/2);
           metadataTable.getColumnModel().getColumn(2).setMaxWidth(BUTTON_COL_WIDTH); 
         }
         
@@ -433,14 +437,13 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     public void repaint()
     {
         super.repaint();
-        adjustColumnModel();
+      //  adjustColumnModel();
     }
     
     public void activeChanged(ActiveEvent e)
     {
        if(e!=null)
        {
-          
          focusToggle = false;  
            
          if(DEBUG_LOCAL)
@@ -1244,8 +1247,15 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
          
          public void setColumns(int cols)
          {
+
              this.cols = cols;
              fireTableStructureChanged();
+         }
+         
+         public void fireTableStructureChanged()
+         {
+
+        	 super.fireTableStructureChanged();
          }
          
          public boolean isCellEditable(int row,int column)
