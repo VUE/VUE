@@ -17,6 +17,7 @@ package tufts.vue;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.HttpURLConnection;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.List;
@@ -211,6 +212,42 @@ public class UrlAuthentication
             throw ioe;
         }
         return conn.getInputStream();
+    }
+
+    /** This method will return the final redirected url. This method is important inorder to know that actual file name
+     **/
+    public static java.net.URL getRedirectedUrl(URL url, int n) {
+        if(n==0) {
+            return url;
+        }
+        try {
+            if ("file".equals(url.getProtocol())) {
+                if (DEBUG.IO) Log.debug("Skipping auth checks for local access: " + url);
+                return url;
+            }
+            final String asText = url.toString();
+            URL cleanURL = url;
+            if (asText.indexOf(' ') > 0) {
+                // Added 2007-09-20 SMF -- Sakai HTTP server is rejecting spaces in the URL path.
+                try {
+                    cleanURL = new URL(asText.replaceAll(" ", "%20"));
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t, asText);
+                    return null;
+                }
+            }
+            final  HttpURLConnection conn = (HttpURLConnection) cleanURL.openConnection();
+            conn.setInstanceFollowRedirects(false);
+            if(conn.getHeaderField("location") == null) {
+                return url;
+            } else {
+                return getRedirectedUrl(new URL(conn.getHeaderField("location")),n-1);
+            }
+            
+        } catch (java.io.IOException ioe) {
+            Log.warn(url + ": " + ioe);
+        }
+        return url;
     }
 
 
