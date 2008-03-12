@@ -64,7 +64,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.103 $ / $Date: 2008-03-10 17:52:07 $ / $Author: anoop $
+ * @version $Revision: 1.104 $ / $Date: 2008-03-12 13:48:50 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -101,7 +101,7 @@ public class ActionUtil
     {
         File picked = null;
         final VueFileChooser chooser = new VueFileChooser();
-      JFileChooser choose = new JFileChooser();
+
      
         
         chooser.setDialogTitle(title);
