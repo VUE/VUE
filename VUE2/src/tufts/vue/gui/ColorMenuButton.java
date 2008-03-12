@@ -51,7 +51,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.22 $ / $Date: 2008-01-31 17:56:17 $ / $Author: mike $
+ * @version $Revision: 1.23 $ / $Date: 2008-03-12 18:47:40 $ / $Author: sfraize $
  * @author csb
  * @author Scott Fraize
  */
@@ -448,9 +448,17 @@ implements ActionListener, tufts.vue.LWEditor
             // set location relative to button
             Point location = getLocation();
             SwingUtilities.convertPointToScreen(location, getParent());
-            location.translate(0, getHeight()
-                    + (getBorder() == null ? 0
-                        : getBorder().getBorderInsets(this).bottom));
+            if (false) {
+                // this code was causing the menu to drop too low on Mac OS X Leopard 
+                // (so it would dissapear when mousing down from the color button to the pop-up menu).
+                // SMF 2008-03-12 -- See VUE-821
+                location.translate(0, getHeight()
+                                   + (getBorder() == null ? 0
+                                      : getBorder().getBorderInsets(this).bottom));
+            } else {
+                // this makes things work on Leopard, but does it break things on Windows or Linux?  SMF 2008-03-12
+                location.translate(0, getHeight());
+            }
             popupWindow.setLocation(location); 
             popupWindow.setVisible(true);                        
             popupWindow.requestFocus();
