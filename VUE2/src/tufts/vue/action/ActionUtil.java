@@ -64,7 +64,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.104 $ / $Date: 2008-03-12 13:48:50 $ / $Author: mike $
+ * @version $Revision: 1.105 $ / $Date: 2008-03-12 18:11:00 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -960,18 +960,21 @@ public class ActionUtil
         throws IOException
     {
         LWMap map = null;
-
+        java.net.URL redirectedUrl  = url; // check for redirects in url and use that as filename;
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("UNMARSHALLING: " + url + " charset=" + charsetEncoding);
         Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
-
+        
         final InputStream urlStream;
         if ("file".equals(url.getProtocol()))
             //FIX to deal with # problems in the filename
             urlStream =  new BufferedInputStream(new FileInputStream(new File(url.toString().substring(6))));
         //    urlStream = url.openStream();
-        else
-            urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
-        
+        else {
+              redirectedUrl = tufts.vue.UrlAuthentication.getRedirectedUrl(url,10); // number of redirects to follow
+           urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
+            // urlStream =  url.openStream();
+           
+        }
         final BufferedReader reader = new BufferedReader(new InputStreamReader(urlStream, charsetEncoding));
 
         // Skip over comments to get to start of XML
@@ -1018,7 +1021,7 @@ public class ActionUtil
             
             reader.close();
 
-            final File file = new File(url.getFile());
+            final File file = new File(redirectedUrl.getFile());
             final String fileName = file.getName();
 
             map.setFile(file); // VUE-713: do this always:
