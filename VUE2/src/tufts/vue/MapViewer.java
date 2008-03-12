@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.513 $ / $Date: 2008-02-26 20:13:53 $ / $Author: mike $ 
+ * @version $Revision: 1.514 $ / $Date: 2008-03-12 17:46:16 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3775,6 +3775,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sMultiPopup.add(Actions.Ungroup);
     	sMultiPopup.addSeparator();
         
+    	
         multiPathway = sMultiPopup.add(Actions.AddPathwayItem);
      
         //Manage pathway list
@@ -3785,12 +3786,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
      
         if (VUE.getSelection().allOfType(LWLink.class))
-        {
         	multiPathway.setVisible(false);
-        	
-        //	System.out.println("All links");
-        }
         
+        if (this.getFocal() instanceof LWSlide)        
+        	multiPathway.setVisible(false);
+        
+     
         //if (VUE.getSelection().allOfType(LWNode.class))
         	//sMultiPopup.add(syncMenu);
         
@@ -3825,6 +3826,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 			extendMenu.setEnabled(false);
 		}
 		
+        if (this.getFocal() instanceof LWSlide)
+        {        	
+        	extendMenu.setVisible(false);
+        }
         JMenu arrangeMenu = new JMenu("Arrange");
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
