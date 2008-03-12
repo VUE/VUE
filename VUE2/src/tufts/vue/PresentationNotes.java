@@ -36,9 +36,11 @@ import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
+import com.lowagie.text.Section;
 import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.ColumnText;
 import com.lowagie.text.pdf.DefaultFontMapper;
+import com.lowagie.text.pdf.PdfChunk;
 import com.lowagie.text.pdf.PdfContentByte;
 import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfPCell;
@@ -537,33 +539,7 @@ public class PresentationNotes {
                 final String notes = entry.getNotes();
                 //String label = entry.getLabel();
                 
-                
-                
-                
-                table = new PdfPTable(new float[]{ 1 });
-                table.setWidthPercentage(90.0f);
-                table.getDefaultCell().setBorder(0);
-                //table.getDefaultCell().setPaddingTop(30);
-                Paragraph p = new Paragraph();
-                
-                p.setAlignment(Element.ALIGN_CENTER);
-                                                                
-                cell = new PdfPCell(new Phrase(notes));
-                cell.setBorder(0);
-
-                                                                                                            
-                
-                PdfPCell c2 = new PdfPCell();
-                c2.setFixedHeight(340); //slides are 540x405
-                c2.setBorder(0);
-                table.addCell(c2);                
-                table.addCell(cell);
-                p.add(table);
-                document.add(p);
-                
-                //now that the page is set up render the slide on it.
                 PdfContentByte cb = writer.getDirectContent();
-                //cb.cr
 
                 Point2D.Float offset = new Point2D.Float();
             
@@ -603,8 +579,53 @@ public class PresentationNotes {
                 g2d.dispose();                                                                                                         
 
                 cb.addTemplate(tp,80, 482);
+
                 
+                //Paragraph p = new Paragraph();
+                //p.setExtraParagraphSpace(330);
+               // p.setSpacingBefore(330f);
+              //  p.setAlignment(Element.ALIGN_CENTER);
+                
+                Paragraph phrase = new Paragraph(notes);
+                //phrase.setExtraParagraphSpace(340f);
+                phrase.setSpacingBefore(320f);
+                phrase.setKeepTogether(true);
+               //cell = new PdfPCell(phrase);
+                //cell.setBorder(0);
+                   //         table = new PdfPTable(new float[]{ 1 });
+                  //        table.setWidthPercentage(100.0f);
+                  //        table.getDefaultCell().setBorder(0);
+                          //table.getDefaultCell().setPaddingTop(30);
+            
+                                                                                                            
+                
+                //PdfPCell c2 = new PdfPCell();
+                //c2.setFixedHeight(340); //slides are 540x405
+                //c2.setBorder(0);
+                //table.addCell(c2);                
+                //table.addCell(cell);
+                //table.setKeepTogether(false);
+                //cell.setVerticalAlignment(PdfPCell.ALIGN_TOP);
+                
+                //p.add(table);
+                //System.out.println("CELL HEIGHT : " + cell.getHeight());
+                //Section s1 = new Section();
+                //ColumnText chunk2 = new ColumnText(cb);
+                //chunk2.setText(phrase);
+                //chunk2.setSi
+                //chunk2.setSimpleColumn(phrase,70, 330, document.getPageSize().width()-70,document.getPageSize().height()-70,15, Element.ALIGN_LEFT);
+               // chunk2.go();
+                //PdfChunk chunk2 = new PdfChunk);
+                Paragraph p2 = new Paragraph(" ");
+                p2.setKeepTogether(false);
+                phrase.setKeepTogether(false);
+               // p2.setExtraParagraphSpace(230f);
+                document.add(p2);
+                document.add(phrase);
                 document.newPage();
+
+                
+              
                 
             }
         }
@@ -622,62 +643,7 @@ public class PresentationNotes {
         // step 5: we close the document
         document.close();
     }
-	/*
-	public static void createPresentationNotes(File file)
-	{
-        // step 1: creation of a document-object
-        Document document = new Document();
-        
-        try {
-            // step 2:
-            // we create a writer that listens to the document
-            // and directs a PDF-stream to a file            
-            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
-            writer.setDefaultColorspace(PdfName.DEFAULTRGB, null);
-            writer.setStrictImageSequence(true);
-            
-            // step 3: we open the document
-            document.open();
 
-            PdfPTable table;
-            PdfPCell cell;            
-                                                  
-            for (LWPathway.Entry entry : VUE.getActivePathway().getEntries()) {
-            	
-                LWSlide slide = entry.produceSlide();
-                String notes = entry.getNotes();
-                String label = entry.getLabel();
-                BufferedImage i = slide.createImage(1.00, new Dimension(1000,1000));
-              //  document.add(new Paragraph(notes));
-                table = new PdfPTable(new float[]{ 1 });
-                table.getDefaultCell().setBorder(0);
-                table.getDefaultCell().setPaddingTop(80);
-                Paragraph p = new Paragraph();
-                
-                p.setAlignment(Element.ALIGN_CENTER);
-                p.add(table);
-                Image i2 = Image.getInstance((java.awt.Image)i,VUE.getActivePathway().getMasterSlide().getFillColor());                
-                
-                cell = new PdfPCell(new Phrase(notes));
-                cell.setBorder(0);
-                cell.setPaddingTop(80);
-                table.addCell(i2);
-                table.addCell(cell);
-                document.add(p);                 
-                document.newPage();
-            }
-        }
-        catch(DocumentException de) {
-            System.err.println(de.getMessage());
-        }
-        catch(IOException ioe) {
-            System.err.println(ioe.getMessage());
-        }
-        
-        // step 5: we close the document
-        document.close();
-    }
-	*/
 	public static void createSpeakerNotes4PerPage(File file)
 	{
 		//page size notes:
