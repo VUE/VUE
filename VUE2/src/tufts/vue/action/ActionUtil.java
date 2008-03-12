@@ -64,7 +64,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.105 $ / $Date: 2008-03-12 18:11:00 $ / $Author: anoop $
+ * @version $Revision: 1.106 $ / $Date: 2008-03-12 20:52:17 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -965,13 +965,19 @@ public class ActionUtil
         Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
         
         final InputStream urlStream;
-        if ("file".equals(url.getProtocol()))
+         final File file; 
+            
+        if ("file".equals(url.getProtocol())){
             //FIX to deal with # problems in the filename
-            urlStream =  new BufferedInputStream(new FileInputStream(new File(url.toString().substring(6))));
-        //    urlStream = url.openStream();
-        else {
+//         System.out.println("URL: "+url);
+             file = new File(url.toString().substring(5));
+             urlStream =  new BufferedInputStream(new FileInputStream(file)); // remove file:/ from the begining of the file
+             
+          //  urlStream = url.openStream();
+        } else {
               redirectedUrl = tufts.vue.UrlAuthentication.getRedirectedUrl(url,10); // number of redirects to follow
-           urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
+              file = new File(redirectedUrl.getFile());
+              urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
             // urlStream =  url.openStream();
            
         }
@@ -1021,9 +1027,7 @@ public class ActionUtil
             
             reader.close();
 
-            final File file = new File(redirectedUrl.getFile());
-            final String fileName = file.getName();
-
+           final String fileName = file.getName();
             map.setFile(file); // VUE-713: do this always:
 
             if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
