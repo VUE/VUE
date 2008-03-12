@@ -60,7 +60,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.99 $ / $Date: 2008-03-11 15:29:32 $ / $Author: mike $
+ * @version $Revision: 1.100 $ / $Date: 2008-03-12 13:48:02 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -1276,6 +1276,10 @@ public class PathwayTable extends JTable
 	    	m.add(masterSlidePresentation);
 	    	//m.add(duplicateEntry);
 	    	m.add(deleteEntry);
+	    	if (entry.isPortal())
+	    		editEntry.setEnabled(false);
+	    	else
+	    		editEntry.setEnabled(true);
 	    }
 
 		return m;

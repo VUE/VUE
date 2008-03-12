@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.119 $ / $Date: 2008-03-06 20:34:22 $ / $Author: mike $
+ * @version $Revision: 1.120 $ / $Date: 2008-03-12 13:48:02 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -936,7 +936,8 @@ public class PathwayPanel extends JPanel
     															false));
     		
     		pathway.getCurrentEntry().getSlide().doZoomingDoubleClick(mme);*/
-        	Actions.PreviewOnMap.actionPerformed(e);
+        	//Actions.PreviewOnMap.actionPerformed(e);
+        	Actions.EditSlide.act(pathway.getCurrentEntry().getSlide());
         }    
         else if (btn == btnPlay)
         {
@@ -1264,6 +1265,10 @@ public class PathwayPanel extends JPanel
         
         btnPathwayOnly.setEnabled(VUE.getActivePathway() != null);
         
+        if (VUE.getActivePathway() != null && VUE.getActivePathway().getCurrentEntry() != null)
+        	btnPreview.setEnabled(!VUE.getActivePathway().getCurrentEntry().isPortal());
+        else
+        	btnPreview.setEnabled(false);
 //         final LWPathway pathway = VUE.getActivePathway();
 //         if (pathway != null && pathway.getCurrentEntry() != null) {
 //             btnRefresh.setEnabled(!pathway.getCurrentEntry().isMapView());
