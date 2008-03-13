@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.77 $ / $Date: 2008-03-10 14:15:32 $ / $Author: mike $
+ * @version $Revision: 1.78 $ / $Date: 2008-03-13 20:46:30 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -356,13 +356,15 @@ public class FontEditorPanel extends JPanel
                 	return LWComponent.Alignment.LEFT;
             }
             public void displayValue(LWComponent.Alignment align) {
-            	 mLeftAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.LEFT.ordinal() ? true : false);
-            	 mCenterAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.CENTER.ordinal() ? true : false);
-            	 mRightAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.RIGHT.ordinal() ? true : false);
+            	//clearAlignmentSelection();
+            	 //mLeftAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.LEFT.ordinal() ? true : false);
+            	 //mCenterAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.CENTER.ordinal() ? true : false);
+            	 //mRightAlignButton.setSelected(align.ordinal() == LWComponent.Alignment.RIGHT.ordinal() ? true : false);
 
             }
     
             public void setEnabled(boolean enabled) {
+            	//clearAlignmentSelection();
                 mLeftAlignButton.setEnabled(false);
                 mCenterAlignButton.setEnabled(false);
                 mRightAlignButton.setEnabled(false);
@@ -966,6 +968,7 @@ public class FontEditorPanel extends JPanel
     private void establishLWTextListeners(LWComponent activeText)
     {
     	breakdownDefaultListeners();
+    	//clearAlignmentSelection();
     	VUE.getFormatDock().setFocusable(false);
    		VUE.getFormatDock().setFocusableWindowState(false);
    		
@@ -996,6 +999,7 @@ public class FontEditorPanel extends JPanel
     {
     	lwtext=null;
 		//System.out.println("lost lw text");
+    //	clearAlignmentSelection();
     	mLeftAlignButton.setEnabled(false);
       	mCenterAlignButton.setEnabled(false);
       	mRightAlignButton.setEnabled(false);
@@ -1018,7 +1022,7 @@ public class FontEditorPanel extends JPanel
     {
     	//System.out.println("lost rtb rich text box");
         disableSpecialEditors();
-
+        clearAlignmentSelection();
         mLeftAlignButton.setEnabled(false);
     	mCenterAlignButton.setEnabled(false);
     	mRightAlignButton.setEnabled(false);
@@ -1058,7 +1062,7 @@ public class FontEditorPanel extends JPanel
     	//System.out.println("rtb rich text box");
         activeText.addCaretListener(this);
         setEditorPanes(activeText);
-        
+     //   clearAlignmentSelection();
         mLeftAlignButton.setEnabled(true);
     	mCenterAlignButton.setEnabled(true);
     	mRightAlignButton.setEnabled(true);
@@ -1095,7 +1099,7 @@ public class FontEditorPanel extends JPanel
     	
       VUE.getFormatDock().setFocusable(true);
   	  VUE.getFormatDock().setFocusableWindowState(true);
-  	  
+  	clearAlignmentSelection();
   	  mLeftAlignButton.setEnabled(false);
   	  mCenterAlignButton.setEnabled(false);
   	  mRightAlignButton.setEnabled(false);
@@ -1119,7 +1123,7 @@ public class FontEditorPanel extends JPanel
     {
      EditorManager.unregisterEditor(sizeHandler);
      EditorManager.unregisterEditor(fontPropertyHandler);
-      
+     //clearAlignmentSelection(); 
      mLeftAlignButton.setEnabled(false);
  	 mCenterAlignButton.setEnabled(false);
  	 mRightAlignButton.setEnabled(false);
@@ -1133,7 +1137,23 @@ public class FontEditorPanel extends JPanel
      mSizeField.removeActionListener(fontPropertyHandler);
      defaultListenersAdded=false;
     }
-    
+    public void clearAlignmentSelection()
+    {
+    	SwingUtilities.invokeLater(new Runnable() {
+    		public void run()
+    		{
+    			buttonGroup.remove(mLeftAlignButton);
+    			buttonGroup.remove(mCenterAlignButton);
+    			buttonGroup.remove(mRightAlignButton);
+    			mLeftAlignButton.setSelected(false);
+    			mCenterAlignButton.setSelected(false);
+    			mRightAlignButton.setSelected(false);
+    			buttonGroup.add(mLeftAlignButton);
+    			buttonGroup.add(mCenterAlignButton);
+    			buttonGroup.add(mRightAlignButton);
+    		}
+    	});
+    }
     public void activeChanged(final ActiveEvent e, LWComponent activeText)
     {
     	  if (e.active == e.oldActive)
@@ -1234,7 +1254,7 @@ public class FontEditorPanel extends JPanel
 	 
 	
 		//************************************ SET DEFAULTS
-	    mLeftAlignButton.setSelected(true);
+	  
 		
 	    //Start with all these turned off.
 	    mBoldButton.setSelected(false);
@@ -1322,6 +1342,8 @@ public class FontEditorPanel extends JPanel
 	       	{
 	       		mRightAlignButton.setSelected(true);
 	       	}
+	       	else
+	       	  mLeftAlignButton.setSelected(true);
 	       	if ((o.toString().equals("font-size")) ||(o.toString().equals("size")))
 	       	{
         		mSizeField.getEditor().setItem(paragraphAttributeSet.getAttribute(o).toString());        		
