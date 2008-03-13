@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.89 $ / $Date: 2008-03-10 15:06:14 $ / $Author: mike $
+ * @version $Revision: 1.90 $ / $Date: 2008-03-13 20:54:28 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -417,7 +417,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         final JMenuItem addFileItem = new JMenuItem(Actions.AddFileAction);
         final JMenuItem addURLItem = new JMenuItem(Actions.AddURLAction);
+        final JMenuItem newSlideItem = new JMenuItem(Actions.NewSlide);
+        final JMenuItem newMergeNodeItem = new JMenuItem(Actions.MergeNodeSlide);        
         final JMenuItem removeResourceItem = new JMenuItem(Actions.RemoveResourceAction);
+        
         contentMenu.add(addFileItem);
         contentMenu.add(addURLItem);
         contentMenu.add(removeResourceItem);
@@ -477,8 +480,29 @@ public class VueMenuBar extends javax.swing.JMenuBar
     
         }
         
-        presentationMenu.add(Actions.NewSlide);
-        presentationMenu.add(Actions.MergeNodeSlide);
+        presentationMenu.addMenuListener(new MenuListener(){
+			public void menuCanceled(MenuEvent e) {/* no op	*/}
+			public void menuDeselected(MenuEvent e) {/*no op */}
+			public void menuSelected(MenuEvent e) {handleActivation();}
+			private void handleActivation()
+			{
+				LWComponent c =VUE.getActiveComponent();
+				if (c instanceof LWNode)
+				{
+					if (c instanceof LWPortal)
+					{					
+						newSlideItem.setEnabled(false);
+						newMergeNodeItem.setEnabled(false);										
+					}					
+					else
+					{
+						newSlideItem.setEnabled(true);
+						newMergeNodeItem.setEnabled(true);
+					}
+				}
+			}});
+        presentationMenu.add(newSlideItem);
+        presentationMenu.add(newMergeNodeItem);
         presentationMenu.addSeparator();
         if (VUE.getSlideDock() != null) {
             presentationMenu.add(Actions.MasterSlide);                
