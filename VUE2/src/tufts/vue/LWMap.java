@@ -55,7 +55,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.179 $ / $Date: 2008-02-26 20:13:53 $ / $Author: mike $
+ * @version $Revision: 1.180 $ / $Date: 2008-03-13 19:33:45 $ / $Author: mike $
  */
 
 public class LWMap extends LWContainer
@@ -1084,6 +1084,17 @@ if (!tufts.vue.action.SaveAction.VAR_DEBUG)
     
     private double tempZoom = 0;
     private Point2D.Float tempOrigin = null;
+    private Rectangle2D tempBounds = null;
+    
+    public void setTempBounds(Rectangle2D bounds)
+    {
+    	tempBounds = bounds;
+    }
+    
+    public Rectangle2D getTempBounds()
+    {
+    	return tempBounds;
+    }
     
     public void setTempZoom(double zoom){
     	this.tempZoom = zoom;
