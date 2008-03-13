@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.514 $ / $Date: 2008-03-12 17:46:16 $ / $Author: mike $ 
+ * @version $Revision: 1.515 $ / $Date: 2008-03-13 20:58:14 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3942,6 +3942,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         	infoCheckBox.setSelected(true);
     	sSinglePopup.add(infoCheckBox);
     	sSinglePopup.addSeparator();
+    	if (!slide.getMasterSlide().equals(slide))
+    	{
+    		sSinglePopup.add(Actions.LaunchPresentation);
+    	}
     	sAddFileItem = sSinglePopup.add(Actions.AddFileAction);
     	//sAddURLItem = sSinglePopup.add(Actions.AddURLAction);
     	sSinglePopup.add(Actions.NewNode);
