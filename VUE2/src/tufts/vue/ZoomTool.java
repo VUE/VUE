@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.75 $ / $Date: 2008-02-04 22:09:49 $ / $Author: mike $
+ * @version $Revision: 1.76 $ / $Date: 2008-03-13 19:19:39 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -176,7 +176,13 @@ public class ZoomTool extends VueTool
 //                            +" isZoomOutToMap:"+isZoomOutToMapMode());
 
         if (isZoomInMode() || isZoomOutMode())
+        {
+        	if (zoomedTo != null)
+        		zoomedTo = null;
+        	
             return false;
+            
+        }
         
         //if (isZoomOutToMapMode())
         //    return false;
@@ -197,12 +203,34 @@ public class ZoomTool extends VueTool
             // already zoomed into something: un-zoom us
             if (oldFocal != null) {
                 // we were focused into a slide: pop the focal
+
                 viewer.loadFocal(oldFocal);
+//              ZoomTool.setZoom(tempZoom);
+    			if (VUE.getActiveMap().getTempBounds() != null)
+    				ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
                 oldFocal = null;
             } else {
                 // zoom out to the whole map
+
+                //setZoomFit(viewer, true);
+//                setZoomFitRegion(viewer, viewer.getDisplayableMapBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false,true);
+            	Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+                
             	
-                setZoomFit(viewer, true);
+        			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+        		
+        			//VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
+        			//VUE.setActive(LWMap.class, this, VUE.getActiveMap());
+        			double tempZoom = VUE.getActiveMap().getTempZoom();
+            		//System.out.println("temp #s : " +originOffset + " " + tempZoom);
+            		//ZoomTool.setZoom(tempZoom);
+        			if (VUE.getActiveMap().getTempBounds() != null)
+        				ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+        			else
+        			    setZoomFit(viewer, true);
+            		//if (originOffset != null)
+            			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+        		
             }
             zoomedTo = null;
             ignoreRelease = true;
@@ -210,27 +238,50 @@ public class ZoomTool extends VueTool
         } else if (picked != null)  {
 
             // nothing zoomed into, or shift was down, meaning keep zooming in:
-
+    //    	zoomFactor = VUE.getActiveViewer().getZoomFactor();
+			
+			//originOffset=VUE.getActiveMap().getUserOrigin();
             if (picked instanceof LWSlide) {
 
                 if (zoomedTo == picked) {
+                	if (VUE.getActiveViewer().getFocal() instanceof LWSlide)
+                		return false;
                     // we're already zoomed to this slide: now load it as an editable focal
                     // (slides only editable if they're the focal: not on map as slide icons)
-                    out("LOADING FOCAL");
+                    
                     oldFocal = viewer.getFocal();
+                    
                     viewer.loadFocal((LWSlide) zoomedTo);
                 } else {
+                	
+                	//System.out.println("zoomTo : " + zoomedTo);
+                	//System.out.println("picked : " + picked);
+                	if (zoomedTo == null)
+                	{
+                	 VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
+                	 VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
+                	 VUE.getActiveMap().setTempBounds(VUE.getActiveViewer().getVisibleMapBounds());
+                	}
                     zoomToSlide(viewer, (LWSlide) picked);
                 }
-
+               
+              //  System.out.println("SLIDE");
             } else {
-
+            	
                 final Rectangle2D zoomBounds;
 
                 if (e.isControlDown())
                     zoomBounds = picked.getFanBounds();
                 else
+                {
+                	if (!e.isShiftDown())
+                	{
+                		VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
+                		VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
+                		VUE.getActiveMap().setTempBounds(VUE.getActiveViewer().getVisibleMapBounds());
+                	}
                     zoomBounds = picked.getBounds();
+                }
                 
                 
                 
@@ -256,6 +307,9 @@ public class ZoomTool extends VueTool
                                  zoomBounds,
                                  0,
                                  true);
+                
+                
+            	//System.out.println("NODE");
             }
             zoomedTo = picked;
             ignoreRelease = true;
