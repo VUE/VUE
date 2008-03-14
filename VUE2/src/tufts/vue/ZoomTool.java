@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.77 $ / $Date: 2008-03-14 18:28:34 $ / $Author: mike $
+ * @version $Revision: 1.78 $ / $Date: 2008-03-14 19:24:38 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -214,14 +214,14 @@ public class ZoomTool extends VueTool
 
                 //setZoomFit(viewer, true);
 //                setZoomFitRegion(viewer, viewer.getDisplayableMapBounds(), DEBUG.MARGINS ? 0 : ZOOM_FIT_PAD, false,true);
-            	Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+            	//Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
                 
             	
         			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
         		
         			//VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
         			//VUE.setActive(LWMap.class, this, VUE.getActiveMap());
-        			double tempZoom = VUE.getActiveMap().getTempZoom();
+        			//double tempZoom = VUE.getActiveMap().getTempZoom();
             		//System.out.println("temp #s : " +originOffset + " " + tempZoom);
             		//ZoomTool.setZoom(tempZoom);
         			if (VUE.getActiveMap().getTempBounds() != null)
