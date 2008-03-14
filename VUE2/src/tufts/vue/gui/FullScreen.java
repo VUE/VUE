@@ -21,10 +21,14 @@ import tufts.vue.DEBUG;
 import tufts.vue.MapViewer;
 import tufts.vue.VueTool;
 import tufts.vue.VueToolbarController;
+import tufts.vue.ZoomTool;
 
 import tufts.macosx.MacOSX;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+
 import javax.swing.JFrame;
 import javax.swing.JWindow;
 import org.apache.log4j.NDC;
@@ -32,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.21 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.22 $ / $Date: 2008-03-14 18:30:31 $ / $Author: mike $
  *
  */
 
@@ -511,6 +515,10 @@ public class FullScreen
         }
                 
         FullScreenViewer.loadFocal(activeFocal);
+        
+        if (activeViewer != null && activeMap != null)        
+       		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getVisibleMapBounds());
+        
         FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
         
         GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -547,7 +555,8 @@ public class FullScreen
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();
-
+        final Rectangle2D rect2d = FullScreenViewer.getVisibleMapBounds();
+        
         Log.debug("Exiting full screen mode; inNative=" + wasNative);
 
         final boolean fadeBack = wasNative && Util.isMacPlatform();
@@ -573,6 +582,7 @@ public class FullScreen
             // we made it the FSW, which is annoying on the mac cause
             // it flashes a small window briefly in the upper left.
         }
+        
         FullScreenWindow.setVisible(false);
         FullScreenViewer.loadFocal(null);
         fullScreenWorking = false;
@@ -620,8 +630,11 @@ public class FullScreen
 
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             NDC.pop();
+            //VUE.getActiveViewer().setZ
+            //set zoom to what it was in the fullscreen
+            ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);        
         }});
-        
+    
     }
 
 
