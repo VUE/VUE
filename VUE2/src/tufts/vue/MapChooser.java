@@ -27,6 +27,7 @@ package tufts.vue;
 //import junit.extensions.ActiveTestSuite;
 import tufts.vue.action.ActionUtil;
 import tufts.vue.gui.VueFileChooser;
+import tufts.vue.gui.VueLabel;
 
 
 import edu.tufts.vue.compare.ConnectivityMatrix;
@@ -120,7 +121,8 @@ public class MapChooser extends JDialog implements ActionListener{
         GridBagLayout gridBag = new GridBagLayout();
         GridBagConstraints c = new GridBagConstraints();
         locationPanel.setLayout(gridBag);
-        JLabel info = new JLabel(VueResources.getIcon("helpIcon.raw"));
+        VueLabel info = new VueLabel();
+        info.setIcon(VueResources.getIcon("helpIcon.raw"));
         info.setToolTipText(VueResources.getString("ConnectivityMatrix.helpText"));
         JLabel chooseLabel = new JLabel(generateMessage,JLabel.RIGHT);
         browseLabel = new JLabel(browseMessage,JLabel.CENTER);
@@ -159,6 +161,7 @@ public class MapChooser extends JDialog implements ActionListener{
         
         c.anchor = GridBagConstraints.EAST;
         c.gridwidth = GridBagConstraints.REMAINDER;
+        c.insets = new Insets(0,0,0,10);
         gridBag.setConstraints(info,c);
         locationPanel.add(info);
         
