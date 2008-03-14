@@ -1242,11 +1242,26 @@ public class DataSourceViewer extends JPanel
     
     private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {
         refreshEditInfo(ds);
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        if ((DRB.dockWindow.getX() + DRB.dockWindow.getWidth() + editInfoDockWindow.getWidth()) < screenSize.getWidth())
+        	editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+        			DRB.dockWindow.getY());
+        else
+        	editInfoDockWindow.setLocation(DRB.dockWindow.getX() - editInfoDockWindow.getWidth(),
+        			DRB.dockWindow.getY());
         editInfoDockWindow.setVisible(true);
     }
     
     private void displayEditOrInfo(DataSource ds) {
-        refreshEditInfo(ds);
+        refreshEditInfo(ds);     
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        
+        if ((DRB.dockWindow.getX() + DRB.dockWindow.getWidth() + editInfoDockWindow.getWidth()) < screenSize.getWidth())
+        	editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+        			DRB.dockWindow.getY());
+        else
+        	editInfoDockWindow.setLocation(DRB.dockWindow.getX() - editInfoDockWindow.getWidth(),
+        			DRB.dockWindow.getY());
         editInfoDockWindow.setVisible(true);
     }
     
