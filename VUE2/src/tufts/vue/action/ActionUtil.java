@@ -64,7 +64,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.106 $ / $Date: 2008-03-12 20:52:17 $ / $Author: anoop $
+ * @version $Revision: 1.107 $ / $Date: 2008-03-14 17:36:20 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -469,7 +469,7 @@ public class ActionUtil
      */
     public static void marshallMap(File file, LWMap map) {
         try {
-            doMarshallMap(file, map);
+             doMarshallMap(file, map);
         } catch (Throwable t) {
             if (t instanceof WrappedMarshallException)
                 t = t.getCause();
@@ -479,6 +479,26 @@ public class ActionUtil
             // to handle the exceptions, wrap this in a runtime exception.
             throw new RuntimeException(t);
         }
+    }
+    
+    /*
+     * This method checks whether a file can be safely saved and opened by castor
+     * @param map the map whose save compatiblity needs to be tested
+     * @returrn true if compatible to castor save, false otherwise 
+     */
+    public static boolean isCastorCompatible(LWMap map) {
+        try {
+            File tempFile  = File.createTempFile("vueTest","vue");
+            tempFile.deleteOnExit();
+            marshallMap(tempFile,map);
+            unmarshallMap(tempFile);
+            return true;
+        } catch(Throwable t) {
+              tufts.vue.VueUtil.alert("There is problem with characters in the map. It cannot be saved:  " + t, "File save error");
+            Log.error("Testing save: "+map+";"+t);
+            Util.printStackTrace(t);
+        }
+        return false;
     }
 
     private static class WrappedMarshallException extends RuntimeException {
@@ -556,8 +576,7 @@ public class ActionUtil
                org.exolab.castor.xml.MarshalException,
                org.exolab.castor.xml.ValidationException
     {
-
-        Marshaller marshaller = null;
+         Marshaller marshaller = null;
         writer.write(VUE_COMMENT_START
                      + " VUE mapping "
                      + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
@@ -576,8 +595,9 @@ public class ActionUtil
         if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
         marshaller = new Marshaller(writer);
         //marshaller.setDebug(DEBUG.CASTOR);
-        marshaller.setEncoding(OUTPUT_ENCODING);
-        // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
+       marshaller.setEncoding(OUTPUT_ENCODING);
+      // marshaller.setEncoding("UTF-8");
+          // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
         marshaller.setMarshalAsDocument(true);
         marshaller.setNoNamespaceSchemaLocation("none");
         marshaller.setMarshalListener(new VueMarshalListener());
@@ -638,16 +658,18 @@ public class ActionUtil
             // updated before returning.
             map.setFile(file);
         }
-            
+    
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
         Log.debug("marshalling " + map + " ...");
-
+        //map.addNode(new tufts.vue.LWNode("Hello World:"+((char)11)));
         try {
-            marshaller.marshal(map);
+            // try the test map first 
+             marshaller.marshal(map);
             Log.debug("marshalled " + map + " to " + writer + "; file=" + file);
             writer.flush();
-            //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
+             //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
         } catch (Throwable t) {
+            VueUtil.alert("The map contains characters that are not supported. Reverting to earlier saved version","Save Error");
             try {
                 if (file != null) {
                     // revert map model version & save file
@@ -655,6 +677,7 @@ public class ActionUtil
                     map.setFile(oldSaveFile);
                 }
             } catch (Throwable tx) {
+                VueUtil.alert("This map cannot be saved.","Save Error");    
                 Util.printStackTrace(tx);
             } finally {
                 throw new WrappedMarshallException(t);
@@ -665,7 +688,6 @@ public class ActionUtil
             map.markAsSaved();
             Log.debug("saved " + map + " to " + file);
         }
-
         //map.setFile(file);
 
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote " + file);
@@ -816,7 +838,7 @@ public class ActionUtil
             }
             if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Scanning[" + line + "]");
             if (line.startsWith("<!--") == false) {
-                // we should have just hit thie "<?xml ..." line -- done with comments
+                // we should have juadst hit thie "<?xml ..." line -- done with comments
                 firstNonCommentLine = line;
                 break;
             }
