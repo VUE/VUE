@@ -97,10 +97,10 @@ public abstract class LWIcon extends Rectangle2D.Float
     public boolean contains(float x, float y)
     {
         if (isShowing() && super.width > 0 && super.height > 0) {
-            return x >= super.x+4
-                && y >= super.y+4
-                && x <= (super.x + super.width -4)
-                && y <= (super.y + super.height -4);
+            return x >= super.x+1
+                && y >= super.y+1
+                && x <= (super.x + super.width -1)
+                && y <= (super.y + super.height -1);
         }
         return false;
     }
@@ -337,7 +337,7 @@ public abstract class LWIcon extends Rectangle2D.Float
                 { 
                 	if (icon.contains(cx, cy)) 
                     {	
-                		e.getViewer().clearTip();                
+                	//	e.getViewer().clearTip();                
                 		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 		
                     }
