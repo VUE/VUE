@@ -52,7 +52,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     private static final Font FONT_ICON = VueResources.getFont("node.icon.font");
     
     protected LWComponent mLWC;
-    protected Color mColor;
+    protected final Color mColor;
     protected float mMinWidth;
     protected float mMinHeight;
     
@@ -115,9 +115,9 @@ public abstract class LWIcon extends Rectangle2D.Float
             super.height = h;
     }
 
-    public void setColor(Color c) {
-        mColor = c;
-    }
+//     public void setColor(Color c) {
+//         mColor = c;
+//     }
     
     void draw(DrawContext dc)
     {
@@ -1080,7 +1080,8 @@ public abstract class LWIcon extends Rectangle2D.Float
 
         //-------------------------------------------------------
 
-        private final static GeneralPath oval = new GeneralPath(new Ellipse2D.Float(0,0,3,3));
+        //private final static GeneralPath oval = new GeneralPath(new Ellipse2D.Float(0,0,3,3));
+        private final static Ellipse2D oval = new Ellipse2D.Float(0,0,3,3);
         
         MergeSourceMetaData(LWComponent lwc, Color c) { super(lwc, c); }
         MergeSourceMetaData(LWComponent lwc) { super(lwc); }
@@ -1121,6 +1122,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             dc.g.setColor(mColor);
 
             //dc.g.fill(oval);
+            dc.g.setStroke(STROKE_HALF);
             dc.g.draw(oval);
             
             //dc.g.fill(ul);
