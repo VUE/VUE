@@ -38,7 +38,7 @@ public class MetadataList {
     private final static boolean DEBUG_LOCAL = false;
     
     //todo: add to VueResources.properties
-    public static final String MERGE_SOURCES_TITLE = "Merged From:";
+    public static final String MERGE_SOURCES_TITLE = "Merged from:";
     
     private List<VueMetadataElement> metadataList = new CategoryFirstList<VueMetadataElement>();
     
