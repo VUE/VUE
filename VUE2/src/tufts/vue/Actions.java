@@ -1316,7 +1316,7 @@ public class Actions implements VueConstants
             		
             		VUE.getActiveMap().setTempZoom(VUE.getActiveViewer().getZoomFactor());
             		VUE.getReturnToMapButton().setVisible(true);
-            		
+            		VUE.getActiveMap().setTempBounds(VUE.getActiveViewer().getVisibleMapBounds());
             		VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
             		
             		//VUE.getActiveMap().setUserOrigin(p)
