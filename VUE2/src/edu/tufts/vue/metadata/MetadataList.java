@@ -37,6 +37,9 @@ public class MetadataList {
     
     private final static boolean DEBUG_LOCAL = false;
     
+    //todo: add to VueResources.properties
+    public static final String MERGE_SOURCES_TITLE = "Merged From:";
+    
     private List<VueMetadataElement> metadataList = new CategoryFirstList<VueMetadataElement>();
     
     private static List<MetadataListListener> listeners = new ArrayList<MetadataListListener>();
@@ -340,7 +343,7 @@ public class MetadataList {
                   int dotLocation = txt.indexOf(".");
                   if(dotLocation > 0)
                       txt = txt.substring(0,dotLocation);
-                  txt = "Maps of Origin (merge): " + txt;
+                  txt = MERGE_SOURCES_TITLE + txt;
                 }
             }
             
