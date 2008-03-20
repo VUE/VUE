@@ -64,7 +64,8 @@ import tufts.vue.ui.ResourceIcon;
  */
 public class TypeList extends JList implements MouseListener,ActionListener { 
     
-    public static final boolean useRawImage = true;
+    public static final boolean useRawImage = false;
+    public static final boolean shouldReplaceResource = false;
     
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(TypeList.class);
@@ -958,7 +959,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
               
                    Resource resource = null;
                    
-                   if(type instanceof OntType)
+                   if(type instanceof OntType && shouldReplaceResource)
                    {
                         
                      Style style = (((OntType)type).getStyle());
@@ -1000,6 +1001,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                            comp.setResource(resource);
                        
                        VUE.getInspectorPane().ontologicalMetadataUpdated();
+                       // may also need to redraw the node for resource change option? (see above)
                        
                    }
 			
