@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.22 $ / $Date: 2008-03-14 18:30:31 $ / $Author: mike $
+ * @version $Revision: 1.23 $ / $Date: 2008-03-20 14:22:25 $ / $Author: mike $
  *
  */
 
@@ -555,8 +555,11 @@ public class FullScreen
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();
+        Dimension d = VUE.getApplicationFrame().getSize();
         final Rectangle2D rect2d = FullScreenViewer.getVisibleMapBounds();
-        
+        //double x = rect2d.getX();
+        //double y = rect2d.getY();
+        //final Rectangle2D rect2d2 = new Rectangle2D.Double(x,y,d.getWidth(),d.getHeight());
         Log.debug("Exiting full screen mode; inNative=" + wasNative);
 
         final boolean fadeBack = wasNative && Util.isMacPlatform();
@@ -632,7 +635,8 @@ public class FullScreen
             NDC.pop();
             //VUE.getActiveViewer().setZ
             //set zoom to what it was in the fullscreen
-            ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);        
+            if (!wasNative)
+            	ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);        
         }});
     
     }
