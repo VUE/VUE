@@ -71,7 +71,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
     
     public static int count = 0;
     
-    public static final boolean DEBUG = false;
+    public static final boolean DEBUG_LOCAL = false;
     
     //private static Ontology fedoraOntology;
     
@@ -691,7 +691,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
         
         public Object getElementAt(int index)
         {
-                if(DEBUG)
+                if(DEBUG_LOCAL)
                 {
                   OntType element = ontology.getOntTypes().get(index);
                 
@@ -950,13 +950,54 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                    //also need to check if there *is* a selected value
                         
                    Object type = getSelectedValue();
+                   
+                   if(DEBUG_LOCAL)
+                   {
+                       System.out.println("TypeList --  add to node -- style: " + ((OntType)type).getStyle());
+                   }
+              
+                   Resource resource = null;
+                   
+                   if(type instanceof OntType)
+                   {
+                        
+                     Style style = (((OntType)type).getStyle());
+                     
+                     String image = style.getAttribute("background-image");
+                   
+
+                     
+                     java.net.URL imageURL = null;
+                     java.io.File file = null;
+                     
+                     if(image != null)
+                     {
+                       try
+                       {
+                         file = new java.io.File(image);
+                         imageURL = file.toURL();//new URL(image);
+                         resource = Resource.getFactory().get(imageURL);
+                       }
+                       catch(java.net.MalformedURLException mue)
+                       {
+                         System.out.println("TypeList: MalformedURLException: " + mue);    
+                       }
+                     }
+                   }
+                   
                    if(type == null)
-                       return;
+                     return;
                    if(type != null)
                    {
                        VueMetadataElement vme = new VueMetadataElement();
                        vme.setObject(type);
-                       ((LWComponent)VUE.getActive(LWComponent.class)).getMetadataList().getMetadata().add(vme);
+                       
+                       LWComponent comp = ((LWComponent)VUE.getActive(LWComponent.class));
+                       
+                       comp.getMetadataList().getMetadata().add(vme);
+                       
+                       if(resource != null)
+                           comp.setResource(resource);
                        
                        VUE.getInspectorPane().ontologicalMetadataUpdated();
                        
