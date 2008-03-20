@@ -64,6 +64,8 @@ import tufts.vue.ui.ResourceIcon;
  */
 public class TypeList extends JList implements MouseListener,ActionListener { 
     
+    public static final boolean useRawImage = true;
+    
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(TypeList.class);
     
@@ -213,18 +215,26 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                  if(resource!=null)
                  {    
                    //compFor = new LWImage();
-                   compFor = new LWNode();
-                   compFor.setResource(resource);
+                   if(!useRawImage)
+                   {    
+                     compFor = new LWNode();
+                     compFor.setResource(resource);
+                   }
                    LWImage im = new LWImage();
                    im.setResource(resource);
                    //((LWImage)compFor).setToNaturalSize();
                    im.setToNaturalSize();
-                   java.util.ArrayList cl = new java.util.ArrayList();
+                   if(!useRawImage)
+                   {    
+                     java.util.ArrayList cl = new java.util.ArrayList();
                   // cl.add(im);
-                   ((LWNode)compFor).addChildren(cl);
+                     ((LWNode)compFor).addChildren(cl);
+                   }
                    
-                   //enable for LWImage only as Component
-                   //compFor = im;
+                   if(useRawImage)
+                   {
+                     compFor = im;
+                   }
                    
                  }
                  else
