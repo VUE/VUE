@@ -82,7 +82,7 @@ public class VueMetadataElement {
        }
        else
        {
-           type = TAG;
+           type = OTHER;
        }
    }
    
