@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.23 $ / $Date: 2008-03-20 14:22:25 $ / $Author: mike $
+ * @version $Revision: 1.24 $ / $Date: 2008-03-21 17:50:39 $ / $Author: mike $
  *
  */
 
@@ -517,7 +517,13 @@ public class FullScreen
         FullScreenViewer.loadFocal(activeFocal);
         
         if (activeViewer != null && activeMap != null)        
-       		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getVisibleMapBounds());
+        {
+        	if (activeViewer.getWidth() != activeViewer.getVisibleWidth() ||activeViewer.getHeight() != activeViewer.getVisibleHeight())
+        		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getVisibleMapBounds());
+        	else
+        		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getMap().getMapBounds(),20,false);
+        		
+        }
         
         FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
         
