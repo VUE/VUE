@@ -370,8 +370,14 @@ public class LWMergeMap extends LWMap {
                    //LWNode node = (LWNode)comp.duplicate();
                    LWComponent node = comp.duplicate();
                    
+                   String sourceLabel = node.getLabel();
+               
+                   if(sourceLabel == null)
+                     sourceLabel = "";
+                
                    edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                   vme.setObject("source: " + map.getLabel());
+                   vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+                   vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
                    node.getMetadataList().getMetadata().add(vme);
                    
                    if(!repeat)
@@ -537,8 +543,15 @@ public class LWMergeMap extends LWMap {
                             Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
                   }
                   
+                                    
+                  String sourceLabel = node.getLabel();
+               
+                  if(sourceLabel == null)
+                     sourceLabel = "";
+                  
                   edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                  vme.setObject("source: " + node.getMap().getLabel());
+                  vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+                  vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
                   c.getMetadataList().getMetadata().add(vme);
                   
                   return true;
@@ -576,6 +589,17 @@ public class LWMergeMap extends LWMap {
                     System.out.println("LWMergeMap - returning true in nodePresentOnBaseMap - for (node,c) (" +
                             Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
                   }
+                  
+                  String sourceLabel = node.getLabel();
+               
+                  if(sourceLabel == null)
+                     sourceLabel = "";
+                  
+                  edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                  vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+                  vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
+                  c.getMetadataList().getMetadata().add(vme);
+                  
                   return true;
                 }
               }
@@ -646,14 +670,31 @@ public class LWMergeMap extends LWMap {
                //LWNode comp = (LWNode)children.next();
                //component = children.next();
                boolean repeat = false;
+               
+               //LWComponent original = nodeAlreadyPresent(component);
+               
+               //if(original != null)
                if(nodeAlreadyPresent(component))
                {
                  repeat = true;
                }
                LWComponent node = component.duplicate();
                
+               
                edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-               vme.setObject("source: " + map.getLabel());
+               vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+               
+               String sourceLabel = node.getLabel();
+               
+               if(sourceLabel == null)
+                   sourceLabel = "";
+               
+               String sourceMap = component.getMap().getLabel();
+               
+               if(sourceMap == null)
+                   sourceMap = "";
+               
+               vme.setObject("source: " + sourceMap + "," + sourceLabel);
                node.getMetadataList().getMetadata().add(vme);
              
                if(!repeat)
