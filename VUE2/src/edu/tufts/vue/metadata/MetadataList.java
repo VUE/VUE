@@ -319,7 +319,22 @@ public class MetadataList {
                   {
                      int cLocation = value.indexOf(":");
                      if(cLocation > -1 && value.length() > cLocation + 1);
-                       value = value.substring(cLocation + 1);
+                       value = value.substring(cLocation + 1);  
+                       
+                     int dotLocation = value.lastIndexOf(".");
+                     if(dotLocation != -1)
+                     {
+                         int commaLocation = value.lastIndexOf(",");
+                         
+                         String endPart = "";
+                         
+                         if(commaLocation != -1 && commaLocation > dotLocation)
+                         {
+                             endPart = value.substring(commaLocation);
+                         }
+                         
+                         value = value.substring(0,dotLocation) + endPart;
+                     }
                        
                      value = "-" + value;
                   }    
@@ -340,9 +355,9 @@ public class MetadataList {
                 }
                 else if(type == VueMetadataElement.OTHER)
                 {
-                  int dotLocation = txt.indexOf(".");
-                  if(dotLocation > 0)
-                      txt = txt.substring(0,dotLocation);
+                  //int dotLocation = txt.indexOf(".");
+                  //if(dotLocation > 0)
+                  //    txt = txt.substring(0,dotLocation);
                   txt = MERGE_SOURCES_TITLE + txt;
                 }
             }
