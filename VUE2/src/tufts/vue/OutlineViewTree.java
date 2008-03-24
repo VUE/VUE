@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.47 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.48 $ / $Date: 2008-03-24 22:27:57 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  */
 
@@ -274,6 +274,8 @@ public class OutlineViewTree extends JTree
                         int row,
                         boolean hasFocus) 
         {
+        	String label = null;
+        	
             if (((DefaultMutableTreeNode)value).getUserObject() instanceof tufts.oki.hierarchy.HierarchyNode)
             {
                 tufts.oki.hierarchy.HierarchyNode hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)(((DefaultMutableTreeNode)value).getUserObject());
@@ -292,7 +294,17 @@ public class OutlineViewTree extends JTree
                 // need to update size (but only if label has changed)
                 //setPreferredSize(getPreferredSize());
                 // doesn't appear to get right size if there's a '.' in the name!
+                label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);
+                //System.out.println("render text[" + label + "]");
+                if (component instanceof LWText)
+                {
+                	//System.out.println("NODE");
+                	label = org.apache.commons.lang.StringEscapeUtils.unescapeHtml(label);
+                	//label = java.net.URLDecoder.decode();
+                }
             }
+            //else
+            	//label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);
             
             if (sel) 
               setIsSelected(true);  
@@ -306,9 +318,7 @@ public class OutlineViewTree extends JTree
             else      
               setIsFocused(false);
          
-            String label = tree.convertValueToText(value, sel, expanded, leaf, row, hasFocus);
-            //System.out.println("render text[" + label + "]");
-            
+         
             setText(label);
             
             return this;

@@ -96,7 +96,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.25 $ / $Date: 2008-02-12 21:39:54 $ / $Author: mike $
+ * @version $Revision: 1.26 $ / $Date: 2008-03-24 22:27:57 $ / $Author: mike $
  *
  */
 
@@ -1179,7 +1179,8 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
           startPosition = (returnMessage.toString()).indexOf("<"); // look for the next opening brace
           endPosition = (returnMessage.toString()).indexOf(">"); // look for the next closing brace
         }
-        return returnMessage.toString().trim();
+        return org.apache.commons.lang.StringEscapeUtils.unescapeHtml(returnMessage.toString().trim());
+        
       }
     
     private void out(String s) {
