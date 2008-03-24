@@ -17,7 +17,9 @@ package tufts.vue.gui;
 
 import tufts.vue.DEBUG;
 import tufts.vue.LWPropertyChangeEvent;
+import tufts.vue.RecentlyUsedColorsManager;
 import tufts.vue.RichTextBox;
+import tufts.vue.VueResources;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -33,6 +35,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -43,6 +47,8 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import edu.tufts.vue.preferences.implementations.ColorPreference;
+
 //import com.sun.codemodel.JLabel;
 
 /**
@@ -51,7 +57,7 @@ import javax.swing.SwingUtilities;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.23 $ / $Date: 2008-03-12 18:47:40 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2008-03-24 20:40:38 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -68,7 +74,7 @@ implements ActionListener, tufts.vue.LWEditor
     protected Object mPropertyKey;
     protected Object mCurrentValue;
     private JFrame popupWindow;
-    
+    private final RecentlyUsedColorsManager colorManager = RecentlyUsedColorsManager.getInstance();
     /**
      *  Creates a new ColorMenuButton with the passed array of items
      * as it's palette menu.
@@ -78,11 +84,11 @@ implements ActionListener, tufts.vue.LWEditor
      *
      * @param pItems  an array of ColorMenuButtonItems for the menu.
      **/
- 
+    private JPanel colorArrayPanel = null;
     public ColorMenuButton(Color[] pColors, boolean pHasCustom) {
         // create default color swatch icon: override with setButtonIcon if want different
         setButtonIcon(new BlobIcon(16,16, true)); // can we live with no default? clean up init style...
-        JPanel p = buildMenu(pColors, pHasCustom);
+        colorArrayPanel = buildMenu(pColors, pHasCustom);
         setBorder(null);
         addActionListener(this);
         // add components to main panel
@@ -213,7 +219,7 @@ implements ActionListener, tufts.vue.LWEditor
         ((JComponent)popupWindow.getContentPane()).setBorder(BorderFactory.createEtchedBorder());
         
         
-        popupWindow.getContentPane().add(p);
+        popupWindow.getContentPane().add(colorArrayPanel);
         popupWindow.pack();
     }
     private JPanel colorPanel = new JPanel();
@@ -222,12 +228,28 @@ implements ActionListener, tufts.vue.LWEditor
     {
     	return popupWindow;
     }
+    
+    public void rebuildMenu()
+    {
+    	popupWindow.remove(colorArrayPanel);
+    	colorArrayPanel = buildMenu(colorsToRebuild,customRebuild);
+    	  // add some components to window
+        
+        
+        popupWindow.getContentPane().add(colorArrayPanel);
+        popupWindow.pack();
+    }
+    private Color[] colorsToRebuild;
+    private boolean customRebuild;
     public JPanel buildMenu(Color[] colors, boolean custom)
     {    	
     	// 4 x 15
     	JPanel parent = new JPanel();
     	parent.setLayout(new BorderLayout());
     	
+    	colorsToRebuild =colors.clone();
+    	customRebuild = custom;
+    	colorPanel.removeAll();
     	colorPanel.setLayout(new GridLayout(0,4,2,2));
     	
     	for (int i = 0; i < colors.length ; i++)
@@ -242,15 +264,44 @@ implements ActionListener, tufts.vue.LWEditor
     		colorButton.addActionListener(this);
     		colorPanel.add(colorButton);
     	}
+    	
+    	ColorPreference customColor = null;
+    	
+    	
+    	List colorList = colorManager.getRecentlyUsedColors();
+    	
+    	//for (int i=0; i < colorList.size(); i++};    	    	
+    	   for (int p = 0 ; p< colorList.size(); p++)
+           {		 
+    		JButton colorButton = new JButton();
+    		colorButton.setFocusable(false);
+    		colorButton.setBorderPainted(false);
+    		colorButton.setContentAreaFilled(false);
+    		
+    		//System.out.println(color);
+    		StringTokenizer tokens = new StringTokenizer((String)colorList.get(p),",");
+    		Color color = new Color(Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()),Integer.parseInt((String)tokens.nextElement()));
+    		
+    		Icon icon = makeIcon(color);
+    		colorButton.setIcon(icon);
+    		colorButton.setPreferredSize(new Dimension(20,20));
+    		colorButton.addActionListener(this);
+    		colorPanel.add(colorButton);
+           }
+    	
     	JButton item = new JButton("other...");
     	item.setFocusable(false);
         item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) 
             { 
-            	handleValueSelection(runCustomChooser()); 
+            	Color c =(Color)runCustomChooser();
+            	colorManager.updateRecentlyUsedColors(c.getRed()+","+c.getGreen()+","+c.getBlue());
+            	handleValueSelection(c); 
             	doClick();
             	if (tufts.Util.isWindowsPlatform())
             		popupWindow.setAlwaysOnTop(true);
+            	
+            //	rebuildMenu();
             }
             
             });
@@ -395,6 +446,7 @@ implements ActionListener, tufts.vue.LWEditor
         } else {
             Object oldValue = produceValue();
             displayValue(newPropertyValue);
+          //  System.out.println(newPropertyValue.toString());
             firePropertyChanged(oldValue, newPropertyValue);
         }
         repaint();
@@ -423,7 +475,9 @@ implements ActionListener, tufts.vue.LWEditor
     protected Object runCustomChooser() {
     	if (tufts.Util.isWindowsPlatform())
     		popupWindow.setAlwaysOnTop(false);
-        return tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor(), this);
+        Color c =  tufts.vue.VueUtil.runColorChooser("Select Custom Color", getColor(), this);
+        
+        return c;
         // todo: set up own listeners for color change in chooser
         // --that way way can actually tweak color on map as they play
         // with it in the chooser
@@ -459,6 +513,7 @@ implements ActionListener, tufts.vue.LWEditor
                 // this makes things work on Leopard, but does it break things on Windows or Linux?  SMF 2008-03-12
                 location.translate(0, getHeight());
             }
+            rebuildMenu();
             popupWindow.setLocation(location); 
             popupWindow.setVisible(true);                        
             popupWindow.requestFocus();
