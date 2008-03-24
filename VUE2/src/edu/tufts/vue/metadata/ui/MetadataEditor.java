@@ -48,6 +48,7 @@ import tufts.vue.gui.GUI;
  * @author dhelle01
  */
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
+                                                      //java.awt.event.ActionListener {
     
     private static final boolean DEBUG_LOCAL = false;
     
@@ -192,19 +193,19 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            
           public void mouseReleased(java.awt.event.MouseEvent evt)
           {        	
-             if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
+             /*if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
              {
                java.util.List<VueMetadataElement> metadataList = MetadataEditor.this.current.getMetadataList().getMetadata();
                int selectedRow = metadataTable.getSelectedRow();
                          
                // VUE-912, stop short-circuiting on row 0, delete button has also been returned
-               if(/*selectedRow > 0 &&*/ metadataTable.getSelectedColumn()==buttonColumn && metadataList.size() > selectedRow)
+               if( metadataTable.getSelectedColumn()==buttonColumn && metadataList.size() > selectedRow)
                {
                  metadataList.remove(selectedRow);
                  metadataTable.repaint();
                  requestFocusInWindow();
                }
-             }
+             }*/
                                
                        if(getEventIsOverAddLocation(evt))
                        {
@@ -344,6 +345,18 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         repaint();
     	((MetadataTableModel)metadataTable.getModel()).refresh();    
     }
+    
+    public JTable getMetadataTable()
+    {
+        return metadataTable;
+    }
+    
+    public LWComponent getCurrent()
+    {
+        return current;
+    }
+    
+    
     public void addNewRow()
     {
         VueMetadataElement vme = new VueMetadataElement();
@@ -516,8 +529,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            else if(col == buttonColumn)
            {
-               comp = new JLabel();    
-               ((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
+               //comp = new JLabel();    
+               //((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
+               comp = new JPanel();
+               comp.add(new tufts.vue.gui.VueButton("keywords.button.add"));
            }
            else
            {
@@ -569,7 +584,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     class MetadataTableRenderer extends DefaultTableCellRenderer
     {   
         
-       private JComboBox categories = new JComboBox(); 
+       private JComboBox categories = new JComboBox();
+       private edu.tufts.vue.metadata.gui.MetaButton deleteButton = new 
+               edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this,"delete");
+       private JPanel holder = new JPanel();
         
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
@@ -659,14 +677,23 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            else if(col == buttonColumn)               
            {
-               JLabel buttonLabel = new JLabel();
+               //JLabel buttonLabel = new JLabel();
                
                // VUE-912, put delete button back -- also add back mouselistener
                //if(row!=0)
                //{    
-                 buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
+                 //buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
                //}
-               comp.add(buttonLabel);
+               //comp.add(buttonLabel);
+               
+               //$
+                 //comp.setOpaque(true);
+                 //comp.setBackground(java.awt.Color.RED);
+               //$
+               
+               //JPanel holder = new JPanel();
+               holder.add(deleteButton);
+               comp.add(holder);
            }
            
            comp.setOpaque(false);
@@ -684,17 +711,24 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        // main entry point for editor interaction 
        public boolean isCellEditable(java.util.EventObject object)
        {
+           
+           int col = -1;
+           
            int row = -1;
            
            if(object instanceof MouseEvent)
            {    
-                row = metadataTable.rowAtPoint(((MouseEvent)object).getPoint());
-           }
-           
-           if(object instanceof MouseEvent)
-           {    
+             java.awt.Point point = ((MouseEvent)object).getPoint();
+             row = metadataTable.rowAtPoint(point);  
+             col = metadataTable.columnAtPoint(point);
+             if(col == buttonColumn)
+             {
+                 if(metadataTable.getCellEditor()!= null)
+                   metadataTable.getCellEditor().stopCellEditing();
+                 return true;
+             }
              MouseEvent event = (MouseEvent)object;
-             if(event.getClickCount() == 2 ) 
+             if(event.getClickCount() == 2 ) // || col == buttonColumn ) 
              {    
                ((MetadataTableModel)metadataTable.getModel()).setSaved(row,false);
                int lsr = ((MetadataTableModel)metadataTable.getModel()).lastSavedRow;
@@ -731,6 +765,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        //private JPanel comp = new JPanel();
        
        private int currentRow;
+       private edu.tufts.vue.metadata.gui.MetaButton deleteButton;
+       private edu.tufts.vue.metadata.gui.MetaButtonPanel metaButtonPanel;
+      //private JPanel tempPanel;
         
        public MetadataTableEditor()
        {
@@ -740,7 +777,19 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            //categories.setFont(GUI.LabelFace);
            //categories.setModel(new CategoryComboBoxModel());
            //categories.setRenderer(new CategoryComboBoxRenderer());
-
+           
+           
+           //tempPanel = new JPanel();//new ActionPanel(MetadataEditor.this,row);
+           //tempPanel.setOpaque(true);
+           //tempPanel.setBackground(java.awt.Color.BLUE);
+           deleteButton = new edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this,"delete");
+           //tempPanel.add(deleteButton);
+           // ***needs mouseListener that saves data unless point is over Button..
+           //.addActionListener(deleteButton)
+           //
+           
+           metaButtonPanel = new 
+                   edu.tufts.vue.metadata.gui.MetaButtonPanel(MetadataEditor.this,"delete");
            
        }
        
@@ -770,6 +819,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            final JLabel categoryLabel = new JLabel();
            final JLabel notEditable = new JLabel();
            final JPanel comp = new JPanel();
+           
+           //edu.tufts.vue.metadata.gui.MetaButton deleteButton = new 
+           //                       edu.tufts.vue.metadata.gui.MetaButton(MetadataEditor.this,"delete");
            
            comp.addMouseListener(new MouseAdapter(){
               public void mousePressed(MouseEvent e)
@@ -982,7 +1034,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                final Object currValue = (((String[])currObject)[0]);
                Object currFieldValue = (((String[])currObject)[1]);
                
-               if(false) /// with new isCellEditable() logic on JTable...
+               if(false) /// with new isCellEditable() logic on cell editor...
                {
                    String displayString = currValue.toString();
                    int nameIndex = displayString.indexOf("#");
@@ -1043,9 +1095,25 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            }
            else if(col ==  buttonColumn)               
            {
-               JLabel buttonLabel = new JLabel();
-               buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
-               comp.add(buttonLabel);
+               //JLabel buttonLabel = new JLabel();
+               //buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
+               //comp.add(buttonLabel);
+               
+               //$
+                 //JPanel tempPanel = new JPanel();
+                 //tempPanel.setOpaque(true);
+                 //tempPanel.setBackground(java.awt.Color.BLUE);
+                 //tempPanel.add(deleteButton);
+                 //tempPanel.addActionListener(deleteButton);
+                 
+                 
+               //$
+               
+               metaButtonPanel.setRow(row);
+               //deleteButton.setRow(row);
+               //comp.add(deleteButton);
+               //comp = metaButtonPanel;
+               comp.add(metaButtonPanel);
            }
            
            comp.setOpaque(false);
@@ -1143,7 +1211,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
      * watch out for current == null
      *
      **/
-    class MetadataTableModel extends AbstractTableModel
+    public class MetadataTableModel extends AbstractTableModel
     {
          //default:
          private int cols = 2;
@@ -1260,14 +1328,26 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         	 super.fireTableStructureChanged();
          }
          
+         /*
+          * 
+          * note: JTable also has isCellEditable (main entry
+          * point for mouse actions on metadatatable)
+          * actually the table has this method through its cell editor
+          * 
+          * */
          public boolean isCellEditable(int row,int column)
          {
-             if(getValueAt(row,column) instanceof OntType)
-                 return false;
-             if( (column == buttonColumn -1) || (column == buttonColumn - 2) )
-                 return true;
-             else
-                 return false;
+             // old -- for combined view with ont types non editable -- now
+             // in seperate panel
+             //if(getValueAt(row,column) instanceof OntType)
+             //    return false;
+             
+             // deletbutton is now editable...
+             //if( (column == buttonColumn -1) || (column == buttonColumn - 2) )
+             //    return true;
+             //else
+             //    return false;
+             return true;
          }
          
          public Object getValueAt(int row, int column)
