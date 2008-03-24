@@ -115,6 +115,9 @@ public class ColorPreference extends BasePref
 	}
 	
 	private static String colorToString(Color c) {
+		if (c == null)
+			return null;
+		
 		char[] buf = new char[7];
 		buf[0] = '#';
 		String s = Integer.toHexString(c.getRed());
