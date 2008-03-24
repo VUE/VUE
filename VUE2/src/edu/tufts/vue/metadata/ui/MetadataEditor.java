@@ -146,8 +146,10 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                        {                     
                          addNewRow();                         
                        }
-                       else
-                       {                    	
+                       // no need for this else, should make more sense to save whenever
+                       // adding a new row...
+                       //else
+                       //{                    	
                     	   int row = metadataTable.rowAtPoint(evt.getPoint());
                            ((MetadataTableModel)metadataTable.getModel()).setSaved(row,true);
                            if(metadataTable.getCellEditor() !=null)
@@ -155,7 +157,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                              metadataTable.getCellEditor().stopCellEditing();
                            }
                            metadataTable.repaint();
-                       }
+                       //}
                    }
        });
        
@@ -499,7 +501,18 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
     }
     
     class MetadataTableHeaderRenderer extends DefaultTableCellRenderer
-    {   
+    {  
+        
+       tufts.vue.gui.VueButton button = new tufts.vue.gui.VueButton("keywords.button.add"); 
+        
+       public MetadataTableHeaderRenderer()
+       {
+        button.setBorderPainted(false);
+        button.setContentAreaFilled(false);
+        button.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        button.setSize(new java.awt.Dimension(5,5));
+       }
+       
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
            JComponent comp = new JPanel();
@@ -532,7 +545,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                //comp = new JLabel();    
                //((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
                comp = new JPanel();
-               comp.add(new tufts.vue.gui.VueButton("keywords.button.add"));
+               comp.add(button);
            }
            else
            {
