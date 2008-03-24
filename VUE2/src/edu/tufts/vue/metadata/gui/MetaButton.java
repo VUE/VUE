@@ -25,7 +25,7 @@ package edu.tufts.vue.metadata.gui;
 public class MetaButton extends tufts.vue.gui.VueButton //implements java.awt.event.ActionListener
 {
     
-    private static boolean DEBUG_LOCAL = true;
+    private static boolean DEBUG_LOCAL = false;
     
     private int row;
     private edu.tufts.vue.metadata.ui.MetadataEditor editor;
