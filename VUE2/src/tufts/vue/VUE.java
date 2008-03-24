@@ -48,6 +48,7 @@ import org.apache.log4j.WriterAppender;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.LogManager;
 
+import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
 
@@ -56,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.523 $ / $Date: 2008-03-11 17:34:03 $ / $Author: mike $ 
+ * @version $Revision: 1.524 $ / $Date: 2008-03-24 19:34:29 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -589,6 +590,9 @@ public class VUE
         ToolTipManager.sharedInstance().setInitialDelay(500);
         //if (VueUtil.isMacPlatform())
         //    installMacOSXApplicationEventHandlers();
+        
+        //Preference initialzation for UI.
+        MetadataSchemaPreference.getInstance();
     }
     
     public static void main(String[] args)
@@ -659,7 +663,7 @@ public class VUE
     static void initApplication()
     {
         final Window splashScreen;
-
+        
         if (SKIP_DR || SKIP_SPLASH) {
             splashScreen = null;
             DEBUG.Enabled = true;
@@ -830,6 +834,7 @@ public class VUE
         Log.debug("initApplication completed.");
         //VUE-879
         UrlAuthentication.getInstance();
+        
     }
 
     private static void installMacOSXApplicationEventHandlers()

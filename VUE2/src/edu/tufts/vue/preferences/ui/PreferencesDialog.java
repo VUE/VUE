@@ -85,6 +85,8 @@ public class PreferencesDialog extends JDialog {
 		array[0] = new String("VUE Preferences");
 		array[1] = new String("Map Display:");
 		array[2] = new String("Images");
+//		array[2] = new String("Metadata:");
+	//	array[3] = new String("Windows:");
 		
 		TreePath path = findByName(prefTree,array);
 		PrefTreeNode node = (PrefTreeNode) path.getLastPathComponent();
@@ -268,7 +270,15 @@ public class PreferencesDialog extends JDialog {
 		splitPane.setEnabled(false);
 		JScrollPane pane = new JScrollPane(prefTree)
 		{
+			public Dimension getMaximumSize()
+			{
+				return new Dimension(180,prefTree.getHeight());
+			}
 			public Dimension getPreferredSize()
+			{
+				return new Dimension(180,prefTree.getHeight());
+			}
+			public Dimension getMinimumSize()
 			{
 				return new Dimension(180,prefTree.getHeight());
 			}
