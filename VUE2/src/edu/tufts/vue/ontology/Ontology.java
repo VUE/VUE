@@ -88,13 +88,24 @@ abstract public class Ontology {
     }
     
     public static String getLabelFromUrl(String url) {
-        int start = Math.max(0,url.lastIndexOf("/")+1);
-        int stop =url.length()-1;
-        if(url.lastIndexOf(".")>0) {
-            stop = url.lastIndexOf(".");
-        }
-        return url.substring(start,stop);
+        
+        int start = url.lastIndexOf("/");
+        
+        if(start == -1 || (start == url.length() -1) )
+            return url;
+        else
+            url = url.substring(start + 1);
+        
+        int stop = url.lastIndexOf(".");
+        
+        if(stop == -1)
+            return url;
+        
+        return url.substring(0,stop);
+        
+ 
     }
+    
     public void applyStyle(URL cssUrl) {
         this.cssUrl = cssUrl;
         CSSParser parser = new CSSParser();
@@ -102,6 +113,39 @@ abstract public class Ontology {
         for(OntType type:types) {
             type.setStyle(Style.getStyle(type.getId(),styleMap));
         }
+    }
+    
+    public void applyDefaultStyle()
+    {
+        for(OntType type:types) {
+            
+            // todo: if default ever changes back to mix of nodes and links then
+            // may want to use this approach:
+            /*if(type.defaultsToNode)
+            {
+                type.setStyle(NodeStyle.DEFAULT_NODE_STYLE);
+            }
+            else
+            {
+                type.setStyle(edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE);
+            }*/
+            // for now, don't override link/node info from previous loaded style
+            // todo: strictly speaking, since type of component is part of the
+            // style should go back to "all nodes" for default. However, there
+            // is currently no global property that determines this, its
+            // just the intializer in OntType (see todo: note in OntType)
+            // so be careful about overriding based on node/link type and/or
+            // add global property in future
+            if(type.getStyle() instanceof NodeStyle)
+            {
+                type.setStyle(NodeStyle.DEFAULT_NODE_STYLE);
+            }
+            else
+            {
+                type.setStyle(edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE);
+            }
+        }
+            
     }
     
     public URL getStyle() {
@@ -132,6 +176,12 @@ abstract public class Ontology {
     public boolean equals(Object o) {
         if(o instanceof Ontology) {
             Ontology ontology = (Ontology)o;
+            
+            /*if(this.base == null || this.label == null)
+                return false;
+            if(ontology.getBase() == null || ontology.getLabel() == null)
+                return false;*/
+            
             if(this.base.equals(ontology.getBase()) && this.label.equals(ontology.getLabel())) {
                 return true;
             } else {
@@ -157,6 +207,9 @@ abstract public class Ontology {
             
             // disable for now, see VUE-866 reapplying style without rereading
             // ontology loses this styling information
+            // what we really need to do, is to reapply the node/link choice
+            // from load time for nodes or links that are not specifically 
+            // styled by the css style sheet
             /*if(c instanceof OntClass)
                 style = NodeStyle.DEFAULT_NODE_STYLE;
             else
@@ -203,6 +256,7 @@ abstract public class Ontology {
             }
             if((c instanceof OntClass) && (style == edu.tufts.vue.style.LinkStyle.DEFAULT_LINK_STYLE)) {
                 style = NodeStyle.DEFAULT_NODE_STYLE;
+                type.setDefaultsToNode(true);
             }
             type.setStyle(style);
             types.add(type);

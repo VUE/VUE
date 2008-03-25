@@ -37,6 +37,12 @@ public class OWLLOntology extends Ontology {
     public OWLLOntology() {
         
     }
+    
+    public OWLLOntology(String ontUrl)
+    {
+       setBase(ontUrl); 
+    }
+    
     public OWLLOntology(URL ontUrl) {
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
@@ -49,6 +55,24 @@ public class OWLLOntology extends Ontology {
         setBase(ontUrl.toString());
         readAllSupportedOntTypesWithCss();
     }
+    
+    public static void populateExistingOWLOntology(URL ontUrl,
+                                                   OWLLOntology owlLOntology)
+    {
+        owlLOntology.m.read(ontUrl.toString());
+        //owlLOntology.setBase(ontUrl.toString());
+        owlLOntology.readAllSupportedOntTypes();
+    }
+    
+    public static void populateExistingOWLOntology(URL ontUrl,URL cssUrl,
+                                                   OWLLOntology owlLOntology)
+    {
+        owlLOntology.cssUrl = cssUrl;
+        owlLOntology.m.read(ontUrl.toString());
+        //owlLOntology.setBase(ontUrl.toString());
+        owlLOntology.readAllSupportedOntTypesWithCss();
+    }
+    
     public void readAllSupportedOntTypes() {
         readOntTypes(m.listNamedClasses());
         readOntTypes(m.listObjectProperties());

@@ -396,7 +396,8 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         if(type.equals("owl"))
             return edu.tufts.vue.ontology.OntologyType.OWL_TYPE;
         else
-            return edu.tufts.vue.ontology.OntologyType.OWL_TYPE;
+            return null;
+           // return edu.tufts.vue.ontology.OntologyType.OWL_TYPE;
     }
     
     public void reLayoutStartingAtCSS(boolean keep)
@@ -605,13 +606,16 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                    
                if(ontURL!=null && (cssURL == null))
                {
-                      
-                       tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()),ontURL);
-
+                   
                        if(getOntType(ontURL) == null)
                        {
+                           dispose();
                            return;
                        }
+                   
+                       tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology. getLabelFromUrl(ontURL.getFile()),ontURL);
+
+
                                                                 
                        list.loadOntology(ontURL,cssURL,getOntType(ontURL),browser,w);                                          
                                                                 

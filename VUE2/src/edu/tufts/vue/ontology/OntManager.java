@@ -55,6 +55,73 @@ public class OntManager
     static OntManager ontManager;
     public OntManager() {
     }
+    
+    public void populateStyledOntology(URL ontUrl,URL cssUrl,
+                                       Ontology ontology)
+    {
+        /*if(ontology != null && !ontList.contains(ontology)) {
+            ontList.add(ontology);
+        }*/
+        
+        org.osid.shared.Type type = null;
+        if(ontology instanceof RDFSOntology)
+            type = OntologyType.RDFS_TYPE;
+        else if(ontology instanceof OWLLOntology)
+            type = OntologyType.OWL_TYPE;
+        
+        if(type == null)
+        {
+            //ontList.remove(ontology);
+            return;
+        }
+        if(type.isEqual(OntologyType.RDFS_TYPE)) {
+            RDFSOntology.populateExistingRDFSOntology(ontUrl,cssUrl,(RDFSOntology)ontology);
+        } else if(type.isEqual(OntologyType.OWL_TYPE)) {
+            OWLLOntology.populateExistingOWLOntology(ontUrl,cssUrl,(OWLLOntology)ontology);
+        }
+        else
+        {
+            //ontList.remove(ontology);
+            return;
+        }
+    }
+            
+ 
+    public void addOntology(URL ontUrl,Ontology ontology)
+    {
+        if(ontology != null && !ontList.contains(ontology)) {
+            ontList.add(ontology);
+        }
+    }
+    
+    public void populateOntology(URL ontUrl,Ontology ontology)   
+    {
+        /*if(ontology != null && !ontList.contains(ontology)) {
+            ontList.add(ontology);
+        }*/
+        org.osid.shared.Type type = null;
+        if(ontology instanceof RDFSOntology)
+            type = OntologyType.RDFS_TYPE;
+        else if(ontology instanceof OWLLOntology)
+            type = OntologyType.OWL_TYPE;
+        
+        if(type == null)
+        {
+            //ontList.remove(ontology);
+            return;
+        }
+        if(type.isEqual(OntologyType.RDFS_TYPE)) {
+            RDFSOntology.populateExistingRDFSOntology(ontUrl,(RDFSOntology)ontology);
+        } else if(type.isEqual(OntologyType.OWL_TYPE)) {
+            OWLLOntology.populateExistingOWLOntology(ontUrl,(OWLLOntology)ontology);
+        }
+        else
+        {
+           // ontList.remove(ontology);
+            return;
+        }
+    }
+    
     public Ontology readOntologyWithStyle(URL ontUrl,URL cssUrl,org.osid.shared.Type type) {
         Ontology ont = null;
         if(type.isEqual(OntologyType.RDFS_TYPE)) {

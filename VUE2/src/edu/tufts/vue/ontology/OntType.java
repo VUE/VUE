@@ -29,11 +29,26 @@ public class OntType implements java.io.Serializable {
     private String base;
     private String comment;
     private Style style;
+    
+    // for VUE2.0, unspecified styles always default to Node
+    // todo: create vue resource for this choice
+    // todo2: guess some reasonable defaults from ontology and save
+    // information here
+    private boolean defaultsToNode = true;
     /** Creates a new instance of OntType */
     public OntType() {
         
     }
    
+    public void setDefaultsToNode(boolean set)
+    {
+        defaultsToNode = set;
+    }
+    
+    public boolean defaultsToNode()
+    {
+        return defaultsToNode;
+    }
    
     public void setId(String id) {
         this.id = id;

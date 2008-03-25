@@ -38,6 +38,11 @@ public class RDFSOntology extends Ontology{
     public RDFSOntology() {
     }
     
+    public RDFSOntology(String ontUrl)
+    {
+       setBase(ontUrl);
+    }
+    
     public RDFSOntology(URL ontUrl) {
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
@@ -49,6 +54,23 @@ public class RDFSOntology extends Ontology{
         m.read(ontUrl.toString());
         setBase(ontUrl.toString());
         readAllSupportedOntTypesWithCss();
+    }
+    
+    public static void populateExistingRDFSOntology(URL ontUrl,
+                                             RDFSOntology rdfsOntology)
+    {
+        rdfsOntology.m.read(ontUrl.toString());
+        //rdfsOntology.setBase(ontUrl.toString());
+        rdfsOntology.readAllSupportedOntTypes();
+    }
+    
+    public static void populateExistingRDFSOntology(URL ontUrl,URL cssUrl,
+                                             RDFSOntology rdfsOntology)
+    {
+        rdfsOntology.cssUrl = cssUrl;
+        rdfsOntology.m.read(ontUrl.toString());
+        //rdfsOntology.setBase(ontUrl.toString());
+        rdfsOntology.readAllSupportedOntTypesWithCss();
     }
     
     public void readAllSupportedOntTypes() {

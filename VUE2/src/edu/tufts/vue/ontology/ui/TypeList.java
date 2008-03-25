@@ -72,7 +72,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
     
     public static int count = 0;
     
-    public static final boolean DEBUG_LOCAL = false;
+    public static final boolean DEBUG_LOCAL = true;
     
     //private static Ontology fedoraOntology;
     
@@ -512,16 +512,43 @@ public class TypeList extends JList implements MouseListener,ActionListener {
           widget.add(loadingLabel,java.awt.BorderLayout.NORTH);
           
           try
-          {        
+          {      
+            if(ontType.isEqual(OntologyType.RDFS_TYPE))
+              ontology = new RDFSOntology(ontologyURL.toString());
+            else if(ontType.isEqual(OntologyType.OWL_TYPE))
+              ontology = new OWLLOntology(ontologyURL.toString());
+            else{ // make a guess, but ontology population will return
+                 // without filling the types...
+              return;
+              //ontology = new RDFSOntology(ontologyURL.toString());
+            }
+            
+            OntManager.getOntManager().addOntology(ontologyURL,ontology);
+            
+            
+            try
+            {
+                browser.getViewer().getList().refresh();
+                browser.getViewer().getList().repaint();
+            }
+            catch(Exception e)
+            {
+              System.out.println("TypeList: exception while updating ontology browser list ui -- " + e);
+            }
+            
+            ontology.setEnabled(true);
+            //OntManager.getOntManager().getOntology(new URL(ontology.getBase())).setEnabled(true);
+            
             if(cssURL !=null)
             {
-              ontology = OntManager.getOntManager().readOntologyWithStyle(ontologyURL,
+              OntManager.getOntManager().populateStyledOntology(ontologyURL,
                                                       cssURL,
-                                                      ontType);
+                                                      ontology);
             }
             else
             {
-              ontology = edu.tufts.vue.ontology.OntManager.getOntManager().readOntology(ontologyURL,ontType);
+              edu.tufts.vue.ontology.OntManager.getOntManager().
+                      populateOntology(ontologyURL,ontology);
             }
           }
           catch(Exception fnfe)
@@ -529,6 +556,12 @@ public class TypeList extends JList implements MouseListener,ActionListener {
               widget.remove(loadingLabel);
               
               System.out.println("load failure -- " + ontologyURL);
+              
+              if(DEBUG_LOCAL)
+              {
+                  System.out.println("load failure exception: " + fnfe);
+                  fnfe.printStackTrace();   
+              }
               
               JLabel fileNotFound = new JLabel("File not found");
               if(!ontologyURL.toString().contains("file:"))
@@ -566,7 +599,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
               System.out.println("TypeList: Exception, likely npe enabling ontology  -- " + npe);
           }
           
-          try
+          /*try
           {
            // browser.getViewer().getList().updateUI();
            //   browser.getViewer().getList().repaint();
@@ -578,7 +611,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
           catch(Exception e)
           {
             System.out.println("TypeList: exception while updating ontology browser list ui -- " + e);
-          }
+          } */
           //browser.getViewer().repaint();
           //browser.revalidate();
          // browser.repaint();
