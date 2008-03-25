@@ -72,7 +72,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
     
     public static int count = 0;
     
-    public static final boolean DEBUG_LOCAL = true;
+    public static final boolean DEBUG_LOCAL = false;
     
     //private static Ontology fedoraOntology;
     
@@ -579,10 +579,16 @@ public class TypeList extends JList implements MouseListener,ActionListener {
           widget.remove(loadingLabel);
           //repaint();
           //browser.addTypeList(TypeList.this,ontologyURL.getFile());
-          if(browser !=null && browser.getViewer() != null && browser.getViewer().getList() !=null && ontology != null)
+          
+          // produces a lot of switching between ontologies on load of 
+          // browser -- re-enable once there is a parameter to skip this
+          // step on load and/or if selecting the new ontology is needed
+          /*if(browser !=null && browser.getViewer() != null && browser.getViewer().getList() !=null && ontology != null)
           {    
             browser.getViewer().getList().setSelectedValue(ontology,true);
-          }
+          }*/
+          
+          
           //clearSelection();
           //setSelectedIndex(-1);
           
