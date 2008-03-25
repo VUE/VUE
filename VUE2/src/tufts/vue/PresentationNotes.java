@@ -98,7 +98,7 @@ public class PresentationNotes {
             dc.setAntiAlias(false);
             
             dc.setClipOptimized(true);	
-            dc.setDraftQuality(true);
+         //   dc.setDraftQuality(true);
           //  dc.setRawDrawing();
             //dc.setClipOptimized(false);
             
