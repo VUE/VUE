@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.90 $ / $Date: 2008-03-13 20:54:28 $ / $Author: mike $
+ * @version $Revision: 1.91 $ / $Date: 2008-03-25 20:29:43 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -281,13 +281,24 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         final JMenu pdfExportMenu = new JMenu("Export Handouts and Notes (PDF)");
         //pdfExportMenu.add(Actions.MapAsPDF);
-        pdfExportMenu.add(Actions.FullPageSlideNotes);
-        pdfExportMenu.add(Actions.Slides8PerPage);
-        pdfExportMenu.add(Actions.SpeakerNotes1);
-        pdfExportMenu.add(Actions.SpeakerNotes4);
-        pdfExportMenu.add(Actions.AudienceNotes);
-        pdfExportMenu.add(Actions.SpeakerNotesOutline);
-        pdfExportMenu.setEnabled(false);
+        final JMenuItem fullPageSlideNotesItem = new JMenuItem(Actions.FullPageSlideNotes);
+        final JMenuItem slides8PerPageItem = new JMenuItem(Actions.Slides8PerPage);
+        final JMenuItem speakerNotes1Item = new JMenuItem(Actions.SpeakerNotes1);
+        final JMenuItem speakerNotes4Item = new JMenuItem(Actions.SpeakerNotes4);
+        final JMenuItem audienceNotesItem = new JMenuItem(Actions.AudienceNotes);
+        final JMenuItem speakerNotesOutlineItem = new JMenuItem(Actions.SpeakerNotesOutline);
+        final JMenuItem nodeNotes4Item = new JMenuItem(Actions.NodeNotes4);
+        final JMenuItem nodeNotesOutlineItem = new JMenuItem(Actions.NodeNotesOutline);
+        
+        pdfExportMenu.add(fullPageSlideNotesItem);
+        pdfExportMenu.add(slides8PerPageItem);
+        pdfExportMenu.add(speakerNotes1Item);
+        pdfExportMenu.add(speakerNotes4Item);
+        pdfExportMenu.add(audienceNotesItem);        
+        pdfExportMenu.add(speakerNotesOutlineItem);
+        pdfExportMenu.addSeparator();
+        pdfExportMenu.add(nodeNotes4Item);
+        pdfExportMenu.add(nodeNotesOutlineItem);        
       
         fileMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
@@ -296,9 +307,36 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			private void handleActivation() {
 				LWPathway p =VUE.getActivePathway();
 				if (p == null || p.length() == 0)
-					pdfExportMenu.setEnabled(false);			
-				else	
-					pdfExportMenu.setEnabled(true);				
+				{
+					fullPageSlideNotesItem.setEnabled(false);
+					slides8PerPageItem.setEnabled(false);
+					speakerNotes1Item.setEnabled(false);
+					speakerNotes4Item.setEnabled(false);
+					audienceNotesItem.setEnabled(false);
+					speakerNotesOutlineItem.setEnabled(false);
+					
+				}
+					//pdfExportMenu.setEnabled(false);			
+				else
+				{
+					fullPageSlideNotesItem.setEnabled(true);
+					slides8PerPageItem.setEnabled(true);
+					speakerNotes1Item.setEnabled(true);
+					speakerNotes4Item.setEnabled(true);
+					audienceNotesItem.setEnabled(true);
+					speakerNotesOutlineItem.setEnabled(true);
+				}
+				if (VUE.getActiveMap()!=null && VUE.getActiveMap().hasContent())
+				{
+					nodeNotesOutlineItem.setEnabled(true);
+					nodeNotes4Item.setEnabled(true);
+				}
+				else
+				{
+					nodeNotesOutlineItem.setEnabled(false);
+					nodeNotes4Item.setEnabled(false);
+				}
+					//pdfExportMenu.setEnabled(true);				
 			}});                   
       //  pdfExportMenu.add(Actions.NodeNotesOutline);
         fileMenu.addSeparator();

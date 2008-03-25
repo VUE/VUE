@@ -779,7 +779,128 @@ public class PresentationNotes {
         document.close();
         
 	}
-	
+
+	public static void createNodeNotes4PerPage(File file)
+	{
+		//page size notes:
+		//martin-top,left,right,bottom = 36
+		//widht :612
+		//height : 792
+		//usable space 540 x 720
+        // step 1: creation of a document-object
+		
+		
+		
+        Document document = new Document(PageSize.LETTER);
+        
+        try {
+        	   GUI.activateWaitCursor();
+            // step 2:
+            // we create a writer that listens to the document
+            // and directs a PDF-stream to a file            
+            PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(file));
+          //  writer.setDefaultColorspace(PdfName.DEFAULTRGB, null);
+           // writer.setStrictImageSequence(true);
+            
+            // step 3: we open the document
+            document.open();
+
+            PdfPTable table;
+            PdfPCell cell;            
+            int entryCount = 0;
+            int entryOnPage =0;
+                       
+            Iterator i = VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+            while (i.hasNext())
+            {
+                LWComponent component = (LWComponent) i.next();
+                if (component instanceof LWNode)
+                {
+                	final LWNode node= (LWNode)component;
+                	
+                	final String notes = node.getNotes();                                
+                
+                	entryCount++;                
+                
+                	table = new PdfPTable(new float[]{ 1,1 });
+                	table.getDefaultCell().setBorder(0);
+
+                	table.setSpacingAfter(20.0f);
+                	Paragraph p = new Paragraph();
+                
+                	p.setAlignment(Element.ALIGN_CENTER);
+                                                
+                	Phrase phrase = new Phrase(notes);
+                	Font f = phrase.getFont();
+                	f.setSize(8.0f);
+                	p.setFont(f);
+                	cell = new PdfPCell(phrase);
+                	cell.setBorder(0);         
+                
+                	PdfPCell i2 = new PdfPCell();
+                	i2.setFixedHeight(172);
+                	i2.setBorder(0);                                                                                             
+                
+                	//Render the table then throw the images on
+                	PdfContentByte cb = writer.getDirectContent();	            
+                	PdfTemplate tp = cb.createTemplate(SlideSizeX,SlideSizeY);
+	            
+                	Point2D.Float offset = new Point2D.Float();
+                	//center vertically only if landscape mode
+                	//if (format.getOrientation() == PageFormat.LANDSCAPE)
+                	//TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
+                
+                	Rectangle2D bounds = null;
+                
+                	bounds = node.getBounds();
+                
+                	Dimension page = null;
+                
+                
+                	page = new Dimension(SlideSizeX,172);
+                
+                //	PdfTemplate tp = cb.createTemplate(document.getPageSize().width()-80, document.getPageSize().height()-80);
+                	double scale = ZoomTool.computeZoomFit(page, 15, bounds, offset, true);
+                	Graphics2D g2d = tp.createGraphics(SlideSizeX,SlideSizeY, new DefaultFontMapper(),false,60.0f);
+                	DrawContext dc = new DrawContext(g2d,
+                        scale,
+                        -offset.x,
+                        -offset.y,
+                        null, // frame would be the PageFormat offset & size rectangle
+                        node,
+                        false); // todo: absolute links shouldn't be spec'd here
+ 
+                	dc.setClipOptimized(false);
+                    node.drawFit(dc,15);
+
+                                                                                            
+                    g2d.dispose();                                                                                                         
+                              
+                    Image img = Image.getInstance(tp);
+                    table.addCell(img);
+                    table.addCell(cell);
+                    p.add(table);
+                    document.add(p);
+                }
+            }
+            
+        }
+        catch(DocumentException de) {
+            System.err.println(de.getMessage());
+        }
+        catch(IOException ioe) {
+            System.err.println(ioe.getMessage());
+        }
+        finally
+        {
+        	GUI.clearWaitCursor();
+        }
+        
+        // step 5: we close the document
+        document.close();
+        
+	}
+
 	public static void createOutline(File file)
 	{
 		//page size notes:
@@ -875,6 +996,7 @@ public class PresentationNotes {
             p1.setSpacingAfter(15.0f);
             Font f = p1.getFont();
             f.setStyle(Font.BOLD);
+            f.setSize(18f);
             p1.setFont(f);
 			document.add(p1);
 			
@@ -882,11 +1004,11 @@ public class PresentationNotes {
 			if (n2 != null && n2.length() > 0)
 			{
 				Paragraph p2 = new Paragraph(n2);
-				p2.setIndentationLeft(15.0f);
+				p2.setIndentationLeft(30.0f);
 				p2.setSpacingAfter(15.0f);
-				f = p2.getFont();
-				f.setSize(f.getSize()-2);
-				p2.setFont(f);
+			//	f = p2.getFont();
+				//f.setSize(f.getSize()-2);
+				//p2.setFont(f);
 				document.add(p2);
 			}
             
@@ -896,15 +1018,20 @@ public class PresentationNotes {
             {
             	LWNode n = (LWNode)it.next();
                 String notes = n.getNotes();
-                Paragraph p = new Paragraph(entryCount + ".  " + n.getLabel());
+                String nodeLabel = n.getLabel();
+                
+                if (nodeLabel == null || nodeLabel.length()==0)
+                	nodeLabel = "Node";
+                
+                Paragraph p = new Paragraph(entryCount + ".  " + n.getLabel().replaceAll("\\n",""));
                 f = p.getFont();
                 f.setStyle(Font.BOLD);
+                f.setSize(14f);
                 p.setFont(f);
                 Paragraph notesP = new Paragraph(notes);
-                f = notesP.getFont();
-				f.setSize(f.getSize()-2);
-				notesP.setFont(f);
-                notesP.setIndentationLeft(15.0f);                
+               // f = notesP.getFont();
+			//	f.setSize(f.getSize()-2);
+                notesP.setIndentationLeft(30.0f);                
                 notesP.setSpacingAfter(15.0f);
                 document.add(p);
                 document.add(notesP);
@@ -912,6 +1039,39 @@ public class PresentationNotes {
                 
                 entryCount++;
             }
+            
+            it = VUE.getActiveMap().getLinkIterator();
+            while (it.hasNext())            
+            {
+            	LWLink l = (LWLink)it.next();
+                String notes = l.getNotes();
+                String linkLabel = l.getLabel();
+                
+                if ((notes == null || notes.length() == 0) && (linkLabel == null || linkLabel.length() ==0))
+                	continue;
+                
+                if (linkLabel == null || linkLabel.length()==0)
+                	linkLabel = "Link";
+                
+                Paragraph p = new Paragraph(entryCount + ".  " + linkLabel.replaceAll("\\n",""));
+                f = p.getFont();
+                f.setStyle(Font.BOLD);
+                f.setSize(14f);
+                p.setFont(f);
+                Paragraph notesP = new Paragraph(notes);
+                
+                
+               // f = notesP.getFont();
+			//	f.setSize(f.getSize()-2);
+                notesP.setIndentationLeft(30.0f);                
+                notesP.setSpacingAfter(15.0f);
+                document.add(p);
+                document.add(notesP);
+                
+                
+                entryCount++;
+            }
+            
             
         }
         catch(DocumentException de) {

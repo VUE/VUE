@@ -195,6 +195,15 @@ public class Actions implements VueConstants
 				tufts.vue.PresentationNotes.createSpeakerNotes4PerPage(pdfFile);
 		}
     };
+    public static final VueAction NodeNotes4 =
+    	new VueAction("Nodes and notes (up to 4 per page)") {
+		public void act() 
+		{
+			File pdfFile = getFileForPresentation("Node notes");
+			if (pdfFile != null)
+				tufts.vue.PresentationNotes.createNodeNotes4PerPage(pdfFile);
+		}
+    };
     public static final VueAction SpeakerNotesOutline =
     	new VueAction("Speaker notes only (outline)") {
 		public void act() 
