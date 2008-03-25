@@ -142,6 +142,18 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         {
                    public void mousePressed(java.awt.event.MouseEvent evt)
                    {  
+                       // todo: stand alone class for header renderer allows this
+                       // for now using variable in MetadataEditor
+                       //tufts.vue.gui.VueButton addButton = 
+                       //        MetadataTableHeaderRenderer.getButton();
+                       
+                       
+                       java.awt.event.MouseEvent me = 
+                       javax.swing.SwingUtilities.convertMouseEvent(metadataTable.getTableHeader(), 
+                                                                    evt, headerAddButtonPanel);
+                       //headerAddButton.dispatchEvent(me);
+                       headerAddButtonPanel.dispatchEvent(me);
+                       
                        if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {                     
                          addNewRow();                         
@@ -500,18 +512,53 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
        }
     }
     
+    tufts.vue.gui.VueButton headerAddButton = new tufts.vue.gui.VueButton("keywords.button.add"); 
+
+    JPanel headerAddButtonPanel = new JPanel();
+    
     class MetadataTableHeaderRenderer extends DefaultTableCellRenderer
     {  
         
-       tufts.vue.gui.VueButton button = new tufts.vue.gui.VueButton("keywords.button.add"); 
+       // see below - getter could be supplied in stand alone class
+       //static tufts.vue.gui.VueButton button = new tufts.vue.gui.VueButton("keywords.button.add"); 
         
        public MetadataTableHeaderRenderer()
        {
-        button.setBorderPainted(false);
-        button.setContentAreaFilled(false);
-        button.setBorder(javax.swing.BorderFactory.createEmptyBorder());
-        button.setSize(new java.awt.Dimension(5,5));
+        headerAddButton.setBorderPainted(false);
+        headerAddButton.setContentAreaFilled(false);
+        headerAddButton.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        headerAddButton.setSize(new java.awt.Dimension(5,5));
+        
+            headerAddButton.addActionListener(new java.awt.event.ActionListener(){
+              public void actionPerformed(java.awt.event.ActionEvent e)
+              {
+                if(DEBUG_LOCAL)
+                {
+                  System.out.println("MetadataEditor -- table header add button pressed " +
+                        e);
+                }
+              }
+            });
+            
+            headerAddButton.addMouseListener(new java.awt.event.MouseAdapter(){
+              public void mousePressed(java.awt.event.MouseEvent e)
+              {
+                if(DEBUG_LOCAL)
+                {
+                  System.out.println("MetadataEditor -- table header add button pressed " +
+                        e);
+                }
+              }
+            });
        }
+       
+       // can't do this statically in inner class but could be done
+       // from wholly separate class - for now move the button out
+       // into the metadata editor
+       /*static tufts.vue.gui.VueButton getButton()
+       {
+           return button;
+       }*/
        
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
@@ -544,8 +591,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
            {
                //comp = new JLabel();    
                //((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-               comp = new JPanel();
-               comp.add(button);
+               //comp = new JPanel();
+               comp = headerAddButtonPanel;
+               comp.add(headerAddButton);
            }
            else
            {
