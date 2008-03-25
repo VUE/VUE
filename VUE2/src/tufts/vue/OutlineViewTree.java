@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.48 $ / $Date: 2008-03-24 22:27:57 $ / $Author: mike $
+ * @version $Revision: 1.49 $ / $Date: 2008-03-25 17:08:44 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  */
 
@@ -63,6 +63,7 @@ public class OutlineViewTree extends JTree
     private ImageIcon  nodeIcon = VueResources.getImageIcon("outlineIcon.node");
     private ImageIcon linkIcon = VueResources.getImageIcon("outlineIcon.link");
     private ImageIcon   mapIcon = VueResources.getImageIcon("outlineIcon.map");
+    private ImageIcon   textIcon = VueResources.getImageIcon("outlineIcon.text");
    
     /** Creates a new instance of OverviewTree */
     public OutlineViewTree()
@@ -286,7 +287,10 @@ public class OutlineViewTree extends JTree
                 
                 else if (component instanceof LWNode)
                   setIcon(nodeIcon);
-            
+                
+                else if (component instanceof LWText)
+                   setIcon(textIcon);
+                
                 else if (component instanceof LWLink)
                   setIcon(linkIcon);
 
@@ -360,8 +364,11 @@ public class OutlineViewTree extends JTree
             hierarchyNode = (tufts.oki.hierarchy.HierarchyNode)node.getUserObject();
             LWComponent selectedLWComponent = hierarchyNode.getLWComponent();
             
-            if (selectedLWComponent instanceof LWNode)
+            if (selectedLWComponent instanceof LWText)
               editorElement.setIcon(nodeIcon);
+            
+            else if (selectedLWComponent instanceof LWText)
+                editorElement.setIcon(textIcon);
             
             else if (selectedLWComponent instanceof LWLink)
               editorElement.setIcon(linkIcon);
