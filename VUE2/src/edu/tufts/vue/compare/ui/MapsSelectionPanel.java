@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.36 $ / $Date: 2008-02-20 17:59:41 $ / $Author: dan $
+ * @version $Revision: 1.37 $ / $Date: 2008-03-25 10:04:12 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -525,7 +525,15 @@ public class MapsSelectionPanel extends JPanel  {
     public int getBaseMapIndex()
     {
         MapTableModel model = (MapTableModel)maps.getModel();
-        return model.getBaseMapIndex();
+        if(model == null)
+            return 0;
+        int baseIndex = model.getBaseMapIndex();
+        if(baseIndex < 0)
+            return 0;
+        int numberOfMaps = getMapList().size();
+        if(baseIndex > numberOfMaps )
+            return Math.max(numberOfMaps - 1,0);
+        return baseIndex;
     }
     
     public boolean getFilterOnBaseMap()
