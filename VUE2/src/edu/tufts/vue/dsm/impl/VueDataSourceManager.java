@@ -39,8 +39,10 @@ import org.xml.sax.InputSource;
 public class VueDataSourceManager
     implements edu.tufts.vue.dsm.DataSourceManager
 {
+    public static final String PASS = "pass"; // a key that cotains this string is encrypted.
+    
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSourceManager.class);
-
+    
     /**
      * This set will only maintain uniqueness based on the hashCode, which is currently
      * defaulting to the System.identityHashCode for known implemented data sources
@@ -309,6 +311,7 @@ public class VueDataSourceManager
             FileWriter writer = new FileWriter(file);
             Marshaller marshaller = new Marshaller(writer);
             marshaller.setMapping(mapping);
+            marshaller.setMarshalListener(new PropertyEntryMarshalListener());
             Log.debug("Marshalling to " + file + "...");
             marshaller.marshal(dsm);
             writer.flush();
@@ -343,7 +346,7 @@ public class VueDataSourceManager
         //System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
-        
+        unmarshaller.setUnmarshalListener(new PropertyEntryUnMarshalListener());
         VueDataSourceManager dsm = null;
         marshalling = true;
         try {
@@ -392,4 +395,52 @@ public class VueDataSourceManager
         return dsm;
     }
 
+    
+   
 }
+  class PropertyEntryMarshalListener implements org.exolab.castor.xml.MarshalListener {
+       public  boolean preMarshal(java.lang.Object object) {
+            if(object instanceof tufts.vue.PropertyEntry) {
+                tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) object;
+                if(pe.getEntryKey().toLowerCase().contains(VueDataSourceManager.PASS)) {
+                     pe.setEntryValue(edu.tufts.vue.util.Encryption.encrypt(pe.getEntryValue().toString()));
+                    
+                }
+            }
+            return true;
+        }
+        
+        public void postMarshal(java.lang.Object object)  {
+             if(object instanceof tufts.vue.PropertyEntry) {
+                tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) object;
+                if(pe.getEntryKey().toLowerCase().contains(VueDataSourceManager.PASS)) {
+                     pe.setEntryValue(edu.tufts.vue.util.Encryption.decrypt(pe.getEntryValue().toString()));
+                   
+                }
+            }
+        }
+    }
+
+  class PropertyEntryUnMarshalListener implements org.exolab.castor.xml.UnmarshalListener {
+       public void unmarshalled(java.lang.Object object) {
+            if(object instanceof tufts.vue.PropertyEntry) {
+                tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) object;
+                if(pe.getEntryKey().toLowerCase().contains(VueDataSourceManager.PASS)) {
+                     pe.setEntryValue(edu.tufts.vue.util.Encryption.decrypt(pe.getEntryValue().toString())); 
+                }
+            }
+        }
+      public void  attributesProcessed(java.lang.Object object)  {
+      
+      }
+       public void fieldAdded(java.lang.String fieldName, java.lang.Object parent, java.lang.Object child)  {
+           
+       }
+       
+       public void initialized(java.lang.Object object)  {
+           
+       }
+    }
+  
+
+  
