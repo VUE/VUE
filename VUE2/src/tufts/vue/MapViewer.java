@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.515 $ / $Date: 2008-03-13 20:58:14 $ / $Author: mike $ 
+ * @version $Revision: 1.516 $ / $Date: 2008-03-26 13:57:11 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1532,7 +1532,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
         //if (instanceName.equals("*LEFT") && VUE.getActiveViewer() != this) Util.printStackTrace("***ACTIVE VIEWER: " + VUE.getActiveViewer());
-        if (activeTool != ToolPresentation && VUE.getActiveViewer() == this && mFocal instanceof LWMap == false) {
+        if (activeTool != ToolPresentation && VUE.getActiveViewer() == this && mFocal instanceof LWMap == false && entry != null) {
             //if (isPathwayEntryMode()) {
             // if presentation tool is active, let it handle all this
             mFocalEntry = entry;
