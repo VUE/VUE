@@ -50,7 +50,7 @@ import tufts.vue.gui.GUI;
 public class MetadataEditor extends JPanel implements ActiveListener,MetadataList.MetadataListListener {
                                                       //java.awt.event.ActionListener {
     
-    private static final boolean DEBUG_LOCAL = false;
+    private static final boolean DEBUG_LOCAL = true;
     
     public final static String CC_ADD_LOCATION_MESSAGE = "<html> Click [+] to add this <br> custom category to your own list. </html>";
     
@@ -140,6 +140,22 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         metadataTable.setBackground(getBackground());
         metadataTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter()
         {
+            
+                   public void mouseReleased(java.awt.event.MouseEvent evt)
+                   {
+                       java.awt.event.MouseEvent me = 
+                       javax.swing.SwingUtilities.convertMouseEvent(metadataTable.getTableHeader(), 
+                                                                    evt, headerAddButtonPanel);
+                               
+                               
+                       //javax.swing.SwingUtilities.convertMouseEvent(metadataTable.getTableHeader(), 
+                       //                                             evt, headerAddButton);
+                       
+                       me.translatePoint(evt.getX()-me.getX() - metadataTable.getWidth() + BUTTON_COL_WIDTH
+                                        ,evt.getY()-me.getY());
+                       headerAddButtonPanel.dispatchEvent(me);
+                   }
+            
                    public void mousePressed(java.awt.event.MouseEvent evt)
                    {  
                        // todo: stand alone class for header renderer allows this
@@ -151,13 +167,27 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                        java.awt.event.MouseEvent me = 
                        javax.swing.SwingUtilities.convertMouseEvent(metadataTable.getTableHeader(), 
                                                                     evt, headerAddButtonPanel);
+                               
+                               
+                       //javax.swing.SwingUtilities.convertMouseEvent(metadataTable.getTableHeader(), 
+                       //                                             evt, headerAddButton);
+                       
+                       me.translatePoint(evt.getX()-me.getX() - metadataTable.getWidth() + BUTTON_COL_WIDTH
+                                        ,evt.getY()-me.getY());
                        //headerAddButton.dispatchEvent(me);
+                       
+                       if(DEBUG_LOCAL)
+                       {
+                           System.out.println("MetadataEditor -- header -- unconverted mouse event: " + evt);
+                           System.out.println("MetadataEditor: converted mouse event: " + me);
+                       }
+                       
                        headerAddButtonPanel.dispatchEvent(me);
                        
-                       if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
+                       /*if(evt.getX()>metadataTable.getWidth()-BUTTON_COL_WIDTH)
                        {                     
                          addNewRow();                         
-                       }
+                       }*/
                        // no need for this else, should make more sense to save whenever
                        // adding a new row...
                        //else
@@ -332,6 +362,131 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         }
         
         MetadataList.addListener(this);
+        
+        headerAddButtonPanel.addMouseListener(new java.awt.event.MouseAdapter(){
+              public void mousePressed(java.awt.event.MouseEvent e)
+              {
+                super.mousePressed(e);  
+                if(DEBUG_LOCAL)
+                {
+                  System.out.println("MetadataEditor -- table header mouse pressed " +
+                        e);
+                  System.out.println(" components count " + headerAddButtonPanel.getComponentCount());
+                  if(headerAddButtonPanel.getComponentCount() > 0)
+                  {    
+                    System.out.println(" component 0 " + headerAddButtonPanel.getComponents()[0].getClass());
+                    System.out.println(" component 0 - location: " + headerAddButtonPanel.getComponents()[0].getLocation());
+                    System.out.println(" component 0 - location: " + headerAddButtonPanel.getComponents()[0].getSize());
+                    System.out.println(" component at location " + headerAddButtonPanel.getComponentAt(e.getPoint()));
+                  }
+                }
+                
+                
+                       tufts.vue.gui.VueButton button= (tufts.vue.gui.VueButton)headerAddButtonPanel.getComponents()[0]; 
+                
+                       java.awt.event.MouseEvent me = 
+                       javax.swing.SwingUtilities.convertMouseEvent(headerAddButtonPanel, 
+                                                                    e, button);
+                               
+                               
+                       //javax.swing.SwingUtilities.convertMouseEvent(metadataTable.getTableHeader(), 
+                       //                                             evt, headerAddButton);
+                       
+                       me.translatePoint(-me.getX()
+                                        ,-me.getY());
+                       
+                       if(DEBUG_LOCAL)
+                       {
+                           System.out.println("MetadataEditor converted event from panel to button: " + me);
+                           System.out.println("MetadataEditor relation of e to button location: " +
+                                   (e.getPoint().getX() > button.getLocation().getX() &&
+                                    e.getPoint().getX() < button.getLocation().getX() + button.getWidth() &&
+                                    e.getPoint().getY() > button.getLocation().getY() &&
+                                    e.getPoint().getY() < button.getLocation().getY() + button.getHeight()) );
+                          
+                       }
+                       
+                       if(e.getPoint().getX() > button.getLocation().getX() &&
+                          e.getPoint().getX() < button.getLocation().getX() + button.getWidth() &&
+                          e.getPoint().getY() > button.getLocation().getY() &&
+                          e.getPoint().getY() < button.getLocation().getY() + button.getHeight() )
+                       {
+                         button.dispatchEvent(me);
+                         addNewRow();
+                         //metadataTable.repaint();
+                       }
+                
+                
+                
+              }
+              
+              public void mouseReleased(java.awt.event.MouseEvent e)
+              {
+                if(DEBUG_LOCAL)
+                {
+                  System.out.println("MetadataEditor -- table header mouse released " +
+                        e);
+                }
+                
+                                       tufts.vue.gui.VueButton button= (tufts.vue.gui.VueButton)headerAddButtonPanel.getComponents()[0]; 
+                
+                       java.awt.event.MouseEvent me = 
+                       javax.swing.SwingUtilities.convertMouseEvent(headerAddButtonPanel, 
+                                                                    e, button);
+                               
+                               
+                       //javax.swing.SwingUtilities.convertMouseEvent(metadataTable.getTableHeader(), 
+                       //                                             evt, headerAddButton);
+                       
+                       me.translatePoint(-me.getX()
+                                        ,-me.getY());
+                       
+                       if(DEBUG_LOCAL)
+                       {
+                           System.out.println("MetadataEditor converted event from panel to button: " + me);
+                           System.out.println("MetadataEditor relation of e to button location: " +
+                                   (e.getPoint().getX() > button.getLocation().getX() &&
+                                    e.getPoint().getX() < button.getLocation().getX() + button.getWidth() &&
+                                    e.getPoint().getY() > button.getLocation().getY() &&
+                                    e.getPoint().getY() < button.getLocation().getY() + button.getHeight()) );
+                          
+                       }
+                       
+                       if(e.getPoint().getX() > button.getLocation().getX() &&
+                          e.getPoint().getX() < button.getLocation().getX() + button.getWidth() &&
+                          e.getPoint().getY() > button.getLocation().getY() &&
+                          e.getPoint().getY() < button.getLocation().getY() + button.getHeight() )
+                       {
+                         button.dispatchEvent(me);
+                         //metadataTable.repaint();
+                       }
+              }
+            });
+            
+            /*headerAddButton.addActionListener(new java.awt.event.ActionListener(){
+              public void actionPerformed(java.awt.event.ActionEvent e)
+              {
+                if(DEBUG_LOCAL)
+                {
+                  System.out.println("MetadataEditor -- table header add button pressed " +
+                        e);
+                }
+              }
+            });*/
+            
+            headerAddButton.addMouseListener(new java.awt.event.MouseAdapter(){
+              public void mousePressed(java.awt.event.MouseEvent e)
+              {
+                super.mousePressed(e);
+                if(DEBUG_LOCAL)
+                {
+                  System.out.println("MetadataEditor -- table header mouse pressed on button " +
+                        e);
+                }
+                headerAddButtonPanel.repaint();
+                headerAddButton.repaint();
+              }
+            });   
         
         setBorder(BorderFactory.createEmptyBorder(10,8,15,6));
         
@@ -529,7 +684,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
         headerAddButton.setBorder(javax.swing.BorderFactory.createEmptyBorder());
         headerAddButton.setSize(new java.awt.Dimension(5,5));
         
-            headerAddButton.addActionListener(new java.awt.event.ActionListener(){
+            /*headerAddButton.addActionListener(new java.awt.event.ActionListener(){
               public void actionPerformed(java.awt.event.ActionEvent e)
               {
                 if(DEBUG_LOCAL)
@@ -538,18 +693,18 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
                         e);
                 }
               }
-            });
+            });*/
             
-            headerAddButton.addMouseListener(new java.awt.event.MouseAdapter(){
+            /*headerAddButton.addMouseListener(new java.awt.event.MouseAdapter(){
               public void mousePressed(java.awt.event.MouseEvent e)
               {
                 if(DEBUG_LOCAL)
                 {
-                  System.out.println("MetadataEditor -- table header add button pressed " +
+                  System.out.println("MetadataEditor -- table header mouse pressed " +
                         e);
                 }
               }
-            });
+            });*/
        }
        
        // can't do this statically in inner class but could be done
