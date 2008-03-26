@@ -89,25 +89,35 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
         if (e.getSource() == okButton)
         {
             String pathLabel = textField.getText();
-            if (tableModel.containsPathwayNamed(pathLabel)) {
-                JOptionPane option = new JOptionPane(
-                    VueResources.getString("presentationDialog.renamePresentation.text"),
-                    JOptionPane.INFORMATION_MESSAGE);
-                JDialog dialog = option.createDialog(okButton,VueResources.getString("presentationDialog.renamePresentation.title"));
-                dialog.setVisible(true);
-            } else {
-            	LWPathway path = new LWPathway(pathLabel);
-                VUE.getActiveMap().addPathway(path);
-                VUE.setActive(LWPathway.class, this, path);
-                dispose();
-            }
+            addNewPathway(pathLabel);
         }
         else if (e.getSource() == cancelButton)
         {
             dispose();
         }
     }
-
+    private void addNewPathway(String pathLabel)
+    {
+    	  if (tableModel.containsPathwayNamed(pathLabel)) {
+              JOptionPane option = new JOptionPane(
+                  VueResources.getString("presentationDialog.renamePresentation.text"),
+                  JOptionPane.INFORMATION_MESSAGE);
+              JDialog dialog = option.createDialog(okButton,VueResources.getString("presentationDialog.renamePresentation.title"));
+              dialog.setVisible(true);
+          } else {
+          	LWPathway path = new LWPathway(pathLabel);
+          	LWPathway activePath = VUE.getActivePathway();
+          	if (activePath != null)
+          	{
+          		MasterSlide masterSlide = activePath.getMasterSlide();
+          		path.getMasterSlide().setStyle(masterSlide);
+          	}
+              VUE.getActiveMap().addPathway(path);                
+              VUE.setActive(LWPathway.class, this, path);
+              dispose();
+          }
+    	  return;
+    }
     //key events for the dialog box
     public void keyPressed(KeyEvent e) {}
     public void keyReleased(KeyEvent e) {}
@@ -119,8 +129,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
             if (DEBUG.PATHWAY) System.out.println(this + " ENTER");
             //if the ok button or the text field has the focus, add a designated new pathway
             if (okButton.isFocusOwner() || textField.isFocusOwner()) {    
-                VUE.getActiveMap().addPathway(new LWPathway(textField.getText()));
-                dispose();                  
+                addNewPathway(textField.getText());                  
             } else if (cancelButton.isFocusOwner()) {
                 //else if the cancel button has the focus, just aborts it
                 dispose();
