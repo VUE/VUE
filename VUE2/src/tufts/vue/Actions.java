@@ -328,7 +328,7 @@ public class Actions implements VueConstants
     public static final Action AddPathwayItem =
     new LWCAction(VueResources.getString("actions.addPathwayItem.label")) {
         public void act(Iterator i) {
-        	LWPathway pathway = VUE.getActiveMap().getActivePathway();
+        	LWPathway pathway = VUE.getActivePathway();
         	if (!pathway.isOpen())
         		pathway.setOpen(true);
             VUE.getActivePathway().add(i);
