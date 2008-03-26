@@ -28,7 +28,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.13 $ / $Date: 2008-03-26 14:32:53 $ / $Author: mike $ 
+ * @version $Revision: 1.14 $ / $Date: 2008-03-26 16:25:21 $ / $Author: mike $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -58,18 +58,9 @@ public final class MasterSlide extends LWSlide
     public Object getTypeToken() {
         return null;
     }
-
-    public void copyStyle(LWComponent c)
-    {
-    	super.copyStyle(c);
-    	if (c instanceof MasterSlide)
-    	{
-    		setTitleStyle(((MasterSlide)c).getTitleStyle());
-    		setLinkStyle(((MasterSlide)c).getLinkStyle());
-    		setTextStyle(((MasterSlide)c).getTextStyle());
-    	}
+    
     	
-    }
+
     @Override
     public final void setParent(LWContainer parent) {
         if (parent instanceof LWPathway) {

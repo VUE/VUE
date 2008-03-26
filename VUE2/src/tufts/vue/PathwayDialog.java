@@ -110,7 +110,12 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
           	if (activePath != null)
           	{
           		MasterSlide masterSlide = activePath.getMasterSlide();
-          		path.getMasterSlide().setStyle(masterSlide);
+          		//path.getMasterSlide().setStyle(masterSlide);
+        		path.getMasterSlide().setTitleStyle(masterSlide.getTitleStyle());
+        		path.getMasterSlide().setLinkStyle(masterSlide.getLinkStyle());
+        		path.getMasterSlide().setTextStyle(masterSlide.getTextStyle());
+        		path.getMasterSlide().setFillColor(masterSlide.getFillColor());
+
           	}
               VUE.getActiveMap().addPathway(path);                
               VUE.setActive(LWPathway.class, this, path);
