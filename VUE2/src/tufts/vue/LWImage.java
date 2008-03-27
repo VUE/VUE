@@ -608,7 +608,14 @@ public class LWImage extends
         if (mImageAspect > 0) {
      
                 if (DEBUG.IMAGE) out("autoShapeToAspect  in: " + width + "," + height);
-            //	Size newSize = ConstrainToAspect(mImageAspect, width, height);
+                
+             
+            	Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            	/*
+            	 * Added this in response to VUE-948
+            	 */
+            	if ((DEBUG.Enabled || DEBUG.IMAGE) && newSize.width != width || newSize.height !=height)
+            		System.out.println("autoShapeToAspect in:" + width + "," + height + " out newSize: " + newSize.width + "," + newSize.height);
             	//if (DEBUG.IMAGE) out("autoShapeToAspect out: " + newSize);
             	//setSize(newSize.width, newSize.height);
         }
