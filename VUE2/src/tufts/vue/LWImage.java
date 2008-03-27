@@ -594,18 +594,23 @@ public class LWImage extends
         mImageAspect = ((double)w) / ((double)h);
         // todo: may want to just always update the node status here -- covers most cases, plus better when the drop code calls this?
         if (DEBUG.IMAGE) out("setImageSize " + w + "x" + h + " aspect=" + mImageAspect);
-
-        autoShapeToAspect();
+        /*
+			If below stops autoShapeToAspect from being called with default data,
+			as well as cases where it'd be moot anyway.
+		*/
+        if (!(w == h && mImageAspect == 1.0))
+        	autoShapeToAspect();
         
         //setAspect(aspect); // LWComponent too paternal for us right now
     }
 
     private void autoShapeToAspect() {
         if (mImageAspect > 0) {
-            if (DEBUG.IMAGE) out("autoShapeToAspect  in: " + width + "," + height);
-            Size newSize = ConstrainToAspect(mImageAspect, width, height);
-            //if (DEBUG.IMAGE) out("autoShapeToAspect out: " + newSize);
-            setSize(newSize.width, newSize.height);
+     
+                if (DEBUG.IMAGE) out("autoShapeToAspect  in: " + width + "," + height);
+            	Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            	//if (DEBUG.IMAGE) out("autoShapeToAspect out: " + newSize);
+            	setSize(newSize.width, newSize.height);
         }
     }
 
