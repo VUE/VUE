@@ -31,6 +31,7 @@ import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 
 import java.util.*;
+import java.util.regex.*;
 import java.net.*;
 //import tufts.vue.beans.UserMapType; // remove: old SB stuff we never used
 import tufts.vue.filter.*;
@@ -45,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.399 $ / $Date: 2008-03-06 20:33:26 $ / $Author: mike $
+ * @version $Revision: 1.400 $ / $Date: 2008-03-27 19:58:30 $ / $Author: anoop $
  * @author Scott Fraize
  */
 
@@ -1688,6 +1689,7 @@ u                    getSlot(c).setFromString((String)value);
      */
     void setLabel0(String newLabel, boolean setDocument)
     {
+        newLabel = cleanControlChars(newLabel);
         Object old = this.label;
         if (this.label == newLabel)
             return;
@@ -6414,7 +6416,19 @@ u                    getSlot(c).setFromString((String)value);
         
     }
     
-
+    private String cleanControlChars(String s) {
+        String patternString = "";
+        for(int i =0;i<10;i++) {
+            patternString += "(\\u000"+i+")|";
+        }
+        patternString +=    "(\\u000A)|(\\u000B)|(\\u000C)|(\\u000D)|(\\u000F)|(\\u0010)|(\\u0011)|(\\u0012)|(\\u0013)|(\\u0014)";    
+        patternString +=    "(\\u0015)|(\\u0016)|(\\u0017)";    
+       
+        Pattern control = Pattern.compile(patternString); // need to make this better
+        Matcher m = control.matcher(s);
+        s=  m.replaceAll("");
+        return s;
+    }
     
     public String toString()
     {

@@ -64,7 +64,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.107 $ / $Date: 2008-03-14 17:36:20 $ / $Author: anoop $
+ * @version $Revision: 1.108 $ / $Date: 2008-03-27 19:58:30 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -658,7 +658,8 @@ public class ActionUtil
             // updated before returning.
             map.setFile(file);
         }
-    
+       // map.addNode(new tufts.vue.LWNode("Hello "+((char)15)+((char)23)));
+        
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Marshalling " + map + " ...");
         Log.debug("marshalling " + map + " ...");
         //map.addNode(new tufts.vue.LWNode("Hello World:"+((char)11)));
