@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.400 $ / $Date: 2008-03-27 19:58:30 $ / $Author: anoop $
+ * @version $Revision: 1.401 $ / $Date: 2008-03-27 22:12:33 $ / $Author: anoop $
  * @author Scott Fraize
  */
 
@@ -1729,6 +1729,7 @@ u                    getSlot(c).setFromString((String)value);
 
     public void setNotes(String pNotes)
     {
+        pNotes = cleanControlChars(pNotes);
         Object old = this.notes;
         if (pNotes == null) {
             this.notes = null;
