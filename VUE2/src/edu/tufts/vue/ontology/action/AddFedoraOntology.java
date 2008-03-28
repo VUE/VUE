@@ -50,7 +50,8 @@ public class AddFedoraOntology extends VueAction{
                 URL ontURL = VueResources.getURL("fedora.ontology.rdf");
                 URL cssURL = VueResources.getURL("fedora.ontology.css");
                 tufts.vue.gui.Widget w = browser.addTypeList(list,edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ontURL.getFile()),ontURL);
-                list.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),browser,w);
+                //list.loadOntology(ontURL,cssURL,OntologyChooser2.getOntType(ontURL),browser,w);
+                list.loadOntology(ontURL,cssURL,edu.tufts.vue.ontology.OntologyType.RDFS_TYPE,browser,w);
 
     }
     
