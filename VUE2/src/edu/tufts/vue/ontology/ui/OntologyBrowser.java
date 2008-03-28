@@ -238,6 +238,8 @@ public class OntologyBrowser extends JPanel {
                 //should be able to do better than this -- validate(), repaint() don't seem to work..
                 resultsStack.updateUI();
                 getViewer().getList().updateUI();
+                
+                edu.tufts.vue.ontology.OntManager.getOntManager().save();
 
             }
         }
