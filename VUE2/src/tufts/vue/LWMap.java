@@ -16,6 +16,9 @@
 package tufts.vue;
 
 import tufts.Util;
+import tufts.vue.LWComponent.ColorProperty;
+import tufts.vue.LWComponent.Key;
+import tufts.vue.LWComponent.Property;
 import tufts.vue.filter.*;
 
 import java.net.URI;
@@ -55,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.180 $ / $Date: 2008-03-13 19:33:45 $ / $Author: mike $
+ * @version $Revision: 1.181 $ / $Date: 2008-03-28 19:20:24 $ / $Author: mike $
  */
 
 public class LWMap extends LWContainer
@@ -106,6 +109,8 @@ public class LWMap extends LWContainer
 
     private static final String InitLabel = "<map-during-XML-restoration>";
     
+    public final ColorProperty mPresentationColor = new ColorProperty(KEY_FillColor, new java.awt.Color(32,32,32));
+    public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)   { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
     
     // only to be used during a restore from persisted
     public LWMap() {
@@ -1035,6 +1040,26 @@ if (!tufts.vue.action.SaveAction.VAR_DEBUG)
 //         }
     }
 
+    //for peristance
+    public String getPresentationBackground()
+    {
+    	return mPresentationColor.asString();
+    }
+    //for persistance
+    public void setPresentationBackground(String c)
+    {
+    	mPresentationColor.setFromString(c);
+    }
+    public java.awt.Color getPresentationBackgroundValue()
+    {
+    	return mPresentationColor.get();
+    }
+    
+    public void setPresentationBackgroundValue(java.awt.Color c)
+    {
+    	mPresentationColor.set(c);
+    }
+    
     public java.awt.image.BufferedImage createImage(double alpha, java.awt.Dimension maxSize, java.awt.Color fillColor, double mapZoom) {
         return super.createImage(alpha, maxSize, fillColor == null ? getFillColor() : fillColor, mapZoom);
     }

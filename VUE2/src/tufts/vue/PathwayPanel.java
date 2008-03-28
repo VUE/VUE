@@ -23,11 +23,16 @@ import tufts.vue.gui.formattingpalette.ButtonlessComboBoxUI;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 import javax.swing.*;
 import javax.swing.event.*;
 import javax.swing.plaf.TreeUI;
 import javax.swing.table.*;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.html.CSS;
+import javax.swing.text.html.HTML;
 import javax.swing.border.*;
 
 import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
@@ -46,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.120 $ / $Date: 2008-03-12 13:48:02 $ / $Author: mike $
+ * @version $Revision: 1.121 $ / $Date: 2008-03-28 19:20:24 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -102,6 +107,8 @@ public class PathwayPanel extends JPanel
     //private JLabel lblMapView = new JLabel(VueResources.getString("presentationDialog.mapview.label"));
     //private JLabel lblMapView = new JLabel("Slide Icons");
     //private JLabel lblPlayback = new JLabel(VueResources.getString("presentationDialog.playback.label"));
+    private JLabel lblPresentationBackground = new JLabel(VueResources.getString("presentationDialog.presentationBackground.label"));
+    private ColorMenuButton bkgrndColorButton = null;
 
     public PathwayTable mPathwayTable;
     private PathwayTableModel mTableModel;
@@ -150,6 +157,10 @@ public class PathwayPanel extends JPanel
 //    	btnDisplayAsMap.setEnabled(false);
   //  	btnDisplayAsText.setEnabled(false);
     	//END    	
+
+        Color[] bkColors = VueResources.getColorArray("prsntBkgrndColorValues");
+        //String[] textColorNames = VueResources.getStringArray("textColorNames");
+        bkgrndColorButton = new ColorMenuButton(bkColors, true);
 
         LWPathway.setShowSlides(btnShowSlides.isSelected());    
     	
@@ -308,28 +319,89 @@ public class PathwayPanel extends JPanel
         c.gridx=0;
         add(tablePane,c);
         
-        c.gridheight=1;
-        c.fill = GridBagConstraints.NONE;
-        c.gridwidth=4;
-        c.gridy=3;
-        c.weighty=0.05;
-        c.gridx=0;
-        c.anchor=GridBagConstraints.EAST;
+        JPanel enclosingPanel = new JPanel();
+        enclosingPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy=0;
+        gbc.gridx=0;
+        gbc.gridwidth=1;
+        gbc.anchor=GridBagConstraints.WEST;
+        gbc.fill=GridBagConstraints.BOTH;
+        gbc.insets = new Insets(0,0,0,0);
+        lblPresentationBackground.setFont(smallFont);
+        enclosingPanel.add(lblPresentationBackground,gbc);
+        
+        gbc.anchor=GridBagConstraints.WEST;     
+        gbc.gridx=1;
+        if (VUE.getActiveMap() == null)        	
+        	bkgrndColorButton.selectValue(new Color(32,32,32));
+        else
+        	bkgrndColorButton.selectValue(VUE.getActiveMap().getPresentationBackgroundValue());
+        bkgrndColorButton.setPropertyKey(LWKey.PresentationColor);
+        bkgrndColorButton.addPropertyChangeListener( new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent e) 
+            {
+            
+            	 if (e instanceof LWPropertyChangeEvent == false)
+                     return;
+            	 Color color = null;
+                
+                 color= (Color) e.getNewValue();
+                
+                                
+                
+                final String colorString = "#" + Integer.toHexString(color.getRGB()).substring(2);
+                //System.out.println(colorString); 
+                VUE.getActiveMap().setPresentationBackgroundValue(color);
+            }
+        });
+        
+        tufts.vue.VUE.addActiveListener(tufts.vue.LWMap.class,new ActiveListener()
+        {
+
+			public void activeChanged(ActiveEvent e) 
+			{
+				//System.out.println("ACTIVE MAP CHANGED");
+				if (e== null || e.active == null)
+					return;
+				LWMap map = (LWMap)e.active;
+				bkgrndColorButton.selectValue(map.getPresentationBackgroundValue());
+			}
+        }); 
+        //gbc.insets = new Insets(0,0,0,300);                       
+        enclosingPanel.add(bkgrndColorButton,gbc);
+        gbc.anchor=GridBagConstraints.EAST;
+        //gbc.insets = new Insets(0,300,0,0);
+        gbc.gridx=2;
+        gbc.weightx=9.0;
+        gbc.fill=GridBagConstraints.REMAINDER;
+        gbc.insets = new Insets(0,0,0,0);
         btnPresentationDelete.setBorderPainted(false);
         btnPresentationDelete.setContentAreaFilled(false);
         btnPresentationDelete.setBorder(BorderFactory.createEmptyBorder());
-        add(btnPresentationDelete,c);
+        enclosingPanel.add(btnPresentationDelete,gbc);
+        
+        c.gridheight=1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.gridwidth=4;
+        c.gridy=4;
+        c.weighty=0.05;
+        c.gridx=0;
+        c.anchor=GridBagConstraints.WEST;    
+        //enclosingPanel.setBackground(Color.red);
+        add(enclosingPanel,c);
+        
         //-------------------------------------------------------
         // Add the notes panel
         //-------------------------------------------------------
-        c.anchor=GridBagConstraints.CENTER;
+       /* c.anchor=GridBagConstraints.CENTER;
         c.insets = new Insets(1,1,1,1);
         c.fill = GridBagConstraints.BOTH;
         c.weighty = 1.0;
         c.gridheight=1;
         c.gridwidth=4;
         c.gridy=4;
-        c.gridx=0;
+        c.gridx=0;*/
       //  notesPanel.setPreferredSize(new Dimension(getWidth(), 80));
       //  bag.setConstraints(notesPanel, c);
        // add(notesPanel);

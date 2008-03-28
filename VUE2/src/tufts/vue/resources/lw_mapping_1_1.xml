@@ -294,7 +294,11 @@
 		<field name="userOrigin">
 			<bind-xml name="userOrigin" node="element"/>
 		</field>
+			<field name="presentationBackground">
+			<bind-xml name="presentationBackground" node="attribute"/>
+		</field>		
 		<!-- field name="Pathways" type="tufts.vue.LWPathwayList" -->
+		
 		<field name="PathwayList">
 			<bind-xml name="PathwayList" node="element"/>
 		</field>

@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.524 $ / $Date: 2008-03-24 19:34:29 $ / $Author: mike $ 
+ * @version $Revision: 1.525 $ / $Date: 2008-03-28 19:20:24 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -2643,4 +2643,11 @@ public class VUE
     static protected void out(Object o) {
         System.out.println(o == null ? "null" : o.toString());
     }
+	public static Color getPresentationBackground() {
+		final Color defaultColor= new Color(32,32,32);
+		if (VUE.getActiveMap() != null)
+			return VUE.getActiveMap().getPresentationBackgroundValue();
+		else
+			return defaultColor;
+	}
 }

@@ -2519,15 +2519,12 @@ public class PresentationTool extends VueTool
 
         return dc;
     }
-
-    private static final Color DefaultFill = new Color(32,32,32);
-        
     
     @Override
     public void handlePreDraw(DrawContext dc, MapViewer viewer) {
 
         if (dc.focal instanceof LWMap || mPathway == null) {
-            dc.fillBackground(DefaultFill);
+            dc.fillBackground(VUE.getActiveMap().getPresentationBackgroundValue());
             return;
         }
 

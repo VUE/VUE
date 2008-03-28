@@ -35,7 +35,8 @@ public interface LWKey {
     public String UserActionCompleted = "user.action.completed";
     
     public LWComponent.Key FillColor = LWComponent.KEY_FillColor; 
-    public LWComponent.Key TextColor = LWComponent.KEY_TextColor; 
+    public LWComponent.Key TextColor = LWComponent.KEY_TextColor;
+    public LWComponent.Key PresentationColor = LWMap.KEY_PresentationColor; 
     public LWComponent.Key StrokeColor = LWComponent.KEY_StrokeColor; 
     public LWComponent.Key StrokeWidth = LWComponent.KEY_StrokeWidth;
     public LWComponent.Key StrokeStyle = LWComponent.KEY_StrokeStyle;
