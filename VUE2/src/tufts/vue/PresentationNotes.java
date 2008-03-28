@@ -831,10 +831,12 @@ public class PresentationNotes {
                 	p.setAlignment(Element.ALIGN_CENTER);
                                                 
                 	Phrase phrase = new Phrase(notes);
+                	
                 	Font f = phrase.getFont();
                 	f.setSize(8.0f);
                 	p.setFont(f);
                 	cell = new PdfPCell(phrase);
+                	cell.setVerticalAlignment(PdfPCell.ALIGN_MIDDLE);
                 	cell.setBorder(0);         
                 
                 	PdfPCell i2 = new PdfPCell();
@@ -872,6 +874,7 @@ public class PresentationNotes {
  
                 	dc.setClipOptimized(false);
                     node.drawFit(dc,15);
+                    
 
                                                                                             
                     g2d.dispose();                                                                                                         

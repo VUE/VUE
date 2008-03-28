@@ -89,7 +89,7 @@ public class Actions implements VueConstants
     	new VueAction("Node notes outline") {
 		public void act() 
 		{
-			File pdfFile = getFileForActiveMap();
+			File pdfFile = getFileForActiveMap("Node_Outline");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createNodeOutline(pdfFile);
 		}
@@ -137,6 +137,10 @@ public class Actions implements VueConstants
     }
     private static final File getFileForActiveMap()
     {
+    	return getFileForActiveMap(null);
+    }
+    private static final File getFileForActiveMap(String type)
+    {
     	if (VUE.getActiveMap() == null)
     	{
 			VueUtil.alert(null,"There is no active map, please open a valid map.", "Invalid Map");
@@ -148,7 +152,10 @@ public class Actions implements VueConstants
 		String baseName = VUE.getActiveMap().getLabel();
 		if (baseName.indexOf(".") > 0)
 			baseName = VUE.getActiveMap().getLabel().substring(0, baseName.lastIndexOf("."));
-		baseName = baseName.replaceAll("\\*","");
+		if (type != null)
+			baseName = baseName.replaceAll("\\*","") +"_"+type;
+		else
+			baseName = baseName.replaceAll("\\*","");
 		
 		chooser.setSelectedFile(new File(baseName));
 		chooser.setDialogTitle("Save PDF as");
@@ -199,7 +206,7 @@ public class Actions implements VueConstants
     	new VueAction("Nodes and notes (up to 4 per page)") {
 		public void act() 
 		{
-			File pdfFile = getFileForPresentation("Node notes");
+			File pdfFile = getFileForActiveMap("Node_Notes");
 			if (pdfFile != null)
 				tufts.vue.PresentationNotes.createNodeNotes4PerPage(pdfFile);
 		}
