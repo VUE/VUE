@@ -295,7 +295,7 @@
 			<bind-xml name="userOrigin" node="element"/>
 		</field>
 			<field name="presentationBackground">
-			<bind-xml name="presentationBackground" node="attribute"/>
+			<bind-xml name="presentationBackground" node="element"/>
 		</field>		
 		<!-- field name="Pathways" type="tufts.vue.LWPathwayList" -->
 		
