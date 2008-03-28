@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.517 $ / $Date: 2008-03-28 20:09:01 $ / $Author: mike $ 
+ * @version $Revision: 1.518 $ / $Date: 2008-03-28 20:53:33 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3991,6 +3991,25 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	
     }
     
+    private void buildSingleSelectionPortalPopup()
+    {
+    	infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.portalInfo.label"));
+    	if (VUE.getInfoDock().isShowing())
+        	infoCheckBox.setSelected(true);
+    	sSinglePopup.add(infoCheckBox);
+    	sSinglePopup.addSeparator();
+    	sSinglePopup.add(Actions.LaunchPresentation);
+    	sSinglePopup.add(Actions.ContextNotesAction);
+   	    sSinglePopup.add(Actions.ContextKeywordAction);
+   	    sSinglePopup.addSeparator();
+   	    sSinglePopup.add(Actions.Copy);
+   	    sSinglePopup.add(Actions.Paste);
+   	    sSinglePopup.add(Actions.Delete);
+   	    
+        
+    	
+    }
+    
     private void buildSingleSelectionGroupPopup()
     {
     	 sSinglePopup.add(Actions.Ungroup);
@@ -4062,9 +4081,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
         }
         
-        if (c instanceof LWNode)
+        if (c instanceof LWNode )
         {
-        	buildSingleSelectionNodePopup(c);
+        	if (c instanceof LWPortal)
+        		buildSingleSelectionPortalPopup();
+        	else
+        		buildSingleSelectionNodePopup(c);
        
         }
         else if (c instanceof LWLink)
