@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.34 $ / $Date: 2008-02-22 14:52:14 $ / $Author: dan $
+ * @version $Revision: 1.35 $ / $Date: 2008-03-28 19:30:50 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -60,6 +60,9 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     //public static final String parameterChoiceMessageString = "Select a vizualization mode:";
     public static final String intervalChoiceMessageString = "Set number of intervals:";
     public static final String paletteChoiceMessageString = "Select a color Palette:";
+    
+    private static final boolean EDITABLE_INTERVALS = false;
+    private static final boolean DEBUG_LOCAL = false;
     
     private JComboBox parameterChoice;
     private JComboBox intervalNumberChoice;
@@ -492,8 +495,20 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             add(endField);
             percentageLabel.setForeground(startField.getForeground());
             add(percentageLabel);
-            startField.setEnabled(false);
-            endField.setEnabled(false);
+            
+            if(EDITABLE_INTERVALS)
+            {
+              startField.setEnabled(false);
+               if(row == 4)
+                endField.setEnabled(false);
+               else
+                endField.setEnabled(true);
+            }
+            else
+            {
+                startField.setEnabled(false);
+                endField.setEnabled(false);
+            }
             return this;
         }
     }
@@ -506,10 +521,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         private JLabel percentageLabel = new JLabel("%");
         private JPanel panel = new JPanel();
         
-        /*public boolean stopCellEditing() {
-           // not needed -- MergeMapControlPanel should just read the intervals when
-           // merge is requested 
-        }*/
+        private int currentRow = 0;
         
         public PercentageIntervalEditor() {
             startField.setHorizontalAlignment(JTextField.LEFT);
@@ -519,20 +531,143 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             panel.add(endField);
             percentageLabel.setForeground(startField.getForeground());
             panel.add(percentageLabel);
+            
+            endField.addKeyListener(new java.awt.event.KeyAdapter()
+            {
+                public void keyTyped(java.awt.event.KeyEvent e)
+                {
+                    if(!Character.isDigit(e.getKeyChar()))
+                    {
+                        if(DEBUG_LOCAL)
+                        {
+                            System.out.println("WVSP: character is not a digit..." + e.getKeyChar());
+                        }
+                        e.consume();
+                    }
+                    
+                    if(DEBUG_LOCAL)
+                    {
+                        System.out.println("WVSP: endField text:"  + endField.getText());
+                    }
+                    
+                    int value = 0;
+                    
+                    try
+                    {        
+                      value = Integer.parseInt(endField.getText() + e.getKeyChar());
+                    }
+                    catch(Exception exc)
+                    {
+                        
+                    }
+                    
+                    int lowValue = Integer.parseInt(startField.getText());
+                    
+                    if(value > 100) // || !(value > lowValue)) 
+                        e.consume();
+                }
+            });
+            
+            endField.addFocusListener(new java.awt.event.FocusAdapter(){
+               public void focusLost(java.awt.event.FocusEvent evt)
+               {
+                   
+                   // compute row from evt? since these components are re-used
+                   // for each row?
+                   
+                   //int computedRow =  
+                   
+                   if(currentRow<4)
+                   {
+                       //(need doubles?)
+                       String currentStartField = startField.getText();
+                       String nextStartField = endField.getText();
+                       
+                       int startValue = 0;
+                       
+                       startValue = Integer.parseInt(currentStartField);
+                       
+                       int value = 0;
+                       
+                       // need to choose proper model...
+                       int nextEndValue = ((PercentageInterval)intervalList.getModel().getValueAt(currentRow+1,0)).getEnd();
+                       
+                       try
+                       {        
+                         value = Integer.parseInt(nextStartField);
+                       }
+                       catch(Exception e)
+                       {
+                         endField.setText("0");
+                       }
+                       if(value >nextEndValue)
+                       {
+                           nextStartField = nextEndValue - 1 + "";
+                           //stopCellEditing();
+                           intervalList.getModel().setValueAt(new PercentageInterval(value/*(int)Double.parseDouble(startField.getText())*/,nextEndValue),currentRow+1,0);
+                           //endField.setText("100");
+                       }
+                       else if(value < startValue)
+                       {
+                           stopCellEditing();
+                           //endField.setText(startValue + 1 + "");
+                           nextStartField = endField.getText();
+                       }
+                       
+                       //if(link)
+                         //!! watch for exceptions:
+                      //   linkModel.setValueAt(Double.parseDouble(nextStartField)
+                      //           ,row+1,0);
+                       //if(node)
+                       
+                       if(DEBUG_LOCAL)
+                       {
+                         System.out.println("--------------");
+                         //System.out.println("WVSP focus lost: " + Double.parseDouble(nextStartField) );
+                         System.out.println("WVSP focus lost -- currentRow: " + currentRow);
+                         System.out.println("--------------");
+                       }
+                       
+                         // really need to reset all values starting at this location...
+                         try
+                         {
+                            intervalList.getModel().setValueAt(new PercentageInterval(startValue,(int)Double.parseDouble(nextStartField)),currentRow,0);
+                            intervalList.getModel().setValueAt(new PercentageInterval((int)Double.parseDouble(nextStartField),nextEndValue),currentRow+1,0);                           
+                         }
+                         catch(Exception e)
+                         {
+                             
+                         }
+  
+                         //nodeModel.refresh();
+                         //intervalList.repaint();
+                   }
+               }
+            });
+
+            
         }
         
-        public java.awt.Component getTableCellEditorComponent(JTable table,Object value,boolean isSelected,int row,int col) {
+        public java.awt.Component getTableCellEditorComponent(JTable table,Object value,boolean isSelected,final int row,int col) {
             if(value instanceof PercentageInterval) {
                 PercentageInterval pi = (PercentageInterval)value;
                 startField.setText(pi.getStart()+"");
+                startField.setEnabled(false);
                 endField.setText(pi.getEnd()+"");
+                if(row == 4)
+                    endField.setEnabled(false);
+                else
+                    endField.setEnabled(true);
             } else {
                 startField.setText("0");
                 endField.setText("0");
             }
             
+            
             //startField.setEnabled(false);
             //endField.setEnabled(false);
+            
+            currentRow = row;
             
             /*p.addMouseListener(new java.awt.event.MouseAdapter(){
                public void mouseClicked(java.awt.event.MouseEvent e)
@@ -545,7 +680,14 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         }
         
         public Object getCellEditorValue() {
-            return new PercentageInterval(Integer.parseInt(startField.getText()),Integer.parseInt(endField.getText()));
+            try
+            {
+              return new PercentageInterval(Integer.parseInt(startField.getText()),Integer.parseInt(endField.getText()));
+            }
+            catch(Exception e)
+            {
+              return 0;
+            }
         }
         
     }
@@ -579,6 +721,8 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             renderer.add(buttonImage);
             renderer.add(hotSpot);
             
+            
+            renderer.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,5,0,5));
             //$
               //renderer.setOpaque(true);
               //renderer.setBackground(java.awt.Color.RED);
@@ -682,7 +826,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     }
     
     
-    class IntervalListModel implements TableModel {
+    class IntervalListModel extends javax.swing.table.DefaultTableModel {//implements TableModel {
         
         private List<PercentageInterval> piList = new ArrayList<PercentageInterval>();
         private List<IntervalStylePreview> ispList = new ArrayList<IntervalStylePreview>();
@@ -692,12 +836,17 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             ispList.add(new IntervalStylePreview(backColor,foreColor));
         }
         
-        public void addTableModelListener(TableModelListener tml) {
-            
-        }
+        //public void addTableModelListener(TableModelListener tml) {
+        //    
+        //}
         
-        public void removeTableModelListener(TableModelListener tml) {
-            
+        //public void removeTableModelListener(TableModelListener tml) {
+        //    
+        //}
+        
+        public void refresh()
+        {
+           fireTableDataChanged();   
         }
         
         public Class getColumnClass(int col) {
@@ -721,7 +870,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         }
         
         public int getRowCount() {
-            return piList.size();
+            if(piList != null)
+              return piList.size();
+            else
+              return 0;
         }
         
         public Object getValueAt(int row,int col) {
@@ -733,10 +885,15 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
         }
         
         public boolean isCellEditable(int row,int col) {
-            if(col == 1)
-             return true;
-            else
-             return false;
+            
+            if(!EDITABLE_INTERVALS)
+            {    
+              if(col == 1)
+                return true;
+              else
+                return false;
+            }
+            return true;
         }
         
         public void setValueAt(Object value,int row,int col) {
