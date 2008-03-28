@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.516 $ / $Date: 2008-03-26 13:57:11 $ / $Author: mike $ 
+ * @version $Revision: 1.517 $ / $Date: 2008-03-28 20:09:01 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4017,6 +4017,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
          sSinglePopup.add(Actions.Delete);    	 
     }
     
+    private void buildSingleSelectionImagePopup()
+    {
+    	 infoCheckBox.setLabel(VueResources.getString("mapViewer.componentMenu.imageInfo.label"));
+    	 if (VUE.getInfoDock().isShowing())
+         	infoCheckBox.setSelected(true);
+     	 sSinglePopup.add(infoCheckBox);
+     	 sSinglePopup.addSeparator();
+      	 sSinglePopup.add(Actions.ContextNotesAction);
+    	 sSinglePopup.add(Actions.ContextKeywordAction);
+
+    	 sSinglePopup.addSeparator();
+    	 sSinglePopup.add(Actions.Copy);
+         sSinglePopup.add(Actions.Paste);    
+         sSinglePopup.add(Actions.Delete);    	 
+    }
     private JMenu syncMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.syncMenu.label"));
     private JMenu arrangeMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.arrangeMenu.label"));
     
@@ -4066,6 +4081,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else if (c instanceof LWGroup)
         {
         	buildSingleSelectionGroupPopup();
+        }
+        else if (c instanceof LWImage)
+        {
+        	buildSingleSelectionImagePopup();
         }
         /*
         //Manage pathway list
