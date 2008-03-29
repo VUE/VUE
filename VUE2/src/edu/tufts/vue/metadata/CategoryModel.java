@@ -57,11 +57,21 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
             loadDefaultVUEOntologies();
             loadCustomOntology(false);
             
-            if(defaultOntologyUrls[VRA].toString().indexOf("/edu/tufts/vue/metadata/vra_core_3.rdf") == -1)
+            /*if(defaultOntologyUrls[VRA].toString().indexOf("/edu/tufts/vue/metadata/vra_core_3.rdf") == -1)
             {
                 System.out.println("warning: may be removing incorrect VRA url " + defaultOntologyUrls[VRA] );
             }
-            removeDefaultOntology(VRA);
+            removeDefaultOntology(VRA);*/
+            
+            edu.tufts.vue.preferences.implementations.MetadataSchemaPreference
+                    msp =
+                    edu.tufts.vue.preferences.implementations.MetadataSchemaPreference.getInstance();
+            
+            if(!msp.getDublinCoreValue())
+                removeDefaultOntology(DUBLIN_CORE);
+            
+            if(!msp.getVRAValue())
+                removeDefaultOntology(VRA);
             
             ontologiesLoaded = true;
           }
@@ -83,6 +93,28 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
             } catch(Throwable t) {
                 Log.error("Problem loading metadata: "+defaultOntologyUrls[i]+" Error:"+t.getMessage());
             }
+        }
+    }
+    
+    public void loadDefaultVUEOntology(int location) {
+        defaultOntologyUrls = tufts.vue.VueResources.getStringArray("metadata.load.files");
+        //for(int i =0;i<defaultOntologyUrls.length;i++) {
+            try {
+                loadOntology(location,tufts.vue.VueResources.getBundle().getClass().getResource(defaultOntologyUrls[location]));
+            } catch(Throwable t) {
+                Log.error("Problem loading metadata: "+defaultOntologyUrls[location]+" Error:"+t.getMessage());
+            }
+        //}
+    }
+  
+    public void  loadOntology(int location,URL url) {
+        if(ontCache.get(url) == null) {
+            edu.tufts.vue.ontology.Ontology ontology = new RDFSOntology(url);
+            //ontTypesCount += ontology.getOntTypes().size();
+            set(location,ontology);
+            ontCache.put(url,ontology);
+        } else {
+            set(location,ontCache.get(url));
         }
     }
     
@@ -129,12 +161,20 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
     {
         if(location == DUBLIN_CORE)
         {
-            remove(defaultOntologyUrls[DUBLIN_CORE]);
+            //remove(defaultOntologyUrls[DUBLIN_CORE]);
+            edu.tufts.vue.ontology.Ontology dcOntology = ontCache.get(tufts.vue.VueResources.getBundle().getClass().getResource(defaultOntologyUrls[DUBLIN_CORE]));
+            RDFSOntology emptyOntology = new RDFSOntology();
+            set(DUBLIN_CORE,emptyOntology);
+            //set(dcOntologyLocation,emptyOntology);
+            //remove(dcOntology);
         }
         
         if(location == VRA)
         {
             edu.tufts.vue.ontology.Ontology vraOntology = ontCache.get(tufts.vue.VueResources.getBundle().getClass().getResource(defaultOntologyUrls[VRA]));
+            RDFSOntology emptyOntology = new RDFSOntology();
+            set(VRA,emptyOntology);
+            // VRALocation...
             remove(vraOntology);
         }
     }

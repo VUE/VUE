@@ -172,9 +172,47 @@ public class MetadataSchemaPreference extends BasePref implements ItemListener
 		//Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		//p.putBoolean(getPrefName(), box.isSelected());
 		if (box.equals(dublinCoreCheckbox))
+                {    
 			setValue(dublinCoreName,Boolean.valueOf(box.isSelected()));
+                        if(box.isSelected())
+                        {
+                            edu.tufts.vue.metadata.CategoryModel cats =
+                                    tufts.vue.VUE.getCategoryModel();
+                            
+                            cats.loadDefaultVUEOntology(
+                                    edu.tufts.vue.metadata.CategoryModel.DUBLIN_CORE);
+                                    
+                        }
+                        if(!box.isSelected())
+                        {
+                            edu.tufts.vue.metadata.CategoryModel cats =
+                                    tufts.vue.VUE.getCategoryModel();
+                            
+                            cats.removeDefaultOntology(
+                                    edu.tufts.vue.metadata.CategoryModel.DUBLIN_CORE);
+                        }
+                }
 		else if (box.equals(vraCheckbox))
+                {
 			setValue(vraName,Boolean.valueOf(box.isSelected()));
+                        if(box.isSelected())
+                        {
+                            edu.tufts.vue.metadata.CategoryModel cats =
+                                    tufts.vue.VUE.getCategoryModel();
+                            
+                            cats.loadDefaultVUEOntology(
+                                    edu.tufts.vue.metadata.CategoryModel.VRA);
+                                    
+                        }
+                        if(!box.isSelected())
+                        {
+                            edu.tufts.vue.metadata.CategoryModel cats =
+                                    tufts.vue.VUE.getCategoryModel();
+                            
+                            cats.removeDefaultOntology(
+                                    edu.tufts.vue.metadata.CategoryModel.VRA);
+                        }
+                }
 		
 	}
 	
