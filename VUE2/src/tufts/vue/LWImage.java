@@ -598,7 +598,7 @@ public class LWImage extends
 			If below stops autoShapeToAspect from being called with default data,
 			as well as cases where it'd be moot anyway.
 		*/
-  //      if (!(w == h && mImageAspect == 1.0))
+        if (!(w == h && mImageAspect == 1.0))
         	autoShapeToAspect();
         
         //setAspect(aspect); // LWComponent too paternal for us right now
@@ -617,7 +617,7 @@ public class LWImage extends
             	if ((DEBUG.Enabled || DEBUG.IMAGE) && newSize.width != width || newSize.height !=height)
             		System.out.println("autoShapeToAspect in:" + width + "," + height + " out newSize: " + newSize.width + "," + newSize.height);
             	//if (DEBUG.IMAGE) out("autoShapeToAspect out: " + newSize);
-            	//setSize(newSize.width, newSize.height);
+            	setSize(newSize.width, newSize.height);
         }
     }
 
