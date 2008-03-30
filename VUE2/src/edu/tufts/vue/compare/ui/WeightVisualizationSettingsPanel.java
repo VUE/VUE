@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.38 $ / $Date: 2008-03-30 00:35:59 $ / $Author: dan $
+ * @version $Revision: 1.39 $ / $Date: 2008-03-30 01:22:57 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -410,18 +410,18 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                 //note: when #of intervals becomes variable this will have to adjust
                 float percentage = ((++count)/(float)Colors.getIntervalCount());
                 
-                System.out.println("percentage for color " + count + "," + percentage);
+                //System.out.println("percentage for color " + count + "," + percentage);
                 
                 Style s = StyleMap.getStyle(nodeOrLink+".w" + (i++));
                 s.setAttribute("background",Style.colorToHex(colors.next()).toString());
                 if(percentage >= .8) {
-                    System.out.println("setting foreground color to white? " + count);
+                    //System.out.println("setting foreground color to white? " + count);
                     s.setAttribute("font-color",Style.colorToHex(Color.WHITE));
                 }
             }
             // loadDefaultStyles();
             loadDefaultSettings();
-            repaint();
+            repaint(); 
         }
     }
     
@@ -806,6 +806,10 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                             currStyle.setAttribute("background",Style.colorToHex(chooser.getColor()));
                         }
                     }
+                    
+                    IntervalStylePreview isp = (IntervalStylePreview)intervalList.getModel().getValueAt(currentRow,1);
+                    isp.setBackground(chooser.getColor());
+                    ((IntervalListModel)(intervalList.getModel())).setValueAt(isp,currentRow,1);
                     
                     panel.repaint();
                 }
