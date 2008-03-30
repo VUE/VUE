@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.518 $ / $Date: 2008-03-28 20:53:33 $ / $Author: mike $ 
+ * @version $Revision: 1.519 $ / $Date: 2008-03-30 23:45:24 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3771,9 +3771,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
            {        	        	        	
            	sMultiPopup = new JPopupMenu();           	
            }
-    	sMultiPopup.add(Actions.Group);
-    	sMultiPopup.add(Actions.Ungroup);
-    	sMultiPopup.addSeparator();
+    	if (!(this.getFocal() instanceof LWSlide))
+    	{
+    		sMultiPopup.add(Actions.Group);
+    		sMultiPopup.add(Actions.Ungroup);
+    		sMultiPopup.addSeparator();
+    	}
         
     	
         multiPathway = sMultiPopup.add(Actions.AddPathwayItem);

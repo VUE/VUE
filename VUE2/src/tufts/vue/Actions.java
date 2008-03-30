@@ -1501,7 +1501,7 @@ public class Actions implements VueConstants
             //return s.size() >= 2 && s.allHaveSameParent();
             
             // below condition doesn't allow explicit grouping of links -- was this causing trouble somewhere?
-            return (s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent();
+            return ((s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent() && !(VUE.getActiveViewer().getFocal() instanceof LWSlide));
         }
         void act(LWSelection s) {
             if (s.size() == 2 && s.countTypes(LWGroup.class) == 1) {
