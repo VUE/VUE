@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.37 $ / $Date: 2008-03-30 00:16:26 $ / $Author: dan $
+ * @version $Revision: 1.38 $ / $Date: 2008-03-30 00:35:59 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -772,11 +772,21 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             //hotSpot = new JLabel("[edit style]");
             hotSpot = new javax.swing.JPanel() {
                 public void paintComponent(java.awt.Graphics g) {
-                    g.drawString("  [Edit Style]",0,buttonImage.getY()+ 12);
+                    
+                    String linkOrNode = " ";
+                    
+                    if(intervalList.getModel() == nodeModel)
+                      linkOrNode = "Node ";
+                    else
+                      linkOrNode = "Link ";
+            
+                    final String lOrN = linkOrNode;
+                    g.drawString("  [Edit " + lOrN + "Color]",0,buttonImage.getY()+ 12);
                 }
             };
             panel.add(buttonImage);
             panel.add(hotSpot);
+            panel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0,5,0,5));
             //$
             final javax.swing.JColorChooser chooser = new javax.swing.JColorChooser();
             final java.awt.event.ActionListener okListener = new java.awt.event.ActionListener() {
