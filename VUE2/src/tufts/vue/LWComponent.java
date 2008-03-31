@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.401 $ / $Date: 2008-03-27 22:12:33 $ / $Author: anoop $
+ * @version $Revision: 1.402 $ / $Date: 2008-03-31 02:04:24 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -6418,6 +6418,8 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     private String cleanControlChars(String s) {
+    	if (s == null)
+    		return null;
         String patternString = "";
         for(int i =0;i<10;i++) {
             patternString += "(\\u000"+i+")|";
