@@ -609,6 +609,8 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                    
                        if(getOntType(ontURL) == null)
                        {
+                           javax.swing.JOptionPane.showMessageDialog(this,
+                                   "This ontology could not be installed. Make sure the url or file name ends with .owl or .rdf");
                            dispose();
                            return;
                        }
