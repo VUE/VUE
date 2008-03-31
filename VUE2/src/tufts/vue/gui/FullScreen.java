@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.25 $ / $Date: 2008-03-30 22:22:31 $ / $Author: mike $
+ * @version $Revision: 1.26 $ / $Date: 2008-03-31 15:39:43 $ / $Author: mike $
  *
  */
 
@@ -516,7 +516,7 @@ public class FullScreen
                 
         FullScreenViewer.loadFocal(activeFocal);
         
-        if (!goNative && activeViewer != null && activeMap != null)        
+        if (!goNative && activeViewer != null && activeMap != null && !(VUE.getActiveViewer().getFocal() instanceof tufts.vue.LWSlide))        
         {
         	if (activeViewer.getWidth() != activeViewer.getVisibleWidth() ||activeViewer.getHeight() != activeViewer.getVisibleHeight())
         		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getVisibleMapBounds());
