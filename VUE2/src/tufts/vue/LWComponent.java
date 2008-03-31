@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.402 $ / $Date: 2008-03-31 02:04:24 $ / $Author: mike $
+ * @version $Revision: 1.403 $ / $Date: 2008-03-31 15:32:42 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -6421,10 +6421,16 @@ u                    getSlot(c).setFromString((String)value);
     	if (s == null)
     		return null;
         String patternString = "";
-        for(int i =0;i<10;i++) {
+        for(int i =0;i<9;i++) {
             patternString += "(\\u000"+i+")|";
         }
-        patternString +=    "(\\u000A)|(\\u000B)|(\\u000C)|(\\u000D)|(\\u000F)|(\\u0010)|(\\u0011)|(\\u0012)|(\\u0013)|(\\u0014)";    
+        //u000D = carriage return
+        //u000C = form feed
+        //u000A = line feed
+        /// = tab
+        //(\\u000F)| = tab
+        // = tab
+        patternString +=    "(\\u000B)|(\\u000F)|(\\u0010)|(\\u0011)|(\\u0012)|(\\u0013)|(\\u0014)";    
         patternString +=    "(\\u0015)|(\\u0016)|(\\u0017)";    
        
         Pattern control = Pattern.compile(patternString); // need to make this better
