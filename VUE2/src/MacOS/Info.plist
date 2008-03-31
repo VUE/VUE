@@ -29,6 +29,7 @@
 	    <key>CFBundleTypeExtensions</key>
 	    <array>
 	      <string>vue</string>
+	      <string>vpk</string>
 	    </array>
 	    <key>CFBundleTypeIconFile</key>
 	    <string>VUE.icns</string>
