@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.519 $ / $Date: 2008-03-30 23:45:24 $ / $Author: mike $ 
+ * @version $Revision: 1.520 $ / $Date: 2008-03-31 04:14:12 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5009,6 +5009,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             final boolean wasFocusOwner;
          
+            clearRollover();
+            
             if (activeTool == ToolPresentation) {
 
                 // If presentation tool, it's worth risking the below bug to make
