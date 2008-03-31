@@ -962,7 +962,21 @@ public class Actions implements VueConstants
     public static final LWCAction AddFileAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addFile.label")) {
         public void act(LWComponent c) 
         {
-        	VueFileChooser chooser = new VueFileChooser();
+        	VueFileChooser chooser = null;
+        	if (VueUtil.isCurrentDirectoryPathSet()) 
+    		{
+    			/*
+    			 * Despite Quaqua fixes in 3.9 you can still only set the 
+    			 * current directory if you set it in the constructor, 
+    			 * setCurrentDirectory fails to do anything but cause the
+    			 * top bar and the panels to be out of sync.... -MK 10/29
+    			 */
+        		chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
+    		}
+    		else
+    			chooser = new VueFileChooser();
+        	
+        	
     		File fileName = null;
     		
             int option = chooser.showOpenDialog(tufts.vue.VUE.getDialogParent());
@@ -973,6 +987,9 @@ public class Actions implements VueConstants
                 if (fileName == null) 
                 	return;
                 
+                if (fileName.exists()) 
+           		 	VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
+
                 if (c instanceof LWNode)
                 {
                 	//Resource r = c.getResource();
