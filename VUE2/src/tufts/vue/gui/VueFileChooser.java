@@ -17,10 +17,22 @@ package tufts.vue.gui;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.EventQueue;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.awt.event.WindowStateListener;
 import java.io.File;
 
 import javax.swing.JComboBox;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.WindowConstants;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.FileChooserUI;
 import javax.swing.plaf.basic.BasicFileChooserUI;
@@ -32,12 +44,65 @@ public class VueFileChooser extends JFileChooser{
 	public VueFileChooser()
 	{
 		super();
+		
 		checkForChooser();
+		
+		
 		//an elaborate fix to avoid scrolling in the combobox drop downs in the filechooser
 		iterateContainerAndFixComboBoxes((Container)this);
 	
 		
 		 
+	}
+	protected JDialog createDialog(Component parent)
+	{
+		JDialog log = super.createDialog(parent);
+		if (tufts.Util.isUnixPlatform())
+		{	
+			log.setAlwaysOnTop(true);
+		
+			log.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			log.addWindowListener(new WindowListener(){
+
+				   
+	                
+					public void windowActivated(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowClosed(WindowEvent e) {
+						 System.out.println("HIDEN");DockWindow.ToggleAllVisible(); 
+						
+					}
+					public void windowClosing(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowDeactivated(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowDeiconified(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowIconified(WindowEvent e) {
+						// TODO Auto-generated method stub
+						
+					}
+					public void windowOpened(WindowEvent e) {
+						DockWindow.HideAllWindows(); 
+						
+					}
+					
+						
+				
+				
+			});
+							
+			
+					}
+		return log;
 	}
 	public void iterateContainerAndFixComboBoxes(Container c)
 	{
@@ -62,6 +127,7 @@ public class VueFileChooser extends JFileChooser{
 	{
 		super(f);
 		checkForChooser();
+		
 	}
 	
 	private void checkForChooser()
