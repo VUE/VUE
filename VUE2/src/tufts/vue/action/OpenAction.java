@@ -199,9 +199,26 @@ public class OpenAction extends VueAction
         
         final ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
         ZipEntry entry;
+        ZipEntry mapEntry = null;
+        String mapFile = null;
+
+        final String unpackingDir = VUE.getSystemProperty("java.io.tmpdir"); // or, could use same dir a current package file is at
+        
+        
         while ( (entry = zin.getNextEntry()) != null ) {
 
-            unzip(zin, entry, "/tmp");
+            String location = unzip(zin, entry, unpackingDir);
+
+            final String comment = SaveAction.getComment(entry);
+
+            if (comment != null && comment.startsWith(SaveAction.MapArchiveKey)) {
+                mapEntry = entry;
+                mapFile = location;
+                Log.debug("Found map in archive: " + entry + "; at " + location);
+                
+            }
+
+            
             //unzip(zin, entry, null);
             
 //             //if (DEBUG.IO) System.out.println("ZipEntry: " + e.getName());  
@@ -226,14 +243,17 @@ public class OpenAction extends VueAction
 
 //         map.markAsSaved();
 
-        return null;
+        return ActionUtil.unmarshallMap(new File(mapFile));
+
+        //return null;
     }
 
     /**
      * @param location -- if null, entry will be unzipped in local (current) working directory,
      * otherwise, entry will be unzipped at the given path location in the file system.
+     * @return filename of unzipped file
      */
-    public static void unzip(ZipInputStream zin, ZipEntry entry, String location)
+    public static String unzip(ZipInputStream zin, ZipEntry entry, String location)
         throws IOException
     {
         final String filename;
@@ -253,6 +273,7 @@ public class OpenAction extends VueAction
         }
         
         final File newFile = createFile(filename);
+        Log.info("Unpacking " + newFile);
         final FileOutputStream out = new FileOutputStream(newFile);
         byte [] b = new byte[1024];
         int len = 0;
@@ -265,6 +286,9 @@ public class OpenAction extends VueAction
         if (DEBUG.IO) {
             Log.debug("    Unzipped " + filename + "; wrote=" + wrote + "; size=" + entry.getSize());
         }
+
+        return filename;
+        
     }
 
     public static File createFile(String name)
@@ -366,6 +390,7 @@ public class OpenAction extends VueAction
 
         VUE.parseArgs(args);
         VUE.debugInit(false);
+        SaveAction.PACKAGE_DEBUG = true;
         DEBUG.IO = true;
 
         LWMap map = null;

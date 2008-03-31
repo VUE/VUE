@@ -64,7 +64,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.108 $ / $Date: 2008-03-27 19:58:30 $ / $Author: anoop $
+ * @version $Revision: 1.109 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -428,7 +428,7 @@ public class ActionUtil
     
 
     private static Mapping getMapping(URL mappingSource) {
-        if (DEBUG.IO) System.out.println("Fetching mapping: " + mappingSource);
+        if (DEBUG.IO) Log.debug("Fetching mapping: " + mappingSource);
         Object result = _loadMapping(mappingSource);
         if (result instanceof Mapping)
             return (Mapping) result;
@@ -530,21 +530,32 @@ public class ActionUtil
         marshallMapToWriter(writer, map, file);
         writer.close();
     }
+
     
-    private static class VueMarshalListener implements MarshalListener {
+    
+    private static class VueMarshallListener implements MarshalListener {
         public boolean preMarshal(Object o) {
             //if (true||DEBUG.XML) Log.debug("VML  pre: " + Util.tags(o));
             //if (o instanceof tufts.vue.Resource)
             try {
                 // TODO: create a ConditionalMarshalling interface for embedding this logic
                 // in the client classes so it's not kept here.
-//                 if (o instanceof tufts.vue.PropertyEntry && ((tufts.vue.PropertyEntry)o).getEntryKey().startsWith("@")) {
-//                     if (DEBUG.Enabled) Log.debug("Skipping " + Util.tags(o));
-//                     return false;
-//                 } else {
+                String key = null;
+                if (o instanceof tufts.vue.PropertyEntry)
+                    key = ((tufts.vue.PropertyEntry)o).getEntryKey();
+                
+                if (key != null &&
+                    (key.startsWith(tufts.vue.Resource.RUNTIME_PREFIX) ||
+                    (key.startsWith(tufts.vue.Resource.DEBUG_PREFIX) ||
+                     key.startsWith("@@") // @@ covers some old debug property keys
+                     )))
+                {
+                    if (DEBUG.Enabled) Log.debug("Skipping marshal of " + Util.tags(o));
+                    return false;
+                } else {
                     if (DEBUG.XML) Log.debug("Marshalling " + Util.tags(o));
                     return true;
-                    //                }
+                }
             } catch (Throwable t) {
                 Util.printStackTrace(t, "Marshalling condition failure on " + o);
             }
@@ -592,7 +603,7 @@ public class ActionUtil
         writer.write(VUE_COMMENT_START
                      + " Saving version " + tufts.vue.Version.WhatString
                      + " -->\n");
-        if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Wrote VUE header to " + writer);
+        if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Wrote VUE header to " + writer);
         marshaller = new Marshaller(writer);
         //marshaller.setDebug(DEBUG.CASTOR);
        marshaller.setEncoding(OUTPUT_ENCODING);
@@ -600,7 +611,7 @@ public class ActionUtil
           // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
         marshaller.setMarshalAsDocument(true);
         marshaller.setNoNamespaceSchemaLocation("none");
-        marshaller.setMarshalListener(new VueMarshalListener());
+        marshaller.setMarshalListener(new VueMarshallListener());
         // setting to "none" gets rid of all the spurious tags like these:
         // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
@@ -794,7 +805,7 @@ public class ActionUtil
         // right-quote).
         
         if (DEBUG.CASTOR || DEBUG.IO) {
-            Log.debug("\nunmarshallMap: " + url);
+            Log.debug("unmarshallMap: " + url);
             //Util.printStackTrace("UM " + url);
         }
 
@@ -834,7 +845,7 @@ public class ActionUtil
             reader.mark(2048); // a single comment line can't be longer than this...
             String line = reader.readLine();
             if (line == null) {
-                System.err.println("Unexpected end-of-stream in [" + url + "]");
+                Log.error("Unexpected end-of-stream in [" + url + "]");
                 throw new java.io.IOException("end of stream in " + url);
             }
             if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Scanning[" + line + "]");
@@ -857,14 +868,14 @@ public class ActionUtil
                 
                 //if (DEBUG.IO) System.out.println("scanning for Windows platform...");
                 if (line.indexOf("platform Windows") > 0) {
-                    if (DEBUG.IO) System.out.println(url + " was saved in the Windows environment");
+                    if (DEBUG.IO) Log.debug(url + " was saved in the Windows environment");
                     savedOnWindowsPlatform = true;
                 } else if (line.indexOf("platform Mac") > 0) {
-                    if (DEBUG.IO) System.out.println(url + " was saved in the Mac environment");
+                    if (DEBUG.IO) Log.debug(url + " was saved in the Mac environment");
                     savedOnMacPlatform = true;
                 }
             } else if (line.startsWith(VUE_COMMENT_START + " Saving version")) {
-                if (DEBUG.IO) System.out.println("Found saving version line: " + line);
+                if (DEBUG.IO) Log.debug("Found saving version line: " + line);
                 final int savingVersionIndex = line.indexOf("VUE");
                 if (savingVersionIndex > 0) {
                     savingVersion = line.substring(line.indexOf("VUE"), line.length());
@@ -874,7 +885,7 @@ public class ActionUtil
                 } else {
                     Log.warn(url + ": unknown saving version XML comment [" + line + "]");
                 }
-                if (DEBUG.IO) System.out.println("Saving version: [" + savingVersion + "]");
+                if (DEBUG.IO) Log.debug("Saving version: [" + savingVersion + "]");
             }
                 
             
@@ -909,7 +920,7 @@ public class ActionUtil
             // NOTE: We make sure we only attempt guessedEncoding if the given encoding is
             // the default input encoding: otherwise assume we're here recursively,
             // after already guessing at an encoding (otherwise, we'll loop, and blow stack)
-            if (DEBUG.IO) System.out.println("XML head [" + firstNonCommentLine + "]");
+            if (DEBUG.IO) Log.debug("XML head [" + firstNonCommentLine + "]");
             
             if (firstNonCommentLine.indexOf("encoding=\"UTF-8\"") > 0) {
 
@@ -1012,14 +1023,14 @@ public class ActionUtil
             reader.mark(2048); // a single comment line can't be longer than this...
             String line = reader.readLine();
             if (line == null) {
-                System.err.println("Unexpected end-of-stream in [" + url + "]");
+                Log.error("Unexpected end-of-stream in [" + url + "]");
                 throw new java.io.IOException("end of stream in " + url);
             }
             if (line.startsWith("<!--") == false) {
                 // we should have just hit thie "<?xml ..." line -- done with comments
                 break;
             }
-            if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Skipping[" + line + "]");
+            if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Skipping[" + line + "]");
         }
 
         // Reset the reader to the start of the last line read, which should be the <?xml line,
@@ -1040,8 +1051,8 @@ public class ActionUtil
                 //if (allowOldFormat && me.getMessage().indexOf("Unable to instantiate tufts.vue.Resource") >= 0) {
                 // 2007-10-01 SMF: rev forward the special exception to check for once again in new castor version: castor-1.1.2.1-xml.jar
                 if (allowOldFormat && me.getMessage().indexOf("tufts.vue.Resource can no longer be constructed") >= 0) {
-                    System.err.println("ActionUtil.unmarshallMap: " + me);
-                    System.err.println("Attempting specialized MapResource mapping for old format.");
+                    Log.warn("ActionUtil.unmarshallMap: " + me);
+                    Log.warn("Attempting specialized MapResource mapping for old format.");
                     // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.
                     return unmarshallMap(url, getMapping(XML_MAPPING_OLD_RESOURCES), charsetEncoding, false, savingVersion);
                 } else

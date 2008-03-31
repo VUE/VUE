@@ -30,7 +30,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.60 $ / $Date: 2008-02-22 22:15:58 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -108,12 +108,27 @@ public abstract class Resource implements Cloneable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Resource.class);
 
+    /** property keys with this prefix will be persisted, but are not meant for display to users */
+    public static final String HIDDEN_PREFIX = "@";
+    /** property keys with this prefix are for runtime display only: will not be persisted */
+    public static final String RUNTIME_PREFIX = "~"; 
+    /** property keys with this prefix are both hidden and runtime-only */
+    public static final String DEBUG_PREFIX = "##";
+    
+    public static final String PACKAGE_KEY = HIDDEN_PREFIX + "Packaged";
+    public static final String PACKAGE_FILE = RUNTIME_PREFIX + "Package.file";
+    //public static final String PACKAGE_FILE = DEBUG_PREFIX + "package.file";
+    
     // Some standard property names
     public static final String CONTENT_SIZE = "Content.size";
     public static final String CONTENT_TYPE = "Content.type";
     public static final String CONTENT_MODIFIED = "Content.modified";
     public static final String CONTENT_ASOF = "Content.asOf";
     public static final String CONTENT_SOURCE = "Content.source";
+    
+    public static final String IMAGE_FORMAT = "image.format";
+    public static final String IMAGE_WIDTH = "image.width";
+    public static final String IMAGE_HEIGHT = "image.height";
     // VUE synthesized meta-data:
     // content.type:    (content-type / mime-type -- from URL & File)
     // content.size:    (file or URL on-disk content size)
@@ -243,8 +258,8 @@ public abstract class Resource implements Cloneable
         "ASSET_OKIDR", "ASSET_FEDORA", "ASSET_OKIREPOSITORY"
     };
 
-    /** the metadata property map **/
-    final protected PropertyMap mProperties = new PropertyMap();
+    /** the metadata property map -- should be final, but not because of clone support **/
+    /*final*/ protected PropertyMap mProperties = new PropertyMap();
 
     static final long SIZE_UNKNOWN = -1;
 
@@ -279,6 +294,23 @@ public abstract class Resource implements Cloneable
                 mProperties.put(key, value);
         }
     }
+
+    /** runtime properties are for display while VUE is running only: they're not persisted */
+    protected void setRuntimeProperty(String key, Object value) {
+        setProperty(RUNTIME_PREFIX + key, value);
+    }
+    
+    /** hidden properties are neither displayed at runtime, nor persisted */
+    protected void setHiddenProperty(String key, Object value) {
+        setProperty(DEBUG_PREFIX + key, value);
+    }
+
+    /** debug properties are neither displayed at runtime, nor persisted */
+    protected void setDebugProperty(String key, Object value) {
+        setProperty(DEBUG_PREFIX + key, value);
+    }
+
+    
 
     /** @return any prior value stored for this key, null otherwise */
     public Object removeProperty(String key) {
@@ -661,7 +693,6 @@ public abstract class Resource implements Cloneable
 //      */
 //     public abstract Object getPreview(Object preferredSize);
 
-
     public abstract void setCached(boolean isCached);
 
     //public abstract java.io.InputStream getByteStream();
@@ -687,6 +718,26 @@ public abstract class Resource implements Cloneable
                              getSpec());
     }
 
+    /** @return true if the given path or filename looks like it probably contains image data in a format we understand
+     * This just looks for common extentions (e.g., .gif, .jpg, etc).  This can be applied to filenames, full paths, URL's, etc.
+     */
+    public static boolean looksLikeImageFile(String path) {
+        if (DEBUG.WORK) Log.debug("looksLikeImageFile [" + path + "]");
+        String s = path.toLowerCase();
+        if    (s.endsWith(".gif")
+            || s.endsWith(".jpg")
+            || s.endsWith(".jpeg")
+            || s.endsWith(".png")
+            || s.endsWith(".tif")
+            || s.endsWith(".tiff")
+            || s.endsWith(".fpx")
+            || s.endsWith(".bmp")
+            || s.endsWith(".ico")
+          
+               ) return true;
+        return false;
+    }
+    
     public String toString() {
         return asDebug();
     }
@@ -697,7 +748,9 @@ public abstract class Resource implements Cloneable
         // to make mProperties non-final though (java limitation)
         
         try {
-            return (Resource) super.clone();
+            final Resource clone = (Resource) super.clone();
+            clone.mProperties = mProperties.clone();
+            return clone;
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
             return null;

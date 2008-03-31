@@ -79,14 +79,14 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.53 $ / $Date: 2008-03-28 19:28:13 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(URLResource.class);
     
-    private static final String BROWSE_KEY = "@Browse";
+    //private static final String BROWSE_KEY = "@Browse";
     private static final String IMAGE_KEY = "@Image";
     private static final String THUMB_KEY = "@Thumb";
 
@@ -155,9 +155,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     private void init() {
         if (DEBUG.RESOURCE || DEBUG.DR) {
             //out("init");
-            String iname = getClass().getName() + "@" + Integer.toHexString(hashCode());
+            String iname = getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(this));
             //tufts.Util.printStackTrace("INIT " + iname);
-            setProperty("@ instance", iname);
+            setDebugProperty("0INSTANCE", iname);
         }
     }
 
@@ -232,12 +232,58 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         return pretty;
         
     }
-    
+
     @Override
     public void relativize(URI root)
     {
+        // When dealing with a packaged resource, Resources that were originally
+        // local-file will want to be re-written to point to the actual new local
+        // package cache file.  But resources that we're NOT local will want to have
+        // their resource spec's left alone, yet have their content actually pulled from
+        // the local cache.  We can determine later if we want live updating from the
+        // original web source of the data, or provide a user action for that.
+
+        if (hasProperty(PACKAGE_KEY)) {
+            final String packageLocal = getProperty(PACKAGE_KEY);
+            URI packaged = root.resolve(packageLocal);
+            if (packaged != null) {
+                Log.debug("Found packaged: " + packaged);
+
+                //this.spec = SPEC_UNSET;
+                mRelativeURI = null;
+
+                // WE NO LONGER SET SPEC FOR WEB CONTENT: fetch PACKAGED_KEY when getting data (need new API for that..)                
+
+                if (isLocalFile()) {
+                    // If the original was a local file (e.g., on some other user's machine),
+                    // completely reset the spec, as it will have no meaning on the new
+                    // users machine.
+                    setSpec(packaged.toString());
+                }
+
+                if ("file".equals(packaged.getScheme())) {
+                    setProperty(PACKAGE_FILE, packaged.getRawPath()); // be sure to use getRawPath, otherwise will decode octets
+                    setCached(true); // will let thumbnail requests go to cache file instead
+                } else {
+                    Log.warn("Non-file URI-scheme in resolved packaged URI: " + packaged);
+                    setProperty(PACKAGE_FILE, packaged.toString());
+                }
+                
+                return;
+            }
+        }
+
+        
+        if (!isLocalFile()) {
+            Log.debug("Remote, unpackaged file, skipping relativize: " + this);
+            return;
+        }
+        
+        
+        if (DEBUG.Enabled) Log.debug("Relativize to " + root + "; " + this + "; curRelative=" + mRelativeURI);
         URI oldRelative = mRelativeURI;
         mRelativeURI = findRelativeURI(root);
+        setDebugProperty("relative", mRelativeURI);
         if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
             invalidateToolTip();
         }
@@ -254,12 +300,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (url == null)
             return null;
 
-        final URI absURI = makeURI(url.toString());
         // absURI should always be absolute -- the way we persist them
-
+        final URI absURI = makeURI(url.toString());
+        
         if (!absURI.isAbsolute())
             Log.warn("Non absolute URI: " + absURI + "; from URL " + url);
-
+        
         if (absURI == null) {
             System.out.println("URL INVALID FOR URI: " + url + "; in " + this);
             return null;
@@ -615,11 +661,49 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
 */
+
+    private URL getPackagedURL() {
+
+        final String propVal = getProperty(PACKAGE_FILE);
+
+        if (propVal == null) {
+            Log.info("getPackageURL returns null: " + this);
+            return null;
+        }
+        
+        String prop = propVal;
+        if (!prop.startsWith("file:"))
+            prop = "file:" + prop;
+        final URL url = makeURL(prop);
+        if (DEBUG.Enabled) Log.debug("Returning imageSource " + url + "; from property " + propVal);
+        return url;
+        
+        //return makeURL(getProperty(PACKAGE_FILE));
+    }
+
     
-    /** @see tufts.vue.Resource */
+    /** @see tufts.vue.Resource -- todo: return URI */
     @Override
-    public Object getImageSource() {
-        if (mURL_Image != null)
+    public URL getImageSource() {
+
+        // TODO: may be bootstrapping problem here... we're also calling this during the packaging code itself
+        // And change this to return a URI!
+        
+        if (hasProperty(PACKAGE_FILE)) {
+
+            return getPackagedURL();
+            
+//             final String propVal = getProperty(PACKAGE_FILE);
+//             String prop = propVal;
+//             if (!prop.startsWith("file:"))
+//                 prop = "file:" + prop;
+//             final URL url = makeURL(prop);
+//             if (DEBUG.Enabled) Log.debug("Returning imageSource " + url + "; from property " + propVal);
+//             return url;
+//             //return makeURL(getProperty(PACKAGE_FILE));
+            
+        } else
+            if (mURL_Image != null)
             return mURL_Image;
         else
             return asURL();
@@ -683,14 +767,18 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     public void displayContent() {
         final String systemSpec;
 
-        if (mURL_Browse != null) {
+        if (hasProperty(PACKAGE_FILE)) {
+            systemSpec = getPackagedURL().toString();
+        }
+        else if (mURL_Browse != null) {
             systemSpec = mURL_Browse.toString();
-
-        } else if (VueUtil.isMacPlatform()) {
+        }
+        else if (VueUtil.isMacPlatform()) {
             // toURL will fail if we have a Windows style "C:\Programs" url, so
             // just in case don't try and construct a URL here.
             systemSpec = toURLString();
-        } else
+        }
+        else
             systemSpec = getSpec();
         
         try {
@@ -750,8 +838,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     public void setSpec(final String spec) {
 
         if (mRelativeURI != null) {
-            Util.printStackTrace(this + " setSpec w/URI set: " + mRelativeURI + " spec denied: " + spec);
-            return;
+            Log.warn(this + " setSpec w/URI set: " + mRelativeURI);
+            //Util.printStackTrace(this + " setSpec w/URI set: " + mRelativeURI + " spec denied: " + spec);
+            //return;
         }
 
         invalidateToolTip();
@@ -783,6 +872,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             System.err.println("Searching for classpath resource [" + classpathResource + "]");
             mURL_Browse = getClass().getResource(classpathResource);
             System.err.println("Got classpath resource: " + mURL_Browse);
+            
+//             if (DEBUG.DR || DEBUG.RESOURCE) {
+//                 setProperty(BROWSE_KEY, "" + mURL_Browse);
+//             }
+            
             //this.spec = mURL_Browse.toString();
         } else {
             if (!isImage) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
@@ -797,9 +891,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             //setURL_Browse(spec);
         }
 
+
         if (DEBUG.DR || DEBUG.RESOURCE) {
             //setProperty("@<spec>", spec);
-            setProperty(BROWSE_KEY, "" + mURL_Browse);
+            if (mURL_Browse != null) setDebugProperty("browse.url", mURL_Browse);
         }
 
         /*
@@ -834,6 +929,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         //this.type = isLocalFile() ? Resource.FILE : Resource.URL;
 
         asURL();
+
+        if (DEBUG.DR && spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
+        
 
         if (isLocalFile()) {
             if (spec.startsWith("file:"))
@@ -1197,10 +1295,18 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     @Override
     public boolean isLocalFile() {
-        asURL();
-        return mURL_Browse == null || mURL_Browse.getProtocol().equals("file");
-        //String s = spec.toLowerCase();
-        //return s.startsWith("file:") || s.indexOf(':') < 0;
+
+        if (false) {
+        //if (hasProperty(PACKAGE_FILE)) {
+            // todo: make sure this isn't overkill...
+            return true;
+        } else {
+            asURL();
+            return mURL_Browse == null || mURL_Browse.getProtocol().equals("file");
+            //String s = spec.toLowerCase();
+            //return s.startsWith("file:") || s.indexOf(':') < 0;
+        }
+
     }
     
     
@@ -1325,8 +1431,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         if (DEBUG.DR) {
             // note the restored values
-            if (spec != SPEC_UNSET) setProperty("@(spec)", spec);
-            if (mTitle != null) setProperty("@(title)", mTitle);
+            //if (spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
+            if (mTitle != null) setDebugProperty("TITLE", mTitle);
         }
 
         mXMLpropertyList = null;
@@ -1360,7 +1466,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     private void setAsImage(boolean asImage) {
         isImage = asImage;
-        if (DEBUG.DR || DEBUG.RESOURCE) setProperty("@isImage", ""+ asImage);
+        if (DEBUG.DR || DEBUG.RESOURCE) setDebugProperty("isImage", ""+ asImage);
     }
 
     public boolean isImage() {
@@ -1390,24 +1496,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         return s != null && s.toLowerCase().startsWith("text/html");
     }
 
-    /* guiess if a URL or File contains image dta */
-    private boolean looksLikeImageFile(String path) {
-        if (DEBUG.WORK) out(spec + ": looksLikeImageFile [" + path + "]");
-        String s = path.toLowerCase();
-        if    (s.endsWith(".gif")
-            || s.endsWith(".jpg")
-            || s.endsWith(".jpeg")
-            || s.endsWith(".png")
-            || s.endsWith(".tif")
-            || s.endsWith(".tiff")
-            || s.endsWith(".fpx")
-            || s.endsWith(".bmp")
-            || s.endsWith(".ico")
-          
-               ) return true;
-        return false;
-    }
-    
     
     @Override
     public String getDataType() {
@@ -1426,6 +1514,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         } else if (spec != SPEC_UNSET && spec.startsWith("http") && spec.contains("fedora")) { // fix for fedora url
             try {
                 final URL url = new URL(getSpec());
+                // TODO: checking spec, which defaults to the "browse" URL, will not get
+                // the real content-type in cases (such as fedora!) where the browse
+                // url is always an HTML page that includes the image with some descrition text.
                 //Log.info("opening URL " + url);
                 final String type = url.openConnection().getHeaderField("Content-type");
                 if (DEBUG.Enabled) {
@@ -1569,7 +1660,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     final String vueExtension = ".vue";
     public Object getPreview()
     {
-        if (isCached)
+        if (isCached && isImage())
             return this;
         else if (mURL_Thumb != null)
             return mURL_Thumb;

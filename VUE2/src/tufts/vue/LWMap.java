@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.181 $ / $Date: 2008-03-28 19:20:24 $ / $Author: mike $
+ * @version $Revision: 1.182 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -523,7 +523,7 @@ public class LWMap extends LWContainer
                 if (resources.add(r))
                     Log.debug("Found resource " + r);
                 else
-                    Log.debug("   Already had " + r);
+                    Log.debug("     duplicate " + r);
             }
         }
 
@@ -647,7 +647,7 @@ public class LWMap extends LWContainer
     public void completeXMLRestore()
     {
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
-            System.out.println(getLabel() + ": completing restore...");
+            Log.debug(getLabel() + ": completing restore...");
 
         if (mPathways != null) {
             try {
@@ -698,8 +698,7 @@ public class LWMap extends LWContainer
             mModelVersion = getCurrentModelVersion();
         }
 
-        if (false) 
-            relativizeResources(allRestored, mSaveLocationURI);
+        relativizeResources(allRestored, mSaveLocationURI);
 
 //         if (true) { // Not turned on yet
 //             if (
@@ -731,7 +730,7 @@ public class LWMap extends LWContainer
 //                 if (c instanceof LWGroup)
 //                     ((LWGroup)c).normalize();
 
-if (!tufts.vue.action.SaveAction.VAR_DEBUG) // tmp: we get exceptions when testing just SaveAction on this code
+if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp: we get exceptions when testing just SaveAction on this code
         
         // Layout non-links:
         for (LWComponent c : allRestored) {
@@ -748,7 +747,7 @@ if (!tufts.vue.action.SaveAction.VAR_DEBUG) // tmp: we get exceptions when testi
             }
         }
 
-if (!tufts.vue.action.SaveAction.VAR_DEBUG)
+if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
             
         // Layout links -- will trigger recomputes & layout any link-labels that need it.
         for (LWComponent c : allRestored) {
@@ -775,7 +774,7 @@ if (!tufts.vue.action.SaveAction.VAR_DEBUG)
         }
         
         
-        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) out("RESTORE COMPLETED; nextID=" + nextID + "\n");
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug("RESTORE COMPLETED; nextID=" + nextID);
         
         mXMLRestoreUnderway = false;
         //setEventsResumed();
@@ -833,7 +832,8 @@ if (!tufts.vue.action.SaveAction.VAR_DEBUG)
             try {
                 c.getResource().relativize(root);
             } catch (Throwable t) {
-                Log.warn(this + "; relativization: " + t + "; " + c.getResource());
+                Log.warn(this + "; relativize failure: " + t + "; " + c.getResource(), t);
+                //t.printStackTrace();
             }
         }
         
@@ -1277,13 +1277,13 @@ if (!tufts.vue.action.SaveAction.VAR_DEBUG)
 
         if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
             
-            // for now, anything from a non EDT is assumed to not be a real undoable chage
-            // -- this mainly to prevent image size sets after the map loads from
-            // leaving the map appearing to have been modified.  A more complete
-            // solution might mark all events generated on specific threads known to
-            // be behaving this way.
+            // for now, anything from a non AWT Event Dispatch Thread (EDT) is assumed
+            // to not be a real undoable chage -- this mainly to prevent image size sets
+            // after the map loads from leaving the map appearing to have been modified.
+            // A more complete solution might mark all events generated on specific
+            // threads known to be behaving this way.
             
-            if (DEBUG.Enabled) Log.debug("ignoring non-EDT: " + e);
+            if (DEBUG.Enabled) Log.debug("staying clean for non-AWT event: " + e);
             return;
         }
             

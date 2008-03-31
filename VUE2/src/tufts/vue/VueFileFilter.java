@@ -18,6 +18,8 @@ package tufts.vue;
 
 public class VueFileFilter extends javax.swing.filechooser.FileFilter
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueFileFilter.class);
+
     //private final String[] extensions = {".vue", ".xml"};
     //private String[] jpeg = {"jpeg"}, String[] svg = {"svg"}, String[] pdf = {"pdf"}, String[] html = {"html"};
 	
@@ -31,6 +33,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
 	public static final String PNG_DESCRIPTION=VueResources.getString("vueFileFilter.png.text");
 	public static final String VPK_DESCRIPTION=VueResources.getString("vueFileFilter.vpk.text");
 
+    public static final String VuePackage = VueUtil.VueArchiveExtension.substring(1);
+    
+
 	private static final String[]
             jpeg = {"jpeg", "jpg"},
             svg = {"svg"},
@@ -38,12 +43,12 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
             html = {"html","htm"},
             imap = {"imap"},
             png = {"png"},
-            vue = {"vue", "xml"},
+            vue = {"vue", "xml", VuePackage },
             rdf = {"rdf","owl","rdfs"},
             txt = {"txt"},
             zip = {"zip"},
             rli = {"rli.xml"},
-            VuePackage = { VueUtil.VueArchiveExtension.substring(1) };
+            VuePackageExt = { VuePackage };
     
     private final String[] extensions;
     private final String description;
@@ -51,10 +56,16 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
 //     public VueFileFilter() {
 //         super();
 //     }
+
+    private void debug(String msg) {
+        Log.debug(msg + ": desc=\"" + description + "\"; extensions=" + java.util.Arrays.asList(extensions));
+    }
+
     
     public VueFileFilter(String desc, String ... ext) {
         description = desc;
         extensions = ext;
+        if (DEBUG.Enabled) debug("explict extensions");
     }
     
     public VueFileFilter(String description)
@@ -66,7 +77,7 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
           extensions = jpeg;
         
         else if (description.equalsIgnoreCase(VPK_DESCRIPTION))
-            extensions = VuePackage;
+            extensions = VuePackageExt;
         
         else if (description.equalsIgnoreCase(SVG_DESCRIPTION))
           extensions = svg;
@@ -102,6 +113,9 @@ public class VueFileFilter extends javax.swing.filechooser.FileFilter
             this.extensions = txt;
         } else
             extensions = null;
+
+        if (DEBUG.Enabled) debug("extensions by description");
+        
     }
     
     public boolean accept(java.io.File f)

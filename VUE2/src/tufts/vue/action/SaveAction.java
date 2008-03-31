@@ -21,9 +21,12 @@
 
 package tufts.vue.action;
 
+
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.URI;
+import java.net.URL;
 import java.util.*;
 import java.util.zip.*;
 
@@ -32,6 +35,8 @@ import tufts.Util;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFrame;
 
+import static tufts.vue.Resource.*;
+    
 /**
  * Save the currently active map.
  *
@@ -105,7 +110,7 @@ public class SaveAction extends VueAction
       
     public static boolean saveMap(LWMap map, boolean saveAs, boolean export)
     {
-        Log.info("SaveAction.saveMap: " + map);        
+        Log.info("saveMap: " + map);        
         
         GUI.activateWaitCursor();         
        
@@ -154,7 +159,7 @@ public class SaveAction extends VueAction
         	         	
             final String name = file.getName().toLowerCase();
 
-            System.out.println("Save name[" + name + "]");
+            Log.info("saveMap: name[" + name + "]");
             
             if (name.endsWith(".rli.xml")) {
                 new IMSResourceList().convert(map,file);
@@ -332,7 +337,7 @@ public class SaveAction extends VueAction
 
      */
 
-    public static final String ArchiveKey = "@(#)TUFTS-VUE-ARCHIVE";
+    public static final String MapArchiveKey = "@(#)TUFTS-VUE-ARCHIVE";
 
     private static void setComment(ZipEntry entry, String comment) {
 
@@ -355,7 +360,7 @@ public class SaveAction extends VueAction
         byte[] extra = entry.getExtra();
         String comment = null;
         if (extra != null && extra.length > 0) {
-            if (DEBUG.IO) Log.debug("found " + extra.length + " extra bytes");
+            if (DEBUG.IO) Log.debug("getComment found " + extra.length + " extra bytes");
             comment = new String(extra);
             //comment = "extra(" + new String(extra) + ")";
         }
@@ -363,6 +368,57 @@ public class SaveAction extends VueAction
         return comment;
     }
 
+
+    /**
+     * Generate a package file name from the given URL.  We could just as easily
+     * generate random names, but we base it on the URL for easy debugging and
+     * and exploring of the package in Finder/Explorer (e.g., we also try to make
+     * sure the documents have appropriate extensions so the OS shell applications
+     * can generate appropriate icons, etc.
+     */
+    
+    // TODO: collisions still theoretically possible: keep a map of names and ensure
+    // unique-ness (could use PropertyMap.addProperty which automatically does this).
+    // Also, we're not using any of the other URL info beyond host/path, such as port,
+    // user, etc.  We don't need to, but would be nice for debugging.
+    
+    private static String generatePackageFileName(URLResource r)
+        throws java.io.UnsupportedEncodingException
+    {
+        final URL url = r.getImageSource(); // better: as URI
+        String packageName;
+        
+        if ("file".equals(url.getProtocol())) {
+            File file = new File(url.getFile());
+            packageName = file.getName();
+        } else {
+            packageName = url.getHost() + url.getFile();
+            //if (r.isImage() && url.getFile().endsWith("/") && r.hasProperty(IMAGE_FORMAT))
+            if (r.isImage() && r.hasProperty(IMAGE_FORMAT) && !Resource.looksLikeImageFile(url.getFile()))
+                packageName += "." + r.getProperty(IMAGE_FORMAT).toLowerCase();
+        }
+
+        // Decode (to prevent any redundant encoding), then re-encode
+        packageName = java.net.URLDecoder.decode(packageName, "UTF-8");
+        packageName = java.net.URLEncoder.encode(packageName, "UTF-8");
+        // now "lock-in" the encoding: as this is now a fixed file-name, we don't ever want it to be
+        // accidentally decoded, which might create something that looks like a path when we don't want it to.
+        packageName = packageName.replace('%', '$');
+
+        packageName = packageName.replaceAll("\\+", "\\$20"); // So Mac openURL doesn't decode these space indicators later when opening
+
+        // TODO: may be able to just decode these '+' encodings back to the actual ' '
+        // (space character), tho would need to do lots of testing of the entire
+        // workflow code path on multiple platforms. This would be especially nice at least
+        // for document names (e.g., non-images), as they'll often have spaces, and $20
+        // in the middle of the document name is pretty ugly to look at if they open the
+        // document (e.g., PDF, Word, Excel etc).
+
+        return packageName;
+    }
+                    
+     
+    //private static final String OriginalSpecKey = "@ORIGINAL_SPEC";
 
     /*
 
@@ -375,14 +431,11 @@ public class SaveAction extends VueAction
           we know where to get the original local file data!
 
     */
-    
-     
-    private static final String OriginalSpecKey = "@ORIGINAL_SPEC";
 
     public static void writeArchive(LWMap map, File archive)
         throws java.io.IOException
     {
-        Log.debug("WRITING ACHIVE " + archive);
+        Log.info("Writing archive package " + archive);
 
 //         final File mapFile;
 
@@ -404,11 +457,11 @@ public class SaveAction extends VueAction
         
         //final ZipEntry versionEntry = new ZipEntry(dirName + "/" + "TUFTS-VUE-ARCHIVE-VERSION-1");
         //zos.putNextEntry(versionEntry);
-        
-        final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + ".vue");
-        final String comment = ArchiveKey + "; VERSION: 1;"
+
+        final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "-map.vue");
+        final String comment = MapArchiveKey + "; VERSION: 1;"
             + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo
-            + "\n\tmap-name(" + mapName + ")"
+            //+ "\n\tmap-name(" + mapName + ")"
             //+ "\n\tunique-resources(" + resources.size() + ")"
             ;
         setComment(mapEntry, comment);
@@ -422,36 +475,40 @@ public class SaveAction extends VueAction
             final Resource r = c.getResource();
             
             if (r instanceof URLResource) {
-                File file = null;
+                File sourceFile = null;
 
-                if (r.isLocalFile())
-                    file = new File(r.getSpec());
+                if (r.hasProperty(PACKAGE_FILE)) // we're saving something that came from an existing package
+                    sourceFile = new File(r.getProperty(PACKAGE_FILE));
+                else if (r.isLocalFile())
+                    sourceFile = new File(r.getSpec());
                 else if (r.isImage())
-                    file = Images.getCacheFile(r);
-                
-                if (file != null && file.exists()) {
-                    savedResources.put(c, r);
-                    URLResource cloned = (URLResource) r.clone();
-                    onDiskFiles.put(cloned, file);
+                    sourceFile = Images.findCacheFile(r);
 
-                    //cloned.setProperty(OriginalSpecKey, r.getSpec());
-                    // do NOT set a property on the clones yet --
-                    // resources don't currently also clone their property set.
-                    
+                //if (DEBUG.Enabled) Log.debug(r + "; sourceDataFile=" + sourceFile);
+                
+                if (sourceFile != null && sourceFile.exists()) {
+                    savedResources.put(c, r);
+                    final URLResource cloned = (URLResource) r.clone();
+                    onDiskFiles.put(cloned, sourceFile);
+
 //                     file = new File(cloned.getSpec());
 //                     if (!file.exists()) {
 //                         Log.error("Couldn't find file for local resource " + r);
 //                         continue;
 //                     }
-                    cloned.setSpec("./" + file.getName());
+
+                    final String packageName = generatePackageFileName((URLResource) r);
+                    
+                    cloned.setProperty(PACKAGE_KEY, packageName);
+                    //cloned.setSpec(file.getName()); // pull it out of PACKAGE_KEY
                     clonedResources.put(r, cloned);
                     c.takeResource(cloned);
                     Log.debug("Clone: " + cloned);
                 } else {
-                    if (file == null)
+                    if (sourceFile == null)
                         Log.debug("No cache file for: " + r);
                     else
-                        Log.debug("Missing local file: " + file);
+                        Log.debug("Missing local file: " + sourceFile);
                 }
                     
                 
@@ -513,12 +570,21 @@ public class SaveAction extends VueAction
         for (Resource r : uniqueResources) {
 
             final Resource cloned = clonedResources.get(r);
-            final File file = onDiskFiles.get(cloned);
+            final File sourceFile = onDiskFiles.get(cloned);
+            final String packageFileName = (cloned == null ? "[missing clone!]" : cloned.getProperty(Resource.PACKAGE_KEY));
 
             ZipEntry entry = null;
 
-            if (file != null) {
-                entry = new ZipEntry(dirName + "/" + file.getName());
+            if (sourceFile != null) {
+                //final String fileName = java.net.URLEncoder.encode(file.getName(), "UTF-8");
+//                 try {
+//                     URI uri = new URI(file.getName());
+//                 } catch (Throwable t) {
+//                     Log.error(file.getName() + "; " + t.getMessage());
+//                 }
+//                 final String fileName = file.getName();
+//                 entry = new ZipEntry(dirName + "/" + fileName);
+                entry = new ZipEntry(dirName + "/" + packageFileName);
             }
             
 //             if (r.isLocalFile()) {
@@ -556,18 +622,29 @@ public class SaveAction extends VueAction
 //                 }
 //             }
 
+            // TODO: to get the re-written resources to unpack, weather we specially
+            // encode the SPEC, or add another special property for the local cache file
+            // access (prob better), the Images.java code will need to keep the resource
+            // around more, so we can decide to go to package cache or original source.
+            // which could be handled also maybe via UrlAuth, tho really, we should just
+            // be converting the Resource to provide the data fetch, tho whoa, THAT is a
+            // problem if not all unique resources, because we still need to check the
+            // cache for remote URL's...  Okay, this really isn't that big of a deal.
+
+            final String debug = "" + (DEBUG.Enabled ? r : r.getSpec());
+
             if (entry == null) {
-                Log.debug("UNARCHIVED: " + r);
+                Log.info(" skipping: " + debug);
             } else {
-                if (cloned == null) {
-                    entry.setComment(r.getSpec()
-                                     + "\n[missing clone!]");
-                } else {
-                    entry.setComment(r.getSpec()
-                                     + "\n" + cloned.getSpec());
-                }
+                Log.info("archiving: " + debug);
+
+                // technically, putting the package file name in the comment is now be redunant:
+                // it's now always same as the zip archive entry name
+                //entry.setComment("\tname=" + packageFileName + "\n\tspec=" + r.getSpec());
+                entry.setComment("\tspec=" + r.getSpec());
+                
                 zos.putNextEntry(entry);
-                copyBytesToZip(file, zos);
+                copyBytesToZip(sourceFile, zos);
             }
                 
         }
@@ -575,7 +652,7 @@ public class SaveAction extends VueAction
         zos.closeEntry();
         zos.close();
 
-        Log.debug("Wrote " + archive);
+        Log.info("Wrote " + archive);
 
 
 
@@ -717,21 +794,23 @@ public class SaveAction extends VueAction
         return saveMap(map, false,false);
     }
     
-    public static boolean VAR_DEBUG = false;
+    public static boolean PACKAGE_DEBUG = false;
 
     public static void main(String args[])
         throws IOException
     {
         //VUE.parseArgs(args);
+        DEBUG.Enabled=true;
         DEBUG.IMAGE=true;
-        VAR_DEBUG = true;
+        PACKAGE_DEBUG = true;
         VUE.debugInit(false);
         Images.loadDiskCache();
 
         final LWMap map = ActionUtil.unmarshallMap(new File(args[0]));
-        System.err.println("Got map: " + map);
+        Log.debug("MAIN: Unmarshalled map: " + map);
 
-        writeArchive(map, new File("test" + VueUtil.VueArchiveExtension));
+        writeArchive(map, new File(map.getLabel().substring(0, map.getLabel().length() - 4) + VueUtil.VueArchiveExtension));
+        //writeArchive(map, new File("test" + VueUtil.VueArchiveExtension));
 
         
 //         if (args.length > 1)

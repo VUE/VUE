@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.41 $ / $Date: 2008-02-22 22:15:13 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2008-03-31 20:45:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -131,7 +131,8 @@ public class Images
 //         }
 //     }
 
-    public static File getCacheFile(Resource r) {
+    /** @return the cache file for the given resource, or null if none exists */
+    public static File findCacheFile(Resource r) {
 
         final ImageSource imageSRC = new ImageSource(r);
 
@@ -296,7 +297,7 @@ public class Images
     }
 
 
-    // Note: we use a URI, not a URL as the cache key.  URL's are slow to compare: they host name resolution
+    // Note: we use a URI, not a URL as the cache key.  URL's are slow to compare: they use host name resolution
     // to produce the IP address and compare by that.
 
     private static class ImageSource {
@@ -313,17 +314,34 @@ public class Images
             this.original = original;
 
             if (original instanceof Resource) {
-                Resource r = (Resource) original;
-                if (r.getSpec().startsWith("/"))  {
-                    // todo: Also if this is a file:/ URL (maybe slight performance increase)
-                    File file = new java.io.File(r.getSpec());
-                    this.readable = file;
-                } else {
-                    //if (DEBUG.IMAGE) tufts.Util.printStackTrace("converting Resource to IMAGE " + r);
-                    if (DEBUG.IMAGE) out("converting Resource to IMAGE " + r);
-                    this.readable = r.getImageSource();
-                }
-                this.resource = r;
+
+                this.resource = (Resource) original;
+                this.readable = resource.getImageSource();
+                
+//                 final Resource r = (Resource) original;
+//                 final String spec = r.getSpec();
+                
+//                 if (spec.startsWith("/"))  {
+//                     // todo: Also if this is a file:/ URL (maybe slight performance increase)
+//                     File file = new java.io.File(spec);
+//                     this.readable = file;
+// //                 } else if (spec.startsWith("./"))  {
+// //                     // TODO: change this to be a special property, and look for the file
+// //                     // based on the map root, tho that will be tough bere as we don't have a map,
+// //                     // so I guess we'll have to patch de-packaged resources at the end of LWMap.
+// //                     // (Tho really, they SHOULDN'T need to be specially marked for that case,
+// //                     // as the new relative code should handle it for us).
+// //                     File file = new java.io.File(spec);
+// //                     this.readable = file;
+// //                     Log.debug("GOT PACKAGED FILE " + file);
+//                 } else {
+//                     //if (DEBUG.IMAGE) tufts.Util.printStackTrace("converting Resource to IMAGE " + r);
+//                     if (DEBUG.IMAGE) out("converting Resource to IMAGE " + r);
+//                     this.readable = r.getImageSource();
+//                 }
+//                 this.resource = r;
+
+                
             } else if (original instanceof java.net.URL) {
                 this.readable = (java.net.URL) original;
                 if (readable.toString().startsWith(URLResource.THUMBSHOT_FETCH))
@@ -368,6 +386,11 @@ public class Images
                 this.key = makeKey((File) readable);
             } else
                 this.key = null; // will not be cacheable
+
+//             if (DEBUG.DR) {
+//                 if (resource != null)
+//                     resource.setDebugProperty("readable", Util.tags(readable));
+//             }
             
         }
 
@@ -383,6 +406,7 @@ public class Images
 
         boolean hasCacheFile() {
             return _cacheFile != null;
+            
         }
         
 
@@ -1083,6 +1107,10 @@ public class Images
 
         int dataSize = -1;
         
+        if (DEBUG.DR && imageSRC.resource != null) {
+            imageSRC.resource.setDebugProperty("readsrc", Util.tags(imageSRC.readable));
+        }
+
         if (imageSRC.hasCacheFile()) {
             // just point us at the cache file: ImageIO will create the input stream
             imageSRC.readable = imageSRC.getCacheFile();
@@ -1236,12 +1264,15 @@ public class Images
             } while (!success && tries < 2);
 
         } else if (imageSRC.readable instanceof java.io.File) {
+            if (DEBUG.IMAGE) Log.debug("Loading local file " + imageSRC.readable);
             if (imageSRC.resource != null)
                 setResourceMetaData(imageSRC.resource, (File) imageSRC.readable);
         }
 
-        if (imageSRC.resource != null) // in case any held changes
+        if (imageSRC.resource != null) { // in case any held changes
+            //if (DEBUG.DR) imageSRC.resource.setDebugProperty("readsrc", Util.tags(imageSRC.readable));
             imageSRC.resource.getProperties().releaseChanges();
+        }
 
         final ImageInputStream inputStream;
 
@@ -1297,10 +1328,11 @@ public class Images
                 out("setting resource image.* meta-data for " + imageSRC.resource);
             
             imageSRC.resource.getProperties().holdChanges();
-            imageSRC.resource.setProperty("image.width",  Integer.toString(w));
-            imageSRC.resource.setProperty("image.height", Integer.toString(h));
-            imageSRC.resource.setProperty("image.format", reader.getFormatName());
+            imageSRC.resource.setProperty(IMAGE_FORMAT,  Integer.toString(w));
+            imageSRC.resource.setProperty(IMAGE_HEIGHT, Integer.toString(h));
+            imageSRC.resource.setProperty(IMAGE_FORMAT, reader.getFormatName());
             imageSRC.resource.setCached(true);
+
             imageSRC.resource.getProperties().releaseChanges();
         }
 
