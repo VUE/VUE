@@ -33,6 +33,7 @@ import java.beans.PropertyChangeListener;
 import javax.swing.*;
 import javax.swing.border.*;
 
+
 /**
  * Utility class.  Provides code for determining what platform we're on,
  * platform-specific code for opening URL's, as well as various convenience
@@ -661,30 +662,144 @@ public class Util
     	to try to load firefox first and then if that fails load netscape, i suppose konqueror
     	should be in the mix too maybe but this is better than it was and catches alot of cases.
     	*/
-    	Process process = null;
+    	
+		Process process = null;
+    	Runtime runtime = Runtime.getRuntime();
+    	int waitFor = -1;
+
+    	//test for gnome    
+    	try 
+    	{    	    	
+    		process =runtime.exec("gnome-open");    	
+    		waitFor = process.waitFor();
+    	} catch (InterruptedException e) 
+    	{    			
+    			e.printStackTrace();    		
+    	}
+    	catch (IOException ioe2)
+    	{
+    		ioe2.printStackTrace();
+    		waitFor = 2;
+    	}
+
+		if (waitFor != 2)
+		{
+			//open file with gnome
+			if (isLocalFile)
+			{
+				url = decodeURL(url);
+				//jjurl = url.replaceAll(" ","\\ ");
+				url = "file:///" + url.substring(6);
+				//url ="\""+url+"\"";
+				System.out.println(url);
+			}
+			process = runtime.exec(new String[] {"gnome-open" , url});
+//			out("process: " + process);
+			InputStream stdin = process.getErrorStream();
+			InputStreamReader isr = new InputStreamReader(stdin);
+			BufferedReader br = new BufferedReader(isr);
+			String line = null;
+			System.out.println("<OUTPUT>");
+			while ((line = br.readLine()) != null)
+				System.out.println(line);
+			System.out.println("<OUTPUT>");
+			try
+			{
+				int exitVal = process.waitFor();
+				System.out.println("exit val : " + exitVal);
+			}
+			catch(InterruptedException inte)
+			{
+				inte.printStackTrace();
+			}
+			return;
+		}
+		else
+			waitFor=-1;
+    	
+//    	kde
+    	try 
+    	{    	    	
+    		System.out.println("TESTING KDE");
+    		process =runtime.exec("kfmexec");    	
+    		waitFor = process.waitFor();
+    	} catch (InterruptedException e) 
+    	{    			
+    			e.printStackTrace();    		
+    	}
+    	catch (IOException ioe2)
+    	{
+    		ioe2.printStackTrace();
+    		waitFor=2;
+   
+    	}
+    	
+    	if (waitFor != 2)
+    	{
+    		if (isLocalFile)
+			{
+				url = decodeURL(url);
+				//jjurl = url.replaceAll(" ","\\ ");
+				url = "file:///" + url.substring(6);
+				//url ="\""+url+"\"";
+				System.out.println(url);
+			}
+    		//open file with kde
+    		process = runtime.exec(new String[] { "kfmclient","exec", url});
+    		InputStream stdin = process.getErrorStream();
+			InputStreamReader isr = new InputStreamReader(stdin);
+			BufferedReader br = new BufferedReader(isr);
+			String line = null;
+			System.out.println("<OUTPUT>");
+			while ((line = br.readLine()) != null)
+				System.out.println(line);
+			System.out.println("<OUTPUT>");
+			
+			System.out.println("<OUTPUT2>");
+			stdin=process.getInputStream();
+			isr = new InputStreamReader(stdin);
+			br = new BufferedReader(isr);
+			line = null;
+			
+			while ((line = br.readLine()) != null)
+				System.out.println(line);
+			System.out.println("<OUTPUT2>");
+			try
+			{
+				int exitVal = process.waitFor();
+				System.out.println("exit val : " + exitVal);
+			}
+			catch(InterruptedException inte)
+			{
+				inte.printStackTrace();
+			}
+			return;
+    	}
+    	
+    	
+
+    	    	
+    	
+    	//if (waitFor == 2)
     	try
     	{
-    		process = Runtime.getRuntime().exec(new String[] { "firefox", url});
+    		process = runtime.exec(new String[] { "firefox", url});
+            waitFor = process.waitFor();
+            System.out.println("WAIT FOR : " + waitFor);
     	}
-    	catch (java.io.IOException ioe)
+    	catch (java.io.IOException ioe3)
     	{
     		//firefox not available try netscape instead.
     		process = Runtime.getRuntime().exec(new String[] { "netscape",
                     "-remove",
                     "'openURL('" + url + "')" });
-    	}
+    	} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
         out("process: " + process);
         
-// Can't wait for process to complete!  Browser is left running...
-//         try {
-//             int exitCode = process.waitFor();
-//             if (exitCode != 0)	// if Netscape was not open
-//                 Runtime.getRuntime().exec(new String[] { "netscape", url });
-//         } catch (InterruptedException e) {
-//             java.io.IOException ioe =  new java.io.IOException();
-//             ioe.initCause(e);
-//             throw ioe;
-//         }
     }
 
 
