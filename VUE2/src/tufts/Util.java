@@ -508,7 +508,8 @@ public class Util
     private static java.lang.reflect.Method macOpenURL_Method = null;
     private static void openURL_Mac(String url, boolean isLocalFile, boolean isMailTo)
     {
-        if (DEBUG) System.err.println("openURL_Mac0 [" + url + "]");
+        //if (DEBUG) System.err.println("openURL_Mac0 [" + url + "]");
+        System.err.println("openURL_Mac0 [" + url + "]");
 
         if (isLocalFile) {
             boolean changed = true;
