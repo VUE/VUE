@@ -162,7 +162,7 @@ public class MetaDataPane extends JPanel
                try {
                    final JTextArea value = (JTextArea) e.getSource();
                    String text = value.getText();
-                   if (text.startsWith("http://")) {
+                   if (text.startsWith("http://") || text.startsWith("/")) {
                        e.consume();
                        final Color c = value.getForeground();
                        value.setForeground(Color.red);
@@ -191,7 +191,7 @@ public class MetaDataPane extends JPanel
        label.setText(labelText + ":");
        value.setText(valueText);
 
-       if (valueText != null && valueText.startsWith("http://")) {
+       if (valueText != null && (valueText.startsWith("http://") || valueText.startsWith("/")) ) {
            value.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
            //value.setForeground(Color.blue);
        } else {
@@ -378,7 +378,8 @@ public class MetaDataPane extends JPanel
                c = label.charAt(0);
            } catch (Throwable t) {}
 
-           if (!DEBUG.Enabled && (c == '@' || c == '~')) {
+           //if (!DEBUG.Enabled && (c == '@' || c == '~' || c == '#')) {
+           if (!DEBUG.Enabled && (c == '@' || c == '#')) {
                mLabels[row].setVisible(false);
                mValues[row].setVisible(false);
                continue;
