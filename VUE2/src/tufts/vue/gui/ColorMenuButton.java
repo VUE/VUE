@@ -45,6 +45,9 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JWindow;
+
+import java.awt.Window;
 import javax.swing.SwingUtilities;
 
 import edu.tufts.vue.preferences.implementations.ColorPreference;
@@ -57,7 +60,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.24 $ / $Date: 2008-03-24 20:40:38 $ / $Author: mike $
+ * @version $Revision: 1.25 $ / $Date: 2008-03-31 02:12:22 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -73,7 +76,7 @@ implements ActionListener, tufts.vue.LWEditor
     private Icon mButtonIcon;
     protected Object mPropertyKey;
     protected Object mCurrentValue;
-    private JFrame popupWindow;
+    private Window popupWindow;
     private final RecentlyUsedColorsManager colorManager = RecentlyUsedColorsManager.getInstance();
     /**
      *  Creates a new ColorMenuButton with the passed array of items
@@ -95,22 +98,40 @@ implements ActionListener, tufts.vue.LWEditor
         
  
         // use frame
-        popupWindow = new JFrame();
+        if (tufts.Util.isUnixPlatform())
+	        popupWindow = new JWindow();
+	    else
+	    	popupWindow = new JFrame();
         if (tufts.Util.isWindowsPlatform())
         	popupWindow.setAlwaysOnTop(true);
         popupWindow.setName(COLOR_POPUP_NAME);
-        popupWindow.setUndecorated(true);
+    	if (!tufts.Util.isUnixPlatform())
+	        ((JFrame)popupWindow).setUndecorated(true);
     //    popupWindow.setAlwaysOnTop(true);
 
-        Component c = popupWindow.getGlassPane();
+        Component c = null;
+        if (!tufts.Util.isUnixPlatform())
+        	c= ((JFrame)popupWindow).getGlassPane();
+        else
+        	c = ((JWindow)popupWindow).getGlassPane();
         c.setVisible(true);
         c.addMouseListener(new MouseAdapter()
         {                 
             
             public void mousePressed(final MouseEvent e)
             {
-            	Component c = popupWindow.getGlassPane();
-            	java.awt.Container contentPane = popupWindow.getContentPane();
+            	Component c = null;
+                if (!tufts.Util.isUnixPlatform())
+                	c= ((JFrame)popupWindow).getGlassPane();
+                else
+                	c = ((JWindow)popupWindow).getGlassPane();
+                
+            	java.awt.Container contentPane = null;
+            	
+                if (!tufts.Util.isUnixPlatform())
+                	contentPane= ((JFrame)popupWindow).getContentPane();
+                else
+                	contentPane = ((JWindow)popupWindow).getContentPane();
 //            	 get the mouse click point relative to the content pane
                 Point containerPoint = SwingUtilities.convertPoint(popupWindow,
                     e.getPoint(),contentPane);
@@ -145,8 +166,19 @@ implements ActionListener, tufts.vue.LWEditor
             
             public void mouseReleased(final MouseEvent e)
             {
-            	Component c = popupWindow.getGlassPane();
-            	java.awt.Container contentPane = popupWindow.getContentPane();
+            	Component c = null;
+                if (!tufts.Util.isUnixPlatform())
+                	c= ((JFrame)popupWindow).getGlassPane();
+                else
+                	c = ((JWindow)popupWindow).getGlassPane();
+                
+            	java.awt.Container contentPane = null;
+            	
+                if (!tufts.Util.isUnixPlatform())
+                	contentPane= ((JFrame)popupWindow).getContentPane();
+                else
+                	contentPane = ((JWindow)popupWindow).getContentPane();
+                
 //            	 get the mouse click point relative to the content pane
                 Point containerPoint = SwingUtilities.convertPoint(popupWindow,
                     e.getPoint(),contentPane);
@@ -215,16 +247,23 @@ implements ActionListener, tufts.vue.LWEditor
         });
 
         // add some components to window
-        popupWindow.getContentPane().setLayout(new BorderLayout());
-        ((JComponent)popupWindow.getContentPane()).setBorder(BorderFactory.createEtchedBorder());
+        java.awt.Container contentPane = null;
+    	
+        if (!tufts.Util.isUnixPlatform())
+        	contentPane= ((JFrame)popupWindow).getContentPane();
+        else
+        	contentPane = ((JWindow)popupWindow).getContentPane();
+        
+        ((JComponent)contentPane).setLayout(new BorderLayout());
+        ((JComponent)contentPane).setBorder(BorderFactory.createEtchedBorder());
         
         
-        popupWindow.getContentPane().add(colorArrayPanel);
+        contentPane.add(colorArrayPanel);
         popupWindow.pack();
     }
     private JPanel colorPanel = new JPanel();
     
-    public JFrame getPopupWindow()
+    public Window getPopupWindow()
     {
     	return popupWindow;
     }
@@ -235,8 +274,14 @@ implements ActionListener, tufts.vue.LWEditor
     	colorArrayPanel = buildMenu(colorsToRebuild,customRebuild);
     	  // add some components to window
         
+    	java.awt.Container contentPane = null;
+    	
+        if (!tufts.Util.isUnixPlatform())
+        	contentPane= ((JFrame)popupWindow).getContentPane();
+        else
+        	contentPane = ((JWindow)popupWindow).getContentPane();
         
-        popupWindow.getContentPane().add(colorArrayPanel);
+        contentPane.add(colorArrayPanel);
         popupWindow.pack();
     }
     private Color[] colorsToRebuild;
@@ -515,6 +560,16 @@ implements ActionListener, tufts.vue.LWEditor
             }
             rebuildMenu();
             popupWindow.setLocation(location); 
+            if (tufts.Util.isUnixPlatform())
+            {
+            	popupWindow.setAlwaysOnTop(true);
+            	//popupWindow.set
+            	//popupWindow.toFront();
+            }
+            else
+            {
+            	popupWindow.setAlwaysOnTop(false);
+            }
             popupWindow.setVisible(true);                        
             popupWindow.requestFocus();
         } else {
