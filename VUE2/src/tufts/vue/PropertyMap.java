@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.19 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.20 $ / $Date: 2008-03-31 20:42:34 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap
@@ -186,6 +186,16 @@ public class PropertyMap extends java.util.HashMap
 
     public int hashCode() {
         return mTableModel == null ? 0 : mTableModel.hashCode(); // doesn't change depending on contents
+    }
+
+
+    @Override
+    public PropertyMap clone() {
+        final PropertyMap clone = (PropertyMap) super.clone();
+        clone.listeners = null;
+        clone.mChanges = 0;
+        clone.mTableModel = null;
+        return clone;
     }
     
 
