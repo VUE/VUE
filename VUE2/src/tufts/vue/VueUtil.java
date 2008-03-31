@@ -27,7 +27,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.92 $ / $Date: 2008-02-22 22:11:12 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2008-03-31 20:42:57 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -112,6 +112,11 @@ public class VueUtil extends tufts.Util
                 e.printStackTrace();
             }
         } else {
+
+            // already handled in Util.openURL
+            //if (isMacPlatform() && platformURL.startsWith("/"))
+            //    platformURL = "file:" + platformURL;
+                
             tufts.Util.openURL(platformURL);
         }
     }
