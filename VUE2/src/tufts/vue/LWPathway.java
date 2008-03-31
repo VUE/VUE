@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.207 $ / $Date: 2008-01-31 21:57:00 $ / $Author: sfraize $
+ * @version $Revision: 1.208 $ / $Date: 2008-03-31 20:42:15 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1476,7 +1476,7 @@ public class LWPathway extends LWContainer
     
     void completeXMLRestore(LWMap map)
     {
-        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) System.out.println(this + " completeXMLRestore, map=" + map);
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug(this + " completeXMLRestore, map=" + map);
         setParent(map);
 
         if (mMasterSlide != null) {

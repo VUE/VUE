@@ -24,13 +24,15 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.34 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.35 $ / $Date: 2008-03-31 20:42:21 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 
 public class LWPathwayList implements LWComponent.Listener, Iterable<LWPathway>
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWPathwayList.class);
+
     private List<LWPathway> mPathways = new java.util.ArrayList();
     private LWMap mMap = null;
     private LWPathway mActive = null;
@@ -86,7 +88,7 @@ public class LWPathwayList implements LWComponent.Listener, Iterable<LWPathway>
 
     void completeXMLRestore(LWMap map)
     {
-        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) System.out.println(this + " completeXMLRestore");
+        if (DEBUG.INIT || DEBUG.IO || DEBUG.XML) Log.debug(this + " completeXMLRestore");
         setMap(map);
         Iterator i = iterator();
         while (i.hasNext()) {

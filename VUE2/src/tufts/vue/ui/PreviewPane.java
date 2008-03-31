@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.21 $ / $Date: 2007-11-26 22:57:49 $ / $Author: peter $
+ * @version $Revision: 1.22 $ / $Date: 2008-03-31 20:44:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -173,7 +173,7 @@ public class PreviewPane extends JPanel
     // here is almost identical to that in ResourceIcon.
 
     private synchronized void loadImage(Object imageData) {
-        if (DEBUG.IMAGE) out("loadImage " + imageData);
+        if (DEBUG.IMAGE) out("loadImage " + Util.tags(imageData));
 
         // test of synchronous loading:
         //out("***GOT IMAGE " + Images.getImage(imageData));
