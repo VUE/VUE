@@ -249,6 +249,23 @@ public class VisualizationSettingsPanel extends JPanel implements ActionListener
         }
     }
     
+    public java.util.List<Double> getNodeIntervalBoundaries()
+    {
+        return weightPanel.getNodeIntervalBoundaries();
+    }
+    
+    public java.util.List<Double> getLinkIntervalBoundaries()
+    {
+        return weightPanel.getLinkIntervalBoundaries();
+    }
+    
+    // not yet needed -- implement if return to dynamic load and readjust
+    // behavior as in tufts.vue.MergeMapsChooser
+    /*public void setLinkIntervalBoundaries(java.util.List<Double> boundaries)
+    {
+        //weightPanel.setLinkIntervalBoundaries(boundaries);
+    }*/
+    
     public void setNodeThresholdSliderValue(int value)
     {
         votePanel.setNodeThresholdSliderValue(value);

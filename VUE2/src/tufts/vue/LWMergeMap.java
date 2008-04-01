@@ -86,6 +86,8 @@ public class LWMergeMap extends LWMap {
     private String styleFile;
 
     private List<Double> intervalBoundaries = new ArrayList<Double>();
+    private List<Double> nodeIntervalBoundaries = new ArrayList<Double>();
+    private List<Double> linkIntervalBoundaries = new ArrayList<Double>();
     
     public static String getTitle()
     {
@@ -287,18 +289,42 @@ public class LWMergeMap extends LWMap {
     /**
      *
      * todo: rename no-arg version below as "default" setup method.
-     * This method and the next are for persistence 
+     * This method and the next are for legacy persistence 
+     * defaults to node, even though now link has separate interval boundaries
      *
      **/
     public void setIntervalBoundaries(List<Double> intervalBoundaries)
     {
-        this.intervalBoundaries = intervalBoundaries;
+        this.nodeIntervalBoundaries = intervalBoundaries;
     }
     
     public List<Double> getIntervalBoundaries()
     {
-        return intervalBoundaries;
+        return nodeIntervalBoundaries;
     }
+    
+    public void setNodeIntervalBoundaries(List<Double> intervalBoundaries)
+    {
+        this.nodeIntervalBoundaries = intervalBoundaries;
+    }
+    
+    public List<Double> getNodeIntervalBoundaries()
+    {
+        return nodeIntervalBoundaries;
+    }
+    
+    
+    public void setLinkIntervalBoundaries(List<Double> intervalBoundaries)
+    {
+        this.linkIntervalBoundaries = intervalBoundaries;
+    }
+        
+    public List<Double> getLinkIntervalBoundaries()
+    {
+        return linkIntervalBoundaries;
+    }
+    
+    // need node and link -- read non specified as both.. 
     
     public void setStyleMapFile(String file)
     {
@@ -617,21 +643,40 @@ public class LWMergeMap extends LWMap {
         return false;
     }
     
-    // todo: this should become the default initialization method
-    // for interval boundaries only (see above)
+    // todo: this should become only the default initialization method
+    // for interval boundaries -- in fact: implementing 4/1/2008
     public void setIntervalBoundaries()
     {
-        intervalBoundaries = new ArrayList<Double>();
+        nodeIntervalBoundaries = new ArrayList<Double>();
         for(int vai = 0;vai<6;vai++)
         {
             double va =  20*vai + 0.5;
-            intervalBoundaries.add(new Double(va));
+           nodeIntervalBoundaries.add(new Double(va));
+        } 
+        linkIntervalBoundaries = new ArrayList<Double>();
+        for(int vai = 0;vai<6;vai++)
+        {
+            double va =  20*vai + 0.5;
+            linkIntervalBoundaries.add(new Double(va));
         } 
     }
     
-    public int getInterval(double score)
+    public int getNodeInterval(double score)
     {
-        Iterator<Double> i = intervalBoundaries.iterator();
+        Iterator<Double> i = nodeIntervalBoundaries.iterator();
+        int count = 0;
+        while(i.hasNext())
+        {
+            if(score < i.next().doubleValue())
+                return count;
+            count ++;
+        }
+        return 0;
+    }
+    
+    public int getLinkInterval(double score)
+    {
+        Iterator<Double> i = linkIntervalBoundaries.iterator();
         int count = 0;
         while(i.hasNext())
         {
@@ -826,7 +871,7 @@ public class LWMergeMap extends LWMap {
                   {
                     score = 0;
                   }
-                  Style currStyle = nodeStyles.get(getInterval(score)-1);
+                  Style currStyle = nodeStyles.get(getNodeInterval(score)-1);
                   //todo: applyCss here instead.
                   node.setFillColor(Style.hexToColor(currStyle.getAttribute("background")));
                   
@@ -874,7 +919,7 @@ public class LWMergeMap extends LWMap {
                         score = 0;
                     }
                     
-                    Style currLinkStyle = linkStyles.get(getInterval(score)-1);
+                    Style currLinkStyle = linkStyles.get(getLinkInterval(score)-1);
                     LWLink link = new LWLink(node1,node2);
                     if(c2>0 && !getFilterOnBaseMap())
                     {

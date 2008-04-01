@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.40 $ / $Date: 2008-04-01 13:54:41 $ / $Author: dan $
+ * @version $Revision: 1.41 $ / $Date: 2008-04-01 15:38:29 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -61,7 +61,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     public static final String intervalChoiceMessageString = "Set number of intervals:";
     public static final String paletteChoiceMessageString = "Select a color Palette:";
     
-    private static final boolean EDITABLE_INTERVALS = false;
+    private static final boolean EDITABLE_INTERVALS = true;
     private static final boolean DEBUG_LOCAL = false;
     
     private JComboBox parameterChoice;
@@ -306,6 +306,52 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     //and/or through a setMap() method called from the Chooser.
     public LWMap getMap() {
         return map;
+    }
+    
+    public ArrayList<Double> getNodeIntervalBoundaries()
+    {
+        //actually have to get from nodeModel
+        //return nodeIntervalBoundaries;
+        
+        //todo: add some instancof checks and some constants to make
+        // this less breakable with model changes use merge map
+        // setIntervalBoundaries as defaults
+        ArrayList<Double> boundaries = new ArrayList<Double>();
+        
+        boundaries.add(new Double((double)0.0 + (double)0.5));
+        for(int i=0;i<nodeModel.getRowCount();i++)
+        {
+            PercentageInterval pi = (PercentageInterval)(nodeModel.getValueAt(i,0));
+            boundaries.add(new Double((double)pi.getEnd()+(double)0.5));
+        }
+        
+        if(DEBUG_LOCAL)
+            System.out.println("WVSP: node boundaries: " + boundaries);
+        
+        return boundaries;
+    }
+    
+    public ArrayList<Double> getLinkIntervalBoundaries()
+    {
+        //actually have to get from nodeModel
+        //return nodeIntervalBoundaries;
+        
+        //todo: add some instancof checks and some constants to make
+        // this less breakable with model changes use merge map
+        // setIntervalBoundaries as defaults
+        ArrayList<Double> boundaries = new ArrayList<Double>();
+        
+        boundaries.add(new Double((double)0.0 + (double).5));
+        for(int i=0;i<linkModel.getRowCount();i++)
+        {
+            PercentageInterval pi = (PercentageInterval)(linkModel.getValueAt(i,0));
+            boundaries.add(new Double((double)pi.getEnd())+(double).5);
+        }
+        
+        if(DEBUG_LOCAL)
+            System.out.println("WVSP: link boundaries: " + boundaries);
+        
+        return boundaries;
     }
     
     public void loadDefaultStyles() {

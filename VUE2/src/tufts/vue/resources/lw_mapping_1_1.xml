@@ -367,6 +367,12 @@
             <field name="intervalBoundaries" type="java.lang.Double" collection="arraylist">
                 <bind-xml name="intervalBoundaries"/>
             </field>
+            <field name="nodeIntervalBoundaries" type="java.lang.Double" collection="arraylist">
+                <bind-xml name="nodeIntervalBoundaries"/>
+            </field>
+            <field name="linkIntervalBoundaries" type="java.lang.Double" collection="arraylist">
+                <bind-xml name="linkIntervalBoundaries"/>
+            </field>
             <field name="styleMapFile">
                 <bind-xml name="styleMapFile" node="element"/>
             </field>

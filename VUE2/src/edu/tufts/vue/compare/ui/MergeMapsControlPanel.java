@@ -29,6 +29,8 @@ import tufts.vue.gui.*;
 
 public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMap> {
     
+    private static final boolean DEBUG_LOCAL = false;
+    
     private MapsSelectionPanel mapSelectionPanel;
     private VisualizationSettingsPanel visualizationSettingsPanel;
     private JButton closeButton;
@@ -206,6 +208,11 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                         //stopped = true;
                          
                         System.out.println("MergeMaps error " + e); 
+                        
+                        if(DEBUG_LOCAL)
+                        {    
+                          e.printStackTrace();
+                        }
                          
                         //use to automatically bail from window instead of using button
                         /*dw.setContent(MergeMapsControlPanel.this);
@@ -265,9 +272,15 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
     {
         java.util.List<LWMap> mapList = mapSelectionPanel.getMapList();
         map.setMapList(mapList);
+        //int baseMapIndex = mapSelectionpanel.getBaseMapIndex();
+        //if(baseMapIndex)
         map.setBaseMap(mapList.get(mapSelectionPanel.getBaseMapIndex()));
         map.setActiveMapList(mapSelectionPanel.getCheckList());
-        map.setIntervalBoundaries(); 
+        // this was the default method before editable labels added (see 
+        // WeightVisualizationSettingsPanel
+        //map.setIntervalBoundaries();
+        map.setNodeIntervalBoundaries(visualizationSettingsPanel.getNodeIntervalBoundaries()); 
+        map.setLinkIntervalBoundaries(visualizationSettingsPanel.getLinkIntervalBoundaries()); 
         map.setNodeThresholdSliderValue(visualizationSettingsPanel.getNodeThresholdSliderValue());
         map.setLinkThresholdSliderValue(visualizationSettingsPanel.getLinkThresholdSliderValue());
         //moved from Visualization panel to Maps Panel:
