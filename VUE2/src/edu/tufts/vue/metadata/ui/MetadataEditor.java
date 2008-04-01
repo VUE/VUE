@@ -1422,6 +1422,38 @@ public class MetadataEditor extends JPanel implements ActiveListener,MetadataLis
       
      }
     
+    public class CreatorFilterModel extends MetadataTableModel
+    {
+        private int firstCreatorRow = -1;
+        
+        public int findFirstCreatorRow()
+        {
+            if(current == null)
+            {
+                return -1;
+            }
+            
+            // todo: put proper dublic core category here
+            //return current.getMetadataList().findCategory("");
+            
+            return -1;
+        }
+        
+        public int getRowCount()
+        {
+            return super.getRowCount() - 1;
+        }
+        
+        public Object getValueAt(int row,int column)
+        {
+            findFirstCreatorRow();
+            if(row< firstCreatorRow)
+                return super.getValueAt(row,column);
+            else
+                return super.getValueAt(row-1,column); 
+        }
+    }
+    
     /**
      *
      * watch out for current == null
