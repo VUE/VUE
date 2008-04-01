@@ -343,6 +343,7 @@ public class VueDataSourceManager
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.ValidationException
     {
+        Log.info("Unmarshalling: " + file);
         //System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
