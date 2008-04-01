@@ -12,8 +12,8 @@
   <property name="lib.home"    value="../lib"/>
   <!-- this property needs to be changed for respective OS -->
   <!-- Windows (XP) version follows -->
-  <property name="osid.home" value="C:\Library\OSID\"/>
-  <property name="osid.providers.home" value="C:\Library\OsidProviders\"/>
+  <property name="osid.home" value="\Library\OSID\"/>
+  <property name="osid.providers.home" value="\Library\OsidProviders\"/>
   <!-- comment out preceeding two lines for Mac OSX and uncomment following two lines -->
   <!--<property name="osid.home" value="/Library/OSID/"/>-->
   <!--<property name="osid.providers.home" value="/Library/OsidProviders/"/>-->
