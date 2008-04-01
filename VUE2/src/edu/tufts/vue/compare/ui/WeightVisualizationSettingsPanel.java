@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.39 $ / $Date: 2008-03-30 01:22:57 $ / $Author: dan $
+ * @version $Revision: 1.40 $ / $Date: 2008-04-01 13:54:41 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -544,14 +544,18 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
             percentageLabel.setForeground(startField.getForeground());
             panel.add(percentageLabel);
             
-            endField.addMouseListener(new java.awt.event.MouseAdapter()
+            if(EDITABLE_INTERVALS)
             {
+              endField.addMouseListener(new java.awt.event.MouseAdapter()
+              {
                 public void mouseExited(java.awt.event.MouseEvent me)
                 {
                     intervalList.requestFocus();
+                    intervalList.repaint();
                 }
                 
-            });
+              });
+            }
             
             endField.addKeyListener(new java.awt.event.KeyAdapter()
             {
