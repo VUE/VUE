@@ -79,7 +79,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.54 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2008-04-01 14:32:30 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -233,6 +233,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         
     }
 
+    public static final boolean ALLOW_URI_WHITESPACE = false; // Not working yet
+
     @Override
     public void relativize(URI root)
     {
@@ -244,7 +246,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         // original web source of the data, or provide a user action for that.
 
         if (hasProperty(PACKAGE_KEY)) {
-            final String packageLocal = getProperty(PACKAGE_KEY);
+            String packageLocal = getProperty(PACKAGE_KEY);
+            if (ALLOW_URI_WHITESPACE) {
+                // URI.create fails if there are spaces:
+                packageLocal = packageLocal.replaceAll(" ", "%20"); 
+            }
             URI packaged = root.resolve(packageLocal);
             if (packaged != null) {
                 Log.debug("Found packaged: " + packaged);

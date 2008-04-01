@@ -405,15 +405,36 @@ public class SaveAction extends VueAction
         // accidentally decoded, which might create something that looks like a path when we don't want it to.
         packageName = packageName.replace('%', '$');
 
-        packageName = packageName.replaceAll("\\+", "\\$20"); // So Mac openURL doesn't decode these space indicators later when opening
+        if (URLResource.ALLOW_URI_WHITESPACE) {
 
-        // TODO: may be able to just decode these '+' encodings back to the actual ' '
-        // (space character), tho would need to do lots of testing of the entire
-        // workflow code path on multiple platforms. This would be especially nice at least
-        // for document names (e.g., non-images), as they'll often have spaces, and $20
-        // in the middle of the document name is pretty ugly to look at if they open the
-        // document (e.g., PDF, Word, Excel etc).
+            // TODO: may be able to just decode these '+' encodings back to the actual
+            // space character, tho would need to do lots of testing of the entire
+            // workflow code path on multiple platforms. This would be especially nice
+            // at least for document names (e.g., non-images), as they'll often have
+            // spaces, and '$20' in the middle of the document name is pretty ugly to look
+            // at if they open the document (e.g., PDF, Word, Excel etc).
 
+            // 2008-03-31 Not currently working, at least on the mac: finding the local files eventually fails
+
+            packageName = packageName.replace('+', ' ');
+            
+        } else {
+
+            // So Mac openURL doesn't decode these space indicators later when opening:
+            
+            packageName = packageName.replaceAll("\\+", "\\$20");
+            
+            // Replacing '+' with '-' is a friendler whitespace replacement (more
+            // readable), tho it's "destructive" in that the original URL could no
+            // longer be reliably reverse engineered from the filename.  We don't
+            // actually depending on being able to do that, but it's handy for
+            // debugging, and could be useful if we ever have to deal with any kind of
+            // recovery from data corruption.
+            
+            //packageName = packageName.replace('+', '-');
+        }
+        
+        
         return packageName;
     }
                     
@@ -437,16 +458,6 @@ public class SaveAction extends VueAction
     {
         Log.info("Writing archive package " + archive);
 
-//         final File mapFile;
-
-//         if (map.getFile() != null)
-//             mapFile = map.getFile();
-//         else
-//             mapFile = File.createTempFile("vv-" + archive.getName() + "-", ".vue");
-
-//         // TODO: if we created a tmp file, this will re-write the maps file-name!
-//         ActionUtil.marshallMap(mapFile, map);
-
         String mapName = map.getLabel();
         if (mapName.endsWith(".vue"))
             mapName = mapName.substring(0, mapName.length() - 4);
@@ -454,10 +465,6 @@ public class SaveAction extends VueAction
         final String dirName = mapName + ".vdr";
         
         final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
-        
-        //final ZipEntry versionEntry = new ZipEntry(dirName + "/" + "TUFTS-VUE-ARCHIVE-VERSION-1");
-        //zos.putNextEntry(versionEntry);
-
         final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "-map.vue");
         final String comment = MapArchiveKey + "; VERSION: 1;"
             + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo
@@ -472,66 +479,46 @@ public class SaveAction extends VueAction
         final Map<Resource,File> onDiskFiles = new IdentityHashMap();
 
         for (LWComponent c : map.getAllDescendents(LWComponent.ChildKind.ANY)) {
-            final Resource r = c.getResource();
+
+            final Resource resource = c.getResource();
+
+            if (resource instanceof URLResource == false) {
+                Log.error("UNHANDLED NON-URLResource: " + Util.tags(resource));
+                continue;
+            }
+           
+            final URLResource r = (URLResource) resource;
             
-            if (r instanceof URLResource) {
-                File sourceFile = null;
+            File sourceFile = null;
 
-                if (r.hasProperty(PACKAGE_FILE)) // we're saving something that came from an existing package
-                    sourceFile = new File(r.getProperty(PACKAGE_FILE));
-                else if (r.isLocalFile())
-                    sourceFile = new File(r.getSpec());
-                else if (r.isImage())
-                    sourceFile = Images.findCacheFile(r);
+            if (r.hasProperty(PACKAGE_FILE)) // we're saving something that came from an existing package
+                sourceFile = new File(r.getProperty(PACKAGE_FILE));
+            else if (r.isLocalFile())
+                sourceFile = new File(r.getSpec());
+            else if (r.isImage())
+                sourceFile = Images.findCacheFile(r);
 
-                //if (DEBUG.Enabled) Log.debug(r + "; sourceDataFile=" + sourceFile);
+            //if (DEBUG.Enabled) Log.debug(r + "; sourceDataFile=" + sourceFile);
                 
-                if (sourceFile != null && sourceFile.exists()) {
-                    savedResources.put(c, r);
-                    final URLResource cloned = (URLResource) r.clone();
-                    onDiskFiles.put(cloned, sourceFile);
+            if (sourceFile != null && sourceFile.exists()) {
+                savedResources.put(c, r);
+                final URLResource cloned = (URLResource) r.clone();
+                onDiskFiles.put(cloned, sourceFile);
 
-//                     file = new File(cloned.getSpec());
-//                     if (!file.exists()) {
-//                         Log.error("Couldn't find file for local resource " + r);
-//                         continue;
-//                     }
-
-                    final String packageName = generatePackageFileName((URLResource) r);
+                final String packageName = generatePackageFileName(r);
                     
-                    cloned.setProperty(PACKAGE_KEY, packageName);
-                    //cloned.setSpec(file.getName()); // pull it out of PACKAGE_KEY
-                    clonedResources.put(r, cloned);
-                    c.takeResource(cloned);
-                    Log.debug("Clone: " + cloned);
-                } else {
-                    if (sourceFile == null)
-                        Log.debug("No cache file for: " + r);
-                    else
-                        Log.debug("Missing local file: " + sourceFile);
-                }
-                    
-                
-//                 if (r.isLocalFile()) {
-//                     savedResources.put(c, r);
-//                     URLResource cloned = (URLResource) r.clone();
-//                     //cloned.setProperty(OriginalSpecKey, r.getSpec());
-//                     File file = new File(cloned.getSpec());
-//                     if (!file.exists()) {
-//                         Log.error("Couldn't find file for local resource " + r);
-//                         continue;
-//                     }
-//                     cloned.setSpec("./" + file.getName());
-//                     clonedResources.put(r, cloned);
-//                     c.takeResource(cloned);
-//                     Log.debug("CloneLocal: " + cloned);
-//                 } else {
-//                     Log.debug("    Remote: " + r);
-//                 }
-            } else if (r != null) {
-                Log.error("UNHANDLED NON-URLResource: " + Util.tags(r));
+                cloned.setProperty(PACKAGE_KEY, packageName);
+                clonedResources.put(r, cloned);
+                c.takeResource(cloned);
+                Log.debug("Clone: " + cloned);
+            } else {
+                if (sourceFile == null)
+                    Log.debug("No cache file for: " + r);
+                else
+                    Log.debug("Missing local file: " + sourceFile);
             }
         }
+                    
 
         //-----------------------------------------------------------------------------
         // Archive up the map with it's re-written resources
