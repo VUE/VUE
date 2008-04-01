@@ -612,7 +612,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
                            String [] choices = {"Close"};
                            
                            javax.swing.JOptionPane.showOptionDialog(this,
-                                   "This ontology cannot be installed. Check to make sure it has the proper extension: .owl or .rdfs",
+                                   "<HTML>This ontology cannot be installed. <BR>Check to make sure it has the proper extension: .owl or .rdfs</HTML>",
                                    "Alert",
                                    javax.swing.JOptionPane.YES_NO_OPTION,
                                    javax.swing.JOptionPane.ERROR_MESSAGE,
