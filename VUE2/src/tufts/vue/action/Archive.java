@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.1 $ / $Date: 2008-04-02 03:30:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.2 $ / $Date: 2008-04-02 05:39:51 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -104,8 +104,17 @@ public class Archive
         for (Resource r : map.getAllResources()) {
             final String packageCacheFile = packagedResources.get(r.getSpec());
             if (packageCacheFile != null) {
-                Log.debug("Found packaged resource: " + r + "; " + packageCacheFile);
-                r.setProperty(PACKAGE_FILE, packageCacheFile);
+                //Log.debug("Found packaged resource: " + r + "; " + packageCacheFile);
+                Log.debug("Found packaged resource: " + packageCacheFile + "; " + r);
+                
+                // This will convert "/" from the zip-entry package name to "\" on Windows
+                // (ZipEntry pathnames always use '/', no matter what the platform).
+                final File localFile = new File(packageCacheFile);
+                final String localPath = localFile.toString();
+                if (!localPath.equals(packageCacheFile))
+                    Log.info("    Localized file path: " + localPath);
+                
+                r.setProperty(PACKAGE_FILE, localPath);
                 r.setCached(true);
             }
         }
@@ -123,10 +132,14 @@ public class Archive
     {
         final String filename;
 
-        if (location == null)
+        if (location == null) {
             filename = entry.getName();
-        else
-            filename = location + File.separator + entry.getName();
+        } else {
+            if (location.endsWith(File.separator))
+                filename = location + entry.getName();
+            else
+                filename = location + File.separator + entry.getName();
+        }
 
         if (true||DEBUG.IO) {
             // Note: entry.getSize() is not known until the entry is unpacked
