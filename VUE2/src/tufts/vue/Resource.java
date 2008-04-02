@@ -30,7 +30,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.61 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2008-04-02 03:18:09 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -195,7 +195,12 @@ public abstract class Resource implements Cloneable
             throws org.osid.repository.RepositoryException
         {
             Resource r = new Osid2AssetResource(asset, context);
-            if (DEBUG.DR && repository != null) r.addProperty("~Repository", repository.getDisplayName());
+            try {
+                //if (DEBUG.DR && repository != null) r.addProperty("~Repository", repository.getDisplayName());
+                if (repository != null) r.setHiddenProperty("Repository", repository.getDisplayName());
+            } catch (Throwable t) {
+                Log.warn(Util.tags(r), t);
+            }
             return postProcess(r, asset);
         }
         
@@ -301,8 +306,8 @@ public abstract class Resource implements Cloneable
     }
     
     /** hidden properties are neither displayed at runtime, nor persisted */
-    protected void setHiddenProperty(String key, Object value) {
-        setProperty(DEBUG_PREFIX + key, value);
+    public void setHiddenProperty(String key, Object value) {
+        setProperty(HIDDEN_PREFIX + key, value);
     }
 
     /** debug properties are neither displayed at runtime, nor persisted */
