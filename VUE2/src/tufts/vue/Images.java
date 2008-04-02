@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.44 $ / $Date: 2008-04-02 03:42:26 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2008-04-02 05:38:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -253,15 +253,32 @@ public class Images
     }
 
     private static URI makeKey(URL u) {
+        
         try {
-            return new URI(u.getProtocol(),
-                           u.getUserInfo(),
-                           u.getHost(),
-                           u.getPort(),
-                           //u.getAuthority(),
-                           u.getPath(),
-                           u.getQuery(),
-                           u.getRef()).normalize();
+
+            if ("file".equals(u.getProtocol())) {
+                // this case needed to handle funky Windows "C:" style paths, which
+                // make total havoc with URL/URI code.  Lets hope this
+                // doesn't break anything else anywhere.  -- SMF 2008-04-02
+                final File file = new File(u.getPath());
+                final URI uri = makeKey(file);
+                if (DEBUG.Enabled) {
+                    Log.debug("0    Images.makeKey(URL=): " + u);
+                    Log.debug("1      File from URL Path: " + u.getPath());
+                    Log.debug("2                Got File: " + file);
+                    Log.debug("3       Got URI from File: " + uri);
+                }
+                return uri;
+            } else {
+                return new URI(u.getProtocol(),
+                               u.getUserInfo(),
+                               u.getHost(),
+                               u.getPort(),
+                               //u.getAuthority(),
+                               u.getPath(),
+                               u.getQuery(),
+                               u.getRef()).normalize();
+            }
         } catch (Throwable t) {
             Util.printStackTrace(t, "can't make URI cache key from URL " + u);
         }
@@ -373,14 +390,21 @@ public class Images
                     // If this is a Win32 file://C:\foo\bar path, we must include the
                     // URL "authority", which is where the "C:" is (it's not included in
                     // the path).  This is tested on Win2K & WinXP as of June 2006.
-                    
-                    final String driveLetter = url.getAuthority();
+
+                    String driveLetter = url.getAuthority();
+                    if (driveLetter != null && driveLetter.length() < 1)
+                        driveLetter = null;
+
                     final String fullPath;
                     if (driveLetter != null)
                         fullPath = driveLetter + url.getFile();
                     else
                         fullPath = url.getFile();
                     this.readable = new File(fullPath);
+                    if (DEBUG.Enabled && driveLetter != null) {
+                        Log.debug("Win32 authority made File: " + readable + "; using authority '" + driveLetter + "' (for readable)");
+                    }
+                    
                 }
             } else if (readable instanceof java.io.File) {
                 this.key = makeKey((File) readable);
@@ -1286,7 +1310,7 @@ public class Images
         if (DEBUG.IMAGE) out("Got ImageInputStream " + inputStream);
 
         if (inputStream == null)
-            throw new ImageException("Can't Access"); // e,g., local file permission denied
+            throw new ImageException("Can't Access [" + imageSRC.readable + "]"); // e,g., local file permission denied
 
         ImageReader reader = getDecoder(inputStream);
 
