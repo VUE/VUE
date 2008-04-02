@@ -79,7 +79,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.55 $ / $Date: 2008-04-01 14:32:30 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2008-04-02 03:19:15 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -238,60 +238,73 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     @Override
     public void relativize(URI root)
     {
-        // When dealing with a packaged resource, Resources that were originally
-        // local-file will want to be re-written to point to the actual new local
-        // package cache file.  But resources that we're NOT local will want to have
-        // their resource spec's left alone, yet have their content actually pulled from
-        // the local cache.  We can determine later if we want live updating from the
-        // original web source of the data, or provide a user action for that.
 
-        if (hasProperty(PACKAGE_KEY)) {
-            String packageLocal = getProperty(PACKAGE_KEY);
-            if (ALLOW_URI_WHITESPACE) {
-                // URI.create fails if there are spaces:
-                packageLocal = packageLocal.replaceAll(" ", "%20"); 
-            }
-            URI packaged = root.resolve(packageLocal);
-            if (packaged != null) {
-                Log.debug("Found packaged: " + packaged);
+        if (true) {
+            // TODO: this code is for backward compat with archive version #1.
+            // We may be able to remove it in short order.  This is called
+            // by the map after restoring.  Only archive version #1 resources
+            // should ever have a PACKAGE_KEY property set tho, so it's
+            // safe to leave this code in.
+        
+            // When dealing with a packaged resource, Resources that were originally
+            // local-file will want to be re-written to point to the actual new local
+            // package cache file.  But resources that we're NOT local will want to have
+            // their resource spec's left alone, yet have their content actually pulled from
+            // the local cache.  We can determine later if we want live updating from the
+            // original web source of the data, or provide a user action for that.
 
-                //this.spec = SPEC_UNSET;
-                mRelativeURI = null;
-
-                // WE NO LONGER SET SPEC FOR WEB CONTENT: fetch PACKAGED_KEY when getting data (need new API for that..)                
-
-                if (isLocalFile()) {
-                    // If the original was a local file (e.g., on some other user's machine),
-                    // completely reset the spec, as it will have no meaning on the new
-                    // users machine.
-                    setSpec(packaged.toString());
+            if (hasProperty(PACKAGE_KEY)) {
+                String packageLocal = getProperty(PACKAGE_KEY);
+                if (ALLOW_URI_WHITESPACE) {
+                    // URI.create fails if there are spaces:
+                    packageLocal = packageLocal.replaceAll(" ", "%20"); 
                 }
+                URI packaged = root.resolve(packageLocal);
+                if (packaged != null) {
+                    Log.debug("Found packaged: " + packaged);
 
-                if ("file".equals(packaged.getScheme())) {
-                    setProperty(PACKAGE_FILE, packaged.getRawPath()); // be sure to use getRawPath, otherwise will decode octets
-                    setCached(true); // will let thumbnail requests go to cache file instead
-                } else {
-                    Log.warn("Non-file URI-scheme in resolved packaged URI: " + packaged);
-                    setProperty(PACKAGE_FILE, packaged.toString());
-                }
+                    //this.spec = SPEC_UNSET;
+                    mRelativeURI = null;
+
+                    // WE NO LONGER SET SPEC FOR WEB CONTENT: fetch PACKAGED_KEY when getting data (need new API for that..)                
+
+                    if (isLocalFile()) {
+                        // If the original was a local file (e.g., on some other user's machine),
+                        // completely reset the spec, as it will have no meaning on the new
+                        // users machine.
+                        setSpec(packaged.toString());
+                    }
+
+                    if ("file".equals(packaged.getScheme())) {
+                        setProperty(PACKAGE_FILE, packaged.getRawPath()); // be sure to use getRawPath, otherwise will decode octets
+                        setCached(true); // will let thumbnail requests go to cache file instead
+                    } else {
+                        Log.warn("Non-file URI-scheme in resolved packaged URI: " + packaged);
+                        setProperty(PACKAGE_FILE, packaged.toString());
+                    }
                 
-                return;
+                    return;
+                }
             }
+        
         }
-
         
         if (!isLocalFile()) {
             Log.debug("Remote, unpackaged file, skipping relativize: " + this);
             return;
         }
-        
-        
-        if (DEBUG.Enabled) Log.debug("Relativize to " + root + "; " + this + "; curRelative=" + mRelativeURI);
-        URI oldRelative = mRelativeURI;
-        mRelativeURI = findRelativeURI(root);
-        setDebugProperty("relative", mRelativeURI);
-        if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
-            invalidateToolTip();
+
+        if (false) {
+
+            // incomplete
+
+            if (DEBUG.Enabled) Log.debug("Relativize to " + root + "; " + this + "; curRelative=" + mRelativeURI);
+            URI oldRelative = mRelativeURI;
+            mRelativeURI = findRelativeURI(root);
+            setDebugProperty("relative", mRelativeURI);
+            if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
+                invalidateToolTip();
+            }
         }
     }
     
