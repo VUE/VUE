@@ -29,7 +29,10 @@ package tufts.vue;
 public class PropertyEntry {
     
     /** Creates a new instance of PropertyEntry */
-    public PropertyEntry() {
+    public PropertyEntry() {}
+    public PropertyEntry(String key, Object value) {
+        entryKey = key;
+        entryValue = value;
     }
     
     String entryKey;
