@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.184 $ / $Date: 2008-04-02 03:29:22 $ / $Author: sfraize $
+ * @version $Revision: 1.185 $ / $Date: 2008-04-02 16:08:39 $ / $Author: mike $
  */
 
 public class LWMap extends LWContainer
@@ -111,7 +111,7 @@ public class LWMap extends LWContainer
     
     public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)
         { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
-    public final ColorProperty mPresentationColor = new ColorProperty(KEY_FillColor, new java.awt.Color(32,32,32));
+    public final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
     
     // only to be used during a restore from persisted
     public LWMap() {
