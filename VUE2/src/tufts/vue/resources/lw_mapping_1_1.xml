@@ -322,7 +322,12 @@
                  </field> 
                  <field name="saveFile">
                    <bind-xml name="saveFile" node="element"/>
-                 </field> 
+                 </field>
+
+                <field name="archiveManifest" type="tufts.vue.PropertyEntry" node="element" collection="collection">
+		  <bind-xml name="archive"/>
+		</field>
+                 
                 <field name="extraTags" set-method="addObject" type="java.lang.Object" collection="arraylist">
                   <bind-xml matches="*"/> 
                 </field>
