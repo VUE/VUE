@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.205 $ / $Date: 2008-03-06 16:02:09 $ / $Author: sfraize $
+ * @version $Revision: 1.206 $ / $Date: 2008-04-02 03:17:15 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -197,93 +197,6 @@ public class LWNode extends LWContainer
     
     
 
-    public void setResource(Resource r) {
-        super.setResource(r);
-        if (r == null || mXMLRestoreUnderway)
-            return;
-        if (getChild(0) instanceof LWImage) {
-            LWImage image = (LWImage) getChild(0);
-            if (r.isImage()) {
-                if (image.isNodeIcon() && image.getResource() != null && !image.getResource().equals(getResource())) {
-                    // above hack: image resource will be null while being created in MapDropTarget
-                    image.setResource(r);
-                }
-            } else {
-                deleteChildPermanently(image);
-            }
-            // adding metadtaa for Osid2AssetResource. 
-            //TODO: This should be refactored into Osit2AssetResource or some other place.  Similar stuff is done with properties
-            if(r instanceof Osid2AssetResource) {
-                try {
-                    org.osid.repository.Asset asset = ((Osid2AssetResource)r).getAsset();
-                    org.osid.repository.RecordIterator recordIterator = asset.getRecords();
-                     while (recordIterator.hasNextRecord()) {
-                        org.osid.repository.Record record = recordIterator.nextRecord();
-                //        System.out.println("-Processing Record: "+record.getDisplayName());
-                        org.osid.repository.PartIterator partIterator = record.getParts();
-                        String recordDesc = null;
-                        while (partIterator.hasNextPart()) {
-                             org.osid.repository.Part part = partIterator.nextPart();
-                  //           System.out.println("--Processing Part: "+part.getDisplayName());
-                          org.osid.repository.PartStructure partStructure = part.getPartStructure();
-                            if ( (part != null) && (partStructure != null) ) {
-                                org.osid.shared.Type partStructureType = partStructure.getType();
-                                final String description = partStructure.getDescription();
-                                java.io.Serializable value = part.getValue();
-                               String key;
-                                if (description != null && description.trim().length() > 0) {
-                                    key = description;
-                                } else {
-                                    key = partStructureType.getKeyword();
-                                }
-                               if(!key.startsWith(VueResources.getString("metadata.dublincore.url"))) continue;
-                                 if (key == null) {
-                                    Log.warn(this + " Asset Part [" + part + "] has null key.");
-                                    continue;
-                                }
-                                if (value == null) {
-                                    Log.warn(this + " Asset Part [" + key + "] has null value.");
-                                    continue;
-                                }
-                                if (value instanceof String) {
-                                    String s = ((String)value).trim(); 
-                                    // Don't add field if it's empty
-                                    if (s.length() <= 0)
-                                        continue;
-                                    
-                                    if (s.startsWith("<p>") && s.endsWith("</p>")) {
-                                        // Ignore empty HTML paragraphs
-                                        String body = s.substring(3, s.length()-4);
-                                        if (body.trim().length() == 0) {
-                                            if (DEBUG.DR)
-                                                value = "[empty <p></p> ignored]";
-                                            else
-                                                continue;
-                                        }
-                                    }
-//                                  addProperty(key, value);
-                                    edu.tufts.vue.metadata.VueMetadataElement vueMDE = new edu.tufts.vue.metadata.VueMetadataElement();
-                                    vueMDE.setKey(key);
-                                    vueMDE.setValue(value.toString());
-                                    vueMDE.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
-                                    getMetadataList().addElement(vueMDE);
-                                }
-                            }
-                        }
-                    }
-                    
-                } catch (Throwable t) {
-                    tufts.Util.printStackTrace(t);
-                }
-            }
-        } else if (r.isImage()) {
-            final LWImage imageIcon = new LWImage();
-            addChild(imageIcon);
-            sendToBack(imageIcon);
-            // set resource last so picks update node-icon status reliably:
-            imageIcon.setResource(r);
-        }
-    }
     
     
     public static final Key KEY_Shape =
@@ -880,9 +793,124 @@ public class LWNode extends LWContainer
                 if (isScaledChildType(c))
                     c.setScale(LWNode.ChildScale);
             }
+
+            if (hasResource() && getChild(0) instanceof LWImage) {
+                final LWImage image = (LWImage) getChild(0);
+                final Resource IR = image.getResource();
+                final Resource r = getResource();
+                
+                if (r != null && IR != null && r != IR && r.equals(IR)) {
+
+                    // node & image start with same instance of a Resource object when
+                    // intially created, but two instances are created during
+                    // persistance.  This restore the single instance condition upon
+                    // restore.  The Resource owned by the image takes priority, as it's
+                    // going to have the most complete & up to date meta-data.
+
+                    // This should work fine (it's the same state things are in when
+                    // image nodes are initially created), tho we should watch for
+                    // side-effects with filtering & meta-data, or even possible
+                    // threading issues, in case this brings to light other bugs we
+                    // haven't caught yet. SMF 2008-04-01
+                    
+                    takeResource(IR);
+                    
+                }
+
+            }
+            
         }
 
     }
+
+    public void setResource(Resource r) {
+        super.setResource(r);
+        if (r == null || mXMLRestoreUnderway)
+            return;
+        if (getChild(0) instanceof LWImage) {
+            LWImage image = (LWImage) getChild(0);
+            if (r.isImage()) {
+                if (image.isNodeIcon() && image.getResource() != null && !image.getResource().equals(getResource())) {
+                    // above hack: image resource will be null while being created in MapDropTarget
+                    image.setResource(r);
+                }
+            } else {
+                deleteChildPermanently(image);
+            }
+            // adding metadtaa for Osid2AssetResource. 
+            //TODO: This should be refactored into Osit2AssetResource or some other place.  Similar stuff is done with properties
+            if(r instanceof Osid2AssetResource) {
+                try {
+                    org.osid.repository.Asset asset = ((Osid2AssetResource)r).getAsset();
+                    org.osid.repository.RecordIterator recordIterator = asset.getRecords();
+                     while (recordIterator.hasNextRecord()) {
+                        org.osid.repository.Record record = recordIterator.nextRecord();
+                //        System.out.println("-Processing Record: "+record.getDisplayName());
+                        org.osid.repository.PartIterator partIterator = record.getParts();
+                        String recordDesc = null;
+                        while (partIterator.hasNextPart()) {
+                             org.osid.repository.Part part = partIterator.nextPart();
+                  //           System.out.println("--Processing Part: "+part.getDisplayName());
+                          org.osid.repository.PartStructure partStructure = part.getPartStructure();
+                            if ( (part != null) && (partStructure != null) ) {
+                                org.osid.shared.Type partStructureType = partStructure.getType();
+                                final String description = partStructure.getDescription();
+                                java.io.Serializable value = part.getValue();
+                               String key;
+                                if (description != null && description.trim().length() > 0) {
+                                    key = description;
+                                } else {
+                                    key = partStructureType.getKeyword();
+                                }
+                               if(!key.startsWith(VueResources.getString("metadata.dublincore.url"))) continue;
+                                 if (key == null) {
+                                    Log.warn(this + " Asset Part [" + part + "] has null key.");
+                                    continue;
+                                }
+                                if (value == null) {
+                                    Log.warn(this + " Asset Part [" + key + "] has null value.");
+                                    continue;
+                                }
+                                if (value instanceof String) {
+                                    String s = ((String)value).trim(); 
+                                    // Don't add field if it's empty
+                                    if (s.length() <= 0)
+                                        continue;
+                                    
+                                    if (s.startsWith("<p>") && s.endsWith("</p>")) {
+                                        // Ignore empty HTML paragraphs
+                                        String body = s.substring(3, s.length()-4);
+                                        if (body.trim().length() == 0) {
+                                            if (DEBUG.DR)
+                                                value = "[empty <p></p> ignored]";
+                                            else
+                                                continue;
+                                        }
+                                    }
+//                                  addProperty(key, value);
+                                    edu.tufts.vue.metadata.VueMetadataElement vueMDE = new edu.tufts.vue.metadata.VueMetadataElement();
+                                    vueMDE.setKey(key);
+                                    vueMDE.setValue(value.toString());
+                                    vueMDE.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+                                    getMetadataList().addElement(vueMDE);
+                                }
+                            }
+                        }
+                    }
+                    
+                } catch (Throwable t) {
+                    tufts.Util.printStackTrace(t);
+                }
+            }
+        } else if (r.isImage()) {
+            final LWImage imageIcon = new LWImage();
+            addChild(imageIcon);
+            sendToBack(imageIcon);
+            // set resource last so picks update node-icon status reliably:
+            imageIcon.setResource(r);
+        }
+    }
+    
     
 
     static boolean isScaledChildType(LWComponent c) {
