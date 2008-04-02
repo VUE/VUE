@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.2 $ / $Date: 2008-04-02 05:39:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.3 $ / $Date: 2008-04-02 06:00:53 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -116,7 +116,10 @@ public class Archive
                 
                 r.setProperty(PACKAGE_FILE, localPath);
                 r.setCached(true);
+            } else {
+                if (DEBUG.Enabled) Log.debug("No archive entry matching: " + r.getSpec());
             }
+
         }
 
         return map;
@@ -263,6 +266,8 @@ public class Archive
     }
 
 
+    private static final String COMMENT_ENCODING = "UTF-8";
+    
     /**
      *
      * There's a java bug (STILL!) as of JAN 2008: comments are encoded in the zip file,
@@ -273,12 +278,20 @@ public class Archive
      * for easy debug (e.g., unzip -l), and then encode them again as "extra" zip entry
      * bytes, which we can extract later as the comment.
      *
+     * Note also that for special characters to make it through this process across
+     * multiple platforms, the same, platform-neutral encoding must be used
+     * both when setting and getting.
+     *
      */
     private static void setComment(ZipEntry entry, String comment) {
 
         entry.setComment(comment);
-        entry.setExtra(comment.getBytes());
-        
+        try {
+            entry.setExtra(comment.getBytes(COMMENT_ENCODING));
+        } catch (Throwable t) {
+            Log.warn("Couldn't " + COMMENT_ENCODING + " encode 'extra' bytes into ZipEntry comment; " + entry + "; [" + comment + "]", t);
+            entry.setExtra(comment.getBytes());
+        }
     }
 
     /**
@@ -294,7 +307,12 @@ public class Archive
         String comment = null;
         if (extra != null && extra.length > 0) {
             if (DEBUG.IO && DEBUG.META) Log.debug("getComment found " + extra.length + " extra bytes");
-            comment = new String(extra);
+            try {
+                comment = new String(extra, COMMENT_ENCODING);
+            } catch (Throwable t) {
+                Log.warn("Couldn't " + COMMENT_ENCODING + " decode 'extra' bytes from ZipEntry comment; " + entry, t);
+                comment = new String(extra);
+            }
             //comment = "extra(" + new String(extra) + ")";
         }
 
