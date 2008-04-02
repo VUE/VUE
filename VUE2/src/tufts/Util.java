@@ -236,10 +236,17 @@ public class Util
                 // Also, I've seen D|/dir/file.txt in a shortcut file, so we allow that too.
                 // In any case, we do noting: this string should be workable to url.dll
             } else {
-                // if this does NOT start with a drive specification, assume
-                // the first component is a host for a windows network
-                // drive, and thus we have to pre-pend \\ to it, to get \\host\file
-                url = "\\\\" + url; 
+
+                if (!url.startsWith("file:")) {
+                    // DO NOTHING.
+                    // If we had "file:" above and NOT "file:/", we need this check here.
+                    // This suggests this code needs refactoring.  SMF 2008-04-02
+                } else {
+                    // if this does NOT start with a drive specification, assume
+                    // the first component is a host for a windows network
+                    // drive, and thus we have to pre-pend \\ to it, to get \\host\file
+                    url = "\\\\" + url;
+                }
             }
             // at this point, "url" is really just a local windows file
             // in full windows syntax (backslashes, drive specs, etc)
