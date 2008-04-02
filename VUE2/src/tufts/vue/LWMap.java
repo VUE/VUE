@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.182 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.183 $ / $Date: 2008-04-02 03:16:21 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -502,33 +502,55 @@ public class LWMap extends LWContainer
         return bag;
     }
 
+    /**
+     * @return all instances of Resource objects found in the map, even if some of them point to the same destination.
+     */
     public Collection<Resource> getAllResources() {
 
-        Collection<Resource> resources = new ArrayList();
+        final Map<Resource,Boolean> resources = new IdentityHashMap(); // really, want IdentityHashSet
 
         for (LWComponent c : getAllDescendents(ChildKind.ANY))
             if (c.hasResource())
-                resources.add(c.getResource());
+                resources.put(c.getResource(), Boolean.TRUE);
 
-        return resources;
+        return resources.keySet();
     }
 
+    /**
+     * @return all destination unique (Resource.equals, compairing spec) Resources
+     * found in the map.  So even if there are different Resource instances in
+     * the map that both have the same spec, only the first one found will be
+     * in the returned collection.
+     */
     public Collection<Resource> getAllUniqueResources() {
 
-        Set resources = new HashSet();
+        final Set resources = new HashSet();
 
-        for (LWComponent c : getAllDescendents(ChildKind.ANY)) {
-            if (c.hasResource()) {
-                Resource r = c.getResource();
-                if (resources.add(r))
-                    Log.debug("Found resource " + r);
-                else
-                    Log.debug("     duplicate " + r);
+        for (Resource r : getAllResources()) {
+            if (resources.add(r)) {
+                if (DEBUG.RESOURCE) Log.debug("getAllUniqueResources: Found resource " + r);
+            } else {
+                if (DEBUG.RESOURCE) Log.debug("getAllUniqueResources:      duplicate " + r);
             }
         }
 
         return resources;
     }
+
+    private Collection<PropertyEntry> mArchiveManifest;
+
+    public void setArchiveManifest(Collection<PropertyEntry> manifest) {
+        mArchiveManifest = manifest;
+    }
+
+    public Collection getArchiveManifest() {
+        if (mXMLRestoreUnderway) {
+            if (mArchiveManifest == null)
+                mArchiveManifest = new ArrayList();
+        }
+        return mArchiveManifest;
+    }
+    
     
     
     private int nextID = 1;
