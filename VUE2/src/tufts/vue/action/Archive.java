@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.3 $ / $Date: 2008-04-02 06:00:53 $ / $Author: sfraize $ 
+ * @version $Revision: 1.4 $ / $Date: 2008-04-03 06:32:48 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -119,8 +119,10 @@ public class Archive
             } else {
                 if (DEBUG.Enabled) Log.debug("No archive entry matching: " + r.getSpec());
             }
-
         }
+
+        map.setFile(file);
+        map.markAsSaved();
 
         return map;
     }
@@ -285,8 +287,16 @@ public class Archive
      */
     private static void setComment(ZipEntry entry, String comment) {
 
+        // Using the default ZipEntry.setComment here is currently
+        // only useful in that it provides for visual inspection of
+        // archive entry comments, using, for example the "unzip"
+        // command line tool.
+
         entry.setComment(comment);
+        
         try {
+            //entry.setComment(new String(comment.getBytes(), COMMENT_ENCODING));
+            //entry.setComment(new String(comment.getBytes(COMMENT_ENCODING), COMMENT_ENCODING));
             entry.setExtra(comment.getBytes(COMMENT_ENCODING));
         } catch (Throwable t) {
             Log.warn("Couldn't " + COMMENT_ENCODING + " encode 'extra' bytes into ZipEntry comment; " + entry + "; [" + comment + "]", t);
