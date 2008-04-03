@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.4 $ / $Date: 2008-04-03 06:32:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.5 $ / $Date: 2008-04-03 07:10:29 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -61,8 +61,15 @@ public class Archive
     {
         Log.info("Unpacking VUE zip archive: " + file);
         
+        final String unpackingDir;
+
         //File folder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+"VueMapArchives";
-        final String unpackingDir = VUE.getSystemProperty("java.io.tmpdir"); // or, could use same dir a current package file is at
+
+        final File parentFile = file.getParentFile();
+        if (parentFile != null && parentFile.canWrite())
+            unpackingDir = parentFile.toString();
+        else
+            unpackingDir = VUE.getSystemProperty("java.io.tmpdir");
         
         final ZipFile zipFile = new ZipFile(file);
 
@@ -576,7 +583,7 @@ public class Archive
         //-----------------------------------------------------------------------------
 
         final ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(archive)));
-        final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "-map.vue");
+        final ZipEntry mapEntry = new ZipEntry(dirName + "/" + mapName + "$map.vue");
         final String comment = MAP_ARCHIVE_KEY + "; VERSION: 2;"
             + " Saved " + new Date() + " by " + VUE.getName() + " built " + Version.AllInfo + "; items=" + items.size()
             //+ "\n\tmap-name(" + mapName + ")"
