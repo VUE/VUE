@@ -229,6 +229,7 @@ public class Util
             //url = url.replaceFirst("^file:/+", "file:");
             url = url.replaceFirst("^file:/+", "");
             url = url.replace('/', '\\');
+            System.err.println("openURL_patch[" + url + "]");
             char c1 = 0;
             try { c1 = url.charAt(1); } catch (StringIndexOutOfBoundsException e) {}
             if (c1 == ':' || c1 == '|') {
@@ -237,7 +238,7 @@ public class Util
                 // In any case, we do noting: this string should be workable to url.dll
             } else {
 
-                if (!url.startsWith("file:")) {
+                if (url.startsWith("file:")) {
                     // DO NOTHING.
                     // If we had "file:" above and NOT "file:/", we need this check here.
                     // This suggests this code needs refactoring.  SMF 2008-04-02
