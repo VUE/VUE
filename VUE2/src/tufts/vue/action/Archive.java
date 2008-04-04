@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.5 $ / $Date: 2008-04-03 07:10:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.6 $ / $Date: 2008-04-04 22:11:21 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -54,26 +54,60 @@ public class Archive
         return file.getName().toLowerCase().endsWith(VueUtil.VueArchiveExtension);
     }
 
+    /**
+     * @return true if we can create files in the given directory
+     * File.canWrite is insufficient to ensure this.   If the filesystem
+     * the directory is on is not writeable, we wont know this until
+     * we attempt to create a file there, and it fails.
+     */
+    public static boolean canCreateFiles(File directory) {
+        if (directory == null || !directory.canWrite())
+            return false;
 
-    public static LWMap openVuePackage(File file)
+        File tmp = null;
+        try {
+            tmp = directory.createTempFile(".vueFScheck", "", directory);
+        } catch (Throwable t) {
+            Log.info("Cannot write to filesystem inside: " + directory + "; " + t);
+        }
+
+        if (tmp != null) {
+            if (DEBUG.Enabled) Log.debug("Created test file: " + tmp);
+            try {
+                tmp.delete();
+            } catch (Throwable t) {
+                Log.error("Couldn't delete tmp file " + tmp, t);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * @param zipFile should be a File pointing to a VUE Package -- a Zip Archive created by VUE
+     */
+
+    public static LWMap openVuePackage(final File zipFile)
         throws java.io.IOException,
                java.util.zip.ZipException
     {
-        Log.info("Unpacking VUE zip archive: " + file);
+        Log.info("Unpacking VUE zip archive: " + zipFile);
         
         final String unpackingDir;
 
         //File folder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+"VueMapArchives";
 
-        final File parentFile = file.getParentFile();
-        if (parentFile != null && parentFile.canWrite())
+        final File parentFile = zipFile.getParentFile();
+        if (canCreateFiles(parentFile))
             unpackingDir = parentFile.toString();
         else
             unpackingDir = VUE.getSystemProperty("java.io.tmpdir");
         
-        final ZipFile zipFile = new ZipFile(file);
+        Log.info("Unpacking location: " + unpackingDir);
 
-        final ZipInputStream zin = new ZipInputStream(new FileInputStream(file));
+        final ZipInputStream zin = new ZipInputStream(new FileInputStream(zipFile));
 
         final Map<String,String> packagedResources = new HashMap();
 
@@ -128,7 +162,7 @@ public class Archive
             }
         }
 
-        map.setFile(file);
+        map.setFile(zipFile);
         map.markAsSaved();
 
         return map;
