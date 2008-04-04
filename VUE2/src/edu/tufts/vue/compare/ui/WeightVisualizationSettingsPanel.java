@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.41 $ / $Date: 2008-04-01 15:38:29 $ / $Author: dan $
+ * @version $Revision: 1.42 $ / $Date: 2008-04-04 00:47:10 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -632,7 +632,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                         
                     }
                     
-                    if(value > 100) 
+                    if(value > 100 &&(endField.getSelectedText() == null) )
                         e.consume();
                 }
             });
