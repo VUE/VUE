@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.43 $ / $Date: 2008-04-04 21:49:23 $ / $Author: dan $
+ * @version $Revision: 1.44 $ / $Date: 2008-04-04 23:44:27 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -61,7 +61,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     public static final String intervalChoiceMessageString = "Set number of intervals:";
     public static final String paletteChoiceMessageString = "Select a color Palette:";
     
-    private static final boolean EDITABLE_INTERVALS = false;
+    private static final boolean EDITABLE_INTERVALS = true;
     private static final boolean DEBUG_LOCAL = false;
     
     private JComboBox parameterChoice;
@@ -458,15 +458,29 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                 
                 //System.out.println("percentage for color " + count + "," + percentage);
                 
+                java.awt.Color color = colors.next();
+                
                 Style s = StyleMap.getStyle(nodeOrLink+".w" + (i++));
-                s.setAttribute("background",Style.colorToHex(colors.next()).toString());
+                s.setAttribute("background",Style.colorToHex(color).toString());
                 if(percentage >= .8) {
                     //System.out.println("setting foreground color to white? " + count);
                     s.setAttribute("font-color",Style.colorToHex(Color.WHITE));
                 }
+                
+                // change model
+                IntervalStylePreview isp = (IntervalStylePreview)intervalList.getModel().getValueAt(count-1,1);
+                isp.setBackground(color);
+                ((IntervalListModel)(intervalList.getModel())).setValueAt(isp,count-1,1);
+                    
+                    
+                
             }
             // loadDefaultStyles();
-            loadDefaultSettings();
+            
+            //why? this is producint a bug... disable..
+            //loadDefaultSettings();
+            ((IntervalListModel)intervalList.getModel()).refresh();
+            
             repaint(); 
         }
     }
@@ -668,7 +682,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                        {
                          endField.setText("0");
                        }
-                       if(value >nextEndValue)
+                       if(value >= nextEndValue)
                        {
                            nextStartField = nextEndValue - 1 + "";
                            endField.setText(nextStartField);
