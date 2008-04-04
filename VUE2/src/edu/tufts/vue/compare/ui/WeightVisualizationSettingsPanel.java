@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.42 $ / $Date: 2008-04-04 00:47:10 $ / $Author: dan $
+ * @version $Revision: 1.43 $ / $Date: 2008-04-04 21:49:23 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -61,7 +61,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
     public static final String intervalChoiceMessageString = "Set number of intervals:";
     public static final String paletteChoiceMessageString = "Select a color Palette:";
     
-    private static final boolean EDITABLE_INTERVALS = true;
+    private static final boolean EDITABLE_INTERVALS = false;
     private static final boolean DEBUG_LOCAL = false;
     
     private JComboBox parameterChoice;
