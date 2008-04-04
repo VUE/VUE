@@ -1245,9 +1245,10 @@ public class Actions implements VueConstants
                             false);
                             */
             		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
-            		ZoomTool.setZoom(VUE.getActiveMap().getTempZoom());
-            		if (originOffset != null)
-            			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+            	//	ZoomTool.setZoom(VUE.getActiveMap().getTempZoom());
+            		//if (originOffset != null)
+            			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+            		ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
             		VUE.getReturnToMapButton().setVisible(false);
             	}
             	else
@@ -1301,10 +1302,12 @@ public class Actions implements VueConstants
             		
             		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
             		double tempZoom = VUE.getActiveMap().getTempZoom();
+            		
             		//System.out.println("temp #s : " +originOffset + " " + tempZoom);
-            		ZoomTool.setZoom(tempZoom);
-            		if (originOffset != null)
-            			VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+            	//	ZoomTool.setZoom(tempZoom);
+            		//if (originOffset != null)
+            			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+            		ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
             		VUE.getReturnToMapButton().setVisible(false);
             		//ZoomTool.setZoom(zoomFactor);
             	    

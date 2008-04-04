@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.26 $ / $Date: 2008-03-31 15:39:43 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2008-04-04 19:07:43 $ / $Author: mike $
  *
  */
 
@@ -518,10 +518,10 @@ public class FullScreen
         
         if (!goNative && activeViewer != null && activeMap != null && !(VUE.getActiveViewer().getFocal() instanceof tufts.vue.LWSlide))        
         {
-        	if (activeViewer.getWidth() != activeViewer.getVisibleWidth() ||activeViewer.getHeight() != activeViewer.getVisibleHeight())
+        	//if (activeViewer.getWidth() != activeViewer.getVisibleWidth() ||activeViewer.getHeight() != activeViewer.getVisibleHeight())
         		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getVisibleMapBounds());
-        	else
-        		ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getMap().getMapBounds(),20,false);
+        //	else
+        	//	ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getMap().getMapBounds(),activeViewer.getMap().getFocalMargin(),false);
         		
         }
         
@@ -562,6 +562,7 @@ public class FullScreen
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();
         Dimension d = VUE.getApplicationFrame().getSize();
+        final tufts.vue.LWComponent focal = FullScreenViewer.getFocal();
         final Rectangle2D rect2d = FullScreenViewer.getVisibleMapBounds();
         //double x = rect2d.getX();
         //double y = rect2d.getY();
@@ -642,7 +643,18 @@ public class FullScreen
             //VUE.getActiveViewer().setZ
             //set zoom to what it was in the fullscreen
             if (!wasNative)
-            	ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);        
+            {
+            //	if (focal != VUE.getActiveViewer().getFocal())
+            		VUE.getActiveViewer().loadFocal(focal);	         
+            		
+            	//ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);
+
+            	if (VUE.getActiveViewer().getWidth() != VUE.getActiveViewer().getVisibleWidth() ||VUE.getActiveViewer().getHeight() != VUE.getActiveViewer().getVisibleHeight())
+            		ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),VUE.getActiveViewer().getVisibleMapBounds());
+            	else
+            		ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),VUE.getActiveViewer().getMap().getMapBounds(),VUE.getActiveViewer().getMap().getFocalMargin(),false);
+
+            }
         }});
     
     }
