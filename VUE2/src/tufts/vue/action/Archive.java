@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.6 $ / $Date: 2008-04-04 22:11:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.7 $ / $Date: 2008-04-04 22:29:49 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -61,8 +61,15 @@ public class Archive
      * we attempt to create a file there, and it fails.
      */
     public static boolean canCreateFiles(File directory) {
-        if (directory == null || !directory.canWrite())
+        if (directory == null)
             return false;
+
+// Window's Vista as of April 2008 can apparently lie about this.  E.g., it is
+// claiming the Desktop folder is not writeable...  -- SMF 2008-04-04
+//         if (!directory.canWrite()) {
+//             Log.info("Cannot write: " + directory);
+//             return false;
+//         }
 
         File tmp = null;
         try {
@@ -99,9 +106,9 @@ public class Archive
 
         //File folder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+"VueMapArchives";
 
-        final File parentFile = zipFile.getParentFile();
-        if (canCreateFiles(parentFile))
-            unpackingDir = parentFile.toString();
+        final File parentDirectory = zipFile.getParentFile();
+        if (canCreateFiles(parentDirectory))
+            unpackingDir = parentDirectory.toString();
         else
             unpackingDir = VUE.getSystemProperty("java.io.tmpdir");
         
