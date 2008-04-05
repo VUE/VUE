@@ -18,7 +18,7 @@
  *
  * Created on February 2, 2007, 3:47 PM
  *
- * @version $Revision: 1.44 $ / $Date: 2008-04-04 23:44:27 $ / $Author: dan $
+ * @version $Revision: 1.45 $ / $Date: 2008-04-05 09:41:13 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -687,7 +687,7 @@ public class WeightVisualizationSettingsPanel extends JPanel implements ActionLi
                            nextStartField = nextEndValue - 1 + "";
                            endField.setText(nextStartField);
                        }
-                       else if(value < startValue)
+                       else if(value <= startValue)
                        {
                            nextStartField = startValue + 1 + ""; 
                            endField.setText(nextStartField);
