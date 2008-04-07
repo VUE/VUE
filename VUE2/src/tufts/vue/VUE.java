@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.525 $ / $Date: 2008-03-28 19:20:24 $ / $Author: mike $ 
+ * @version $Revision: 1.526 $ / $Date: 2008-04-07 19:52:36 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -948,7 +948,7 @@ public class VUE
 
 			public void activeChanged(ActiveEvent e) {
 				if ((VUE.getActiveViewer()!=null && VUE.getActiveViewer().getFocal()!= null) && (VUE.getActiveViewer().getFocal() instanceof LWSlide || 
-					VUE.getActiveViewer().getFocal() instanceof MasterSlide))
+					VUE.getActiveViewer().getFocal() instanceof MasterSlide) || VUE.getActiveViewer().getFocal() instanceof LWGroup)
 				{
 					returnToMapButton.setVisible(true);		
 				}

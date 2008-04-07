@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.403 $ / $Date: 2008-03-31 15:32:42 $ / $Author: mike $
+ * @version $Revision: 1.404 $ / $Date: 2008-04-07 19:52:36 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -5950,6 +5950,7 @@ u                    getSlot(c).setFromString((String)value);
             //} else if (this instanceof LWSlide || this instanceof LWGroup || this instanceof LWPortal)
             // MapViewer "null remote focal" code would need fixing to enable selection if a portal is the focal
             // (the selected objects are not children of the focal, so they don't look like we should be seeing them)
+        	VUE.getReturnToMapButton().setVisible(true);
             return doZoomingDoubleClick(e);
         } else
             return false;
@@ -5969,7 +5970,7 @@ u                    getSlot(c).setFromString((String)value);
             return true;
             //return false;
         }
-
+        VUE.getActiveMap().setTempBounds(VUE.getActiveViewer().getVisibleMapBounds());
         final Rectangle2D viewerBounds = viewer.getVisibleMapBounds();
         final Rectangle2D mapBounds = getMapBounds();
         final Rectangle2D overlap = viewerBounds.createIntersection(mapBounds);

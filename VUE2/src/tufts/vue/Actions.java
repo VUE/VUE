@@ -1314,6 +1314,12 @@ public class Actions implements VueConstants
 
             		
             	}
+            	else if (VUE.getActiveViewer().getFocal() instanceof LWGroup)
+            	{
+            		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
+            		ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+            		VUE.getReturnToMapButton().setVisible(false);
+            	}
             }
         }
     };
@@ -1360,8 +1366,8 @@ public class Actions implements VueConstants
             		//VUE.getActiveViewer().getO
             		//originOffset = VUE.getActiveViewer().get
             		//zoomBounds = VUE.getActiveViewer().getDisplayableMapBounds();
-            		Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
-            		double tempZoom = VUE.getActiveMap().getTempZoom();
+            		//Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+            		//double tempZoom = VUE.getActiveMap().getTempZoom();
             		//System.out.println("2temp #s : " +originOffset + " " + tempZoom);
             		VUE.getActiveViewer().loadFocal(slide);
             		
