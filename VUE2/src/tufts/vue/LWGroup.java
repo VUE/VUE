@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.83 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.84 $ / $Date: 2008-04-07 22:17:50 $ / $Author: mike $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -55,6 +55,13 @@ public class LWGroup extends LWContainer
     public LWGroup() {
         if (!FancyGroups)
             disablePropertyTypes(KeyType.STYLE);
+        
+        disableProperty(LWKey.Font);
+        disableProperty(LWKey.FontName);
+        disableProperty(LWKey.FontSize);
+        disableProperty(LWKey.FontStyle);
+        disableProperty(LWKey.TextColor);
+        
     }
 
     @Override
