@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.92 $ / $Date: 2008-04-03 06:59:19 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2008-04-08 18:41:38 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -973,7 +973,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
     	private File file;
     	public RecentOpenAction(File f) {
             super(f.getName());
-            putValue(SHORT_DESCRIPTION, f.toString());
+            if (DEBUG.Enabled)
+            	putValue(SHORT_DESCRIPTION, f.toString());
+            else
+            	putValue(SHORT_DESCRIPTION, "");
             file = f;
     	}
 
