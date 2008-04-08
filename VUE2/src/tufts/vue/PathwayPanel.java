@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.121 $ / $Date: 2008-03-28 19:20:24 $ / $Author: mike $
+ * @version $Revision: 1.122 $ / $Date: 2008-04-08 19:30:02 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -66,7 +66,7 @@ public class PathwayPanel extends JPanel
     private final VueButton btnLiveMap = new VueButton("presentationDialog.button.liveMap", this);
     
     //edit
-    private final VueButton btnPreview = new VueButton("presentationDialog.button.preview", this);
+    private final VueButton btnEditSlides = new VueButton("presentationDialog.button.preview", this);
   //  private final VueButton btnPreviewFull = new VueButton("presentationDialog.button.previewFull", this);
        
     //master slide
@@ -470,7 +470,7 @@ public class PathwayPanel extends JPanel
         btnLiveMap.setToolTipText(VueResources.getString(baseProp+"liveMap.tooltip"));
         
         //edit
-        btnPreview.setToolTipText(VueResources.getString(baseProp+"preview.tooltip"));
+        btnEditSlides.setToolTipText(VueResources.getString(baseProp+"preview.tooltip"));
     //    btnPreviewFull.setToolTipText(VueResources.getString(baseProp+"previewFull.tooltip"));
            
         //master slide
@@ -571,7 +571,7 @@ public class PathwayPanel extends JPanel
         gbConstraints.gridwidth = 1;
         gbConstraints.gridheight = 1;
         gbConstraints.anchor=GridBagConstraints.WEST;
-        editPanel.add(btnPreview,gbConstraints);
+        editPanel.add(btnEditSlides,gbConstraints);
         
        // gbConstraints.gridx=1;
        // gbConstraints.gridy=1;
@@ -991,7 +991,7 @@ public class PathwayPanel extends JPanel
 
         if (pathway == null && btn != btnPresentationCreate)
             return;
-        if (btn == btnPreview)
+        if (btn == btnEditSlides)
         {
         	/*if (VUE.getSlideDock().isShowing())
         		VUE.getSlideDock().setVisible(false);
@@ -1009,7 +1009,10 @@ public class PathwayPanel extends JPanel
     		
     		pathway.getCurrentEntry().getSlide().doZoomingDoubleClick(mme);*/
         	//Actions.PreviewOnMap.actionPerformed(e);
-        	Actions.EditSlide.act(pathway.getCurrentEntry().getSlide());
+        	if (pathway.getCurrentEntry() != null && pathway.getCurrentEntry().getSlide() != null)
+        		Actions.EditSlide.act(pathway.getCurrentEntry().getSlide());
+        	else
+        		Actions.EditMasterSlide.act(pathway.getMasterSlide());
         }    
         else if (btn == btnPlay)
         {
@@ -1337,10 +1340,15 @@ public class PathwayPanel extends JPanel
         
         btnPathwayOnly.setEnabled(VUE.getActivePathway() != null);
         
-        if (VUE.getActivePathway() != null && VUE.getActivePathway().getCurrentEntry() != null)
-        	btnPreview.setEnabled(!VUE.getActivePathway().getCurrentEntry().isPortal());
+        if (VUE.getActivePathway() != null)
+        {
+        	if (VUE.getActivePathway().getCurrentEntry() != null)
+        		btnEditSlides.setEnabled(!VUE.getActivePathway().getCurrentEntry().isPortal());
+        	else
+        		btnEditSlides.setEnabled(true);
+        }
         else
-        	btnPreview.setEnabled(false);
+        	btnEditSlides.setEnabled(false);
 //         final LWPathway pathway = VUE.getActivePathway();
 //         if (pathway != null && pathway.getCurrentEntry() != null) {
 //             btnRefresh.setEnabled(!pathway.getCurrentEntry().isMapView());
