@@ -26,7 +26,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.56 $ / $Date: 2007-12-04 21:02:06 $ / $Author: melanie $ 
+ * @version $Revision: 1.57 $ / $Date: 2008-04-08 15:40:06 $ / $Author: mike $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -87,7 +87,7 @@ public interface VueConstants
     static java.awt.Color COLOR_NODE_DEFAULT = new Color(200, 200, 255);
     static java.awt.Color COLOR_NODE_INVERTED = new Color(225, 225, 255);
 
-    static java.awt.Color COLOR_HIGHLIGHT = new Color(204,102,0, 200);
+    static java.awt.Color COLOR_HIGHLIGHT = VueResources.getColor("mapViewer.highlight.color");
     static java.awt.Color COLOR_TOOLTIP = new Color(255,255,192);
     static java.awt.Color COLOR_TOOLTIP_TRANSPARENT = new Color(255,255,192, 192);
     
