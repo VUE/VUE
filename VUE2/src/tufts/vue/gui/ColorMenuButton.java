@@ -60,7 +60,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.25 $ / $Date: 2008-03-31 02:12:22 $ / $Author: mike $
+ * @version $Revision: 1.26 $ / $Date: 2008-04-08 21:13:07 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -296,7 +296,7 @@ implements ActionListener, tufts.vue.LWEditor
     	customRebuild = custom;
     	colorPanel.removeAll();
     	colorPanel.setLayout(new GridLayout(0,4,2,2));
-    	
+    	Color c = this.getColor();
     	for (int i = 0; i < colors.length ; i++)
     	{
     		JButton colorButton = new JButton();
@@ -307,6 +307,16 @@ implements ActionListener, tufts.vue.LWEditor
     		colorButton.setIcon(icon);
     		colorButton.setPreferredSize(new Dimension(20,20));
     		colorButton.addActionListener(this);
+    		Color blobColor = colors[i];
+    		
+    		if (c != null && blobColor != null && blobColor.getRed() == c.getRed() && blobColor.getBlue() == c.getBlue() && blobColor.getGreen() == c.getGreen() && blobColor.getAlpha() == c.getAlpha())
+    		{
+    			//System.out.println("MATCH");
+    			colorButton.setBorderPainted(true);
+    			
+    			colorButton.setBorder(BorderFactory.createLineBorder(Color.gray));
+    		}
+    		
     		colorPanel.add(colorButton);
     	}
     	
@@ -403,10 +413,12 @@ implements ActionListener, tufts.vue.LWEditor
             		{
             			//System.out.println("MATCH");
             			b.setBorderPainted(true);
+            			
             			b.setBorder(BorderFactory.createLineBorder(Color.gray));
             		}
             		else
-            		{//System.out.println(" NO MATCH");
+            		{ //System.out.println(" NO MATCH");
+            			
             			b.setBorderPainted(false);
             		}
             	}
