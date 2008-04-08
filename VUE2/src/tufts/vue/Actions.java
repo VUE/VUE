@@ -1307,7 +1307,8 @@ public class Actions implements VueConstants
             	//	ZoomTool.setZoom(tempZoom);
             		//if (originOffset != null)
             			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
-            		ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+            		if (VUE.getActiveMap().getTempBounds() != null)
+            			ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
             		VUE.getReturnToMapButton().setVisible(false);
             		//ZoomTool.setZoom(zoomFactor);
             	    
@@ -1317,7 +1318,8 @@ public class Actions implements VueConstants
             	else if (VUE.getActiveViewer().getFocal() instanceof LWGroup)
             	{
             		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
-            		ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+            		if (VUE.getActiveMap().getTempBounds() != null)
+            			ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
             		VUE.getReturnToMapButton().setVisible(false);
             	}
             }
@@ -1347,7 +1349,8 @@ public class Actions implements VueConstants
             		//ZoomTool.setZoom(tempZoom);
             		//if (originOffset != null)
             		//	VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
-            		ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+            		if (VUE.getActiveMap().getTempBounds() != null)
+            			ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
             		VUE.getReturnToMapButton().setVisible(false);
             		//ZoomTool.setZoom(zoomFactor);
             	    
