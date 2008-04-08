@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.78 $ / $Date: 2008-03-14 19:24:38 $ / $Author: mike $
+ * @version $Revision: 1.79 $ / $Date: 2008-04-08 16:46:39 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -206,6 +206,9 @@ public class ZoomTool extends VueTool
 
                 viewer.loadFocal(oldFocal);
 //              ZoomTool.setZoom(tempZoom);
+                if (tufts.vue.gui.FullScreen.inWorkingFullScreen())
+        			ZoomTool.setZoomFitRegion(tufts.vue.gui.FullScreen.getObscuredViewer(),VUE.getActiveMap().getTempBounds());
+                
     			if (VUE.getActiveMap().getTempBounds() != null)
     				ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
                 oldFocal = null;
@@ -224,10 +227,22 @@ public class ZoomTool extends VueTool
         			//double tempZoom = VUE.getActiveMap().getTempZoom();
             		//System.out.println("temp #s : " +originOffset + " " + tempZoom);
             		//ZoomTool.setZoom(tempZoom);
+            	
+            		
         			if (VUE.getActiveMap().getTempBounds() != null)
+        			{
+        				if (tufts.vue.gui.FullScreen.inWorkingFullScreen())
+                			ZoomTool.setZoomFitRegion(tufts.vue.gui.FullScreen.getObscuredViewer(),VUE.getActiveMap().getTempBounds());
+        				
         				ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+        			}
         			else
+        			{
+        				
+        				if (tufts.vue.gui.FullScreen.inWorkingFullScreen())
+                			setZoomFit(tufts.vue.gui.FullScreen.getObscuredViewer(),true);
         			    setZoomFit(viewer, true);
+        			}
             		//if (originOffset != null)
             			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
         		
@@ -262,6 +277,9 @@ public class ZoomTool extends VueTool
                 	 VUE.getActiveMap().setTempUserOrigin(VUE.getActiveViewer().getOriginLocation());
                 	 VUE.getActiveMap().setTempBounds(VUE.getActiveViewer().getVisibleMapBounds());
                 	}
+                	if (tufts.vue.gui.FullScreen.inWorkingFullScreen())
+                		zoomToSlide(tufts.vue.gui.FullScreen.getObscuredViewer(),(LWSlide)picked);
+                	
                     zoomToSlide(viewer, (LWSlide) picked);
                 }
                
@@ -303,6 +321,9 @@ public class ZoomTool extends VueTool
                 }
                 
                // System.out.println(e.getPicked().toString());
+                if (tufts.vue.gui.FullScreen.inWorkingFullScreen())
+                	setZoomFitRegion(tufts.vue.gui.FullScreen.getObscuredViewer(), zoomBounds,0,true);
+                
                 setZoomFitRegion(viewer,
                                  zoomBounds,
                                  0,

@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.27 $ / $Date: 2008-04-04 19:07:43 $ / $Author: mike $
+ * @version $Revision: 1.28 $ / $Date: 2008-04-08 16:46:39 $ / $Author: mike $
  *
  */
 
@@ -421,6 +421,19 @@ public class FullScreen
 //                 });
     }
 
+    private static LWMap activeMap = null;
+    private static MapViewer activeViewer= null;
+    
+    public static LWMap getObscuredMap()
+    {
+    	return activeMap;
+    }
+    
+    public static MapViewer getObscuredViewer()
+    {
+    	return activeViewer;
+    }
+    
     private synchronized static void enterFullScreenMode(final boolean goNative)
     {
         NDC.push("[FS->]");
@@ -438,8 +451,8 @@ public class FullScreen
             wentBlack = true;
         }
 
-        final LWMap activeMap = VUE.getActiveMap();
-        final MapViewer activeViewer = VUE.getActiveViewer();
+        activeMap = VUE.getActiveMap();
+        activeViewer = VUE.getActiveViewer();
         tufts.vue.LWComponent activeFocal = null;
 
         if (activeViewer != null)
@@ -644,7 +657,7 @@ public class FullScreen
             //set zoom to what it was in the fullscreen
             if (!wasNative)
             {
-            //	if (focal != VUE.getActiveViewer().getFocal())
+            	if (focal != VUE.getActiveViewer().getFocal())
             		VUE.getActiveViewer().loadFocal(focal);	         
             		
             	//ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);
