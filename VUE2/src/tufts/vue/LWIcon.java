@@ -131,6 +131,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     void layout() {} // subclasses can check for changes in here
     
     abstract boolean isShowing();
+    abstract void doSingleClickAction();
     abstract void doDoubleClickAction();
     abstract public JComponent getToolTipComponent();
     //todo: make getToolTipComponent static & take lwc arg in case anyone else wants these
@@ -394,6 +395,22 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
         }
         
+        boolean handleSingleClick(MapMouseEvent e)
+        {
+        	boolean handled = false;
+            final Point2D.Float localPoint = e.getLocalPoint(mLWC);
+
+            for (int i = 0; i < mIcons.length; i++) {
+                LWIcon icon = mIcons[i];
+                if (icon.isShowing() && icon.contains(localPoint.x, localPoint.y)) {
+                    icon.doSingleClickAction();
+                    handled = true;
+                    break;
+                }
+            }
+            return handled;
+        	
+        }
         boolean handleDoubleClick(MapMouseEvent e)
         {
             boolean handled = false;
@@ -451,6 +468,9 @@ public abstract class LWIcon extends Rectangle2D.Float
         	}
 
         void doDoubleClickAction() {
+        
+        }
+        void doSingleClickAction() {
             mLWC.getResource().displayContent();
         }
         
@@ -774,7 +794,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         	else
         		return false;
         }
-        
+        void doSingleClickAction() {}
         void doDoubleClickAction() {
 
             // is it faster to use Method.invoke, or to
@@ -936,6 +956,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             return ttPathway;
         }
 
+        void doSingleClickAction() {}
         
         void draw(DrawContext dc)
         {
@@ -1031,6 +1052,8 @@ public abstract class LWIcon extends Rectangle2D.Float
             System.out.println(this + " Meta-Data Action?");
         }
         
+        void doSingleClickAction() {}
+        
         private JComponent ttMetaData;
         private String ttMetaDataHtml;
         public JComponent getToolTipComponent()
@@ -1096,6 +1119,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         void doDoubleClickAction() {
             System.out.println(this + " Merge Source Meta-Data Action?");
         }
+        
+        void doSingleClickAction() {}
         
         private JComponent ttMetaData;
         private String ttMetaDataHtml;
@@ -1211,6 +1236,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         void doDoubleClickAction() {
             System.out.println(this + " Ontological Meta-Data Action?");
         }
+        
+        void doSingleClickAction() {}
         
         private JComponent ttMetaData;
         private String ttMetaDataHtml;
@@ -1377,6 +1404,8 @@ public abstract class LWIcon extends Rectangle2D.Float
         void doDoubleClickAction() {
             //VUE.ObjectInspectorPanel.setTab(ObjectInspectorPanel.TREE_TAB);
         }
+        
+        void doSingleClickAction() {}
         
         private JLabel ttTree;
         private String ttTreeHtml;

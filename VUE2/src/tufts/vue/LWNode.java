@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.206 $ / $Date: 2008-04-02 03:17:15 $ / $Author: sfraize $
+ * @version $Revision: 1.207 $ / $Date: 2008-04-08 18:32:56 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -507,6 +507,15 @@ public class LWNode extends LWContainer
 
         // for now, never activate a label edit on just a single click.
         // --prob better to conifg somehow than to depend on MapViewer side-effects
+        final Point2D.Float localPoint = e.getLocalPoint(this);
+        final float cx = localPoint.x;
+        final float cy = localPoint.y;
+        
+    	 if (!textBoxHit(cx, cy)) 
+    	 {
+             mIconBlock.handleSingleClick(e);             
+    	 }
+              
         return true;
     }
 
