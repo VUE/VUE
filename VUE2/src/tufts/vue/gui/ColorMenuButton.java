@@ -60,7 +60,7 @@ import edu.tufts.vue.preferences.implementations.ColorPreference;
  * This class provides a popup menu of items that supports named color values
  * with a corresponding color swatch.
  *
- * @version $Revision: 1.26 $ / $Date: 2008-04-08 21:13:07 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2008-04-08 21:15:20 $ / $Author: mike $
  * @author csb
  * @author Scott Fraize
  */
@@ -341,6 +341,15 @@ implements ActionListener, tufts.vue.LWEditor
     		colorButton.setIcon(icon);
     		colorButton.setPreferredSize(new Dimension(20,20));
     		colorButton.addActionListener(this);
+    		Color blobColor = color;
+    		
+    		if (c != null && blobColor != null && blobColor.getRed() == c.getRed() && blobColor.getBlue() == c.getBlue() && blobColor.getGreen() == c.getGreen() && blobColor.getAlpha() == c.getAlpha())
+    		{
+    			//System.out.println("MATCH");
+    			colorButton.setBorderPainted(true);
+    			
+    			colorButton.setBorder(BorderFactory.createLineBorder(Color.gray));
+    		}
     		colorPanel.add(colorButton);
            }
     	
