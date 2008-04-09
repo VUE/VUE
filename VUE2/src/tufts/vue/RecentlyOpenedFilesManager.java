@@ -68,9 +68,10 @@ public class RecentlyOpenedFilesManager
 	
 	private int getMaxSize()
 	{
-		maxsize = Integer.valueOf((String)list.getFirst());
-		return maxsize;
-		
+            if (DEBUG.Enabled) return 30;
+            
+            maxsize = Integer.valueOf((String)list.getFirst());
+            return maxsize;
 	}
 	
 	private void setMaxSize(int i)
