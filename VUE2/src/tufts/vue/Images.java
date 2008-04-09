@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.46 $ / $Date: 2008-04-09 00:46:14 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -87,8 +87,13 @@ public class Images
     
     public static boolean getImage(Object imageSRC, Images.Listener listener)
     {
+        return getImage(imageSRC, listener, false);
+    }
+    
+    public static boolean getImage(Object imageSRC, Images.Listener listener, boolean ignoreCache)
+    {
         try {
-            if (getCachedOrLoad(imageSRC, listener) == null)
+            if (getCachedOrLoad(imageSRC, listener, ignoreCache) == null)
                 return false;
         } catch (Throwable t) {
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
@@ -103,7 +108,7 @@ public class Images
     public static BufferedImage getImage(Object imageSRC)
     {
         try {
-            return getCachedOrLoad(imageSRC, null);
+            return getCachedOrLoad(imageSRC, null, false);
         } catch (Throwable t) {
             if (DEBUG.IMAGE) tufts.Util.printStackTrace(t);
             Log.error("getImage " + imageSRC + ": " + t);
@@ -617,7 +622,7 @@ public class Images
      * @return Image if cached or listener is null, otherwise makes callbacks to the listener from
      * a new thread.
      */
-    private static BufferedImage getCachedOrLoad(Object _imageSRC, Images.Listener listener)
+    private static BufferedImage getCachedOrLoad(Object _imageSRC, Images.Listener listener, boolean ignoreCache)
         throws java.io.IOException, java.lang.InterruptedException
     {
         if (_imageSRC instanceof BufferedImage) {
@@ -642,12 +647,20 @@ public class Images
         Object fetchResult;
         BufferedImage cachedImage = null;
         
-        synchronized (Cache) {
-            fetchResult = getCacheFetchResult(imageSRC, listener);
+        if (ignoreCache) {
+
+            fetchResult = null;
+
+        } else {
+
+            synchronized (Cache) {
+                fetchResult = getCacheFetchResult(imageSRC, listener);
+            }
+
+            if (fetchResult == IMAGE_LOADER_STARTED)
+                return null;
         }
 
-        if (fetchResult == IMAGE_LOADER_STARTED)
-            return null;
 
         if (fetchResult instanceof Loader) {
             Loader loader = (Loader) fetchResult;

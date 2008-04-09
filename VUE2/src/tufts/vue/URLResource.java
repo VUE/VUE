@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.57 $ / $Date: 2008-04-09 00:52:30 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -449,17 +449,22 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         setSpec(fileSpec);
     }
     
-    public void setSpec(final String newSpec)
-    {
+    public void setSpec(final String newSpec) {
         if (DEBUG.RESOURCE) dumpField(TERM_CYAN + "setSpec------------------------" + TERM_CLEAR, newSpec);
-        
-        if (newSpec == null)
-            throw new IllegalArgumentException(Util.tags(this) + "; setSpec: null value");
 
         if (DEBUG.Enabled && this.spec != SPEC_UNSET) {
             Log.error(this + "; setSpec multiple calls", new IllegalStateException("setSpec: multiple calls; resources are atomic"));
             return;
         }
+
+        installSpec(newSpec);
+        
+    }
+    
+    void installSpec(final String newSpec)
+    {
+        if (newSpec == null)
+            throw new IllegalArgumentException(Util.tags(this) + "; setSpec: null value");
 
         invalidateToolTip();
 
@@ -517,10 +522,39 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
     }
 
+    private long mLastModified;
     private void setFile(File file) {
         mFile = file;
+        mLastModified = file.lastModified();
         // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
-        if (DEBUG.Enabled) setDebugProperty("file.instance", Util.tags(mFile));
+        if (DEBUG.Enabled) {
+            setDebugProperty("file.instance", Util.tags(mFile));
+            setDebugProperty("file.modified", new Date(mLastModified));
+        }
+    }
+
+    @Override
+    public boolean dataHasChanged() {
+
+        // we only bother to check this for local files
+        if (mFile != null) {
+
+            // Not an ideal impl, as only the first caller will found out if
+            // the data has changed.  Ideally, Resources will have to
+            // be enforced atomic (at least for local file resources), and
+            // track all listeners/owners, so when/if an udpate happens,
+            // they can all be notified.
+            
+            final long lastMod = mFile.lastModified();
+            if (DEBUG.Enabled) out("lastModified: " + new Date(lastMod) + "; " + mFile);
+            if (lastMod > mLastModified) {
+                if (DEBUG.Enabled) out("lastModified: dataHasChanged");
+                mLastModified = lastMod;
+                return true;
+            }
+        }
+
+        return false;
     }
     
     private void runFinalInitialization()

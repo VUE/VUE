@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.186 $ / $Date: 2008-04-09 00:47:36 $ / $Author: sfraize $
+ * @version $Revision: 1.187 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -939,7 +939,7 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
                 Log.debug("resolved " + absolute + " from " + relative);
 
                 if (absolute != null) {
-                    ((URLResource)r).setSpec(absolute.toString());
+                    ((URLResource)r).installSpec(absolute.toString());
                 } else {
                     Log.error("Failed to find relative " + relative + "; in " + root + " for " + r);
                 }

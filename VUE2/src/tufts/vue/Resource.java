@@ -34,7 +34,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.63 $ / $Date: 2008-04-09 00:52:01 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -230,6 +230,7 @@ public abstract class Resource implements Cloneable
     }
 
     // Convenience factory methods: guaranteed equivalent to getFactory().get(args...)
+    // If an LWMap ResourceFactory is available, that should always be used instead of these.
 
     public static Resource instance(String spec)        { return getFactory().get(spec); }
     public static Resource instance(java.net.URL url)   { return getFactory().get(url); }
@@ -428,6 +429,15 @@ public abstract class Resource implements Cloneable
     protected void setAsImage(boolean asImage) {
         isImage = asImage;
         if (DEBUG.DR || DEBUG.RESOURCE) setDebugProperty("isImage", ""+ asImage);
+    }
+
+    /**
+     * @return true if the data behind this component has recently changed
+     *
+     * This impl always returns false.  Override to provide desired semantics.
+     */
+    public boolean dataHasChanged() {
+        return false;
     }
 
     

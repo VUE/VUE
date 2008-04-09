@@ -418,6 +418,10 @@ public class LWImage extends
         }
     }
 
+    public void reloadImage() {
+        loadResourceImage(getResource(), null);
+    }
+
 
     private void loadResourceImage(final Resource r, final UndoManager um)
     {
