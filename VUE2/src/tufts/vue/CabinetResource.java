@@ -36,7 +36,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.33 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.34 $ / $Date: 2008-04-09 00:45:52 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -68,7 +68,7 @@ public class CabinetResource extends URLResource
     public CabinetResource () {
         this.entry = entry;
         //this.type = Resource.URL;
-        if (DEBUG.RESOURCE) out("RESTORED");
+        //if (DEBUG.RESOURCE) out("INSTANCED");
     }
     
     /** 
@@ -295,20 +295,21 @@ public class CabinetResource extends URLResource
             return hasSpec;
         else {
             //  Check for each of the four possible cases.
-            if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)
-                setSpec(((RemoteByteStore)e).getUrl());
-            if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)
-                setSpec(((RemoteCabinet)e).getUrl());
-            if (e instanceof tufts.oki.localFiling.LocalByteStore)
-                setSpec(((LocalByteStore)e).getUrl());
-            if (e instanceof tufts.oki.localFiling.LocalCabinet)
-                setSpec(((LocalCabinet)e).getUrl());
+//                  if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)    setSpec(((RemoteByteStore)e).getUrl());
+//             else if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)      setSpec(((RemoteCabinet)e).getUrl());
+//             else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpec(((LocalByteStore)e).getUrl());
+//             else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpec(((LocalCabinet)e).getUrl());
+                 if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)    setSpec(((RemoteByteStore)e).getUrl());
+            else if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)      setSpec(((RemoteCabinet)e).getUrl());
+            else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpecByFile(((LocalByteStore)e).getFile());
+            else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpecByFile(((LocalCabinet)e).getFile());
 
             final String spec = super.getSpec();
             //setProperty("URL", spec);
             
             //final String title = getTitle();
             //if (title == null || title.length() == 0) {
+            if (false) { // Handle this in URLResource
                 final String fname;
                 if (spec.startsWith("file://"))
                     fname = spec.substring(7);
@@ -317,7 +318,7 @@ public class CabinetResource extends URLResource
                 try {
                     setTitle(new File(fname).getName());
                 } catch (Throwable t) { t.printStackTrace(); }
-                //}
+            }
 
             return spec;
         }
