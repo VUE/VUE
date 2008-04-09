@@ -27,7 +27,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.93 $ / $Date: 2008-03-31 20:42:57 $ / $Author: sfraize $
+ * @version $Revision: 1.94 $ / $Date: 2008-04-09 00:53:44 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -76,28 +76,42 @@ public class VueUtil extends tufts.Util
                     VUE.displayMap(tufts.vue.action.OpenAction.loadMap(url));
                     return;
                 }
-            
-                try {
-                    File file = new File(new java.net.URL(platformURL).getFile());
-                    if(file.exists()) {
-                        tufts.vue.VUE.displayMap(file);
-                    } else{
-                        LWMap loadMap = tufts.vue.action.OpenAction.loadMap(new java.net.URL(platformURL));
-                        tufts.vue.VUE.displayMap(loadMap);
-                        loadMap.setFile(null);
-                    }
-                } catch (java.net.MalformedURLException e) {
-                    Log.error(e + " " + platformURL);
-                    e.printStackTrace();
-                    try {
-                        tufts.vue.VUE.displayMap(new File(platformURL));
-                    } catch (Exception ex) {
-                        System.out.println(ex + " " + platformURL);
-                        tufts.Util.openURL(platformURL);
-                    }
-                } catch(Exception ex) {
-                    ex.printStackTrace();
+
+                final File file = Resource.getLocalFileIfPresent(platformURL);
+
+                if (file != null) {
+                    // TODO: displayMap should be changed to take either a URL or a random url/path spec-string,
+                    // NOT a local file, as we can open maps at the other end of HTTP url's, and we need an
+                    // object that abstracts both.
+                    tufts.vue.VUE.displayMap(file);
+                } else {
+                    final LWMap loadMap = tufts.vue.action.OpenAction.loadMap(new java.net.URL(platformURL));
+                    tufts.vue.VUE.displayMap(loadMap);
+                    loadMap.setFile(null);
                 }
+                
+                
+//                 try {
+//                     File file = new File(new java.net.URL(platformURL).getFile());
+//                     if(file.exists()) {
+//                         tufts.vue.VUE.displayMap(file);
+//                     } else{
+//                         LWMap loadMap = tufts.vue.action.OpenAction.loadMap(new java.net.URL(platformURL));
+//                         tufts.vue.VUE.displayMap(loadMap);
+//                         loadMap.setFile(null);
+//                     }
+//                 } catch (java.net.MalformedURLException e) {
+//                     Log.error(e + " " + platformURL);
+//                     e.printStackTrace();
+//                     try {
+//                         tufts.vue.VUE.displayMap(new File(platformURL));
+//                     } catch (Exception ex) {
+//                         System.out.println(ex + " " + platformURL);
+//                         tufts.Util.openURL(platformURL);
+//                     }
+//                 } catch(Exception ex) {
+//                     ex.printStackTrace();
+//                 }
                 return;
             }
         }
