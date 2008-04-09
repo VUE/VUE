@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.207 $ / $Date: 2008-04-08 18:32:56 $ / $Author: mike $
+ * @version $Revision: 1.208 $ / $Date: 2008-04-09 00:48:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -800,7 +800,7 @@ public class LWNode extends LWContainer
             if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) Log.debug("XML_completed: scaling down LWNode children in: " + this);
             for (LWComponent c : getChildren()) {
                 if (isScaledChildType(c))
-                    c.setScale(LWNode.ChildScale);
+                    c.setScale(ChildScale);
             }
 
             if (hasResource() && getChild(0) instanceof LWImage) {
@@ -2413,7 +2413,8 @@ public class LWNode extends LWContainer
             baseY = mBoxedLayoutChildY;
             if (DEBUG.LAYOUT) out("*** childOffsetY starting with precomputed " + baseY + " to produce " + (baseY + ChildOffsetY));
         } else {
-            final int labelHeight = getLabelBox().getHeight();
+            final TextBox labelBox = getLabelBox();
+            int labelHeight = labelBox == null ? 12 : labelBox.getHeight();
             //if (DEBUG.WORK) out("labelHeight: " + labelHeight);
             baseY = relativeLabelY() + labelHeight;
         }
