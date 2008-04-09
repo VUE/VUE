@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.185 $ / $Date: 2008-04-02 16:08:39 $ / $Author: mike $
+ * @version $Revision: 1.186 $ / $Date: 2008-04-09 00:47:36 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -242,12 +242,15 @@ public class LWMap extends LWContainer
             Log.debug("saveLocationURI " + mSaveLocationURI);
         }
 
-        if (false && mFile != null && !mXMLRestoreUnderway) { // not turned on yet
-            // only do this on save: will be handled in completeXMLRestore
-            // for restores
-            relativizeResources(getAllDescendents(ChildKind.ANY),
-                                mSaveLocationURI);
-        }
+
+// Don't handle relativzation here.  On save, handle vie makeReadyForSaving, and on restore,
+// handle in XML_completed.
+//         if (false && mFile != null && !mXMLRestoreUnderway) { // not turned on yet
+//             // only do this on save: will be handled in completeXMLRestore
+//             // for restores
+//             relativizeResources(getAllDescendents(ChildKind.ANY),
+//                                 mSaveLocationURI);
+//         }
         
     }
 
@@ -552,7 +555,12 @@ public class LWMap extends LWContainer
         return mArchiveManifest;
     }
     
-    
+
+    public boolean isArchiveMap() {
+        // TODO:  set actual bit and/or check for a manifest
+        return hasLabel() && getLabel().endsWith("$map.vue");
+    }
+
     
     private int nextID = 1;
     protected synchronized String getNextUniqueID() {
@@ -663,9 +671,15 @@ public class LWMap extends LWContainer
         }
     }
 
+    private final Resource.Factory mResourceFactory = new RelativeResourceFactory();
+    
+    @Override
+    public Resource.Factory getResourceFactory() {
+        return mResourceFactory;
+    }
+    
     static final String NODE_INIT_LAYOUT = "completeXMLRestore:NODE";
     static final String LINK_INIT_LAYOUT = "completeXMLRestore:LINK";
-
 
     public void completeXMLRestore()
     {
@@ -721,7 +735,10 @@ public class LWMap extends LWContainer
             mModelVersion = getCurrentModelVersion();
         }
 
-        relativizeResources(allRestored, mSaveLocationURI);
+        if (!isArchiveMap())
+            patchRelativeLocations(getAllResources(), mSaveLocationURI);
+        
+        //recordRelativeLocations(getAllResources(), mSaveLocationURI);
 
 //         if (true) { // Not turned on yet
 //             if (
@@ -827,86 +844,176 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
     public class RelativeResourceFactory extends Resource.DefaultFactory {
         @Override
         protected Resource postProcess(Resource r, Object source) {
-            Log.debug(LWMap.this + " created  " + r + " from " + Util.tags(source));
-            // not turned on yet
+            Log.debug(LWMap.this + " created: " + r + " from " + Util.tags(source));
+
+// not turned on yet
 //             if (mSaveLocationURI != null) {
 //                 //URI curRoot = URLResource.makeURI(mSaveLocation.getParentFile());
 //                 //if (curRoot != null) {
 //                     r.updateRootLocation(mSaveLocationURI, null);
 //                     //}
 //             }
+            
+//             if (Util.isMacPlatform() && (source instanceof java.io.File || source instanceof String)) {
+
+//                 String inode = Util.getSystemCommandOutput(new String[] { "/usr/bin/stat", "-f", "%i", ""+source },
+//                                                       getSaveLocation());
+
+//                 if (inode != null)
+//                     r.setHiddenProperty("file.MacOSX.inode", inode);
+//             }
+                
+                                                         
+
+            
             return r;
         }
+    }
+
+ 
+    /**
+     * Perform any actions on the map we want to happen just before it is persisted to the given file.
+     * E.g., record the map-relative location of any local file resources.
+     */
+    public void makeReadyForSaving(File file) {
+
+        if (file == null) {
+            Log.debug("makeReadyForSaving: null file, must be archive");
+            return;
+        }
+        
+        Log.debug("makeReadyForSaving to " + file);
+        
+//         if (file == null) {
+//             Util.printStackTrace("makeReadyForSaving: no file");
+//             return;
+//         }
+
+        recordRelativeLocations(getAllResources(), file.getParentFile().toURI());
+
+    }
+
+    private void recordRelativeLocations(Collection<Resource> resources, URI root) {
+        
+        for (Resource r : resources) {
+            try {
+                if (r instanceof URLResource == false) {
+                    Log.warn("Unhandled resource in record relative: " + Util.tags(r));
+                    continue;
+                }
+                if (r.isLocalFile()) {
+                    URI relative = ((URLResource)r).findRelativeURI(root);
+                    if (relative != null) {
+                        Log.debug("made-relative: " + relative + "; " + r);
+                        r.setProperty(Resource.FILE_RELATIVE, relative);
+                    } else {
+                        Log.debug("  no-relative: " + r);
+                        r.removeProperty(Resource.FILE_RELATIVE);
+                    }
+                } else {
+                    Log.debug(" non-relative: " + r);
+                    r.removeProperty(Resource.FILE_RELATIVE);
+                }
+            } catch (Throwable t) {
+                Log.warn(this + "; makeRelativeTo failure " + root + ": " + t + "; " + r, t);
+            }
+        }
         
     }
 
-    private final Resource.Factory mResourceFactory = new RelativeResourceFactory();
-    
-    @Override
-    public Resource.Factory getResourceFactory() {
-        return mResourceFactory;
-    }
-    
-    private void relativizeResources(Collection<LWComponent> nodes, URI root) {
+    private void patchRelativeLocations(Collection<Resource> resources, URI root) {
         
-        for (LWComponent c : nodes) {
-            if (!c.hasResource())
-                continue;
+        for (Resource r : resources) {
             try {
-                c.getResource().relativize(root);
+                if (r instanceof URLResource == false) {
+                    Log.warn("Unhandled resource in patch relative: " + Util.tags(r));
+                    continue;
+                }
+                
+                final String relative = r.getProperty(Resource.FILE_RELATIVE);
+                if (relative == null)
+                    continue;
+
+                URI absolute = root.resolve(relative);
+
+                Log.debug("resolved " + absolute + " from " + relative);
+
+                if (absolute != null) {
+                    ((URLResource)r).setSpec(absolute.toString());
+                } else {
+                    Log.error("Failed to find relative " + relative + "; in " + root + " for " + r);
+                }
+                
+                
             } catch (Throwable t) {
-                Log.warn(this + "; relativize failure: " + t + "; " + c.getResource(), t);
-                //t.printStackTrace();
+                Log.warn(this + "; patchRelativeTo failure " + root + ": " + t + "; " + r, t);
             }
         }
         
     }
     
-    private void ensureAllResourcesFoundAndRelative(Collection<LWComponent> nodes, File oldMapLocation)
-    {
-        final File oldParentDirectory = oldMapLocation.getParentFile();
-        final File newParentDirectory = mFile.getParentFile();
 
-        if (oldParentDirectory == null) {
-            Util.printStackTrace("Unable to find parent of " + oldMapLocation + "; can't relativize local resources.");
-            return;
-        }
-
-        Log.info("    SAVED MAP FILE: " + oldMapLocation);
-        Log.info("SAVED MAP LOCATION: " + oldParentDirectory);
+//     private void relativizeResources(Collection<LWComponent> nodes, URI root) {
         
-        //final URI oldRoot = oldParentDirectory.toURI();
-        final URI oldRoot = URLResource.makeURI(oldParentDirectory);
-        final URI newRoot;
-
-        if (oldRoot == null) {
-            Log.error(this + "; unable to parse old parent directory: " + oldParentDirectory);
-            return;
-        }
-
-        Util.dumpURI(oldRoot, "ROOT SAVED");
+//         for (LWComponent c : nodes) {
+//             if (!c.hasResource())
+//                 continue;
+//             try {
+//                 c.getResource().makeRelativeTo(root);
+//             } catch (Throwable t) {
+//                 Log.warn(this + "; relativize failure: " + t + "; " + c.getResource(), t);
+//                 //t.printStackTrace();
+//             }
+//         }
         
-        if (oldParentDirectory.equals(newParentDirectory)) {
-            System.err.println("ROOT NEW URI: (same)");
-            newRoot = null;
-        } else {
-            newRoot = newParentDirectory.toURI();
-            Util.dumpURI(newRoot, "ROOT NEW OPENED");
-        }
+//     }
+    
+    
+//     private void ensureAllResourcesFoundAndRelative(Collection<LWComponent> nodes, File oldMapLocation)
+//     {
+//         final File oldParentDirectory = oldMapLocation.getParentFile();
+//         final File newParentDirectory = mFile.getParentFile();
+
+//         if (oldParentDirectory == null) {
+//             Util.printStackTrace("Unable to find parent of " + oldMapLocation + "; can't relativize local resources.");
+//             return;
+//         }
+
+//         Log.info("    SAVED MAP FILE: " + oldMapLocation);
+//         Log.info("SAVED MAP LOCATION: " + oldParentDirectory);
+        
+//         //final URI oldRoot = oldParentDirectory.toURI();
+//         final URI oldRoot = URLResource.makeURI(oldParentDirectory);
+//         final URI newRoot;
+
+//         if (oldRoot == null) {
+//             Log.error(this + "; unable to parse old parent directory: " + oldParentDirectory);
+//             return;
+//         }
+
+//         Resource.dumpURI(oldRoot, "ROOT SAVED");
+        
+//         if (oldParentDirectory.equals(newParentDirectory)) {
+//             System.err.println("ROOT NEW URI: (same)");
+//             newRoot = null;
+//         } else {
+//             newRoot = newParentDirectory.toURI();
+//             Resource.dumpURI(newRoot, "ROOT NEW OPENED");
+//         }
 
 
-        // Normalize resources
-        for (LWComponent c : nodes) {
-            if (!c.hasResource())
-                continue;
-            try {
-                //Log.info(this + "; relativize: " + c.getResource());
-                c.getResource().updateRootLocation(oldRoot, newRoot);
-            } catch (Throwable t) {
-                Log.warn(this + "; relativiztion: " + t + "; " + c.getResource());
-            }
-        }
-    }
+//         // Normalize resources
+//         for (LWComponent c : nodes) {
+//             if (!c.hasResource())
+//                 continue;
+//             try {
+//                 //Log.info(this + "; relativize: " + c.getResource());
+//                 c.getResource().updateRootLocation(oldRoot, newRoot);
+//             } catch (Throwable t) {
+//                 Log.warn(this + "; relativiztion: " + t + "; " + c.getResource());
+//             }
+//         }
+//     }
         
     
 
