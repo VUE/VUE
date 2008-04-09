@@ -44,7 +44,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.88 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $  
+ * @version $Revision: 1.89 $ / $Date: 2008-04-09 00:48:55 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -878,14 +878,14 @@ class MapDropTarget
                     // TODO: clean this up:  resource should load meta-data on CREATION.
                     ((URLResource)drop.hit.getResource()).scanForMetaDataAsync(drop.hit);
                 } else if (drop.hitParent != null) {
-                    drop.hitParent.dropChild(createNodeAndResource(drop, foundURL.toString(), properties, drop.location));
+                    drop.hitParent.dropChild(createNodeAndResource(drop, null, foundURL.toString(), properties, drop.location));
                 } else {
                     processed = false;
                 }
             }
             
             if (drop.hit == null || !processed)
-                createNodeAndResource(drop, foundURL.toString(), properties, drop.location);
+                createNodeAndResource(drop, null, foundURL.toString(), properties, drop.location);
 
         } else {
             // create a text node
@@ -1051,20 +1051,24 @@ class MapDropTarget
             if (drop.isLinkAction || drop.hit instanceof LWLink) { // hack for now: if a link, just always set resource...
                 drop.hit.setResource(resourceSpec);
             } else if (drop.hitParent != null) {
-                drop.hitParent.dropChild(createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation()));
+                drop.hitParent.dropChild(createNodeAndResource(drop, null, resourceSpec, props, drop.nextDropLocation()));
                 // Why were we leaving out the location here?  Oh: when hitParent could only be a node (auto-layout), that made sense
                 //drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
             }
         } else {
-            createNodeAndResource(drop, resourceSpec, props, drop.nextDropLocation());
+            createNodeAndResource(drop, file, resourceSpec, props, drop.nextDropLocation());
         }
     }
 
 
-    private LWComponent createNodeAndResource(DropContext drop, String resourceSpec, Map properties, Point2D where)
+    private LWComponent createNodeAndResource(DropContext drop, File file, String resourceSpec, Map properties, Point2D where)
     {
         //URLResource resource = new URLResource(resourceSpec);
-        Resource resource = mViewer.getMap().getResourceFactory().get(resourceSpec);
+        final Resource resource;
+        if (file != null)
+            resource = mViewer.getMap().getResourceFactory().get(file);
+        else
+            resource = mViewer.getMap().getResourceFactory().get(resourceSpec);
 
         if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " where=" + where);
 
