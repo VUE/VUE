@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.404 $ / $Date: 2008-04-07 19:52:36 $ / $Author: mike $
+ * @version $Revision: 1.405 $ / $Date: 2008-04-09 00:47:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1717,12 +1717,17 @@ u                    getSlot(c).setFromString((String)value);
 
     protected TextBox getLabelBox()
     {
-        if (this.labelBox == null) {
-            synchronized (this) {
-                if (this.labelBox == null)
-                    this.labelBox = new TextBox(this, this.label);
+        try {
+            if (this.labelBox == null) {
+                synchronized (this) {
+                    if (this.labelBox == null)
+                        this.labelBox = new TextBox(this, this.label);
+                }
             }
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "failed to init labelBox for " + this);
         }
+            
 
         return this.labelBox;
     }
