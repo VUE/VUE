@@ -34,30 +34,6 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 
-// TODO: tempting to split out a separate FileResource subclass of Resource to handle
-// stuff that is just the local file system where code digging up local filesystem icons
-// could reside, and we'd only need a single spec / file object (not all this crazy URL
-// stuff).  Tho the icon-type stuff is actually generic to network resources: e.g., an
-// .xls file on a remote server would still be nice if it showed the Excel icon...  Tho
-// that code can probably stay residing in GUI, and doing this would still simplify lots
-// of stuff.  E.g., the C:\Program stuff when it shows up on mac, the handling of ':' ->
-// '/' for mac file names.  Oh, and of course, all of the local file resolution could be
-// handled just in FileResource, tho technically, that could also be useful if the
-// content was residing on a server, and it's location changed...
-
-// Since FTP Resources are handled by CabinetResource, maybe we can also get away
-// with making this an HttpResource... is there anything else this needs to do?
-// What about FTP urls dragged from web browsers?  Well, they ought to be going
-// thru a factory for creation anyway so we can do what we want -- they're
-// probably creating URLResources right now tho...
-
-// Biggest problem w/FileResource: still need URLResource support for files due to old
-// save files, unless change to a model of using restored resources only for the
-// data-portion, and recreate new (potentially atomic) resources after the data has been
-// restored.  (Yet another reason to choose something more flexible than castor for XML
-// persistance -- e.g. XStream)
-
-
 /**
  * The Resource impl handles references to local files or single URL's, as well as
  * any underlying type of asset (OSID or not) that can obtain it's various parts via URL's.
@@ -79,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.56 $ / $Date: 2008-04-02 03:19:15 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2008-04-09 00:52:30 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -87,57 +63,43 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(URLResource.class);
     
     //private static final String BROWSE_KEY = "@Browse";
-    private static final String IMAGE_KEY = "@Image";
-    private static final String THUMB_KEY = "@Thumb";
+    private static final String IMAGE_KEY = HIDDEN_PREFIX + "Image";
+    private static final String THUMB_KEY = HIDDEN_PREFIX + "Thumb";
 
     //static final long SIZE_UNKNOWN = -1;
     
     //private long size = SIZE_UNKNOWN;
     private String spec = SPEC_UNSET;
-    //private JComponent preview;
-    //private tufts.vue.ui.ResourceIcon mIcon;
-    //private Object mPreview;
-    private boolean isImage;
 
-    private URI mRelativeURI; // right now, I think this only used if it's RELATIVE -- kind of a marker for a short-name
+    //private URI mRelativeURI; // right now, I think this only used if it's RELATIVE -- kind of a marker for a short-name
     
     // TODO performance: store as strings or URI's and only do conversion when we ask for them.
-    protected URL mURL_Browse;
-    private URL mURL_Thumb;
-    private URL mURL_Image;
+    // One issue we'd have to sort out with URI's: Win32 file:/C:/path/file.foo references
+    // either fail to create at all on non Windows platforms, or C: gets put into URI's authority field.
     
-    ///** if non-null, is local file */ // todo: FileResource...
-    //private File mFile;
+    // Replace mURL_Browse with mURL_Default -- this will always be set
+    // mURL_ImageData will only be set if the image data is different
+
+    /**
+     * A default URL for this resource.  This will be used for "browse" actions, so for
+     * example, it may point to any content available through a URL: an HTML page, raw image data,
+     * document files, etc.
+     */
+    protected URL mURL;
+
+    /** Points to raw image data (greatest resolution available) */
+    private URL mURL_ImageData;
+    /** Points to raw image data for an image thumbnail  */
+    private URL mURL_ThumbData;
+
+    private File mFile;
     
     /** an optional resource title */
-    protected String mTitle;
+    private String mTitle;
     
 
-    private boolean mXMLrestoreUnderway = false;
+    private boolean mRestoreUnderway = false;
     private ArrayList<PropertyEntry> mXMLpropertyList;
-    
-    // for castor to save and restore
-    
-    // we REALLY need to get rid of this constructor: all the code
-    // expects SPEC to be non-null!  Castor won't let us though...
-    public URLResource() {
-        init();
-    }
-
-    private URLResource(String spec) {
-        init();
-        setSpec(spec);
-    }
-    
-//     private URLResource(URL url) {
-//         init();
-//         setSpec(url.toString());
-//     }
-
-//     private  URLResource(URI uri) {
-//         init();
-//         setSpec(uri.toString());
-//     }
     
     static URLResource create(String spec) {
         return new URLResource(spec);
@@ -149,7 +111,23 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         return new URLResource(uri.toString());
     }
     static URLResource create(File file) {
-        return new URLResource(file.toString()); // toURL / toURI probably better
+        return new URLResource(file);
+    }
+    
+    /**
+     * @deprecated - This constructor needs to be public to support castor persistance ONLY -- it should not
+     * be called directly by any code.
+     */
+    public URLResource() {
+        init();
+    }
+    private URLResource(String spec) {
+        init();
+        setSpec(spec);
+    }
+    private URLResource(File file) {
+        init();
+        setSpecByFile(file);
     }
     
     private void init() {
@@ -163,8 +141,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
 //     @Override
 //     public String getContentType() {
-//         if (mURL_Browse != null)
-//             return extractExtension(mURL_Browse);
+//         if (mURL_Default != null)
+//             return extractExtension(mURL_Default);
 //         else
 //             return super.getContentType();
 //     }
@@ -220,8 +198,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             final String nl = "<br>";
 
             pretty += nl + spec + " (spec)";
-            if (mRelativeURI != null) 
-                pretty += nl + "URI-RELATIVE: " + mRelativeURI;
+            //if (mRelativeURI != null) pretty += nl + "URI-RELATIVE: " + mRelativeURI;
             pretty += nl + String.format("%s ext=[%s]", asDebug(), getDataType());
 //             pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
 //                 + " impl=" + getClass().getName() + " ext=[" + getContentType() + "]";
@@ -236,7 +213,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     public static final boolean ALLOW_URI_WHITESPACE = false; // Not working yet
 
     @Override
-    public void relativize(URI root)
+    public void makeRelativeTo(URI root)
     {
 
         if (true) {
@@ -255,6 +232,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
             if (hasProperty(PACKAGE_KEY)) {
                 String packageLocal = getProperty(PACKAGE_KEY);
+                Log.info("Found old-style package key on " + this + "; " + packageLocal);
                 if (ALLOW_URI_WHITESPACE) {
                     // URI.create fails if there are spaces:
                     packageLocal = packageLocal.replaceAll(" ", "%20"); 
@@ -264,7 +242,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                     Log.debug("Found packaged: " + packaged);
 
                     //this.spec = SPEC_UNSET;
-                    mRelativeURI = null;
+                    //mRelativeURI = null;
 
                     // WE NO LONGER SET SPEC FOR WEB CONTENT: fetch PACKAGED_KEY when getting data (need new API for that..)                
 
@@ -294,21 +272,21 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return;
         }
 
-        if (false) {
+//         if (true) {
 
-            // incomplete
+//             // incomplete
 
-            if (DEBUG.Enabled) Log.debug("Relativize to " + root + "; " + this + "; curRelative=" + mRelativeURI);
-            URI oldRelative = mRelativeURI;
-            mRelativeURI = findRelativeURI(root);
-            setDebugProperty("relative", mRelativeURI);
-            if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
-                invalidateToolTip();
-            }
-        }
+//             if (DEBUG.Enabled) Log.debug("Relativize to " + root + "; " + this + "; curRelative=" + mRelativeURI);
+//             URI oldRelative = mRelativeURI;
+//             mRelativeURI = findRelativeURI(root);
+//             setDebugProperty("relative", mRelativeURI);
+//             if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
+//                 invalidateToolTip();
+//             }
+//         }
     }
     
-    private URI findRelativeURI(URI root)
+    public URI findRelativeURI(URI root)
     {
         if (DEBUG.Enabled) {
             System.out.println("\n=======================================================");
@@ -330,7 +308,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return null;
         }
 
-        if (DEBUG.Enabled) Util.dumpURI(absURI, "ORIGINAL");
+        if (DEBUG.Enabled) Resource.dumpURI(absURI, "ORIGINAL");
         final URI relativeURI = root.relativize(absURI);
 
         if (relativeURI == absURI) {
@@ -340,7 +318,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         
         if (relativeURI != absURI) {
-            if (DEBUG.Enabled) Util.dumpURI(relativeURI, "RELATIVE");
+            if (DEBUG.Enabled) Resource.dumpURI(relativeURI, "RELATIVE");
         }
 
         if (DEBUG.Enabled) System.out.println(TERM_GREEN+"FOUND RELATIVE: " + relativeURI + TERM_CLEAR);        
@@ -349,257 +327,665 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     }
     
-    /**
-     * If this resource can be made relative to the current map (is in a directory
-     * below the current map), make sure we record it's relative location.
-     * If oldRoot and newRoot are different (the map has moved), re-write
-     * the resource to point to the new location if something is there.
-     *
-     * @param oldRoot - the root (parent directory) of the map the last time it was saved
-     * @param newRoot - null if the same as oldRoot, otherwise, the newRoot
-     */
-    // ONLY USED FOR OLD STYLE AUTO-CONVERSION ON STARTUP
-    @Override
-    public void updateRootLocation(URI oldRoot, URI newRoot) {
+//     /**
+//      * If this resource can be made relative to the current map (is in a directory
+//      * below the current map), make sure we record it's relative location.
+//      * If oldRoot and newRoot are different (the map has moved), re-write
+//      * the resource to point to the new location if something is there.
+//      *
+//      * @param oldRoot - the root (parent directory) of the map the last time it was saved
+//      * @param newRoot - null if the same as oldRoot, otherwise, the newRoot
+//      */
+//     // ONLY USED FOR OLD STYLE AUTO-CONVERSION ON STARTUP
+//     @Override
+//     public void updateRootLocation(URI oldRoot, URI newRoot) {
 
-        if (DEBUG.Enabled) {
-            System.out.println();
-            Log.debug("attempting to relativize [" + this + "] against curRoot " + oldRoot + "; newRoot " + newRoot);
-        }
+//         if (DEBUG.Enabled) {
+//             System.out.println();
+//             Log.debug("attempting to relativize [" + this + "] against curRoot " + oldRoot + "; newRoot " + newRoot);
+//         }
         
-        final URL url = asURL();
-        if (url == null)
-            return;
+//         final URL url = asURL();
+//         if (url == null)
+//             return;
 
-        System.out.println("=======================================================");
+//         System.out.println("=======================================================");
         
-        final URI absURI = makeURI(url.toString());
-        // absURI should always be absolute -- the way we persist them
+//         final URI absURI = makeURI(url.toString());
+//         // absURI should always be absolute -- the way we persist them
 
-        if (!absURI.isAbsolute())
-            Log.warn("Non absolute URI: " + absURI + "; from URL " + url);
+//         if (!absURI.isAbsolute())
+//             Log.warn("Non absolute URI: " + absURI + "; from URL " + url);
 
-        if (absURI == null) {
-            System.out.println("URL INVALID FOR URI: " + url + "; in " + this);
-            return;
-        }
+//         if (absURI == null) {
+//             System.out.println("URL INVALID FOR URI: " + url + "; in " + this);
+//             return;
+//         }
 
-        Util.dumpURI(absURI, "ORIGINAL");
-        final URI relativeURI = oldRoot.relativize(absURI);
+//         Resource.dumpURI(absURI, "ORIGINAL");
+//         final URI relativeURI = oldRoot.relativize(absURI);
 
-        if (relativeURI == absURI) {
-            // oldRoot was unable to relativize absURI -- this resource
-            // was not relative to it's map in it's previous incarnation.
+//         if (relativeURI == absURI) {
+//             // oldRoot was unable to relativize absURI -- this resource
+//             // was not relative to it's map in it's previous incarnation.
 
-            // However, if newRoot is different from oldRoot,
-            // it may be relative to the new map location (newRoot).
+//             // However, if newRoot is different from oldRoot,
+//             // it may be relative to the new map location (newRoot).
 
-            if (newRoot == null) // was same as oldRoot
-                return;
-        }
+//             if (newRoot == null) // was same as oldRoot
+//                 return;
+//         }
         
-        if (relativeURI != absURI)
-            Util.dumpURI(relativeURI, "RELATIVE");
-        //System.out.println(" RELATIVE URI: " + relativeURI);
-        //System.out.println("RELATIVE PATH: " + relativeURI.getPath());
+//         if (relativeURI != absURI)
+//             Resource.dumpURI(relativeURI, "RELATIVE");
+//         //System.out.println(" RELATIVE URI: " + relativeURI);
+//         //System.out.println("RELATIVE PATH: " + relativeURI.getPath());
         
 
-        if (newRoot != null) {
+//         if (newRoot != null) {
 
-            if (relativeURI.isAbsolute()) { // meaning relativeURI == absURI
-                //-------------------------------------------------------
-                // was absolute: attempt to relativize against newRoot 
-                //-------------------------------------------------------
-                if (relativeURI != absURI) Log.warn("URLResource assertion failure: " + relativeURI + "; " + absURI);
+//             if (relativeURI.isAbsolute()) { // meaning relativeURI == absURI
+//                 //-------------------------------------------------------
+//                 // was absolute: attempt to relativize against newRoot 
+//                 //-------------------------------------------------------
+//                 if (relativeURI != absURI) Log.warn("URLResource assertion failure: " + relativeURI + "; " + absURI);
                 
-                Log.debug("ATTEMPTING TO RELATIVIZE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
-                final URI newRelativeURI = newRoot.relativize(relativeURI);
+//                 Log.debug("ATTEMPTING TO RELATIVIZE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
+//                 final URI newRelativeURI = newRoot.relativize(relativeURI);
 
-                if (newRelativeURI != relativeURI) {
-                    System.out.println(TERM_GREEN+"NOTICED NEW RELATIVE: " + newRelativeURI + TERM_CLEAR);
-                    mRelativeURI = newRelativeURI;
-                }
+//                 if (newRelativeURI != relativeURI) {
+//                     System.out.println(TERM_GREEN+"NOTICED NEW RELATIVE: " + newRelativeURI + TERM_CLEAR);
+//                     mRelativeURI = newRelativeURI;
+//                 }
                 
-            } else {
-                //-------------------------------------------------------
-                // was relative: attempt to resolve against newRoot
-                //-------------------------------------------------------
-                Log.debug("ATTEMPTING RESOLVE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
-                final URI newAbsoluteURI = newRoot.resolve(relativeURI);
-                final File newFile = new File(newAbsoluteURI.getPath());
-                if (newFile.exists()) {
-                    System.out.println(TERM_GREEN+"  FOUND NEW LOCATION: " + newFile + TERM_CLEAR);
-                    spec = newAbsoluteURI.getRawPath();
-                    // File was found at same relative location:
-                    mRelativeURI = relativeURI;
-                    mURL_Browse = null; // reset
-                } else {
-                    // File was NOT found same relative location --
-                    // leave this Resource as it's old absolute value.
-                    mRelativeURI = null;
-                }
-            }
+//             } else {
+//                 //-------------------------------------------------------
+//                 // was relative: attempt to resolve against newRoot
+//                 //-------------------------------------------------------
+//                 Log.debug("ATTEMPTING RESOLVE AGAINST NEW ROOT: " + relativeURI + "; " + newRoot);
+//                 final URI newAbsoluteURI = newRoot.resolve(relativeURI);
+//                 final File newFile = new File(newAbsoluteURI.getPath());
+//                 if (newFile.exists()) {
+//                     System.out.println(TERM_GREEN+"  FOUND NEW LOCATION: " + newFile + TERM_CLEAR);
+//                     spec = newAbsoluteURI.getRawPath();
+//                     // File was found at same relative location:
+//                     mRelativeURI = relativeURI;
+//                     mURL_Default = null; // reset
+//                 } else {
+//                     // File was NOT found same relative location --
+//                     // leave this Resource as it's old absolute value.
+//                     mRelativeURI = null;
+//                 }
+//             }
 
-        } else if (relativeURI != absURI) {
-            mRelativeURI = relativeURI;
-            System.out.println(TERM_GREEN+"  FOUND NEW RELATIVE: " + relativeURI + TERM_CLEAR);
+//         } else if (relativeURI != absURI) {
+//             mRelativeURI = relativeURI;
+//             System.out.println(TERM_GREEN+"  FOUND NEW RELATIVE: " + relativeURI + TERM_CLEAR);
             
+//         }
+
+//         invalidateToolTip();        
+
+//     }
+
+    protected void setSpecByFile(File file) {
+        if (file == null) {
+            Log.error("setSpecByFile", new IllegalArgumentException("null java.io.File"));
+            return;
         }
 
-        invalidateToolTip();        
-
-    }
-
-    private static String encodeForURI(String s) {
-        return s.replaceAll(" ", "%20");
-    }
-
-    public static URI makeURI(File f) {
-        URI uri = f.toURI();
-        if (DEBUG.RESOURCE) Util.dumpURI(uri, "NEW FILE URI FROM " + f);
-        if (uri.getPath().startsWith("/C:"))
-            return makeURI(uri.getPath().substring(3));
-        else
-            return uri;
-        //return makeURI(f.toString());
-    }
-    
-    public static URI makeURI(String s)
-    {
-        URI uri = null;
-        final String encoded = encodeForURI(s);
+        // set the title by the name first, so setSpec won't need to compute it
+        setTitle(file.getName());
+        setFile(file);
+        
+        String fileSpec = null;
         try {
-            uri = new java.net.URI(encoded);
-        } catch (java.net.URISyntaxException e) {
-            Util.printStackTrace(e, s);
-        }
-        if (DEBUG.RESOURCE) {
-            if (uri != null && uri.toString().equals(s))
-                System.err.println("            MADE URI: " + uri);
-            else
-                System.err.println("            MADE URI: " + uri + " src=[" + s + "]");
+            fileSpec = file.getCanonicalPath();
+        } catch (IOException e) {
+            Log.warn(file, e);
+            fileSpec = file.getPath();
         }
         
-        return uri;
+        setSpec(fileSpec);
     }
     
-//     public Object toDigitalRepositoryReference() {
-//         return null;
+    public void setSpec(final String newSpec)
+    {
+        if (DEBUG.RESOURCE) dumpField(TERM_CYAN + "setSpec------------------------" + TERM_CLEAR, newSpec);
+        
+        if (newSpec == null)
+            throw new IllegalArgumentException(Util.tags(this) + "; setSpec: null value");
+
+        if (DEBUG.Enabled && this.spec != SPEC_UNSET) {
+            Log.error(this + "; setSpec multiple calls", new IllegalStateException("setSpec: multiple calls; resources are atomic"));
+            return;
+        }
+
+        invalidateToolTip();
+
+        if (SPEC_UNSET.equals(newSpec)) {
+            this.spec = SPEC_UNSET;
+            return;
+        }
+
+        this.spec = newSpec;
+
+        if (!mRestoreUnderway)
+            runFinalInitialization();
+
+        if (DEBUG.RESOURCE) out("setSpec: complete; " + this);
+    }
+
+    public void XML_completed()
+    {
+        if (DEBUG.CASTOR) System.out.println(this + " XML COMPLETED");
+
+        for (PropertyEntry entry : mXMLpropertyList) {
+            
+            final Object key = entry.getEntryKey();
+            final Object value = entry.getEntryValue();
+
+            // This comes via the SPEC (todo: merge these two?)
+            //if (BROWSE_KEY.equals(key))
+            //    setURL_Browse((String) value);
+            // else
+            // TODO: faster to do single hashed lookup a end
+            if (IMAGE_KEY.equals(key))
+                setURL_Image((String) value);
+            else if (THUMB_KEY.equals(key))
+                setURL_Thumb((String) value);
+            else
+                setProperty((String)key, value);
+        }
+
+//         if (DEBUG.DR) {
+//             // note the restored values
+//             //if (spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
+//             if (mTitle != null) setDebugProperty("TITLE", mTitle);
+//         }
+
+        mXMLpropertyList = null;
+        mRestoreUnderway = false;
+
+        runFinalInitialization();
+    }
+    
+    private void setURL(URL url) {
+        mURL = url;
+        if (DEBUG.Enabled) {
+            if (mURL != null) setDebugProperty("URL.default", mURL);
+        }
+    }
+
+    private void setFile(File file) {
+        mFile = file;
+        // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
+        if (DEBUG.Enabled) setDebugProperty("file.instance", Util.tags(mFile));
+    }
+    
+    private void runFinalInitialization()
+    {
+        if (spec == SPEC_UNSET) {
+            Log.error(new Throwable("cannot initialize resource " + Util.tags(this) + " without a spec: " + Util.tags(spec)));
+            return;
+        }
+        
+        // Create and record a valid URL if we can, and if there's a
+        // local file, record a reference to that.
+
+        if (mURL == null) {
+            setURL(makeURL(this.spec));
+            if (mURL != null && mFile != null) {
+                setFile(Resource.getLocalFileIfPresent(mURL));
+                // mFile will be set to null if this isn't a local filesystem or local network file
+            }
+        }
+
+        if (!isImage()) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
+
+            setAsImage(looksLikeImageFile(this.spec)); // TODO performance: can use File.getName or URL.getFile if present
+            
+            if (!isImage()) {
+                // double-check the meta-data in case looksLikeImageFile didn't give us 100% accurate results
+                checkForImageType();
+            }
+        }
+
+        //if (DEBUG.DR && spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
+        if (DEBUG.Enabled) setDebugProperty("SPEC", spec);
+
+        if (getClientType() == Resource.NONE) {
+            if (isLocalFile()) {
+                if (mFile != null && mFile.isDirectory())
+                    setClientType(Resource.DIRECTORY);
+                else
+                    setClientType(Resource.FILE);
+            } else
+                setClientType(Resource.URL);
+        }
+
+        if (mFile != null) {
+            try {
+                setProperty("File", mFile.getCanonicalPath());
+            } catch (IOException e) {
+                Log.warn(mFile.toString(), e);
+                setProperty("File", mFile.toString());
+            }
+            //removeProperty("URL");
+        } else {
+
+            // todo: can use some of our getLocalFileIfPresent code to determine if
+            // this is a valid URL v.s. a File from an unfamiliar filesystem
+            
+            String proto = null;
+            if (mURL != null)
+                proto = mURL.getProtocol();
+            if (proto != null && (proto.startsWith("http") || proto.equals("ftp"))) {
+                setProperty("URL", spec);
+            }
+            
+            //removeProperty("File");
+        }
+
+        
+//         if ("file".equals(mURL.getProtocol())) {
+//             setClientType(Resource.FILE);
+//             if (mTitle == null) {
+//                 String title;
+//                 title = mURL.getPath();
+//                 if (title != null) {
+//                     if (title.endsWith("/"))
+//                         title = title.substring(0, title.length() - 1);
+//                     title = title.substring(title.lastIndexOf('/') + 1);
+//                     if (tufts.Util.isMacPlatform()) {
+//                         // On MacOSX, file names with colon (':') in them display as slashes ('/')
+//                         title = title.replace(':', '/');
+//                     }
+//                     setTitle(title);
+//                 }
+//             }
+//         } else {
+//             setClientType(Resource.URL);
+//         }
+        
+        if (!hasProperty(CONTENT_TYPE) && mURL != null)
+            setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
+
+    }
+    
+    /** @return a unique URI for this resource */
+    @Override
+    public java.net.URI toURI() {
+        return makeURI(getSpec());
+    }
+        
+    /** @return a URL if possible to provide a valid one on this platform, or null if unable to create one */
+    @Override
+    public java.net.URL asURL()
+    {
+//         if (mURL == null) {
+//             if (spec != SPEC_UNSET)
+//                 setURL(makeURL(this.spec));
+//         }
+//         out("asURL returns " + Util.tags(mURL));
+        
+        return mURL;
+    }
+
+
+//     // TODO: resource's would make more sense being atomic: don't allow post construction setSpec,
+//     // (throw an exception of spec is already set)
+    
+//     /** @deprecated -- or perhaps, change to setLocalResource? setRawURL? setRawResource? */
+//     // Want this to be protected, but must be public for castor.
+//     // TODO: MAKE THIS JUST A PERSISTANCE RESTORE: record the spec and move on -- don't
+//     // process unless asked for something later...
+//     public void XXXXXXXXX_setSpec(final String spec) {
+
+//         if (DEBUG.Enabled && spec == SPEC_UNSET) {
+//             Log.error(this + "; setSpec multiple calls", new IllegalStateException("setSpec: multiple calls; resources are atomic"));
+//             return;
+//         }
+
+// //         if (mRelativeURI != null) {
+// //             Log.warn(this + " setSpec w/URI set: " + mRelativeURI);
+// //             //Util.printStackTrace(this + " setSpec w/URI set: " + mRelativeURI + " spec denied: " + spec);
+// //             //return;
+// //         }
+
+//         invalidateToolTip();
+        
+//         if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
+//             out("setSpec " + spec);
+//             //Util.printStackTrace("setSpec " + spec);
+//         }
+
+//         if (SPEC_UNSET.equals(spec)) {
+//             this.spec = SPEC_UNSET;
+//             return;
+//         }
+
+                
+//         // TODO: will want generic ability to set the reference created
+//         // date lazily, as it doesn't make sense with CabinetResource, for example,
+//         // to set that until a user actually drag's one and makes use of it.
+//         // So a resource is going to become somewhat akin to a Transferable.
+        
+//         this.spec = spec;
+//         //this.referenceCreated = System.currentTimeMillis();
+
+//         if (spec == null)
+//             throw new Error("Resource.setSpec can't be null");
+
+//         if (spec.startsWith("resource:")) {
+//             final String classpathResource = spec.substring(9);
+//             Log.info("Searching for classpath resource [" + classpathResource + "]");
+//             setBrowseURL(getClass().getResource(classpathResource));
+//             Log.info("Got classpath resource: " + mURL);
+//         } else {
+//             if (!isImage) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
+//                 setAsImage(looksLikeImageFile(spec));
+//                 if (!isImage && !mRestoreUnderway) {
+//                     // if this is during a restore, wait for properties to come in
+//                     // so we can check for a Content.type property
+//                     checkForImageType();
+//                 }
+//             }
+//             setBrowseURL(makeURL(spec));
+//         }
+
+//         //this.type = isLocalFile() ? Resource.FILE : Resource.URL;
+
+//         asURL(); // TODO: get rid of this side-effector
+
+//         if (DEBUG.DR && spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
+        
+
+//         if (isLocalFile()) {
+//             if (spec.startsWith("file:"))
+//                 setProperty("File", spec.substring(5));
+//             else
+//                 setProperty("File", spec);
+//         } else {
+//             setProperty("URL", spec);
+//         }
+
+//         if (DEBUG.RESOURCE) out("setSpec complete; " + this);
+//     }
+
+
+//     private void update()
+//     {
+//         if ("file".equals(mURL.getProtocol())) {
+//             setClientType(Resource.FILE);
+//             if (mTitle == null) {
+//                 String title;
+//                 title = mURL.getPath();
+//                 if (title != null) {
+//                     if (title.endsWith("/"))
+//                         title = title.substring(0, title.length() - 1);
+//                     title = title.substring(title.lastIndexOf('/') + 1);
+//                     if (tufts.Util.isMacPlatform()) {
+//                         // On MacOSX, file names with colon (':') in them display as slashes ('/')
+//                         title = title.replace(':', '/');
+//                     }
+//                     setTitle(title);
+//                 }
+//             }
+//         } else {
+//             setClientType(Resource.URL);
+//         }
+//         if (!hasProperty(CONTENT_TYPE))
+//             setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
+//     }
+
+
+//     // TODO: GIT RID OF ALL THIS LAZY CREATION CRAP, AND MERGE THIS INTO SET SPEC, INCLUDING toURLString crap
+//     private java.net.URL toURLwithSideEffects() throws java.net.MalformedURLException
+//     {
+//         if (false) throw new java.net.MalformedURLException();
+
+//         //makeURI(spec);
+        
+//         if (mURL == null) {
+//             if (spec == SPEC_UNSET)
+//                 return null;
+//             mURL = new java.net.URL(toURLString());
+//             if ("file".equals(mURL.getProtocol())) {
+//                 setClientType(Resource.FILE);
+//                 if (mTitle == null) {
+//                     String title;
+//                     title = mURL.getPath();
+//                     if (title != null) {
+//                         if (title.endsWith("/"))
+//                             title = title.substring(0, title.length() - 1);
+//                         title = title.substring(title.lastIndexOf('/') + 1);
+//                         if (tufts.Util.isMacPlatform()) {
+//                             // On MacOSX, file names with colon (':') in them display as slashes ('/')
+//                             title = title.replace(':', '/');
+//                         }
+//                         setTitle(title);
+//                     }
+//                 }
+//             } else {
+//                 setClientType(Resource.URL);
+//             }
+//             if (!hasProperty(CONTENT_TYPE))
+//                 setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
+//         }
+//         return mURL;
+//         ///mURL = new java.net.URL(toURLString());
+//     }
+
+
+    /** @see tufts.vue.Resource -- todo: return URI */
+    @Override
+    public URL getImageSource() {
+        URL url = _getImageSource();
+        Log.debug(this + "; getImageSource returns " + Util.tags(url));
+        return url;
+    }
+
+
+    private URL _getImageSource() {
+
+        // TODO: may be bootstrapping problem here... we're also calling this during the packaging code itself
+        // And change this to return a URI!
+        
+        if (hasProperty(PACKAGE_FILE)) {
+
+            return getPackagedURL();
+            
+//             final String propVal = getProperty(PACKAGE_FILE);
+//             String prop = propVal;
+//             if (!prop.startsWith("file:"))
+//                 prop = "file:" + prop;
+//             final URL url = makeURL(prop);
+//             if (DEBUG.Enabled) Log.debug("Returning imageSource " + url + "; from property " + propVal);
+//             return url;
+//             //return makeURL(getProperty(PACKAGE_FILE));
+            
+        } else if (mURL_ImageData != null)
+            return mURL_ImageData;
+        else
+            return asURL();
+    }
+    
+    private URL getPackagedURL() {
+
+        final String propVal = getProperty(PACKAGE_FILE);
+
+        if (propVal == null) {
+            Log.info("getPackageURL returns null: " + this);
+            return null;
+        }
+        
+//         String prop = propVal;
+//         if (!prop.startsWith("file:"))
+//             prop = "fIlE:" + prop;
+        final URL url = makeURL(propVal);
+        if (DEBUG.Enabled && url != null) out("returning packaged  " + Util.tags(url) + "; from property " + propVal);
+        return url;
+        
+        //return makeURL(getProperty(PACKAGE_FILE));
+    }
+
+    
+    @Override
+    public int hashCode() {
+        return spec == null ? super.hashCode() : spec.hashCode();
+//         // TODO: this not safe long-term
+//         if (mURL == null)
+//             asURL();
+//         if (mURL == null)
+//             return super.hashCode();
+//         else
+//             return mURL.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (o instanceof Resource) {
+            if (spec == SPEC_UNSET || spec == null)
+                return false;
+            final String spec2 = ((Resource)o).getSpec();
+            if (spec2 == SPEC_UNSET || spec2 == null)
+                return false;
+            return spec.equals(spec2);
+            //return getSpec().equals(((Resource)o).getSpec());
+            // use URL?  Better URN eventually?
+            //o.asURL().equals(asURL());
+        }
+        return false;
+    }
+
+    
+    public void displayContent() {
+        final String systemSpec;
+
+        if (hasProperty(PACKAGE_FILE)) {
+            systemSpec = getPackagedURL().toString();
+        }
+        else if (mURL != null) {
+            systemSpec = mURL.toString(); // TODO TODO TODO: here's the problem.  mURL is what's a mess REFACTOR AGAIN...
+        }
+//         else if (VueUtil.isMacPlatform()) {
+//             // toURL will fail if we have a Windows style "C:\Programs" url, so
+//             // just in case don't try and construct a URL here.
+//             systemSpec = toURLString();
+//         }
+        else
+            systemSpec = getSpec();
+        
+        try {
+            markAccessAttempt();
+            VueUtil.openURL(systemSpec);
+            // access successful is not currently very meaningful,
+            // as we don't know if the openURL failed or not.
+            markAccessSuccess();
+        } catch (Exception e) {
+            //System.err.println(e);
+            Log.error(systemSpec + "; " + e);
+        }
+    }
+
+
+    public void setTitle(String title) {
+        if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) dumpField("setTitle", title);
+        mTitle = title;
+        if (DEBUG.Enabled) setDebugProperty("title", title);
+    }
+    
+    public String getTitle() {
+        return mTitle;
+    }
+    
+//     private String X_toURLString() {
+
+//         String s = this.spec.trim();
+
+        
+//         final char c0 = s.length() > 0 ? s.charAt(0) : 0;
+//         final char c1 = s.length() > 1 ? s.charAt(1) : 0;
+//         final String txt;
+
+//         // In case there are any special characters (e.g., Unicode chars) in the
+//         // file name, we must first encode them for MacOSX (local files only?)
+//         // FYI, MacOSX openURL uses UTF-8, NOT the native MacRoman encoding.
+//         // URLEncoder encodes EVERYTHING other than alphas tho, so we need
+//         // to put it back.
+
+//         // But first we DECODE it, in case there are already any encodings,
+//         // we don't want to double-encode.
+//         //TODO: url = java.net.URLDecoder.decode(url, "UTF-8");
+//         //TODO: if (DEBUG) System.err.println("  DECODE UTF [" + url + "]");
+
+//         // TODO ALSO: cache file not being %20 normalized (Seeing %252520 !)
+
+        
+
+//         if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
+
+//             // first case: MacOSX path
+//             // second case: Windows path
+//             // third case: Windows "C:" style path
+//             // TODO: consider using URN's for this, which have some code
+//             // for this type of resolution.
+//             txt = "file://" + s;
+
+//             Util.printStackTrace("toURLString FILE:// -ified: " + txt);
+//             //Log.debug("toURLString produced " + txt);
+            
+//         } else {
+//             txt = s;
+//         }
+//         //if (DEBUG.Enabled) out("toURLString[" + txt + "]");
+
+
+//         /*
+//           // from old LWImage code:
+//         if (s.startsWith("file://")) {
+
+//             // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
+//             // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
+//             // out if can even force a URL to have an extra slash in it!  Report
+//             // this as a java bug.
+
+//             // TODO: Our Cup>>Chevron unicode char example is failing
+//             // here on Windows (tho it works for windows openURL).
+//             // (The image load fails)
+//             // Try ensuring the URL is UTF-8 first.
+            
+//             s = s.substring(7);
+//             if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
+//             image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
+//         } else {
+//         */
+        
+        
+//         /*
+//         if (this.url == null) {
+//             // [old:this logic shouldn't be needed: if spec can be a a valid URL, this.url will already be set]
+//             if (spec.startsWith("file:") || spec.startsWith("http:") || spec.startsWith("ftp:")) {
+//                 //System.err.println(getClass() + " BOGUS URLResource: is URL, but unrecognized! " + this);
+//                 txt = spec;
+//             }
+//             // todo: handle "resource:" case
+//             else
+//                 txt = "file:///" + spec;
+//             if (DEBUG.Enabled) out("toURLString[" + txt + "]");
+//         } else
+//             txt = this.url.toString();
+//         */
+
+//         //if (!spec.startsWith("file") && !spec.startsWith("http"))
+//         //    txt = "file:///" + spec;
+
+//         return txt;
 //     }
     
-    private String toURLString() {
-
-        String s = this.spec.trim();
-
-        
-        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
-        final char c1 = s.length() > 1 ? s.charAt(1) : 0;
-        final String txt;
-
-        // In case there are any special characters (e.g., Unicode chars) in the
-        // file name, we must first encode them for MacOSX (local files only?)
-        // FYI, MacOSX openURL uses UTF-8, NOT the native MacRoman encoding.
-        // URLEncoder encodes EVERYTHING other than alphas tho, so we need
-        // to put it back.
-
-        // But first we DECODE it, in case there are already any encodings,
-        // we don't want to double-encode.
-        //TODO: url = java.net.URLDecoder.decode(url, "UTF-8");
-        //TODO: if (DEBUG) System.err.println("  DECODE UTF [" + url + "]");
-
-        // TODO ALSO: cache file not being %20 normalized (Seeing %252520 !)
-
-        
-
-        if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
-            // first case: MacOSX path
-            // second case: Windows path
-            // third case: Windows "C:" style path
-            // TODO: consider using URN's for this, which have some code
-            // for this type of resolution.
-            txt = "file://" + s;
-        } else {
-            txt = s;
-        }
-        //if (DEBUG.Enabled) out("toURLString[" + txt + "]");
-
-
-        /*
-          // from old LWImage code:
-        if (s.startsWith("file://")) {
-
-            // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
-            // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
-            // out if can even force a URL to have an extra slash in it!  Report
-            // this as a java bug.
-
-            // TODO: Our Cup>>Chevron unicode char example is failing
-            // here on Windows (tho it works for windows openURL).
-            // (The image load fails)
-            // Try ensuring the URL is UTF-8 first.
-            
-            s = s.substring(7);
-            if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
-            image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
-        } else {
-        */
-        
-        
-        /*
-        if (this.url == null) {
-            // [old:this logic shouldn't be needed: if spec can be a a valid URL, this.url will already be set]
-            if (spec.startsWith("file:") || spec.startsWith("http:") || spec.startsWith("ftp:")) {
-                //System.err.println(getClass() + " BOGUS URLResource: is URL, but unrecognized! " + this);
-                txt = spec;
-            }
-            // todo: handle "resource:" case
-            else
-                txt = "file:///" + spec;
-            if (DEBUG.Enabled) out("toURLString[" + txt + "]");
-        } else
-            txt = this.url.toString();
-        */
-
-        //if (!spec.startsWith("file") && !spec.startsWith("http"))
-        //    txt = "file:///" + spec;
-
-        return txt;
-    }
-    
-    // TODO: GIT RID OF ALL THIS LAZY CREATION CRAP, AND MERGE THIS INTO SET SPEC, INCLUDING toURLString crap
-    private java.net.URL toURL() throws java.net.MalformedURLException
-    {
-        if (false) throw new java.net.MalformedURLException();
-        if (mURL_Browse == null) {
-            if (spec == SPEC_UNSET)
-                return null;
-            mURL_Browse = new java.net.URL(toURLString());
-            if ("file".equals(mURL_Browse.getProtocol())) {
-                setClientType(Resource.FILE);
-                if (mTitle == null) {
-                    String title;
-                    title = mURL_Browse.getPath();
-                    if (title != null) {
-                        if (title.endsWith("/"))
-                            title = title.substring(0, title.length() - 1);
-                        title = title.substring(title.lastIndexOf('/') + 1);
-                        if (tufts.Util.isMacPlatform()) {
-                            // On MacOSX, file names with colon (':') in them display as slashes ('/')
-                            title = title.replace(':', '/');
-                        }
-                        setTitle(title);
-                    }
-                }
-            } else {
-                setClientType(Resource.URL);
-            }
-            if (!hasProperty(CONTENT_TYPE))
-                setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL_Browse.getPath()));
-        }
-        return mURL_Browse;
-        ///mURL = new java.net.URL(toURLString());
-    }
-
 
     /*
     private java.net.URL toURL_OLD()
@@ -681,290 +1067,384 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
 */
 
-    private URL getPackagedURL() {
-
-        final String propVal = getProperty(PACKAGE_FILE);
-
-        if (propVal == null) {
-            Log.info("getPackageURL returns null: " + this);
-            return null;
-        }
-        
-        String prop = propVal;
-        if (!prop.startsWith("file:"))
-            prop = "file:" + prop;
-        final URL url = makeURL(prop);
-        if (DEBUG.Enabled) Log.debug("Returning imageSource " + url + "; from property " + propVal);
-        return url;
-        
-        //return makeURL(getProperty(PACKAGE_FILE));
+    
+    /** Return exactly whatever we were handed at creation time.  We
+     * need this because if it's a local file (file: URL or just local
+     * file path name), we need whatever the local OS gave us as a
+     * reference in order to give that to give back to openURL, as
+     * it's the most reliable string to give back to the underlying OS
+     * for opening a local file.  */
+    
+    public String getSpec() {
+        return this.spec;
     }
 
-    
-    /** @see tufts.vue.Resource -- todo: return URI */
-    @Override
-    public URL getImageSource() {
-
-        // TODO: may be bootstrapping problem here... we're also calling this during the packaging code itself
-        // And change this to return a URI!
-        
-        if (hasProperty(PACKAGE_FILE)) {
-
-            return getPackagedURL();
-            
-//             final String propVal = getProperty(PACKAGE_FILE);
-//             String prop = propVal;
-//             if (!prop.startsWith("file:"))
-//                 prop = "file:" + prop;
-//             final URL url = makeURL(prop);
-//             if (DEBUG.Enabled) Log.debug("Returning imageSource " + url + "; from property " + propVal);
-//             return url;
-//             //return makeURL(getProperty(PACKAGE_FILE));
-            
-        } else
-            if (mURL_Image != null)
-            return mURL_Image;
-        else
-            return asURL();
-    }
-    
-    /** @return as a property URL, or null if unable to create one */
-    // get this private/gone
-    java.net.URL asURL()
-    {
-        try {
-            return toURL();
-        } catch (java.net.MalformedURLException e) {
-            if (DEBUG.Enabled && DEBUG.META)
-            //if (DEBUG.Enabled)
-                Util.printStackTrace(e, "FYI: URLResource.asURL[" + this + "]");
-        }
+    // This currently redundant with the property for this we're using, but it's
+    // in the mapping and some old save files might have it set, so we're keeping
+    // set/get RelativeURI around.
+    public String getRelativeURI() {
         return null;
-    }
-
-    @Override
-    public int hashCode() {
-        return spec == null ? super.hashCode() : spec.hashCode();
-//         // TODO: this not safe long-term
-//         if (mURL_Browse == null)
-//             asURL();
-//         if (mURL_Browse == null)
-//             return super.hashCode();
+//         if (mRelativeURI != null)
+//             return mRelativeURI.toString();
 //         else
-//             return mURL_Browse.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == this)
-            return true;
-        if (o instanceof Resource) {
-            if (spec == SPEC_UNSET || spec == null)
-                return false;
-            final String spec2 = ((Resource)o).getSpec();
-            if (spec2 == SPEC_UNSET || spec2 == null)
-                return false;
-            return spec.equals(spec2);
-            //return getSpec().equals(((Resource)o).getSpec());
-            // use URL?  Better URN eventually?
-            //o.asURL().equals(asURL());
-        }
-        return false;
-    }
-
-    
-    /** If given string is a valid URL, make one and return it, otherwise, return null. */
-    private static java.net.URL makeURL(String s)
-    {
-        try {
-            return new java.net.URL(s);
-        } catch (java.net.MalformedURLException e) {
-            return null;
-        }
-    }
-    
-    public void displayContent() {
-        final String systemSpec;
-
-        if (hasProperty(PACKAGE_FILE)) {
-            systemSpec = getPackagedURL().toString();
-        }
-        else if (mURL_Browse != null) {
-            systemSpec = mURL_Browse.toString();
-        }
-        else if (VueUtil.isMacPlatform()) {
-            // toURL will fail if we have a Windows style "C:\Programs" url, so
-            // just in case don't try and construct a URL here.
-            systemSpec = toURLString();
-        }
-        else
-            systemSpec = getSpec();
+//             return null;
         
-        try {
-            markAccessAttempt();
-            VueUtil.openURL(systemSpec);
-            // access successful is not currently very meaningful,
-            // as we don't know if the openURL failed or not.
-            markAccessSuccess();
-        } catch (Exception e) {
-            //System.err.println(e);
-            Log.error(systemSpec + "; " + e);
-        }
     }
 
-
-    public void setTitle(String title) {
-        if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) out("setTitle " + title);
-        mTitle = title;
+    /** persistance only */
+    public void setRelativeURI(String s) {
+//         if (!mRestoreUnderway) {
+//             Util.printStackTrace("only allowed for persistance; setRelativeURI " + s);
+//             return;
+//         }
+//         mRelativeURI = makeURI(s);
     }
     
-    public String getTitle() {
-        return mTitle;
+    
+    /*
+     * If isLocalFile is true, this will return a file name
+     * suitable to be given to java.io.File such that it
+     * can be found.  Note that this may differ from getSpec.
+     * If isLocalFile is false, it will return the file
+     * portion of the URL, although that may not be useful.
+
+    public String getFileName() {
+        if (mURL == null)
+            return getSpec();
+        else
+            return url.getFile();
     }
     
-//     // Preserved for comments: "Windows" here may be referring to Windows2000
+     */
     
-//         String s = mr.getSpec();
-//         if (s.startsWith("file://")) {
+    /** this is only meaninful if this resource points to a local file */
+    protected Image getFileIconImage() {
+        return GUI.getSystemIconForExtension(getDataType(), 128);
+    }
+    
+    @Override
+    public boolean isLocalFile() {
 
-//             // TODO: SEE Util.java: WINDOWS URL'S DON'T WORK IF START WITH FILE://
-//             // (two slashes), MUST HAVE THREE!  move this code to MapResource; find
-//             // out if can even force a URL to have an extra slash in it!  Report
-//             // this as a java bug.
+        return mFile != null || (mURL != null && "file".equals(mURL.getProtocol()));
 
-//             // TODO: Our Cup>>Chevron unicode char example is failing
-//             // here on Windows (tho it works for windows openURL).
-//             // (The image load fails)
-//             // Try ensuring the URL is UTF-8 first.
-            
-//             s = s.substring(7);
-//             if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage " + s);
-//             image = java.awt.Toolkit.getDefaultToolkit().getImage(s);
+//         if (false) {
+//         //if (hasProperty(PACKAGE_FILE)) {
+//             // todo: make sure this isn't overkill...
+//             return true;
 //         } else {
-//             if (DEBUG.IMAGE || DEBUG.THREAD) out("getImage");
-//             image = java.awt.Toolkit.getDefaultToolkit().getImage(url);
+//             asURL();
+//             return mURL == null || mURL.getProtocol().equals("file");
+//             //String s = spec.toLowerCase();
+//             //return s.startsWith("file:") || s.indexOf(':') < 0;
 //         }
 
-
-    // TODO TODO TODO: resource's should be atomic: don't allow post construction setSpec,
-    // or at least protected -- will need a dispatching factory to handle this properly,
-    // as well as castor factories / creators
-    
-    /** @deprecated -- or perhaps, change to setLocalResource? setRawURL? setRawResource? */
-    // Want this to be protected, but must be public for castor.
-    // TODO: MAKE THIS JUST A PERSISTANCE RESTORE: record the spec and move on -- don't
-    // process unless asked for something later...
-    public void setSpec(final String spec) {
-
-        if (mRelativeURI != null) {
-            Log.warn(this + " setSpec w/URI set: " + mRelativeURI);
-            //Util.printStackTrace(this + " setSpec w/URI set: " + mRelativeURI + " spec denied: " + spec);
-            //return;
-        }
-
-        invalidateToolTip();
-        
-        if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
-            out("setSpec " + spec);
-            //Util.printStackTrace("setSpec " + spec);
-        }
-
-        if (SPEC_UNSET.equals(spec)) {
-            this.spec = SPEC_UNSET;
-            return;
-        }
-
-                
-        // TODO: will want generic ability to set the reference created
-        // date lazily, as it doesn't make sense with CabinetResource, for example,
-        // to set that until a user actually drag's one and makes use of it.
-        // So a resource is going to become somewhat akin to a Transferable.
-        
-        this.spec = spec;
-        //this.referenceCreated = System.currentTimeMillis();
-
-        if (spec == null)
-            throw new Error("Resource.setSpec can't be null");
-
-        if (spec.startsWith("resource:")) {
-            final String classpathResource = spec.substring(9);
-            System.err.println("Searching for classpath resource [" + classpathResource + "]");
-            mURL_Browse = getClass().getResource(classpathResource);
-            System.err.println("Got classpath resource: " + mURL_Browse);
-            
-//             if (DEBUG.DR || DEBUG.RESOURCE) {
-//                 setProperty(BROWSE_KEY, "" + mURL_Browse);
-//             }
-            
-            //this.spec = mURL_Browse.toString();
-        } else {
-            if (!isImage) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
-                setAsImage(looksLikeImageFile(spec));
-                if (!isImage && !mXMLrestoreUnderway) {
-                    // if this is during a restore, wait for properties to come in
-                    // so we can check for a Content.type property
-                    checkForImageType();
-                }
-            }
-            mURL_Browse = makeURL(spec);
-            //setURL_Browse(spec);
-        }
-
-
-        if (DEBUG.DR || DEBUG.RESOURCE) {
-            //setProperty("@<spec>", spec);
-            if (mURL_Browse != null) setDebugProperty("browse.url", mURL_Browse);
-        }
-
-        /*
-        try {
-            
-            if (spec.startsWith("resource:")) {
-                final String classpathResource = spec.substring(9);
-                //System.out.println("Searching for classpath resource [" + classpathResource + "]");
-                url = getClass().getResource(classpathResource);
-            }
-            //else { url = new URL(spec); } // do lazily
-
-            
-//             String fname = url.getFile();
-//             System.out.println("Resource [" + spec + "] has URL [" + url + "] file=["+url.getFile()+"] path=[" + url.getPath()+"]");
-//             java.io.File file = new java.io.File(fname);
-//             System.out.println("\t" + file + " exists=" +file.exists());
-//             file = new java.io.File(spec);
-//             System.out.println("\t" + file + " exists=" +file.exists());
-
-
-        } catch (MalformedURLException e) {
-            // Okay for url to be null: means local file
-            if (DEBUG.Enabled) System.err.println(e);
-            //System.out.println("Resource [" + spec + "] *** NOT A URL ***");
-        } catch (Exception e) {
-            //System.err.println(e);
-            e.printStackTrace();
-        }
-        */
-
-        //this.type = isLocalFile() ? Resource.FILE : Resource.URL;
-
-        asURL();
-
-        if (DEBUG.DR && spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
-        
-
-        if (isLocalFile()) {
-            if (spec.startsWith("file:"))
-                setProperty("File", spec.substring(5));
-            else
-                setProperty("File", spec);
-        } else {
-            setProperty("URL", spec);
-        }
-
-        
-        
-        //this.preview = null;
     }
+    
+    
+//     public String getExtension() {
+//         final String r = getSpec();
+//         String ext = "xxx";
+
+//         if (r.startsWith("http"))
+//             ext = "web";
+//         else if (r.startsWith("file"))
+//             ext = "file";
+//         else {
+//             ext = r.substring(0, Math.min(r.length(), 3));
+//             if (!r.endsWith("/")) {
+//                 int i = r.lastIndexOf('.');
+//                 if (i > 0 && i < r.length()-1)
+//                     ext = r.substring(i+1);
+//             }
+//         }
+//         if (ext.length() > 4)
+//             ext = ext.substring(0,4);
+        
+//         return ext;
+//     }
+    
+    
+//     /**
+//      * getPropertyNames
+//      * This returns an array of property names
+//      * @return String [] the list of property names
+//      **/
+//     public String [] getPropertyNames() {
+        
+//         if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
+//             Set keys = mProperties.keySet();
+//             if( ! keys.isEmpty() ) {
+//                 mPropertyNames = new String[ keys.size() ];
+//                 Iterator it = keys.iterator();
+//                 int i=0;
+//                 while( it.hasNext()) {
+//                     mPropertyNames[i] = (String) it.next();
+//                     i++;
+//                 }
+//             }
+//         }
+//         return mPropertyNames;
+//     }
+    
+    
+    /** @deprecated */
+    public void setProperties(Properties p) {
+        tufts.Util.printStackTrace("URLResource.setProperties: deprecated " + p);
+    }
+    
+    /*
+    public Map getPropertyMap() {
+        System.out.println(this + " *** getPropertyMap " + mProperties);
+        return mProperties;
+    }
+    public void setPropertyMap(Map m) {
+        System.out.println(this + " *** setPropertyMap " + m.getClass().getName() + " " + m);
+        mProperties = (Properties) m;
+    }
+    */
+    
+    
+    /** this is for castor persistance only */
+    public java.util.List getPropertyList() {
+        
+        if (mRestoreUnderway == false) {
+
+            if (mProperties.size() == 0) // a hack for castor to work
+                return null;
+
+            mXMLpropertyList = new ArrayList(mProperties.size());
+
+            Iterator i = mProperties.keySet().iterator();
+            while (i.hasNext()) {
+                final String key = (String) i.next();
+                final PropertyEntry entry = new PropertyEntry();
+                entry.setEntryKey(key);
+                entry.setEntryValue(mProperties.get(key));
+                mXMLpropertyList.add(entry);
+            }
+        }
+
+        if (DEBUG.CASTOR) System.out.println(this + " getPropertyList " + mXMLpropertyList);
+        return mXMLpropertyList;
+    }
+    
+    public void XML_initialized() {
+        if (DEBUG.CASTOR) System.out.println(getClass() + " XML INIT");
+        mRestoreUnderway = true;
+        mXMLpropertyList = new ArrayList();
+    }
+
+    public void XML_fieldAdded(String name, Object child) {
+        if (DEBUG.XML) out("XML_fieldAdded <" + name + "> = " + child);
+    }
+    
+    public void XML_addNotify(String name, Object parent) {
+        if (DEBUG.CASTOR) System.out.println(this + " XML ADDNOTIFY as \"" + name + "\" to parent " + parent);
+    }
+
+    private void checkForImageType() {
+        if (!isImage()) {
+            if (hasProperty(CONTENT_TYPE)) {
+                setAsImage(isImageMimeType(getProperty(CONTENT_TYPE)));
+            } else {
+                // TODO: on initial creation of resources with types unidentifiable from the spec,
+                // this code will load CONTENT_TYPE (in getDataType), and determine isImage
+                // with looksLikeImageFile, but then when saved/restored, the above case
+                // will use isImageMimeType, which isn't the exact same test -- fix this.
+                setAsImage(looksLikeImageFile('.' + getDataType()));
+            }
+        }
+    }
+
+    private static boolean isImageMimeType(final String s) {
+        return s != null && s.toLowerCase().startsWith("image/");
+    }
+
+    private static boolean isHtmlMimeType(final String s) {
+        return s != null && s.toLowerCase().startsWith("text/html");
+    }
+
+    
+    @Override
+    public String getDataType() {
+
+        final String superType = super.getDataType();
+        final String spec = getSpec();
+
+//         if (type == EXTENSION_UNKNOWN || type == EXTENSION_DIR)
+//             return type
+        
+        if (spec.endsWith("=jpeg")) {
+            // special case for MFA data source -- TODO: MFA OSID should handle this
+            return "jpeg";
+        } else if (mimeType != UNSET) {
+            return mimeType;
+        } else if (spec != SPEC_UNSET && spec.startsWith("http") && spec.contains("fedora")) { // fix for fedora url
+            try {
+                final URL url = new URL(getSpec());
+                // TODO: checking spec, which defaults to the "browse" URL, will not get
+                // the real content-type in cases (such as fedora!) where the browse
+                // url is always an HTML page that includes the image with some descrition text.
+                //Log.info("opening URL " + url);
+                final String type = url.openConnection().getHeaderField("Content-type");
+                if (DEBUG.Enabled) {
+                    out("got contentType " + url + " [" + type + "]");
+                    //Util.printStackTrace("GOT CONTENT TYPE");
+                }
+                if (type != null && type.length() > 0)
+                    setProperty(CONTENT_TYPE, type);
+                if (type != null && type.contains("/")) {
+                    mimeType = type.split("/")[1]; // returning the second part of mime-type
+                    return mimeType;
+                } else {
+                    return superType;
+                }
+            } catch (Throwable t) {
+                t.printStackTrace();
+                return superType;
+            }
+            
+        } else
+            return superType;
+    }
+
+    private static final String UNSET = "<unset-mimeType>";
+    private String mimeType = UNSET;
+
+    
+
+    private static boolean isHTML(final Resource r) {
+        String s = r.getSpec().toLowerCase();
+
+        if (s.endsWith(".html") || s.endsWith(".htm"))
+            return true;
+
+        // todo: why .vue files reporting as text/html on MacOSX to content scraper?
+
+        return !s.endsWith(".vue")
+            && isHtmlMimeType(r.getProperty("url.contentType"))
+            //&& !isImage(r) // sometimes image files claim to be text/html
+            ;
+    }
+        
+    public boolean isHTML() {
+        if (isImage())
+            return false;
+        else
+            return isHTML(this);
+    }
+
+    // TODO: combine these into a constructor only for integrity (e.g., Osid2AssetResource is factory only)
+    
+    /** Currently, this just calls setSpec -- the "browse" URL is the default URL */
+    protected void setURL_Browse(String s) {
+        setSpec(s);
+    }
+
+    protected void setURL_Thumb(String s) {
+        // TODO performance: don't need to do this until thumbnail is requested
+        mURL_ThumbData = makeURL(s);
+        //if (DEBUG.DR || DEBUG.RESOURCE)
+        setProperty(THUMB_KEY, "" + mURL_ThumbData);
+        //mPreview = mURL_ThumbData;
+    }
+
+    /** If given any valid URL, this resource will consider itself image content, no matter
+     * what's at the other end of that URL, so care should be taken to ensure it's
+     * valid image data (as opposed to say, an HTML page)
+     */
+    protected void setURL_Image(String s) {
+        mURL_ImageData = makeURL(s);
+        //if (DEBUG.DR || DEBUG.RESOURCE)
+        setProperty(IMAGE_KEY, "" + mURL_ImageData);
+        if (mURL_ImageData != null)
+            setAsImage(true);
+    }
+
+
+    /**
+     * Either immediately return an Image object if available, otherwise return an
+     * object that is some kind of valid image source (e.g., a URL or image Resource)
+     * that can be fed to Images.getImage and fetch asynchronously w/callbacks if it
+     * isn't already in the cache.
+     */
+    public Object getPreview()
+    {
+        if (isCached() && isImage())
+            return this;
+        else if (mURL_ThumbData != null)
+            return mURL_ThumbData;
+        else if (mURL_ImageData != null)
+            return mURL_ImageData;
+        else if (isImage())
+            // TODO: this not a good idea... only doing it so Images can put meta-data back into it
+            return this;
+        else if (isLocalFile()) {
+            return getFileIconImage();
+        }
+        else if (mURL != null && !isLocalFile()) 
+        {
+            //System.out.println("mURL : " + mURL);
+        	
+            if (mURL.toString().toLowerCase().endsWith(VueUtil.VueExtension))
+                return VueResources.getBufferedImage("vueIcon64x64");
+            else
+                return getThumbshotURL(mURL);
+//             if (mThumbShot == null) {
+//                 mThumbShot = fetchThumbshot(mURL);
+
+//                 // If we don't assign this, it will keep trying, which
+//                 // is bad, yet if we go from offline to online, we'd
+//                 // like to start finding these, so we just keep trying for now...
+//                 //if (mThumbShot == null) mThumbShot = GUI.NoImage32;
+//             }
+//             return mThumbShot;
+        }
+        else 
+            return null;
+        
+        /*
+        if (mPreview == null) {
+            // TODO: this currently special case to Osid2AssetResource, tho names are somewhat generic..
+            URL url = null;
+            //url = makeURL(getProperty("mediumImage"));
+            url = makeURL(getProperty("smallImage"));
+            if (url == null)
+                url = makeURL(getProperty("thumbnail"));
+
+            if (url == null) { // TODO: Hack for MFA until Resource has API for setting Asset-like meta-data
+                url = makeURL(getProperty("Preview Or Thumbnail"));
+                if (DEBUG.RESOURCE) tufts.Util.printStackTrace("got MFA preview " + url);
+            }
+            
+            if (url != null)
+                mPreview = url;
+        }
+        return mPreview;
+        */
+    }
+
+    public static final String THUMBSHOT_FETCH = "http://open.thumbshots.org/image.pxf?url=";
+
+    private URL getThumbshotURL(URL url) {
+        if (true)
+            // I don't think thumbshots ever generate images for paths beyond the root host:
+            return makeURL(String.format("%s%s://%s/",
+                                         THUMBSHOT_FETCH,
+                                         url.getProtocol(),
+                                         url.getHost()));
+        else
+            return makeURL(THUMBSHOT_FETCH + url);
+    }
+
+
+    /** @deprecated -- for backward compat with lw_mapping_1.0.xml only, where this never worked */
+    public void setPropertyList(Vector propertyList) {
+        // This actually never get's called, but the old mapping file demands that it's here.
+        Log.info("IGNORING OLD SAVE FILE DATA " + propertyList + " for " + this);
+    }
+
+    
 
     /**
      * Search for meta-data: e.g.,
@@ -1199,370 +1679,25 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         return metaData;
     }
 
-    private static void dumpBytes(String s) {
-        try {
-            dumpBytes(s.getBytes("UTF-8"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void dumpBytes(byte[] bytes) {
-        for (int i = 0; i < bytes.length; i++) {
-            byte b = bytes[i];
-            System.out.println("byte " + (i<10?" ":"") + i
-                               + " (" + ((char)b) + ")"
-                               + " " + pad(' ', 4, new Byte(b).toString())
-                               + "  " + pad(' ', 2, Integer.toHexString( ((int)b) & 0xFF))
-                               + "  " + pad('X', 8, toBinary(b))
-                               );
-        }
-    }
-    
-    private static String toBinary(byte b) {
-        StringBuffer buf = new StringBuffer(8);
-        buf.append((b & (1<<7)) == 0 ? '0' : '1');
-        buf.append((b & (1<<6)) == 0 ? '0' : '1');
-        buf.append((b & (1<<5)) == 0 ? '0' : '1');
-        buf.append((b & (1<<4)) == 0 ? '0' : '1');
-        buf.append((b & (1<<3)) == 0 ? '0' : '1');
-        buf.append((b & (1<<2)) == 0 ? '0' : '1');
-        buf.append((b & (1<<1)) == 0 ? '0' : '1');
-        buf.append((b & (1<<0)) == 0 ? '0' : '1');
-	return buf.toString();
-    }
-    
-    private static void dumpString(String s) {
-        char[] chars = s.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            int cv = (int) chars[i];
-            System.out.println("char " + (i<10?" ":"") + i
-                               + " (" + chars[i] + ")"
-                               + " " + pad(' ', 6, new Integer(cv).toString())
-                               + " " + pad(' ', 4, Integer.toHexString(cv))
-                               + "  " + pad('0', 16, Integer.toBinaryString(cv))
-                               );
-        }
-    }
-    
-    private static String pad(char c, int wide, String s) {
-        int pad = wide - s.length();
-        StringBuffer buf = new StringBuffer(wide);
-        while (pad-- > 0) {
-            buf.append(c);
-        }
-        buf.append(s);
-        return buf.toString();
-    }
-    
-    
-    
-    /** Return exactly whatever we were handed at creation time.  We
-     * need this because if it's a local file (file: URL or just local
-     * file path name), we need whatever the local OS gave us as a
-     * reference in order to give that to give back to openURL, as
-     * it's the most reliable string to give back to the underlying OS
-     * for opening a local file.  */
-    
-    public String getSpec() {
-        return this.spec;
-        /*
-        if (mURL_Browse == null)
-            return SPEC_UNSET;
-        else
-            return mURL_Browse.toString();
-        */
-    }
-
-    public String getRelativeURI() {
-        if (mRelativeURI != null)
-            return mRelativeURI.toString();
-        else
-            return null;
-    }
-
-    /** persistance only */
-    public void setRelativeURI(String s) {
-        if (!mXMLrestoreUnderway) {
-            Util.printStackTrace("only allowed for persistance; setRelativeURI " + s);
-            return;
-        }
-        mRelativeURI = makeURI(s);
-    }
-    
-    
-    /*
-     * If isLocalFile is true, this will return a file name
-     * suitable to be given to java.io.File such that it
-     * can be found.  Note that this may differ from getSpec.
-     * If isLocalFile is false, it will return the file
-     * portion of the URL, although that may not be useful.
-
-    public String getFileName() {
-        if (mURL == null)
-            return getSpec();
-        else
-            return url.getFile();
-    }
-    
-     */
-    
-    /** this is only meaninful if this resource points to a local file */
-    protected Image getFileIconImage() {
-        return GUI.getSystemIconForExtension(getDataType(), 128);
-    }
-    
-    @Override
-    public boolean isLocalFile() {
-
-        if (false) {
-        //if (hasProperty(PACKAGE_FILE)) {
-            // todo: make sure this isn't overkill...
-            return true;
-        } else {
-            asURL();
-            return mURL_Browse == null || mURL_Browse.getProtocol().equals("file");
-            //String s = spec.toLowerCase();
-            //return s.startsWith("file:") || s.indexOf(':') < 0;
-        }
-
-    }
-    
-    
-//     public String getExtension() {
-//         final String r = getSpec();
-//         String ext = "xxx";
-
-//         if (r.startsWith("http"))
-//             ext = "web";
-//         else if (r.startsWith("file"))
-//             ext = "file";
-//         else {
-//             ext = r.substring(0, Math.min(r.length(), 3));
-//             if (!r.endsWith("/")) {
-//                 int i = r.lastIndexOf('.');
-//                 if (i > 0 && i < r.length()-1)
-//                     ext = r.substring(i+1);
-//             }
+//     private static void dumpBytes(String s) {
+//         try {
+//             dumpBytes(s.getBytes("UTF-8"));
+//         } catch (Exception e) {
+//             e.printStackTrace();
 //         }
-//         if (ext.length() > 4)
-//             ext = ext.substring(0,4);
-        
-//         return ext;
 //     }
-    
-    
-//     /**
-//      * getPropertyNames
-//      * This returns an array of property names
-//      * @return String [] the list of property names
-//      **/
-//     public String [] getPropertyNames() {
-        
-//         if( (mPropertyNames == null) && (!mProperties.isEmpty()) ) {
-//             Set keys = mProperties.keySet();
-//             if( ! keys.isEmpty() ) {
-//                 mPropertyNames = new String[ keys.size() ];
-//                 Iterator it = keys.iterator();
-//                 int i=0;
-//                 while( it.hasNext()) {
-//                     mPropertyNames[i] = (String) it.next();
-//                     i++;
-//                 }
-//             }
+
+//     private static void dumpBytes(byte[] bytes) {
+//         for (int i = 0; i < bytes.length; i++) {
+//             byte b = bytes[i];
+//             System.out.println("byte " + (i<10?" ":"") + i
+//                                + " (" + ((char)b) + ")"
+//                                + " " + pad(' ', 4, new Byte(b).toString())
+//                                + "  " + pad(' ', 2, Integer.toHexString( ((int)b) & 0xFF))
+//                                + "  " + pad('X', 8, toBinary(b))
+//                                );
 //         }
-//         return mPropertyNames;
 //     }
-    
-    
-    /** @deprecated */
-    public void setProperties(Properties p) {
-        tufts.Util.printStackTrace("URLResource.setProperties: deprecated " + p);
-    }
-    
-    /*
-    public Map getPropertyMap() {
-        System.out.println(this + " *** getPropertyMap " + mProperties);
-        return mProperties;
-    }
-    public void setPropertyMap(Map m) {
-        System.out.println(this + " *** setPropertyMap " + m.getClass().getName() + " " + m);
-        mProperties = (Properties) m;
-    }
-    */
-    
-    
-    /** this is for castor persistance only */
-    public java.util.List getPropertyList() {
-        
-        if (mXMLrestoreUnderway == false) {
-
-            if (mProperties.size() == 0) // a hack for castor to work
-                return null;
-
-            mXMLpropertyList = new ArrayList(mProperties.size());
-
-            Iterator i = mProperties.keySet().iterator();
-            while (i.hasNext()) {
-                final String key = (String) i.next();
-                final PropertyEntry entry = new PropertyEntry();
-                entry.setEntryKey(key);
-                entry.setEntryValue(mProperties.get(key));
-                mXMLpropertyList.add(entry);
-            }
-        }
-
-        if (DEBUG.CASTOR) System.out.println(this + " getPropertyList " + mXMLpropertyList);
-        return mXMLpropertyList;
-    }
-    
-    public void XML_initialized() {
-        if (DEBUG.CASTOR) System.out.println(getClass() + " XML INIT");
-        mXMLrestoreUnderway = true;
-        mXMLpropertyList = new ArrayList();
-    }
-
-    public void XML_fieldAdded(String name, Object child) {
-        if (DEBUG.XML) out("XML_fieldAdded <" + name + "> = " + child);
-    }
-    
-    public void XML_completed()
-    {
-        if (DEBUG.CASTOR) System.out.println(this + " XML COMPLETED");
-
-        for (PropertyEntry entry : mXMLpropertyList) {
-            
-            final Object key = entry.getEntryKey();
-            final Object value = entry.getEntryValue();
-
-            // This comes via the SPEC (todo: merge these two?)
-            //if (BROWSE_KEY.equals(key))
-            //    setURL_Browse((String) value);
-            // else
-            // TODO: faster to do single hashed lookup a end
-            if (IMAGE_KEY.equals(key))
-                setURL_Image((String) value);
-            else if (THUMB_KEY.equals(key))
-                setURL_Thumb((String) value);
-            else
-                setProperty((String)key, value);
-        }
-
-        if (DEBUG.DR) {
-            // note the restored values
-            //if (spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
-            if (mTitle != null) setDebugProperty("TITLE", mTitle);
-        }
-
-        mXMLpropertyList = null;
-        mXMLrestoreUnderway = false;
-        checkForImageType();
-    }
-    
-    public void XML_addNotify(String name, Object parent) {
-        if (DEBUG.CASTOR) System.out.println(this + " XML ADDNOTIFY as \"" + name + "\" to parent " + parent);
-    }
-
-    /** @deprecated -- for backward compat with lw_mapping_1.0.xml only, where this never worked */
-    public void setPropertyList(Vector propertyList) {
-        // This actually never get's called, but the old mapping file demands that it's here.
-        System.out.println("IGNORING OLD SAVE FILE DATA " + propertyList + " for " + this);
-        /*
-        System.out.println(this + " setPropertyList " + mXMLpropertyList);
-        this.mXMLpropertyList = mXMLpropertyList;
-        this.mProperties = new Properties();
-        Iterator i = mXMLpropertyList.iterator();
-        while(i.hasNext()) {
-            PropertyEntry entry = (PropertyEntry) i.next();
-            final Object key = entry.getEntryKey();
-            final Object value = entry.getEntryValue();
-            setProperty((String)key, value);
-            //mProperties.put(entry.getEntryKey(),entry.getEntryValue());
-        }
-        */
-    }
-
-    
-    private void setAsImage(boolean asImage) {
-        isImage = asImage;
-        if (DEBUG.DR || DEBUG.RESOURCE) setDebugProperty("isImage", ""+ asImage);
-    }
-
-    public boolean isImage() {
-        //return isImage(this);
-        return isImage;
-    }
-
-    private void checkForImageType() {
-        if (!isImage) {
-            if (hasProperty(CONTENT_TYPE)) {
-                setAsImage(isImageMimeType(getProperty(CONTENT_TYPE)));
-            } else {
-                // TODO: on initial creation of resources with types unidentifiable from the spec,
-                // this code will load CONTENT_TYPE (in getDataType), and determine isImage
-                // with looksLikeImageFile, but then when saved/restored, the above case
-                // will use isImageMimeType, which isn't the exact same test -- fix this.
-                setAsImage(looksLikeImageFile('.' + getDataType()));
-            }
-        }
-    }
-
-    private static boolean isImageMimeType(final String s) {
-        return s != null && s.toLowerCase().startsWith("image/");
-    }
-
-    private static boolean isHtmlMimeType(final String s) {
-        return s != null && s.toLowerCase().startsWith("text/html");
-    }
-
-    
-    @Override
-    public String getDataType() {
-
-        final String superType = super.getDataType();
-        final String spec = getSpec();
-
-//         if (type == EXTENSION_UNKNOWN || type == EXTENSION_DIR)
-//             return type
-        
-        if (spec.endsWith("=jpeg")) {
-            // special case for MFA data source -- TODO: MFA OSID should handle this
-            return "jpeg";
-        } else if (mimeType != UNSET) {
-            return mimeType;
-        } else if (spec != SPEC_UNSET && spec.startsWith("http") && spec.contains("fedora")) { // fix for fedora url
-            try {
-                final URL url = new URL(getSpec());
-                // TODO: checking spec, which defaults to the "browse" URL, will not get
-                // the real content-type in cases (such as fedora!) where the browse
-                // url is always an HTML page that includes the image with some descrition text.
-                //Log.info("opening URL " + url);
-                final String type = url.openConnection().getHeaderField("Content-type");
-                if (DEBUG.Enabled) {
-                    out("got contentType " + url + " [" + type + "]");
-                    //Util.printStackTrace("GOT CONTENT TYPE");
-                }
-                if (type != null && type.length() > 0)
-                    setProperty(CONTENT_TYPE, type);
-                if (type != null && type.contains("/")) {
-                    mimeType = type.split("/")[1]; // returning the second part of mime-type
-                    return mimeType;
-                } else {
-                    return superType;
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();
-                return superType;
-            }
-            
-        } else
-            return superType;
-    }
-
-    private static final String UNSET = "<unset-mimeType>";
-    private String mimeType = UNSET;
-
-    
 
     /*
     private static boolean isImage(final Resource r)
@@ -1612,140 +1747,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return asURL();
     }
     */
-
-
-    private static boolean isHTML(final Resource r) {
-        String s = r.getSpec().toLowerCase();
-
-        if (s.endsWith(".html") || s.endsWith(".htm"))
-            return true;
-
-        // todo: why .vue files reporting as text/html on MacOSX to content scraper?
-
-        return !s.endsWith(".vue")
-            && isHtmlMimeType(r.getProperty("url.contentType"))
-            //&& !isImage(r) // sometimes image files claim to be text/html
-            ;
-    }
-        
-    public boolean isHTML() {
-        if (isImage)
-            return false;
-        else
-            return isHTML(this);
-    }
-
-    // TODO: combine these into a constructor only for integrity (e.g., Osid2AssetResource is factory only)
-    
-    /** This is the "default" URL */
-    protected void setURL_Browse(String s) {
-        setSpec(s);// backward compat for now just in case
-        /*
-        mURL_Browse = makeURL(s);
-        this.spec = s; // backward compat for now just in case
-        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@@spec", spec);
-        if (DEBUG.DR || DEBUG.RESOURCE) addProperty("@Browse", "" + mURL_Browse);
-        */
-    }
-
-    protected void setURL_Thumb(String s) {
-        mURL_Thumb = makeURL(s);
-        //if (DEBUG.DR || DEBUG.RESOURCE)
-        setProperty(THUMB_KEY, "" + mURL_Thumb);
-        //mPreview = mURL_Thumb;
-    }
-
-    /** If given any valid URL, this resource will consider itself image content, no matter
-     * what's at the other end of that URL, so care should be taken to ensure it's
-     * valid image data (as opposed to say, an HTML page)
-     */
-    protected void setURL_Image(String s) {
-        mURL_Image = makeURL(s);
-        //if (DEBUG.DR || DEBUG.RESOURCE)
-        setProperty(IMAGE_KEY, "" + mURL_Image);
-        if (mURL_Image != null)
-            setAsImage(true);
-    }
-
-
-    //private URL mThumbShot;
-
-    /**
-     * Either immediately return an Image object if available, otherwise return an
-     * object that is some kind of valid image source (e.g., a URL or image Resource)
-     * that can be fed to Images.getImage and fetch asynchronously w/callbacks if it
-     * isn't already in the cache.
-     */
-    final String vueExtension = ".vue";
-    public Object getPreview()
-    {
-        if (isCached && isImage())
-            return this;
-        else if (mURL_Thumb != null)
-            return mURL_Thumb;
-        else if (mURL_Image != null)
-            return mURL_Image;
-        else if (isImage)
-            // TODO: this not a good idea... only doing it so Images can put meta-data back into it
-            return this;
-        else if (isLocalFile()) {
-            return getFileIconImage();
-        }
-        else if (mURL_Browse != null && !isLocalFile()) 
-        {
-        	//System.out.println("mURL_Browse : " + mURL_Browse);
-        	
-        	if (mURL_Browse.toString().toLowerCase().endsWith(vueExtension))
-        		return VueResources.getBufferedImage("vueIcon64x64");
-        	else
-        		return getThumbshotURL(mURL_Browse);
-//             if (mThumbShot == null) {
-//                 mThumbShot = fetchThumbshot(mURL_Browse);
-
-//                 // If we don't assign this, it will keep trying, which
-//                 // is bad, yet if we go from offline to online, we'd
-//                 // like to start finding these, so we just keep trying for now...
-//                 //if (mThumbShot == null) mThumbShot = GUI.NoImage32;
-//             }
-//             return mThumbShot;
-        }
-        else 
-            return null;
-        
-        /*
-        if (mPreview == null) {
-            // TODO: this currently special case to Osid2AssetResource, tho names are somewhat generic..
-            URL url = null;
-            //url = makeURL(getProperty("mediumImage"));
-            url = makeURL(getProperty("smallImage"));
-            if (url == null)
-                url = makeURL(getProperty("thumbnail"));
-
-            if (url == null) { // TODO: Hack for MFA until Resource has API for setting Asset-like meta-data
-                url = makeURL(getProperty("Preview Or Thumbnail"));
-                if (DEBUG.RESOURCE) tufts.Util.printStackTrace("got MFA preview " + url);
-            }
-            
-            if (url != null)
-                mPreview = url;
-        }
-        return mPreview;
-        */
-    }
-
-    public static final String THUMBSHOT_FETCH = "http://open.thumbshots.org/image.pxf?url=";
-
-    private URL getThumbshotURL(URL url) {
-        if (true)
-            // I don't think thumbshots ever generate images for paths beyond the root host:
-            return makeURL(String.format("%s%s://%s/",
-                                         THUMBSHOT_FETCH,
-                                         url.getProtocol(),
-                                         url.getHost()));
-        else
-            return makeURL(THUMBSHOT_FETCH + url);
-    }
-
 
 //     // Could create an Images.Thumbshot class that can be a recognized special image
 //     // source (just the thumbshot URL), which getPreview can return, so ResourceIcon /
@@ -1812,15 +1813,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         
 
-    private boolean isCached;
-//     public boolean isCached() {
-//         return isCached;
-//     }
-
-    // todo: this should be computed internally (move code out of Images.java)
-    public void setCached(boolean cached) {
-        isCached = cached;
-    }
 
 //     public java.io.InputStream getByteStream() {
 //         if (isImage())
