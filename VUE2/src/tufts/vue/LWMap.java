@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.188 $ / $Date: 2008-04-09 07:47:16 $ / $Author: sfraize $
+ * @version $Revision: 1.189 $ / $Date: 2008-04-09 08:07:41 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1755,7 +1755,7 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
     
     public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)
         { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
-    public final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
+    private final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
     
     
 }
