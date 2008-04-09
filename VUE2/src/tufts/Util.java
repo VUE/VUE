@@ -44,6 +44,8 @@ import javax.swing.border.*;
 
 public class Util
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Util.class);
+    
     private static boolean WindowsPlatform = false;
     private static boolean MacPlatform = false;
     private static boolean MacAquaLAF = false;
@@ -105,6 +107,7 @@ public class Util
 
         final String term = System.getenv("TERM");
         if (term == null || term.indexOf("color") < 0) {
+            //if (false) {
             TERM_RED = TERM_GREEN = TERM_YELLOW = TERM_BLUE = TERM_PURPLE = TERM_CYAN = TERM_CLEAR = "";
         } else {
             TERM_RED    = "\033[1;31m";  
@@ -122,11 +125,15 @@ public class Util
     public static final String TERM_RED, TERM_GREEN, TERM_YELLOW, TERM_BLUE, TERM_PURPLE, TERM_CYAN, TERM_CLEAR;
 
     private static void out(String s) {
-        System.out.println("tufts.Util: " + s);
+        if (Log.isDebugEnabled())
+            Log.debug(s);
+        else
+            System.out.println("tufts.Util: " + s);
     }
 
     private static void errorOut(String s) {
         System.err.println("tufts.Util: " + s);
+        Log.error(s);
     }
 
     /*
@@ -517,7 +524,7 @@ public class Util
     private static void openURL_Mac(String url, boolean isLocalFile, boolean isMailTo)
     {
         //if (DEBUG) System.err.println("openURL_Mac0 [" + url + "]");
-        System.err.println("openURL_Mac0 [" + url + "]");
+        System.err.println("openURL_Mac0 [" + url + "], isLocal=" + isLocalFile);
 
         if (isLocalFile) {
             boolean changed = true;
@@ -811,6 +818,46 @@ public class Util
         
     }
 
+    /**
+     * Execute the given system command (arg0 is command, subsequent args are command arguments).
+     * @param runDirectory -- if non-null, the directory to run the command in.
+     *
+     * The current impl will only return up to the first 256 chars of output, and will
+     * use String.trim on it, to remove any trailing newline.
+     *
+     * @see java.lang.Runtime
+     */
+
+    public static String getSystemCommandOutput(String[] args, String runDirectory)
+    {
+        String output = null;
+        
+        try {
+            File dir = null;
+            if (runDirectory != null) {
+                try {
+                    dir = new File(runDirectory);
+                } catch (Throwable t) {
+                    printStackTrace(t, "Warning: couldn't create file from: " + runDirectory);
+                }
+            }
+
+            Log.info("exec " + args[0] + ": " + Arrays.asList(args) + " in dir " + dir + " (" + runDirectory + ")");
+            
+            final Process proc = Runtime.getRuntime().exec(args, null, dir);
+            final java.io.InputStream stream = proc.getInputStream();
+            final byte[] buf = new byte[256];
+            final int got = stream.read(buf);
+        
+            output = new String(buf, 0, got).trim();
+            Log.debug("exec " + args[0] + ": got output[" + output + "]");
+        } catch (Throwable t) {
+            printStackTrace(t, "getSystemCommandOutput");
+        }
+
+        return output;
+    }
+
 
     /**
      * Fast impl of replacing %xx hexidecimal codes with actual characters (e.g., %20 is a space, %2F is '/').
@@ -1046,69 +1093,43 @@ public class Util
         }
     }
 
-    public static void dumpURL(URL u) {
-        out("URL dump: " + u
-            + "\n\t  protocol " + u.getProtocol()
-            + "\n\t  userInfo " + u.getUserInfo()
-            + "\n\t authority [" + u.getAuthority() + "]"
-            + "\n\t      host [" + u.getHost() + "]"
-            + "\n\t      port " + u.getPort()
-            + "\n\t      path " + u.getPath()
-            + "\n\t      file " + u.getFile()
-            + "\n\t     query " + u.getQuery()
-            + "\n\t       ref " + u.getRef()
-            );
-        
-    }
+//     public static void dumpURI(URI u) {
+//         dumpURI(u, null);
+//     }
+//     public static void dumpURI(URI u, String msg) {
 
-    public static void dumpURI(URI u) {
-        dumpURI(u, null);
-    }
-    public static void dumpURI(URI u, String msg) {
+//         synchronized (System.out) {
+//             //System.out.format("%16s URI: %s %s\n", msg, u, System.identityHashCode(u), u, msg==null?"":"("+msg+")");
+//             System.out.format("%16s URI: %s @%x\n",
+//                               msg==null?"":('"'+msg+'"'),
+//                               u,
+//                               System.identityHashCode(u));
+//             dumpField("hashCode",       Integer.toHexString(u.hashCode()));
+//             dumpField("scheme",		u.getScheme());
+//             dumpRawField("authority",   u.getAuthority(), u.getRawAuthority());
+//             dumpField("userInfo",       u.getUserInfo());
+//             dumpField("host",		u.getHost());
+//             if (u.getPort() != -1)
+//                 dumpField("port",	u.getPort());
 
-        synchronized (System.out) {
-            //System.out.format("%16s URI: %s %s\n", msg, u, System.identityHashCode(u), u, msg==null?"":"("+msg+")");
-            System.out.format("%16s URI: %s @%x\n",
-                              msg==null?"":('"'+msg+'"'),
-                              u,
-                              System.identityHashCode(u));
-            dumpField("hashCode",       Integer.toHexString(u.hashCode()));
-            dumpField("scheme",		u.getScheme());
-            dumpField("rawAuthority",   u.getRawAuthority());
-            dumpField("authority",      u.getAuthority());
-            dumpField("userInfo",       u.getUserInfo());
-            dumpField("host",		u.getHost());
-            if (u.getPort() != -1)
-                dumpField("port",	u.getPort());
-            dumpField("rawPath",        u.getRawPath());
-            dumpField("path",		u.getPath());
-            dumpField("rawQuery",       u.getRawQuery());
-            dumpField("query",		u.getQuery());
-            dumpField("rawFragment",    u.getRawFragment());
-            dumpField("fragment",       u.getFragment());
-            System.out.println("-------------------------------------------------------");
-        }
-        
-//             + "\n\t     hashCode " + Integer.toHexString(u.hashCode())
-//             + "\n\t       scheme " + u.getScheme()
-//             + "\n\t rawAuthority " + u.getRawAuthority()
-//             + "\n\t    authority " + u.getAuthority()
-//             + "\n\t     userInfo " + u.getUserInfo()
-//             + "\n\t         host " + u.getHost()
-//             + "\n\t         port " + u.getPort()
-//             + "\n\t      rawPath " + u.getRawPath()
-//             + "\n\t         path " + u.getPath()
-//             + "\n\t     rawQuery " + u.getRawQuery()
-//             + "\n\t        query " + u.getQuery()
-//             + "\n\t  rawFragment " + u.getRawFragment()
-//             + "\n\t     fragment " + u.getFragment()
-        
-    }
+//             dumpRawField("path",        u.getPath(), u.getRawPath());
+//             dumpRawField("query",       u.getQuery(), u.getRawQuery());
+//             dumpRawField("fragment",    u.getFragment(), u.getRawFragment());
+//             System.out.println("-------------------------------------------------------");
+//         }
+//     }
 
-    private static void dumpField(String label, Object value) {
-        if (value != null)
-            System.out.format("%20s: %s\n", label, value);
-    }
+//     private static void dumpField(String label, Object value) {
+//         //if (value != null)
+//             System.out.format("%20s: %s\n", label, value);
+//     }
+    
+//     private static void dumpRawField(String label, Object value, Object rawValue) {
+//         dumpField(label, value);
+
+//         if (value != null && !value.equals(rawValue) || rawValue == null && value != null)
+//             dumpField("raw" + label, rawValue);
+//     }
 
     /** center the given window on default physical screen */
     public static void centerOnScreen(java.awt.Window window)
@@ -1446,7 +1467,8 @@ public class Util
     
 
     public static void out(Object o) {
-        System.out.println((o==null?"null":o.toString()));
+        //System.out.println((o==null?"null":o.toString()));
+        Log.debug("OUT: "+(o==null?"null":o.toString()));
     }
 
     /*
@@ -1612,7 +1634,7 @@ public class Util
 
 
     private static final StringWriter ExceptionLog = new StringWriter(1024);
-    private static final PrintWriter Log = new PrintWriter(ExceptionLog);
+    private static final PrintWriter LogPrintWriter = new PrintWriter(ExceptionLog);
 
     /**
      * @eturn the contents of the exception log.  This is not a copy, it's
@@ -1625,7 +1647,7 @@ public class Util
 
     /** @return the log writer for anyone else who might want to write to it */
     public static Writer getLogWriter() {
-        return Log;
+        return LogPrintWriter;
     }
     
 
@@ -1634,17 +1656,19 @@ public class Util
     public static void printClassTrace(Throwable t, String prefix, String message, java.io.PrintStream pst) {
 
         java.awt.Toolkit.getDefaultToolkit().beep();
+
+        final PrintWriter log = LogPrintWriter;
         
         synchronized (System.out) {
         synchronized (System.err) {
         synchronized (pst) {
 
             pst.print(TERM_RED);
-            Log.println();
+            log.println();
 
             if (message != null) {
                 pst.println(message);
-                Log.println(message);
+                log.println(message);
             }
             
             final String head;
@@ -1654,17 +1678,17 @@ public class Util
                 head = t.toString();
             if (prefix == null || prefix == NO_CLASS_FILTER) {
                 pst.println(head + ";");
-                Log.println(head + ";");
+                log.println(head + ";");
             } else {
                 pst.println(head + " (stack element prefix \"" + prefix + "\") ");
-                Log.println(head + " (stack element prefix \"" + prefix + "\") ");
+                log.println(head + " (stack element prefix \"" + prefix + "\") ");
             }
 
             final long now = System.currentTimeMillis();
             final String stamp = "\tin " + Thread.currentThread() + " at " + now + " " + new java.util.Date(now);
 
             pst.print(stamp);
-            Log.print(stamp);
+            log.print(stamp);
 
             pst.print(TERM_CLEAR);
             
@@ -1676,27 +1700,27 @@ public class Util
             for (int i = 0; i < trace.length; i++) {
                 if (includeInTrace(trace[i], prefix)) {
                     pst.print("\n\tat " + trace[i] + " ");
-                    Log.print("\n\tat " + trace[i] + " ");
+                    log.print("\n\tat " + trace[i] + " ");
                 } else {
                     pst.print(".");
-                    Log.print(".");
+                    log.print(".");
                 }
             }
             pst.println();
-            Log.println();
+            log.println();
 
             Throwable cause = t.getCause();
             if (cause != null) {
                 //ourCause.printStackTraceAsCause(s, trace);
                 pst.print(TERM_RED);
                 pst.print("    CAUSE: ");
-                Log.print("    CAUSE: ");
+                log.print("    CAUSE: ");
                 pst.print(TERM_CLEAR);
                 cause.printStackTrace(pst);
-                cause.printStackTrace(Log);
+                cause.printStackTrace(log);
             }
             pst.println("END " + t + "\n");
-            Log.println("END " + t + "\n");
+            log.println("END " + t + "\n");
             
         }
         }}
@@ -1771,6 +1795,7 @@ public class Util
         if (o instanceof java.lang.String) {
             // special case for strings: we dont care about hashCode / type -- just return quoted
             return '"' + o.toString() + '"';
+            //return TERM_RED + '"' + o.toString() + '"' + TERM_CLEAR;
         }
             
         final String type = o.getClass().getName();
@@ -1852,6 +1877,22 @@ public class Util
     public static String pad(int wide, String s) {
         return pad(' ', wide, s, false);
     }
+
+    public static String toBase2(byte b) {
+        StringBuffer buf = new StringBuffer(8);
+        buf.append((b & (1<<7)) == 0 ? '0' : '1');
+        buf.append((b & (1<<6)) == 0 ? '0' : '1');
+        buf.append((b & (1<<5)) == 0 ? '0' : '1');
+        buf.append((b & (1<<4)) == 0 ? '0' : '1');
+        buf.append((b & (1<<3)) == 0 ? '0' : '1');
+        buf.append((b & (1<<2)) == 0 ? '0' : '1');
+        buf.append((b & (1<<1)) == 0 ? '0' : '1');
+        buf.append((b & (1<<0)) == 0 ? '0' : '1');
+	return buf.toString();
+    }
+    
+    
+    
 
     /**
      * For now, this just determines if DNS is available, and assumes that if it is,
