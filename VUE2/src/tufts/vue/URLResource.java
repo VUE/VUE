@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.59 $ / $Date: 2008-04-09 07:47:16 $ / $Author: sfraize $
+ * @version $Revision: 1.60 $ / $Date: 2008-04-09 08:08:04 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -449,6 +449,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         setSpec(fileSpec);
     }
     
+    // todo: create a special castor persistance only one of these to simplify all this checking...
+    
     public void setSpec(final String newSpec) {
 
         if (DEBUG.Enabled && this.spec != SPEC_UNSET) {
@@ -457,7 +459,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
 
         installSpec(newSpec);
-        
     }
     
     void installSpec(final String newSpec)
@@ -467,8 +468,19 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (newSpec == null)
             throw new IllegalArgumentException(Util.tags(this) + "; setSpec: null value");
 
-        mURL = null;
-        invalidateToolTip();
+        if (!mRestoreUnderway) {
+            
+            // Do NOT reset these if restoring, as we don't have much control over
+            // the order in which our methods are called during restores, and some
+            // of these fields may already have been properly initialized.
+            // todo: actually, add a new method called "resetSpec" which external
+            // callers (probably package only) can use, and that would know
+            // we'd always need to reset these (so they get recomputed).
+            
+            mURL = null;
+            mFile = null;
+            invalidateToolTip();
+        }
 
         if (SPEC_UNSET.equals(newSpec)) {
             this.spec = SPEC_UNSET;
@@ -552,30 +564,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
     }
 
-    @Override
-    public boolean dataHasChanged() {
-
-        // we only bother to check this for local files
-        if (mFile != null) {
-
-            // Not an ideal impl, as only the first caller will find out if
-            // the data has changed.  Ideally, Resources will have to
-            // be enforced atomic (at least for local file resources), and
-            // track all listeners/owners, so when/if an udpate happens,
-            // they can all be notified.
-            
-            final long lastMod = mFile.lastModified();
-            if (DEBUG.Enabled) out("lastModified: " + new Date(lastMod) + "; " + mFile);
-            if (lastMod > mLastModified) {
-                if (DEBUG.Enabled) out("lastModified: dataHasChanged");
-                mLastModified = lastMod;
-                return true;
-            }
-        }
-
-        return false;
-    }
-    
     private void runFinalInitialization()
     {
         if (spec == SPEC_UNSET) {
@@ -617,13 +605,19 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 setClientType(Resource.URL);
         }
 
-        if (mFile != null) {
-            try {
-                setProperty("File", mFile.getCanonicalPath());
-            } catch (IOException e) {
-                Log.warn(mFile.toString(), e);
-                setProperty("File", mFile.toString());
+        //if (mFile != null) {
+        if (isLocalFile()) {
+            if (mFile != null) {
+                try {
+                    setProperty("File", mFile.getCanonicalPath());
+                } catch (IOException e) {
+                    Log.warn(mFile.toString(), e);
+                    setProperty("File", mFile.toString());
+                }
+            } else {
+                setProperty("File", spec);
             }
+                
             //removeProperty("URL");
         } else {
 
@@ -633,11 +627,17 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             String proto = null;
             if (mURL != null)
                 proto = mURL.getProtocol();
+
             if (proto != null && (proto.startsWith("http") || proto.equals("ftp"))) {
                 setProperty("URL", spec);
+                //removeProperty("File");
+            } else {
+                if (DEBUG.Enabled) {
+                    setDebugProperty("FileOrURL?", spec);
+                    setDebugProperty("URL.proto", proto);
+                }
             }
             
-            //removeProperty("File");
         }
 
         
@@ -687,6 +687,31 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
 
+    @Override
+    public boolean dataHasChanged() {
+
+        // we only bother to check this for local files
+        if (mFile != null) {
+
+            // Not an ideal impl, as only the first caller will find out if
+            // the data has changed.  Ideally, Resources will have to
+            // be enforced atomic (at least for local file resources), and
+            // track all listeners/owners, so when/if an udpate happens,
+            // they can all be notified.
+            
+            final long lastMod = mFile.lastModified();
+            if (DEBUG.Enabled) out("lastModified: " + new Date(lastMod) + "; " + mFile);
+            if (lastMod > mLastModified) {
+                if (DEBUG.Enabled) out("lastModified: dataHasChanged");
+                mLastModified = lastMod;
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
+    
 //     // TODO: resource's would make more sense being atomic: don't allow post construction setSpec,
 //     // (throw an exception of spec is already set)
     
