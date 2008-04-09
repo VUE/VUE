@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.33 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $  
+ * @version $Revision: 1.34 $ / $Date: 2008-04-09 00:46:22 $ / $Author: sfraize $  
  
  */
 
@@ -174,7 +174,7 @@ public class LWCEvent
     public String toString() {
         //return "LWCEvent[" + paramString() + "]";
         //return "[" + paramString() + "]";
-        return String.format(TERM_PURPLE + "%06X[%s%s]%s", hashCode(), paramString(), TERM_PURPLE, TERM_CLEAR);
+        return String.format(TERM_PURPLE + "%07X[%s%s]%s", hashCode(), paramString(), TERM_PURPLE, TERM_CLEAR);
         
     }
     
