@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.24 2007-11-28 16:08:02 peter Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.25 2008-04-09 00:48:41 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -34,7 +34,7 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.25 $ / $Date: 2008-04-09 00:48:41 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
@@ -110,9 +110,14 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             int added = 0;
             for (int i = 0; i < dirs.length; i++) {
                 File dir = new File(home, dirs[i]);
-                if (dir.exists() && dir.canRead()) {
+                if (dir.exists() && dir.canRead() && dir.isDirectory()) { // TODO: create workaround for Vista bug
+                    // TODO: the above tests ALWAYS RETURN TRUE ON WINDOWS VISTA as of 2008-04-08
+                    // (listing the directory will generate an IO error for you, at least, but that will be a very slow way to do this...)
                     CabinetResource r = CabinetResource.create(LocalCabinet.instance(dir, agent, null));
-                    r.setTitle(dirs[i].substring(dirs[i].lastIndexOf("\\") == -1 ? 0 : dirs[i].lastIndexOf("\\")+1, dirs[i].length()));
+
+                    // no longer needed: URLResource / CabinetResource will handle for us now
+                    //r.setTitle(dirs[i].substring(dirs[i].lastIndexOf("\\") == -1 ? 0 : dirs[i].lastIndexOf("\\")+1, dirs[i].length()));
+                    
                     cabVector.add(r);
                     added++;
                 }
