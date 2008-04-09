@@ -21,10 +21,10 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.20 $ / $Date: 2008-03-31 20:42:34 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2008-04-09 00:50:45 $ / $Author: sfraize $
  */
 
-public class PropertyMap extends java.util.HashMap
+public class PropertyMap extends java.util.HashMap<String,Object>
 {
     public interface Listener {
         void propertyMapChanged(PropertyMap p);
@@ -36,16 +36,17 @@ public class PropertyMap extends java.util.HashMap
     private int mChanges;
     private List listeners;
 
-
+    private static final String NULL_MASK = "(empty)";
 
     public PropertyMap() {}
 
-    public synchronized Object put(Object k, Object v) {
+    @Override
+    public synchronized Object put(String k, Object v) {
 
         // TODO: we want to *preserve* case for display, but not differentiate based on it...
         //if (k instanceof String) k = ((String)k).toLowerCase();
 
-        Object prior = super.put(k, v);
+            final Object prior = super.put(k, v == null ? NULL_MASK : v);
 
         // todo: this a bit overkill: could have a higher level
         // trigger for this, instead of triggering any table listeners
@@ -60,6 +61,22 @@ public class PropertyMap extends java.util.HashMap
         return prior;
 
     }
+
+    @Override
+    public synchronized Object remove(Object key) {
+
+        final Object prior = super.remove(key);
+
+        if (prior != null) {
+            if (mHoldingChanges)
+                mChanges++;
+            else if (mTableModel != null)
+                mTableModel.reload();
+        }
+
+        return prior;
+    }
+    
     public synchronized Object get(Object k) {
         return super.get(k);
     }
@@ -242,18 +259,21 @@ public class PropertyMap extends java.util.HashMap
         private void reload() {
             mEntries = new Entry[PropertyMap.this.size()];
             if (DEBUG.RESOURCE) out("SortedMapModel: reload " + mEntries.length + " items");
-            Iterator i = entrySet().iterator();
+
             int ei = 0;
-            while (i.hasNext()) {
-                Map.Entry e = (Map.Entry) i.next();
-                boolean priority = false;
-                if ("title".equalsIgnoreCase((String)e.getKey()))
-                    priority = true;                
-                else if ("name".equalsIgnoreCase((String)e.getKey()))
-                    priority = true;
+            for (Map.Entry<String,Object> e : entrySet()) {
+                final String key = e.getKey().toLowerCase();
+
+                final boolean priority =
+                       key.equals("title")
+                    || key.equals("file")
+                    || key.equals("url")
+                    || key.equals("name")
+                    ;
+
                 mEntries[ei++] = new Entry(e, priority);
             }
-            
+
             Arrays.sort(mEntries);
             
             /*
