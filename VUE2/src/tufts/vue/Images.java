@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.45 $ / $Date: 2008-04-02 05:38:58 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2008-04-09 00:46:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -257,19 +257,11 @@ public class Images
         try {
 
             if ("file".equals(u.getProtocol())) {
-                // this case needed to handle funky Windows "C:" style paths, which
-                // make total havoc with URL/URI code.  Lets hope this
-                // doesn't break anything else anywhere.  -- SMF 2008-04-02
-                final File file = new File(u.getPath());
-                final URI uri = makeKey(file);
-                if (DEBUG.Enabled) {
-                    Log.debug("0    Images.makeKey(URL=): " + u);
-                    Log.debug("1      File from URL Path: " + u.getPath());
-                    Log.debug("2                Got File: " + file);
-                    Log.debug("3       Got URI from File: " + uri);
-                }
-                return uri;
+
+                return Resource.makeURI(u);
+                
             } else {
+                
                 return new URI(u.getProtocol(),
                                u.getUserInfo(),
                                u.getHost(),
@@ -278,7 +270,9 @@ public class Images
                                u.getPath(),
                                u.getQuery(),
                                u.getRef()).normalize();
+                
             }
+            
         } catch (Throwable t) {
             Util.printStackTrace(t, "can't make URI cache key from URL " + u);
         }
@@ -335,81 +329,42 @@ public class Images
                 this.resource = (Resource) original;
                 this.readable = resource.getImageSource();
                 
-//                 final Resource r = (Resource) original;
-//                 final String spec = r.getSpec();
-                
-//                 if (spec.startsWith("/"))  {
-//                     // todo: Also if this is a file:/ URL (maybe slight performance increase)
-//                     File file = new java.io.File(spec);
-//                     this.readable = file;
-// //                 } else if (spec.startsWith("./"))  {
-// //                     // TODO: change this to be a special property, and look for the file
-// //                     // based on the map root, tho that will be tough bere as we don't have a map,
-// //                     // so I guess we'll have to patch de-packaged resources at the end of LWMap.
-// //                     // (Tho really, they SHOULDN'T need to be specially marked for that case,
-// //                     // as the new relative code should handle it for us).
-// //                     File file = new java.io.File(spec);
-// //                     this.readable = file;
-// //                     Log.debug("GOT PACKAGED FILE " + file);
-//                 } else {
-//                     //if (DEBUG.IMAGE) tufts.Util.printStackTrace("converting Resource to IMAGE " + r);
-//                     if (DEBUG.IMAGE) out("converting Resource to IMAGE " + r);
-//                     this.readable = r.getImageSource();
-//                 }
-//                 this.resource = r;
-
-                
             } else if (original instanceof java.net.URL) {
+                
                 this.readable = (java.net.URL) original;
                 if (readable.toString().startsWith(URLResource.THUMBSHOT_FETCH))
                     isThumbshot = true;
                 this.resource = null;
+                
             } else if (original instanceof BufferedImage) {
+                
                 Util.printStackTrace("SEEING BUFFERED IMAGE: HANDLE PRIOR " + original);
                 this.resource = null;
-            } else
+                
+            } else {
+
                 this.resource = null;
+            }
 
             
             if (readable instanceof java.net.URL) {
-                URL url = (URL) readable;
+                final URL url = (URL) readable;
                 this.key = makeKey(url);
-                /*
-                if (DEBUG.IMAGE && DEBUG.META) {
-                    Util.dumpURL(url);
-                    
-                    /* the toURI() method is new in Java 1.5.  Can we use the equivalent Java 1.4
-                     * technique to avoid Java version problems? - peter 16-Jun-06 
-                    try {Util.dumpURI(url.toURI());} catch (Throwable t) { out(t); }
-                    *
-                    try {Util.dumpURI(new URI(url.toString()));} catch (Throwable t) { out(t); }
-                }
-                */
-                if ("file".equals(key.getScheme())) {
-                    
-                    // If this is a Win32 file://C:\foo\bar path, we must include the
-                    // URL "authority", which is where the "C:" is (it's not included in
-                    // the path).  This is tested on Win2K & WinXP as of June 2006.
 
-                    String driveLetter = url.getAuthority();
-                    if (driveLetter != null && driveLetter.length() < 1)
-                        driveLetter = null;
+                final File file = Resource.getLocalFileIfPresent(url);
 
-                    final String fullPath;
-                    if (driveLetter != null)
-                        fullPath = driveLetter + url.getFile();
-                    else
-                        fullPath = url.getFile();
-                    this.readable = new File(fullPath);
-                    if (DEBUG.Enabled && driveLetter != null) {
-                        Log.debug("Win32 authority made File: " + readable + "; using authority '" + driveLetter + "' (for readable)");
-                    }
-                    
-                }
+                if (file != null)
+                    this.readable = file;
+                
             } else if (readable instanceof java.io.File) {
+                
                 this.key = makeKey((File) readable);
-            } else
+                
+            } else {
+
                 this.key = null; // will not be cacheable
+                
+            }
 
 //             if (DEBUG.DR) {
 //                 if (resource != null)
