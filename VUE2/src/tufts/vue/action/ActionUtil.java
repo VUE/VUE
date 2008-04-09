@@ -18,6 +18,7 @@ package tufts.vue.action;
 import tufts.Util;
 import tufts.vue.VueUtil;
 import tufts.vue.VUE;
+import tufts.vue.UrlAuthentication;
 import tufts.vue.LWMap;
 import tufts.vue.VueFileFilter;
 import tufts.vue.VueResources;
@@ -64,11 +65,11 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.109 $ / $Date: 2008-03-31 20:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.110 $ / $Date: 2008-04-09 00:55:12 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
-// TODO: rename / relocate most of this code! -- SMF
+
 public class ActionUtil
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ActionUtil.class);
@@ -82,6 +83,17 @@ public class ActionUtil
     private final static String OUTPUT_ENCODING = "US-ASCII";
     private final static String DEFAULT_WINDOWS_ENCODING = "windows-1252"; // (a.k.a Cp1252) for reading pre ASCII enforced save files from Windows
     private final static String DEFAULT_MAC_ENCODING = "UTF-8"; // "MacRoman" not supported on Windows platform
+
+
+    /**
+     * Our default is to always read with an input encoding of UTF-8, even if the XML
+     * was written with a US-ASCII encoding.  This is because pure ascii will translate
+     * fine through UTF-8, but in case it winds up being that the XML was written out my
+     * the marshaller with a UTF-8 encoding, we're covered.  (tho maybe with extremely
+     * save files with platform specific encodings, (e.g, MacRoman or
+     * windows-1255/Cp1255) we'll lose a special char here or there, such as left-quote
+     * and right-quote).
+     */
     private final static String DEFAULT_INPUT_ENCODING = "UTF-8"; // safest default input encoding
     
     // Note: the encoding format of the incoming file will normally either be UTF-8 for
@@ -587,7 +599,9 @@ public class ActionUtil
                org.exolab.castor.xml.MarshalException,
                org.exolab.castor.xml.ValidationException
     {
-         Marshaller marshaller = null;
+        map.makeReadyForSaving(file);
+        
+        Marshaller marshaller = null;
         writer.write(VUE_COMMENT_START
                      + " VUE mapping "
                      + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
@@ -606,8 +620,8 @@ public class ActionUtil
         if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Wrote VUE header to " + writer);
         marshaller = new Marshaller(writer);
         //marshaller.setDebug(DEBUG.CASTOR);
-       marshaller.setEncoding(OUTPUT_ENCODING);
-      // marshaller.setEncoding("UTF-8");
+        marshaller.setEncoding(OUTPUT_ENCODING);
+        // marshaller.setEncoding("UTF-8");
           // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
         marshaller.setMarshalAsDocument(true);
         marshaller.setNoNamespaceSchemaLocation("none");
@@ -676,7 +690,7 @@ public class ActionUtil
         //map.addNode(new tufts.vue.LWNode("Hello World:"+((char)11)));
         try {
             // try the test map first 
-             marshaller.marshal(map);
+            marshaller.marshal(map);
             Log.debug("marshalled " + map + " to " + writer + "; file=" + file);
             writer.flush();
              //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
@@ -760,32 +774,139 @@ public class ActionUtil
     public static LWMap unmarshallMap(File file)
         throws IOException
     {
-//         if (file.isDirectory())
-//             throw new Error("Is a directory, not a map: " + file);
+        if (file.isDirectory())
+            throw new MapException("is a directory, not a map file: " + file);
          
         return unmarshallMap(file.toURL());
-        //return unmarshallMap(file.toURI().toURL());
     }
 
-    /** Unmarshall a LWMap from the given URL (XML map data) */
-    /*
-    public static LWMap unmarshallMap(java.net.URL url)
+    private static class MapReader {
+        final BufferedReader reader;
+        final File file;
+
+        MapReader(BufferedReader r, File f) {
+            reader = r;
+            file = f;
+        }
+    }
+
+    private static MapReader getMapReaderForURL(URL url, String charsetEncoding, boolean allowRedirects)
         throws java.io.IOException
     {
-        //return unmarshallMap(url, getDefaultMapping());
-        return unmarshallMap(url, null);
-    }
-    */
+        // SMF 2008-04-08: THE ABOVE IS NO LONGER TRUE -- I have a feeling that when
+        // this code was previously changed (this is a refactoring of it), enforcing
+        // UTF-8 as the default for unknown files may have been inadvertandly lost.  So
+        // for now, the default platform encoding is being used until we have an
+        // encoding.  SUMMARY: Not sure if we still need to pay attention to the
+        // encoding / if it makes a difference at all, but we do use any special
+        // encoding (if found) from the map file just in case.  All current-day VUE maps
+        // should be in pure US-ASCII, so we could theoretically ignore the encoding,
+        // but this may be needed for some very old maps.
 
-    /** Unmarshall a LWMap from the given URL using the given mapping */
-    /*
-    private static LWMap unmarshallMap(java.net.URL url, Mapping mapping)
-        throws java.io.IOException
-    {
-        return unmarshallMap(url, mapping, DEFAULT_INPUT_ENCODING);
-    }
-    */
+        File file = tufts.vue.Resource.getLocalFileIfPresent(url);
 
+        if (file != null && file.isDirectory())
+            throw new MapException("cannot open " + file + ": is directory");
+        
+        Reader reader = null;
+        
+        try {
+                
+            if (file != null) {
+            
+                if (charsetEncoding != null)
+                    reader = new InputStreamReader(new FileInputStream(file), charsetEncoding);
+                else
+                    reader = new FileReader(file); // could default to UTF-8
+                
+            } else {
+
+                // No local file was found: it must have been a remote URL
+            
+                if (allowRedirects) {
+                    final URL redirectURL = tufts.vue.UrlAuthentication.getRedirectedUrl(url, 10); // number of redirects to follow
+                    file = new File(redirectURL.getFile()); // SMF: Anoop's semantics as of 2008-03-12
+
+                    // SMF 2008-04-08: Anoop's semantics as of 2008-03-12: we do NOT
+                    // open the redirect url for reading, we open the original.  Not
+                    // sure of this was intended.
+                    
+                    // This would allow opening the redirect:
+                    // url = redirectURL;
+                }
+                
+                if (charsetEncoding != null)
+                    reader = new InputStreamReader(UrlAuthentication.getAuthenticatedStream(url), charsetEncoding);
+                else
+                    reader = new InputStreamReader(UrlAuthentication.getAuthenticatedStream(url)); // could default to UTF-8
+
+                if (file != null)
+                    file = new File(url.getFile()); // SMF: Anoop's semantics as of 2008-03-12
+            }
+        
+        } catch (Throwable t) {
+            Log.error("Could not get reader for: " + file + "; source url=" + url, t);
+        }
+            
+        if (reader == null) {
+            Log.error("No reader found for " + Util.tags(url));
+            throw new MapException("no reader found for: " + url);
+        }
+
+        Log.debug("Got reader for " + Util.tags(url) + "; encoding=" + charsetEncoding + ": " + reader);
+
+        return new MapReader(new BufferedReader(reader), file);
+
+
+// Anoop code as of 2008-03-12:
+//         final InputStream urlStream;
+//          final File file; 
+            
+//         if ("file".equals(url.getProtocol())){
+//             //FIX to deal with # problems in the filename
+// //         System.out.println("URL: "+url);
+//              file = new File(url.toString().substring(5));
+//              urlStream =  new BufferedInputStream(new FileInputStream(file)); // remove file:/ from the begining of the file
+             
+//           //  urlStream = url.openStream();
+//         } else {
+//               redirectedUrl = tufts.vue.UrlAuthentication.getRedirectedUrl(url,10); // number of redirects to follow
+//               file = new File(redirectedUrl.getFile());
+//               urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
+//             // urlStream =  url.openStream();
+           
+//         }
+//         final BufferedReader reader = new BufferedReader(new InputStreamReader(urlStream, charsetEncoding));
+
+
+        
+//         if ("file".equals(url.getProtocol())) {
+           
+//             File file = new File(url.getPath());
+//              if(url.toString().contains("#"))  {
+//                  file = new File(url.getPath()+"#"+url.getRef()); // special case for dealing with # in filename
+//             }
+
+//             if (file.isDirectory())
+//                 throw new MapException("is directory");
+            
+//             reader = new BufferedReader(new FileReader(file));
+//         } else {
+//             reader = new BufferedReader(new InputStreamReader(tufts.vue.UrlAuthentication.getAuthenticatedStream(url)));
+//             //reader = new BufferedReader(new InputStreamReader(url.openStream()));
+//         }
+        
+    }
+
+    /**
+     * Input encoding shouldn't matter for the bootstrap reading of the first few lines
+     * of the file (as they should be all US_ASCII), tho using DEFAULT_INPUT_ENCODING,
+     * instead of null (which will get us the local platform default), would probably
+     * make the most sense.  We're leaving this as the default platform encoding for now
+     * only because it's been this way for a while...  SMF 2008-04-08
+     */
+    private static final String BOOTSTRAP_ENCODING = null;
+        
     public static LWMap unmarshallMap(java.net.URL url)
         throws IOException
     {
@@ -795,36 +916,12 @@ public class ActionUtil
         // are comments, the version instance of the string "@version(##)" will set the version ID
         // to ##, and we'll use the mapping appropriate for that version of the save file.
 
-        // We ALWAYS read with an input encoding of UTF-8, even if the XML was written with a
-        // US-ASCII encoding.  This is because pure ascii will translate fine through UTF-8, but in
-        // case it winds up being that the XML was written out my the marshaller with a UTF-8
-        // encoding, we're covered.
-
-        // (tho maybe with very old save files with platform specific encodings, (e.g, MacRoman or
-        // windows-1255/Cp1255) we'll lose a special char here or there, such as left-quote /
-        // right-quote).
-        
         if (DEBUG.CASTOR || DEBUG.IO) {
-            Log.debug("unmarshallMap: " + url);
+            Log.debug("unmarshallMap: " + Util.tags(url));
             //Util.printStackTrace("UM " + url);
         }
 
-        final BufferedReader reader;
-        
-        if ("file".equals(url.getProtocol())) {
-           
-            File file = new File(url.getPath());
-             if(url.toString().contains("#"))  {
-                 file = new File(url.getPath()+"#"+url.getRef()); // special case for dealing with # in filename
-            }
-             
-            if (file.isDirectory())
-                throw new MapException("is directory");
-            reader = new BufferedReader(new FileReader( file));
-        } else {
-            reader = new BufferedReader(new InputStreamReader(tufts.vue.UrlAuthentication.getAuthenticatedStream(url)));
-            //reader = new BufferedReader(new InputStreamReader(url.openStream()));
-        }
+        final BufferedReader reader = getMapReaderForURL(url, BOOTSTRAP_ENCODING, false).reader;
         
         String firstNonCommentLine;
         String versionID = null;
@@ -998,24 +1095,15 @@ public class ActionUtil
         //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("UNMARSHALLING: " + url + " charset=" + charsetEncoding);
         Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
         
-        final InputStream urlStream;
-         final File file; 
-            
-        if ("file".equals(url.getProtocol())){
-            //FIX to deal with # problems in the filename
-//         System.out.println("URL: "+url);
-             file = new File(url.toString().substring(5));
-             urlStream =  new BufferedInputStream(new FileInputStream(file)); // remove file:/ from the begining of the file
-             
-          //  urlStream = url.openStream();
-        } else {
-              redirectedUrl = tufts.vue.UrlAuthentication.getRedirectedUrl(url,10); // number of redirects to follow
-              file = new File(redirectedUrl.getFile());
-              urlStream = tufts.vue.UrlAuthentication.getAuthenticatedStream(url);
-            // urlStream =  url.openStream();
-           
-        }
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(urlStream, charsetEncoding));
+        // TODO: now that we support opening maps via HTTP URL's, it's a bit obscene to
+        // open the URL twice just to support old maps where we might need to detect the
+        // encoding, then re-open the file with the proper encoding.  We could
+        // presumably have the MapReader keep an underlying buffered raw InputStream,
+        // then create Reader's on top of that with different encodings to support this
+        // more smoothly.  SMF 2008-04-08
+        final MapReader mapReader = getMapReaderForURL(url, charsetEncoding, true);
+        
+        final BufferedReader reader = mapReader.reader;
 
         // Skip over comments to get to start of XML
 
@@ -1061,7 +1149,8 @@ public class ActionUtil
             
             reader.close();
 
-           final String fileName = file.getName();
+            final String fileName = mapReader.file.getName();
+            final File file = mapReader.file;
             map.setFile(file); // VUE-713: do this always:
 
             if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
@@ -1092,7 +1181,7 @@ public class ActionUtil
 //                     map.setFile(file);
 //                 }
                 
-                if (DEBUG.DATA) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
+                if (DEBUG.DATA && DEBUG.META) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
             }
                 
 
