@@ -38,12 +38,12 @@ public class SakaiExport
                     Log.info("Examining data source: " + dataSources[i]);
                     final org.osid.repository.Repository repository = dataSources[i].getRepository();
                     final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
-                    Log.info(" Which has repository: " + repository + "; name=" + name);
+                    if (DEBUG.DR) Log.info(" Which has repository: " + repository + "; name=" + name);
                     if (dataSources[i].supportsUpdate() && repository != null) {
-                        Log.info("Supports Update, Now Checking Type");
-                        Log.info("checking type " + repository.getType().getAuthority() );
+                        if (DEBUG.DR) Log.info("Supports Update, Now Checking Type");
+                        if (DEBUG.DR) Log.info("checking type " + repository.getType().getAuthority() );
                         if (repository.getType().isEqual(_sakaiRepositoryType)) {
-                            Log.info("checking type worked" );
+                            if (DEBUG.DR) Log.info("checking type worked" );
                             dataSourceVector.addElement(dataSources[i]);
                         }
                     }
