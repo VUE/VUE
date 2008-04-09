@@ -34,7 +34,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.64 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2008-04-09 07:47:16 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -504,7 +504,7 @@ public abstract class Resource implements Cloneable
      */
     protected void setClientType(int type) {
         mType = type;
-        if (DEBUG.RESOURCE) dumpField("setClientType", Integer.valueOf(type));
+        //if (DEBUG.RESOURCE) dumpField("setClientType", Integer.valueOf(type));
         try {
             setDebugProperty("clientType", TYPE_NAMES[type] + " (" + type + ")");
         } catch (Throwable t) {

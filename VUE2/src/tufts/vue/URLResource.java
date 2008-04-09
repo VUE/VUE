@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.58 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2008-04-09 07:47:16 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -450,7 +450,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
     
     public void setSpec(final String newSpec) {
-        if (DEBUG.RESOURCE) dumpField(TERM_CYAN + "setSpec------------------------" + TERM_CLEAR, newSpec);
 
         if (DEBUG.Enabled && this.spec != SPEC_UNSET) {
             Log.error(this + "; setSpec multiple calls", new IllegalStateException("setSpec: multiple calls; resources are atomic"));
@@ -463,9 +462,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     void installSpec(final String newSpec)
     {
+        if (DEBUG.RESOURCE) dumpField(TERM_CYAN + "setSpec------------------------" + TERM_CLEAR, newSpec);
+        
         if (newSpec == null)
             throw new IllegalArgumentException(Util.tags(this) + "; setSpec: null value");
 
+        mURL = null;
         invalidateToolTip();
 
         if (SPEC_UNSET.equals(newSpec)) {
@@ -478,12 +480,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (!mRestoreUnderway)
             runFinalInitialization();
 
-        if (DEBUG.RESOURCE) out("setSpec: complete; " + this);
+        //if (DEBUG.RESOURCE) out("setSpec: complete; " + this);
     }
 
     public void XML_completed()
     {
-        if (DEBUG.CASTOR) System.out.println(this + " XML COMPLETED");
+        if (DEBUG.CASTOR || DEBUG.RESOURCE) out("XML_completed");
 
         for (PropertyEntry entry : mXMLpropertyList) {
             
@@ -512,10 +514,18 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         mXMLpropertyList = null;
         mRestoreUnderway = false;
 
+        // TODO: if this resource is relative and is going to be changing, we'd actually
+        // rather NOT run final init now -- we'd really like to wait for the LWMap to do
+        // it's relatvizing... We should move that code here anyway, but the fundamental
+        // problem is that during castor init, we have no context from which to know the
+        // local file we're being read from... maybe we could put that in the call to
+        // XML_completed?  (Some kind of marshal/unmarshal context)
+        
         runFinalInitialization();
     }
     
     private void setURL(URL url) {
+        if (DEBUG.RESOURCE) dumpField("setURL", url);
         mURL = url;
         if (DEBUG.Enabled) {
             if (mURL != null) setDebugProperty("URL.default", mURL);
@@ -524,12 +534,21 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     private long mLastModified;
     private void setFile(File file) {
+        if (DEBUG.RESOURCE) dumpField("setFile", file);
         mFile = file;
         mLastModified = file.lastModified();
         // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
         if (DEBUG.Enabled) {
             setDebugProperty("file.instance", Util.tags(mFile));
             setDebugProperty("file.modified", new Date(mLastModified));
+            if (DEBUG.RESOURCE) {
+                setDebugProperty("file.toURI", mFile.toURI());
+                try {
+                    setDebugProperty("file.toURL", mFile.toURL());
+                } catch (Throwable t) {
+                    setDebugProperty("file.toURL", t.toString());
+                }
+            }
         }
     }
 
@@ -539,7 +558,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         // we only bother to check this for local files
         if (mFile != null) {
 
-            // Not an ideal impl, as only the first caller will found out if
+            // Not an ideal impl, as only the first caller will find out if
             // the data has changed.  Ideally, Resources will have to
             // be enforced atomic (at least for local file resources), and
             // track all listeners/owners, so when/if an udpate happens,
@@ -645,6 +664,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (!hasProperty(CONTENT_TYPE) && mURL != null)
             setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
 
+        if (DEBUG.RESOURCE) out(TERM_GREEN + "done----" + this + TERM_CLEAR);
     }
     
     /** @return a unique URI for this resource */

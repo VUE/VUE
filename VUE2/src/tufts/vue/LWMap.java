@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.187 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
+ * @version $Revision: 1.188 $ / $Date: 2008-04-09 07:47:16 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -108,10 +108,6 @@ public class LWMap extends LWContainer
     private transient int mModelVersion = getCurrentModelVersion();
 
     private static final String InitLabel = "<map-during-XML-restoration>";
-    
-    public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)
-        { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
-    public final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
     
     // only to be used during a restore from persisted
     public LWMap() {
@@ -1754,6 +1750,12 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
     }
     
     
+    // Moved KEY_PresentationColor to the bottom of the file -- seems
+    // to be helping with the sporadic javac failures -- SMF 2008-04-09
+    
+    public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)
+        { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
+    public final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
     
     
 }
