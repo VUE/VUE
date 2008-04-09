@@ -137,8 +137,21 @@ public class UrlAuthentication
         // We don't need authorization for any local file access
 
         if ("file".equals(url.getProtocol())) {
-            if (DEBUG.IO) Log.debug("Skipping auth checks for local access: " + url);
-            return url.openConnection();
+            //if (DEBUG.IO) Log.debug("Skipping auth checks for local access: " + url);
+            Log.warn("Skipping auth checks for local access: " + url);
+
+            java.net.URLConnection conn = null;
+
+            // SMF: As of 2008-04-07, WinXP appears to hang for on the order of 30 seconds,
+            // before sometimes return an FTP url connection!  (e.g., url was "file://Z:/0/test-pak.vue" )
+            // Vista is returning same, only faster, but then the connection times out with a java.net.ConnectException.
+            
+            //conn = url.openConnection();            
+            
+            //if (DEBUG.IO) Log.debug("Returning local URLConnection: " + conn);
+            Log.warn("Returning local URLConnection: " + conn);
+
+            return conn;
         }
         
         //-----------------------------------------------------------------------------
