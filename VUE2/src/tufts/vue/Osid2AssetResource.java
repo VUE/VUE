@@ -219,10 +219,8 @@ public class Osid2AssetResource extends URLResource
 					// we process HAPPENS to be the fullView, that this even works at all!
 					
 					if (BrowsePartType.isEqual(partStructureType)) {
-						setURL_Browse(value.toString());
-						//setSpec(s);
-						////setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL(s))));
-						//this.icon = s;
+                                            setURL_Browse(value.toString());
+                                            //setSpec(s);
 					} else if (ThumbnailPartType.isEqual(partStructureType) || ThumbnailPartType2.isEqual(partStructureType)) {
 						setURL_Thumb(value.toString());
 						
@@ -248,7 +246,8 @@ public class Osid2AssetResource extends URLResource
         // This is a default catch-all: if we've failed to find the right part-types,
         // and/or they were improperly specified, if there's any part with the name 'URL',
         // use that for the spec.
-        if (getSpec() == SPEC_UNSET && mURL_Browse == null) {
+        //if (getSpec() == SPEC_UNSET && mURL_Browse == null) {
+        if (getSpec() == SPEC_UNSET) {
             String defaultURL = getProperty("URL");
             if (defaultURL != null) {
                 if (DEBUG.RESOURCE && DEBUG.META) Log.warn("Osid2AssetResource failsafe: using URL property " + defaultURL);
