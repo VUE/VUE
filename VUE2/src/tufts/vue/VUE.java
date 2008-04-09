@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.527 $ / $Date: 2008-04-07 20:15:59 $ / $Author: mike $ 
+ * @version $Revision: 1.528 $ / $Date: 2008-04-09 00:53:26 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -2143,7 +2143,7 @@ public class VUE
      * Otherwise, open it anew and display it.
      */
     public static void displayMap(File file) {
-        if (DEBUG.INIT || DEBUG.IO) out("displayMap " + file);
+        if (DEBUG.INIT || DEBUG.IO) Log.debug("displayMap " + Util.tags(file));
 
         if (file == null)
             return;
@@ -2586,15 +2586,19 @@ public class VUE
         LWNode n2 = new LWNode("Program\nFiles", URLResource.create("C:\\Program Files"));
         LWNode n3 = new LWNode("readme.txt", URLResource.create("readme.txt"));
         LWNode n4 = new LWNode("Slash", URLResource.create("file:///"));
+        LWNode n5 = new LWNode("Program\nFiles 2", URLResource.create("\\Program Files"));
+
         n1.setLocation(100, 30);
         n2.setLocation(100, 100);
         n3.setLocation(50, 180);
         n4.setLocation(200, 180);
+        n5.setLocation(150, 200);
         n4.setNotes("I am a note.");
         map.addNode(n1);
         map.addNode(n2);
         map.addNode(n3);
         map.addNode(n4);
+        map.addNode(n5);
         LWLink k1 = new LWLink(n1, n2);
         LWLink k2 = new LWLink(n2, n3);
         LWLink k3 = new LWLink(n2, n4);
