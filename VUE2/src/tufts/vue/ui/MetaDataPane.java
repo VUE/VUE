@@ -155,61 +155,65 @@ public class MetaDataPane extends JPanel
        
    }
 
-   private class URLMouseListener extends tufts.vue.MouseAdapter {
-           public void mouseClicked(java.awt.event.MouseEvent e) {
-               if (e.getClickCount() != 2)
-                   return;
-               try {
-                   final JTextArea value = (JTextArea) e.getSource();
-                   String text = value.getText();
-                   if (text.startsWith("http://") || text.startsWith("/")) {
-                       e.consume();
-                       final Color c = value.getForeground();
-                       value.setForeground(Color.red);
-                       value.paintImmediately(0,0, value.getWidth(), value.getHeight());
-                       tufts.vue.VueUtil.openURL(text);
-                       GUI.invokeAfterAWT(new Runnable() {
-                               public void run() {
-                                   value.setForeground(c);
-                               }
-                           });
-                   }
-               } catch (Throwable t) {
-                   Log.error(t);
-               }
-           }
-   }
+    private static final String CAN_OPEN = "vue.openable";
 
-   private MouseListener CommonURLListener = new URLMouseListener();
+    private class URLMouseListener extends tufts.vue.MouseAdapter {
+        public void mouseClicked(java.awt.event.MouseEvent e) {
+            if (e.getClickCount() != 2)
+                return;
+            try {
+                final JTextArea value = (JTextArea) e.getSource();
+                if (value.getClientProperty(CAN_OPEN) == Boolean.TRUE) {
+                    e.consume();
+                    final Color c = value.getForeground();
+                    value.setForeground(Color.red);
+                    value.paintImmediately(0,0, value.getWidth(), value.getHeight());
+                    tufts.vue.VueUtil.openURL(value.getText());
+                    GUI.invokeAfterAWT(new Runnable() {
+                            public void run() {
+                                value.setForeground(c);
+                            }
+                        });
+                }
+            } catch (Throwable t) {
+                Log.error(t);
+            }
+        }
+    }
 
-   private void loadRow(int row, String labelText, String valueText) {
-       if (DEBUG.RESOURCE && DEBUG.META) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
+    private MouseListener CommonURLListener = new URLMouseListener();
 
-       JLabel label = mLabels[row];
-       JTextArea value = mValues[row];       
+    private void loadRow(int row, final String labelText, final String valueText) {
+        if (DEBUG.RESOURCE && DEBUG.META) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
 
-       label.setText(labelText + ":");
-       value.setText(valueText);
+        JLabel label = mLabels[row];
+        JTextArea value = mValues[row];       
 
-       if (valueText != null && (valueText.startsWith("http://") || valueText.startsWith("/")) ) {
-           value.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-           //value.setForeground(Color.blue);
-       } else {
-           //label.removeMouseListener(CommonURLListener);
-           value.setCursor(Cursor.getDefaultCursor());
-           //GUI.apply(GUI.ValueFace, mValues[i]);
-       }
+        label.setText(labelText + ":");
+        value.setText(valueText);
+
+        if (Resource.isLikelyURLorFile(valueText)) {
+            value.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+            value.putClientProperty(CAN_OPEN, Boolean.TRUE);
+            if (DEBUG.Enabled) value.setForeground(Color.blue);
+        } else {
+            value.putClientProperty(CAN_OPEN, Boolean.FALSE);
+            if (DEBUG.Enabled) value.setForeground(Color.black);
+            //label.removeMouseListener(CommonURLListener);
+            value.setCursor(Cursor.getDefaultCursor());
+            //GUI.apply(GUI.ValueFace, mValues[i]);
+        }
        
-       // if value has at least one space, use word wrap
-       if (valueText.indexOf(' ') >= 0)
-           value.setWrapStyleWord(true);
-       else
-           value.setWrapStyleWord(false);
+        // if value has at least one space, use word wrap
+        if (valueText.indexOf(' ') >= 0)
+            value.setWrapStyleWord(true);
+        else
+            value.setWrapStyleWord(false);
        
-       label.setVisible(true);
-       value.setVisible(true);
+        label.setVisible(true);
+        value.setVisible(true);
        
-   }
+    }
 
    public void loadResource(Resource r) {
 	   if (DEBUG.RESOURCE) out("MetaDataPane : loadResource :" + r.getName());
