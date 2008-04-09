@@ -17,10 +17,14 @@
 package tufts.vue;
 
 import tufts.Util;
-import tufts.vue.ui.ResourceIcon;
-import java.util.Properties;
+import java.io.File;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 import java.net.URI;
+import java.net.URL;
 import java.awt.Image;
+import java.util.Properties;
+import tufts.vue.ui.ResourceIcon;
 import javax.swing.JComponent;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -30,7 +34,7 @@ import javax.swing.ImageIcon;
  *  implement.  Together, they create a uniform way to handle dragging and dropping of
  *  resource objects.
  *
- * @version $Revision: 1.62 $ / $Date: 2008-04-02 03:18:09 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2008-04-09 00:52:01 $ / $Author: sfraize $
  */
 
 // TODO:
@@ -129,6 +133,9 @@ public abstract class Resource implements Cloneable
     public static final String IMAGE_FORMAT = "image.format";
     public static final String IMAGE_WIDTH = "image.width";
     public static final String IMAGE_HEIGHT = "image.height";
+    
+    public static final String FILE_RELATIVE = "file.relative";
+    
     // VUE synthesized meta-data:
     // content.type:    (content-type / mime-type -- from URL & File)
     // content.size:    (file or URL on-disk content size)
@@ -154,6 +161,7 @@ public abstract class Resource implements Cloneable
      *
      */
     public static interface Factory {
+
         Resource get(String spec);
         Resource get(java.net.URL url);
         Resource get(java.net.URI uri);
@@ -247,7 +255,7 @@ public abstract class Resource implements Cloneable
      * get time to clean this up.  SMF 2007-10-07
      */
 
-    /*  Some client type codes defined for resources.  */
+    /*  Some client type codes defined for resources -- TODO: fix this -- there are mixed semantics here  */
     static final int NONE = 0;              //  Unknown type.
     static final int FILE = 1;              //  Resource is a Java File object.
     static final int URL = 2;               //  Resource is a URL.
@@ -293,12 +301,32 @@ public abstract class Resource implements Cloneable
      * Does nothing if either key or value is null, or value is an empty String.
      */
     public void setProperty(String key, Object value) {
-        if (DEBUG.DATA) out("setProperty " + key + " [" + value + "]");
+
+        if (DEBUG.DATA) dumpKV("setProperty", key, value);
+        
         if (key != null && value != null) {
             if (!(value instanceof String && ((String)value).length() < 1))
                 mProperties.put(key, value);
         }
     }
+
+    public void setProperty(String key, long value) {
+        if (key.endsWith(".contentLength") || key.endsWith(".size")) {
+            // this kind of a hack
+            setByteSize(value);
+        }
+        setProperty(key, Long.toString(value));
+    }
+
+    
+    protected void dumpField(String name, Object value) {
+        out(String.format("%-31s: %s%s%s", name, Util.TERM_CYAN, Util.tags(value), Util.TERM_CLEAR));
+    }
+
+    private void dumpKV(String name, String key, Object value) {
+        if (DEBUG.DATA) out(String.format("%-14s%17s: %s%s%s", name, key, Util.TERM_RED, Util.tags(value), Util.TERM_CLEAR));
+    }
+    
 
     /** runtime properties are for display while VUE is running only: they're not persisted */
     protected void setRuntimeProperty(String key, Object value) {
@@ -319,6 +347,7 @@ public abstract class Resource implements Cloneable
 
     /** @return any prior value stored for this key, null otherwise */
     public Object removeProperty(String key) {
+        if (DEBUG.DATA) dumpKV("removeProperty", key, "[" + mProperties.get(key) + "]");
         return mProperties.remove(key);
     }
 
@@ -327,19 +356,11 @@ public abstract class Resource implements Cloneable
      * with this name, the key will be modified with an index.
      */
     public String addProperty(String desiredKey, Object value) {
+        if (DEBUG.DATA) dumpKV("addProperty", desiredKey, value);
         return mProperties.addProperty(desiredKey, value);
     }
     
 
-    public void setProperty(String key, long value) {
-        if (key.endsWith(".contentLength") || key.endsWith(".size")) {
-            // this kind of a hack
-            setByteSize(value);
-        }
-        setProperty(key, Long.toString(value));
-    }
-
-    
     /**
      * This method returns a value for the given property name.
      * @param pName the property name.
@@ -347,7 +368,7 @@ public abstract class Resource implements Cloneable
      **/
     public String getProperty(String key) {
         final Object value = mProperties.get(key);
-        if (DEBUG.RESOURCE) out("getProperty[" + key + "]=" + value);
+        if (DEBUG.DATA) dumpKV("getProperty", key, value);
         return value == null ? null : value.toString();
     }
 
@@ -396,8 +417,20 @@ public abstract class Resource implements Cloneable
     }
 
     
+    //public abstract boolean isImage();
+    
+    private boolean isImage;
     /** @return true if this resource contains displayable image data */
-    public abstract boolean isImage();
+    public boolean isImage() {
+        return isImage;
+    }
+
+    protected void setAsImage(boolean asImage) {
+        isImage = asImage;
+        if (DEBUG.DR || DEBUG.RESOURCE) setDebugProperty("isImage", ""+ asImage);
+    }
+
+    
 
     /**
      * @return an object suitable to be handed to the Java ImageIO API that can
@@ -425,13 +458,28 @@ public abstract class Resource implements Cloneable
             return title;
     }
     
-    //public abstract java.net.URL asURL();
     //public abstract long getSize();
 
     /**
      *  Return a resource reference specification.  This could be a filename or URL.
      */
     public abstract String getSpec();
+
+    /**
+     * If a reference to this resource can be provided as a URL, return it in that form,
+     * otherwise return null.
+     *
+     * @return default Resource class impl: returns null
+     */
+    public java.net.URL asURL() {
+        return null;
+    }
+
+
+    /**
+     * All Resource impls should be able to return something that fits into a URI.
+     */
+    public abstract java.net.URI toURI();
     
     
     /** 
@@ -446,6 +494,12 @@ public abstract class Resource implements Cloneable
      */
     protected void setClientType(int type) {
         mType = type;
+        if (DEBUG.RESOURCE) dumpField("setClientType", Integer.valueOf(type));
+        try {
+            setDebugProperty("clientType", TYPE_NAMES[type] + " (" + type + ")");
+        } catch (Throwable t) {
+            Log.warn(this + "; setClientType " + type, t);
+        }
     }
     
     /**
@@ -518,7 +572,8 @@ public abstract class Resource implements Cloneable
 //             } 
 //         }
 
-        if (DEBUG.RESOURCE) out(getSpec() + "; extType=[" + ext + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
+        if (DEBUG.RESOURCE) out("extType=[" + ext + "] in " + this);
+        //if (DEBUG.RESOURCE) out(getSpec() + "; extType=[" + ext + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
         return ext;
     }
     
@@ -637,11 +692,15 @@ public abstract class Resource implements Cloneable
         return image;
     }
 
+    /**
+     * @return true if the data for this resource is normally obtained by making use the
+     * the local file system (including attached network shares)
+     *
+     * This default impl always returns false.
+     */
     public boolean isLocalFile() {
         return false;
     }
-    
-    
     
 
 
@@ -698,7 +757,18 @@ public abstract class Resource implements Cloneable
 //      */
 //     public abstract Object getPreview(Object preferredSize);
 
-    public abstract void setCached(boolean isCached);
+    private boolean isCached;
+    
+    protected boolean isCached() {
+        return isCached;
+    }
+
+    // todo: this should be computed internally (move code out of Images.java)
+    public void setCached(boolean cached) {
+        isCached = cached;
+    }
+    
+    //public abstract void setCached(boolean isCached);
 
     //public abstract java.io.InputStream getByteStream();
     
@@ -706,9 +776,11 @@ public abstract class Resource implements Cloneable
 //     public abstract java.io.File getCacheFile();
 
     /** if possible, make this Resource relatve to the given root */
-    public abstract void relativize(URI root);    
+    public abstract void makeRelativeTo(URI root);    
 
-    public abstract void updateRootLocation(URI oldRoot, URI newRoot);
+    /** @deprecated -- cleanup / remove */
+    public void updateRootLocation(URI oldRoot, URI newRoot) {}
+    //public abstract void updateRootLocation(URI oldRoot, URI newRoot);
 
     /**
      *  Return tooltip information, if any.  Basic HTML tags are permitted.
@@ -716,7 +788,7 @@ public abstract class Resource implements Cloneable
     public String getToolTipText() { return toString(); }
 
     public String asDebug() {
-        return String.format("%s@%07x[type=%s; %s]",
+        return String.format("%s@%07x[%s; %s]",
                              getClass().getSimpleName(),
                              System.identityHashCode(this),
                              TYPE_NAMES[getClientType()],
@@ -769,12 +841,420 @@ public abstract class Resource implements Cloneable
 //             return getSpec();+ " " + mProperties;
 //     }
 
-
-
     
     protected void out(String s) {
         Log.debug(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
+
+
+    public static File getLocalFileIfPresent(String urlOrPath) {
+        if (urlOrPath.startsWith("file:"))
+            return new File(urlOrPath.substring(5));
+        else
+            return getLocalFileIfPresent(makeURL(urlOrPath));
+    }
+    
+
+    public static File getLocalFileIfPresent(URL url)
+    {
+        if (url == null || !"file".equals(url.getProtocol()))
+            return null;
+
+        if (DEBUG.RESOURCE) dumpURL(url, "getLocalFileIfPresent");
+
+        File file = null;
+
+        if (false) {
+
+            // Sometimes Win32 C:/foo/bar.jpg URI's will wind up with the entire path in
+            // the scheme-specifc part, not the path, which will be null, so we have
+            // nothing to create the file from.  We could pull the scheme-specific if
+            // path is empty if we need to, but for now we're going to try woring with
+            // pure URL paths...
+
+            final URI uri = makeURI(url);
+            if (uri == null)
+                return null;
+            if (DEBUG.RESOURCE) dumpURI(uri, "made URI from " + Util.tags(url));
+        
+            try {
+                
+                file = new File(uri.getPath());
+                if (!file.exists())
+                    throw new RuntimeException("doesn't exist: " + file);
+                //file = new File(uri);
+            } catch (Throwable t) {
+                Log.warn("failed to create File from URI " + uri, t);
+                dumpURIError(uri, "unable to convert 'file:' URL");
+            }
+            
+        } else {
+
+            // The advantage of URI of URL here is that for paths such as
+            // //.host/foo/bar.jpg, ".host" winds up in the URL authority, and the path
+            // doesn't contain it, so we can't create a proper File without knowing how
+            // to properly prefix the authorty with "//" or however many slashes may be
+            // appropriate, and combine with the path using another '/', wheras at least
+            // with the URN, the entire thing winds up together in the scheme-specifc
+            // part.
+            //
+            // For example, this is from dumpURL on WinXP: (unlisted URL fields are
+            // empty) This example is from a VMWare XP client connecting back to the
+            // host.  Similar may apply to network Win32 shares, tho the host will
+            // probably start with a regular alphanumeric, instead of '.', in which case
+            // everything might automatically wind up in the path -- need to test this.
+            //
+            //       URL: file://.host/Shared Folders/Images/asciifull.gif
+            //  protocol: file
+            // authority: .host
+            //      host: .host
+            //      path: /Shared Folders/Images/asciifull.gif
+            //      file: /Shared Folders/Images/asciifull.gif
+            
+            try {
+
+                if (url.getAuthority() != null) {
+                    String fullPath = url.toString();
+                    if (!fullPath.startsWith("file:"))
+                        throw new IllegalStateException("URL should already have had a file: protocol; " + url);
+                    fullPath = fullPath.substring(5);
+                    file = new File(fullPath);
+                } else {
+                    file = new File(url.getPath());
+                }
+
+                if (!file.isAbsolute()) {
+                    // We could handle checking for relative files (relative to the map)
+                    // if we had a ref to the ResourceFactory, and we added a method
+                    // there for finding files relative to the map.
+                    if (DEBUG.RESOURCE) Log.debug("ignoring non-absolute: " + file);
+                    return null;
+                }
+                
+                if (DEBUG.RESOURCE && file != null) dumpFile(file, "getLocalFileIfPresent", false);
+
+                //if (DEBUG.Enabled) Log.debug("got canonical path: " + file.getCanonicalPath());
+                
+                //if (!file.exists()) throw new RuntimeException("doesn't exist: " + file);
+
+            } catch (Throwable t) {
+                Log.warn("failed to create File from URL " + url, t);
+                dumpURLError(url, "unable to convert 'file:' URL");
+            }
+        }
+        
+        
+
+        if (DEBUG.RESOURCE) Log.debug("got File from URL: " + Util.tags(file) + "; from " + Util.tags(url));
+        return file;
+    }
+
+    private static final String URL_FILE_PROTOCOL_PREFIX = "file://";
+    
+    /** If given string is a valid URL, make one and return it, otherwise, return null.
+     *
+     * @return the new URL -- returned URL's will be fully decoded
+     * @see java.net.URLDecoder
+     *
+     **/
+    public static java.net.URL makeURL(final String s)
+    {
+        try {
+            final URI uri = makeURI(s);
+
+            URL url = null;
+            String decoded = null;
+
+            try {
+                decoded = java.net.URLDecoder.decode(uri.toString(), "UTF-8");
+                url = new URL(decoded);
+            } catch (Throwable t) {
+               Log.info("couldn't make URL from decoded " + (decoded == null ? Util.tags(uri) : decoded), t);
+               // URI.toURL leaves the URL in encoded form: local file paths need decoding to be useful to java.io.File
+               url = uri.toURL();
+           }
+
+            //final URL url = uri.toURL(); 
+            //final URL url = new URL(java.net.URLDecoder.decode(uri.toString(), "UTF-8"));
+
+            if (DEBUG.RESOURCE && url != null) dumpURL(url, "MADE URL FROM " + Util.tags(s) + "; via " + Util.tags(uri));
+
+            return url;
+            
+        } catch (Throwable t) {
+            Log.warn("Failed to make URL from: " + s + "; " + t);
+            return null;
+        }
+    }
+
+        
+    private static String encodeForURI(String s) {
+        s = s.replaceAll(" ", "%20");
+
+        if (s.indexOf('\\') >= 0 && !Util.isWindowsPlatform()) {
+            //if (DEBUG.RESOURCE) Log.debug("reversing slashes in " + s);
+            Log.warn("reversing slashes in " + s);
+            
+            // this is of marginal usefulness -- the source URI was presumably created
+            // on another platform (and thus machine), referring to a resource we
+            // undoubtably won't be able to access, but at least this lets us consistently
+            // create URI's.
+            
+            s = s.replace('\\', '/');
+        }
+
+        return s;
+        
+        //return s.replace(' ', '+'); // no good
+    }
+
+    public static URI makeURI(URL url) {
+
+        //URI uri = url.toURI(); // all this does is "new URI(toString())"
+
+        final String encoded = encodeForURI(url.toString());
+        URI uri = null;
+        try {
+            uri = new URI(encoded);
+            uri = uri.normalize();
+        } catch (Throwable t) {
+            Log.debug("URI from " + Util.tags(url), t);
+            dumpURL(url);
+        }
+        return uri;
+    }
+    
+//     public static URI makeURI(File f) {
+//         URI uri = f.toURI();
+//         if (DEBUG.RESOURCE) dumpURI(uri, "NEW FILE URI FROM " + f);
+        
+//         Util.printStackTrace("makeURI from " + Util.tags(f) + "; manually checking for /C:");
+//         // TODO: this "/C:" check isn't generic enough: is this code even being called anywhere?
+        
+//         if (uri.getPath().startsWith("/C:"))
+//             return makeURI(uri.getPath().substring(3));
+//         else
+//             return uri;
+//     }
+    
+    public static boolean isLikelyURLorFile(String s) {
+
+        if (s == null)
+            return false;
+
+        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
+        final char c1 = s.length() > 1 ? s.charAt(1) : 0;
+        
+        return c0 == '/'
+            || c0 == '\\'
+            || (Character.isLetter(c0) && c1 == ':')
+            || s.startsWith(java.io.File.separator)
+            || s.startsWith("http://")
+            || s.startsWith("file:")
+            ;
+    }
+    
+    public static URI makeURI(String s)
+    {
+        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
+        final char c1 = s.length() > 1 ? s.charAt(1) : 0;
+        final String txt;
+        
+        URI uri = null;
+
+        try {
+
+            if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
+
+                // the above conditions test:
+                //  first case: MacOSX / Linux / Unix path
+                // second case: Windows path
+                //  third case: Windows "C:" style path
+
+                // This URI constructor will auto-encode (fully) the input string.
+                // This will include, on unix platforms, encode windows '\' file
+                // separators as "%5C".
+                
+                uri = new java.net.URI("file", s, null); // last argument is fragment: never needed for files
+                
+                //Util.printStackTrace("makeURI FILE:// -ified: " + txt);
+                
+            } else {
+                
+                final String encoded = encodeForURI(s);
+                uri = new java.net.URI(encoded);
+                if (uri != null)
+                    uri = uri.normalize();
+                
+            }
+            
+            if (uri != null && uri.getScheme() == null)
+                uri = new java.net.URI("file:" + uri.toString());
+
+
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "makeURI: " + s);
+        }
+
+        
+        if (DEBUG.RESOURCE) {
+            if (uri != null) dumpURI(uri, "MADE URI FROM " + Util.tags(s));
+            //if (uri != null) dumpURI(uri, "   MADE FROM STRING: " + s);
+//             if (uri != null && uri.toString().equals(s))
+//                 System.err.println("            MADE URI: " + uri);
+//             else
+//                 System.err.println("            MADE URI: " + uri + " src=[" + s + "]");
+        }
+        
+        return uri;
+    }
+    
+    public static void dumpURI(URI u) {
+        dumpURI(u, null, false);
+    }
+    public static void dumpURI(URI u, String msg) {
+        dumpURI(u, msg, false);
+    }
+    public static void dumpURIError(URI u, String msg) {
+        dumpURI(u, msg, true);
+    }
+    public static void dumpURI(URI u, String msg, boolean error) {
+
+        final StringWriter buf = new StringWriter(256);
+        final PrintWriter w = new PrintWriter(buf);
+        
+        if (msg == null) msg = "Made URI;";
+        
+        if (DEBUG.META) writeField(w, "hashCode",       Integer.toHexString(u.hashCode()));
+
+        writeField(w, "scheme",               u.getScheme());
+        writeField(w, "scheme-specific",      u.getSchemeSpecificPart(), u.getRawSchemeSpecificPart());
+        writeField(w, "authority",            u.getAuthority(), u.getRawAuthority());
+        writeField(w, "userInfo",             u.getUserInfo(), u.getRawUserInfo());
+        writeField(w, "host",                 u.getHost());
+           
+        if (u.getPort() != -1)
+            writeField(w, "port",	u.getPort());
+
+        writeField(w, "path",         u.getPath(), u.getRawPath());
+        writeField(w, "query",        u.getQuery(), u.getRawQuery());
+        writeField(w, "fragment",     u.getFragment(), u.getRawFragment());
+
+        String txt = String.format("%s\n%20s: %s %s%s (@%x)%s",
+                                   msg,
+                                   "URI",
+                                   u,
+                                   u.isAbsolute() ? "ABSOLUTE" : "RELATIVE",
+                                   u.isOpaque() ? " OPAQUE" : "",
+                                   System.identityHashCode(u),
+                                   buf.getBuffer()
+                                   );
+        if (error)
+            Log.error(txt);
+        else
+            Log.debug(txt);
+        
+        //System.out.println("len=" + buf.getBuffer().length());
+    }
+
+    public static void dumpFile(File u, String msg, boolean error) {
+
+        if (msg == null) msg = "Made File;";
+        
+        final StringWriter buf = new StringWriter(256);
+        final PrintWriter w = new PrintWriter(buf);
+            
+        if (DEBUG.META) writeField(w, "hashCode",       Integer.toHexString(u.hashCode()));
+        writeField(w, "path",            u.getPath());
+        writeField(w, "absolutePath",    u.getAbsolutePath());
+        try {
+            writeField(w, "canonicalPath",   u.getCanonicalPath());
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+        writeField(w, "name",       u.getName());
+        writeField(w, "parent",       u.getParent());
+        writeField(w, "isAbsolute",       u.isAbsolute());
+        writeField(w, "isNormalFile",       u.isFile());
+        writeField(w, "isDirectory",       u.isDirectory());
+
+        String txt = String.format("%s\n%20s: %s (@%x)%s",
+                                   msg,
+                                   "File",
+                                   u,
+                                   System.identityHashCode(u),
+                                   buf.getBuffer()
+                                   );
+        
+        if (error)
+            Log.error(txt);
+        else
+            Log.debug(txt);
+        
+        //System.out.println("len=" + buf.getBuffer().length());
+    }
+    
+    public static void dumpURL(URL u, String msg, boolean error) {
+
+        if (msg == null) msg = "Made URL;";
+        
+        final StringWriter buf = new StringWriter(256);
+        final PrintWriter w = new PrintWriter(buf);
+            
+        if (DEBUG.META) writeField(w, "hashCode",       Integer.toHexString(u.hashCode()));
+        writeField(w, "protocol",       u.getProtocol());
+        writeField(w, "userInfo",       u.getUserInfo());
+        writeField(w, "authority",      u.getAuthority());
+        writeField(w, "host",           u.getHost());
+        if (u.getPort() != -1)
+            writeField(w, "port",	u.getPort());
+        writeField(w, "path",           u.getPath());
+        writeField(w, "file",           u.getFile());
+        writeField(w, "query",          u.getQuery());
+        writeField(w, "ref",            u.getRef());
+
+        String txt = String.format("%s\n%20s: %s (@%x)%s",
+                                   msg,
+                                   "URL",
+                                   u,
+                                   System.identityHashCode(u),
+                                   buf.getBuffer()
+                                   );
+
+        //System.out.println("len=" + buf.getBuffer().length());
+        
+        if (error)
+            Log.error(txt);
+        else
+            Log.debug(txt);
+    }
+    
+    public static void dumpURL(URL u, String msg) {
+        dumpURL(u, msg, false);
+    }
+    
+    public static void dumpURLError(URL u, String msg) {
+        dumpURL(u, msg, true);
+    }
+
+    public static void dumpURL(URL u) {
+        dumpURL(u, null);
+    }
+
+
+    private static void writeField(PrintWriter w, String label, Object value) {
+        if (value != null && !(value instanceof String && value.toString().length() == 0))
+            w.printf("\n%20s: %s", label, value);
+        //System.out.format("%20s: %s\n", label, value);
+    }
+    
+    private static void writeField(PrintWriter w, String label, Object value, Object rawValue) {
+        writeField(w, label, value);
+
+        if (value != null && !value.equals(rawValue) || rawValue == null && value != null)
+            writeField(w, "RAW-" +label, rawValue);
+    }
+    
 }
 
 // class FileResource extends Resource {
