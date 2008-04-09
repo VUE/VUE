@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.96 $ / $Date: 2008-03-26 16:41:08 $ / $Author: mike $
+ * @version $Revision: 1.97 $ / $Date: 2008-04-09 00:55:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -683,7 +683,7 @@ public class GUI
 //             return image;
         }
 
-        final String largeKey = ext + ".32";
+        final String largeKey = ext + ".32"; // are larger options available on Vista?
         final String smallKey = ext + ".16"; // don't really need to construct both keys each time if is already in cache...
         final String desiredKey;
 
