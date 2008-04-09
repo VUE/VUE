@@ -114,6 +114,18 @@ public class OpenAction extends VueAction
 //     }
     
     
+    public static LWMap loadMap(java.net.URL url) {
+        try {
+            if (DEBUG.CASTOR) Log.debug("Unmarshalling from " + url);
+            LWMap map = ActionUtil.unmarshallMap(url);
+            return map;
+        } catch (Exception e) {
+            Log.error("loadMap " + tufts.Util.tags(url), e);
+            VueUtil.alert(null, "The following map can't be opened in current version of VUE.","Map Open Error");
+            //tufts.Util.printStackTrace(e);
+            return null;
+        }
+    }
     
     // todo: have only one root loadMap that hanldes files & urls -- actually, make it ALL url's
     // TODO: this should be re-named openFile or openVueContent (as it handles all sorts of "vue" files)
@@ -123,13 +135,13 @@ public class OpenAction extends VueAction
             return doLoadMap(filename);
         } catch (FileNotFoundException e) {
             // maybe move all exception code here, taking the file-not-found handling
-            Log.error("loadMap[" + filename + "]: " + e);
+            Log.error("loadMap " + tufts.Util.tags(filename), e);
             VueUtil.alert(null, "\"" + filename + "\": file not found.", "Map Not Found");
         } catch (Throwable t) {
             // out of the Open File dialog box.
-            Log.error("loadMap[" + filename + "]: " + t);
+            Log.error("loadMap " + tufts.Util.tags(filename), t);
             VueUtil.alert(null, "\"" + filename + "\" cannot be opened in this version of VUE.", "Map Open Error");
-            tufts.Util.printStackTrace(t);
+            //tufts.Util.printStackTrace(t);
         }
         return null;
     }
@@ -379,20 +391,6 @@ public class OpenAction extends VueAction
 //         }
 //     }
     
-    public static LWMap loadMap(java.net.URL url) {
-        try {
-            if (DEBUG.CASTOR) Log.debug("Unmarshalling from " + url);
-            LWMap map = ActionUtil.unmarshallMap(url);
-            return map;
-        }
-        catch (Exception e) {
-            VueUtil.alert(null, "The following map can't be opened in current version of VUE.","Map Open Error");
-            Log.error("loadMap: url=[" + url + "]: " + e);
-            tufts.Util.printStackTrace(e);
-            return null;
-        }
-    }
-    
     /** test harness for opening a whole bunch of map files just to make sure we can parse and create an LWMap model from them */
     public static void main(String args[]) throws Exception {
 
@@ -403,6 +401,7 @@ public class OpenAction extends VueAction
 
         LWMap map = null;
         for (String arg : args) {
+            map = null;
             if (arg.charAt(0) == '-')
                 continue;
             System.err.println("Attempting to read map from " + arg);
