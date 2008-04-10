@@ -22,6 +22,7 @@ implements org.osid.repository.PartStructure
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
     private String displayName = "Dissemination URL";
     private String description = "A URL to get the dissemination of Fedora Object";
+    private String ID = "fedora.disseminationURL";
     private org.osid.shared.Id id = null;
     private boolean populatedByRepository = true;
     private boolean mandatory = true;
@@ -36,7 +37,7 @@ implements org.osid.repository.PartStructure
         this.recordStructure = recordStructure;
         try
         {
-            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "DisseminationURLInfoPartId"));
+            this.id = new PID(ID);
         }
         catch (org.osid.shared.SharedException sex)
         {

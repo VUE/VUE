@@ -130,13 +130,13 @@ public class Repository implements org.osid.repository.Repository {
         String url = FEDORA_PROTOCOL+this.address+":"+this.port+FEDORA_URL;
         fedoraProperties = new Properties();
         try {
-            prefs = FedoraUtils.getPreferences(this);
-            fedoraProperties.setProperty("url.fedora.api", prefs.get("url.fedora.api","http://www.fedora.info/definitions/1/0/api/"));
-            fedoraProperties.setProperty("url.fedora.type", prefs.get("url.fedora.type", "http://www.fedora.info/definitions/1/0/types/"));
-            fedoraProperties.setProperty("url.fedora.soap.access",url+ prefs.get("url.fedora.soap.access", "access/soap"));
-            fedoraProperties.setProperty("url.fedora.get", url+prefs.get("url.fedora.get", "get/"));
+           // prefs = FedoraUtils.getPreferences(this);
+            fedoraProperties.setProperty("url.fedora.api", "http://www.fedora.info/definitions/1/0/api/");
+            fedoraProperties.setProperty("url.fedora.type",  "http://www.fedora.info/definitions/1/0/types/");
+            fedoraProperties.setProperty("url.fedora.soap.access",url+"access/soap");
+            fedoraProperties.setProperty("url.fedora.get", url+"get/");
             fedoraProperties.setProperty("url.seastar.fedora.get", "http://seastar.lib.tufts.edu:8080/fedora/get/");
-            fedoraProperties.setProperty("fedora.types", prefs.get("fedora.types","TUFTS_STD_IMAGE,XML_TO_HTMLDOC,TUFTS_BINARY_FILE,TUFTS_VUE_CONCEPT_MAP,UVA_EAD_FINDING_AID,UVA_STD_IMAGE,UVA_MRSID_IMAGE,SIMPLE_DOC,MassIngest"));
+            fedoraProperties.setProperty("fedora.types","TUFTS_STD_IMAGE,XML_TO_HTMLDOC,TUFTS_BINARY_FILE,TUFTS_VUE_CONCEPT_MAP,UVA_EAD_FINDING_AID,UVA_STD_IMAGE,UVA_MRSID_IMAGE,SIMPLE_DOC,MassIngest");
             fedoraProperties.setProperty("ImageRecordStructureId","edu.mit.image.recordStructureId");
             fedoraProperties.setProperty("VUEDefaultViewInfoPartId","edu.tufts.defaultView.partStructureId");
             fedoraProperties.setProperty("ThumbnailPartStructureId","mit.edu.thumbnail.partStructureId");
@@ -498,12 +498,6 @@ public class Repository implements org.osid.repository.Repository {
     }
     public void setConf(String conf) {
         this.conf = conf;
-    }
-    public Preferences getPrefernces() {
-        return this.prefs;
-    }
-    public void setConf(Preferences prefs) {
-        this.prefs = prefs;
     }
     public int getPort() {
         return this.port;

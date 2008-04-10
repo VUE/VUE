@@ -20,6 +20,7 @@ implements org.osid.repository.RecordStructure
     private java.util.Vector partsVector = new java.util.Vector();
     private String displayName = "Dissemination";
     private String description = "Provides information to get the Dissemination";
+    private String ID = "fedora.dissemination";
     private org.osid.shared.Id id = null;
     private String schema = null;
     private String format = "Plain Text";
@@ -33,7 +34,7 @@ implements org.osid.repository.RecordStructure
     {
         try
         {
-            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "DisseminationInfoStructureId"));
+            this.id = new PID(ID);
         }
         catch (org.osid.shared.SharedException sex)
         {

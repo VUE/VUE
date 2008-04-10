@@ -21,6 +21,7 @@ implements org.osid.repository.PartStructure
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
     private String displayName = "Parameter PartStructure";
     private String description = "Used to set parameters of disemmination. Parameters are optional in Dissemination and they can be single or multivalued.";
+    private String ID = "fedora.parameter";
     private org.osid.shared.Id id = null;
     private boolean populatedByRepository = false;
     private boolean mandatory = false;
@@ -35,7 +36,7 @@ implements org.osid.repository.PartStructure
         this.recordStructure = recordStructure;
         try
         {
-            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "ParameterInfoPartId"));
+        this.id = new PID(ID);
         }
         catch (org.osid.shared.SharedException sex)
         {

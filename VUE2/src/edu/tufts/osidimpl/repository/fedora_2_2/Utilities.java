@@ -28,7 +28,7 @@ public class Utilities {
     public static String formatObjectUrl(String objectId,String methodId,Repository repository) throws org.osid.repository.RepositoryException {
         String  url = "";
         try {
-            url = repository.getFedoraProperties().getProperty("url.fedora.get")+objectId+"/"+methodId;
+            url = Repository.FEDORA_PROTOCOL+repository.getAddress()+":"+repository.getPort()+Repository.FEDORA_URL+"get/"+objectId+"/"+methodId;
         }catch (Throwable t) {
             t.printStackTrace();
         }

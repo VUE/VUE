@@ -42,17 +42,7 @@ public class FedoraUtils {
         }
         return vector;
     }
-    
-    public static  String processId(String pid ) {
-        java.util.StringTokenizer st = new java.util.StringTokenizer(pid,":");
-        String processString = "";
-        while(st.hasMoreTokens()) {
-            processString += st.nextToken();
-        }
-        return processString;
-    }
-    
-    public static String getFedoraProperty(Repository repository,String pLookupKey)
+       public static String getFedoraProperty(Repository repository,String pLookupKey)
     throws org.osid.repository.RepositoryException {
         try {
             return getPreferences(repository).get(pLookupKey, NOT_DEFINED);
@@ -63,9 +53,9 @@ public class FedoraUtils {
     
     public static Preferences getPreferences(Repository repository)
     throws java.io.FileNotFoundException, java.io.IOException, java.util.prefs.InvalidPreferencesFormatException {
-		if(repository.getPrefernces() != null) {
-			return repository.getPrefernces();
-		} else {
+		//if(repository.getPrefernces() != null) {
+//			return repository.getPrefernces();
+//		} else {
 			String conf = repository.getConf();
 			Preferences prefs = (Preferences) prefsCache.get(conf);
 			if (prefs != null)
@@ -89,7 +79,15 @@ public class FedoraUtils {
 			prefsCache.put(conf, prefs);
 			stream.close();
 			return prefs;
-		}
+//		}
+    }
+    public static  String processId(String pid ) {
+        java.util.StringTokenizer st = new java.util.StringTokenizer(pid,":");
+        String processString = "";
+        while(st.hasMoreTokens()) {
+            processString += st.nextToken();
+        }
+        return processString;
     }
     
     public static String[] getFedoraPropertyArray(Repository repository,String pLookupKey)

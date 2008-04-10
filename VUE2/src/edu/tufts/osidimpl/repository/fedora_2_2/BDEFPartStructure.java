@@ -21,6 +21,7 @@ implements org.osid.repository.PartStructure
     private org.osid.repository.RecordStructure disseminationRecordStructure = null;
     private String displayName = "BDEF";
     private String description = "Behavior Definiton of Fedora Object";
+    private String ID = "fedora.BDEF";
     private org.osid.shared.Id id = null;
     private boolean populatedByRepository = true;
     private boolean mandatory = true;
@@ -35,7 +36,7 @@ implements org.osid.repository.PartStructure
         this.recordStructure = recordStructure;
         try
         {
-            this.id = new PID(FedoraUtils.getFedoraProperty(repository, "BDEFInfoPartId"));
+            this.id = new PID(ID);
         }
         catch (org.osid.shared.SharedException sex)
         {
