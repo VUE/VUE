@@ -195,13 +195,15 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                             }
                         };
                         
-                        SwingUtilities.invokeLater(innerThread);
+                        SwingUtilities.invokeLater(innerThread); 
                         
-                        final LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
-                        setMergeMapSettings(merge);
-                      
-                        Thread innerThread2 = new Thread()
+                        if(!noMapsSelected)
                         {
+                          final LWMergeMap merge = new LWMergeMap(LWMergeMap.getTitle());
+                          setMergeMapSettings(merge);
+                      
+                          Thread innerThread2 = new Thread()
+                          {
                             public void run()
                             {
                                VUE.displayMap(merge);
@@ -220,15 +222,16 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                                dw.repaint();   
                                generateButton.setEnabled(true); 
                             }
-                        };
+                          };
                        
-                        if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
-                          merge.fillAsVoteMerge();
-                        else
-                          merge.fillAsWeightMerge();
-                        if(!stopped)
-                        {    
-                          SwingUtilities.invokeLater(innerThread2);
+                          if(visualizationSettingsPanel.getVisualizationSettingsType() == VisualizationSettingsPanel.VOTE)
+                            merge.fillAsVoteMerge();
+                          else
+                            merge.fillAsWeightMerge();
+                          if(!stopped)
+                          {    
+                            SwingUtilities.invokeLater(innerThread2);
+                          }
                         }
                                
                      }
