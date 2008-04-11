@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.38 $ / $Date: 2008-04-11 14:15:27 $ / $Author: dan $
+ * @version $Revision: 1.39 $ / $Date: 2008-04-11 20:36:55 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -572,7 +572,8 @@ public class MapsSelectionPanel extends JPanel  {
     
     public int getNumberOfSelections()
     {
-        return ((MapTableModel)maps.getModel()).getNumberOfSelections();
+        //return ((MapTableModel)maps.getModel()).getNumberOfSelections();
+        return java.util.Collections.frequency(getCheckList(),Boolean.TRUE);
     }
     
     class MapTableModel implements TableModel
@@ -630,13 +631,15 @@ public class MapsSelectionPanel extends JPanel  {
            localFiles.add(fileName);
        }
        
-       public int getNumberOfSelections()
+       // seems to be a bug in this somewhere with newly opened maps .. using getCheckList
+       // in the panel instead for now
+       /*public int getNumberOfSelections()
        {
            int locals = java.util.Collections.frequency(localFileSelectionStates,"Selected");
            int opens = java.util.Collections.frequency(openMapSelections.values(),"Selected");    
                    
            return locals + opens;
-       }
+       }*/
        
        /**
         *
