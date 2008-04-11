@@ -125,10 +125,39 @@ public class MergeMapsControlPanel extends JPanel implements ActiveListener<LWMa
                         //setMergeMapSettings(merge);
                         JLabel loadingLabelImage = new JLabel(tufts.vue.VueResources.getImageIcon("dsv.statuspanel.waitIcon"));
                         //JPanel loadingLabel = new JPanel(new BorderLayout());
+                        
+                        //VUE-1058 -- only warn on no maps for now.
+                        // this is too slow to do this here, however.
+                        // (not exactly sure why? look in MapsSelectionPanel model)
+                        // do this after the loading label starts
+                        // probably makes sense to check in the thread anyway in 
+                        // case someday are merging from networks/etc.
+                        // except.. the new getNumberOfSelections method seems
+                        // to be fast enough -- so use this for now (approaching 2.1
+                        // build rapidly..)
+                        boolean noMapsSelected = false;
+                        
+                        if(mapSelectionPanel.getNumberOfSelections() == 0)
+                        {
+                            noMapsSelected = true;
+                        }
+                        
                         JPanel loadingLabel = new JPanel();
-                        JLabel progressLabel = new JLabel("In Progress...");
+                        JLabel progressLabel = new JLabel();
+                        if(noMapsSelected)
+                        {
+                          progressLabel.setText(" No maps were selected");  
+                        }
+                        else
+                        {    
+                          progressLabel.setText("In Progress...");
+                        }
                         loadingLabel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
-                        loadingLabel.add(loadingLabelImage);
+                        
+                        if(!noMapsSelected)
+                        {    
+                          loadingLabel.add(loadingLabelImage);
+                        }
                         loadingLabel.add(progressLabel);
                         
                         

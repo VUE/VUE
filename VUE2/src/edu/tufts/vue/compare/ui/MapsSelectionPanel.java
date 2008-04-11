@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.37 $ / $Date: 2008-03-25 10:04:12 $ / $Author: dan $
+ * @version $Revision: 1.38 $ / $Date: 2008-04-11 14:15:27 $ / $Author: dan $
  * @author dhelle01
  */
 
@@ -570,6 +570,11 @@ public class MapsSelectionPanel extends JPanel  {
           return absolutePath;
     }
     
+    public int getNumberOfSelections()
+    {
+        return ((MapTableModel)maps.getModel()).getNumberOfSelections();
+    }
+    
     class MapTableModel implements TableModel
     {
        private ArrayList localFiles = new ArrayList(); 
@@ -623,6 +628,14 @@ public class MapsSelectionPanel extends JPanel  {
        {
            localFileSelectionStates.add("Selected");
            localFiles.add(fileName);
+       }
+       
+       public int getNumberOfSelections()
+       {
+           int locals = java.util.Collections.frequency(localFileSelectionStates,"Selected");
+           int opens = java.util.Collections.frequency(openMapSelections.values(),"Selected");    
+                   
+           return locals + opens;
        }
        
        /**

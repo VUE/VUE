@@ -403,7 +403,7 @@ public class LWMergeMap extends LWMap {
                 
                    edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
                    vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-                   vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
+                   vme.setObject("source: " + comp.getMap().getLabel() + "," + sourceLabel);
                    node.getMetadataList().getMetadata().add(vme);
                    
                    if(!repeat)
