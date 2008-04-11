@@ -82,9 +82,60 @@ public class MetaButton extends tufts.vue.gui.VueButton //implements java.awt.ev
              System.out.println("MetaButton - mouseReleased: " + evt.getPoint());
            }*/
             
-           java.util.List<edu.tufts.vue.metadata.VueMetadataElement> metadataList = editor.getCurrent().getMetadataList().getMetadata();
+           boolean multipleMode = false;
+           tufts.vue.LWComponent current = null;
+           
+           if(editor.getCurrentMultiples() != null)
+           {
+               current = editor.getCurrentMultiples();
+               multipleMode = true;
+           }
+           else if(editor.getCurrent() != null)
+           {
+               current = editor.getCurrent();
+           }
+            
+           java.util.List<edu.tufts.vue.metadata.VueMetadataElement> metadataList = 
+                   current.getMetadataList().getMetadata();
+           
            int selectedRow = editor.getMetadataTable().getSelectedRow();
-           if(selectedRow != -1 && metadataList.size() > selectedRow)
+           boolean isValidRow = (selectedRow != -1) && (metadataList.size() > selectedRow);
+           
+           edu.tufts.vue.metadata.VueMetadataElement vme = null;
+           
+           if(isValidRow)
+           {
+              vme = metadataList.get(selectedRow);
+           }
+           
+           if(multipleMode)
+           {
+               tufts.vue.LWGroup multiples = (tufts.vue.LWGroup)current;
+               java.util.Iterator<tufts.vue.LWComponent> components = multiples.getAllDescendents().iterator();
+               while(components.hasNext())
+               {
+                   tufts.vue.LWComponent component = components.next();
+                   java.util.List<edu.tufts.vue.metadata.VueMetadataElement> compMLList = 
+                     component.getMetadataList().getMetadata();   
+                   
+                   if(DEBUG_LOCAL)
+                   {
+                       System.out.println("MetaButton --  sub component of multiples index of value: " +
+                                          compMLList.indexOf(vme));
+                   }
+                   
+                   // todo: this may not be exactly accurate in the case of exact duplicates
+                   compMLList.remove(compMLList.indexOf(vme));
+                   
+                   // really only need to do this if the component now doesn't have any user metadata
+                   if(compMLList.size() == 0)
+                      component.layout();
+                   tufts.vue.VUE.getActiveViewer().repaint();
+                  
+               }
+           }
+           
+           if(isValidRow)
            {
              metadataList.remove(selectedRow);
              editor.getMetadataTable().repaint();

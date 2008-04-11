@@ -106,6 +106,11 @@ public class MetadataList {
         else
             return null;
     }
+    
+    /*public int categoryIndexOfFirstWithValueAndKey(String key,String value)
+    {
+        
+    }*/
 
      /**
      *
@@ -411,6 +416,16 @@ public class MetadataList {
                return getOntologyListElement(i);
            else
                return getOtherListElement(i);            
+        }
+        
+        public java.util.List getList()
+        {
+            java.util.List returnList = new java.util.ArrayList();
+            for(int i=0;i<size();i++)
+            {
+                returnList.add(get(i));
+            }
+            return returnList;
         }
     }
     

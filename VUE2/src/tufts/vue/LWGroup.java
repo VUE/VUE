@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.84 $ / $Date: 2008-04-07 22:17:50 $ / $Author: mike $
+ * @version $Revision: 1.85 $ / $Date: 2008-04-11 13:00:47 $ / $Author: dan $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -284,7 +284,7 @@ public class LWGroup extends LWContainer
     // etc) -- this selection special stuff is a mess to have in LWGroup, which is
     // already some rediculously complicated code.
 
-    static LWGroup createTemporary(java.util.ArrayList selection)
+    static public LWGroup createTemporary(java.util.ArrayList selection)
     {
         LWGroup group = new LWGroup();
         group.isForSelection = true;

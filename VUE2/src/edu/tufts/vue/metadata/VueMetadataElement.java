@@ -152,6 +152,20 @@ public class VueMetadataElement {
        return type;
    }
    
-   
+   public boolean equals(Object compare)
+   {
+       if(compare instanceof VueMetadataElement)
+       {
+           VueMetadataElement vme = (VueMetadataElement)compare;
+           if(vme.getKey().equals(getKey()) && vme.getValue().equals(getValue()))
+               return true;
+           else
+               return false;
+       }
+       else
+       {
+           return false;
+       }
+   }
     
 }

@@ -176,7 +176,26 @@ public class CategoryEditor extends JPanel
                 
                 ((CategoryComboBoxModel)categories.getModel()).refresh();
                 int n = categories.getModel().getSize();
-                Object currObject = current.getMetadataList().getMetadata().get(row).getObject();
+                Object currObject = null;
+                
+                tufts.vue.LWComponent currComponent = null;
+                
+                if(metadataEditor.getCurrentMultiples() !=null )
+                {
+                    currComponent = metadataEditor.getCurrentMultiples();
+                }
+                else if(metadataEditor.getCurrent() !=null )
+                {
+                    currComponent = metadataEditor.getCurrent();
+                }
+                else
+                {
+                    
+                    CategoryEditor.this.dialog.dispose();
+                    return;
+                }
+                        
+                currObject = currComponent.getMetadataList().getMetadata().get(row).getObject();
                 Object currValue = (((String[])currObject)[0]);
                 metadataEditor.findCategory(currValue,row,col,n,categories);
                 categories.repaint();

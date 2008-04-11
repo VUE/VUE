@@ -38,11 +38,11 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.63 $ / $Date: 2008-01-28 19:07:14 $ / $Author: dan $
+ * @version $Revision: 1.64 $ / $Date: 2008-04-11 13:00:47 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
-    implements VueConstants, ResourceSelection.Listener, SearchListener
+    implements VueConstants, ResourceSelection.Listener, SearchListener, LWSelection.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(InspectorPane.class);
     
@@ -106,7 +106,7 @@ public class InspectorPane extends JPanel
         
        // add(stack, BorderLayout.CENTER);
 
-        //VUE.getSelection().addListener(this);
+        VUE.getSelection().addListener(this);
         VUE.addActiveListener(LWComponent.class, this);
         VUE.getResourceSelection().addListener(this);
         
@@ -122,6 +122,7 @@ public class InspectorPane extends JPanel
         loadResource(null);
         this.setEnabled(false);
         showNodePanes(false);
+        Widget.setHidden(mUserMetaData,true);
         showResourcePanes(false);       
     }
 
@@ -167,7 +168,21 @@ public class InspectorPane extends JPanel
         }
     }
     
-//     public void selectionChanged(LWSelection selection) {  
+     public void selectionChanged(LWSelection selection) {
+         
+           // todo: make the single selection work as before with showNodePanes
+           // i.e. as Active drives it.
+           if(!selection.contents().isEmpty())
+           {
+                    
+             mUserMetaData.load(selection.contents().get(0));
+             Widget.setHidden(mUserMetaData, false);
+             showResourcePanes(false);
+           }
+           else
+           {
+             Widget.setHidden(mUserMetaData, true);  
+           }
 //         showNodePanes(true);
 //         if (selection.isEmpty() || selection.size() > 1) {        	
 //             loadResource(null);
@@ -191,7 +206,7 @@ public class InspectorPane extends JPanel
 
 //             //setTypeName(mNotePanel, c, "Notes");
 //         }
-//     }
+    }
 
     private void setTypeName(JComponent component, LWComponent c, String suffix)
     {
@@ -241,7 +256,9 @@ public class InspectorPane extends JPanel
     private void showNodePanes(boolean visible) {
         Widget.setHidden(mSummaryPane, !visible);        
         Widget.setHidden(mNotePanel, !visible);
-        Widget.setHidden(mUserMetaData, !visible);
+        
+        //user meta data now hides and shows in LWSelection listener:
+        //Widget.setHidden(mUserMetaData, !visible);
         //Widget.setHidden(mNodeTree, !visible);
         Widget.setHidden(ontologicalMetadata, !visible);
         
@@ -514,6 +531,12 @@ public class InspectorPane extends JPanel
                   setOpaque(false);
                   userMetadataEditor = new MetadataEditor(c,true,true);
 
+                  LWSelection selection = VUE.getSelection();
+                  if(selection.contents().size() > 1)
+                  {
+                      userMetadataEditor.selectionChanged(selection);
+                  }
+                  
                   add(userMetadataEditor,BorderLayout.CENTER);
                 }
             }
