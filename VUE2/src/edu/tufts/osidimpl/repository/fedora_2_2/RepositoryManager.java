@@ -38,25 +38,26 @@ public class RepositoryManager
 			//System.out.println("Fedora 2.0 local configuration is " + configuration);
 			
 			Object displayname = configuration.getProperty("fedora22DisplayName");
-			Object address = configuration.getProperty("fedora22Address");
-			Object port = configuration.getProperty("fedora22Port");
-			Object username = configuration.getProperty("fedora22UserName");
-			Object password = configuration.getProperty("fedora22Password");
+//			Object address = configuration.getProperty("fedora22Address");
+//			Object port = configuration.getProperty("fedora22Port");
+//			Object username = configuration.getProperty("fedora22UserName");
+//			Object password = configuration.getProperty("fedora22Password");
 			
 			if (displayname != null) {
-				String displaynameString = (String)displayname;
-				String addressString = (String)address;
-				String portString = (String)port;
-				String usernameString = (String)username;
-				String passwordString = (String)password;
+//				String displaynameString = (String)displayname;
+//				String addressString = (String)address;
+//				String portString = (String)port;
+//				String usernameString = (String)username;
+//				String passwordString = (String)password;
 				
-				this.repository = new Repository("fedora.xml",
-												 REPOSITORY_ID_STRING,
-												 displaynameString,
-												 addressString,
-												 portString,
-												 usernameString,
-												 passwordString);
+//				this.repository = new Repository("fedora.xml",
+//												 REPOSITORY_ID_STRING,
+//												 displaynameString,
+//												 addressString,
+//												 portString,
+//												 usernameString,
+//												 passwordString);
+                            this.repository  = new Repository(configuration,REPOSITORY_ID_STRING);
 			}
         } catch (Throwable t) {
             t.printStackTrace();

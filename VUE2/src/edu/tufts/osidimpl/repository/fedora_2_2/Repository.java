@@ -85,6 +85,7 @@ public class Repository implements org.osid.repository.Repository {
     private java.util.Vector assetTypes = new java.util.Vector();
     private java.util.Vector searchTypes = new java.util.Vector();
     private java.util.Vector assets = new java.util.Vector();
+    private java.util.Properties configuration;
     private org.osid.shared.Id id = null;
     // private URL configuration = null;
 	private org.osid.shared.Type keywordSearchType = new Type("mit.edu","search","keyword");
@@ -94,7 +95,8 @@ public class Repository implements org.osid.repository.Repository {
     // this object stores the information to access soap.  These variables will not be required if Preferences becomes serializable
     private Properties fedoraProperties;
     /** Creates a new instance of Repository */
-    public Repository(String conf,
+
+      public Repository(String conf,
 					  String id,
 					  String displayName,
 					  String address,
@@ -115,6 +117,30 @@ public class Repository implements org.osid.repository.Repository {
 			loadFedoraObjectAssetTypes();
 			searchTypes.add(keywordSearchType);
 			searchTypes.add(multiFieldSearchType);
+        } catch (Throwable t) { t.printStackTrace(); }
+    }
+    
+     // This constructor shall eventually replace the above constructor. 
+     //This is robust and has access to all the configuration informaiton from osid 
+          public Repository(Properties configuration, String id) throws org.osid.repository.RepositoryException {
+        try {
+            this.id = new PID(id);
+            
+            	String  displayName = configuration.getProperty("fedora22DisplayName");
+                if (displayName != null) this.displayName = displayName;
+                String address = configuration.getProperty("fedora22Address");
+                if(address != null) setAddress(address);
+		String port = configuration.getProperty("fedora22Port");
+                if(port !=null) this.port = new Integer(port).intValue();
+                String userName = configuration.getProperty("fedora22UserName");
+                if(userName != null ) this.userName = userName;
+                String  password = configuration.getProperty("fedora22Password");
+		if(password != null) this.password = password;	
+                setFedoraProperties();
+                loadFedoraObjectAssetTypes();
+                searchTypes.add(keywordSearchType);
+                searchTypes.add(multiFieldSearchType);
+                this.configuration   = configuration;
         } catch (Throwable t) { t.printStackTrace(); }
     }
     
@@ -168,10 +194,6 @@ public class Repository implements org.osid.repository.Repository {
     }
     
     //TODO: remove this method completely in future
-    public URL getConfiguration() {
-        return null;
-    }
-    
     
     /**To create AssetTypes that don't exist when repository is loaded. OKI NEEDS to add such a feature
      *@ param String type
@@ -504,6 +526,10 @@ public class Repository implements org.osid.repository.Repository {
     }
     public void setPort(int port) {
         this.port = port;
+    }
+    
+    public Properties getConfiguration() {
+        return this.configuration;
     }
 }
 

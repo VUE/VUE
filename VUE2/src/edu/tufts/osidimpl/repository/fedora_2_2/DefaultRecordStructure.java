@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -148,13 +148,12 @@ public class DefaultRecordStructure
             String listDSUrl= Utilities.getRESTUrl(objectId.getIdString(),"listDatastreams", "?xml=true", repository);
             List<String> dataStreams = FedoraRESTSearchAdapter.getDataStreams(listDSUrl);
             if(dataStreams.contains(DEFAULT_MAP_DS)) {
-                   record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_MAP_DS, repository));
-              }  else if(dataStreams.contains(DEFAULT_RESOURCE_DS)) {
-                      record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_RESOURCE_DS, repository));
-                      
-//            } else if(repository.getConf().get("thumbnailSuffix")) {
-//                record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),repository.getConf().get("thumbnailSuffix"),repository));
-            }      else {
+                record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_MAP_DS, repository));
+            }  else if(dataStreams.contains(DEFAULT_RESOURCE_DS)) {
+                record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), DEFAULT_RESOURCE_DS, repository));  
+            }else if(repository.getConfiguration() != null && repository.getConfiguration().getProperty("linkSuffix")!=null && repository.getConfiguration().getProperty("linkSuffix").length() >0) {
+                record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(), repository.getConfiguration().getProperty("linkSuffix"), repository));  
+            } else {
                 record.createPart(recordStructure.getURLPartStructure().getId(), Utilities.formatObjectUrl(objectId.getIdString(),"",repository));
             }
             if(dataStreams.contains(DEFAULT_DC_DS))    {
