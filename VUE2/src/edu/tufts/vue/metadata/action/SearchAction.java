@@ -821,6 +821,27 @@ public class SearchAction extends AbstractAction {
            
         }
         
+        // also hide or show elements inside of groups when group is also
+        // in the search results set
+        if(resultsType == HIDE_ACTION || resultsType == SHOW_ACTION )
+        {
+            List<LWComponent> groupDescendants = new ArrayList<LWComponent>();
+            
+            Iterator<LWComponent> groupSearch = comps.iterator();
+            
+            while(groupSearch.hasNext())
+            {
+                LWComponent next = groupSearch.next();
+                if(next instanceof LWGroup)
+                {
+                    // todo: don't add duplicates!'
+                    groupDescendants.addAll(next.getAllDescendents(LWComponent.ChildKind.PROPER));
+                }
+            }
+            
+            comps.addAll(groupDescendants);
+        }
+        
         if(resultsType == HIDE_ACTION || resultsType == SELECT_ACTION)
         {    
             
