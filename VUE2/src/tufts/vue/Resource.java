@@ -30,83 +30,15 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 /**
- *  The Resource interface defines a set of methods which all vue resource objects must
- *  implement.  Together, they create a uniform way to handle dragging and dropping of
- *  resource objects.
+
+ *  The Resource abstract class defines a set of methods which all VUE Resource objects
+ *  must implement, and provides basic common functionality to all Resource types.
+ *  This class create a uniform way to handle dragging and dropping of resource
+ *  objects, displaying their content, and fetching their data.
+
  *
- * @version $Revision: 1.65 $ / $Date: 2008-04-09 07:47:16 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2008-04-14 19:43:03 $ / $Author: sfraize $
  */
-
-// TODO:
-// add getSource (or: get Location/Repository/Collection/DataSource/Where) (e.g. "ArtStor", "Internet/Web", "Local File")
-//      may be a good enough replacement for type?  type currently mixes location with content
-//      a bit by adding "directory", which along with "file" are really just both "Local File" locations,
-//      and "Favorites" is a total odd man-out: any given resource that happens to be in the
-//      favorites list may actually be of any of the other given types).
-// get rid of spec, but maybe include a getPath, and include a hasURL/getURL as is too damn handy.
-// add getReader, getContent (need something to get an image object, or do we handle that
-//      via a cross-cutting concern?)
-// get rid of getExtension, tho we may be trying to get a mime-type with that one.
-//      it *would* be really nice if we could easily know if this is, say, an image or HTML content tho
-//      maybe we do add mime-type and punt with "type/unknown" for most everything else
-//      until we might someday be able to extract this info from the filesystem.  Still
-//      might be useful enough to add a special case "isImage" tho (or maybe hasImage?)
-//
-// get rid of getToolTipInformation: getTitle will be our only special case
-// mapping of information from either meta-data or the URL/file-name to something
-// exposed in the API.
-//
-// Maybe even get rid of displayContent: make a cross-cutting concern handled
-// by a ResourceHandler?  could theoretically put stuff like isImage/isHTML
-// there also, altho we could leave both of this in the API and address
-// the weight of it by having a good AbstractResource that handles all
-// this stuff for you.
-//
-// Oh, we'll still need something for persistance tho, which spec was handling.
-// Maybe getAddress?  getUniqueID (a GLOBAL id, which implies us coming up
-// with protocol names for every OSID resource, but we had that problem
-// anyway.  Hmm: we could actually use the class name of the OSID DR impl
-// and let that handle it?  (or really the DataSource, unless we get
-// rid of that).
-//
-// Maybe get rid of getPreview for now; may add in a set of getPreview / getViewer / getEditor later.
-//
-// getIcon: make getThumbnail?  this needs to be defined: is too generic: maybe get rid of.
-//      the Asset/DataSource logo should come from the DataSource.  So maybe we need
-//      a getDataSource, which is really what the getWhere ends up being, and returns
-//      an object instead of a name.  Tho is of course handy for not just thumbnails,
-//      but say type-based application icons (from OS meta-data), or say the favicon.ico
-//      from a website.
-//
-// AND: if we ever get int getting "parts", maybe we should throw this whole thing out
-//      use the DR API itself?  a bit heavy weight tho.
-//
-// And don't forget: altho we want to handle "any kind of data source", the majority
-// of them are probably all going to be URL based, at least for the forseeabe future,
-// which is a practical consideration worth keeping in mind.
-
-// So the basic services being provided are:
-//      1 - get data for VUE (provide a handle for it)
-//      2 - get meta-data about the data (including the all important where this thing came from)
-//      3 - provide persistance of the reference to the data for VUE
-//      4 - provide some convenince wrapping of meta-data to tell us some very
-//          useful things such as:
-//              - a title
-//              - a URL if available
-//              - what we can do with this data (it's type), such is isImage, isHTML, and/or getMimeType
-//
-// Items 1-3 are an absolute requiment.  Items in 4 are for things useful
-// enough to include in the API, but only priority items worth expanding
-// the API for (these items are all computed from the meta-data, both properties based and DataSource based)
-//
-// Could also consider calling this an "Asset", tho that may be just too confusing given OKI & Fedora.
-//
-// Possibly add a "getName", to be the raw stub of a URL v.s. a massaged one for getTitle,
-// or former v.s. the meta-data title of a properly title document/image from a repository.
-// This is pure convience for a GUI / possibly "important" data for a user.  Maybe only
-// really for local files tho.  Could opt out of it but putting it in title and just
-// not having a massaged version that leaves (that does stuff like create spaces, removes
-// the extension, etc).
 
 public abstract class Resource implements Cloneable
 {
@@ -116,12 +48,17 @@ public abstract class Resource implements Cloneable
     public static final String HIDDEN_PREFIX = "@";
     /** property keys with this prefix are for runtime display only: will not be persisted */
     public static final String RUNTIME_PREFIX = "~"; 
+    /** property keys with this prefix are for internal runtime use only: will not be displayed or persisted */
+    public static final String HIDDEN_RUNTIME_PREFIX = "@@"; 
     /** property keys with this prefix are both hidden and runtime-only */
     public static final String DEBUG_PREFIX = "##";
     
-    public static final String PACKAGE_KEY = HIDDEN_PREFIX + "Packaged";
-    public static final String PACKAGE_FILE = RUNTIME_PREFIX + "Package.file";
+    public static final String PACKAGE_FILE = HIDDEN_RUNTIME_PREFIX + "package.file";
+    public static final String PACKAGE_KEY_DEPRECATED = HIDDEN_PREFIX + "Packaged";
     //public static final String PACKAGE_FILE = DEBUG_PREFIX + "package.file";
+
+    public static final String PACKAGE_ARCHIVE = RUNTIME_PREFIX + "Package";
+    
     
     // Some standard property names
     public static final String CONTENT_SIZE = "Content.size";
@@ -133,22 +70,23 @@ public abstract class Resource implements Cloneable
     public static final String IMAGE_FORMAT = "image.format";
     public static final String IMAGE_WIDTH = "image.width";
     public static final String IMAGE_HEIGHT = "image.height";
+
+    public static final Object MANAGED_UNMARSHALLING = "MANAGED-UNMARSHALLING";
     
-    public static final String FILE_RELATIVE = "file.relative";
-    
-    // VUE synthesized meta-data:
-    // content.type:    (content-type / mime-type -- from URL & File)
-    // content.size:    (file or URL on-disk content size)
-    // content.modified: (file / URL last modified)
-    // content.updated:  retrieved / URL "date", will always be the read time (image load) for local files
-    //  (accessed? asOf? retrieved?)
-    // content.source: e.g., "Local Disk", "Internet" (not Web, as confuses with FTP), "Black Ships"
-            
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
         tufts.vue.gui.GUI.makeDataFlavor(Resource.class);
 
     public static final String SPEC_UNSET = "<spec-unset>";
+
+    public static boolean isHiddenPropertyKey(String key) {
+        char c = 0;
+        try {
+            c = key.charAt(0);
+        } catch (Throwable t) {}
+               
+        return c == '@' || c == '#';
+    }
 
 
     /**
@@ -202,6 +140,7 @@ public abstract class Resource implements Cloneable
                             org.osid.OsidContext context)
             throws org.osid.repository.RepositoryException
         {
+            if (DEBUG.RESOURCE) System.out.println(""); // for spacing out large sets of search results
             Resource r = new Osid2AssetResource(asset, context);
             try {
                 //if (DEBUG.DR && repository != null) r.addProperty("~Repository", repository.getDisplayName());
@@ -303,17 +242,26 @@ public abstract class Resource implements Cloneable
      */
     public void setProperty(String key, Object value) {
 
-        if (DEBUG.DATA) dumpKV("setProperty", key, value);
-        
-        if (key != null && value != null) {
+        if (key == null)
+            return;
+
+        if (value != null) {
+            if (DEBUG.DATA) dumpKV("setProperty", key, value);
             if (!(value instanceof String && ((String)value).length() < 1))
                 mProperties.put(key, value);
+        } else {
+            if (DEBUG.Enabled) {
+                if (mProperties.containsKey(key)) {
+                    Object o = mProperties.get(key);
+                    dumpKV("setProperty(null)overwite?", key, o);
+                }
+            }
         }
     }
 
     public void setProperty(String key, long value) {
         if (key.endsWith(".contentLength") || key.endsWith(".size")) {
-            // this kind of a hack
+            // this is a hack...
             setByteSize(value);
         }
         setProperty(key, Long.toString(value));
@@ -325,7 +273,7 @@ public abstract class Resource implements Cloneable
     }
 
     private void dumpKV(String name, String key, Object value) {
-        if (DEBUG.DATA) out(String.format("%-14s%17s: %s%s%s", name, key, Util.TERM_RED, Util.tags(value), Util.TERM_CLEAR));
+        out(String.format("%-14s%17s: %s%s%s", name, key, Util.TERM_RED, Util.tags(value), Util.TERM_CLEAR));
     }
     
 
@@ -341,15 +289,16 @@ public abstract class Resource implements Cloneable
 
     /** debug properties are neither displayed at runtime, nor persisted */
     protected void setDebugProperty(String key, Object value) {
-        setProperty(DEBUG_PREFIX + key, value);
+        if (DEBUG.DATA) setProperty(DEBUG_PREFIX + key, value);
     }
 
     
 
     /** @return any prior value stored for this key, null otherwise */
     public Object removeProperty(String key) {
-        if (DEBUG.DATA) dumpKV("removeProperty", key, "[" + mProperties.get(key) + "]");
-        return mProperties.remove(key);
+        Object o = mProperties.remove(key);
+        if (DEBUG.DATA && o != null) dumpKV("removeProperty", key, o);
+        return o;
     }
 
     /**
@@ -361,15 +310,19 @@ public abstract class Resource implements Cloneable
         return mProperties.addProperty(desiredKey, value);
     }
     
-
+    protected Object getPropertyObject(String key) {
+        final Object value = mProperties.get(key);
+        if (DEBUG.DATA && value != null) dumpKV("getProperty", key, value);
+        return value;
+    }
+    
     /**
      * This method returns a value for the given property name.
      * @param pName the property name.
      * @return Object the value
      **/
     public String getProperty(String key) {
-        final Object value = mProperties.get(key);
-        if (DEBUG.DATA) dumpKV("getProperty", key, value);
+        final Object value = getPropertyObject(key);
         return value == null ? null : value.toString();
     }
 
@@ -428,8 +381,13 @@ public abstract class Resource implements Cloneable
 
     protected void setAsImage(boolean asImage) {
         isImage = asImage;
-        if (DEBUG.DR || DEBUG.RESOURCE) setDebugProperty("isImage", ""+ asImage);
+        if (DEBUG.Enabled) setDebugProperty("isImage", ""+ asImage);
     }
+
+    /** init pass to run after de-serialization (optional until we know we want to keep the resource) */
+    protected void initAfterDeserialize(Object context) {}
+    /** final init pass to run after de-serialization (optional until we know we want to keep the resource) */
+    protected void initFinal(Object context) {}
 
     /**
      * @return true if the data behind this component has recently changed
@@ -451,6 +409,28 @@ public abstract class Resource implements Cloneable
      * May return null if no image is available.
      */
     public abstract Object getImageSource();
+
+    /** @return a current local File, if there is one, that contains the data for this object.
+     * E.g., could return an original local data file, an http: cache file, etc.
+     * Return null if no such file exists.
+     */
+    protected File mDataFile;
+    public File getActiveDataFile() {
+
+        File sourceFile;
+        
+        if (mDataFile != null) {
+            sourceFile = mDataFile;
+        } else if (isImage()) {
+            sourceFile = Images.findCacheFile(this);
+        } else {
+            sourceFile = null;
+        }
+
+        return sourceFile;
+    }
+
+    //public abstract File getActiveDataFile();
     
     /**  
      *  Return the title or display name associated with the resource.
@@ -473,23 +453,27 @@ public abstract class Resource implements Cloneable
     /**
      *  Return a resource reference specification.  This could be a filename or URL.
      */
+    // todo: replace with more abstract call(s) -- as of packaging, callers
+    // don't generally just want the "spec", they want a local file if we
+    // have one (including a possible redirect to a package file) or a URL
+    // reference, with different priorities in different cases.
     public abstract String getSpec();
 
-    /**
-     * If a reference to this resource can be provided as a URL, return it in that form,
-     * otherwise return null.
-     *
-     * @return default Resource class impl: returns null
-     */
-    public java.net.URL asURL() {
-        return null;
-    }
+//     /**
+//      * If a reference to this resource can be provided as a URL, return it in that form,
+//      * otherwise return null.
+//      *
+//      * @return default Resource class impl: returns null
+//      */
+//     public java.net.URL asURL() {
+//         return null;
+//     }
 
 
-    /**
-     * All Resource impls should be able to return something that fits into a URI.
-     */
-    public abstract java.net.URI toURI();
+//     /**
+//      * All Resource impls should be able to return something that fits into a URI.
+//      */
+//     public abstract java.net.URI toURI();
     
     
     /** 
@@ -504,7 +488,7 @@ public abstract class Resource implements Cloneable
      */
     protected void setClientType(int type) {
         mType = type;
-        //if (DEBUG.RESOURCE) dumpField("setClientType", Integer.valueOf(type));
+        if (DEBUG.RESOURCE && DEBUG.META) dumpField("setClientType", TYPE_NAMES[type] + " (" + type + ")");
         try {
             setDebugProperty("clientType", TYPE_NAMES[type] + " (" + type + ")");
         } catch (Throwable t) {
@@ -539,9 +523,13 @@ public abstract class Resource implements Cloneable
         
 //         return ext;
 //     }
-    
-    
 
+    protected String mExtension = null;
+
+    protected void reset() {
+        mExtension = null;
+    }
+    
     public static final String NO_EXTENSION = "";
     public static final String EXTENSION_DIR = "dir";
     public static final String EXTENSION_HTTP = "web";
@@ -556,55 +544,82 @@ public abstract class Resource implements Cloneable
     // TODO: cache / allow setting (e.g. special data sources might be able to indicate type that's otherwise unclear
     // e.g., a URL query part that requests "type=jpeg")
     public String getDataType() {
-//         String type = null;
-//         if (getClientType() == DIRECTORY)
-//             type = EXTENSION_DIR;
-//         else
-//             type = extractExtension(getSpec());
 
+        if (mExtension != null)
+            return mExtension;
+        
         String ext = extractExtension(getSpec());
 
         if (ext == null || ext == NO_EXTENSION || ext.length() == 0) {
             final String spec = getSpec();
             if (spec == null || spec == SPEC_UNSET || spec.trim().length() < 1)
                 ext = EXTENSION_UNKNOWN;
-            else if (spec.startsWith("http:")) // todo: https, etc...
+            else if (spec.startsWith("http:") || spec.startsWith("https:")) 
                 ext = EXTENSION_HTTP;
             else
                 ext = EXTENSION_DIR;
+            if (DEBUG.RESOURCE) out("set extType=[" + ext + "]");
+            //if (DEBUG.RESOURCE) Log.warn("set extType=[" + ext + "]", new Throwable());
         }
-        
-//         if (type == NO_EXTENSION) {
-//             if (getClientType() == FILE) {
-//                 // todo: this really ought to be in a FileResource and/or a useful osid filing impl
-//                 type = EXTENSION_DIR;
-//                 // assume a directory for now...
-//             } 
-//         }
 
-        if (DEBUG.RESOURCE) out("extType=[" + ext + "] in " + this);
-        //if (DEBUG.RESOURCE) out(getSpec() + "; extType=[" + ext + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
+        mExtension = ext;
+        
         return ext;
     }
+
+//     // was getExtension
+//     // TODO: cache / allow setting (e.g. special data sources might be able to indicate type that's otherwise unclear
+//     // e.g., a URL query part that requests "type=jpeg")
+//     public String getDataType() {
+// //         String type = null;
+// //         if (getClientType() == DIRECTORY)
+// //             type = EXTENSION_DIR;
+// //         else
+// //             type = extractExtension(getSpec());
+
+//         String ext = extractExtension(getSpec());
+
+//         if (ext == null || ext == NO_EXTENSION || ext.length() == 0) {
+//             final String spec = getSpec();
+//             if (spec == null || spec == SPEC_UNSET || spec.trim().length() < 1)
+//                 ext = EXTENSION_UNKNOWN;
+//             else if (spec.startsWith("http:")) // todo: https, etc...
+//                 ext = EXTENSION_HTTP;
+//             else
+//                 ext = EXTENSION_DIR;
+//         }
+        
+// //         if (type == NO_EXTENSION) {
+// //             if (getClientType() == FILE) {
+// //                 // todo: this really ought to be in a FileResource and/or a useful osid filing impl
+// //                 type = EXTENSION_DIR;
+// //                 // assume a directory for now...
+// //             } 
+// //         }
+
+//         if (DEBUG.RESOURCE) out("extType=[" + ext + "] in " + this);
+//         //if (DEBUG.RESOURCE) out(getSpec() + "; extType=[" + ext + "] in [" + this + "] type=" + TYPE_NAMES[getClientType()]);
+//         return ext;
+//     }
     
 
     /** @return the likely extension for the given string, or NO_EXTENSION if none found */
-    protected static String extractExtension(final String s) {
+    private String extractExtension(final String s) {
 
         final char lastChar = s.charAt(s.length()-1);
         String ext = NO_EXTENSION;
         
         //if (lastChar == '/' || lastChar == '\\' || lastChar == File.separatorChar)
         if (Character.isLetterOrDigit(lastChar) == false) {
-            // assume some a path element or special file
+            // assume some kind of a path element or special file
         } else {
             final int lastDotIdx = s.lastIndexOf('.');
         
             // must have at least one char's worth of file-name, and one two chars worth of data after the dot
             if (lastDotIdx > 1 && (s.length() - lastDotIdx) > 2) {
-                String txt = s.substring(lastDotIdx + 1);
-                if (Character.isLetterOrDigit(txt.charAt(0))) {
-                    ext = txt;
+                String extTest = s.substring(lastDotIdx + 1);
+                if (Character.isLetterOrDigit(extTest.charAt(0))) {
+                    ext = extTest;
                 } else {
                     // failsafe check in case somehow a separator wound up at the end
                     // ext = NO_EXTENSION;
@@ -613,7 +628,7 @@ public abstract class Resource implements Cloneable
         }
 
 
-        if (DEBUG.RESOURCE) Log.debug("extract[" + s + "]; ext=[" + ext + "]");
+        //if (DEBUG.RESOURCE && DEBUG.DATA) out("extract[" + s + "]; ext=[" + ext + "]");
         return ext;
     }
 
@@ -758,17 +773,11 @@ public abstract class Resource implements Cloneable
      */
     public abstract Object getPreview();
 
-//     public static final Object SMALL = "small";
-//     public static final Object MEDIUM = "medium";
-//     public static final Object LARGE = "large";
-//     /**
-//      * @param preferredSize: either SMALL, MEDIUM, or LARGE. This is a general hint only and may
-//      * not be respected.  If the Resource is image content, 
-//      */
-//     public abstract Object getPreview(Object preferredSize);
-
-    private boolean isCached;
+    public boolean isPackaged() {
+        return hasProperty(PACKAGE_FILE);
+    }
     
+    private boolean isCached;
     protected boolean isCached() {
         return isCached;
     }
@@ -778,19 +787,23 @@ public abstract class Resource implements Cloneable
         isCached = cached;
     }
     
-    //public abstract void setCached(boolean isCached);
-
-    //public abstract java.io.InputStream getByteStream();
-    
+//     public abstract java.io.InputStream getByteStream();
 //     public abstract void setCacheFile(java.io.File cacheFile);
 //     public abstract java.io.File getCacheFile();
 
-    /** if possible, make this Resource relatve to the given root */
-    public abstract void makeRelativeTo(URI root);    
+    /** if this resource is relative to the given root, record this in the resource in a persistant way */
+    public abstract void recordRelativeTo(URI root);
+    
+    //public abstract void updateIfRelativeTo(URI root);    
 
-    /** @deprecated -- cleanup / remove */
-    public void updateRootLocation(URI oldRoot, URI newRoot) {}
-    //public abstract void updateRootLocation(URI oldRoot, URI newRoot);
+    /** if this resource was relative when it was persisted, see if it can be found relative to the new location */
+    public abstract void restoreRelativeTo(URI root);    
+
+//     /** @eprecated - if possible, make this Resource relatve to the given root */
+//     public abstract void makeRelativeTo(URI root);    
+//     /** @eprecated -- cleanup / remove */
+//     public void updateRootLocation(URI oldRoot, URI newRoot) {}
+//     //public abstract void updateRootLocation(URI oldRoot, URI newRoot);
 
     /**
      *  Return tooltip information, if any.  Basic HTML tags are permitted.
@@ -802,27 +815,18 @@ public abstract class Resource implements Cloneable
                              getClass().getSimpleName(),
                              System.identityHashCode(this),
                              TYPE_NAMES[getClientType()],
-                             getSpec());
+                             mDataFile == null ? getSpec() : Util.tags(mDataFile)
+                             //getLocationName() // may trigger property fetches during debug which is very messy
+                             //(mDataFile != null && hasProperty(PACKAGE_FILE)) ? mDataFile.getName() : getSpec()
+                             );
     }
 
-    /** @return true if the given path or filename looks like it probably contains image data in a format we understand
-     * This just looks for common extentions (e.g., .gif, .jpg, etc).  This can be applied to filenames, full paths, URL's, etc.
-     */
-    public static boolean looksLikeImageFile(String path) {
-        if (DEBUG.WORK) Log.debug("looksLikeImageFile [" + path + "]");
-        String s = path.toLowerCase();
-        if    (s.endsWith(".gif")
-            || s.endsWith(".jpg")
-            || s.endsWith(".jpeg")
-            || s.endsWith(".png")
-            || s.endsWith(".tif")
-            || s.endsWith(".tiff")
-            || s.endsWith(".fpx")
-            || s.endsWith(".bmp")
-            || s.endsWith(".ico")
-          
-               ) return true;
-        return false;
+    public String getLocationName() {
+        return getSpec();
+    }
+    
+    public String getDescription() {
+        return getSpec();
     }
     
     public String toString() {
@@ -844,63 +848,185 @@ public abstract class Resource implements Cloneable
         }
     }
     
-//     public String toString() {
-//         if (mProperties == null)
-//             return getSpec();
-//         else
-//             return getSpec();+ " " + mProperties;
-//     }
-
     
     protected void out(String s) {
         Log.debug(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
     }
+    
+    protected void out_info(String s) {
+         Log.info(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+    }
+    
+    protected void out_warn(String s) {
+         Log.warn(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+    }
+    
+    protected void out_error(String s) {
+        Log.error(String.format("%s@%07x: %s", getClass().getSimpleName(), System.identityHashCode(this), s));
+    }
 
+    
 
-    public static File getLocalFileIfPresent(String urlOrPath) {
-        if (urlOrPath.startsWith("file:"))
-            return new File(urlOrPath.substring(5));
+    /** @return true if the given path or filename looks like it probably contains image data in a format we understand
+     * This just looks for common extentions (e.g., .gif, .jpg, etc).  This can be applied to filenames, full paths, URL's, etc.
+     */
+    public static boolean looksLikeImageFile(String path) {
+        if (DEBUG.WORK) Log.debug("looksLikeImageFile [" + path + "]");
+        String s = path.toLowerCase();
+        if    (s.endsWith(".gif")
+            || s.endsWith(".jpg")
+            || s.endsWith(".jpeg")
+            || s.endsWith(".png")
+            || s.endsWith(".tif")
+            || s.endsWith(".tiff")
+            || s.endsWith(".fpx")
+            || s.endsWith(".bmp")
+            || s.endsWith(".ico")
+          
+               ) return true;
+        return false;
+    }
+
+    //public static boolean isLikelyURLorFile(String s) {
+    public static boolean looksLikeURLorFile(String s) {
+
+        if (s == null)
+            return false;
+
+        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
+        final char c1 = s.length() > 1 ? s.charAt(1) : 0;
+        
+        return c0 == '/'
+            || c0 == '\\'
+            || (Character.isLetter(c0) && c1 == ':') // Windows style C:\path\file
+            || s.startsWith(java.io.File.separator)
+            || s.startsWith("http://")
+            || s.startsWith("file:")
+            ;
+    }
+
+    /**
+     * @return true if the given string looks like it MAY represent a file on the local file system,
+     * such that the given string would successfully init a java.io.File object (even if the file doesn't exist)
+     */
+    public static boolean looksLikeLocalFilePath(String s) {
+
+        if (s == null)
+            return false;
+
+        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
+
+        if (Util.isWindowsPlatform()) {
+        
+            final char c1 = s.length() > 1 ? s.charAt(1) : 0;
+            
+            return c0 == '/'
+                || c0 == '\\'
+                || (Character.isLetter(c0) && c1 == ':') // Windows style C:\path\file
+                || s.startsWith(java.io.File.separator)
+                //|| s.startsWith("file:")
+                ;
+            
+        } else {
+
+            return c0 == '/'
+                || s.startsWith(java.io.File.separator)
+                //|| s.startsWith("file:")
+                ;
+            
+        }
+
+    }
+
+    public static String toCanonical(File file)
+    {
+        String canonical = null;
+
+        try {
+            canonical = file.getCanonicalPath();
+        } catch (Throwable t) { Log.warn(file, t); }
+
+        return canonical == null ? file.getAbsolutePath() : canonical;
+    }
+    
+    public static File toCanonicalFile(File file)
+    {
+        String canonical = toCanonical(file);
+
+        if (file.getPath().equals(canonical))
+            return file;
         else
-            return getLocalFileIfPresent(makeURL(urlOrPath));
+            return new File(canonical);
     }
     
 
+    /** @return a File object if one can be found (and if it exists) */
+    public static File getLocalFileIfPresent(String urlOrPath) {
+
+        // todo: make semantics determinisitic: should this only return files
+        // that already exist or not?  
+        
+        File file = null;
+
+        if (urlOrPath.startsWith("file:")) {
+            
+            file = new File(urlOrPath.substring(5));
+            
+        } else if (looksLikeLocalFilePath(urlOrPath)) {
+            
+            file = new File(urlOrPath);
+            
+        } 
+
+        if ((DEBUG.RESOURCE || DEBUG.IO) && file != null) Log.debug("getLocalFileIfPresent(String): testing " + file);
+
+        if (file == null || !file.exists()) {
+
+            file = getLocalFileIfPresent(makeURL(urlOrPath));
+            
+        }
+
+        return file;
+    }
+    
+
+    // this will only return files that already exist
     public static File getLocalFileIfPresent(URL url)
     {
         if (url == null || !"file".equals(url.getProtocol()))
             return null;
 
-        if (DEBUG.RESOURCE) dumpURL(url, "getLocalFileIfPresent");
+        if (DEBUG.RESOURCE) dumpURL(url, "getLocalFileIfPresent; from:");
 
         File file = null;
 
         if (false) {
 
-            // Sometimes Win32 C:/foo/bar.jpg URI's will wind up with the entire path in
-            // the scheme-specifc part, not the path, which will be null, so we have
-            // nothing to create the file from.  We could pull the scheme-specific if
-            // path is empty if we need to, but for now we're going to try woring with
-            // pure URL paths...
+//             // Sometimes Win32 C:/foo/bar.jpg URI's will wind up with the entire path in
+//             // the scheme-specifc part, not the path, which will be null, so we have
+//             // nothing to create the file from.  We could pull the scheme-specific if
+//             // path is empty if we need to, but for now we're going to try woring with
+//             // pure URL paths...
 
-            final URI uri = makeURI(url);
-            if (uri == null)
-                return null;
-            if (DEBUG.RESOURCE) dumpURI(uri, "made URI from " + Util.tags(url));
+//             final URI uri = makeURI(url);
+//             if (uri == null)
+//                 return null;
+//             if (DEBUG.RESOURCE) dumpURI(uri, "made URI from " + Util.tags(url));
         
-            try {
+//             try {
                 
-                file = new File(uri.getPath());
-                if (!file.exists())
-                    throw new RuntimeException("doesn't exist: " + file);
-                //file = new File(uri);
-            } catch (Throwable t) {
-                Log.warn("failed to create File from URI " + uri, t);
-                dumpURIError(uri, "unable to convert 'file:' URL");
-            }
+//                 file = new File(uri.getPath());
+//                 if (!file.exists())
+//                     throw new RuntimeException("doesn't exist: " + file);
+//                 //file = new File(uri);
+//             } catch (Throwable t) {
+//                 Log.warn("failed to create File from URI " + uri, t);
+//                 dumpURIError(uri, "unable to convert 'file:' URL");
+//             }
             
         } else {
 
-            // The advantage of URI of URL here is that for paths such as
+            // The advantage of URI over URL here is that for paths such as
             // //.host/foo/bar.jpg, ".host" winds up in the URL authority, and the path
             // doesn't contain it, so we can't create a proper File without knowing how
             // to properly prefix the authorty with "//" or however many slashes may be
@@ -933,15 +1059,23 @@ public abstract class Resource implements Cloneable
                     file = new File(url.getPath());
                 }
 
+                if (DEBUG.RESOURCE && file != null) dumpFile(file);
+
                 if (!file.isAbsolute()) {
                     // We could handle checking for relative files (relative to the map)
                     // if we had a ref to the ResourceFactory, and we added a method
                     // there for finding files relative to the map.
-                    if (DEBUG.RESOURCE) Log.debug("ignoring non-absolute: " + file);
+                    if (DEBUG.Enabled) Log.debug("ignoring non-absolute: " + Util.tags(file));
                     return null;
                 }
                 
-                if (DEBUG.RESOURCE && file != null) dumpFile(file, "getLocalFileIfPresent", false);
+
+                if (DEBUG.RESOURCE || DEBUG.IO) Log.debug("getLocalFileIfPresent(URL): testing " + file);
+                if (!file.exists()) {
+                    if (DEBUG.Enabled) Log.debug("ignoring non-existent " + Util.tags(file));
+                    return null;
+                }
+                
 
                 //if (DEBUG.Enabled) Log.debug("got canonical path: " + file.getCanonicalPath());
                 
@@ -955,50 +1089,46 @@ public abstract class Resource implements Cloneable
         
         
 
-        if (DEBUG.RESOURCE) Log.debug("got File from URL: " + Util.tags(file) + "; from " + Util.tags(url));
+        //if (DEBUG.RESOURCE) Log.debug("got File from URL: " + Util.tags(file) + "; from " + Util.tags(url));
         return file;
     }
 
-    private static final String URL_FILE_PROTOCOL_PREFIX = "file://";
-    
-    /** If given string is a valid URL, make one and return it, otherwise, return null.
-     *
-     * @return the new URL -- returned URL's will be fully decoded
-     * @see java.net.URLDecoder
-     *
-     **/
-    public static java.net.URL makeURL(final String s)
+    protected static String encodeForURL(String s)
+    //throws java.io.UnsupportedEncodingException
     {
+        //String encoded;
+
         try {
-            final URI uri = makeURI(s);
-
-            URL url = null;
-            String decoded = null;
-
-            try {
-                decoded = java.net.URLDecoder.decode(uri.toString(), "UTF-8");
-                url = new URL(decoded);
-            } catch (Throwable t) {
-               Log.info("couldn't make URL from decoded " + (decoded == null ? Util.tags(uri) : decoded), t);
-               // URI.toURL leaves the URL in encoded form: local file paths need decoding to be useful to java.io.File
-               url = uri.toURL();
-           }
-
-            //final URL url = uri.toURL(); 
-            //final URL url = new URL(java.net.URLDecoder.decode(uri.toString(), "UTF-8"));
-
-            if (DEBUG.RESOURCE && url != null) dumpURL(url, "MADE URL FROM " + Util.tags(s) + "; via " + Util.tags(uri));
-
-            return url;
-            
+            //encoded = java.net.URLEncoder.encode(s, "UTF-8");
+            return java.net.URLEncoder.encode(s, "UTF-8");
         } catch (Throwable t) {
-            Log.warn("Failed to make URL from: " + s + "; " + t);
-            return null;
+            Log.error("Failed to encode [" + s + "]", t);
+            return java.net.URLEncoder.encode(s);
         }
+        //return encoded;
     }
 
-        
+// //     public static String URLEncode(URI uri)
+// //     }
+
+    
+    protected static String decodeURI(String s)
+        throws java.io.UnsupportedEncodingException
+    {
+        String decoded = java.net.URLDecoder.decode(s, "UTF-8");
+        return decoded;
+    }
+    
+    protected static String decodeForURL(String s)
+        throws java.io.UnsupportedEncodingException
+    {
+        return decodeURI(s);
+    }
+
     private static String encodeForURI(String s) {
+
+        //if (true) return s;
+        
         s = s.replaceAll(" ", "%20");
 
         if (s.indexOf('\\') >= 0 && !Util.isWindowsPlatform()) {
@@ -1018,52 +1148,90 @@ public abstract class Resource implements Cloneable
         //return s.replace(' ', '+'); // no good
     }
 
-    public static URI makeURI(URL url) {
-
-        //URI uri = url.toURI(); // all this does is "new URI(toString())"
-
-        final String encoded = encodeForURI(url.toString());
-        URI uri = null;
+    protected static String decodeForFile(String s)
+    {
+        String decoded = s;
         try {
-            uri = new URI(encoded);
-            uri = uri.normalize();
+            decoded = decodeURI(s);
         } catch (Throwable t) {
-            Log.debug("URI from " + Util.tags(url), t);
-            dumpURL(url);
+            Log.warn("decodeForFile: " + t + "; " + s);
         }
-        return uri;
+        return decoded;
+    }
+
+    protected static File toFile(URI uri)
+    {
+        return new File(uri.getPath());
     }
     
-//     public static URI makeURI(File f) {
-//         URI uri = f.toURI();
-//         if (DEBUG.RESOURCE) dumpURI(uri, "NEW FILE URI FROM " + f);
-        
-//         Util.printStackTrace("makeURI from " + Util.tags(f) + "; manually checking for /C:");
-//         // TODO: this "/C:" check isn't generic enough: is this code even being called anywhere?
-        
-//         if (uri.getPath().startsWith("/C:"))
-//             return makeURI(uri.getPath().substring(3));
-//         else
-//             return uri;
-//     }
     
-    public static boolean isLikelyURLorFile(String s) {
 
-        if (s == null)
-            return false;
 
-        final char c0 = s.length() > 0 ? s.charAt(0) : 0;
-        final char c1 = s.length() > 1 ? s.charAt(1) : 0;
-        
-        return c0 == '/'
-            || c0 == '\\'
-            || (Character.isLetter(c0) && c1 == ':')
-            || s.startsWith(java.io.File.separator)
-            || s.startsWith("http://")
-            || s.startsWith("file:")
-            ;
+    /** @return a URL for the given file, otherwise null */
+    public static java.net.URL makeURL(final File file)
+    {
+        try {
+            return file.toURL();
+        } catch (Throwable t) {
+            Log.warn(Util.tags(file) + " failed to convert itself to a URL", new Throwable());
+            return makeURL(file.toString());
+        }
     }
     
+
+    private static final String URL_FILE_PROTOCOL_PREFIX = "file://";
+
+    /** If given string is a valid URL, make one and return it, otherwise, return null.
+     *
+     * @return the new URL -- returned URL's will be fully decoded
+     * @see java.net.URLDecoder
+     *
+     **/
+    public static java.net.URL makeURL(final String s)
+    {
+        try {
+
+            URL url = null;
+
+            try {
+                url = new URL(s);
+            } catch (java.net.MalformedURLException e) {
+                if (DEBUG.Enabled) Log.info("makeURL: " + s + "; " + e);
+            }
+
+            if (url != null)
+                return url;
+
+            final URI uri = makeURI(s);
+
+            String decoded = null;
+            
+            try {
+                //decoded = URLDecode(uri.toString());
+                decoded = java.net.URLDecoder.decode(uri.toString(), "UTF-8");
+                //decoded = replaceAll("+", 
+                url = new URL(decoded);
+            } catch (Throwable t) {
+               Log.info("couldn't make URL from decoded " + (decoded == null ? Util.tags(uri) : decoded), t);
+               // URI.toURL leaves the URL in encoded form: local file paths need decoding to be useful to java.io.File
+               url = uri.toURL();
+           }
+
+            //final URL url = uri.toURL(); 
+            //final URL url = new URL(java.net.URLDecoder.decode(uri.toString(), "UTF-8"));
+
+            //if (DEBUG.RESOURCE && url != null) dumpURL(url, "MADE URL FROM " + Util.tags(s) + "; via " + Util.tags(uri));
+            if (DEBUG.Enabled && url != null) dumpURL(url, "Made URL FROM " + Util.tags(uri));
+
+            return url;
+            
+        } catch (Throwable t) {
+            Log.warn("Failed to make URL from: " + s + "; " + t);
+            return null;
+        }
+    }
+
+        
     public static URI makeURI(String s)
     {
         final char c0 = s.length() > 0 ? s.charAt(0) : 0;
@@ -1108,7 +1276,7 @@ public abstract class Resource implements Cloneable
 
         
         if (DEBUG.RESOURCE) {
-            if (uri != null) dumpURI(uri, "MADE URI FROM " + Util.tags(s));
+            if (uri != null) dumpURI(uri, "Made URI FROM " + Util.tags(s));
             //if (uri != null) dumpURI(uri, "   MADE FROM STRING: " + s);
 //             if (uri != null && uri.toString().equals(s))
 //                 System.err.println("            MADE URI: " + uri);
@@ -1118,9 +1286,97 @@ public abstract class Resource implements Cloneable
         
         return uri;
     }
+
+    public static URI makeURI(URL url) {
+
+        //URI uri = url.toURI(); // all this does is "new URI(toString())"
+
+        final String encoded = encodeForURI(url.toString());
+        URI uri = null;
+        try {
+            uri = new URI(encoded);
+            uri = uri.normalize();
+        } catch (Throwable t) {
+            Log.debug("URI from " + Util.tags(url), t);
+            dumpURL(url);
+        }
+        return uri;
+    }
     
-    public static void dumpURI(URI u) {
-        dumpURI(u, null, false);
+//     public static URI makeURI(File f) {
+//         URI uri = f.toURI();
+//         if (DEBUG.RESOURCE) dumpURI(uri, "NEW FILE URI FROM " + f);
+        
+//         Util.printStackTrace("makeURI from " + Util.tags(f) + "; manually checking for /C:");
+//         // TODO: this "/C:" check isn't generic enough: is this code even being called anywhere?
+        
+//         if (uri.getPath().startsWith("/C:"))
+//             return makeURI(uri.getPath().substring(3));
+//         else
+//             return uri;
+//     }
+    
+    protected static Object debugURI(String s) {
+        try {
+            return new URI(s);
+        } catch (Throwable t) {
+            return t;
+            //return t.toString() + "; " + Util.tags(s);
+        }
+    }
+    protected static String debugURL(String s) {
+        try {
+            return new URL(s).toString();
+        } catch (Throwable t) {
+            return t.toString();
+            //return t.toString() + "; " + Util.tags(s);
+        }
+    }
+    
+    
+
+    public static boolean canDump(Object o) {
+        return o instanceof File || o instanceof URL || o instanceof URI;
+    }
+
+    public static String getDump(Object o) {
+        return getDump(o, null);
+    }
+    
+    /** @return a dump of either a URI, URL or File object */
+    public static String getDump(Object o, String msg)
+    {
+        final StringWriter buf = new StringWriter(256);
+        final PrintWriter w = new PrintWriter(buf);
+        
+        if (msg != null) w.println(msg);
+        
+        if (o instanceof URI)
+            writeURI(w, (URI) o, msg);
+        else if (o instanceof URL)
+            writeURL(w, (URL) o, msg);
+        else if (o instanceof File)
+            writeFile(w, (File) o, msg);
+        else
+            w.print("\tResource: unhandled getDump for object of type: " + Util.tags(o));
+
+        return buf.toString();
+    }
+    
+    private static void dumpOut(Object o, String msg, boolean toError)
+    {
+        if (msg == null) msg = Util.TERM_RED + "Made " + o.getClass().getName() + ";" + Util.TERM_CLEAR;
+
+        final String txt = getDump(o, msg);
+
+        if (toError)
+            Log.error(txt);
+        else
+            Log.debug(txt);
+    }
+
+    public static void dumpURI(URI u, String msg, boolean error) {
+        dumpOut(u, msg, error);
     }
     public static void dumpURI(URI u, String msg) {
         dumpURI(u, msg, false);
@@ -1128,15 +1384,52 @@ public abstract class Resource implements Cloneable
     public static void dumpURIError(URI u, String msg) {
         dumpURI(u, msg, true);
     }
-    public static void dumpURI(URI u, String msg, boolean error) {
+    public static void dumpURI(URI u) {
+        dumpURI(u, null, false);
+    }
 
-        final StringWriter buf = new StringWriter(256);
-        final PrintWriter w = new PrintWriter(buf);
+    public static void dumpURL(URL u, String msg, boolean error) {
+        dumpOut(u, msg, error);        
+    }
+    public static void dumpURL(URL u, String msg) {
+        dumpURL(u, msg, false);
+    }
+    public static void dumpURLError(URL u, String msg) {
+        dumpURL(u, msg, true);
+    }
+    public static void dumpURL(URL u) {
+        dumpURL(u, null);
+    }
+    
+
+
+    public static void dumpFile(File u, String msg, boolean error) {
+        dumpOut(u, msg, error);
+    }
+    public static void dumpFile(File u) {
+        dumpFile(u, null, false);
+    }
+    
+    
+//     public static void dumpURI(URI u, String msg, boolean error) {
+//         final StringWriter buf = new StringWriter(256);
+//         final PrintWriter w = new PrintWriter(buf);
         
-        if (msg == null) msg = "Made URI;";
+//         if (msg == null) msg = "Made URI;";
+//     }
+    
+    private static void writeURI(PrintWriter w, URI u, String msg) {
         
+        w.printf("%20s: %s (@%x) %s %s",
+                 "URI",
+                 u,
+                 System.identityHashCode(u),
+                 u.isAbsolute() ? "ABSOLUTE" : "RELATIVE",
+                 u.isOpaque() ? "OPAQUE" : ""
+                 );
+
         if (DEBUG.META) writeField(w, "hashCode",       Integer.toHexString(u.hashCode()));
-
+        
         writeField(w, "scheme",               u.getScheme());
         writeField(w, "scheme-specific",      u.getSchemeSpecificPart(), u.getRawSchemeSpecificPart());
         writeField(w, "authority",            u.getAuthority(), u.getRawAuthority());
@@ -1149,68 +1442,41 @@ public abstract class Resource implements Cloneable
         writeField(w, "path",         u.getPath(), u.getRawPath());
         writeField(w, "query",        u.getQuery(), u.getRawQuery());
         writeField(w, "fragment",     u.getFragment(), u.getRawFragment());
-
-        String txt = String.format("%s\n%20s: %s %s%s (@%x)%s",
-                                   msg,
-                                   "URI",
-                                   u,
-                                   u.isAbsolute() ? "ABSOLUTE" : "RELATIVE",
-                                   u.isOpaque() ? " OPAQUE" : "",
-                                   System.identityHashCode(u),
-                                   buf.getBuffer()
-                                   );
-        if (error)
-            Log.error(txt);
-        else
-            Log.debug(txt);
-        
-        //System.out.println("len=" + buf.getBuffer().length());
     }
+    
+    
+    private static void writeFile(PrintWriter w, File u, String msg)
+    {
+        w.printf("%20s: %s (@%x)", "File", u, System.identityHashCode(u));
 
-    public static void dumpFile(File u, String msg, boolean error) {
-
-        if (msg == null) msg = "Made File;";
-        
-        final StringWriter buf = new StringWriter(256);
-        final PrintWriter w = new PrintWriter(buf);
-            
         if (DEBUG.META) writeField(w, "hashCode",       Integer.toHexString(u.hashCode()));
         writeField(w, "path",            u.getPath());
         writeField(w, "absolutePath",    u.getAbsolutePath());
+
         try {
             writeField(w, "canonicalPath",   u.getCanonicalPath());
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
+        } catch (Throwable t) { t.printStackTrace(); }
+        try {
+            writeField(w, "toURI",   u.toURI());
+        } catch (Throwable t) { t.printStackTrace(); }
+        try {
+            writeField(w, "toURL",   u.toURL());
+        } catch (Throwable t) { t.printStackTrace(); }
+        
         writeField(w, "name",       u.getName());
         writeField(w, "parent",       u.getParent());
         writeField(w, "isAbsolute",       u.isAbsolute());
         writeField(w, "isNormalFile",       u.isFile());
         writeField(w, "isDirectory",       u.isDirectory());
-
-        String txt = String.format("%s\n%20s: %s (@%x)%s",
-                                   msg,
-                                   "File",
-                                   u,
-                                   System.identityHashCode(u),
-                                   buf.getBuffer()
-                                   );
-        
-        if (error)
-            Log.error(txt);
-        else
-            Log.debug(txt);
-        
-        //System.out.println("len=" + buf.getBuffer().length());
+        writeField(w, "exists",       u.exists());
+        writeField(w, "canRead",       u.canRead());
     }
-    
-    public static void dumpURL(URL u, String msg, boolean error) {
 
-        if (msg == null) msg = "Made URL;";
+    
+    private static void writeURL(PrintWriter w, URL u, String msg)
+    {
+        w.printf("%20s: %s (@%x)", "URL", u, System.identityHashCode(u));
         
-        final StringWriter buf = new StringWriter(256);
-        final PrintWriter w = new PrintWriter(buf);
-            
         if (DEBUG.META) writeField(w, "hashCode",       Integer.toHexString(u.hashCode()));
         writeField(w, "protocol",       u.getProtocol());
         writeField(w, "userInfo",       u.getUserInfo());
@@ -1222,33 +1488,6 @@ public abstract class Resource implements Cloneable
         writeField(w, "file",           u.getFile());
         writeField(w, "query",          u.getQuery());
         writeField(w, "ref",            u.getRef());
-
-        String txt = String.format("%s\n%20s: %s (@%x)%s",
-                                   msg,
-                                   "URL",
-                                   u,
-                                   System.identityHashCode(u),
-                                   buf.getBuffer()
-                                   );
-
-        //System.out.println("len=" + buf.getBuffer().length());
-        
-        if (error)
-            Log.error(txt);
-        else
-            Log.debug(txt);
-    }
-    
-    public static void dumpURL(URL u, String msg) {
-        dumpURL(u, msg, false);
-    }
-    
-    public static void dumpURLError(URL u, String msg) {
-        dumpURL(u, msg, true);
-    }
-
-    public static void dumpURL(URL u) {
-        dumpURL(u, null);
     }
 
 
@@ -1267,13 +1506,74 @@ public abstract class Resource implements Cloneable
     
 }
 
-// class FileResource extends Resource {
-//     final java.io.File file;
-//     FileResource(java.io.File file) {
-//         this.file = file;
-//     }
 
-// //     public String getPrettyString() {
-// //         return file.getName();
-// //     }
-// }
+// add getSource (or: get Location/Repository/Collection/DataSource/Where) (e.g. "ArtStor", "Internet/Web", "Local File")
+//      may be a good enough replacement for type?  type currently mixes location with content
+//      a bit by adding "directory", which along with "file" are really just both "Local File" locations,
+//      and "Favorites" is a total odd man-out: any given resource that happens to be in the
+//      favorites list may actually be of any of the other given types).
+// get rid of spec, but maybe include a getPath, and include a hasURL/getURL as is too damn handy.
+// add getReader, getContent (need something to get an image object, or do we handle that
+//      via a cross-cutting concern?)
+// get rid of getExtension, tho we may be trying to get a mime-type with that one.
+//      it *would* be really nice if we could easily know if this is, say, an image or HTML content tho
+//      maybe we do add mime-type and punt with "type/unknown" for most everything else
+//      until we might someday be able to extract this info from the filesystem.  Still
+//      might be useful enough to add a special case "isImage" tho (or maybe hasImage?)
+//
+// get rid of getToolTipInformation: getTitle will be our only special case
+// mapping of information from either meta-data or the URL/file-name to something
+// exposed in the API.
+//
+// Maybe even get rid of displayContent: make a cross-cutting concern handled
+// by a ResourceHandler?  could theoretically put stuff like isImage/isHTML
+// there also, altho we could leave both of this in the API and address
+// the weight of it by having a good AbstractResource that handles all
+// this stuff for you.
+//
+// Oh, we'll still need something for persistance tho, which spec was handling.
+// Maybe getAddress?  getUniqueID (a GLOBAL id, which implies us coming up
+// with protocol names for every OSID resource, but we had that problem
+// anyway.  Hmm: we could actually use the class name of the OSID DR impl
+// and let that handle it?  (or really the DataSource, unless we get
+// rid of that).
+//
+// Maybe get rid of getPreview for now; may add in a set of getPreview / getViewer / getEditor later.
+//
+// getIcon: make getThumbnail?  this needs to be defined: is too generic: maybe get rid of.
+//      the Asset/DataSource logo should come from the DataSource.  So maybe we need
+//      a getDataSource, which is really what the getWhere ends up being, and returns
+//      an object instead of a name.  Tho is of course handy for not just thumbnails,
+//      but say type-based application icons (from OS meta-data), or say the favicon.ico
+//      from a website.
+//
+// AND: if we ever get int getting "parts", maybe we should throw this whole thing out
+//      use the DR API itself?  a bit heavy weight tho.
+//
+// And don't forget: altho we want to handle "any kind of data source", the majority
+// of them are probably all going to be URL based, at least for the forseeabe future,
+// which is a practical consideration worth keeping in mind.
+
+// So the basic services being provided are:
+//      1 - get data for VUE (provide a handle for it)
+//      2 - get meta-data about the data (including the all important where this thing came from)
+//      3 - provide persistance of the reference to the data for VUE
+//      4 - provide some convenince wrapping of meta-data to tell us some very
+//          useful things such as:
+//              - a title
+//              - a URL if available
+//              - what we can do with this data (it's type), such is isImage, isHTML, and/or getMimeType
+//
+// Items 1-3 are an absolute requiment.  Items in 4 are for things useful
+// enough to include in the API, but only priority items worth expanding
+// the API for (these items are all computed from the meta-data, both properties based and DataSource based)
+//
+// Could also consider calling this an "Asset", tho that may be just too confusing given OKI & Fedora.
+//
+// Possibly add a "getName", to be the raw stub of a URL v.s. a massaged one for getTitle,
+// or former v.s. the meta-data title of a properly title document/image from a repository.
+// This is pure convience for a GUI / possibly "important" data for a user.  Maybe only
+// really for local files tho.  Could opt out of it but putting it in title and just
+// not having a massaged version that leaves (that does stuff like create spaces, removes
+// the extension, etc).
+

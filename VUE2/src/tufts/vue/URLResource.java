@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.60 $ / $Date: 2008-04-09 08:08:04 $ / $Author: sfraize $
+ * @version $Revision: 1.61 $ / $Date: 2008-04-14 19:43:03 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -66,37 +66,49 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     private static final String IMAGE_KEY = HIDDEN_PREFIX + "Image";
     private static final String THUMB_KEY = HIDDEN_PREFIX + "Thumb";
 
-    //static final long SIZE_UNKNOWN = -1;
-    
-    //private long size = SIZE_UNKNOWN;
-    private String spec = SPEC_UNSET;
+    private static final String USER_URL = "URL";
+    private static final String USER_FILE = "File";
+    private static final String USER_DIRECTORY = "Directory";
+    private static final String USER_FULL_FILE = RUNTIME_PREFIX + "Full File";
 
-    //private URI mRelativeURI; // right now, I think this only used if it's RELATIVE -- kind of a marker for a short-name
-    
-    // TODO performance: store as strings or URI's and only do conversion when we ask for them.
-    // One issue we'd have to sort out with URI's: Win32 file:/C:/path/file.foo references
-    // either fail to create at all on non Windows platforms, or C: gets put into URI's authority field.
-    
-    // Replace mURL_Browse with mURL_Default -- this will always be set
-    // mURL_ImageData will only be set if the image data is different
+    private static final String FILE_RELATIVE = HIDDEN_PREFIX + "file.relative";
+    private static final String FILE_RELATIVE_OLD = "file.relative";
+    private static final String FILE_CANONICAL = HIDDEN_PREFIX + "file.canonical";
+
+    /**
+     * The most generic version of what we refer to.  Usually set to a full URL or absolute file path.
+     * Note that this may have been set on a different platform that we're currently running on,
+     * so it may no longer make a valid URL or File on this platform, which is why we need
+     * this generic String version of it, and why the Resource/URLResource code can be so complicated.
+     */
+
+    private String spec = SPEC_UNSET;
 
     /**
      * A default URL for this resource.  This will be used for "browse" actions, so for
      * example, it may point to any content available through a URL: an HTML page, raw image data,
      * document files, etc.
      */
-    protected URL mURL;
+    private URL mURL;
 
     /** Points to raw image data (greatest resolution available) */
     private URL mURL_ImageData;
     /** Points to raw image data for an image thumbnail  */
     private URL mURL_ThumbData;
 
+    /**
+     * This will be set if we point to a local file the user has control over.
+     * This will not be set to point to cache files or package files.
+     */
     private File mFile;
+    
+    /**
+     * If this resource is relative to it's map, this will be set (at least by the time we're persisted)
+     */
+    private URI mRelativeURI;
     
     /** an optional resource title */
     private String mTitle;
-    
 
     private boolean mRestoreUnderway = false;
     private ArrayList<PropertyEntry> mXMLpropertyList;
@@ -114,13 +126,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         return new URLResource(file);
     }
     
-    /**
-     * @deprecated - This constructor needs to be public to support castor persistance ONLY -- it should not
-     * be called directly by any code.
-     */
-    public URLResource() {
-        init();
-    }
     private URLResource(String spec) {
         init();
         setSpec(spec);
@@ -128,6 +133,14 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     private URLResource(File file) {
         init();
         setSpecByFile(file);
+    }
+    
+    /**
+     * @deprecated - This constructor needs to be public to support castor persistance ONLY -- it should not
+     * be called directly by any code.
+     */
+    public URLResource() {
+        init();
     }
     
     private void init() {
@@ -151,164 +164,517 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     // (which will also translate ':' to '/' on the mac)
 
 
-    private volatile String mToolTipHTML;
+    protected void setSpecByFile(File file) {
+        if (file == null) {
+            Log.error("setSpecByFile", new IllegalArgumentException("null java.io.File"));
+            return;
+        }
+        if (DEBUG.RESOURCE && DEBUG.META) dumpField("setSpecByFile", file);
 
-    @Override
-    public String getToolTipText() {
-        if (mToolTipHTML == null || DEBUG.META)
-            mToolTipHTML = buildToolTipHTML();
-        return mToolTipHTML;
+        if (mURL != null)
+            mURL = null;
+        
+        // set the title by the name first, so setSpec won't need to compute it
+        // (only for lazy-eval spec)
+        //setTitle(file.getName());
+        setFile(file);
+        
+        String fileSpec = null;
+        try {
+            //fileSpec = file.getCanonicalPath(); // may actually not be friendly to volume paths
+            fileSpec = file.getPath();
+        } catch (Throwable t) { // for IOException
+            Log.warn(file, t);
+            fileSpec = file.getPath();
+        }
+
+        setSpec(fileSpec);
+        
+        if (DEBUG.RESOURCE && DEBUG.META && "/".equals(fileSpec)) {
+            Util.printStackTrace("Root FileSystem Resource created from: " + Util.tags(file));
+        }
+        
+        //initProperties();
+        
     }
 
-    private void invalidateToolTip() {
-        mToolTipHTML = null;
+
+    /** for use by tufts.vue.action.Archive */
+    public void setPackageFile(File packageFile, File archiveFile)
+    {
+        if (DEBUG.RESOURCE) dumpField("setPackageFile", packageFile);
+        reset();
+        setURL(null);
+        setFile(null);
+        setProperty(PACKAGE_FILE, packageFile);
+        removeProperty(USER_FILE); // don't want to see the File
+        
+//         if (!hasProperty("Title")) {
+//             if (mTitle != null)
+//                 setRuntimeProperty("Title", mTitle);
+// //             else
+// //                 setRuntimeProperty("Title", packageFile.getName());
+//         }
+
+        setProperty(PACKAGE_ARCHIVE, archiveFile);
+        
+        setCached(true);
+    }
+
+    
+    @Override
+    protected void reset() {
+        super.reset();
+        invalidateToolTip();
     }
     
-    private static String deco(String s) {
-        return "<i><b>"+s+"</b></i>";
-    }
-
-    private String buildToolTipHTML() {
-        String pretty = "";
-
-//         if (mURI != null) {
-//             if (mURI.isAbsolute()) {
-//                 pretty = deco(mURI.toString());
-//                 if (DEBUG.Enabled) pretty += " (URI-FULL)";
-//             } else {
-//                 pretty = deco(mURI.getPath());
-//                 if (DEBUG.Enabled) pretty += " (URIpath)";
-//             }
-//         } else {
-        pretty = VueUtil.decodeURL(getSpec());
-        if (pretty.startsWith("file://") && pretty.length() > 7)
-            pretty = pretty.substring(7);
-        if (DEBUG.Enabled) {
-            if (pretty.equals(getSpec()))
-                pretty += " (spec)";
-            else
-                pretty += " (decoded spec)";
-        }
-        pretty = deco(pretty);
-            
-            //}
-
-        if (DEBUG.Enabled) {
-            //final String nl = "<br>&nbsp;";
-            final String nl = "<br>";
-
-            pretty += nl + spec + " (spec)";
-            //if (mRelativeURI != null) pretty += nl + "URI-RELATIVE: " + mRelativeURI;
-            pretty += nl + String.format("%s ext=[%s]", asDebug(), getDataType());
-//             pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
-//                 + " impl=" + getClass().getName() + " ext=[" + getContentType() + "]";
-            if (isLocalFile())
-                pretty += " (isLocal)";
-            //pretty += nl + "localFile=" + isLocalFile();
-        }
-        return pretty;
-        
-    }
-
-    public static final boolean ALLOW_URI_WHITESPACE = false; // Not working yet
-
-    @Override
-    public void makeRelativeTo(URI root)
+    public final void XML_setSpec(final String XMLspec)
     {
+        if (DEBUG.RESOURCE) dumpField("XML_setSpec", XMLspec);
+        this.spec = XMLspec;
+    }
+    
+    public void setSpec(final String newSpec) {
 
-        if (true) {
-            // TODO: this code is for backward compat with archive version #1.
-            // We may be able to remove it in short order.  This is called
-            // by the map after restoring.  Only archive version #1 resources
-            // should ever have a PACKAGE_KEY property set tho, so it's
-            // safe to leave this code in.
-        
-            // When dealing with a packaged resource, Resources that were originally
-            // local-file will want to be re-written to point to the actual new local
-            // package cache file.  But resources that we're NOT local will want to have
-            // their resource spec's left alone, yet have their content actually pulled from
-            // the local cache.  We can determine later if we want live updating from the
-            // original web source of the data, or provide a user action for that.
-
-            if (hasProperty(PACKAGE_KEY)) {
-                String packageLocal = getProperty(PACKAGE_KEY);
-                Log.info("Found old-style package key on " + this + "; " + packageLocal);
-                if (ALLOW_URI_WHITESPACE) {
-                    // URI.create fails if there are spaces:
-                    packageLocal = packageLocal.replaceAll(" ", "%20"); 
-                }
-                URI packaged = root.resolve(packageLocal);
-                if (packaged != null) {
-                    Log.debug("Found packaged: " + packaged);
-
-                    //this.spec = SPEC_UNSET;
-                    //mRelativeURI = null;
-
-                    // WE NO LONGER SET SPEC FOR WEB CONTENT: fetch PACKAGED_KEY when getting data (need new API for that..)                
-
-                    if (isLocalFile()) {
-                        // If the original was a local file (e.g., on some other user's machine),
-                        // completely reset the spec, as it will have no meaning on the new
-                        // users machine.
-                        setSpec(packaged.toString());
-                    }
-
-                    if ("file".equals(packaged.getScheme())) {
-                        setProperty(PACKAGE_FILE, packaged.getRawPath()); // be sure to use getRawPath, otherwise will decode octets
-                        setCached(true); // will let thumbnail requests go to cache file instead
-                    } else {
-                        Log.warn("Non-file URI-scheme in resolved packaged URI: " + packaged);
-                        setProperty(PACKAGE_FILE, packaged.toString());
-                    }
-                
-                    return;
-                }
-            }
-        
+        if ((DEBUG.RESOURCE||DEBUG.WORK) && this.spec != SPEC_UNSET) {
+            out("setSpec; already set: replacing "
+                + Util.tags(this.spec) + " " + Util.tag(spec)
+                + " with " + Util.tags(newSpec) + " " + Util.tag(newSpec));
+            //Log.warn(this + "; setSpec multiple calls", new IllegalStateException("setSpec: multiple calls; resources are atomic"));
+            //return;
         }
+
+        if (DEBUG.RESOURCE) dumpField(TERM_CYAN + "setSpec------------------------" + TERM_CLEAR, newSpec);
         
-        if (!isLocalFile()) {
-            Log.debug("Remote, unpackaged file, skipping relativize: " + this);
+        if (newSpec == null)
+            throw new IllegalArgumentException(Util.tags(this) + "; setSpec: null value");
+
+        if (SPEC_UNSET.equals(newSpec)) {
+            this.spec = SPEC_UNSET;
             return;
         }
 
-//         if (true) {
+        this.spec = newSpec;
 
-//             // incomplete
+        reset();
+        
+        if (!mRestoreUnderway)
+            parseAndInit();
 
-//             if (DEBUG.Enabled) Log.debug("Relativize to " + root + "; " + this + "; curRelative=" + mRelativeURI);
-//             URI oldRelative = mRelativeURI;
-//             mRelativeURI = findRelativeURI(root);
-//             setDebugProperty("relative", mRelativeURI);
-//             if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
-//                 invalidateToolTip();
-//             }
-//         }
+        //if (DEBUG.RESOURCE) out("setSpec: complete; " + this);
+    }
+
+    public void XML_completed(Object context)
+    {
+        mRestoreUnderway = false;
+
+        // If this Resource is relative and is going to be changing, we'd actually
+        // rather NOT run final init now -- we'd really like to wait for the LWMap to do
+        // it's relatvizing... This is the purpose of adding the "context" argument --
+        // we can now check the context object -- if it's the new default of
+        // MANAGED_MARSHALLING, we don't initialize the resource yet -- we allow init to
+        // be delayed to code in places such as Archive or LWMap can tweak them before
+        // their final init.
+        
+        if (context != MANAGED_UNMARSHALLING) {
+            if (DEBUG.Enabled) Log.info("XML_completed: unmanaged (immediate) finalInit in context " + Util.tags(context) + "; " + this);
+            
+            initAfterDeserialize(context);
+            initFinal(context);
+            
+            if (DEBUG.RESOURCE) out("XML_completed");
+        } else {
+            if (DEBUG.RESOURCE && DEBUG.META) out("XML_completed; delayed init");
+        }
+        
+        //if (DEBUG.CASTOR || DEBUG.RESOURCE) out("XML_completed: END");
+    }
+
+    @Override
+    protected void initAfterDeserialize(Object context) {
+        loadXMLProperties();
     }
     
-    public URI findRelativeURI(URI root)
+    @Override
+    protected void initFinal(Object context) 
     {
-        if (DEBUG.Enabled) {
-            System.out.println("\n=======================================================");
-            Log.debug("attempting to relativize [" + this + "] against root " + root);
+        if (DEBUG.RESOURCE) out("initFinal in " + context);
+        parseAndInit();
+    }
+    
+    private void loadXMLProperties() 
+    {
+        if (mXMLpropertyList == null)
+            return;
+        
+        for (PropertyEntry entry : mXMLpropertyList) {
+            
+            final Object key = entry.getEntryKey();
+            final Object value = entry.getEntryValue();
+
+            try {
+                
+                // probably faster to do single set of hashed lookups at end:
+                if (IMAGE_KEY.equals(key)) {
+                    if (DEBUG.RESOURCE) dumpField("processing key", key);
+                    setURL_Image((String) value);
+                } else if (THUMB_KEY.equals(key)) {
+                    if (DEBUG.RESOURCE) dumpField("processing key", key);
+                    setURL_Thumb((String) value);
+                } else {
+                    setProperty((String)key, value);
+                }
+                
+            } catch (Throwable t) {
+                Log.error(this + "; loadXMLProperties: " + Util.tags(mXMLpropertyList), t);
+            }
+        }
+
+        mXMLpropertyList = null;
+    }
+
+    private void setURL(URL url) {
+
+        if (mURL == url)
+            return;
+        
+        if (DEBUG.RESOURCE) dumpField("setURL", url);
+
+        mURL = url;
+
+        if (DEBUG.Enabled) setDebugProperty("URL", mURL);
+        
+        if (url == null)
+            return;
+
+        if (mFile != null)
+            setFile(null);
+        
+    }
+
+    private long mLastModified;
+    protected void setFile(File file) {
+
+        if (mFile == file)
+            return;
+        
+        if (DEBUG.RESOURCE||file==null) dumpField("setFile", file);
+        mFile = file;
+
+        if (file == null)
+            return;
+
+        if (mURL != null)
+            setURL(null);
+
+        setDataFile(file);
+
+        if (mTitle == null) {
+            
+//             title = mURL.getPath();
+//             if (title != null) {
+//                 if (title.endsWith("/"))
+//                     title = title.substring(0, title.length() - 1);
+//                 title = title.substring(title.lastIndexOf('/') + 1);
+//                 if (tufts.Util.isMacPlatform()) {
+//                     // On MacOSX, file names with colon (':') in them display as slashes ('/')
+//                     title = title.replace(':', '/');
+//                 }
+//                 setTitle(title);
+//             }
+
+            // TODO: for some reason, if we don't always have a title set, tooltips break.  SMF 2008-04-13
+            setTitle(file.getName()); 
         }
         
-        final URL url = asURL();
-        if (url == null)
-            return null;
+        mLastModified = file.lastModified();
+        // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
+        if (DEBUG.Enabled) {
+            setDebugProperty("file.instance", mFile);
+            setDebugProperty("file.modified", new Date(mLastModified));
+            if (true||DEBUG.RESOURCE) {
+                setDebugProperty("file.toURI", mFile.toURI());
+                try {
+                    setDebugProperty("file.toURL", mFile.toURL());
+                } catch (Throwable t) {
+                    setDebugProperty("file.toURL", t.toString());
+                }
+            }
+        }
+    }
 
-        // absURI should always be absolute -- the way we persist them
-        final URI absURI = makeURI(url.toString());
+
+    //-----------------------------------------------------------------------------
+    // Todo Someday: If possible, try and take into account lazy eval so we don't
+    // actually have to create a File object, see if it fails to be a valid path, and
+    // then test File.exists for every possible file object (may slow down
+    // CabinetResource quite a bit).
+    //
+    // We DO need to handle initing a resource as a file resource from a missing
+    // file, that may re-appear.  Plus, if it is a relative reference, it may need
+    // re-writing by LWMap.
+    //-----------------------------------------------------------------------------
+
+    private void parseAndInit()
+    {
+        if (spec == SPEC_UNSET) {
+            Log.error(new Throwable("cannot initialize resource " + Util.tags(this) + " without a spec: " + Util.tags(spec)));
+            return;
+        }
+
+        //if (DEBUG.RESOURCE) out("parseAndInit, mURL=" + mURL + "; mFile=" + mFile);
+
+        if (isPackaged()) {
+            
+            setDataFile((File) getPropertyObject(PACKAGE_FILE));
+            if (mFile != null)
+                Log.warn("mFile != null" + this, new IllegalStateException(toString()));
+            
+        } else if (mFile == null && mURL == null) {
+            
+            File file = getLocalFileIfPresent(spec);
+            if (file != null) {
+                setFile(file);
+            } else {
+                URL url = makeURL(spec);
+                
+                // a random string spec will not be a existing File, but will default to
+                // create a file:RandomString URL (e.g. "file:My Computer"), so only set
+                // URL here if it's a non-file:
+                
+                if (!"file".equals(url.getProtocol()))
+                    setURL(url);
+            }
+            
+        }
+
+        if (getClientType() == Resource.NONE) {
+            if (isLocalFile()) {
+                if (mFile != null && mFile.isDirectory())
+                    setClientType(Resource.DIRECTORY);
+                else
+                    setClientType(Resource.FILE);
+            } else if (mURL != null)
+                setClientType(Resource.URL);
+        }
+
+        if (getClientType() != Resource.DIRECTORY && !isImage()) {
+            // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
+
+            if (mFile != null)
+                setAsImage(looksLikeImageFile(mFile.getName())); // this just a minor optimization
+            else
+                setAsImage(looksLikeImageFile(this.spec)); // this is the default
+            
+            if (!isImage()) {
+                // double-check the meta-data in case looksLikeImageFile didn't give us 100% accurate results
+                checkForImageType();
+            }
+        }
+
+        //-----------------------------------------------------------------------------
+        // Set property information, mainly for the user, that will display
+        // the minimum of what/where the resource is.
+        //-----------------------------------------------------------------------------
+
+        if (isLocalFile()) {
+            if (mFile != null) {
+
+                if (isRelative()) {
+                    
+                    //setProperty(USER_FILE, getRelativePath());
+                    setProperty(USER_FULL_FILE, mFile);
+                    // handled in setRelativePath
+                    
+                } else {
+
+                    setProperty(USER_FILE, mFile);
+                    
+// todo: later
+//                     if (getClientType() == DIRECTORY) {
+//                         removeProperty(USER_FILE);
+//                         setProperty(USER_DIRECTORY, mFile);
+//                     } else {
+//                         removeProperty(USER_DIRECTORY);
+//                         setProperty(USER_FILE, mFile);
+//                     }
+                    
+                    final String canonical = toCanonical(mFile);
+                    
+                    if (!mFile.getPath().equals(canonical)) {
+                        
+                        setProperty(FILE_CANONICAL, canonical); // will persist
+                        setProperty(USER_FULL_FILE, canonical);
+                        // TODO: make this a persisted property, and use it as a
+                        // backup in case the non-canonical file path (e.g., via a
+                        // volume mount on Mac OS X) goes missing, but the absolute
+                        // path is there.  This could happen if the user renames
+                        // their hard drive, changing the volume name, tho the path
+                        // would still be the same.
+                        
+                    } else {
+                            // as may have been persisted, remove now just in case
+                            //removeProperty(FILE_CANONICAL);
+                    }
+                }
+            } else {
+                setProperty(USER_FILE, spec);
+            }
+            removeProperty(USER_URL);
+
+        } else {
+
+            // todo: can use some of our getLocalFileIfPresent code to determine if
+            // this is a valid URL v.s. a File from an unfamiliar filesystem
+            
+            String proto = null;
+            if (mURL != null)
+                proto = mURL.getProtocol();
+
+            if (proto != null && (proto.startsWith("http") || proto.equals("ftp"))) {
+                setProperty("URL", spec);
+                removeProperty(USER_FILE);
+            } else {
+                if (DEBUG.Enabled) {
+                    if (!isPackaged()) {
+                        setDebugProperty("FileOrURL?", spec);
+                        setDebugProperty("URL.proto", proto);
+                    }
+                }
+            }
+            
+        }
+
+        if (DEBUG.Enabled) {
+            setDebugProperty("spec", spec);
+            //setDebugProperty("Spec.0-encode", encodeForURL(spec));
+            //setDebugProperty("Spec.1-URI", debugURI(spec));
+            //setDebugProperty("Spec.2-VueURI", makeURI(spec));
+
+            if (mTitle != null)
+                setDebugProperty("title", mTitle);
+            
+        }
+        
+        if (!hasProperty(CONTENT_TYPE) && mURL != null)
+            setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
+
+
+
+        if (DEBUG.RESOURCE) out(TERM_GREEN + "final---" + this + TERM_CLEAR);        
+
+    }
+    
+    private void checkForImageType() {
+        if (!isImage()) {
+            if (hasProperty(CONTENT_TYPE)) {
+                setAsImage(isImageMimeType(getProperty(CONTENT_TYPE)));
+            } else {
+                // TODO: on initial creation of resources with types unidentifiable from the spec,
+                // this code will load CONTENT_TYPE (in getDataType), and determine isImage
+                // with looksLikeImageFile, but then when saved/restored, the above case
+                // will use isImageMimeType, which isn't the exact same test -- fix this.
+                setAsImage(looksLikeImageFile('.' + getDataType()));
+            }
+        }
+    }
+
+
+    //private static final URI ABSOLUTE_URI = URI.create("Absolute");
+    
+    private boolean isRelative() {
+        return mRelativeURI != null;
+    }
+
+    private void setRelativeURI(URI relative) {
+        mRelativeURI = relative;
+        if (relative != null) {
+            setProperty(FILE_RELATIVE, relative);
+            setProperty(USER_FILE, getRelativePath());
+            setProperty(USER_FULL_FILE, mFile);
+        } else {
+            removeProperty(FILE_RELATIVE);
+            removeProperty(USER_FULL_FILE); // what if there's still a canonical difference?
+            setProperty(USER_FILE, mFile);
+        }
+    }
+    
+    private String getRelativePath() {
+        return mRelativeURI == null ? null : mRelativeURI.getPath();
+    }
+    
+//     @Override
+//     public void updateIfRelativeTo(URI root)
+//     {
+//         if (!isRelative())
+//             setRelativeURI(findRelativeURI(root));
+//     }
+    
+    @Override
+    public void recordRelativeTo(URI root)
+    {
+        setRelativeURI(findRelativeURI(root));
+        
+//         final URI relative = findRelativeURI(root);
+//         if (relative != null) {
+//             //Log.debug("made-relative: " + relative + "; " + this);
+//             setProperty(FILE_RELATIVE, relative);
+//         } else {
+//             //Log.debug("  no-relative: " + this);
+//             removeProperty(FILE_RELATIVE);
+//         }
+            
+//         if (true||isLocalFile()) {
+//             URI relative = findRelativeURI(root);
+//             if (relative != null) {
+//                 Log.debug("made-relative: " + relative + "; " + this);
+//                 setProperty(FILE_RELATIVE, relative);
+//             } else {
+//                 Log.debug("  no-relative: " + this);
+//                 removeProperty(FILE_RELATIVE);
+//             }
+//         } else {
+//             Log.debug(" non-relative: " + this);
+//             removeProperty(FILE_RELATIVE);
+//         }
+    }
+
+     	
+    /** @return a unique URI for this resource */
+    private java.net.URI toAbsoluteURI() {
+        if (mFile != null)
+            return toCanonicalFile(mFile).toURI();
+        else if (mURL != null)
+            return makeURI(mURL);
+        else
+            return makeURI(getSpec());
+    }
+
+    private URI findRelativeURI(URI root)
+    {
+        final URI absURI = toAbsoluteURI();
+
+        if (root.getScheme() == null || !root.getScheme().equals(absURI.getScheme())) {
+            //if (DEBUG.Enabled) out("differing schemes: " + root + " - " + absURI + "; can't be relative");
+            if (DEBUG.Enabled) Log.info(this + "; scheme=" + absURI.getScheme() + "; different scheme: " + root + "; can't be relative");
+            return null;
+        }
+        
+//         if (DEBUG.Enabled) {
+//             //System.out.println("\n=======================================================");
+//             Log.debug("attempting to relativize [" + this + "] against: " + root);
+//         }
         
         if (!absURI.isAbsolute())
-            Log.warn("Non absolute URI: " + absURI + "; from URL " + url);
+            Log.warn("findRelativeURI: non-absolute URI: " + absURI);
+        //Log.warn("Non absolute URI: " + absURI + "; from URL " + url);
         
-        if (absURI == null) {
-            System.out.println("URL INVALID FOR URI: " + url + "; in " + this);
-            return null;
-        }
+//         if (absURI == null) {
+//             System.out.println("URL INVALID FOR URI: " + url + "; in " + this);
+//             return null;
+//         }
 
-        if (DEBUG.Enabled) Resource.dumpURI(absURI, "ORIGINAL");
+        if (DEBUG.RESOURCE) Resource.dumpURI(absURI, "CURRENT ABSOLUTE:");
         final URI relativeURI = root.relativize(absURI);
 
         if (relativeURI == absURI) {
@@ -318,14 +684,155 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         
         if (relativeURI != absURI) {
-            if (DEBUG.Enabled) Resource.dumpURI(relativeURI, "RELATIVE");
+            if (DEBUG.RESOURCE) Resource.dumpURI(relativeURI, "RELATIVE FOUND:");
         }
 
-        if (DEBUG.Enabled) System.out.println(TERM_GREEN+"FOUND RELATIVE: " + relativeURI + TERM_CLEAR);        
+        if (DEBUG.Enabled) {
+            out(TERM_GREEN+"FOUND RELATIVE: " + relativeURI + TERM_CLEAR);
+        } else {
+            Log.info("found relative to " + root + ": " + relativeURI.getPath());
+        }
+        
 
         return relativeURI;
 
     }
+
+    /** @return a URI from a string that was known to already be properly encoded as a URI */
+    private URI rebuildURI(String s) 
+    {
+        return URI.create(s);
+    }
+    
+
+    
+    @Override
+    public void restoreRelativeTo(URI root)
+    {
+        // Even if the existing original resource exists, we always
+        // choose the relative / "local" version, if it can be found.
+                
+        String relative = getProperty(FILE_RELATIVE_OLD);
+        if (relative == null) {
+            relative = getProperty(FILE_RELATIVE);
+            if (relative == null) {
+                // attempt to find us in case we're relative anyway:
+                //recordRelativeTo(root); 
+                return; // nothing to do
+            }
+            
+        } else {
+            removeProperty(FILE_RELATIVE_OLD);
+            setProperty(FILE_RELATIVE, relative);
+        }
+
+        final URI relativeURI = rebuildURI(relative);
+        final URI absoluteURI = root.resolve(relativeURI);
+
+        if (DEBUG.RESOURCE) {
+            System.out.print(TERM_PURPLE);
+            Resource.dumpURI(absoluteURI, "resolved absolute:");
+            Resource.dumpURI(relativeURI, "from relative:");
+            System.out.print(TERM_CLEAR);
+        }
+
+        if (absoluteURI != null) {
+
+            final File file = new File(absoluteURI);
+            
+            if (file.canRead()) {
+                // only change the spec if we can actually find the file (todo: test Vista -- does canRead work?)
+                if (DEBUG.RESOURCE) setDebugProperty("relative URI", relativeURI);
+                Log.info("resolved " + relativeURI.getPath() + " to: " + file);
+                setRelativeURI(relativeURI);
+                setSpecByFile(file);
+            } else {
+                out_warn(TERM_RED + "can't find data at new location: " + file + TERM_CLEAR);
+            }
+        } else {
+            out_error("failed to find relative " + relative + "; in " + root + " for " + this);
+        }
+    }
+    
+
+        
+//     public static final boolean ALLOW_URI_WHITESPACE = false; // Not working yet
+
+//     /** @deprecated */
+//     @Override
+//     public void makeRelativeTo(URI root)
+//     {
+
+//         if (true) {
+//             // TODO: this code is for backward compat with archive version #1.
+//             // We may be able to remove it in short order.  This is called
+//             // by the map after restoring.  Only archive version #1 resources
+//             // should ever have a PACKAGE_KEY property set tho, so it's
+//             // safe to leave this code in.
+        
+//             // When dealing with a packaged resource, Resources that were originally
+//             // local-file will want to be re-written to point to the actual new local
+//             // package cache file.  But resources that we're NOT local will want to have
+//             // their resource spec's left alone, yet have their content actually pulled from
+//             // the local cache.  We can determine later if we want live updating from the
+//             // original web source of the data, or provide a user action for that.
+
+//             if (hasProperty(PACKAGE_KEY_DEPRECATED)) {
+//                 String packageLocal = getProperty(PACKAGE_KEY_DEPRECATED);
+//                 Log.info("Found old-style package key on " + this + "; " + packageLocal);
+//                 if (ALLOW_URI_WHITESPACE) {
+//                     // URI.create fails if there are spaces:
+//                     packageLocal = packageLocal.replaceAll(" ", "%20"); 
+//                 }
+//                 URI packaged = root.resolve(packageLocal);
+//                 if (packaged != null) {
+//                     Log.debug("Found packaged: " + packaged);
+
+//                     //this.spec = SPEC_UNSET;
+//                     //mRelativeURI = null;
+
+//                     // WE NO LONGER SET SPEC FOR WEB CONTENT: fetch PACKAGED_KEY when getting data (need new API for that..)                
+
+//                     if (isLocalFile()) {
+//                         // If the original was a local file (e.g., on some other user's machine),
+//                         // completely reset the spec, as it will have no meaning on the new
+//                         // users machine.
+//                         setSpec(packaged.toString());
+//                     }
+
+//                     if ("file".equals(packaged.getScheme())) {
+//                         setProperty(PACKAGE_FILE, packaged.getRawPath()); // be sure to use getRawPath, otherwise will decode octets
+//                         setCached(true); // will let thumbnail requests go to cache file instead
+//                     } else {
+//                         Log.warn("Non-file URI-scheme in resolved packaged URI: " + packaged);
+//                         setProperty(PACKAGE_FILE, packaged.toString());
+//                     }
+                
+//                     return;
+//                 }
+//             }
+        
+//         }
+        
+//         if (!isLocalFile()) {
+//             Log.debug("Remote, unpackaged file, skipping relativize: " + this);
+//             return;
+//         }
+
+// //         if (true) {
+
+// //             // incomplete
+
+// //             if (DEBUG.Enabled) Log.debug("Relativize to " + root + "; " + this + "; curRelative=" + mRelativeURI);
+// //             URI oldRelative = mRelativeURI;
+// //             mRelativeURI = findRelativeURI(root);
+// //             setDebugProperty("relative", mRelativeURI);
+// //             if (oldRelative != mRelativeURI && !oldRelative.equals(mRelativeURI)) {
+// //                 invalidateToolTip();
+// //             }
+// //         }
+//     }
+    
     
 //     /**
 //      * If this resource can be made relative to the current map (is in a directory
@@ -427,265 +934,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 //         invalidateToolTip();        
 
 //     }
-
-    protected void setSpecByFile(File file) {
-        if (file == null) {
-            Log.error("setSpecByFile", new IllegalArgumentException("null java.io.File"));
-            return;
-        }
-
-        // set the title by the name first, so setSpec won't need to compute it
-        setTitle(file.getName());
-        setFile(file);
-        
-        String fileSpec = null;
-        try {
-            fileSpec = file.getCanonicalPath();
-        } catch (IOException e) {
-            Log.warn(file, e);
-            fileSpec = file.getPath();
-        }
-        
-        setSpec(fileSpec);
-    }
     
-    // todo: create a special castor persistance only one of these to simplify all this checking...
-    
-    public void setSpec(final String newSpec) {
-
-        if (DEBUG.Enabled && this.spec != SPEC_UNSET) {
-            Log.error(this + "; setSpec multiple calls", new IllegalStateException("setSpec: multiple calls; resources are atomic"));
-            return;
-        }
-
-        installSpec(newSpec);
-    }
-    
-    void installSpec(final String newSpec)
-    {
-        if (DEBUG.RESOURCE) dumpField(TERM_CYAN + "setSpec------------------------" + TERM_CLEAR, newSpec);
-        
-        if (newSpec == null)
-            throw new IllegalArgumentException(Util.tags(this) + "; setSpec: null value");
-
-        if (!mRestoreUnderway) {
-            
-            // Do NOT reset these if restoring, as we don't have much control over
-            // the order in which our methods are called during restores, and some
-            // of these fields may already have been properly initialized.
-            // todo: actually, add a new method called "resetSpec" which external
-            // callers (probably package only) can use, and that would know
-            // we'd always need to reset these (so they get recomputed).
-            
-            mURL = null;
-            mFile = null;
-            invalidateToolTip();
-        }
-
-        if (SPEC_UNSET.equals(newSpec)) {
-            this.spec = SPEC_UNSET;
-            return;
-        }
-
-        this.spec = newSpec;
-
-        if (!mRestoreUnderway)
-            runFinalInitialization();
-
-        //if (DEBUG.RESOURCE) out("setSpec: complete; " + this);
-    }
-
-    public void XML_completed()
-    {
-        if (DEBUG.CASTOR || DEBUG.RESOURCE) out("XML_completed");
-
-        for (PropertyEntry entry : mXMLpropertyList) {
-            
-            final Object key = entry.getEntryKey();
-            final Object value = entry.getEntryValue();
-
-            // This comes via the SPEC (todo: merge these two?)
-            //if (BROWSE_KEY.equals(key))
-            //    setURL_Browse((String) value);
-            // else
-            // TODO: faster to do single hashed lookup a end
-            if (IMAGE_KEY.equals(key))
-                setURL_Image((String) value);
-            else if (THUMB_KEY.equals(key))
-                setURL_Thumb((String) value);
-            else
-                setProperty((String)key, value);
-        }
-
-//         if (DEBUG.DR) {
-//             // note the restored values
-//             //if (spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
-//             if (mTitle != null) setDebugProperty("TITLE", mTitle);
-//         }
-
-        mXMLpropertyList = null;
-        mRestoreUnderway = false;
-
-        // TODO: if this resource is relative and is going to be changing, we'd actually
-        // rather NOT run final init now -- we'd really like to wait for the LWMap to do
-        // it's relatvizing... We should move that code here anyway, but the fundamental
-        // problem is that during castor init, we have no context from which to know the
-        // local file we're being read from... maybe we could put that in the call to
-        // XML_completed?  (Some kind of marshal/unmarshal context)
-        
-        runFinalInitialization();
-    }
-    
-    private void setURL(URL url) {
-        if (DEBUG.RESOURCE) dumpField("setURL", url);
-        mURL = url;
-        if (DEBUG.Enabled) {
-            if (mURL != null) setDebugProperty("URL.default", mURL);
-        }
-    }
-
-    private long mLastModified;
-    private void setFile(File file) {
-        if (DEBUG.RESOURCE) dumpField("setFile", file);
-        mFile = file;
-        mLastModified = file.lastModified();
-        // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
-        if (DEBUG.Enabled) {
-            setDebugProperty("file.instance", Util.tags(mFile));
-            setDebugProperty("file.modified", new Date(mLastModified));
-            if (DEBUG.RESOURCE) {
-                setDebugProperty("file.toURI", mFile.toURI());
-                try {
-                    setDebugProperty("file.toURL", mFile.toURL());
-                } catch (Throwable t) {
-                    setDebugProperty("file.toURL", t.toString());
-                }
-            }
-        }
-    }
-
-    private void runFinalInitialization()
-    {
-        if (spec == SPEC_UNSET) {
-            Log.error(new Throwable("cannot initialize resource " + Util.tags(this) + " without a spec: " + Util.tags(spec)));
-            return;
-        }
-        
-        // Create and record a valid URL if we can, and if there's a
-        // local file, record a reference to that.
-
-        if (mURL == null) {
-            setURL(makeURL(this.spec));
-            if (mURL != null && mFile != null) {
-                setFile(Resource.getLocalFileIfPresent(mURL));
-                // mFile will be set to null if this isn't a local filesystem or local network file
-            }
-        }
-
-        if (!isImage()) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
-
-            setAsImage(looksLikeImageFile(this.spec)); // TODO performance: can use File.getName or URL.getFile if present
-            
-            if (!isImage()) {
-                // double-check the meta-data in case looksLikeImageFile didn't give us 100% accurate results
-                checkForImageType();
-            }
-        }
-
-        //if (DEBUG.DR && spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
-        if (DEBUG.Enabled) setDebugProperty("SPEC", spec);
-
-        if (getClientType() == Resource.NONE) {
-            if (isLocalFile()) {
-                if (mFile != null && mFile.isDirectory())
-                    setClientType(Resource.DIRECTORY);
-                else
-                    setClientType(Resource.FILE);
-            } else
-                setClientType(Resource.URL);
-        }
-
-        //if (mFile != null) {
-        if (isLocalFile()) {
-            if (mFile != null) {
-                try {
-                    setProperty("File", mFile.getCanonicalPath());
-                } catch (IOException e) {
-                    Log.warn(mFile.toString(), e);
-                    setProperty("File", mFile.toString());
-                }
-            } else {
-                setProperty("File", spec);
-            }
-                
-            //removeProperty("URL");
-        } else {
-
-            // todo: can use some of our getLocalFileIfPresent code to determine if
-            // this is a valid URL v.s. a File from an unfamiliar filesystem
-            
-            String proto = null;
-            if (mURL != null)
-                proto = mURL.getProtocol();
-
-            if (proto != null && (proto.startsWith("http") || proto.equals("ftp"))) {
-                setProperty("URL", spec);
-                //removeProperty("File");
-            } else {
-                if (DEBUG.Enabled) {
-                    setDebugProperty("FileOrURL?", spec);
-                    setDebugProperty("URL.proto", proto);
-                }
-            }
-            
-        }
-
-        
-//         if ("file".equals(mURL.getProtocol())) {
-//             setClientType(Resource.FILE);
-//             if (mTitle == null) {
-//                 String title;
-//                 title = mURL.getPath();
-//                 if (title != null) {
-//                     if (title.endsWith("/"))
-//                         title = title.substring(0, title.length() - 1);
-//                     title = title.substring(title.lastIndexOf('/') + 1);
-//                     if (tufts.Util.isMacPlatform()) {
-//                         // On MacOSX, file names with colon (':') in them display as slashes ('/')
-//                         title = title.replace(':', '/');
-//                     }
-//                     setTitle(title);
-//                 }
-//             }
-//         } else {
-//             setClientType(Resource.URL);
-//         }
-        
-        if (!hasProperty(CONTENT_TYPE) && mURL != null)
-            setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
-
-        if (DEBUG.RESOURCE) out(TERM_GREEN + "done----" + this + TERM_CLEAR);
-    }
-    
-    /** @return a unique URI for this resource */
-    @Override
-    public java.net.URI toURI() {
-        return makeURI(getSpec());
-    }
-        
-    /** @return a URL if possible to provide a valid one on this platform, or null if unable to create one */
-    @Override
-    public java.net.URL asURL()
-    {
-//         if (mURL == null) {
-//             if (spec != SPEC_UNSET)
-//                 setURL(makeURL(this.spec));
-//         }
-//         out("asURL returns " + Util.tags(mURL));
-        
-        return mURL;
-    }
-
 
     @Override
     public boolean dataHasChanged() {
@@ -712,214 +961,116 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
     
     
-//     // TODO: resource's would make more sense being atomic: don't allow post construction setSpec,
-//     // (throw an exception of spec is already set)
-    
-//     /** @deprecated -- or perhaps, change to setLocalResource? setRawURL? setRawResource? */
-//     // Want this to be protected, but must be public for castor.
-//     // TODO: MAKE THIS JUST A PERSISTANCE RESTORE: record the spec and move on -- don't
-//     // process unless asked for something later...
-//     public void XXXXXXXXX_setSpec(final String spec) {
-
-//         if (DEBUG.Enabled && spec == SPEC_UNSET) {
-//             Log.error(this + "; setSpec multiple calls", new IllegalStateException("setSpec: multiple calls; resources are atomic"));
-//             return;
-//         }
-
-// //         if (mRelativeURI != null) {
-// //             Log.warn(this + " setSpec w/URI set: " + mRelativeURI);
-// //             //Util.printStackTrace(this + " setSpec w/URI set: " + mRelativeURI + " spec denied: " + spec);
-// //             //return;
-// //         }
-
-//         invalidateToolTip();
-        
-//         if (DEBUG.RESOURCE/*&& DEBUG.META*/) {
-//             out("setSpec " + spec);
-//             //Util.printStackTrace("setSpec " + spec);
-//         }
-
-//         if (SPEC_UNSET.equals(spec)) {
-//             this.spec = SPEC_UNSET;
-//             return;
-//         }
-
-                
-//         // TODO: will want generic ability to set the reference created
-//         // date lazily, as it doesn't make sense with CabinetResource, for example,
-//         // to set that until a user actually drag's one and makes use of it.
-//         // So a resource is going to become somewhat akin to a Transferable.
-        
-//         this.spec = spec;
-//         //this.referenceCreated = System.currentTimeMillis();
-
-//         if (spec == null)
-//             throw new Error("Resource.setSpec can't be null");
-
-//         if (spec.startsWith("resource:")) {
-//             final String classpathResource = spec.substring(9);
-//             Log.info("Searching for classpath resource [" + classpathResource + "]");
-//             setBrowseURL(getClass().getResource(classpathResource));
-//             Log.info("Got classpath resource: " + mURL);
-//         } else {
-//             if (!isImage) { // once an image, always an image (cause setURL_Image may be called before setURL_Browse)
-//                 setAsImage(looksLikeImageFile(spec));
-//                 if (!isImage && !mRestoreUnderway) {
-//                     // if this is during a restore, wait for properties to come in
-//                     // so we can check for a Content.type property
-//                     checkForImageType();
-//                 }
-//             }
-//             setBrowseURL(makeURL(spec));
-//         }
-
-//         //this.type = isLocalFile() ? Resource.FILE : Resource.URL;
-
-//         asURL(); // TODO: get rid of this side-effector
-
-//         if (DEBUG.DR && spec != SPEC_UNSET) setDebugProperty("SPEC", spec);
-        
-
-//         if (isLocalFile()) {
-//             if (spec.startsWith("file:"))
-//                 setProperty("File", spec.substring(5));
-//             else
-//                 setProperty("File", spec);
-//         } else {
-//             setProperty("URL", spec);
-//         }
-
-//         if (DEBUG.RESOURCE) out("setSpec complete; " + this);
-//     }
-
-
-//     private void update()
-//     {
-//         if ("file".equals(mURL.getProtocol())) {
-//             setClientType(Resource.FILE);
-//             if (mTitle == null) {
-//                 String title;
-//                 title = mURL.getPath();
-//                 if (title != null) {
-//                     if (title.endsWith("/"))
-//                         title = title.substring(0, title.length() - 1);
-//                     title = title.substring(title.lastIndexOf('/') + 1);
-//                     if (tufts.Util.isMacPlatform()) {
-//                         // On MacOSX, file names with colon (':') in them display as slashes ('/')
-//                         title = title.replace(':', '/');
-//                     }
-//                     setTitle(title);
-//                 }
-//             }
-//         } else {
-//             setClientType(Resource.URL);
-//         }
-//         if (!hasProperty(CONTENT_TYPE))
-//             setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
-//     }
-
-
-//     // TODO: GIT RID OF ALL THIS LAZY CREATION CRAP, AND MERGE THIS INTO SET SPEC, INCLUDING toURLString crap
-//     private java.net.URL toURLwithSideEffects() throws java.net.MalformedURLException
-//     {
-//         if (false) throw new java.net.MalformedURLException();
-
-//         //makeURI(spec);
-        
-//         if (mURL == null) {
-//             if (spec == SPEC_UNSET)
-//                 return null;
-//             mURL = new java.net.URL(toURLString());
-//             if ("file".equals(mURL.getProtocol())) {
-//                 setClientType(Resource.FILE);
-//                 if (mTitle == null) {
-//                     String title;
-//                     title = mURL.getPath();
-//                     if (title != null) {
-//                         if (title.endsWith("/"))
-//                             title = title.substring(0, title.length() - 1);
-//                         title = title.substring(title.lastIndexOf('/') + 1);
-//                         if (tufts.Util.isMacPlatform()) {
-//                             // On MacOSX, file names with colon (':') in them display as slashes ('/')
-//                             title = title.replace(':', '/');
-//                         }
-//                         setTitle(title);
-//                     }
-//                 }
-//             } else {
-//                 setClientType(Resource.URL);
-//             }
-//             if (!hasProperty(CONTENT_TYPE))
-//                 setProperty(CONTENT_TYPE, java.net.URLConnection.guessContentTypeFromName(mURL.getPath()));
-//         }
-//         return mURL;
-//         ///mURL = new java.net.URL(toURLString());
-//     }
-
-
-    /** @see tufts.vue.Resource -- todo: return URI */
-    @Override
-    public URL getImageSource() {
-        URL url = _getImageSource();
-        Log.debug(this + "; getImageSource returns " + Util.tags(url));
-        return url;
-    }
-
-
-    private URL _getImageSource() {
-
-        // TODO: may be bootstrapping problem here... we're also calling this during the packaging code itself
-        // And change this to return a URI!
-        
-        if (hasProperty(PACKAGE_FILE)) {
-
-            return getPackagedURL();
+    // can move this to Resource -- is generic enough
+    private void setDataFile(File file)  
+    {
+        if (file.isDirectory()) {
+            if (DEBUG.RESOURCE) out("setDataFile: ignoring directory: " + file);
+            //Log.warn("directory as data-file: " + file, new Throwable());
+            //if (DEBUG.RESOURCE) out("no use for directory data files");
+            return;
             
-//             final String propVal = getProperty(PACKAGE_FILE);
-//             String prop = propVal;
-//             if (!prop.startsWith("file:"))
-//                 prop = "file:" + prop;
-//             final URL url = makeURL(prop);
-//             if (DEBUG.Enabled) Log.debug("Returning imageSource " + url + "; from property " + propVal);
-//             return url;
-//             //return makeURL(getProperty(PACKAGE_FILE));
-            
-        } else if (mURL_ImageData != null)
-            return mURL_ImageData;
-        else
-            return asURL();
-    }
-    
-    private URL getPackagedURL() {
-
-        final String propVal = getProperty(PACKAGE_FILE);
-
-        if (propVal == null) {
-            Log.info("getPackageURL returns null: " + this);
-            return null;
         }
         
-//         String prop = propVal;
-//         if (!prop.startsWith("file:"))
-//             prop = "fIlE:" + prop;
-        final URL url = makeURL(propVal);
-        if (DEBUG.Enabled && url != null) out("returning packaged  " + Util.tags(url) + "; from property " + propVal);
-        return url;
+        final String path = file.toString();
+        if (path.length() == 3 && Character.isLetter(path.charAt(0)) && path.endsWith(":\\")) {
+            // Check for A:\, etc.
+            // special case to ignore / prevent testing Windows currently in-accessable mount points
+            // File.exists may take a while to time-out on these.
+            if (DEBUG.Enabled) out_info("setDataFile: ignoring Win mount: " + file);
+            return;
+        }
+            
+        if (!file.exists()) {
+            out_warn("no such active data file: " + file);
+            //throw new IllegalStateException(this + "; no such active data file: " + file);
+            return;
+        }
         
-        //return makeURL(getProperty(PACKAGE_FILE));
+        if (DEBUG.RESOURCE) dumpField("setDataFile", file);
+        mDataFile = file;
+        if (DEBUG.Enabled) setDebugProperty("file.data", file);
     }
 
+
+    @Override
+    public String getLocationName() {
+
+        File archive = null;
+
+        try {
+            archive = (File) getPropertyObject(PACKAGE_ARCHIVE);
+        } catch (Throwable t) {
+            Log.warn(this, t);
+        }
+        
+        if (archive == null) {
+            
+            if (isRelative())
+                return getRelativePath();
+            else
+                return getSpec();
+            
+        } else if (hasProperty(USER_URL)) {
+
+            return getProperty(USER_URL);
+            
+        } else {
+
+            final String name;
+            
+            if (mDataFile != null)
+                name = mDataFile.getName();
+            else if (mTitle != null)
+                name = mTitle;
+            else
+                name = getSpec();
+            
+            return String.format("%s(%s)", archive.getName(), name);
+        }
+
+    }
+
+    
+    /** @see tufts.vue.Resource */
+    @Override
+    public Object getImageSource() {
+        
+//         Object is = _getImageSource();
+//         //Log.debug(this + "; getImageSource returns " + Util.tags(is));
+//         return is;
+//     }
+//     private Object _getImageSource() {
+
+        // What would happen if we allowed returning the Images cache file here?
+        // Image code is presumably already checking for that...
+
+        if (mDataFile != null) {
+            
+            return mDataFile;
+
+        } else if (mURL_ImageData != null) {
+            
+             return mURL_ImageData;
+
+        } else {
+
+            if (mURL == null && getClientType() != NONE) {
+                // If clientType is NONE, this is normal: e.g., a C:\file\path resource
+                // opened on a Mac.
+                Log.warn("mURL == null;", new IllegalStateException(toString()));
+            }
+            
+            return mURL;
+
+        }
+    }
+    
+        
     
     @Override
     public int hashCode() {
         return spec == null ? super.hashCode() : spec.hashCode();
-//         // TODO: this not safe long-term
-//         if (mURL == null)
-//             asURL();
-//         if (mURL == null)
-//             return super.hashCode();
-//         else
-//             return mURL.hashCode();
     }
 
     @Override
@@ -933,30 +1084,43 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             if (spec2 == SPEC_UNSET || spec2 == null)
                 return false;
             return spec.equals(spec2);
-            //return getSpec().equals(((Resource)o).getSpec());
-            // use URL?  Better URN eventually?
-            //o.asURL().equals(asURL());
         }
         return false;
     }
 
     
-    public void displayContent() {
-        final String systemSpec;
+//     /** @return a URL if possible to provide a valid one on this platform, or null if unable to create one */
+//     @Override
+//     public java.net.URL asURL()
+//     {
+// //         if (mURL == null) {
+// //             if (spec != SPEC_UNSET)
+// //                 setURL(makeURL(this.spec));
+// //         }
+// //         out("asURL returns " + Util.tags(mURL));
+        
+//         return mURL;
+//     }
 
-        if (hasProperty(PACKAGE_FILE)) {
-            systemSpec = getPackagedURL().toString();
-        }
-        else if (mURL != null) {
-            systemSpec = mURL.toString(); // TODO TODO TODO: here's the problem.  mURL is what's a mess REFACTOR AGAIN...
-        }
-//         else if (VueUtil.isMacPlatform()) {
-//             // toURL will fail if we have a Windows style "C:\Programs" url, so
-//             // just in case don't try and construct a URL here.
-//             systemSpec = toURLString();
-//         }
+    private Object getBrowseReference()
+    {
+        if (mURL != null)
+            return mURL;
+        else if (mFile != null)
+            return mFile;
+        else if (mDataFile != null)
+            return mDataFile;
         else
-            systemSpec = getSpec();
+            return getSpec();
+    }
+    
+
+    public void displayContent() {
+        final Object contentRef = getBrowseReference();
+
+        out("displayContent: " + Util.tags(contentRef));
+
+        final String systemSpec = contentRef.toString();
         
         try {
             markAccessAttempt();
@@ -964,17 +1128,53 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             // access successful is not currently very meaningful,
             // as we don't know if the openURL failed or not.
             markAccessSuccess();
-        } catch (Exception e) {
-            //System.err.println(e);
-            Log.error(systemSpec + "; " + e);
+        } catch (Throwable t) {
+            Log.error(systemSpec + "; " + t);
         }
     }
+    
+
+//     public void displayContent() {
+//         final String systemSpec;
+
+//         if (hasProperty(PACKAGE_FILE)) {
+//             systemSpec = getPackagedURL().toString();
+//         }
+//         else if (mURL != null) {
+//             systemSpec = mURL.toString(); // TODO TODO TODO: here's the problem.  mURL is what's a mess REFACTOR AGAIN...
+//         }
+// //         else if (VueUtil.isMacPlatform()) {
+// //             // toURL will fail if we have a Windows style "C:\Programs" url, so
+// //             // just in case don't try and construct a URL here.
+// //             systemSpec = toURLString();
+// //         }
+//         else
+//             systemSpec = getSpec();
+        
+//         try {
+//             markAccessAttempt();
+//             VueUtil.openURL(systemSpec);
+//             // access successful is not currently very meaningful,
+//             // as we don't know if the openURL failed or not.
+//             markAccessSuccess();
+//         } catch (Exception e) {
+//             //System.err.println(e);
+//             Log.error(systemSpec + "; " + e);
+//         }
+//     }
 
 
     public void setTitle(String title) {
-        if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) dumpField("setTitle", title);
+        if (mTitle == title)
+            return;
+        //if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) dumpField("setTitle", title);
+        if (DEBUG.RESOURCE) dumpField("setTitle", title);
         mTitle = title;
-        if (DEBUG.Enabled) setDebugProperty("title", title);
+        if (DEBUG.Enabled) {
+            if (hasProperty(DEBUG_PREFIX + "title"))
+                setDebugProperty("title", title);
+        }
+        
     }
     
     public String getTitle() {
@@ -1155,6 +1355,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
      * for opening a local file.  */
     
     public String getSpec() {
+        //if (DEBUG.RESOURCE && DEBUG.META) dumpField("getSpec", spec);
         return this.spec;
     }
 
@@ -1204,7 +1405,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     @Override
     public boolean isLocalFile() {
 
-        return mFile != null || (mURL != null && "file".equals(mURL.getProtocol()));
+        return mFile != null || (mURL != null && "file".equals(mURL.getProtocol())); // todo: eventually shouldn't need 2nd check
 
 //         if (false) {
 //         //if (hasProperty(PACKAGE_FILE)) {
@@ -1307,32 +1508,18 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         return mXMLpropertyList;
     }
     
-    public void XML_initialized() {
+    public void XML_initialized(Object context) {
         if (DEBUG.CASTOR) System.out.println(getClass() + " XML INIT");
         mRestoreUnderway = true;
         mXMLpropertyList = new ArrayList();
     }
 
-    public void XML_fieldAdded(String name, Object child) {
+    public void XML_fieldAdded(Object context, String name, Object child) {
         if (DEBUG.XML) out("XML_fieldAdded <" + name + "> = " + child);
     }
     
-    public void XML_addNotify(String name, Object parent) {
+    public void XML_addNotify(Object context, String name, Object parent) {
         if (DEBUG.CASTOR) System.out.println(this + " XML ADDNOTIFY as \"" + name + "\" to parent " + parent);
-    }
-
-    private void checkForImageType() {
-        if (!isImage()) {
-            if (hasProperty(CONTENT_TYPE)) {
-                setAsImage(isImageMimeType(getProperty(CONTENT_TYPE)));
-            } else {
-                // TODO: on initial creation of resources with types unidentifiable from the spec,
-                // this code will load CONTENT_TYPE (in getDataType), and determine isImage
-                // with looksLikeImageFile, but then when saved/restored, the above case
-                // will use isImageMimeType, which isn't the exact same test -- fix this.
-                setAsImage(looksLikeImageFile('.' + getDataType()));
-            }
-        }
     }
 
     private static boolean isImageMimeType(final String s) {
@@ -1417,15 +1604,15 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     /** Currently, this just calls setSpec -- the "browse" URL is the default URL */
     protected void setURL_Browse(String s) {
+        if (DEBUG.RESOURCE) dumpField("setURL_Browse", s);
         setSpec(s);
     }
 
     protected void setURL_Thumb(String s) {
+        if (DEBUG.RESOURCE) dumpField("setURL_Thumb", s);
         // TODO performance: don't need to do this until thumbnail is requested
         mURL_ThumbData = makeURL(s);
-        //if (DEBUG.DR || DEBUG.RESOURCE)
-        setProperty(THUMB_KEY, "" + mURL_ThumbData);
-        //mPreview = mURL_ThumbData;
+        setProperty(THUMB_KEY, mURL_ThumbData);
     }
 
     /** If given any valid URL, this resource will consider itself image content, no matter
@@ -1433,9 +1620,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
      * valid image data (as opposed to say, an HTML page)
      */
     protected void setURL_Image(String s) {
+        if (DEBUG.RESOURCE) dumpField("setURL_Image", s);
         mURL_ImageData = makeURL(s);
-        //if (DEBUG.DR || DEBUG.RESOURCE)
-        setProperty(IMAGE_KEY, "" + mURL_ImageData);
+        setProperty(IMAGE_KEY, mURL_ImageData);
         if (mURL_ImageData != null)
             setAsImage(true);
     }
@@ -1456,7 +1643,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         else if (mURL_ImageData != null)
             return mURL_ImageData;
         else if (isImage())
-            // TODO: this not a good idea... only doing it so Images can put meta-data back into it
+            // returning "this" is a bit unclean: done so that Images.java can put meta-data back into us
             return this;
         else if (isLocalFile()) {
             return getFileIconImage();
@@ -1503,6 +1690,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         */
     }
 
+    
     public static final String THUMBSHOT_FETCH = "http://open.thumbshots.org/image.pxf?url=";
 
     private URL getThumbshotURL(URL url) {
@@ -1524,6 +1712,65 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
 
     
+    private static String deco(String s) {
+        return "<i><b>"+s+"</b></i>";
+    }
+
+//     private volatile String mToolTipHTML;
+
+//     @Override
+//     public String getToolTipText() {
+//         if (mToolTipHTML == null || DEBUG.META)
+//             mToolTipHTML = buildToolTipHTML();
+//         return mToolTipHTML;
+//     }
+
+    private void invalidateToolTip() {
+        //mToolTipHTML = null;
+    }
+    
+//     private String buildToolTipHTML() {
+//         String pretty = "";
+
+// //         if (mURI != null) {
+// //             if (mURI.isAbsolute()) {
+// //                 pretty = deco(mURI.toString());
+// //                 if (DEBUG.Enabled) pretty += " (URI-FULL)";
+// //             } else {
+// //                 pretty = deco(mURI.getPath());
+// //                 if (DEBUG.Enabled) pretty += " (URIpath)";
+// //             }
+// //         } else {
+//         pretty = VueUtil.decodeURL(getSpec());
+//         if (pretty.startsWith("file://") && pretty.length() > 7)
+//             pretty = pretty.substring(7);
+//         if (DEBUG.Enabled) {
+//             if (pretty.equals(getSpec()))
+//                 pretty += " (spec)";
+//             else
+//                 pretty += " (decoded spec)";
+//         }
+//         pretty = deco(pretty);
+            
+//             //}
+
+//         if (DEBUG.Enabled) {
+//             //final String nl = "<br>&nbsp;";
+//             final String nl = "<br>";
+
+//             pretty += nl + spec + " (spec)";
+//             //if (mRelativeURI != null) pretty += nl + "URI-RELATIVE: " + mRelativeURI;
+//             pretty += nl + String.format("%s ext=[%s]", asDebug(), getDataType());
+// //             pretty += nl + "type=" + TYPE_NAMES[getClientType()] + "(" + getClientType() + ")"
+// //                 + " impl=" + getClass().getName() + " ext=[" + getContentType() + "]";
+//             if (isLocalFile())
+//                 pretty += " (isLocal)";
+//             //pretty += nl + "localFile=" + isLocalFile();
+//         }
+//         return pretty;
+        
+//     }
+
 
     /**
      * Search for meta-data: e.g.,
@@ -1575,7 +1822,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return;
         }
         
-        URL _url = asURL();
+        //URL _url = asURL();
+        URL _url = mURL;
 
         if (_url == null)  {
             if (DEBUG.Enabled) out("couldn't get URL");
@@ -2061,7 +2309,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         URLResource r = (URLResource) Resource.instance(rs);
         System.out.println("Resource: " + r);
-        System.out.println("URL: " + r.asURL());
+        //System.out.println("URL: " + r.asURL());
         r.displayContent();
     }
     
