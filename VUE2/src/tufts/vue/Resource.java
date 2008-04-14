@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.66 $ / $Date: 2008-04-14 19:43:03 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2008-04-14 22:28:22 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -548,8 +548,14 @@ public abstract class Resource implements Cloneable
         if (mExtension != null)
             return mExtension;
         
-        String ext = extractExtension(getSpec());
 
+        String ext;
+
+        if (getClientType() == DIRECTORY)
+            ext = EXTENSION_DIR;
+        else
+            ext = extractExtension(getSpec());            
+            
         if (ext == null || ext == NO_EXTENSION || ext.length() == 0) {
             final String spec = getSpec();
             if (spec == null || spec == SPEC_UNSET || spec.trim().length() < 1)
@@ -562,6 +568,7 @@ public abstract class Resource implements Cloneable
             //if (DEBUG.RESOURCE) Log.warn("set extType=[" + ext + "]", new Throwable());
         }
 
+        if (DEBUG.RESOURCE) setDebugProperty("dataType", ext);
         mExtension = ext;
         
         return ext;
@@ -978,7 +985,7 @@ public abstract class Resource implements Cloneable
             
         } 
 
-        if ((DEBUG.RESOURCE || DEBUG.IO) && file != null) Log.debug("getLocalFileIfPresent(String): testing " + file);
+        if ((DEBUG.RESOURCE || DEBUG.IO) && file != null) Log.debug("getLocalFileIfPresent(Str): testing " + file);
 
         if (file == null || !file.exists()) {
 
