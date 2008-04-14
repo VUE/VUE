@@ -36,7 +36,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.35 $ / $Date: 2008-04-14 19:26:52 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2008-04-14 21:04:34 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -420,21 +420,21 @@ public class CabinetResource extends URLResource
     }
     
     
-    @Override
-    public Object getPreview() {
+//     @Override
+//     public Object getPreview() {
 
-        // We could not override this at all, and just let us see full
-        // image previews of local filesystem images in "Browse: My
-        // Computer".  At this point this may simply be an historical
-        // artifact of how we did things, but skipping all those image
-        // fetches for just the preview until the content is on the
-        // map puts alot less stress on our memory and threads.
+//         // We could not override this at all, and just let us see full
+//         // image previews of local filesystem images in "Browse: My
+//         // Computer".  At this point this may simply be an historical
+//         // artifact of how we did things, but skipping all those image
+//         // fetches for just the preview until the content is on the
+//         // map puts alot less stress on our memory and threads.
         
-        if (isCached())
-            return super.getPreview();
-        else
-            return getFileIconImage();
-    }
+//         if (isCached())
+//             return super.getPreview();
+//         else
+//             return getFileIconImage();
+//     }
     
     
 }
