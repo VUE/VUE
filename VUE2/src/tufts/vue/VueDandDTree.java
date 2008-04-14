@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.36 $ / $Date: 2008-04-14 19:35:56 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2008-04-14 21:04:52 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -342,26 +342,30 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             
             hasImageIcon = false;
 
-            if ( !(node instanceof FileNode) && (node.getResource().getClientType() == FAVORITES)) {
+            final Resource r = node.getResource();
+            Icon icon = null;
+
+            if (leaf && level == 1 && r.isImage())
+                icon = r.getContentIcon(tree);
+
+            if (icon == null)
+                icon = r.getTinyIcon();
+            else
+                hasImageIcon = true;
+
+            if (icon != null) {
+
+                setIcon(icon);
+                
+            } else if ( !(node instanceof FileNode) && (node.getResource().getClientType() == FAVORITES)) {
                 if (node.getChildCount() > 0 ) {
                     setIcon(activeIcon);
                 } else {
                     setIcon(inactiveIcon);
                 }
-            } else if (leaf) {
-                Icon icon = nleafIcon;
-                final Resource r = node.getResource();
-                //System.out.println("level " + node.getLevel() + " for " + r);
-                if (level == 1 && r.isImage()) {
-                    Icon i = r.getContentIcon(tree);
-                    if (i != null) {
-                        hasImageIcon = true;
-                        icon = i;
-                        //setIcon(icon);
-                    }
-                }
-                setIcon(icon);
-            } else {
+            }
+            
+            else {
                 setIcon(activeIcon);
             }
 
