@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.521 $ / $Date: 2008-04-14 16:29:26 $ / $Author: mike $ 
+ * @version $Revision: 1.522 $ / $Date: 2008-04-14 19:14:41 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4358,7 +4358,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     
-    private final DataFlavor URLFlavor = GUI.makeDataFlavor(java.net.URL.class);
+    //private final DataFlavor URLFlavor = GUI.makeDataFlavor(java.net.URL.class);
     
     private final DataFlavor LWFlavors[] = {
             LWComponent.DataFlavor,
@@ -4455,9 +4455,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
                     data = LWC.getResource();
 
-                } else if (URLFlavor.equals(flavor) && LWC.getResource() instanceof URLResource) {
+//                 } else if (URLFlavor.equals(flavor) && LWC.getResource() instanceof URLResource) {
 
-                    data = ((URLResource)LWC.getResource()).asURL();
+//                     data = ((URLResource)LWC.getResource()).asURL();
 
                 } else {
                     throw new UnsupportedFlavorException(flavor);
