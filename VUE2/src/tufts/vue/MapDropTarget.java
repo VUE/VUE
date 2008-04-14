@@ -44,7 +44,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.89 $ / $Date: 2008-04-09 00:48:55 $ / $Author: sfraize $  
+ * @version $Revision: 1.90 $ / $Date: 2008-04-14 19:18:30 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -153,7 +153,7 @@ class MapDropTarget
     /** DropTargetListener */
     public void drop(DropTargetDropEvent e)
     {
-        if (DEBUG.DND) out(Util.TERM_GREEN + "DROP " + e 
+        if (DEBUG.DND) out(Util.TERM_GREEN + "\nDROP: " + e 
                            + "\n\t        dropAction: " + dropName(e.getDropAction())
                            + "\n\tdropActionOverride: " + dropName(dropActionOverride)
                            + "\n\t     sourceActions: " + dropName(e.getSourceActions())
@@ -746,21 +746,27 @@ class MapDropTarget
 
         if (DEBUG.Enabled) {
             String size = "";
-            String bagType0 = "";
+            Object firstInBag = null;
+            //String bagType0 = "";
+            String bagEntry0 = "";
             if (foundData instanceof Collection) {
                 Collection bag = (Collection) foundData;
                 size = " (Collection size " + bag.size() + ")";
-                if (bag.size() > 0)
-                    bagType0 =   "\n\ttype[0]: " + bag.iterator().next().getClass();
-                
+                if (bag.size() > 0) {
+                    final Object o = bag.iterator().next();
+                    //bagType0 =   "\n\ttype[0]: " + o.getClass();
+                    firstInBag = o;
+                    bagEntry0 =  "\n\tdata[0]: " + Util.tags(firstInBag);
+                }
             }
             //Log.debug("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
-            Log.debug("TRANSFER: Found supported flavor " + foundFlavor
-                      + "\n\t   type: " + Util.tag(foundData) + size
-                      + bagType0
+            Log.debug(Util.TERM_CYAN + "\nTRANSFER: Found a supported DataFlavor; " //+ foundFlavor
                       + "\n\t flavor: " + foundFlavor
-                      + "\n\t   data: [" + foundData + "]"
-                      //+ "\n\tdropptedText=[" + droppedText + "]"
+                      + "\n\tdataTag: " + Util.tag(foundData) + size
+                      //+ bagType0
+                      + "\n\tdataRaw: [" + foundData + "]"
+                      + bagEntry0
+                      + Util.TERM_CLEAR
                       );
         }
 
@@ -1051,7 +1057,7 @@ class MapDropTarget
             if (drop.isLinkAction || drop.hit instanceof LWLink) { // hack for now: if a link, just always set resource...
                 drop.hit.setResource(resourceSpec);
             } else if (drop.hitParent != null) {
-                drop.hitParent.dropChild(createNodeAndResource(drop, null, resourceSpec, props, drop.nextDropLocation()));
+                drop.hitParent.dropChild(createNodeAndResource(drop, file, resourceSpec, props, drop.nextDropLocation()));
                 // Why were we leaving out the location here?  Oh: when hitParent could only be a node (auto-layout), that made sense
                 //drop.hitNode.addChild(createNodeAndResource(drop, resourceSpec, props, null));
             }
