@@ -27,6 +27,11 @@ import tufts.vue.DEBUG;
 import tufts.vue.VUE;
 import tufts.vue.gui.GUI;
 
+/**
+ * A JPanel that implements Scrollable, and can temporarily have it's painting turned off,
+ * which is useful for preventing repaints during batch updates and improving visual performance.
+ */
+//public class ScrollableGrid extends tufts.Util.JPanelAA implements Scrollable
 public class ScrollableGrid extends JPanel implements Scrollable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ScrollableGrid.class);
