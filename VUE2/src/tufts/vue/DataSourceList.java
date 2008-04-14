@@ -44,11 +44,14 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.50 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.51 $ / $Date: 2008-04-14 19:16:09 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
-public class DataSourceList extends JList implements DropTargetListener {
+public class DataSourceList extends JList implements DropTargetListener
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DataSourceList.class);
+    
     static Object IndicatedDragOverValue;
     
     private static final boolean debug = true;
@@ -192,13 +195,15 @@ public class DataSourceList extends JList implements DropTargetListener {
                     }
                     
                     for (Resource resource : droppedResources) {
-                        if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getClientType()+ " resource class:"+resource.getClass());  
+                        if (DEBUG.DND) Log.debug("Found: " + Util.tags(resource));
                         ResourceNode newNode;
-                        if(resource.getClientType() == Resource.FILE){
+                        //if(resource.getClientType() == Resource.FILE){
+                        //if (resource.getClientType() == Resource.FILE || resource.getClientType() == Resource.DIRECTORY) {
+                        if (resource.isLocalFile()) {
                          //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
                             newNode = new CabinetNode(resource,CabinetNode.LOCAL);
                             CabinetResource cr = (CabinetResource)newNode.getResource();
-                            if(DEBUG.DND) System.out.println("CABINET RESOURCE: " + resource+ "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
+                            if (DEBUG.DND) Log.debug("CABINET RESOURCE: " + resource + "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
                         } else {
                             newNode    =new  ResourceNode(resource);
                         }

@@ -22,11 +22,14 @@
 
 package tufts.vue;
 
-/** A wrapper for an implementation of the Repository OSID.  A osid.dr.Asset which can be used as the user 
-*  object in a DefaultMutableTreeNode.  It implements the Resource interface specification.
-*/
 import java.net.URL;
+import tufts.Util;
 
+
+/**
+ * A wrapper for an implementation of the Repository OSID.  A osid.dr.Asset which can be used as the user 
+ * object in a DefaultMutableTreeNode.  It implements the Resource interface specification.
+ */
 public class Osid2AssetResource extends URLResource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Osid2AssetResource.class);
@@ -84,10 +87,10 @@ public class Osid2AssetResource extends URLResource
     {
         this.asset = asset;
         try {
-            if (DEBUG.RESOURCE) out("setAsset " + asset + quoteL(asset.getDisplayName()));
+            if (DEBUG.RESOURCE) dumpField("setAsset", Util.tags(asset) + "; " + Util.tags(asset.getDisplayName()));
             setAssetImpl(asset);
         } catch (Throwable t) {
-            tufts.Util.printStackTrace(t);
+            Log.error("setAsset " + Util.tags(asset) + "; in " + this, t);
         }
     }
 

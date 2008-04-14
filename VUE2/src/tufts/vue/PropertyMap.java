@@ -21,11 +21,13 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.21 $ / $Date: 2008-04-09 00:50:45 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2008-04-14 19:19:30 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap<String,Object>
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PropertyMap.class);
+    
     public interface Listener {
         void propertyMapChanged(PropertyMap p);
     }
@@ -123,10 +125,10 @@ public class PropertyMap extends java.util.HashMap<String,Object>
     public synchronized void releaseChanges() {
         mHoldingChanges = false;
         if (mChanges > 0 && mTableModel != null) {
-            if (DEBUG.RESOURCE && DEBUG.META) out("releasing changes " + mChanges);
+            if (DEBUG.RESOURCE && DEBUG.IMAGE) out("releasing changes " + mChanges);
             mTableModel.reload();
         }
-        if (DEBUG.RESOURCE && DEBUG.META) out("released changes " + mChanges);
+        if (DEBUG.RESOURCE && DEBUG.IMAGE) out("released changes " + mChanges);
         mChanges = 0;
     }
 
@@ -190,11 +192,11 @@ public class PropertyMap extends java.util.HashMap<String,Object>
     }
 
     private void out(Object o) {
-        String s = "PropertyMap@" + Integer.toHexString(hashCode()) + " (#" + notifyCount + ") "
-            + (""+System.currentTimeMillis()).substring(8)
-            + " [" + Thread.currentThread().getName() + "]";
-        System.err.println(s + " " + (o==null?"null":o.toString()));
-        //VUE.Log.debug("PropertyMap: " + (o==null?"null":o.toString()));
+
+        Log.debug(String.format("@%x (#%d): %s",
+                                System.identityHashCode(this),
+                                notifyCount,
+                                (o==null?"null":o.toString())));
     }
 
     public String toString() {
@@ -308,7 +310,7 @@ public class PropertyMap extends java.util.HashMap<String,Object>
             final Entry entry = mEntries[row];
 
             if (entry == null) {
-                tufts.Util.printStackTrace(getClass().getName() + ": null entry at row " + row);
+                Log.warn(getClass().getName(), new Throwable("null entry at row " + row));
                 return null;
             } else if (col == 0)
                 return entry.key;

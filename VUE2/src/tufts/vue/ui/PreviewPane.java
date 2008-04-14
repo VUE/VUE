@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.22 $ / $Date: 2008-03-31 20:44:17 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2008-04-14 19:20:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -303,7 +303,7 @@ public class PreviewPane extends JPanel
         if (drawH != h)
             yoff = (h - drawH) / 2;
             
-        if (DEBUG.IMAGE) out("painting " + Util.tag(mImage));
+        if (DEBUG.IMAGE) out("painting " + Util.tag(mImage) + "; into " + drawW + "x" + drawH);
         g.drawImage(mImage, xoff, yoff, drawW, drawH, null);
     }
 }
