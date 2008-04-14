@@ -58,13 +58,13 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.189 $ / $Date: 2008-04-09 08:07:41 $ / $Author: sfraize $
+ * @version $Revision: 1.190 $ / $Date: 2008-04-14 19:30:47 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWMap.class);
-    
+
     /** file we were opened from of saved to, if any */
     private File mFile;
     private String mSaveLocation;
@@ -550,11 +550,16 @@ public class LWMap extends LWContainer
         }
         return mArchiveManifest;
     }
-    
+
+    private boolean isArchive;
+    public void setArchiveMap(boolean asArchive) {
+        isArchive = asArchive;
+    }
 
     public boolean isArchiveMap() {
-        // TODO:  set actual bit and/or check for a manifest
-        return hasLabel() && getLabel().endsWith("$map.vue");
+        return isArchive;
+        //return hasLabel() && getLabel().endsWith("$map.vue");
+        //return hasLabel() && getLabel().endsWith(".vpk");
     }
 
     
@@ -677,7 +682,7 @@ public class LWMap extends LWContainer
     static final String NODE_INIT_LAYOUT = "completeXMLRestore:NODE";
     static final String LINK_INIT_LAYOUT = "completeXMLRestore:LINK";
 
-    public void completeXMLRestore()
+    public void completeXMLRestore(Object context)
     {
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             Log.debug(getLabel() + ": completing restore...");
@@ -731,15 +736,59 @@ public class LWMap extends LWContainer
             mModelVersion = getCurrentModelVersion();
         }
 
-        if (!isArchiveMap())
-            patchRelativeLocations(getAllResources(), mSaveLocationURI);
-        
-        //recordRelativeLocations(getAllResources(), mSaveLocationURI);
+        final Collection allResources = getAllResources();
 
-//         if (true) { // Not turned on yet
-//             if (
-//                 ensureAllResourcesFoundAndRelative(allRestored, mSaveLocationURI);
-//         }
+        // Note: by this time, some duplicate resources have been removed from the map/
+        // E.g., "image" nodes, where the LWNode and the the LWImage both point to the
+        // same resource spec, the reference to the instance for the de-serialized
+        // LWNode is pointed to the instance in LWImage.  See LWNode.setResource.  This
+        // simplifies things, improves performance, and makes debugging easier.
+        // Someday, we may change castor persistance to use Resource references in the
+        // LWComponents, and then persist a separate list of all Resources with the map,
+        // but for now multiple references to the same Resource object are re-persisted
+        // each time in the map.
+        
+        if (isArchiveMap()) {
+
+            // Archive maps don't currently look for relative resources: just run all final inits
+            //runResourceDeserializeInits(allResources); is run manually by Archive
+            runResourceFinalInits(allResources);
+            
+        } else {
+
+            // DEFAULT: LOOK FOR MAP-RELATIVE RESOURCES (files in same directory as the map, or below it)
+
+            // (1) First: load the property maps to we can find @file.relative properties:
+
+            runResourceDeserializeInits(allResources);
+            
+            // (2) Now, patch up old absolute resource locations that were relative to the map
+            // to the new absolute locations:
+
+            if (mSaveLocationURI == null) {
+                Log.info("unrooted map (no setFile) -- skipping search for relative resources; " + this);
+            } else {
+                
+                // todo: we should be able to get rid of mSaveLocationURI and use mFile
+                // (and canonicalize it like we do for recordRelativeLocations)
+                // setFile should already have been called as per MapUnmarshalHandler,
+                // unless this is an archive map, in which case we could be here.
+                
+                restoreRelativeLocations(allResources, mSaveLocationURI);
+            }
+
+            // (3) Then run final inits:
+            
+            runResourceFinalInits(allResources);
+
+// Now, we could look for any NEW relative's that weren't recorded before, tho
+// we shouldn't touch any existing relatives:  Need as an update/second pass
+// tho so we don't touch any we've already determined are relative as they were.
+//             if (getFile() != null)
+//                 recordRelativeLocations(getAllResources(), getFile().getParentFile());
+            
+        }
+
         
         //----------------------------------------------------------------------------------------
         
@@ -757,18 +806,18 @@ public class LWMap extends LWContainer
 
         //----------------------------------------------------------------------------------------
         
+        // Do NOT normalize the groups yet: will seriously break old maps.  It slighly improves some of our
+        // interim formats (1-2), but makes others a complete mess.
+        //         for (LWComponent c : allRestored)
+        //                 if (c instanceof LWGroup)
+        //                     ((LWGroup)c).normalize();
 
-        
-        
-// Do NOT do this here: will seriously break old maps.  It slighly improves some of our
-// interim formats (1-2), but makes others a complete mess.
-//         for (LWComponent c : allRestored)
-//                 if (c instanceof LWGroup)
-//                     ((LWGroup)c).normalize();
-
-if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp: we get exceptions when testing just SaveAction on this code
-        
+        //-----------------------------------------------------------------------------
         // Layout non-links:
+        //-----------------------------------------------------------------------------
+        
+        //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack: we get exceptions when testing just SaveAction on this code
+        
         for (LWComponent c : allRestored) {
             // mark all, including links, now, as when we get to them, links-to-links may
             // cause cascading recomputes that would warn us they're still being restored otherwise.
@@ -783,9 +832,12 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp: we get exceptions when t
             }
         }
 
-if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
-            
+        //-----------------------------------------------------------------------------
         // Layout links -- will trigger recomputes & layout any link-labels that need it.
+        //-----------------------------------------------------------------------------
+        
+        //if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG) // tmp hack
+            
         for (LWComponent c : allRestored) {
             if (c instanceof LWLink == false)
                 continue;
@@ -797,9 +849,11 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
             }
         }
         
-        
+        //-----------------------------------------------------------------------------
         // Just to be sure, re-normalize all groups.  This shouldn't be required, except
         // perhaps if we're updating from an old model version.
+        //-----------------------------------------------------------------------------
+        
         for (LWComponent c : allRestored) {
             try {
                 if (c instanceof LWGroup)
@@ -842,7 +896,7 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
         protected Resource postProcess(Resource r, Object source) {
             Log.debug(LWMap.this + " created: " + r + " from " + Util.tags(source));
 
-// not turned on yet
+// not turned on yet -- see if can move to Resource.java if we keep.
 //             if (mSaveLocationURI != null) {
 //                 //URI curRoot = URLResource.makeURI(mSaveLocation.getParentFile());
 //                 //if (curRoot != null) {
@@ -885,68 +939,71 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
 //             return;
 //         }
 
-        recordRelativeLocations(getAllResources(), file.getParentFile().toURI());
+        recordRelativeLocations(getAllResources(), file.getParentFile());
 
     }
 
-    private void recordRelativeLocations(Collection<Resource> resources, URI root) {
+    private void recordRelativeLocations(Collection<Resource> resources, File mapSaveDirectory)
+    {
+        final URI root = Resource.toCanonicalFile(mapSaveDirectory).toURI();
+        
+        if (DEBUG.Enabled) Log.debug("relativizing any resources local to: " + root);
         
         for (Resource r : resources) {
             try {
-                if (r instanceof URLResource == false) {
-                    Log.warn("Unhandled resource in record relative: " + Util.tags(r));
-                    continue;
-                }
-                if (r.isLocalFile()) {
-                    URI relative = ((URLResource)r).findRelativeURI(root);
-                    if (relative != null) {
-                        Log.debug("made-relative: " + relative + "; " + r);
-                        r.setProperty(Resource.FILE_RELATIVE, relative);
-                    } else {
-                        Log.debug("  no-relative: " + r);
-                        r.removeProperty(Resource.FILE_RELATIVE);
-                    }
-                } else {
-                    Log.debug(" non-relative: " + r);
-                    r.removeProperty(Resource.FILE_RELATIVE);
-                }
+                r.recordRelativeTo(root);
             } catch (Throwable t) {
-                Log.warn(this + "; makeRelativeTo failure " + root + ": " + t + "; " + r, t);
+                Log.warn(this + "; recordRelativeLocations failure " + root + ": " + t + "; " + r, t);
+            }
+        }
+    }
+
+    private void restoreRelativeLocations(Collection<Resource> resources, URI root)
+    {
+        if (DEBUG.Enabled) {
+            Resource.dumpURI(root, Util.TERM_GREEN + "resolving resources to map root;");
+            System.out.print(Util.TERM_CLEAR);
+        }
+        
+        for (Resource r : resources) {
+            try {
+                r.restoreRelativeTo(root);
+            } catch (Throwable t) {
+                Log.warn(this + "; restoreRelativeLocations failure " + root + ": " + t + "; " + r, t);
+            }
+        }
+    }
+
+    // public only for Archive to be able to call us: clean that up
+    public void runResourceDeserializeInits(Collection<Resource> resources)
+    {
+        if (DEBUG.Enabled)
+            Log.debug(Util.TERM_CYAN + "initAfterDerserialize for all resources; " + Util.tags(resources) + Util.TERM_CLEAR);
+        for (Resource r : resources) {
+            try {
+                r.initAfterDeserialize(this);
+            } catch (Throwable t) {
+                Log.warn(this + "; failure on: " + r, t);
             }
         }
         
     }
 
-    private void patchRelativeLocations(Collection<Resource> resources, URI root) {
+    private void runResourceFinalInits(Collection<Resource> resources)
+    {
+        if (DEBUG.Enabled)
+            Log.debug(Util.TERM_CYAN + "initFinal's for all resources; " + Util.tags(resources) + Util.TERM_CLEAR);
         
         for (Resource r : resources) {
             try {
-                if (r instanceof URLResource == false) {
-                    Log.warn("Unhandled resource in patch relative: " + Util.tags(r));
-                    continue;
-                }
-                
-                final String relative = r.getProperty(Resource.FILE_RELATIVE);
-                if (relative == null)
-                    continue;
-
-                URI absolute = root.resolve(relative);
-
-                Log.debug("resolved " + absolute + " from " + relative);
-
-                if (absolute != null) {
-                    ((URLResource)r).installSpec(absolute.toString());
-                } else {
-                    Log.error("Failed to find relative " + relative + "; in " + root + " for " + r);
-                }
-                
-                
+                r.initFinal(this);
             } catch (Throwable t) {
-                Log.warn(this + "; patchRelativeTo failure " + root + ": " + t + "; " + r, t);
+                Log.warn(this + "; failure on: " + r, t);
             }
         }
         
     }
+    
     
 
 //     private void relativizeResources(Collection<LWComponent> nodes, URI root) {
@@ -1409,7 +1466,7 @@ if (!tufts.vue.action.SaveAction.PACKAGE_DEBUG)
             // A more complete solution might mark all events generated on specific
             // threads known to be behaving this way.
             
-            if (DEBUG.Enabled) Log.debug("staying clean for non-AWT event: " + e);
+            if (DEBUG.WORK || DEBUG.EVENTS || DEBUG.INIT) Log.debug("staying clean for non-AWT event: " + e);
             return;
         }
             
