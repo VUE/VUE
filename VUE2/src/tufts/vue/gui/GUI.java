@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.97 $ / $Date: 2008-04-09 00:55:38 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2008-04-14 19:33:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -264,10 +264,23 @@ public class GUI
             fontSize = 11;
         } else {
             fontName = "SansSerif";
-            //fontName = "Lucida Sans Unicode";
             fontSize = 11;
+            if (DEBUG.Enabled) {
+                // looks better for values, maybe not so much for bold labels tho
+                // note: this is a smaller font than SansSerif, and switching
+                // it in has revealed that our spacing code isn't entirely
+                // font determined -- some of the constants (e.g., in MetaDataPane),
+                // are manually tuned, for SansSerif.
+                fontName = "Lucida Sans Unicode";
+            }
         }
-        LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
+
+        if (DEBUG.Enabled) {
+            if (!Util.isMacPlatform()) fontSize = 12;
+            LabelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
+        } else {
+            LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
+        }
         ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
         TitleFace = new GUI.Face(fontName, Font.BOLD, fontSize, GUI.LabelColor);
         
@@ -2306,7 +2319,7 @@ public class GUI
         public synchronized Object getTransferData(DataFlavor flavor)
             throws UnsupportedFlavorException, java.io.IOException
         {
-            if (DEBUG.DND && DEBUG.META) System.out.println("ResourceTransfer: getTransferData, flavor=" + flavor);
+            if (DEBUG.WORK || (DEBUG.DND && DEBUG.META)) System.out.println("ResourceTransfer: getTransferData, flavor=" + flavor);
         
             Object result = null;
         
@@ -2316,10 +2329,19 @@ public class GUI
                 // we get an exception thrown (even tho I think that
                 // may be against the published API).
                 Object o = content.get(0);
-                if (o instanceof java.io.File)
+                if (o instanceof java.io.File) {
                     result = ((java.io.File)o).toString();
-                else
-                    result = ((Resource)o).getSpec();
+                } else if (o instanceof Resource) {
+                    // todo: Resource.getReference?  Returns URL if there is one, local package content otherwise
+                    java.io.File file = ((Resource)o).getActiveDataFile();
+                    if (file != null)
+                        result = file.toString();
+                    else
+                        result = ((Resource)o).getSpec();
+                } else {
+                    Log.error("getTransferData: unhandled stringFlavor type: " + Util.tags(o));
+                    result = o;
+                }
             
             } else if (Resource.DataFlavor.equals(flavor)) {
             
@@ -2334,7 +2356,7 @@ public class GUI
                 throw new UnsupportedFlavorException(flavor);
             }
         
-            if (DEBUG.DND && DEBUG.META) System.out.println("\treturning " + result.getClass() + "[" + result + "]");
+            if (DEBUG.WORK || (DEBUG.DND && DEBUG.META)) System.out.println("\treturning " + Util.tags(result));
 
             return result;
         }
