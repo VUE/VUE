@@ -34,6 +34,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -42,6 +43,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.View;
 
+import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.PropertyMap;
 import tufts.vue.Resource;
@@ -63,11 +65,10 @@ public class MetaDataPane extends JPanel
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetaDataPane.class);
     
     private JLabel[] mLabels;
-   //private JLabel[] mValues;
-   private JTextArea[] mValues;
-   private final ScrollableGrid mGridBag;
-   private final JScrollPane mScrollPane = new JScrollPane();   
-   private boolean scroll= false;
+    private JTextArea[] mValues;
+    private final ScrollableGrid mGridBag;
+    private final JScrollPane mScrollPane = new JScrollPane();   
+    private boolean scroll= false;
    
    public MetaDataPane(boolean scroll) {
        super(new BorderLayout());
@@ -76,7 +77,9 @@ public class MetaDataPane extends JPanel
        ensureSlots(20);
        
        mLabels[0].setText("X"); // make sure label will know it's max height
-       mGridBag = new ScrollableGrid(this, mLabels[0].getPreferredSize().height + 4);
+       final int scrollUnit = mLabels[0].getPreferredSize().height + 4;
+       mGridBag = new ScrollableGrid(this, scrollUnit);
+
        Insets insets = (Insets) GUI.WidgetInsets.clone();
        insets.top = insets.bottom = 0;
        insets.right = 1;
@@ -109,6 +112,20 @@ public class MetaDataPane extends JPanel
        
    }
 
+    private JLabel createLabel() {
+        final JLabel label;
+        
+//         if (DEBUG.Enabled) {
+//             label = new tufts.Util.JLabelAA();
+//             //label.setBackground(Color.red);
+//             //label.setOpaque(true);
+//         } else
+            label = new JLabel();
+        
+        return label;
+    }
+
+    private final Border WindowsPlatformAdjustBorder = new EmptyBorder(0,0,2,0);
 
    /**
     * Make sure at least this minimum number of slots is available.
@@ -135,8 +152,14 @@ public class MetaDataPane extends JPanel
        mLabels = new JLabel[maxSlots];
        mValues = new JTextArea[maxSlots];
 
+       final Color alternatingColor = Color.white;
+       final Border fillBorder = new EmptyBorder(TopPad,2,BotPad,0);
+       final Border macAdjustBorder = new EmptyBorder(0,2,0,0);
+       final Border winAdjustBorder = new EmptyBorder(0,2,0,0);
+       
+       
        for (int i = 0; i < mLabels.length; i++) {
-           mLabels[i] = new JLabel();
+           mLabels[i] = createLabel();
            mValues[i] = new JTextArea();
            mValues[i].setEditable(false);
            mValues[i].setLineWrap(true);
@@ -146,6 +169,26 @@ public class MetaDataPane extends JPanel
            mValues[i].setOpaque(false);
            mLabels[i].setVisible(false);
            mValues[i].setVisible(false);
+
+           if (Util.isWindowsPlatform())
+               mValues[i].setBorder(WindowsPlatformAdjustBorder);
+
+           if (DEBUG.Enabled) {
+               if (i % 2 == 0) {
+                   //mLabels[i].setBackground(alternatingColor);
+                   mValues[i].setBackground(alternatingColor);
+                   //mLabels[i].setOpaque(true);
+                   mValues[i].setOpaque(true);
+                   mLabels[i].setBorder(fillBorder);
+                   mValues[i].setBorder(fillBorder);
+               } else {
+                   if (Util.isMacPlatform())
+                       mValues[i].setBorder(macAdjustBorder);
+                   else
+                       mValues[i].setBorder(winAdjustBorder);
+               }
+           }
+           
 
            mValues[i].addMouseListener(CommonURLListener);
            
@@ -171,7 +214,8 @@ public class MetaDataPane extends JPanel
                     tufts.vue.VueUtil.openURL(value.getText());
                     GUI.invokeAfterAWT(new Runnable() {
                             public void run() {
-                                value.setForeground(c);
+                                value.select(0,0);
+                                GUI.invokeAfterAWT(new Runnable() { public void run() { value.setForeground(c); }});
                             }
                         });
                 }
@@ -181,39 +225,6 @@ public class MetaDataPane extends JPanel
         }
     }
 
-    private MouseListener CommonURLListener = new URLMouseListener();
-
-    private void loadRow(int row, final String labelText, final String valueText) {
-        if (DEBUG.RESOURCE && DEBUG.META) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
-
-        JLabel label = mLabels[row];
-        JTextArea value = mValues[row];       
-
-        label.setText(labelText + ":");
-        value.setText(valueText);
-
-        if (Resource.isLikelyURLorFile(valueText)) {
-            value.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-            value.putClientProperty(CAN_OPEN, Boolean.TRUE);
-            if (DEBUG.Enabled) value.setForeground(Color.blue);
-        } else {
-            value.putClientProperty(CAN_OPEN, Boolean.FALSE);
-            if (DEBUG.Enabled) value.setForeground(Color.black);
-            //label.removeMouseListener(CommonURLListener);
-            value.setCursor(Cursor.getDefaultCursor());
-            //GUI.apply(GUI.ValueFace, mValues[i]);
-        }
-       
-        // if value has at least one space, use word wrap
-        if (valueText.indexOf(' ') >= 0)
-            value.setWrapStyleWord(true);
-        else
-            value.setWrapStyleWord(false);
-       
-        label.setVisible(true);
-        value.setVisible(true);
-       
-    }
 
    public void loadResource(Resource r) {
 	   if (DEBUG.RESOURCE) out("MetaDataPane : loadResource :" + r.getName());
@@ -237,7 +248,7 @@ public class MetaDataPane extends JPanel
 	    	 if (mValues[i].isVisible())
 	    	 {
 	    		 FontMetrics fm = mValues[i].getFontMetrics(mValues[i].getFont());
-	    		 height +=((lines * fm.getHeight()) + topPad + botPad);
+	    		 height +=((lines * fm.getHeight()) + TopPad + BotPad);
 	    	 }
 	    	 //I wasn't taking into account the space between values
 	    	 height +=4;
@@ -257,14 +268,31 @@ public class MetaDataPane extends JPanel
 	   return getMinimumSize();
    }
    
-   private PropertyMap mRsrcProps;
+    private PropertyMap mRsrcProps;
    
-   public synchronized void propertyMapChanged(PropertyMap source) {
-       if (mRsrcProps == source)
-           loadProperties(source);
-   }
+    public synchronized void propertyMapChanged(PropertyMap source) {
+        if (mRsrcProps == source)
+            loadProperties(source);
+    }
    
-   public synchronized void loadProperties(PropertyMap rsrcProps)
+    public void loadProperties(final PropertyMap resourceProperties) {
+
+           if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+               
+               doLoadProperties(resourceProperties);
+
+           } else {
+               // 2008-04-12 SMF: if we're in an image loader thread when
+               // we get this callback, we risk deadlock -- this should fix it.
+               GUI.invokeAfterAWT(new Runnable() {
+                       public void run() {
+                           doLoadProperties(resourceProperties);
+                       }
+                   });
+           }
+    }
+   
+   private synchronized void doLoadProperties(PropertyMap rsrcProps)
    {
        // TODO: loops if we don't do this first: not safe!  we should be loading
        // directly from the props themselves, and by synchronized on them...  tho is
@@ -366,30 +394,33 @@ public class MetaDataPane extends JPanel
        int row;
    //    height=5;
        for (row = 0; row < rows; row++) {
-           String label = model.getValueAt(row, 0).toString();
-           String value = "" + model.getValueAt(row, 1);
+           final Object label =  model.getValueAt(row, 0);
+           final String labelTxt = "" + label;
+           final Object value = model.getValueAt(row, 1);
+           final String valueTxt =  "" + value;
            
            // loadRow(row++, label, value); // debug non-HTML display
-           
            // FYI, some kind of HTML bug for text strings with leading slashes
            // -- they show up empty.  Right now, we're disable HTML for
            // all synthetic keys, which covers URL.path, which was the problem.
            //if (label.indexOf(".") < 0) 
            //value = "<html>"+value;
 
-           char c = 0;
-           try {
-               c = label.charAt(0);
-           } catch (Throwable t) {}
-
-           //if (!DEBUG.Enabled && (c == '@' || c == '~' || c == '#')) {
-           if (!DEBUG.Enabled && (c == '@' || c == '#')) {
-               mLabels[row].setVisible(false);
-               mValues[row].setVisible(false);
-               continue;
+           if (! DEBUG.Enabled) {
+               // If we're not in debug mode, make sure hidden properties stay hidden
+               
+               if (Resource.isHiddenPropertyKey(labelTxt)) {
+                   mLabels[row].setVisible(false);
+                   mValues[row].setVisible(false);
+                   continue;
+               }
            }
-           
-           loadRow(row, label, value);
+
+           try {
+               loadRow(row, labelTxt, value, valueTxt);
+           } catch (Throwable t) {
+               Log.error("Failed to load row " + row + "; label= " + Util.tags(label) + "; value=" + Util.tags(value), new Throwable());
+           }
        
            
        }
@@ -401,6 +432,72 @@ public class MetaDataPane extends JPanel
        //mScrollPane.getViewport().setViewPosition(new Point(0,0));
    }
 
+
+    private MouseListener CommonURLListener = new URLMouseListener();
+
+    private final Color ObjectColor = new Color(128,0,0);
+
+    private void loadRow(int row, final String labelText, final Object value, final String valueText) {
+        if (DEBUG.RESOURCE && DEBUG.META) out("adding row " + row + " " + labelText + "=[" + valueText + "]");
+
+        JLabel label = mLabels[row];
+        JTextArea field = mValues[row];       
+
+        StringBuffer labelBuf = new StringBuffer(labelText.length() + 1);
+        labelBuf.append(labelText);
+        labelBuf.append(':');
+
+        label.setText(labelBuf.toString());
+
+        if (Resource.looksLikeURLorFile(valueText)) {
+            //field.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+            field.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            field.putClientProperty(CAN_OPEN, Boolean.TRUE);
+            if (DEBUG.Enabled) field.setForeground(Color.blue);
+        } else {
+            field.putClientProperty(CAN_OPEN, Boolean.FALSE);
+            if (DEBUG.Enabled) field.setForeground(Color.black);
+            //label.removeMouseListener(CommonURLListener);
+            field.setCursor(Cursor.getDefaultCursor());
+            //GUI.apply(GUI.ValueFace, mValues[i]);
+        }
+
+// JTextArea doesn't support HTML
+//         if (valueText.indexOf("</") > 0)
+//             field.setText("<html>" + valueText);
+//         else
+//             field.setText(valueText);
+        
+        field.setText(valueText);
+        
+
+        if (DEBUG.Enabled) {
+
+            if (Resource.canDump(value)) {
+                String txt = Resource.getDump(value);
+                txt = "<html><code>" + txt.replaceAll("\n", "&nbsp;<br>&nbsp;&nbsp;") + "</code>";
+                field.setToolTipText(txt);
+            } else {
+                //if (value instanceof String == false)
+                field.setToolTipText(Util.tags(value));
+            }
+            
+            if (value instanceof String == false)
+                field.setForeground(ObjectColor);
+        }
+       
+        // if field has at least one space, use word wrap
+        if (valueText.indexOf(' ') >= 0)
+            field.setWrapStyleWord(true);
+        else
+            field.setWrapStyleWord(false);
+       
+        label.setVisible(true);
+        field.setVisible(true);
+       
+    }
+    
+
    private void out(Object o) {
         Log.debug("MetaDataPane: " + (o==null?"null":o.toString()));
    }
@@ -409,22 +506,22 @@ public class MetaDataPane extends JPanel
    // Utility methods
    //----------------------------------------------------------------------------------------
    
-   private void addLabelTextPairs(Object[] labelTextPairs, Container gridBag) {
-       JLabel[] labels = new JLabel[labelTextPairs.length / 2];
-       JComponent[] values = new JComponent[labels.length];
-       for (int i = 0, x = 0; x < labels.length; i += 2, x++) {
-           //out("ALTP[" + x + "] label=" + labelTextPairs[i] + " value=" + GUI.name(labelTextPairs[i+1]));
-           String labelText = (String) labelTextPairs[i];
-           labels[x] = new JLabel(labelText + ":");
-           values[x] = (JComponent) labelTextPairs[i+1];
-       }
-       addLabelTextRows(0, labels, values, gridBag, GUI.LabelFace, GUI.ValueFace);
-   }
+//    private void addLabelTextPairs(Object[] labelTextPairs, Container gridBag) {
+//        JLabel[] labels = new JLabel[labelTextPairs.length / 2];
+//        JComponent[] values = new JComponent[labels.length];
+//        for (int i = 0, x = 0; x < labels.length; i += 2, x++) {
+//            //out("ALTP[" + x + "] label=" + labelTextPairs[i] + " value=" + GUI.name(labelTextPairs[i+1]));
+//            String labelText = (String) labelTextPairs[i];
+//            labels[x] = new JLabel(labelText + ":");
+//            values[x] = (JComponent) labelTextPairs[i+1];
+//        }
+//        addLabelTextRows(0, labels, values, gridBag, GUI.LabelFace, GUI.ValueFace);
+//    }
 
-   private final int topPad = 2;
-   private final int botPad = 2;
-   private final Insets labelInsets = new Insets(topPad, 0, botPad, GUI.LabelGapRight);
-   private final Insets fieldInsets = new Insets(topPad, 0, botPad, GUI.FieldGapRight);
+    private final int TopPad = Util.isMacPlatform() ? 2 : 1;
+    private final int BotPad = Util.isMacPlatform() ? 2 : 0;
+    private final Insets labelInsets = new Insets(TopPad, 0, BotPad, GUI.LabelGapRight);
+    private final Insets fieldInsets = new Insets(TopPad, 0, BotPad, GUI.FieldGapRight);
    
    /** labels & values must be of same length */
    private void addLabelTextRows(int starty,
