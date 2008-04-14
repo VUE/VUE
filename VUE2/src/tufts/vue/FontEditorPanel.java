@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.78 $ / $Date: 2008-03-13 20:46:30 $ / $Author: mike $
+ * @version $Revision: 1.79 $ / $Date: 2008-04-14 20:25:15 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel
@@ -1318,8 +1318,8 @@ public class FontEditorPanel extends JPanel
 	    }
 	    	    	    	     	    	   
 		
-		boolean isFontFaceSet4Paragraph = false;
-		boolean isFontSIzeSet4Paragraph = false;
+	//	boolean isFontFaceSet4Paragraph = false;
+	//	boolean isFontSIzeSet4Paragraph = false;
 		
 	    while (elementEnum.hasMoreElements())
 	    {
