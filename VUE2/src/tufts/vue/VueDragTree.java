@@ -47,7 +47,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.70 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.71 $ / $Date: 2008-04-14 22:35:30 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -61,9 +61,9 @@ public class VueDragTree extends JTree
     
     public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
-    private static final ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-    private static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-    private static final ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+    protected static final ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+    protected static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+    protected static final ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
     private static final int DOUBLE_CLICK = 2;
     ///private javax.swing.JPanel previewPanel = null;
     //	private tufts.vue.gui.DockWindow previewDockWindow = null;
@@ -335,12 +335,24 @@ public class VueDragTree extends JTree
     
     class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
         String meta = "";
-        protected VueDragTree tree;
+        protected final VueDragTree tree;
         public VueDragTreeCellRenderer(VueDragTree vdTree) {
             this.tree = vdTree;
-            
-            
         }
+
+        protected void superGetTreeCellRendererComponent(
+                JTree tree,
+                Object value,
+                boolean sel,
+                boolean expanded,
+                boolean leaf,
+                int row,
+                boolean hasFocus)
+        {
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+        }
+        
+        
         /* -----------------------------------  */
         
         public Component getTreeCellRendererComponent(

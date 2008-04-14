@@ -46,14 +46,14 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.37 $ / $Date: 2008-04-14 21:04:52 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2008-04-14 22:35:30 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
-    private static Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-    private static        Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-    private static        Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+//     private static Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+//     private static        Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+//     private static        Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
 
     private final int ACCEPTABLE_DROP_TYPES =
             DnDConstants.ACTION_COPY |
@@ -296,19 +296,18 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         }
     }
 
-    class VueDandDTreeCellRenderer extends DefaultTreeCellRenderer
+    class VueDandDTreeCellRenderer extends VueDragTreeCellRenderer
     {
-        protected VueDandDTree tree;
         private boolean hasImageIcon;
-        private Dimension imageIconPrefSize = new Dimension(Short.MAX_VALUE, 32+3);
-        private Dimension defaultPrefSize = new Dimension(Short.MAX_VALUE, 20); // todo: common default for VueDragTree
+        private final Dimension imageIconPrefSize = new Dimension(Short.MAX_VALUE, 32+3);
+        private final Dimension defaultPrefSize = new Dimension(Short.MAX_VALUE, 20); // todo: common default for VueDragTree
 
-        private Border lineBorder = new MatteBorder(1,0,0,0, tufts.vue.ui.ResourceList.DividerColor);
-        private Border leftInsetBorder = lineBorder;
+        private final Border lineBorder = new MatteBorder(1,0,0,0, tufts.vue.ui.ResourceList.DividerColor);
+        private final Border leftInsetBorder = lineBorder;
         //private Border leftInsetBorder = new CompoundBorder(lineBorder, new EmptyBorder(0,8,0,0));
 
         public VueDandDTreeCellRenderer(VueDandDTree pTree) {
-            this.tree = pTree;
+            super(pTree);
             setAlignmentY(0.5f);            
             tree.addMouseMotionListener(new MouseMotionAdapter() {
                 public void mouseClicked(MouseEvent me){
@@ -322,6 +321,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             });
         }
 
+        @Override
         public Dimension getPreferredSize() {
             if (hasImageIcon)
                 return imageIconPrefSize;
@@ -332,55 +332,117 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
                                                       boolean expanded,boolean leaf,int row, boolean hasFocus)
         {
-            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-
+                    
             final ResourceNode node = (ResourceNode) value;
+            final Resource r = node.getResource();
             final int level = node.getLevel();
 
-            //if (sel) setBackground(getTextSelectionColor());
-            //else setBackground(Color.white);
-            
-            hasImageIcon = false;
-
-            final Resource r = node.getResource();
-            Icon icon = null;
-
-            if (leaf && level == 1 && r.isImage())
-                icon = r.getContentIcon(tree);
-
-            if (icon == null)
-                icon = r.getTinyIcon();
-            else
-                hasImageIcon = true;
-
-            if (icon != null) {
-
-                setIcon(icon);
-                
-            } else if ( !(node instanceof FileNode) && (node.getResource().getClientType() == FAVORITES)) {
-                if (node.getChildCount() > 0 ) {
-                    setIcon(activeIcon);
-                } else {
-                    setIcon(inactiveIcon);
+            if (leaf && level == 1 && r != null && r.isImage() && !r.isLocalFile()) {
+                Icon icon = r.getContentIcon(tree);
+                if (icon != null) {
+                    hasImageIcon = true;
+                    superGetTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+                    setIcon(icon);
+                    setBorder(lineBorder);
+                    return this;
                 }
             }
-            
-            else {
-                setIcon(activeIcon);
-            }
+
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+
+            hasImageIcon = false;
 
             if (level != 1 || row == 0) {
                 setBorder(null);
-            } else if (hasImageIcon) {
-                setBorder(lineBorder);
-                //setIconTextGap(4);
             } else {
                 setBorder(leftInsetBorder);
-                //setIconTextGap(12);
             }
             
             return this;
         }
+
+        
+//         public Component X_getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
+//                                                       boolean expanded,boolean leaf,int row, boolean hasFocus)
+//         {
+//             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+
+//             final ResourceNode node = (ResourceNode) value;
+//             final int level = node.getLevel();
+//             final Resource r = node.getResource();
+            
+//             //if (sel) setBackground(getTextSelectionColor());
+//             //else setBackground(Color.white);
+            
+//             hasImageIcon = false;
+
+//             //r.setRuntimeProperty("node", tufts.Util.tags(node));
+
+//             // TODO: really need to merge this code with VueDragTree version,
+//             // which currently produces better results (handles the platform
+//             // dependent open/close icons)
+            
+//             Icon icon = null;
+
+//             if (leaf && level == 1 && r.isImage()) {
+//                 icon = r.getContentIcon(tree);
+//                 if (icon != null) {
+//                     hasImageIcon = true;
+//                     setIcon(icon);
+//                     setBorder(lineBorder);
+//                     return this;
+//                 }
+//             }
+            
+            
+//             if (r.getClientType() == FAVORITES && !(node instanceof FileNode)) {
+//                 if (node.getChildCount() > 0 ) {
+//                     setIcon(activeIcon);
+//                 } else {
+//                     setIcon(inactiveIcon);
+//                 }
+//             } else if (leaf) {
+
+//                 if (tufts.Util.isMacPlatform()) {
+//                     // todo: not producing reasonable results on windows for some reason: leave alone for now
+//                     icon = r.getTinyIcon();
+//                 }
+
+//                 if (icon == null)
+//                     icon = nleafIcon;
+                
+//             } else {
+                
+// //                 if (tufts.Util.isMacPlatform()) {
+// //                     // todo: not producing reasonable results on windows for some reason: leave alone for now
+// //                     icon = r.getTinyIcon();
+// //                 }
+// //                 if (icon == null)
+// //                     icon = activeIcon;
+
+//                 if (node.getChildCount() > 0)
+//                     icon = activeIcon;
+//                 else
+//                     icon = inactiveIcon;
+//             }
+
+//             setIcon(icon);
+            
+
+//             // now that icon is set, set the border
+
+//             if (level != 1 || row == 0) {
+//                 setBorder(null);
+// //             } else if (hasImageIcon) {
+// //                 setBorder(lineBorder);
+// //                 //setIconTextGap(4);
+//             } else {
+//                 setBorder(leftInsetBorder);
+//                 //setIconTextGap(12);
+//             }
+            
+//             return this;
+//         }
         
     }
     
