@@ -493,21 +493,35 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
             
             final tufts.vue.Resource r = mLWC.getResource();
-            final boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
-            final String prettyResource = r.getSpec();
+            final boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getLocationName()));
+            final String prettyResource = r.getLocationName();
             ttResource.setIcon(r.getTinyIcon());
             ttResource.setVerticalTextPosition(SwingConstants.TOP);
-            // already has a border -- either make compound or put in a panel
-//             if (DEBUG.BOXES)
-//                 ttResource.setBorder(new LineBorder(Color.green, 1));
-//             else
-//                 ttResource.setBorder(BorderFactory.createEmptyBorder(1,1,0,1));
             ttResource.setText(
                     "<html>"
                     + (hasTitle ? (indent + r.getTitle() + "&nbsp;<br>") : "")
                     + indent + prettyResource// + gap
                     //+ "<font size=-2 color=#999999><br>" + indent + "Double-click to open in new window&nbsp;"
                                );
+
+
+//             final tufts.vue.Resource r = mLWC.getResource();
+//             final boolean hasTitle = (r.getTitle() != null && !r.getTitle().equals(r.getSpec()));
+//             final String prettyResource = r.getSpec();
+//             ttResource.setIcon(r.getTinyIcon());
+//             ttResource.setVerticalTextPosition(SwingConstants.TOP);
+//             // already has a border -- either make compound or put in a panel
+// //             if (DEBUG.BOXES)
+// //                 ttResource.setBorder(new LineBorder(Color.green, 1));
+// //             else
+// //                 ttResource.setBorder(BorderFactory.createEmptyBorder(1,1,0,1));
+//             ttResource.setText(
+//                     "<html>"
+//                     + (hasTitle ? (indent + r.getTitle() + "&nbsp;<br>") : "")
+//                     + indent + prettyResource// + gap
+//                     //+ "<font size=-2 color=#999999><br>" + indent + "Double-click to open in new window&nbsp;"
+//                                );
+            
                 
             return ttResource;
         }
@@ -660,7 +674,14 @@ public abstract class LWIcon extends Rectangle2D.Float
                     extension = extension.substring(0,3);
                 }
                 
-                if (DEBUG.RESOURCE) Log.debug("EXTENSION["+extension+"]");
+//                 if (DEBUG.RESOURCE) {
+//                     if (mLWC.hasResource())
+//                         Log.debug("  " + mLWC.getResource() + "; yielded extension ["+extension+"]");
+//                     else if (DEBUG.META)
+//                         Log.debug(mLWC + "; no resource; extension = ["+extension+"]");
+//                 }
+                
+
                 mTextRow = TextRow.instance(extension.toLowerCase(), FONT_ICON);
             }
             
