@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.110 $ / $Date: 2008-04-09 00:55:12 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2008-04-14 19:38:28 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -414,7 +414,7 @@ public class ActionUtil
         unmarshaller.setIgnoreExtraAttributes(true);
         unmarshaller.setIgnoreExtraElements(true);
         unmarshaller.setValidation(false);
-        unmarshaller.setObjectFactory(new XMLObjectFactory());
+        unmarshaller.setObjectFactory(new XMLObjectFactory(sourceName));
         //unmarshaller.setWhitespacePreserve(true); // doesn't affect elements!  (e.g. <notes> foo bar </notes>)
         // HOWEVER: castor 0.9.7 now automatically encodes/decodes white space for attributes...
         /*
@@ -429,7 +429,7 @@ public class ActionUtil
 
         if (DEBUG.XML) unmarshaller.setDebug(true);
         
-        unmarshaller.setUnmarshalListener(new VueUnmarshalListener());
+        unmarshaller.setUnmarshalListener(new MapUnmarshalHandler(sourceName, "DEFAULT("+sourceName + ")"));
         unmarshaller.setMapping(mapping);
 
         if (DEBUG.CASTOR || DEBUG.XML || DEBUG.IO)
@@ -545,7 +545,7 @@ public class ActionUtil
 
     
     
-    private static class VueMarshallListener implements MarshalListener {
+    public static class VueMarshalListener implements MarshalListener {
         public boolean preMarshal(Object o) {
             //if (true||DEBUG.XML) Log.debug("VML  pre: " + Util.tags(o));
             //if (o instanceof tufts.vue.Resource)
@@ -559,10 +559,10 @@ public class ActionUtil
                 if (key != null &&
                     (key.startsWith(tufts.vue.Resource.RUNTIME_PREFIX) ||
                     (key.startsWith(tufts.vue.Resource.DEBUG_PREFIX) ||
-                     key.startsWith("@@") // @@ covers some old debug property keys
+                     key.startsWith(tufts.vue.Resource.HIDDEN_RUNTIME_PREFIX) 
                      )))
                 {
-                    if (DEBUG.Enabled) Log.debug("Skipping marshal of " + Util.tags(o));
+                    if (DEBUG.XML) Log.debug("Skipping marshal of " + Util.tags(o));
                     return false;
                 } else {
                     if (DEBUG.XML) Log.debug("Marshalling " + Util.tags(o));
@@ -601,6 +601,8 @@ public class ActionUtil
     {
         map.makeReadyForSaving(file);
         
+        Log.info("marshalling " + map + " to: " + file);
+        
         Marshaller marshaller = null;
         writer.write(VUE_COMMENT_START
                      + " VUE mapping "
@@ -625,7 +627,7 @@ public class ActionUtil
           // marshal as document (default): make sure we add at top: <?xml version="1.0" encoding="<encoding>"?>
         marshaller.setMarshalAsDocument(true);
         marshaller.setNoNamespaceSchemaLocation("none");
-        marshaller.setMarshalListener(new VueMarshallListener());
+        marshaller.setMarshalListener(new VueMarshalListener());
         // setting to "none" gets rid of all the spurious tags like these:
         // xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 
@@ -720,64 +722,20 @@ public class ActionUtil
 
     }
 
-    private static class VueUnmarshalListener implements UnmarshalListener {
-        public void initialized(Object o) {
-            //if (DEBUG.XML) System.out.println("**** VUL initialized " + o.getClass().getName() + " " + tos(o));
-            if (DEBUG.XML) Log.debug("VUL  initialized: " + Util.tags(o));
-            if (o instanceof XMLUnmarshalListener)
-                ((XMLUnmarshalListener)o).XML_initialized();
-        }
-        public void attributesProcessed(Object o) {
-            //if (DEBUG.XML) System.out.println("      got attributes " + o.getClass().getName() + " " + tos(o));
-            if (DEBUG.XML) Log.debug("VUL   attributes: " + Util.tags(o));
-        }
-        public void unmarshalled(Object o) {
-            //if (DEBUG.XML||DEBUG.CASTOR) System.out.println("VUL unmarshalled " + o.getClass().getName() + " " + tos(o));
-            if (DEBUG.XML||DEBUG.CASTOR) Log.debug("VUL unmarshalled: " + Util.tags(o));
-            
-            if (o instanceof XMLUnmarshalListener)
-                ((XMLUnmarshalListener)o).XML_completed();
-        }
-        public void fieldAdded(String name, Object parent, Object child) {
-            if (DEBUG.XML){
-                Log.debug("VUL   fieldAdded: parent: " + Util.tags(parent) + " newChild[" + name + "] " + Util.tags(child) + "\n");
-                //System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t" + tos(parent) + "\n"
-                //+ "             new child: " +  child.getClass().getName() + " \"" + name + "\" " + tos(child) + "\n");
-            }
-            if (parent instanceof XMLUnmarshalListener)
-                ((XMLUnmarshalListener)parent).XML_fieldAdded(name, child);
-            if (child instanceof XMLUnmarshalListener)
-                ((XMLUnmarshalListener)child).XML_addNotify(name, parent);
-        }
-
-//         // exception trapping toString in case the object isn't initialized enough
-//         // for it's toString to work...
-//         private String tos(Object o) {
-//             if (o == null)
-//                 return "<null-object>";
-            
-//             String s = o.getClass().getName() + " ";
-//             //String s = null;
-//             String txt = null;
-//             try {
-//                 txt = o.toString();
-//                 if (
-//             } catch (Throwable t) {
-//                 txt = t.toString();
-//                 // "[" + t.toString() + "]";
-//             }
-//             return s;
-//         }
-    }
-
-    /** Unmarshall a LWMap from the given file (XML map data) */
     public static LWMap unmarshallMap(File file)
+        throws IOException
+    {
+        return unmarshallMap(file, null);
+    }
+    
+    /** Unmarshall a LWMap from the given file (XML map data) */
+    public static LWMap unmarshallMap(File file, MapUnmarshalHandler handler)
         throws IOException
     {
         if (file.isDirectory())
             throw new MapException("is a directory, not a map file: " + file);
          
-        return unmarshallMap(file.toURL());
+        return unmarshallMap(file.toURL(), handler);
     }
 
     private static class MapReader {
@@ -793,15 +751,11 @@ public class ActionUtil
     private static MapReader getMapReaderForURL(URL url, String charsetEncoding, boolean allowRedirects)
         throws java.io.IOException
     {
-        // SMF 2008-04-08: THE ABOVE IS NO LONGER TRUE -- I have a feeling that when
-        // this code was previously changed (this is a refactoring of it), enforcing
-        // UTF-8 as the default for unknown files may have been inadvertandly lost.  So
-        // for now, the default platform encoding is being used until we have an
-        // encoding.  SUMMARY: Not sure if we still need to pay attention to the
-        // encoding / if it makes a difference at all, but we do use any special
-        // encoding (if found) from the map file just in case.  All current-day VUE maps
-        // should be in pure US-ASCII, so we could theoretically ignore the encoding,
-        // but this may be needed for some very old maps.
+
+        // Not sure if it's still worth paying attention to the encoding, but we do use
+        // any special encoding (if found) from the map file just in case.  All
+        // current-day VUE maps should be in pure US-ASCII, so we could theoretically
+        // ignore the encoding, but this may be needed for some very old maps.
 
         File file = tufts.vue.Resource.getLocalFileIfPresent(url);
 
@@ -829,7 +783,7 @@ public class ActionUtil
 
                     // SMF 2008-04-08: Anoop's semantics as of 2008-03-12: we do NOT
                     // open the redirect url for reading, we open the original.  Not
-                    // sure of this was intended.
+                    // sure if this was intended.
                     
                     // This would allow opening the redirect:
                     // url = redirectURL;
@@ -853,7 +807,7 @@ public class ActionUtil
             throw new MapException("no reader found for: " + url);
         }
 
-        Log.debug("Got reader for " + Util.tags(url) + "; encoding=" + charsetEncoding + ": " + reader);
+        Log.debug("got reader for " + Util.tags(url) + "; encoding=" + charsetEncoding + ": " + reader);
 
         return new MapReader(new BufferedReader(reader), file);
 
@@ -902,12 +856,18 @@ public class ActionUtil
      * Input encoding shouldn't matter for the bootstrap reading of the first few lines
      * of the file (as they should be all US_ASCII), tho using DEFAULT_INPUT_ENCODING,
      * instead of null (which will get us the local platform default), would probably
-     * make the most sense.  We're leaving this as the default platform encoding for now
+     * make the most sense.  We're leaving this as the default platform encoding (null) for now
      * only because it's been this way for a while...  SMF 2008-04-08
      */
     private static final String BOOTSTRAP_ENCODING = null;
         
     public static LWMap unmarshallMap(java.net.URL url)
+        throws IOException
+    {
+        return unmarshallMap(url, null);
+    }
+    
+    public static LWMap unmarshallMap(java.net.URL url, MapUnmarshalHandler handler)
         throws IOException
     {
         // We scan for lines at top of file that are comments.  If there are NO comment lines, the
@@ -1082,18 +1042,22 @@ public class ActionUtil
 
         final String encoding = guessedEncoding == null ? DEFAULT_INPUT_ENCODING : guessedEncoding;
 
-        return unmarshallMap(url, mapping, encoding, oldFormat, savingVersion);
+        return unmarshallMap(url, mapping, encoding, oldFormat, savingVersion, handler);
     }
 
 
-    private static LWMap unmarshallMap(final java.net.URL url, Mapping mapping, String charsetEncoding, boolean allowOldFormat, String savingVersion)
+    private static LWMap unmarshallMap(final java.net.URL url,
+                                       Mapping mapping,
+                                       String charsetEncoding,
+                                       boolean allowOldFormat,
+                                       String savingVersion,
+                                       MapUnmarshalHandler mapHandler)
       //throws IOException, org.exolab.castor.mapping.MappingException, org.exolab.castor.xml.ValidationException
         throws IOException
     {
         LWMap map = null;
-        java.net.URL redirectedUrl  = url; // check for redirects in url and use that as filename;
-        //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("UNMARSHALLING: " + url + " charset=" + charsetEncoding);
-        Log.debug("unmarshalling: " + url + "; charset=" + charsetEncoding);
+
+        Log.info("unmarshalling: " + url + "; charset=" + charsetEncoding);
         
         // TODO: now that we support opening maps via HTTP URL's, it's a bit obscene to
         // open the URL twice just to support old maps where we might need to detect the
@@ -1118,7 +1082,7 @@ public class ActionUtil
                 // we should have just hit thie "<?xml ..." line -- done with comments
                 break;
             }
-            if (DEBUG.CASTOR || DEBUG.IO) Log.debug("Skipping[" + line + "]");
+            if (DEBUG.META && (DEBUG.CASTOR || DEBUG.IO)) Log.debug("Skipping[" + line + "]");
         }
 
         // Reset the reader to the start of the last line read, which should be the <?xml line,
@@ -1129,6 +1093,12 @@ public class ActionUtil
 
         try {
             Unmarshaller unmarshaller = getDefaultUnmarshaller(mapping, sourceName);
+
+            if (mapHandler == null)
+                mapHandler = new MapUnmarshalHandler(url, tufts.vue.Resource.MANAGED_UNMARSHALLING); // managed is the default
+                    
+            if (DEBUG.Enabled) Log.debug("unmarshal handler: " + mapHandler);
+            unmarshaller.setUnmarshalListener(mapHandler);
 
             // unmarshall the map:
             
@@ -1142,53 +1112,24 @@ public class ActionUtil
                     Log.warn("ActionUtil.unmarshallMap: " + me);
                     Log.warn("Attempting specialized MapResource mapping for old format.");
                     // NOTE: delicate recursion here: won't loop as long as we pass in a non-null mapping.
-                    return unmarshallMap(url, getMapping(XML_MAPPING_OLD_RESOURCES), charsetEncoding, false, savingVersion);
+                    return unmarshallMap(url, getMapping(XML_MAPPING_OLD_RESOURCES), charsetEncoding, false, savingVersion, mapHandler);
                 } else
                     throw me;
             }
             
             reader.close();
 
-            final String fileName = mapReader.file.getName();
-            final File file = mapReader.file;
-            map.setFile(file); // VUE-713: do this always:
-
-            if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
-                VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
-                                            + "\nThe data model in this map is #%d, and this version of VUE only understands up to model #%d.\n",
-                                            file, map.getModelVersion(), LWMap.getCurrentModelVersion())
-                              + "\nVersion of VUE that saved this file:\n        " + savingVersion
-                              + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
-                                + " (public v" + VueResources.getString("vue.version") + ")"
-                              + "\n"
-                              + "\nThis version of VUE may not display this map properly.  Saving"
-                              + "\nthis map in this version of VUE may result in a corrupted map."
-                              ,
-                              String.format("Version Warning: %s", fileName));
-
-                map.setLabel(fileName + " (as available)");
-                // Skip setting the file: this will force save-as if they try to save.
-            } else {
-
-// VUE-713: don't do this conditionallly
-//                 // This setFile also sets the label name, so it appears as a modification in the map.
-//                 // So be sure to do completeXMLRestore last, as it will reset the modification count.
-//                 if (map.getModelVersion() < 1) {
-//                     map.setLabel(file.getName());
-//                     // force save as for old maps as they will no longer work in old stable versions of VUE (1.5 & prior)
-//                     // if they're saved in this new version of VUE.
-//                 } else {
-//                     map.setFile(file);
-//                 }
-                
-                if (DEBUG.DATA && DEBUG.META) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
-            }
-                
-
             Log.debug("unmarshalled: " + map);
-            // Note that map.setFile must have been done before map.completeXMLResource is called.
-            map.completeXMLRestore();
-            Log.debug("restored: " + map);
+
+            // The below three notify calls must be called in exact sequence (file, then version, then completed)
+
+            mapHandler.notifyFile(map, mapReader.file);
+
+            mapHandler.notifyVersionOfVueThatSavedMap(savingVersion);
+
+            mapHandler.notifyUnmarshallingCompleted();
+            
+            Log.debug("completed: " + map);
         }
         catch (Exception e) {
             tufts.Util.printStackTrace(e, "Exception restoring map from [" + url + "]: " + e.getClass().getName());
@@ -1202,9 +1143,180 @@ public class ActionUtil
 
 }
 
+
+/**
+ * This class serves as both an UnmarshalListener impl for VUE LWMap's and their components,
+ * as well as a handles what to do to / with a map once it's been unmarshalled to get
+ * it into it's final, completed state (e.g., in some cases, transformations may need to be performed).
+ */
+
+class MapUnmarshalHandler implements UnmarshalListener {
+
+    public static final Object CONTEXT_NONE = "NONE";
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapUnmarshalHandler.class);
+
+    final Object source;
+    final Object context;
+
+    protected LWMap map;
+    protected File file;
+        
+    MapUnmarshalHandler(Object source, Object context) {
+        this.source = source;
+        if (context == null)
+            this.context = CONTEXT_NONE;
+        else
+            this.context = context;
+    }
+
+    /** This must be called first */
+    void notifyFile(final LWMap map, final File file)
+    {
+        this.map = map;
+        this.file = file;
+
+        map.setFile(file); // VUE-713: do this always
+
+        // Note: LWMap.setFile sets the map label
+        
+    }
+
+    /** This must be called in sequence after notifyFile */
+    void notifyVersionOfVueThatSavedMap(String savingVersion)
+    {
+        final String fileName = file.getName();
+
+        if (map.getModelVersion() > LWMap.getCurrentModelVersion()) {
+            VueUtil.alert(String.format("The file %s was saved in a newer version of VUE than is currently running.\n"
+                                        + "\nThe data model in this map is #%d, and this version of VUE only understands up to model #%d.\n",
+                                        file, map.getModelVersion(), LWMap.getCurrentModelVersion())
+                          + "\nVersion of VUE that saved this file:\n        " + savingVersion
+                          + "\nCurrent running version of VUE:\n        " + "VUE: built " + tufts.vue.Version.AllInfo
+                          + " (public v" + VueResources.getString("vue.version") + ")"
+                          + "\n"
+                          + "\nThis version of VUE may not display this map properly.  Saving"
+                          + "\nthis map in this version of VUE may result in a corrupted map."
+                          ,
+                          String.format("Version Warning: %s", fileName));
+
+            map.setLabel(fileName + " (as available)");
+            // Skip setting the file: this will force save-as if they try to save.
+        } else {
+
+            // VUE-713: don't do this conditionallly
+            //                 // This setFile also sets the label name, so it appears as a modification in the map.
+            //                 // So be sure to do completeXMLRestore last, as it will reset the modification count.
+            //                 if (map.getModelVersion() < 1) {
+            //                     map.setLabel(file.getName());
+            //                     // force save as for old maps as they will no longer work in old stable versions of VUE (1.5 & prior)
+            //                     // if they're saved in this new version of VUE.
+            //                 } else {
+            //                     map.setFile(file);
+            //                 }
+                
+            if (DEBUG.DATA && DEBUG.META) map.setLabel("|" + map.getModelVersion() + "| " + map.getLabel());
+        }
+
+        Log.debug("label-set: " + map);
+        
+    }
+
+    /** This must be called last */
+    void notifyUnmarshallingCompleted() {
+        // note that map.setFile should normally have been completed before this is called
+        map.completeXMLRestore(context);
+    }
+    
+            
+    /** @see org.exolab.castor.xml.UnmarshalListener */
+    public void initialized(Object o) {
+        if (DEBUG.XML) Log.debug(" initialized: " + Util.tags(o));
+        if (o instanceof XMLUnmarshalListener) {
+            try {
+                ((XMLUnmarshalListener)o).XML_initialized(context);
+            } catch (Throwable t) {
+                Log.error(this, t);
+            }
+        }
+    }
+    
+    /** @see org.exolab.castor.xml.UnmarshalListener */
+    public void attributesProcessed(Object o) {
+        if (DEBUG.XML) Log.debug("  attributes: " + Util.tags(o));
+    }
+    
+    /** @see org.exolab.castor.xml.UnmarshalListener */
+    public void unmarshalled(Object o) {
+        if (DEBUG.XML||DEBUG.CASTOR) Log.debug("unmarshalled: " + Util.tags(o));
+            
+        if (o instanceof XMLUnmarshalListener) {
+            try {
+                ((XMLUnmarshalListener)o).XML_completed(context);
+            } catch (Throwable t) {
+                Log.error(this, t);
+            }
+        }
+    }
+
+    /** @see org.exolab.castor.xml.UnmarshalListener */
+    public void fieldAdded(String name, Object parent, Object child) {
+        if (DEBUG.XML){
+            Log.debug("  fieldAdded: parent: " + Util.tags(parent) + " newChild[" + name + "] " + Util.tags(child) + "\n");
+            //System.out.println("VUL fieldAdded: parent: " + parent.getClass().getName() + "\t" + tos(parent) + "\n"
+            //+ "             new child: " +  child.getClass().getName() + " \"" + name + "\" " + tos(child) + "\n");
+        }
+        if (parent instanceof XMLUnmarshalListener) {
+            try {
+                ((XMLUnmarshalListener)parent).XML_fieldAdded(context, name, child);
+            } catch (Throwable t) {
+                Log.error(this, t);
+            }
+        }
+        if (child instanceof XMLUnmarshalListener) {
+            try {
+                ((XMLUnmarshalListener)child).XML_addNotify(context, name, parent);
+            } catch (Throwable t) {
+                Log.error(this, t);
+            }
+        }
+    }
+
+    public String toString() {
+        return getClass().getName() + "[" + context + "; " + source + "]";
+    }
+
+//         // exception trapping toString in case the object isn't initialized enough
+//         // for it's toString to work...
+//         private String tos(Object o) {
+//             if (o == null)
+//                 return "<null-object>";
+            
+//             String s = o.getClass().getName() + " ";
+//             //String s = null;
+//             String txt = null;
+//             try {
+//                 txt = o.toString();
+//                 if (
+//             } catch (Throwable t) {
+//                 txt = t.toString();
+//                 // "[" + t.toString() + "]";
+//             }
+//             return s;
+//         }
+    
+}
+
 final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory {
 
-    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLObjectFactory.class);        
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(XMLObjectFactory.class);
+
+    final Object source;
+
+    XMLObjectFactory(Object source) {
+        this.source = source;
+        if (DEBUG.Enabled) Log.debug("new " + Util.tags(this) + "; " + source); 
+    }
 		
     @Override
     public Object createInstance(Class type, Object[] args) throws IllegalAccessException, InstantiationException {
@@ -1236,12 +1348,15 @@ final class XMLObjectFactory extends org.exolab.castor.util.DefaultObjectFactory
         //System.err.println("VOF ASKED FOR " + type + " argTypes=" + argTypes);
         //Object o = super.createInstance(type);
         final Object o = type.newInstance();
-        if (DEBUG.IO || DEBUG.XML || DEBUG.CASTOR) {
-            // don't use tags (allow toString to be called) -- unmarshalling can fail
-            // if there are side-effects (!!!) due to calling it -- this happens
-            // with a FavoritesDataSource in any case...
-            Log.debug("new " + Util.tag(o)); 
-            //System.err.println("new " + Util.tag(o));
+        if (DEBUG.Enabled) {
+            if ((DEBUG.IO && DEBUG.META) ||
+                DEBUG.XML || DEBUG.CASTOR || (DEBUG.RESOURCE && DEBUG.META && o instanceof tufts.vue.Resource)) {
+                // don't use tags (allow toString to be called) -- unmarshalling can fail
+                // if there are side-effects (!!!) due to calling it -- this happens
+                // with a FavoritesDataSource in any case...
+                Log.debug("new " + Util.tag(o));
+                //Log.debug("new " + Util.tag(o) + "; " + source); 
+            }
         }
         return o;
     }
