@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.100 $ / $Date: 2007-12-17 02:17:00 $ / $Author: dan $
+ * @version $Revision: 1.101 $ / $Date: 2008-04-14 19:31:16 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -321,7 +321,7 @@ public class LWSlide extends LWContainer
 
 
     @Override
-    public void XML_completed() {
+    public void XML_completed(Object context) {
 
         // We shouldn't need this anymore now that we persist slide style,
         // tho we're leaving it in for at least a while to catch recently
@@ -333,7 +333,7 @@ public class LWSlide extends LWContainer
                 //out("slide bit: " + c);
             }
         }.traverse(this);
-        super.XML_completed();
+        super.XML_completed(context);
     }
     
 

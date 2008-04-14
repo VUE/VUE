@@ -260,8 +260,8 @@ public class LWImage extends
 
     /** this for backward compat with old save files to establish the image as a special "node" image */
     @Override
-    public void XML_addNotify(String name, Object parent) {
-        super.XML_addNotify(name, parent);
+    public void XML_addNotify(Object context, String name, Object parent) {
+        super.XML_addNotify(context, name, parent);
         if (parent instanceof LWNode)
             updateNodeIconStatus((LWNode)parent);
     }

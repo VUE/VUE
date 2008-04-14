@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.208 $ / $Date: 2008-04-09 00:48:02 $ / $Author: sfraize $
+ * @version $Revision: 1.209 $ / $Date: 2008-04-14 19:31:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -794,8 +794,8 @@ public class LWNode extends LWContainer
     }
 
     @Override
-    public void XML_completed() {
-        super.XML_completed();
+    public void XML_completed(Object context) {
+        super.XML_completed(context);
         if (hasChildren()) {
             if (DEBUG.WORK||DEBUG.XML||DEBUG.LAYOUT) Log.debug("XML_completed: scaling down LWNode children in: " + this);
             for (LWComponent c : getChildren()) {

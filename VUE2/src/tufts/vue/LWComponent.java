@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.405 $ / $Date: 2008-04-09 00:47:05 $ / $Author: sfraize $
+ * @version $Revision: 1.406 $ / $Date: 2008-04-14 19:27:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -6080,16 +6080,16 @@ u                    getSlot(c).setFromString((String)value);
 */
 
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
-    public void XML_initialized() {
+    public void XML_initialized(Object context) {
         mXMLRestoreUnderway = true;
     }
     
-    public void XML_fieldAdded(String name, Object child) {
+    public void XML_fieldAdded(Object context, String name, Object child) {
         if (DEBUG.XML) out("XML_fieldAdded <" + name + "> = " + child);
     }
 
     /** interface {@link XMLUnmarshalListener} */
-    public void XML_addNotify(String name, Object parent) {
+    public void XML_addNotify(Object context, String name, Object parent) {
         if (DEBUG.XML) tufts.Util.printClassTrace("tufts.vue", "XML_addNotify; name=" + name
                                                   + "\n\tparent: " + parent
                                                   + "\n\t child: " + this
@@ -6103,7 +6103,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     /** interface {@link XMLUnmarshalListener} -- call's layout */
-    public void XML_completed() {
+    public void XML_completed(Object context) {
         // 2007-06-12 SMF -- do NOT turn this off yet -- let the LWMap
         // turn it off when EVERYONE is done.
         //mXMLRestoreUnderway = false;
