@@ -36,7 +36,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.34 $ / $Date: 2008-04-09 00:45:52 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2008-04-14 19:26:52 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -78,7 +78,7 @@ public class CabinetResource extends URLResource
     private CabinetResource(osid.filing.CabinetEntry entry) {
         this.entry = entry;
 
-        getSpec();
+        getSpec(); // force immediate full init
 
         //this.getEntry();
         //this.getProperties();
@@ -270,6 +270,12 @@ public class CabinetResource extends URLResource
     }
     
     
+    @Override
+    protected void setFile(File file) {
+        super.setFile(file);
+        if (file != null && getTitle() == null)
+            setTitle(file.getName());
+    }
     
     /*
      *  Return the resource specification.  For cabinet resources, this is URL of either
@@ -280,7 +286,7 @@ public class CabinetResource extends URLResource
     @Override
     public String getSpec() {
         //  Check for a restored resource.
-        final String hasSpec = super.getSpec();
+        final String existingSpec = super.getSpec();
         final osid.filing.CabinetEntry e = getEntry();
 
         // It is best to call setSpec lazily right now, as MapResource
@@ -291,9 +297,9 @@ public class CabinetResource extends URLResource
         // the filing browser when the browser is created, as opposed
         // to when a user drags one out.
         
-        if (e == null || hasSpec != SPEC_UNSET)
-            return hasSpec;
-        else {
+        if (e == null || existingSpec != SPEC_UNSET) {
+            return existingSpec;
+        } else {
             //  Check for each of the four possible cases.
 //                  if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)    setSpec(((RemoteByteStore)e).getUrl());
 //             else if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)      setSpec(((RemoteCabinet)e).getUrl());
@@ -304,23 +310,24 @@ public class CabinetResource extends URLResource
             else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpecByFile(((LocalByteStore)e).getFile());
             else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpecByFile(((LocalCabinet)e).getFile());
 
-            final String spec = super.getSpec();
-            //setProperty("URL", spec);
-            
-            //final String title = getTitle();
-            //if (title == null || title.length() == 0) {
-            if (false) { // Handle this in URLResource
-                final String fname;
-                if (spec.startsWith("file://"))
-                    fname = spec.substring(7);
-                else
-                    fname = spec;
-                try {
-                    setTitle(new File(fname).getName());
-                } catch (Throwable t) { t.printStackTrace(); }
-            }
+            return super.getSpec();
 
-            return spec;
+
+ // Handle this in URLResource
+//             final String spec = super.getSpec();
+//             //final String title = getTitle();
+//             //if (title == null || title.length() == 0) {
+//             if (false) {
+//                 final String fname;
+//                 if (spec.startsWith("file://"))
+//                     fname = spec.substring(7);
+//                 else
+//                     fname = spec;
+//                 try {
+//                     setTitle(new File(fname).getName());
+//                 } catch (Throwable t) { t.printStackTrace(); }
+//             }
+
         }
     }
 
@@ -414,11 +421,20 @@ public class CabinetResource extends URLResource
     
     
     @Override
-    public Object getPreview() {    	
-        //return GUI.getSystemIconForExtension(getExtension(), 128);
-        return super.getFileIconImage();
+    public Object getPreview() {
+
+        // We could not override this at all, and just let us see full
+        // image previews of local filesystem images in "Browse: My
+        // Computer".  At this point this may simply be an historical
+        // artifact of how we did things, but skipping all those image
+        // fetches for just the preview until the content is on the
+        // map puts alot less stress on our memory and threads.
+        
+        if (isCached())
+            return super.getPreview();
+        else
+            return getFileIconImage();
     }
     
-    //*/
     
 }
