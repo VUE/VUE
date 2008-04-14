@@ -105,11 +105,20 @@ public class Util
             UnixPlatform = true;
         }
 
-        final String term = System.getenv("TERM");
-        if (term == null || term.indexOf("color") < 0) {
-            //if (false) {
-            TERM_RED = TERM_GREEN = TERM_YELLOW = TERM_BLUE = TERM_PURPLE = TERM_CYAN = TERM_CLEAR = "";
-        } else {
+        String term = System.getenv("TERM");
+        boolean allowColor = false;
+
+        if (term == null)
+            term = "";
+        
+        allowColor = term.indexOf("color") >= 0;
+        if (!allowColor) {
+            term = System.getenv("SSH_TERM");
+            if (term != null && term.indexOf("color") >= 0)
+                allowColor = true;
+        }
+
+        if (allowColor) {
             TERM_RED    = "\033[1;31m";  
             TERM_GREEN  = "\033[1;32m";
             TERM_YELLOW = "\033[1;33m";
@@ -117,6 +126,8 @@ public class Util
             TERM_PURPLE = "\033[1;35m";
             TERM_CYAN   = "\033[1;36m";
             TERM_CLEAR  = "\033[m";
+        } else {
+            TERM_RED = TERM_GREEN = TERM_YELLOW = TERM_BLUE = TERM_PURPLE = TERM_CYAN = TERM_CLEAR = "";
         }
         //printStackTrace("TERM[" + term + "]");
     }
@@ -591,27 +602,54 @@ public class Util
     private static String encodeSpecialChars_Mac(String url, boolean isMailTo)
         throws java.io.IOException
     {
+//         if (url.indexOf('%') >= 0) {
+
+//             // If we were to make sure we're always handed URI's (at
+//             // least on the mac) this would prevent accidentally
+//             // decoding actual '+' characters in the file-name,
+//             // as they strings would already come with %20 for spaces.
+
+//             // However, if there was a special (e.g. Unicode) character
+//             // anywhere in the string, we would still need to encode it,
+//             // but then we'd have to determine if the '+' we see at this
+//             // point is from the URLEncoder, or from the real File name.
+//             // Eventually, this Util code should take a real File object
+//             // so we can be more sure about what we're doing in these
+//             // corner cases.
+
+//             if (DEBUG) System.err.println("  NO-CLEANUP [" + url + "]");
+//             return url;
+//         }
+        
         // In case there are any special characters (e.g., Unicode chars) in the
         // file name, we must first encode them for MacOSX (local files only?)
         // FYI, MacOSX openURL uses UTF-8, NOT the native MacRoman encoding.
         // URLEncoder encodes EVERYTHING other than alphas tho, so we need
         // to put it back.
 
-        // But first we DECODE it, in case there are already any encodings,
-        // we don't want to double-encode.
-        url = java.net.URLDecoder.decode(url, "UTF-8");
-        if (DEBUG) System.err.println("  DECODE UTF [" + url + "]");
+        // Note: using the less intense encoding of URI's may make this simpler
+
+        if (url.indexOf('%') >= 0) {
+            // DECODE it, in case there are already any encodings,
+            // we don't want to double-encode.
+            url = java.net.URLDecoder.decode(url, "UTF-8");
+            if (DEBUG) System.err.println("  DECODE UTF [" + url + "]");
+        }
 
         url = java.net.URLEncoder.encode(url, "UTF-8"); // URLEncoder is way overzealous...
         if (DEBUG) System.err.println("  ENCODE UTF [" + url + "]");
 
-            // now decode the over-coded stuff so it looks sane (has colon & slashes, etc)
-        url = url.replaceAll("%3A", ":"); // be sure to do ALL of these...
+        // now decode the over-coded stuff -- these are all crucial characters
+        // that must be present...
+        url = url.replaceAll("%3A", ":");
         url = url.replaceAll("%2F", "/");
         url = url.replaceAll("%3F", "?");
         url = url.replaceAll("%3D", "=");
         url = url.replaceAll("%26", "&");
-        url = url.replaceAll("\\+", "%20"); // Mac doesn't undestand '+' I think
+
+        // Mac doesn't undestand '+' means ' ' in it's openURL support method:
+        // url = url.replace('+', ' ');         // nor does it understand actual spaces
+        url = url.replaceAll("\\+", "%20");
 
         if (DEBUG) System.err.println("     CLEANUP [" + url + "]");
 
@@ -1807,8 +1845,22 @@ public class Util
             if (o instanceof Collection) {
                 final int size = ((Collection)o).size();
                 txt = "size=" + size;
-                if (size == 1)
-                    txt += "; " + ((Collection)o).toArray()[0];
+                final Object item;
+                if (o instanceof java.util.List)
+                    item = ((java.util.List)o).get(0);
+                else
+                    item = ((Collection)o).toArray()[0];
+                if (item != null) {
+                    if (size == 1) 
+                        txt += "; only=" + tags(item);
+                    else
+                        txt += "; first=" + tags(item);
+//                     if (size == 1) 
+//                         txt += "; " + tags(item);
+//                     else
+//                         txt += "type[0]=" + item.getClass().getName();
+                }
+
             } else if (o instanceof java.awt.image.BufferedImage) {
                 BufferedImage bi = (BufferedImage) o;
                 return String.format("BufferedImage@%07x[%dx%d]", ident, bi.getWidth(), bi.getHeight());
