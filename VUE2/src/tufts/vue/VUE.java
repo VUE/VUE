@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.529 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.530 $ / $Date: 2008-04-14 19:34:56 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -471,7 +471,8 @@ public class VUE
             if (args[i].equals("-nosplash")) {
                 SKIP_SPLASH = true;
             } else if (args[i].equals("-nodr")) {
-                DEBUG.Enabled = true;
+                //DEBUG.Enabled = true;
+                SKIP_SPLASH = true;
                 SKIP_DR = true;
             } else if (args[i].equals("-noem")) {
                 SKIP_EDITOR_MANAGER = true;
@@ -621,7 +622,12 @@ public class VUE
 
         Log.info("VUE version: " + VueResources.getString("vue.version"));
         Log.info("Current Working Directory: " + getSystemProperty("user.dir"));
-        Log.info("User/host: " + getSystemProperty("user.name") + "@" + System.getenv("HOST"));
+
+        String host = System.getenv("HOST");
+        if (host == null) host = System.getenv("HOSTNAME");
+        if (host == null) host = System.getenv("COMPUTERNAME");
+        if (host == null) host = System.getenv("USERDOMAIN");
+        Log.info("User/host: " + getSystemProperty("user.name") + "@" + host);
         
         if (VueUtil.isMacPlatform())
             installMacOSXApplicationEventHandlers();
@@ -670,7 +676,7 @@ public class VUE
         
         if (SKIP_DR || SKIP_SPLASH) {
             splashScreen = null;
-            DEBUG.Enabled = true;
+            //DEBUG.Enabled = true;
         } else
             splashScreen = new SplashScreen();
         
@@ -690,7 +696,12 @@ public class VUE
         new LWNode();
         new LWText();
         
-        
+        // Load images even before building the interface, in case
+        // UI may trigger image-icon (thumbnail) loads of user content.
+        // (E.g., "My Saved Content")
+        Log.debug("loading disk cache...");
+        Images.loadDiskCache();
+        Log.debug("loading disk cache: done");
 
         //------------------------------------------------------------------
         
@@ -706,10 +717,6 @@ public class VUE
         //------------------------------------------------------------------
         
         boolean openedUserMap = false;
-
-        Log.debug("loading disk cache...");
-        Images.loadDiskCache();
-        Log.debug("loading disk cache: done");
 
         if (FilesToOpen.size() > 0) {
             try {
@@ -743,7 +750,7 @@ public class VUE
         }
 
 
-        if (DEBUG.Enabled && !openedUserMap) {
+        if (false && DEBUG.Enabled && !openedUserMap) {
         
             //if (SKIP_DR && FilesToOpen.size() == 0) {
             //-------------------------------------------------------
