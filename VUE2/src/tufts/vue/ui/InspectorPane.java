@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.64 $ / $Date: 2008-04-11 13:00:47 $ / $Author: dan $
+ * @version $Revision: 1.65 $ / $Date: 2008-04-14 19:20:57 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -334,12 +334,12 @@ public class InspectorPane extends JPanel
         
         public Dimension getMinimumSize()
         {
-        	return new Dimension(200,120);    	
+        	return new Dimension(200,128);    	
         }
         
         public Dimension getPreferredSize()
         {
-        	return new Dimension(200,120);
+        	return new Dimension(200,128);
         }
     }
     private class InlineTitleResourcePreview extends tufts.vue.ui.PreviewPane
