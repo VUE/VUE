@@ -237,14 +237,16 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             FileWriter writer = new FileWriter(file);
             marshaller = new Marshaller(writer);
             if (DEBUG.IO) Log.debug("got marshaller " + marshaller);
+            marshaller.setValidation(false); // SMF: added 2008-04-13 -- was getting exceptions
+            marshaller.setMarshalListener(new tufts.vue.action.ActionUtil.VueMarshalListener());
             marshaller.setMapping(ActionUtil.getDefaultMapping());
             if (DEBUG.IO) Log.debug("marshalling " + favoritesTree + "...");
             marshaller.marshal(favoritesTree);
             if (DEBUG.IO) Log.debug("marshalled " + favoritesTree);
             writer.flush();
             writer.close();
-        } catch (Exception e) {
-            System.out.println("FavoritesWindow.marshallFavorites: " + e);
+        } catch (Throwable t) {
+            Log.error("marshallFavorites to " + tufts.Util.tags(file), t);
         }
     }
     
