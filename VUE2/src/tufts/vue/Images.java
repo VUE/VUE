@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.47 $ / $Date: 2008-04-09 07:12:46 $ / $Author: sfraize $
+ * @version $Revision: 1.48 $ / $Date: 2008-04-14 19:17:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -380,6 +380,12 @@ public class Images
 
         void setCacheFile(File file) {
             _cacheFile = file;
+
+            if (DEBUG.IMAGE) {
+                if (resource != null)
+                    resource.setDebugProperty("image.cache", file);
+            }
+            
 //             if (resource != null)
 //                 resource.setCacheFile(file);
         }
@@ -627,7 +633,7 @@ public class Images
     {
         if (_imageSRC instanceof BufferedImage) {
             final BufferedImage bi = (BufferedImage) _imageSRC;
-            if (DEBUG.IMAGE) Util.printStackTrace("image source was an instance of BufferedImage: " + bi);
+            if (DEBUG.IMAGE) Log.info("image source was an instance of BufferedImage", new Throwable(bi.toString()));
             if (listener != null)
                 listener.gotImage(bi,
                                   bi,
@@ -638,10 +644,11 @@ public class Images
         
         final ImageSource imageSRC = new ImageSource(_imageSRC);
 
-        if (DEBUG.IMAGE) {
-            System.out.println("");
-            out("FETCHING IMAGE SOURCE " + imageSRC + " for " + tag(listener));
-        }
+        if (DEBUG.IMAGE) System.out.println("-------------------------------------------------------");
+
+        //Log.debug("fetching image source " + imageSRC + " for " + tag(listener));
+        //if (DEBUG.Enabled) Log.debug("fetching " + imageSRC + " for listener " + Util.tag(listener));
+        if (DEBUG.Enabled) Log.debug("fetching for listener " + Util.tag(listener) + " " + imageSRC);
 
 
         Object fetchResult;
@@ -841,6 +848,8 @@ public class Images
         }
     }
 
+    private static final String NO_READABLE_FOUND = "No Readable";
+
     /** An wrapper for readAndCreateImage that deals with exceptions, and puts successful results in the cache */
     private static BufferedImage loadImage(ImageSource imageSRC, Images.Listener listener)
     {
@@ -867,7 +876,9 @@ public class Images
                 else if (t instanceof java.lang.IllegalArgumentException && t.getMessage().startsWith("LUT has improper length"))
                     // known java bug: many small PNG images fail to read (effects thumbshots)
                     msg = null; // don't bother to report an error
-                else if (t instanceof ThreadDeath)
+                else if (t instanceof ImageException) {
+                    msg = (t.getMessage() == NO_READABLE_FOUND ? null : t.getMessage());
+                } else if (t instanceof ThreadDeath)
                     msg = "interrupted";
                 else if (t.getMessage() != null && t.getMessage().length() > 0) {
                     msg = t.getMessage();
@@ -1099,14 +1110,17 @@ public class Images
 
         int dataSize = -1;
         
-        if (DEBUG.DR && imageSRC.resource != null) {
-            imageSRC.resource.setDebugProperty("readsrc", Util.tags(imageSRC.readable));
+        if (DEBUG.IMAGE && imageSRC.resource != null) {
+            imageSRC.resource.setDebugProperty("image.read", imageSRC.readable);
         }
 
         if (imageSRC.hasCacheFile()) {
             // just point us at the cache file: ImageIO will create the input stream
             imageSRC.readable = imageSRC.getCacheFile();
-            if (DEBUG.IMAGE) out("reading cache file: " + imageSRC.getCacheFile());
+            if (DEBUG.IMAGE && imageSRC.resource != null) {
+                imageSRC.resource.setDebugProperty("image.cache", imageSRC.getCacheFile());
+                out("reading cache file: " + imageSRC.getCacheFile());
+            }
 
             // note: can get away with this because imageSRC.resource will
             // be null if this is for a preview icon, so don't need to worry
@@ -1268,11 +1282,14 @@ public class Images
 
         final ImageInputStream inputStream;
 
-        if (imageSRC.readable instanceof ImageInputStream)
+        if (imageSRC.readable instanceof ImageInputStream) {
             inputStream = (ImageInputStream) imageSRC.readable;
-        else {
+        } else if (imageSRC.readable != null) {
             //if (DEBUG.IMAGE) out("ImageIO converting " + tag(imageSRC.readable) + " to InputStream...");
             inputStream = ImageIO.createImageInputStream(imageSRC.readable);
+        } else {
+            throw new ImageException(NO_READABLE_FOUND);
+            //Log.warn("not readable: " + imageSRC);
         }
 
         if (DEBUG.IMAGE) out("Got ImageInputStream " + inputStream);
@@ -1696,7 +1713,7 @@ class FileBackedImageInputStream extends ImageInputStreamImpl
                     int n = read(buf);
                     super.seek(0);
                     Log.debug("Cache contents:\n");
-                    System.out.println(new String(buf, 0, n, "US_ASCII"));
+                    System.out.println(new String(buf, 0, n, "US-ASCII"));
                 }
                 
                 close();
