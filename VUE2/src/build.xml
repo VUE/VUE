@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.152 $ / $Date: 2008-04-10 16:53:03 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.152 2008-04-10 16:53:03 anoop Exp $ -->
+<!-- $Revision: 1.153 $ / $Date: 2008-04-14 16:39:05 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.153 2008-04-14 16:39:05 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -49,6 +49,8 @@
   <property name="dist.src"    value="${dist.home}/src"/>
   <property name="release.home" value="${basedir}/release"/>
   <property name="lib.home"    value="../lib"/>
+  <property name="linux.src"    value="../linux/src"/>
+  <property name="linux.class"    value="../linux/classes"/>
   <property name="jnilib.home"    value="../jnilibs"/>	
   <property name="vue-core.jar" value="${basedir}/VUE-core.jar"/>
   <property name="vue-lib.jar"  value="${basedir}/VUE-lib.jar"/>
@@ -61,6 +63,7 @@
        the classpath if it's called anything with "NarraVision" in the
        name to decide if it should run with MIT features -->
   <property name="vue.jar"              value="${build.home}/VUE.jar"/>
+  <property name="vue-linux.jar"        value="${build.home}/VUE-linux.jar"/>
   <property name="narravision.jar"      value="${build.home}/NarraVision.jar"/>
 
 <!--  ==================== Compilation Control Options ==================== -->
@@ -475,12 +478,27 @@
       </not>
     </condition>
     <mkdir dir="${build.class}"/>
+    <mkdir dir="${linux.class}"/>
     <tstamp />
   </target>
 
 
 <!-- ==================== compile Task ================================ -->
-
+  <target name="compile-linux" depends="compile,prepare,version">
+   <javac srcdir="${linux.src}"
+   	  destdir="${linux.class}"
+   	  debug="${compile.debug}"
+   	  deprecation="${compile.deprecation}"
+   	  optimize="${compile.optimize}"
+   	  listfiles="no"
+   	  classpath="${lib.home}/VUE-MacOSX.jar:${lib.home}/log4j-1.2.12.jar:${build.class}"
+   	  source="${target.version}"
+   	  target="${target.version}"
+   	  verbose="true"
+   	  >
+   	  <include name="tufts/vue/gui/*.java"/>
+    </javac>
+  </target>
   <target name="compile" depends="prepare,version"
     description="Compile Java sources using default javac">
     <!-- echo message="lib.home is ${lib.home}"/ -->
@@ -490,11 +508,11 @@
              debug="${compile.debug}"
         deprecation="${compile.deprecation}"
            optimize="${compile.optimize}"
-           listfiles="yes"
+           listfiles="no"
            classpath="${lib.home}/VUE-MacOSX.jar:${lib.home}/log4j-1.2.12.jar"
            source="${target.version}"
            target="${target.version}"
-           verbose="true"
+           verbose="false"
            >
       <!--classpath refid="compile.cfedoraasspath.vue"/-->
       <include name="tufts/*.java"/>
@@ -729,7 +747,7 @@
 
 <!-- ==================== Core ================================ -->
   <target name="jar-core"
-          depends="compile"
+          depends="compile,compile-linux"
           description="Create VUE-core.jar - a jar file containing all the VUE classes, resources and config files from the CVS tree.">
     <!-- echo message="top.dir is ${top.dir}"/ -->
     <echo message="build.class is ${build.class}"/>
@@ -802,7 +820,14 @@
 		 update="true"
          includes="osid.properties"/>
   </target>
-  
+  <target name="linux-jar" depends="compile-linux,jar">
+    <echo message="Building linux jar..."/>
+    <copy file="${vue.jar}" tofile="${vue-linux.jar}"/>
+    <jar jarfile="${vue-linux.jar}"
+    	 basedir="${linux.class}"
+    	 update="true"
+    	 />
+  </target>
   <target name="jar-narravision" depends="jar"
           description="Create NarraVision.jar - a single, distributable, runnable jar file containing NarraVision and all supporting libraries.">
     <tstamp/>
@@ -869,13 +894,14 @@
     </jar>
   </target>
      
-  <target name="all" depends="clean,mac-dist" description="Rebuild everything from scratch."/>
+  <target name="all" depends="clean,mac-dist,linux-jar" description="Rebuild everything from scratch."/>
   
   <target name="mac" depends="clean,mac-dist"/>
 
   <target name="clean"
           description="Delete all build and intermediate files, leaving only the sources.">
     <delete dir="${build.home}"/>
+    <delete dir="${linux.class}"/>
     <delete file="VUE-core.jar"/>
     <!--delete file="VUE-lib.jar"/-->
     <delete file="VUE-lib-minimal.jar"/>
@@ -1125,7 +1151,7 @@ cclass Version {
     </target>
     
     <!-- Tasks to create releases for VUE -->
-    <target name="release" depends="clean,mac-dist">
+    <target name="release" depends="clean,mac-dist,linux-jar">
         <delete dir="${release.home}"/>
         <mkdir dir="${release.home}"/>
         <zip destfile="${release.home}/VUE.zip">
@@ -1148,7 +1174,10 @@ cclass Version {
              </zipfileset> 
          </zip>
          <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
-         
+         <zip destfile="${release.home}/VUE-linux.zip">
+	             <zipfileset dir="${build.home}" includes="VUE-linux.jar" filemode="755"/>
+	          </zip>
+         <checksum file="${release.home}/VUE-linux.zip" property="genericMD5"/>
          <echo file="${release.home}/checksum.txt" >
 VUE.zip - ${genericMD5}
 VUE.app.zip- ${macMD5}
@@ -1245,4 +1274,3 @@ VUE_Installer.zip - ${installerMD5}
     </target>
 
 </project>
-
