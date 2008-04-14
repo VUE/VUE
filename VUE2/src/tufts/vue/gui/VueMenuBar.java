@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.93 $ / $Date: 2008-04-08 18:41:38 $ / $Author: mike $
+ * @version $Revision: 1.94 $ / $Date: 2008-04-14 16:29:26 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -390,8 +390,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(Actions.ZoomFit);
         viewMenu.add(Actions.ZoomActual);
         viewMenu.add(Actions.ZoomToSelection);
-        viewMenu.addSeparator();                        
-        viewMenu.add(viewFullScreen);
+        viewMenu.addSeparator();            
+        if (!Util.isUnixPlatform())
+        	viewMenu.add(viewFullScreen);
         viewMenu.add(splitScreenItem);
         viewMenu.addSeparator();
         viewMenu.add(togglePruningItem);
