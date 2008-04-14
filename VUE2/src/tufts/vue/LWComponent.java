@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.406 $ / $Date: 2008-04-14 19:27:56 $ / $Author: sfraize $
+ * @version $Revision: 1.407 $ / $Date: 2008-04-14 22:30:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1715,17 +1715,18 @@ u                    getSlot(c).setFromString((String)value);
         notify(LWKey.Label, old);
     }
 
-    protected TextBox getLabelBox()
+    protected tufts.vue.TextBox getLabelBox()
     {
         try {
             if (this.labelBox == null) {
                 synchronized (this) {
                     if (this.labelBox == null)
-                        this.labelBox = new TextBox(this, this.label);
+                        this.labelBox = new tufts.vue.TextBox(this, this.label);
                 }
             }
         } catch (Throwable t) {
-            Util.printStackTrace(t, "failed to init labelBox for " + this);
+            //Util.printStackTrace(t, "failed to init labelBox for " + this);
+            Log.error("failed to init labelBox for " + this, t);
         }
             
 
