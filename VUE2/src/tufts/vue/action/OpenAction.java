@@ -394,8 +394,11 @@ public class OpenAction extends VueAction
     /** test harness for opening a whole bunch of map files just to make sure we can parse and create an LWMap model from them */
     public static void main(String args[]) throws Exception {
 
-        VUE.parseArgs(args);
+        //VUE.parseArgs(args);
         VUE.debugInit(false);
+        VUE.init(args);
+        //VUE.initApplication();
+        //new TextBox(null, "DEBUG-TEXTBOX");
         SaveAction.PACKAGE_DEBUG = true;
         DEBUG.IO = true;
 
@@ -433,6 +436,7 @@ public class OpenAction extends VueAction
             // If exception has multi-line content, and we're grepping output for '@@@',
             // we're ensure to include this token after the exception is printed, so
             // we can still see the file that failed.
+            //Log.error(String.format("@@@Free: %4.1fm; Loaded: %-60s from @@@ %s\n",
             System.err.format("@@@Free: %4.1fm; Loaded: %-60s from @@@ %s\n",
                               (float) (Runtime.getRuntime().freeMemory() / (float) (1024*1024)),
                               result, arg);
