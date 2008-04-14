@@ -21,15 +21,15 @@ package tufts.vue;
 public interface XMLUnmarshalListener {
 
     /** object's has been constructed with call to public no-arg constructor */
-    public void XML_initialized();
+    public void XML_initialized(Object context);
 
     /** all attributes and elements have been processed: the values for this object are set */
-    public void XML_completed();
+    public void XML_completed(Object context);
 
     /** a child field value has been de-serialized and constructed to be set on/provided to it's parent  */
-    public void XML_fieldAdded(String name, Object child);
+    public void XML_fieldAdded(Object context, String name, Object child);
     
     /** the object has been added to it's parent (the parent's setter was just called with the child) */
-    public void XML_addNotify(String name, Object parent);
+    public void XML_addNotify(Object context, String name, Object parent);
 }
 
