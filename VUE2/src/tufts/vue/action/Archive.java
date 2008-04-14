@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.8 $ / $Date: 2008-04-04 22:32:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.9 $ / $Date: 2008-04-14 19:39:55 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -107,7 +107,7 @@ public class Archive
         //File folder = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separator+"VueMapArchives";
 
         final File parentDirectory = zipFile.getParentFile();
-        if (canCreateFiles(parentDirectory))
+        if (false && canCreateFiles(parentDirectory)) // for now, always unpack into the temp directory
             unpackingDir = parentDirectory.toString();
         else
             unpackingDir = VUE.getSystemProperty("java.io.tmpdir");
@@ -147,32 +147,93 @@ public class Archive
 
         zin.close();
            
-        final LWMap map = ActionUtil.unmarshallMap(new File(mapFile));
-
-        for (Resource r : map.getAllResources()) {
-            final String packageCacheFile = packagedResources.get(r.getSpec());
-            if (packageCacheFile != null) {
-                //Log.debug("Found packaged resource: " + r + "; " + packageCacheFile);
-                Log.debug("Found packaged resource: " + packageCacheFile + "; " + r);
-                
-                // This will convert "/" from the zip-entry package name to "\" on Windows
-                // (ZipEntry pathnames always use '/', no matter what the platform).
-                final File localFile = new File(packageCacheFile);
-                final String localPath = localFile.toString();
-                if (!localPath.equals(packageCacheFile))
-                    Log.info("    Localized file path: " + localPath);
-                
-                r.setProperty(PACKAGE_FILE, localPath);
-                r.setCached(true);
-            } else {
-                if (DEBUG.Enabled) Log.debug("No archive entry matching: " + r.getSpec());
-            }
-        }
+        // If this package map is being unmarshalled on the same machine it was created
+        // on, all the URLResource's will initialize themseleves normally to their
+        // original source files, not their package files.  This is a bit inefficient /
+        // might confuse things, so we need to be careful.  For now we're just going to
+        // completely re-init the Resources from scratch, so they'll init twice.  It
+        // would be more ideal to pass in a special UnmarshalListener that would handle
+        // setting the PACKAGE_FILE property on the Resources before they init, or at
+        // least pass in a context object to the default VueUnmarshalListener, that
+        // could be passed to URLResource.XML_completed, which it could check to know if
+        // it should wait on attempting to initialize.
+        
+        final LWMap map =
+            ActionUtil.unmarshallMap(new File(mapFile),
+                                     new ArchiveMapUnmarshalHandler(zipFile + "(" + mapEntry + ")",
+                                                                    zipFile,
+                                                                    packagedResources));
 
         map.setFile(zipFile);
         map.markAsSaved();
 
         return map;
+    }
+
+    private static class ArchiveMapUnmarshalHandler  extends MapUnmarshalHandler
+    {
+        final Map<String,String> packagedResources;
+        final File archiveFile;
+        
+        ArchiveMapUnmarshalHandler(Object source, File archiveFile, Map<String,String> resourcesFoundInPackage) {
+            super(source, Resource.MANAGED_UNMARSHALLING);
+            this.packagedResources = resourcesFoundInPackage;
+            this.archiveFile = archiveFile;
+        }
+
+        /** skip setFile -- we're going to use the package file */
+        @Override
+        void notifyFile(final LWMap map, final File file)
+        {
+            super.map = map;
+            super.file = file;
+
+            map.setArchiveMap(true);
+
+            // skip setFile: we'll handle it ourselves for the archive
+        }
+
+        /** this impl is so we can patch up resources first before completing the restore */
+        @Override
+        void notifyUnmarshallingCompleted()
+        {
+            map.runResourceDeserializeInits(map.getAllResources());
+            
+            patchResourcesForPackage();
+
+            //map.runResourceFinalInits(allResources);
+            map.completeXMLRestore(context);
+            
+            //super.notifyUnmarshallingCompleted();
+        }
+
+        private void patchResourcesForPackage() {
+
+            for (Resource r : map.getAllResources()) {
+                final String packageCacheFile = packagedResources.get(r.getSpec());
+                if (packageCacheFile != null) {
+                    //Log.debug("Found packaged resource: " + r + "; " + packageCacheFile);
+                    if (DEBUG.Enabled) Log.debug("patching packaged resource: " + packageCacheFile + "; into " + r);
+                
+                    // This will convert "/" from the zip-entry package name to "\" on Windows
+                    // (ZipEntry pathnames always use '/', no matter what the platform).
+                    final File localFile = new File(packageCacheFile);
+                    final String localPath = localFile.toString();
+                    if (DEBUG.RESOURCE && !localPath.equals(packageCacheFile))
+                        Log.info("       localized file path: " + localPath);
+
+                    if (r instanceof URLResource) {
+                        ((URLResource)r).setPackageFile(localFile, archiveFile);
+                    } else {
+                        Log.warn("package file fallback for unknown resource type, impl in question: " + Util.tags(r) + "; " + localFile);
+                        r.setProperty(PACKAGE_FILE, localFile);
+                        r.setCached(true);
+                    }
+                } else {
+                    if (DEBUG.Enabled) Log.debug("No archive entry matching: " + r.getSpec());
+                }
+            }
+        }
     }
 
     /**
@@ -391,7 +452,7 @@ public class Archive
      * in this set, and will be used to ensure that no repeated names are generated
      * on future calls.
      */
-    private static String generatePackageFileName(URLResource r, Set<String> existingNames) {
+    private static String generatePackageFileName(Resource r, Set<String> existingNames) {
 
         String packageName = null;
 
@@ -441,21 +502,21 @@ public class Archive
         
     }
     
-    private static String generateInformativePackageFileName(URLResource r)
+    private static String generateInformativePackageFileName(Resource r)
         throws java.io.UnsupportedEncodingException
     {
-        final URL url = r.getImageSource(); // better as URI?
+        final Object imageSource = r.getImageSource(); 
+        //final URL url = r.getImageSource(); // better as URI?
 
-        if (url == null) {
-            // failsafe:
-            return r.getSpec();
-        }
+        if (imageSource == null) 
+            return r.getSpec(); // failsafe
         
         String packageName;
-        if ("file".equals(url.getProtocol())) {
-            File file = new File(url.getFile());
-            packageName = file.getName();
-        } else {
+        if (imageSource instanceof File){
+            packageName = ((File)imageSource).getName();
+        } else if (imageSource instanceof URL) {
+
+            final URL url = (URL) imageSource;
 
             packageName = url.toString(); // this could be very messy with queries...
 
@@ -475,8 +536,36 @@ public class Archive
             
             if (r.isImage() && r.hasProperty(IMAGE_FORMAT) && !Resource.looksLikeImageFile(packageName))
                 packageName += "." + r.getProperty(IMAGE_FORMAT).toLowerCase();
+        } else {
+            throw new IllegalArgumentException("image source is neither URL or File: " + Util.tags(imageSource));
         }
 
+//         String packageName;
+//         if ("file".equals(url.getProtocol())) {
+//             File file = new File(url.getFile());
+//             packageName = file.getName();
+//         } else {
+
+//             packageName = url.toString(); // this could be very messy with queries...
+
+//             if (packageName.startsWith("http://")) {
+//                 // strip off the most common case -- this not informative (can be assumed),
+//                 // and makes package file names easier to read
+//                 packageName = packageName.substring(7);
+//             }
+
+//             // packageName = url.getHost() + url.getFile();
+                
+//             // If the resource is image content, and the generated name doesn't
+//             // look like something that has an extension that most OS shell
+//             // applications would recognize as an image (e.g., Finder, Explorer),
+//             // add an extension so that when looking at unpacked archives directories,
+//             // image icons can easily be seen.
+            
+//             if (r.isImage() && r.hasProperty(IMAGE_FORMAT) && !Resource.looksLikeImageFile(packageName))
+//                 packageName += "." + r.getProperty(IMAGE_FORMAT).toLowerCase();
+//         }
+        
         // Decode (to prevent any redundant encoding), then re-encode
         packageName = java.net.URLDecoder.decode(packageName, "UTF-8");
         packageName = java.net.URLEncoder.encode(packageName, "UTF-8");
@@ -484,20 +573,20 @@ public class Archive
         // accidentally decoded, which might create something that looks like a path when we don't want it to.
         packageName = packageName.replace('%', '$');
 
-        if (URLResource.ALLOW_URI_WHITESPACE) {
+//         if (URLResource.ALLOW_URI_WHITESPACE) {
 
-            // TODO: may be able to just decode these '+' encodings back to the actual
-            // space character, tho would need to do lots of testing of the entire
-            // workflow code path on multiple platforms. This would be especially nice
-            // at least for document names (e.g., non-images), as they'll often have
-            // spaces, and '$20' in the middle of the document name is pretty ugly to look
-            // at if they open the document (e.g., PDF, Word, Excel etc).
+//             // TODO: may be able to just decode these '+' encodings back to the actual
+//             // space character, tho would need to do lots of testing of the entire
+//             // workflow code path on multiple platforms. This would be especially nice
+//             // at least for document names (e.g., non-images), as they'll often have
+//             // spaces, and '$20' in the middle of the document name is pretty ugly to look
+//             // at if they open the document (e.g., PDF, Word, Excel etc).
 
-            // 2008-03-31 Not currently working, at least on the mac: finding the local files eventually fails
+//             // 2008-03-31 Not currently working, at least on the mac: finding the local files eventually fails
 
-            packageName = packageName.replace('+', ' ');
+//             packageName = packageName.replace('+', ' ');
             
-        } else {
+//         } else {
 
             // So Mac openURL doesn't decode these space indicators later when opening:
             
@@ -511,7 +600,7 @@ public class Archive
             // recovery from data corruption.
             
             //packageName = packageName.replace('+', '-');
-        }
+//         }
         
         
         return packageName;
@@ -546,12 +635,20 @@ public class Archive
     {
         Log.info("Writing archive package " + archive);
 
-        final String label = map.getLabel();
+//         final String label = map.getLabel();
+//         final String mapName;
+//         if (label.endsWith(".vue"))
+//             mapName = label.substring(0, label.length() - 4);
+//         else
+//             mapName = label;
+
+        final String label = archive.getName();
         final String mapName;
-        if (label.endsWith(".vue"))
+        if (label.endsWith(VueUtil.VueArchiveExtension))
             mapName = label.substring(0, label.length() - 4);
         else
             mapName = label;
+        
 
         final String dirName = mapName + ".vdr";
 
@@ -568,26 +665,9 @@ public class Archive
         
         for (Resource r : uniqueResources) {
 
-            if (r instanceof URLResource == false) {
-                Log.warn("Unhandled non-URLResource: " + r);
-                continue;
-            }
-
             try {
 
-                final File sourceFile;
-                
-                if (r.hasProperty(PACKAGE_FILE)) {
-                    // we're saving something that came from an existing package
-                    sourceFile = new File(r.getProperty(PACKAGE_FILE));
-                } else if (r.isLocalFile()) {
-                    sourceFile = new File(r.getSpec());
-                } else if (r.isImage()) {
-                    sourceFile = Images.findCacheFile(r);
-                } else {
-                    sourceFile = null;
-                }
-
+                final File sourceFile = r.getActiveDataFile();
                 final String description = "" + (DEBUG.Enabled ? r : r.getSpec());
 
                 if (sourceFile == null) {
@@ -598,7 +678,7 @@ public class Archive
                     continue;
                 }
             
-                final String packageEntryName = generatePackageFileName((URLResource)r, uniqueEntryNames);
+                final String packageEntryName = generatePackageFileName(r, uniqueEntryNames);
 
                 final ZipEntry entry = new ZipEntry(dirName + "/" + packageEntryName);
                 Archive.setComment(entry, "\t" + SPEC_KEY + r.getSpec());
@@ -613,7 +693,7 @@ public class Archive
                 if (DEBUG.Enabled) Log.info("created: " + item);
 
             } catch (Throwable t) {
-                Log.error("Failed to handle resource: " + r, t);
+                Log.error("writeArchive: failed to handle " + Util.tags(r), t);
             }
                 
         }
@@ -746,19 +826,8 @@ public class Archive
            
             final URLResource r = (URLResource) resource;
             
-            File sourceFile = null;
-            boolean wasLocal = false;
-
-            if (r.hasProperty(PACKAGE_FILE)) {
-                // we're saving something that came from an existing package
-                sourceFile = new File(r.getProperty(PACKAGE_FILE));
-            } else if (r.isLocalFile()) {
-                //Log.info("LOCAL FILE: " + r);
-                sourceFile = new File(r.getSpec());
-                wasLocal = true;
-            } else if (r.isImage()) {
-                sourceFile = Images.findCacheFile(r);
-            }
+            File sourceFile = r.getActiveDataFile();
+            boolean wasLocal = r.isLocalFile();
 
             //if (DEBUG.Enabled) Log.debug(r + "; sourceDataFile=" + sourceFile);
                 
@@ -769,7 +838,7 @@ public class Archive
 
                 final String packageName = generatePackageFileName(r, null);
                     
-                cloned.setProperty(PACKAGE_KEY, packageName);
+                cloned.setProperty(PACKAGE_KEY_DEPRECATED, packageName);
                 if (wasLocal) {
                     //Log.info("STORING LOCAL PROPERTY: " + r.getSpec());
                     cloned.setHiddenProperty("Package.orig", r.getSpec());
@@ -828,7 +897,7 @@ public class Archive
 
             final Resource cloned = clonedResources.get(r);
             final File sourceFile = onDiskFiles.get(cloned);
-            final String packageFileName = (cloned == null ? "[missing clone!]" : cloned.getProperty(Resource.PACKAGE_KEY));
+            final String packageFileName = (cloned == null ? "[missing clone!]" : cloned.getProperty(Resource.PACKAGE_KEY_DEPRECATED));
 
             ZipEntry entry = null;
 
