@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.407 $ / $Date: 2008-04-14 22:30:03 $ / $Author: sfraize $
+ * @version $Revision: 1.408 $ / $Date: 2008-04-15 22:47:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1908,10 +1908,8 @@ u                    getSlot(c).setFromString((String)value);
     /** return a type name for this LWComponent */
     public String getComponentTypeLabel() {
         String name = getClass().getName();
-        if (name.startsWith("tufts.vue.LW") && (!name.equals("tufts.vue.LWPortal")))
+        if (name.startsWith("tufts.vue.LW"))
             name = name.substring(12);
-        else if (name.equals("tufts.vue.LWPortal"))
-           	name="Interactive Frame";
         else if (name.startsWith("tufts.vue."))
             name = name.substring(10);
         return name;
