@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.18 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $ 
+ * @version $Revision: 1.19 $ / $Date: 2008-04-15 22:33:47 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -200,11 +200,13 @@ public class LWPortal extends LWNode
             // no fill: don't show the portal fill if we, or any
             // other portal, is currently the focal
         } else if (hasEntries()) {
-            final Color fill = getPriorityPathwayColor(dc);
-            if (fill == null)
+            final Color c = getPriorityPathwayColor(dc);
+            if (c == null) {
                 dc.g.setColor(getRenderFillColor(dc));
-            else
+            } else {
+                final Color fill = new Color(c.getRed(), c.getGreen(), c.getBlue(), 64);
                 dc.g.setColor(fill);
+            }
 
             //dc.g.setColor(DefaultFill);
             if (dc.zoom > PathwayOnTopZoomThreshold) {
