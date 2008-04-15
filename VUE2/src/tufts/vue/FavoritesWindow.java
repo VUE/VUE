@@ -55,7 +55,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public static final int DEFAULT_SELECTION_ROW = 0;
     private DisplayAction displayAction = null;
     public  VueDandDTree favoritesTree ;
-    private JScrollPane browsePane;
+    //private JScrollPane browsePane;
     private static int FAVORITES = Resource.FAVORITES;
     JTextField keywords;
     boolean fileOpen = false;
@@ -73,8 +73,17 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             favoritesTree.setRootVisible(false);
         }
         createPopupMenu();
-        browsePane = new JScrollPane(favoritesTree);
-        add(browsePane,BorderLayout.CENTER);
+        if (true) {
+            // now that entire Resource DockWindow is in a scroll pane,
+            // this is just messy -- SMF 2008-04-15
+            add(favoritesTree, BorderLayout.CENTER);
+        } else {
+            // re-enabled in case we really want the left-right browse ability:
+            add(new JScrollPane(favoritesTree), BorderLayout.CENTER);
+        }
+// //         browsePane = new JScrollPane(favoritesTree);
+// //         add(browsePane,BorderLayout.CENTER);
+        
     }
     public VueDandDTree getFavoritesTree(){
         return (this.favoritesTree);
