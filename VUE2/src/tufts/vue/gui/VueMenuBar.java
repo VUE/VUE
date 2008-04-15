@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.94 $ / $Date: 2008-04-14 16:29:26 $ / $Author: mike $
+ * @version $Revision: 1.95 $ / $Date: 2008-04-15 21:33:21 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -479,6 +479,16 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				{
 					extendMenu.setEnabled(false);
 				}
+				
+				if (selection.countTypes(LWText.class) > 0)
+				{
+					transformMenu.setEnabled(false);
+				}
+				else
+				{
+					transformMenu.setEnabled(true);
+				}
+				
 			}});
         contentMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
