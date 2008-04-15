@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.522 $ / $Date: 2008-04-14 19:14:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.523 $ / $Date: 2008-04-15 22:49:01 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -7064,7 +7064,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (test_map)
             VUE.installExampleMap(map);
         else
-            map.addLWC(new LWNode(VueResources.getString("newnode.html"), new Rectangle2D.Float()));
+            map.add(new LWNode(VueResources.getString("newnode.html"), new Rectangle2D.Float()));
         
         /*
         LWNode tn = new LWNode("one two three", new Rectangle2D.Float());
