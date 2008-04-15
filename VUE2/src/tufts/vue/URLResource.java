@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.63 $ / $Date: 2008-04-15 04:35:20 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2008-04-15 06:46:43 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -390,6 +390,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         
         mLastModified = file.lastModified();
+        setByteSize(file.length());
         // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
         if (DEBUG.RESOURCE) {
             setDebugProperty("file.instance", mFile);
@@ -957,17 +958,22 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             // care of finding all objects that need updating once
             // this ever returns true.
             
-            final long lastMod = mFile.lastModified();
-            if (lastMod > mLastModified) {
+            final long curLastMod = mFile.lastModified();
+            final long curSize = mFile.length();
+            if (curLastMod != mLastModified || curSize != getByteSize()) {
                 if (true||DEBUG.Enabled) {
-                    long diff = lastMod - mLastModified;
+                    long diff = curLastMod - mLastModified;
                     out(TERM_CYAN
-                        + "lastModified: " + new Date(lastMod)
-                        + "; has increased by " + (diff/100) + " seconds; "
-                        + mFile + TERM_CLEAR);
+                        + Util.tags(mFile)
+                        + "; lastMod=" + new Date(curLastMod)
+                        + "; timeDelta=" + (diff/100) + " seconds"
+                        + "; sizeDelta=" + (curSize-getByteSize()) + " bytes"
+                        + TERM_CLEAR);
                 }
                 //if (DEBUG.Enabled) out("lastModified: dataHasChanged");
-                mLastModified = lastMod;
+                mLastModified = curLastMod;
+                if (curSize != getByteSize())
+                    setByteSize(curSize);
                 return true;
             }
         }
