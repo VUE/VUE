@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.48 $ / $Date: 2008-04-14 19:17:14 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2008-04-15 04:29:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -257,6 +257,21 @@ public class Images
         
     }
 
+    /**
+     * flush any cache BufferedImages we have for the give file: future requests
+     * will force the image data to be reloaded from the file (useful if we know
+     * the file has changed on disk).
+     */
+    public static void flushCache(File file) {
+        final Object key = makeKey(file);
+        final Object entry = Cache.remove(key);
+        if (entry != null) {
+            Log.info(Util.TERM_RED + "flushed cache entry: " + key + "; " + entry + Util.TERM_CLEAR);
+        } else {
+            Log.info("failed to find cache entry for key: " + Util.tags(key));
+        }
+    }
+
     private static URI makeKey(URL u) {
         
         try {
@@ -464,10 +479,10 @@ public class Images
             }
         }
         public void gotImage(Object imageSrc, Image image, int w, int h) {
-            if (DEBUG.IMAGE) out("relay IMAGE to head " + tag(head) + " " + imageSrc);
+            if (DEBUG.IMAGE) out(Util.TERM_CYAN + "relay IMAGE to head " + Util.TERM_CLEAR + tag(head) + " " + imageSrc);
             head.gotImage(imageSrc, image, w, h);
             if (tail != null) {
-                if (DEBUG.IMAGE) out("relay IMAGE to tail " + tag(tail) + " " + imageSrc);
+                if (DEBUG.IMAGE) out(Util.TERM_CYAN + "relay IMAGE to tail " + Util.TERM_CLEAR + tag(tail) + " " + imageSrc);
                 tail.gotImage(imageSrc, image, w, h);
             }
         }
