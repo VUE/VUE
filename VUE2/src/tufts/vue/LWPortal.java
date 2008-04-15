@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.19 $ / $Date: 2008-04-15 22:33:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.20 $ / $Date: 2008-04-15 22:48:49 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -57,6 +57,10 @@ public class LWPortal extends LWNode
         return p;
     }
 
+    @Override
+    public String getComponentTypeLabel() {
+        return "Interactive Frame";
+    }
 
     @Override
     protected void addEntryRef(LWPathway.Entry e) {
