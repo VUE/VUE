@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.190 $ / $Date: 2008-04-14 19:30:47 $ / $Author: sfraize $
+ * @version $Revision: 1.191 $ / $Date: 2008-04-15 07:25:40 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -672,13 +672,6 @@ public class LWMap extends LWContainer
         }
     }
 
-    private final Resource.Factory mResourceFactory = new RelativeResourceFactory();
-    
-    @Override
-    public Resource.Factory getResourceFactory() {
-        return mResourceFactory;
-    }
-    
     static final String NODE_INIT_LAYOUT = "completeXMLRestore:NODE";
     static final String LINK_INIT_LAYOUT = "completeXMLRestore:LINK";
 
@@ -789,6 +782,8 @@ public class LWMap extends LWContainer
             
         }
 
+        mResourceFactory.loadResources(allResources);
+
         
         //----------------------------------------------------------------------------------------
         
@@ -871,30 +866,71 @@ public class LWMap extends LWContainer
         markAsSaved();
     }
 
-    /*
-      // no longer needed: we now use castor references to handle this for us
-    private void resolvePersistedLinks(Collection<LWComponent> allRestored)
-    {
-        for (LWComponent c : allRestored) {
-            if (!(c instanceof LWLink))
-                continue;
-            LWLink l = (LWLink) c;
-            try {
-                final String headID = l.getHead_ID();
-                final String tailID = l.getTail_ID();
-                if (headID != null && l.getHead() == null) l.setHead(findByID(allRestored, headID));
-                if (tailID != null && l.getTail() == null) l.setTail(findByID(allRestored, tailID));
-            } catch (Throwable e) {
-                tufts.Util.printStackTrace(e, "bad link? + l");
+    public class ResourceFactory extends Resource.DefaultFactory {
+
+        private final Map<String,Resource> resourceMap = new HashMap();
+
+        void loadResources(Collection<Resource> resourceBag) {
+            for (Resource r : resourceBag)
+                track(r);
+        }
+
+        private void track(Resource r) {
+            final Resource already = resourceMap.put(r.getSpec(), r);
+            if (already != null) {
+                // this okay for the moment: we're only using this for keeping
+                // image data up to date
+                Log.debug("losing track of: " + already);
             }
         }
-    }
-    */
 
-    public class RelativeResourceFactory extends Resource.DefaultFactory {
+        private Resource trackNew(Resource r)
+        {
+            final Resource already = resourceMap.get(r.getSpec());
+
+            // This is not currently a very efficient way to do this --
+            // override the create methods to first check for a cache
+            // member before going through all this.
+            
+            if (already != null) {
+                if (DEBUG.Enabled) {
+                    Log.debug("tossing: " + r);
+                    Log.debug("reusing: " + already);
+                }
+                return already;
+            } else {
+                track(r);
+                if (DEBUG.Enabled) Log.debug("keeping: " + r);
+                return r;
+            }
+        }
+        
         @Override
         protected Resource postProcess(Resource r, Object source) {
-            Log.debug(LWMap.this + " created: " + r + " from " + Util.tags(source));
+            Log.info("created: " + r + " from " + Util.tags(source));
+
+            final Resource using = trackNew(r);
+
+            // Of course, do NOT want to call dataHasChanged here, as it will use-up the
+            // update.  Since newly dropped objects get auto-selected, our auto-update
+            // code should automatically run for now -- when dropping single objects
+            // that is: multiple drops will fail to trigger an update, as there won't be
+            // a single-selection, so that's why this wants to be refactored further,
+            // and have the update code currently in VUE.java (update of all LWImages)
+            // triggerable from here.
+
+            // Also, we can probably add to the code to the factory for ensuring that
+            // any new resource added to any map element, is duplicated if it's in any
+            // other map -- may need to have the Resource object itself point back to
+            // it's map.  Tho as long as doing that, might as well just make it an
+            // "owner", that could be an LWComponent, or null if a resource not attached
+            // to a map (My Computer browser, etc), or keyed to a special owner, or for
+            // search results (could point back to repository if that's helpful).
+            
+            // if (using != r && using.dataHasChanged()) Log.info("DO AN UPDATE");
+            
+            return using;
+        }
 
 // not turned on yet -- see if can move to Resource.java if we keep.
 //             if (mSaveLocationURI != null) {
@@ -903,24 +939,29 @@ public class LWMap extends LWContainer
 //                     r.updateRootLocation(mSaveLocationURI, null);
 //                     //}
 //             }
+
+        private void recordInode(Resource r, Object source) {
             
-//             if (Util.isMacPlatform() && (source instanceof java.io.File || source instanceof String)) {
-
-//                 String inode = Util.getSystemCommandOutput(new String[] { "/usr/bin/stat", "-f", "%i", ""+source },
-//                                                       getSaveLocation());
-
-//                 if (inode != null)
-//                     r.setHiddenProperty("file.MacOSX.inode", inode);
-//             }
+            if (Util.isMacPlatform() && (source instanceof java.io.File || source instanceof String)) {
                 
-                                                         
-
-            
-            return r;
+                String inode = Util.getSystemCommandOutput(new String[] { "/usr/bin/stat", "-f", "%i", ""+source },
+                                                           getSaveLocation());
+                
+                if (inode != null)
+                    r.setHiddenProperty("file.MacOSX.inode", inode);
+            }
         }
+
     }
 
  
+    private final ResourceFactory mResourceFactory = new ResourceFactory();
+    
+    @Override
+    public Resource.Factory getResourceFactory() {
+        return mResourceFactory;
+    }
+    
     /**
      * Perform any actions on the map we want to happen just before it is persisted to the given file.
      * E.g., record the map-relative location of any local file resources.
