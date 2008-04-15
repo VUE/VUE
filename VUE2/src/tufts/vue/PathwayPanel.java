@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.123 $ / $Date: 2008-04-15 22:49:11 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2008-04-15 22:58:47 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1057,7 +1057,7 @@ public class PathwayPanel extends JPanel
             pathway.getMap().add(portal);
             pathway.getMap().sendToBack(portal);
             pathway.add(portal);
-            pathway.getUndoManager().mark("New Interactive Frame"); 
+            pathway.getUndoManager().mark("New " + portal.getComponentTypeLabel()); 
         }
       //  else if (btn == btnElementUp)   { pathway.moveCurrentUp(); }
       //  else if (btn == btnElementDown) { pathway.moveCurrentDown(); }
