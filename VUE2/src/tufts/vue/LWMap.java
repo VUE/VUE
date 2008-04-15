@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.191 $ / $Date: 2008-04-15 07:25:40 $ / $Author: sfraize $
+ * @version $Revision: 1.192 $ / $Date: 2008-04-15 07:35:14 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1851,9 +1851,9 @@ public class LWMap extends LWContainer
     // Moved KEY_PresentationColor to the bottom of the file -- seems
     // to be helping with the sporadic javac failures -- SMF 2008-04-09
     
+    private final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
     public static final Key KEY_PresentationColor = new Key("presentation.color", KeyType.STYLE)
         { final Property getSlot(LWMap c) { return c.mPresentationColor; } };
-    private final ColorProperty mPresentationColor = new ColorProperty(KEY_PresentationColor, new java.awt.Color(32,32,32));
     
     
 }
