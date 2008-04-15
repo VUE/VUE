@@ -153,9 +153,9 @@ public class MetaDataPane extends JPanel
        mValues = new JTextArea[maxSlots];
 
        final Color alternatingColor = Color.white;
-       final Border fillBorder = new EmptyBorder(TopPad,2,BotPad,0);
-       final Border macAdjustBorder = new EmptyBorder(0,2,0,0);
-       final Border winAdjustBorder = new EmptyBorder(0,2,0,0);
+       final Border fillBorder = new EmptyBorder(TopPad,4,BotPad,0);
+       final Border macAdjustBorder = new EmptyBorder(0,4,0,0);
+       final Border winAdjustBorder = new EmptyBorder(0,4,0,0);
        
        
        for (int i = 0; i < mLabels.length; i++) {
@@ -443,11 +443,14 @@ public class MetaDataPane extends JPanel
         JLabel label = mLabels[row];
         JTextArea field = mValues[row];       
 
-        StringBuffer labelBuf = new StringBuffer(labelText.length() + 1);
-        labelBuf.append(labelText);
-        labelBuf.append(':');
-
-        label.setText(labelBuf.toString());
+        if (DEBUG.Enabled) {
+            label.setText(labelText);
+        } else {
+            StringBuffer labelBuf = new StringBuffer(labelText.length() + 1);
+            labelBuf.append(labelText);
+            labelBuf.append(':');
+            label.setText(labelBuf.toString());
+        }
 
         if (Resource.looksLikeURLorFile(valueText)) {
             //field.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
