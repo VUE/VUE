@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.65 $ / $Date: 2008-04-14 19:20:57 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2008-04-15 04:22:48 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends JPanel
@@ -788,8 +788,7 @@ public class InspectorPane extends JPanel
     }
     
     private void out(Object o) {
-        //System.out.println("Inspector: " + (o==null?"null":o.toString()));
-        Log.debug("InspectorPane: " + (o==null?"null":o.toString()));
+        Log.debug(o==null?"null":o.toString());
     }
     
     public static void displayTestPane(String rsrc)

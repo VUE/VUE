@@ -227,7 +227,7 @@ public class MetaDataPane extends JPanel
 
 
    public void loadResource(Resource r) {
-	   if (DEBUG.RESOURCE) out("MetaDataPane : loadResource :" + r.getName());
+       if (DEBUG.RESOURCE) out("loadResource:  " + r);
        loadProperties(r.getProperties());
    }
    
@@ -299,7 +299,7 @@ public class MetaDataPane extends JPanel
        // nice that only a single sorted list exists for each resource, tho of course,
        // then we have tons of cached sorted lists laying about.
 
-       if (DEBUG.RESOURCE) out("loadProperties: " + rsrcProps);
+       if (DEBUG.RESOURCE) out("loadProperties: " + rsrcProps.size() + " key/value pairs");
        
        if (DEBUG.SCROLL)
            Log.debug("scroll model listeners: "
@@ -334,7 +334,7 @@ public class MetaDataPane extends JPanel
            
            TableModel model = rsrcProps.getTableModel();
 
-           if (DEBUG.RESOURCE) out("metaDataPane; loadProperties: model=" + model
+           if (DEBUG.RESOURCE) out("loadProperties: model=" + model
                                    + " modelSlots=" + model.getRowCount()
                                    + " slotsAvail=" + mLabels.length
                                    );
@@ -499,7 +499,7 @@ public class MetaDataPane extends JPanel
     
 
    private void out(Object o) {
-        Log.debug("MetaDataPane: " + (o==null?"null":o.toString()));
+        Log.debug((o==null?"null":o.toString()));
    }
    
    //----------------------------------------------------------------------------------------
