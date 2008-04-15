@@ -26,6 +26,7 @@ import edu.tufts.vue.preferences.implementations.ShowIconsPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
     
 import java.util.Iterator;
+import java.util.Collection;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.ImageIcon;
@@ -37,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.210 $ / $Date: 2008-04-14 22:27:24 $ / $Author: sfraize $
+ * @version $Revision: 1.211 $ / $Date: 2008-04-15 08:29:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -832,6 +833,35 @@ public class LWNode extends LWContainer
 
     }
 
+    @Override
+    public void addChildren(Iterable<LWComponent> iterable)
+    {
+        if (!mXMLRestoreUnderway && !hasResource() && !hasChildren()) {
+            if (iterable instanceof Collection && ((Collection)iterable).size() == 1) {
+                final LWComponent first = iterable.iterator().next();
+                if (first instanceof LWImage) {
+                    
+                    // we do this BEFORE calling super.addChildren, so the soon to be
+                    // added LWImage will know to auto-update itself to node icon status
+                    // in it's setParent (or we could call first.updateNodeIconStatus
+                    // directly if we made it public)
+
+                    // don't call setResource, or our special LWNode impl will auto
+                    // install the image as a node icon, and then addChildren will add
+                    // it a second time.
+                    
+                    takeResource(first.getResource());
+                }
+            }
+        }
+        
+        super.addChildren(iterable);
+        
+        //Log.info("ADDED CHILDREN: " + Util.tags(iterable));
+
+    }
+    
+    @Override
     public void setResource(Resource r)
     {
         super.setResource(r);
