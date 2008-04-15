@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.122 $ / $Date: 2008-04-08 19:30:02 $ / $Author: mike $
+ * @version $Revision: 1.123 $ / $Date: 2008-04-15 22:49:11 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1055,6 +1055,7 @@ public class PathwayPanel extends JPanel
         else if (btn == btnLiveMap)  {
             LWPortal portal = LWPortal.create();
             pathway.getMap().add(portal);
+            pathway.getMap().sendToBack(portal);
             pathway.add(portal);
             pathway.getUndoManager().mark("New Interactive Frame"); 
         }
