@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.23 $ / $Date: 2008-04-14 19:20:07 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2008-04-15 04:22:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -121,7 +121,7 @@ public class PreviewPane extends JPanel
 //        if (mPreviewData == null && mResource.isImage())
 //            mPreviewData = mResource;
 
-        if (DEBUG.RESOURCE) out("GOT PREVIEW DATA " + mPreviewData);
+        if (DEBUG.RESOURCE) out(" got preview: " + mPreviewData);
 
         if (isShowing()) {
 
@@ -206,8 +206,12 @@ public class PreviewPane extends JPanel
     /** @see Images.Listener */
     public synchronized void gotImage(Object imageSrc, Image image, int w, int h) {
 
-        if (imageSrc != mPreviewData)
+        if (imageSrc != mPreviewData && !imageSrc.equals(mPreviewData)) {
+            if (DEBUG.Enabled) Log.info("skipping: image source != mPreviewData;\n\t"
+                                        + Util.tags(imageSrc)
+                                        + "\n\t" + Util.tags(mPreviewData));
             return;
+        }
             
         displayImage(image);
         isLoading = false;
