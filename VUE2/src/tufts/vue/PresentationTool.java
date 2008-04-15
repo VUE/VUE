@@ -620,31 +620,48 @@ public class PresentationTool extends VueTool
             }
         
         }
-    
+
+        private Rectangle2D.Float mJumpBoxMask;
     
         private List<JumpBox> createPathwayJumpBoxes(LWComponent node)
         {
             final List<LWPathway.Entry> entries = node.getEntries();
             final List<JumpBox> boxes = new ArrayList(entries.size());
 
-            //float x = getWidth() - (BoxSize + BoxGap) * entries.size();
-            float x = getWidth() - (BoxSize + BoxGap + 5);
-
+            float rightEdge = getWidth() - (BoxGap + 5);
+            
             if (isOffEdge)
-                x += (NavLayout.InsetOffEdge - NavLayout.InsetIndent);
+                rightEdge += (NavLayout.InsetOffEdge - NavLayout.InsetIndent);
 
             final float y = (getHeight() - BoxSize) / 2f;
+            float x = rightEdge - BoxSize;
 
             boxes.add(new JumpBox(null, x, y)); // add the node-only pathway box
-            x -= BoxSize + BoxGap;
-            
+
+            float leftEdge = x;
+
+            x -= (BoxSize + BoxGap);
+
             for (ListIterator<Entry> i = entries.listIterator(entries.size()); i.hasPrevious();) {
                 final Entry e = i.previous();
                 if (e.pathway.isDrawn()) {
                     boxes.add(new JumpBox(e, x, y));
+                    leftEdge = x;
                     x -= BoxSize + BoxGap;
                 }
             }
+
+            if (mJumpBoxMask == null)
+                mJumpBoxMask = new Rectangle2D.Float();
+            
+            final Rectangle2D.Float mask = mJumpBoxMask;
+
+            final int sidePad = 3;
+
+            mask.x = leftEdge - (sidePad + 1);
+            mask.y = y - 3;
+            mask.width = (rightEdge - leftEdge) + sidePad * 2;
+            mask.height = BoxSize + 7;
 
             return boxes;
 
@@ -813,31 +830,19 @@ public class PresentationTool extends VueTool
 
         private void drawPathwayJumpBoxes(DrawContext dc)  
         {
+            if (DEBUG.PRESENT)
+                dc.g.setColor(Color.lightGray);
+            else
+                dc.g.setColor(NavFillColor);
+
+            // Clear out everything under the jump boxes, so the
+            // text from long labels can never show through:
+            dc.g.fill(mJumpBoxMask);
+            
             for (JumpBox box : mJumpBoxes)
                 box.draw(dc);
         }
 
-//         private void drawPathwaySwatches(DrawContext dc, LWComponent node)  
-//         {
-//             final List<LWPathway> pathways = node.getPathways();
-
-//             float x = getWidth() - (BoxSize + BoxGap) * pathways.size();
-
-//             final float y = (getHeight() - BoxSize) / 2f;
-
-//             x -= 10;
-//             dc.g.setStroke(STROKE_ONE);
-//             for (LWPathway p : pathways) {
-//                 dc.g.setColor(Util.alphaMix(p.getColor(), Color.white));
-//                 //dc.g.setColor(p.getColor());
-//                 dc.g.fillRect((int)x, (int)y, BoxSize, BoxSize);
-//                 dc.g.setColor(Color.darkGray);
-//                 dc.g.drawRect((int)x, (int)y, BoxSize, BoxSize);
-//                 x += BoxSize + BoxGap;
-//             }
-            
-//         }
-        
         private void drawSlideIcon(DrawContext dc) {
             final LWSlide slide = page.entry.getSlide();
             final double scale = (getHeight()-10) / slide.getHeight();
