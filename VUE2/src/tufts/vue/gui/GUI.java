@@ -45,7 +45,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.98 $ / $Date: 2008-04-14 19:33:42 $ / $Author: sfraize $
+ * @version $Revision: 1.99 $ / $Date: 2008-04-15 04:22:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2052,6 +2052,18 @@ public class GUI
         throw new UnsupportedOperationException();
     }
 
+    public static boolean dragImagesSupported()
+    {
+        // The windows platform, at least as of XP, doesn't support dragging an image,
+        // and doing image creation noticably slows down the start of the drag, so
+        // we skip it. (Don't know about Linux)
+            
+        // 2008-04-14: Windows Vista appears capable of drag images (at least Safari on Vista does it),
+        // tho don't know if java 6 is wired up to use it yet (first test was not successful).
+
+        return Util.isMacPlatform();
+    }
+
     public static void startLWCDrag(Component source,
                                     MouseEvent mouseEvent,
                                     tufts.vue.LWComponent c,
@@ -2062,7 +2074,7 @@ public class GUI
 
             Image dragImage = null;
 
-            if (Util.isMacPlatform()) {
+            if (dragImagesSupported()) {
                 Dimension maxSize = new Dimension(256,256); // bigger for LW drags
                 // This can be slow on Window's, and we can't see it anyway
                 dragImage = c.getAsImage(0.5, maxSize);
@@ -2102,12 +2114,9 @@ public class GUI
         
         Point imageOffset = null;
 
-        // The windows platform, at least as of XP, doesn't support dragging an image,
-        // and doing image creation noticably slows down the start of the drag, so
-        // we skip it. (Don't know about Linux)
-        if (Util.isWindowsPlatform())
+        if (!dragImagesSupported())
             image = null;
-        
+
         if (image != null) {
             int w = image.getWidth(null);
             int h = image.getHeight(null);
@@ -2511,7 +2520,7 @@ public class GUI
     // static { Toolkit.getDefaultToolkit().addPropertyChangeListener(new GUI()); }
 
     private static void out(String s) {
-        System.out.println("GUI: " + s);
+        Log.info(s);
     }
 
     /*
