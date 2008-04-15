@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.65 $ / $Date: 2008-04-15 07:38:58 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2008-04-15 20:09:28 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -985,6 +985,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     // can move this to Resource -- is generic enough
     private void setDataFile(File file)  
     {
+        // TODO performance: can skip isDirectory and exists tests if we
+        // know this came from a LocalCabinet, which may speed up that
+        // dog-slow code when expanding big directories.
+        
         if (file.isDirectory()) {
             if (DEBUG.RESOURCE) out("setDataFile: ignoring directory: " + file);
             //Log.warn("directory as data-file: " + file, new Throwable());
