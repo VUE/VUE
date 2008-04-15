@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.64 $ / $Date: 2008-04-15 06:46:43 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2008-04-15 07:38:58 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1554,9 +1554,15 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         return s != null && s.toLowerCase().startsWith("text/html");
     }
 
+    private static final String UNSET = "<unset-mimeType>";
+    private String mimeType = UNSET;
+
     
     @Override
     public String getDataType() {
+
+        // TODO: clean this up / cache more of the result / can we eliminate this fedora hack
+        // yet (it DRAMATICALLY slows down obtaining fedora search results)
 
         final String superType = super.getDataType();
         final String spec = getSpec();
@@ -1569,13 +1575,18 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return "jpeg";
         } else if (mimeType != UNSET) {
             return mimeType;
-        } else if (spec != SPEC_UNSET && spec.startsWith("http") && spec.contains("fedora")) { // fix for fedora url
+        }
+        else if (spec != SPEC_UNSET && spec.startsWith("http") && spec.contains("fedora")) { // fix for fedora url
             try {
-                final URL url = new URL(getSpec());
+                final URL url = (mURL != null ? mURL : new URL(getSpec()));
+                
                 // TODO: checking spec, which defaults to the "browse" URL, will not get
                 // the real content-type in cases (such as fedora!) where the browse
                 // url is always an HTML page that includes the image with some descrition text.
                 //Log.info("opening URL " + url);
+                
+                //Util.printStackTrace("polling " + url);
+                
                 final String type = url.openConnection().getHeaderField("Content-type");
                 if (DEBUG.Enabled) {
                     out("got contentType " + url + " [" + type + "]");
@@ -1598,11 +1609,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return superType;
     }
 
-    private static final String UNSET = "<unset-mimeType>";
-    private String mimeType = UNSET;
-
-    
-
     private static boolean isHTML(final Resource r) {
         String s = r.getSpec().toLowerCase();
 
@@ -1623,6 +1629,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         else
             return isHTML(this);
     }
+
+    //private boolean isHTML() { return !isImage(); }
+    
 
     // TODO: combine these into a constructor only for integrity (e.g., Osid2AssetResource is factory only)
     
