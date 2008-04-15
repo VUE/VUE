@@ -78,7 +78,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             // this is just messy -- SMF 2008-04-15
             add(favoritesTree, BorderLayout.CENTER);
         } else {
-            // re-enabled in case we really want the left-right browse ability:
+            // re-enabled in case we really want the left-right scroll ability:
             add(new JScrollPane(favoritesTree), BorderLayout.CENTER);
         }
 // //         browsePane = new JScrollPane(favoritesTree);
