@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.68 $ / $Date: 2008-04-15 04:28:43 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2008-04-15 06:46:05 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -260,10 +260,10 @@ public abstract class Resource implements Cloneable
     }
 
     public void setProperty(String key, long value) {
-        if (key.endsWith(".contentLength") || key.endsWith(".size")) {
-            // this is a hack...
-            setByteSize(value);
-        }
+//         if (key.endsWith(".contentLength") || key.endsWith(".size")) {
+//             // this is a hack to handle HTTP header info
+//             setByteSize(value);
+//         }
         setProperty(key, Long.toString(value));
     }
 
