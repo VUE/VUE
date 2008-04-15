@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.67 $ / $Date: 2008-04-14 22:28:22 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2008-04-15 04:28:43 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -289,7 +289,7 @@ public abstract class Resource implements Cloneable
 
     /** debug properties are neither displayed at runtime, nor persisted */
     protected void setDebugProperty(String key, Object value) {
-        if (DEBUG.DATA) setProperty(DEBUG_PREFIX + key, value);
+        setProperty(DEBUG_PREFIX + key, value);
     }
 
     
@@ -381,7 +381,7 @@ public abstract class Resource implements Cloneable
 
     protected void setAsImage(boolean asImage) {
         isImage = asImage;
-        if (DEBUG.Enabled) setDebugProperty("isImage", ""+ asImage);
+        if (DEBUG.RESOURCE) setDebugProperty("isImage", ""+ asImage);
     }
 
     /** init pass to run after de-serialization (optional until we know we want to keep the resource) */
@@ -430,8 +430,25 @@ public abstract class Resource implements Cloneable
         return sourceFile;
     }
 
-    //public abstract File getActiveDataFile();
+    public void flushCache() {
+        try {
+            Images.flushCache(getActiveDataFile());
+        } catch (Throwable t) {
+            Log.warn(this, t);
+        }
+    }
     
+    
+    private boolean isCached;
+    protected boolean isCached() {
+        return isCached;
+    }
+
+    // todo: this should be computed internally (move code out of Images.java)
+    public void setCached(boolean cached) {
+        isCached = cached;
+    }
+
     /**  
      *  Return the title or display name associated with the resource.
      *  (any length restrictions?)
@@ -488,11 +505,13 @@ public abstract class Resource implements Cloneable
      */
     protected void setClientType(int type) {
         mType = type;
-        if (DEBUG.RESOURCE && DEBUG.META) dumpField("setClientType", TYPE_NAMES[type] + " (" + type + ")");
-        try {
-            setDebugProperty("clientType", TYPE_NAMES[type] + " (" + type + ")");
-        } catch (Throwable t) {
-            Log.warn(this + "; setClientType " + type, t);
+        if (DEBUG.RESOURCE){
+            if (DEBUG.META) dumpField("setClientType", TYPE_NAMES[type] + " (" + type + ")");
+            try {
+                setDebugProperty("clientType", TYPE_NAMES[type] + " (" + type + ")");
+            } catch (Throwable t) {
+                Log.warn(this + "; setClientType " + type, t);
+            }
         }
     }
     
@@ -782,16 +801,6 @@ public abstract class Resource implements Cloneable
 
     public boolean isPackaged() {
         return hasProperty(PACKAGE_FILE);
-    }
-    
-    private boolean isCached;
-    protected boolean isCached() {
-        return isCached;
-    }
-
-    // todo: this should be computed internally (move code out of Images.java)
-    public void setCached(boolean cached) {
-        isCached = cached;
     }
     
 //     public abstract java.io.InputStream getByteStream();

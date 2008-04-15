@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.61 $ / $Date: 2008-04-14 19:43:03 $ / $Author: sfraize $
+ * @version $Revision: 1.62 $ / $Date: 2008-04-15 04:28:30 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -144,7 +144,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     }
     
     private void init() {
-        if (DEBUG.RESOURCE || DEBUG.DR) {
+        //if (DEBUG.RESOURCE || DEBUG.DR) {
+        if (DEBUG.Enabled) {
             //out("init");
             String iname = getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(this));
             //tufts.Util.printStackTrace("INIT " + iname);
@@ -338,11 +339,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (mURL == url)
             return;
         
-        if (DEBUG.RESOURCE) dumpField("setURL", url);
-
         mURL = url;
 
-        if (DEBUG.Enabled) setDebugProperty("URL", mURL);
+        if (DEBUG.RESOURCE) {
+            dumpField("setURL", url);
+            setDebugProperty("URL", mURL);
+        }
         
         if (url == null)
             return;
@@ -389,17 +391,17 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         
         mLastModified = file.lastModified();
         // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
-        if (DEBUG.Enabled) {
+        if (DEBUG.RESOURCE) {
             setDebugProperty("file.instance", mFile);
             setDebugProperty("file.modified", new Date(mLastModified));
-            if (true||DEBUG.RESOURCE) {
-                setDebugProperty("file.toURI", mFile.toURI());
-                try {
-                    setDebugProperty("file.toURL", mFile.toURL());
-                } catch (Throwable t) {
-                    setDebugProperty("file.toURL", t.toString());
-                }
-            }
+//             if (true) {
+//                 setDebugProperty("file.toURI", mFile.toURI());
+//                 try {
+//                     setDebugProperty("file.toURL", mFile.toURL());
+//                 } catch (Throwable t) {
+//                     setDebugProperty("file.toURL", t.toString());
+//                 }
+//             }
         }
     }
 
@@ -535,7 +537,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 setProperty("URL", spec);
                 removeProperty(USER_FILE);
             } else {
-                if (DEBUG.Enabled) {
+                if (DEBUG.RESOURCE) {
                     if (!isPackaged()) {
                         setDebugProperty("FileOrURL?", spec);
                         setDebugProperty("URL.proto", proto);
@@ -545,7 +547,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             
         }
 
-        if (DEBUG.Enabled) {
+        if (DEBUG.RESOURCE) {
             setDebugProperty("spec", spec);
             //setDebugProperty("Spec.0-encode", encodeForURL(spec));
             //setDebugProperty("Spec.1-URI", debugURI(spec));
@@ -946,12 +948,20 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             // the data has changed.  Ideally, Resources will have to
             // be enforced atomic (at least for local file resources), and
             // track all listeners/owners, so when/if an udpate happens,
-            // they can all be notified.
+            // they can all be notified.  Or, the called can just take
+            // care of finding all objects that need updating once
+            // this ever returns true.
             
             final long lastMod = mFile.lastModified();
-            if (DEBUG.Enabled) out("lastModified: " + new Date(lastMod) + "; " + mFile);
             if (lastMod > mLastModified) {
-                if (DEBUG.Enabled) out("lastModified: dataHasChanged");
+                if (true||DEBUG.Enabled) {
+                    long diff = lastMod - mLastModified;
+                    out(TERM_CYAN
+                        + "lastModified: " + new Date(lastMod)
+                        + "; has increased by " + (diff/100) + " seconds; "
+                        + mFile + TERM_CLEAR);
+                }
+                //if (DEBUG.Enabled) out("lastModified: dataHasChanged");
                 mLastModified = lastMod;
                 return true;
             }
@@ -987,9 +997,12 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return;
         }
         
-        if (DEBUG.RESOURCE) dumpField("setDataFile", file);
         mDataFile = file;
-        if (DEBUG.Enabled) setDebugProperty("file.data", file);
+        
+        if (DEBUG.RESOURCE) {
+            dumpField("setDataFile", file);
+            setDebugProperty("file.data", file);
+        }
     }
 
 
@@ -1168,9 +1181,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (mTitle == title)
             return;
         //if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) dumpField("setTitle", title);
-        if (DEBUG.RESOURCE) dumpField("setTitle", title);
         mTitle = title;
-        if (DEBUG.Enabled) {
+        if (DEBUG.RESOURCE) {
+            dumpField("setTitle", title);
             if (hasProperty(DEBUG_PREFIX + "title"))
                 setDebugProperty("title", title);
         }
