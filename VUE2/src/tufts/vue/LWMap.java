@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.192 $ / $Date: 2008-04-15 07:35:14 $ / $Author: sfraize $
+ * @version $Revision: 1.193 $ / $Date: 2008-04-15 22:48:34 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -880,7 +880,7 @@ public class LWMap extends LWContainer
             if (already != null) {
                 // this okay for the moment: we're only using this for keeping
                 // image data up to date
-                Log.debug("losing track of: " + already);
+                Log.debug("duplicate: " + already);
             }
         }
 
@@ -1458,10 +1458,6 @@ public class LWMap extends LWContainer
         super.addChildImpl(c);
     }
 
-    LWComponent addLWC(LWComponent c) {
-        addChild(c);
-        return c;
-    }
     public LWComponent add(LWComponent c) {
         addChild(c);
         return c;
