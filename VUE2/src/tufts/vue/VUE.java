@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.531 $ / $Date: 2008-04-15 04:28:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.532 $ / $Date: 2008-04-15 04:32:47 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -177,15 +177,15 @@ public class VUE
                     // This will find all LWImage's anywhere in the current map that
                     // point to the same resource, and thus may (probably) need updatng.
                     
-                    // TODO: this will NOT find LWImage's in any OTHER maps that are
-                    // holding a ref to the same Resource.  They will become "lost" to
-                    // the change, unless there's a different instance of the Resource
-                    // object somewhere in that map that can be clicked on.  We do need
-                    // to be moving to an impl where single resources instances are
-                    // never shared across maps however, so this will eventually be
-                    // taken care of.  Or: we could have LWImage itself record the
-                    // modification time, add an updateModificationTime method to
-                    // Resource, and use each LWImage modification time for the trigger.
+                    // TODO: this will NOT find LWImage's in any OTHER maps that are holding a ref
+                    // to the same Resource.  They will become "lost" to the change, unless there's
+                    // a different instance of the Resource object somewhere in that map that can
+                    // be clicked on.  We do need to be moving to an impl where single resources
+                    // instances are never shared across maps however (as the same Resource may no
+                    // be be made relative to each map it's on, and thus different), so this will
+                    // eventually be taken care of.  Or: we could have LWImage itself record the
+                    // modification time, add an updateModificationTime method to Resource, and use
+                    // each LWImage modification time for the trigger.
 
                     
                     for (LWComponent c : node.getMap().getAllDescendents(LWMap.ChildKind.ANY)) {

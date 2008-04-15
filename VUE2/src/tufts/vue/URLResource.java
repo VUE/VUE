@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.62 $ / $Date: 2008-04-15 04:28:30 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2008-04-15 04:35:20 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -938,6 +938,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 //     }
     
 
+    /**
+     * This impl will return true the FIRST time after the data has changed,
+     * and subsequent calls will return false, until the data changes again.
+     * This currently only monitors local disk resources (e.g., not web resources).
+     */
     @Override
     public boolean dataHasChanged() {
 
