@@ -48,12 +48,15 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry
     
     private osid.shared.Id id;
     private String display_name;
-    private osid.shared.Agent agent_owner;
-    private java.util.Date created_time;
-    private java.util.Date modified_time;
-    private java.util.Date accessed_time;
-    private Vector modified_times;
-    private osid.filing.Cabinet parent = null;
+    private final osid.shared.Agent agent_owner;
+//     private java.util.Date created_time;
+//     private java.util.Date modified_time;
+//     private java.util.Date accessed_time;
+    private long created_time;
+    private long modified_time;
+    private long accessed_time;
+    private final Vector modified_times;
+    private final osid.filing.Cabinet parent;
 
     /**
      *  Creates a new instance of CabinetEntry.
@@ -74,15 +77,43 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry
         display_name = displayName;
         agent_owner = agentOwner;
         parent = parentCabinet;
+
+        // TODO: considering we can create tons of these objects (cabinet's and
+        // bytestores) when navigating a file-system, we'd be better off with a more
+        // efficient impl that doesn't needlessly create tons all these Date objects no
+        // matter what, never mind keep a vector of ever change around -- I hope
+        // that's not a requirement of the OSID API!
+
+        // Ahah: turns out this impl isn't semantically that meaningful: the created
+        // and access times (modified also, actually), are never set by an
+        // underlying file object
         
         /*  Initialize the various timestamps.  */
-        java.util.Date now = new Date();
-        created_time = (java.util.Date) now.clone();
-        modified_time = (java.util.Date) now.clone();
-        accessed_time = (java.util.Date) now.clone();
-        modified_times = new Vector();
-        modified_times.add(modified_time);
+//         java.util.Date now = new Date();
+//         created_time = (java.util.Date) now.clone();
+//         modified_time = (java.util.Date) now.clone();
+//         accessed_time = (java.util.Date) now.clone();
+//         modified_times = new Vector();
+//         modified_times.add(modified_time);
+
+        final long now = getNow();
+        created_time = now;
+        modified_time = now;
+        accessed_time = now;
+        modified_times = new Vector(4);
+        
+        record(now);
     }
+
+    private static long getNow() {
+        return System.currentTimeMillis();
+    }
+
+    private void record(long when) {
+        //System.out.println(this + "; mod " + (modified_times.size() + 1));
+        modified_times.add(new Date(when));
+    }
+    
     
     /**
      *  Get the Id of this cabinet entry.
@@ -111,8 +142,7 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry
      *  @author Mark Norton
      */
     public void touch () throws osid.filing.FilingException {
-        modified_time = new Date();
-        modified_times.add(modified_time);
+        record(modified_time = getNow());
     }
     
     /**
@@ -121,11 +151,9 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry
      *  @author Mark Norton
      */
     public void updateDisplayName (String new_disp_name) {
-
         //System.out.println ("CabinetEntry.updateDisplayName - name: " + new_disp_name);
         display_name = new_disp_name;
-        modified_time = new Date(); 
-        modified_times.add(modified_time);
+        record(modified_time = getNow());
     }
     
     /**
@@ -169,7 +197,7 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry
      */
     public java.util.Calendar getCreatedTime() throws osid.filing.FilingException {
         Calendar cal = Calendar.getInstance();
-        cal.setTime (created_time);
+        cal.setTimeInMillis(created_time);
         return cal;
     }
     
@@ -182,7 +210,7 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry
      */
     public java.util.Calendar getLastAccessedTime() throws osid.filing.FilingException {
         Calendar cal = Calendar.getInstance();
-        cal.setTime (accessed_time);
+        cal.setTimeInMillis(accessed_time);
         return cal;
     }
     
@@ -195,7 +223,7 @@ public class LocalCabinetEntry implements osid.filing.CabinetEntry
      */
     public java.util.Calendar getLastModifiedTime() throws osid.filing.FilingException {
         Calendar cal = Calendar.getInstance();
-        cal.setTime (modified_time);
+        cal.setTimeInMillis(modified_time);
         return cal;
     }
     
