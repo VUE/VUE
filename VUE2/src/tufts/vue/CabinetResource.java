@@ -36,7 +36,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.36 $ / $Date: 2008-04-14 21:04:34 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2008-04-16 20:37:14 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -65,27 +65,19 @@ public class CabinetResource extends URLResource
      *  Create a new instance of CabinetResource.  This creator should be used when
      *  the resource is being unmarshalled.
      */
-    public CabinetResource () {
-        this.entry = entry;
-        //this.type = Resource.URL;
-        //if (DEBUG.RESOURCE) out("INSTANCED");
-    }
+    public CabinetResource () {}
     
     /** 
      *  Creates a new instance of CabinetResource .  This creator is used when the
      *  resource is part of a CabinetNode in a JTree.
      */
-    private CabinetResource(osid.filing.CabinetEntry entry) {
-        this.entry = entry;
+    private CabinetResource(final osid.filing.CabinetEntry e) {
+        this.entry = e;
 
-        getSpec(); // force immediate full init
-
-        //this.getEntry();
-        //this.getProperties();
-        //this.getSpec();
-        //this.getExtension();
-        //this.getTitle();
-        
+             if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)    setSpec(((RemoteByteStore)e).getUrl());
+        else if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)      setSpec(((RemoteCabinet)e).getUrl());
+        else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpecByKnownFile(((LocalByteStore)e).getFile(), false);
+        else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpecByKnownFile(((LocalCabinet)e).getFile(), true);
     }
 
     // todo: shouldn't be public -- eventually everything should go thru factory
@@ -269,114 +261,30 @@ public class CabinetResource extends URLResource
         }
     }
     
-    
-    @Override
-    protected void setFile(File file) {
-        super.setFile(file);
-        if (file != null && getTitle() == null)
-            setTitle(file.getName());
-    }
-    
-    /*
-     *  Return the resource specification.  For cabinet resources, this is URL of either
-     *  a local or remote file.
-     *
-     *  @author Mark Norton
-     */
-    @Override
-    public String getSpec() {
-        //  Check for a restored resource.
-        final String existingSpec = super.getSpec();
-        final osid.filing.CabinetEntry e = getEntry();
+//     /*
+//      *  Return the resource specification.  For cabinet resources, this is URL of either
+//      *  a local or remote file.
+//      *
+//      *  @author Mark Norton
+//      */
+//     @Override
+//     public String getSpec() {
+//         //  Check for a restored resource.
+//         final String existingSpec = super.getSpec();
+//         final osid.filing.CabinetEntry e = getEntry();
 
-        // It is best to call setSpec lazily right now, as MapResource
-        // set's the reference created time and all that in setSpec,
-        // and no point in doing that until somebody actually attempts
-        // to grab the resource and do something with it -- otherwise
-        // the creation time will be set for every object displayed in
-        // the filing browser when the browser is created, as opposed
-        // to when a user drags one out.
-        
-        if (e == null || existingSpec != SPEC_UNSET) {
-            return existingSpec;
-        } else {
-            //  Check for each of the four possible cases.
+//         if (e == null || existingSpec != SPEC_UNSET) {
+//             return existingSpec;
+//         } else {
 //                  if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)    setSpec(((RemoteByteStore)e).getUrl());
 //             else if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)      setSpec(((RemoteCabinet)e).getUrl());
-//             else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpec(((LocalByteStore)e).getUrl());
-//             else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpec(((LocalCabinet)e).getUrl());
-                 if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)    setSpec(((RemoteByteStore)e).getUrl());
-            else if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)      setSpec(((RemoteCabinet)e).getUrl());
-            else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpecByFile(((LocalByteStore)e).getFile());
-            else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpecByFile(((LocalCabinet)e).getFile());
+//             else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpecByKnownFile(((LocalByteStore)e).getFile(), false);
+//             else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpecByKnownFile(((LocalCabinet)e).getFile(), true);
 
-            return super.getSpec();
-
-
- // Handle this in URLResource
-//             final String spec = super.getSpec();
-//             //final String title = getTitle();
-//             //if (title == null || title.length() == 0) {
-//             if (false) {
-//                 final String fname;
-//                 if (spec.startsWith("file://"))
-//                     fname = spec.substring(7);
-//                 else
-//                     fname = spec;
-//                 try {
-//                     setTitle(new File(fname).getName());
-//                 } catch (Throwable t) { t.printStackTrace(); }
-//             }
-
-        }
-    }
-
-    /*
-    public void setSpec(final String spec) {
-        super.setSpec(spec);
-        if (DEBUG.RESOURCE) tufts.Util.printStackTrace("SET SPEC");
-    }
-    */
-    
-    /*
-     *  Return the title of this cabinet resource.  The cabinet entry display name is
-     *  used as the title.
-     *
-     *  @author Mark Norton
-    public String getTitle() {
-        if (this.entry == null || mTitle != null)
-            return this.mTitle;
-        else {
-            try {
-                this.mTitle = entry.getDisplayName();
-            }
-            catch (osid.filing.FilingException ex) {
-                //  This can't fail.
-            }
-            return this.mTitle;
-        }
-    }
-     */
-    
-//     /**
-//      *  Return the tool tip information for this resource.  This is currently stubbed
-//      *  to return an empty string.
-//      *
-//      *  @author Mark Norton
-//      */
-//     public String getToolTipInformation() {
-//         return new String ("");
+//             return super.getSpec();
+//         }
 //     }
-    
-//     /**
-//      *  Return the resource type.
-//      *
-//      *  @author Mark Norton
-//      */
-//     public int getType() {
-//         return this.type;
-//     }
-    
+
     /**
      *  Return the selected flag.
      *
