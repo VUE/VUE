@@ -76,10 +76,9 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         LocalCabinet root = null;
         try {
             osid.shared.Agent agent = new Agent("unknown", new AgentPersonType());
-            Log.debug(this + "; addRoot " + path);
+            if (Log.isDebugEnabled()) Log.debug(this + "; addRoot " + path);
             root = LocalCabinet.instance(path, agent, null);
-            //root = new LocalCabinet(path, agent, null);
-            rootCabinets.add (root);
+            rootCabinets.add(root);
             cwd = root;
         }
         catch (osid.shared.SharedException ex1) {
@@ -113,18 +112,23 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
      * Gets the root cabinets for the local file system.
      */
     
-    private static ArrayList list = new ArrayList();
-    {
-    	File[] roots = File.listRoots();
-    	for (int i=0;i<roots.length;i++)
-    		list.add(roots[i]);
-    }
+//     private static final ArrayList list = new ArrayList();
+
+//     {
+//         Log.debug("File.listRoots...");
+//     	File[] roots = File.listRoots();
+//     	for (int i=0;i<roots.length;i++)
+//             list.add(roots[i]);
+//         Log.debug("File.listRoots: " + list);
+//     }
     
     
     private void initializeRoots() throws osid.filing.FilingException {
         final String[] drives = {"C","D","E","F","G","H","I","J","K","L","M","N",
                                  "O","P","Q","R","S","T","U","V","W","X","Y","Z"};
 
+        Log.debug("initializeRoots; in " + tufts.Util.tags(this) + "...");
+        
         //  Create  dummy owner.
         osid.shared.Agent agent = null;
         try {
@@ -136,59 +140,59 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         
         //  If there are no roots, then scan the PC drive letters and try to open each.
         //  If files exist, then add that drive as a root.
-        if (!tufts.Util.isWindowsPlatform())
-        {
-        	if(rootCabinets.size() == 0) 
-        	{
-        		for (int i = 0; i < drives.length; i++) {
-            	  
-        			File file = new File(drives[i]+":" + java.io.File.separator);
-            	
-        			//	* Trying out a test for removable disks here...
-     
-        			boolean isRemovableDisk = false;
-            	
-        			//f (list.contains(file))
-        			//{
-            		
-            		
-            	 	//isRemovableDisk = view.getSystemTypeDescription(file).equals("Removable Disk");
-        			//	System.out.println("is removable disk : " + isRemovableDisk);
-        			//}
-            	
-        			//isRemovableDisk = !FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
+
+
+        if (tufts.Util.isWindowsPlatform()) {
+
+        	if (rootCabinets.size() == 0) {
+                    File[] f = File.listRoots();
+                    for (int i=0;i<f.length;i++) {
+                        File file = f[i];
+                        LocalCabinet newRoot = LocalCabinet.instance(file.toString(), agent, null);
+                        rootCabinets.add (newRoot);
+                        if (drives[i].compareTo("C:") == 0)
+                            cwd = newRoot;
+                        
+                    }
+                }
                 
-        			if(!isRemovableDisk && file.exists()){
-        				String idStr = drives[i]+":" + java.io.File.separator;
-        				//this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
-        				LocalCabinet newRoot = LocalCabinet.instance(idStr, agent, null);
-                    //	LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
-        				rootCabinets.add (newRoot);
-        				if (drives[i].compareTo("C:") == 0)
-                        cwd = newRoot;
-        			}                
-        		}
-        	}
-        }
-        else
-        {
-        	if(rootCabinets.size() == 0) 
-        	{
-        		File[] f = File.listRoots();
-        		for (int i=0;i<f.length;i++)
-        		{
-        			File file = f[i];
-        			        			
-        				LocalCabinet newRoot = LocalCabinet.instance(file.toString(), agent, null);
-        				rootCabinets.add (newRoot);
-        				if (drives[i].compareTo("C:") == 0)
-                        cwd = newRoot;
-        			
-        			}
-        		}
+        } else {
         		
+        	if (rootCabinets.size() == 0) {
+
+                    for (int i = 0; i < drives.length; i++) {
+            	  
+                        //-----------------------------------------------------------------------------
+                        // TODO: Why are we looking for drives on non-window platforms?
+                        // Are there cases where such files could ever exists?  SMF 2008-04-16
+                        //-----------------------------------------------------------------------------
+                    
+                        File file = new File(drives[i]+":" + java.io.File.separator);
+            	
+                        //	* Trying out a test for removable disks here...
+     
+                        boolean isRemovableDisk = false;
+            		
+                        //isRemovableDisk = view.getSystemTypeDescription(file).equals("Removable Disk");
+                        //	System.out.println("is removable disk : " + isRemovableDisk);
+                        //}
+            	
+                        //isRemovableDisk = !FileSystemView.getFileSystemView().getSystemTypeDescription(file).equals("Removable Disk");
+                
+                        if (!isRemovableDisk && file.exists()) {
+                            if (Log.isDebugEnabled()) Log.debug(this + "; checking " + file);
+                            String idStr = drives[i]+":" + java.io.File.separator;
+                            //this.rootCabinets.put(idStr, new LocalCabinet(this, null, idStr));
+                            LocalCabinet newRoot = LocalCabinet.instance(idStr, agent, null);
+                            //	LocalCabinet newRoot = new LocalCabinet (idStr, agent, null);
+                            rootCabinets.add (newRoot);
+                            if (drives[i].compareTo("C:") == 0)
+                                cwd = newRoot;
+                        }                
+                    }
+                }
         	
-        	}
+        }
         
         //  If this is not a PC environment, drive letters won't likely work, so try to
         //  open a Unix root, "/".  This is likely to work for Mac OS-X as well.
@@ -208,6 +212,9 @@ public class LocalFilingManager extends tufts.oki.OsidManager implements osid.fi
         //  If the current working directory has not been set, set it to the first root.
         if ((cwd == null) && rootCabinets.size() > 0)
             cwd = (LocalCabinet) rootCabinets.first();
+
+        if (Log.isDebugEnabled()) Log.debug("initializeRoots; in " + tufts.Util.tags(this) + ": completed.");
+        
     }
 
     /**
