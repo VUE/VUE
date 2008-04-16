@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.526 $ / $Date: 2008-04-16 06:23:46 $ / $Author: sfraize $ 
+ * @version $Revision: 1.527 $ / $Date: 2008-04-16 19:18:30 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -198,12 +198,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     //1 click node creation preference
     private final static BooleanPreference oneClickNodePref = BooleanPreference.create(
-			edu.tufts.vue.preferences.PreferenceConstants.MAPDISPLAY_CATEGORY,
+			edu.tufts.vue.preferences.PreferenceConstants.INTERACTIONS_CATEGORY,
 			"oneClickCreation", 
 			"Node Creation", 
 			"Enable one click node creation?",
 			Boolean.FALSE,
 			true);
+    
     
     public MapViewer(LWMap map) {
         this(map, "");
