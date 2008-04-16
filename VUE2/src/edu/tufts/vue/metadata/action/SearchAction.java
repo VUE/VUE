@@ -603,14 +603,14 @@ public class SearchAction extends AbstractAction {
                            {
                                LWComponent dup = parent.duplicate();
                                if(!(dup instanceof LWSlide) && !dup.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                                 && ((dup.getParentOfType(LWSlide.class)) == null))  
+                                 && (!(dup.hasAncestorOfType(LWSlide.class))) )  
                                  searchResultMap.add(dup);
                            }
                          }   
                          else
                          {    
                            if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                              && ((duplicate.getParentOfType(LWSlide.class)) == null))    
+                              && (!(duplicate.hasAncestorOfType(LWSlide.class))) )    
                              searchResultMap.add(duplicate);
                          }
                          
@@ -679,14 +679,14 @@ public class SearchAction extends AbstractAction {
                          if(!comps.contains(parent))
                          {
                                if(!(parent instanceof LWSlide) && !parent.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                                 && (parent.getParentOfType(LWSlide.class) == null))   
+                                 && (!parent.hasAncestorOfType(LWSlide.class)))   
                                  searchResultMap.add(parent.duplicate());
                          }
                        }   
                        else
                        {    
                            if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                               && ((duplicate.getParentOfType(LWSlide.class)) == null))  
+                               && (!(duplicate.hasAncestorOfType(LWSlide.class))))  
                              searchResultMap.add(duplicate);
                        }
 
@@ -873,7 +873,7 @@ public class SearchAction extends AbstractAction {
                  
                 
                  if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                   && ((comp.getParentOfType(LWSlide.class)) == null))  
+                   && (!(comp.hasAncestorOfType(LWSlide.class))))  
                    VUE.getSelection().add(comp);
                }
              }
@@ -887,7 +887,7 @@ public class SearchAction extends AbstractAction {
                LWComponent comp = it3.next();
                  
                if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                 && ((comp.getParentOfType(LWSlide.class)) == null))  
+                 && (!(comp.hasAncestorOfType(LWSlide.class))) )  
                    comp.setFiltered(true);
              }
           }
@@ -951,7 +951,7 @@ public class SearchAction extends AbstractAction {
                   // will handle child nodes/images correctly in non image nodes)
                   //comp.setHidden(LWComponent.HideCause.DEFAULT);
                   if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                    && ((comp.getParentOfType(LWSlide.class)) == null))  
+                    && (!(comp.hasAncestorOfType(LWSlide.class))) )  
                   {
                     comp.setFiltered(true);
                     globalHides.add(comp);
@@ -1073,7 +1073,7 @@ public class SearchAction extends AbstractAction {
             LWComponent comp = it.next();
             
             if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-               && ((comp.getParentOfType(LWSlide.class)) == null))  
+               && (!(comp.hasAncestorOfType(LWSlide.class))))  
               comp.setFiltered(false);
         } 
     }
