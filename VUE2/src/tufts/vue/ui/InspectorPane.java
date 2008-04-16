@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.67 $ / $Date: 2008-04-16 20:09:03 $ / $Author: dan $
+ * @version $Revision: 1.68 $ / $Date: 2008-04-16 20:54:17 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -182,8 +182,17 @@ public class InspectorPane extends JPanel
                if(selection.contents().get(0) instanceof LWSlide)
                {
                    Widget.setHidden(mUserMetaData,true);
+                   Widget.setHidden(ontologicalMetadata, true);
                    return;
                }
+               else
+               {
+                   Widget.setHidden(ontologicalMetadata,false);
+               }
+           else if(selection.contents().size() > 0)
+           {
+              Widget.setHidden(ontologicalMetadata,false); 
+           }
           
          
            if(!selection.contents().isEmpty())
@@ -274,7 +283,7 @@ public class InspectorPane extends JPanel
         //user meta data now hides and shows in LWSelection listener:
         //Widget.setHidden(mUserMetaData, !visible);
         //Widget.setHidden(mNodeTree, !visible);
-        Widget.setHidden(ontologicalMetadata, !visible);
+        //Widget.setHidden(ontologicalMetadata, !visible);
         
     }
     private void showResourcePanes(boolean visible) {
