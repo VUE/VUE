@@ -161,7 +161,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.20 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $ 
+ * @version $Revision: 1.21 $ / $Date: 2008-04-16 20:48:03 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -328,9 +328,13 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             
             Window parentWindow = getFocusCycleWindow(c);
             if (parentWindow instanceof MouseInterceptor) {
-                if (DEBUG.FOCUS) out("AWTEvent intercepted by MouseInterceptor " + parentWindow);
-                if (((MouseInterceptor)parentWindow).interceptMousePress(me))
+                if (DEBUG.FOCUS) out("AWTEvent intercepted by MouseInterceptor " + Util.tags(parentWindow));
+                try {
+                    if (((MouseInterceptor)parentWindow).interceptMousePress(me))
                         return true;
+                } catch (Throwable t) {
+                    Log.error("MouseInterceptor failure: " + Util.tags(parentWindow) + "; " + me, t);
+                }
             }
             
             break;
