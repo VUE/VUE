@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.66 $ / $Date: 2008-04-15 20:09:28 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2008-04-16 20:46:21 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -164,21 +164,31 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     // todo: rename relativeName, and add a "shortName", for what CabinetResource provides
     // (which will also translate ':' to '/' on the mac)
 
+    private static final String FILE_DIRECTORY =   "directory";
+    private static final String FILE_NORMAL =      "file";
+    private static final String FILE_UNKNOWN =     "unknown";
+    
 
+    protected void setSpecByKnownFile(File file, boolean isDir) {
+        setSpecByFile(file, isDir ? FILE_DIRECTORY : FILE_NORMAL);
+    }
+    
     protected void setSpecByFile(File file) {
+        setSpecByFile(file, FILE_UNKNOWN);
+    }
+
+    private void setSpecByFile(File file, Object knownType) {
         if (file == null) {
             Log.error("setSpecByFile", new IllegalArgumentException("null java.io.File"));
             return;
         }
-        if (DEBUG.RESOURCE && DEBUG.META) dumpField("setSpecByFile", file);
+        if (DEBUG.RESOURCE) dumpField("setSpecByFile; type=" + knownType, file);
+        //if (DEBUG.RESOURCE && DEBUG.META) dumpField("setSpecByFile; type=" + knownType, file);
 
         if (mURL != null)
             mURL = null;
         
-        // set the title by the name first, so setSpec won't need to compute it
-        // (only for lazy-eval spec)
-        //setTitle(file.getName());
-        setFile(file);
+        setFile(file, knownType);
         
         String fileSpec = null;
         try {
@@ -195,9 +205,102 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             Util.printStackTrace("Root FileSystem Resource created from: " + Util.tags(file));
         }
         
-        //initProperties();
-        
     }
+
+    private long mLastModified;
+    private void setFile(File file, Object type) {
+
+        if (mFile == file)
+            return;
+        
+        if (DEBUG.RESOURCE||file==null) dumpField("setFile", file);
+        mFile = file;
+
+        if (file == null)
+            return;
+
+        if (mURL != null)
+            setURL(null);
+
+        type = setDataFile(file, type);
+
+        if (mTitle == null) {
+            // still true?: for some reason, if we don't always have a title set, tooltips break.  SMF 2008-04-13
+            String name = file.getName();
+            if (name.length() == 0) {
+                // Files that are the root of a filesystem, such "C:\" will have an empty name
+                // (Presumably also true for "/")
+                setTitle(file.toString()); 
+            } else
+                setTitle(name); 
+        }
+        
+        if (type == FILE_DIRECTORY) {
+            
+            setClientType(Resource.DIRECTORY);
+            
+        } else if (type == FILE_NORMAL) {
+            
+            setClientType(Resource.FILE);
+            mLastModified = file.lastModified();
+            setByteSize(file.length());
+            // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
+            if (DEBUG.RESOURCE) {
+                setDebugProperty("file.instance", mFile);
+                setDebugProperty("file.modified", new Date(mLastModified));
+                //             if (true) {
+                //                 setDebugProperty("file.toURI", mFile.toURI());
+                //                 try {
+                //                     setDebugProperty("file.toURL", mFile.toURL());
+                //                 } catch (Throwable t) {
+                //                     setDebugProperty("file.toURL", t.toString());
+                //                 }
+                //             }
+            }
+        }
+    }
+
+
+    // can move this to Resource -- is generic enough
+    private Object setDataFile(File file, Object type)  
+    {
+        // TODO performance: can skip isDirectory and exists tests if we
+        // know this came from a LocalCabinet, which may speed up that
+        // dog-slow code when expanding big directories.
+        
+        if (type == FILE_DIRECTORY || (type == FILE_UNKNOWN && file.isDirectory())) {
+            if (DEBUG.RESOURCE && DEBUG.META) out("setDataFile: ignoring directory: " + file);
+            //Log.warn("directory as data-file: " + file, new Throwable());
+            //if (DEBUG.RESOURCE) out("no use for directory data files");
+            return FILE_DIRECTORY;
+            
+        }
+        
+        final String path = file.toString();
+        if (path.length() == 3 && Character.isLetter(path.charAt(0)) && path.endsWith(":\\")) {
+            // Check for A:\, etc.
+            // special case to ignore / prevent testing Windows currently in-accessable mount points
+            // File.exists may take a while to time-out on these.
+            if (DEBUG.Enabled) out_info("setDataFile: ignoring Win mount: " + file);
+            return FILE_DIRECTORY;
+        }
+            
+        if (type == FILE_UNKNOWN && !file.exists()) {
+            out_warn("no such active data file: " + file);
+            //throw new IllegalStateException(this + "; no such active data file: " + file);
+            return FILE_UNKNOWN;
+        }
+        
+        mDataFile = file;
+        
+        if (DEBUG.RESOURCE) {
+            dumpField("setDataFile", file);
+            setDebugProperty("file.data", file);
+        }
+
+        return FILE_NORMAL;
+    }
+
 
 
     /** for use by tufts.vue.action.Archive */
@@ -206,7 +309,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (DEBUG.RESOURCE) dumpField("setPackageFile", packageFile);
         reset();
         setURL(null);
-        setFile(null);
+        setFile(null, FILE_UNKNOWN);
         setProperty(PACKAGE_FILE, packageFile);
         removeProperty(USER_FILE); // don't want to see the File
         
@@ -350,62 +453,9 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return;
 
         if (mFile != null)
-            setFile(null);
+            setFile(null, FILE_UNKNOWN);
         
     }
-
-    private long mLastModified;
-    protected void setFile(File file) {
-
-        if (mFile == file)
-            return;
-        
-        if (DEBUG.RESOURCE||file==null) dumpField("setFile", file);
-        mFile = file;
-
-        if (file == null)
-            return;
-
-        if (mURL != null)
-            setURL(null);
-
-        setDataFile(file);
-
-        if (mTitle == null) {
-            
-//             title = mURL.getPath();
-//             if (title != null) {
-//                 if (title.endsWith("/"))
-//                     title = title.substring(0, title.length() - 1);
-//                 title = title.substring(title.lastIndexOf('/') + 1);
-//                 if (tufts.Util.isMacPlatform()) {
-//                     // On MacOSX, file names with colon (':') in them display as slashes ('/')
-//                     title = title.replace(':', '/');
-//                 }
-//                 setTitle(title);
-//             }
-
-            // TODO: for some reason, if we don't always have a title set, tooltips break.  SMF 2008-04-13
-            setTitle(file.getName()); 
-        }
-        
-        mLastModified = file.lastModified();
-        setByteSize(file.length());
-        // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
-        if (DEBUG.RESOURCE) {
-            setDebugProperty("file.instance", mFile);
-            setDebugProperty("file.modified", new Date(mLastModified));
-//             if (true) {
-//                 setDebugProperty("file.toURI", mFile.toURI());
-//                 try {
-//                     setDebugProperty("file.toURL", mFile.toURL());
-//                 } catch (Throwable t) {
-//                     setDebugProperty("file.toURL", t.toString());
-//                 }
-//             }
-        }
-    }
-
 
     //-----------------------------------------------------------------------------
     // Todo Someday: If possible, try and take into account lazy eval so we don't
@@ -429,7 +479,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         if (isPackaged()) {
             
-            setDataFile((File) getPropertyObject(PACKAGE_FILE));
+            setDataFile((File) getPropertyObject(PACKAGE_FILE), FILE_UNKNOWN);
             if (mFile != null)
                 Log.warn("mFile != null" + this, new IllegalStateException(toString()));
             
@@ -437,7 +487,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             
             File file = getLocalFileIfPresent(spec);
             if (file != null) {
-                setFile(file);
+                setFile(file, FILE_UNKNOWN); // actually, getLocalFileIfPresent may already know this exists (would need new type: FILE_KNOWN)
             } else {
                 URL url = makeURL(spec);
                 
@@ -980,47 +1030,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         return false;
     }
-    
-    
-    // can move this to Resource -- is generic enough
-    private void setDataFile(File file)  
-    {
-        // TODO performance: can skip isDirectory and exists tests if we
-        // know this came from a LocalCabinet, which may speed up that
-        // dog-slow code when expanding big directories.
-        
-        if (file.isDirectory()) {
-            if (DEBUG.RESOURCE) out("setDataFile: ignoring directory: " + file);
-            //Log.warn("directory as data-file: " + file, new Throwable());
-            //if (DEBUG.RESOURCE) out("no use for directory data files");
-            return;
-            
-        }
-        
-        final String path = file.toString();
-        if (path.length() == 3 && Character.isLetter(path.charAt(0)) && path.endsWith(":\\")) {
-            // Check for A:\, etc.
-            // special case to ignore / prevent testing Windows currently in-accessable mount points
-            // File.exists may take a while to time-out on these.
-            if (DEBUG.Enabled) out_info("setDataFile: ignoring Win mount: " + file);
-            return;
-        }
-            
-        if (!file.exists()) {
-            out_warn("no such active data file: " + file);
-            //throw new IllegalStateException(this + "; no such active data file: " + file);
-            return;
-        }
-        
-        mDataFile = file;
-        
-        if (DEBUG.RESOURCE) {
-            dumpField("setDataFile", file);
-            setDebugProperty("file.data", file);
-        }
-    }
 
-
+    
     @Override
     public String getLocationName() {
 
@@ -1193,12 +1204,29 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
 
     public void setTitle(String title) {
+
         if (mTitle == title)
             return;
+
+//             title = mURL.getPath();
+//             if (title != null) {
+//                 if (title.endsWith("/"))
+//                     title = title.substring(0, title.length() - 1);
+//                 title = title.substring(title.lastIndexOf('/') + 1);
+//                 if (tufts.Util.isMacPlatform()) {
+//                     // On MacOSX, file names with colon (':') in them display as slashes ('/')
+//                     title = title.replace(':', '/');
+//                 }
+//                 setTitle(title);
+//             }
+
+
+        
         //if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) dumpField("setTitle", title);
         mTitle = title;
         if (DEBUG.RESOURCE) {
             dumpField("setTitle", title);
+            //if ("A:\\".equals(title)) Util.printStackTrace(this.toString());
             if (hasProperty(DEBUG_PREFIX + "title"))
                 setDebugProperty("title", title);
         }
