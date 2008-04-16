@@ -28,6 +28,7 @@ import java.util.Iterator;
 import edu.tufts.vue.preferences.PreferencesManager;
 import edu.tufts.vue.preferences.VuePrefEvent;
 import edu.tufts.vue.preferences.VuePrefListener;
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
 import edu.tufts.vue.preferences.implementations.ShowIconsPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
@@ -50,6 +51,14 @@ public abstract class LWIcon extends Rectangle2D.Float
     private static final Color TextColor = VueResources.getColor("node.icon.color.foreground");
     private static final Color FillColor = VueResources.getColor("node.icon.color.fill");
     private static final Font FONT_ICON = VueResources.getFont("node.icon.font");
+    
+    private final static BooleanPreference oneClickLaunchResPref = BooleanPreference.create(
+			edu.tufts.vue.preferences.PreferenceConstants.INTERACTIONS_CATEGORY,
+			"oneClickResLaunch", 
+			"Resource Launching", 
+			"Enable the single-click launching of resources ?",
+			Boolean.TRUE,
+			true);
     
     protected LWComponent mLWC;
     protected final Color mColor;
@@ -161,7 +170,7 @@ public abstract class LWIcon extends Rectangle2D.Float
             // says "a resource icon is currently active to override all single clicks
             // on the map" until mouse moves over resource icon region again to be
             // reconfirmed as a viable option.
-    
+        	if (((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
             RolloverResource.displayContent();
             clearRolloverResource();
         }
@@ -498,10 +507,17 @@ public abstract class LWIcon extends Rectangle2D.Float
         	}
 
         void doDoubleClickAction() {
-        
+        	if (!((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
+        	{System.out.println("DOBULE");
+        		mLWC.getResource().displayContent();
+        	}
         }
         void doSingleClickAction() {
-            mLWC.getResource().displayContent();
+        	if (((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
+        	{
+        		System.out.println("SINGLE");
+        		//mLWC.getResource().displayContent();
+        	}
         }
         
         final static String gap = "&nbsp;";
