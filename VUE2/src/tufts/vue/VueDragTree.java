@@ -47,7 +47,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.71 $ / $Date: 2008-04-14 22:35:30 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2008-04-16 20:47:24 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDragTree extends JTree
@@ -590,9 +590,10 @@ class CabinetNode extends ResourceNode {
             } else {
                 // todo: use factory, also -- should this be a bytestore?
                 cab = new LocalCabinetEntry(file.getAbsolutePath(),agent,null);
-                Log.debug("new " + cab);
+                if (DEBUG.Enabled) Log.debug("new " + cab);
             }
             CabinetResource res = CabinetResource.create(cab);
+            if (DEBUG.Enabled) Log.debug("new " + res);
             CabinetEntry entry = res.getEntry();
 
             //if (title != null) res.setTitle(title);
@@ -609,28 +610,57 @@ class CabinetNode extends ResourceNode {
         }
         return node;
     }
+    
     /**
      *  Return true if this node is a leaf.
      */
     public boolean isLeaf() {
+
+        final CabinetResource r = (CabinetResource) super.resource;
         boolean flag = true;
-        CabinetResource res = (CabinetResource) getUserObject();
-        if(res != null && res.getEntry() != null){
-           // System.out.println("CabinetNode.isLeaf: type-"+this.type);
-            // TODO: if we really want CabinetNode to do lazy setSpec, don't to this getSpec here,
-            // is it completely defeats the purpose...
-            // TODO: this is a rediculously slow way to go about figuring this flag, which
-            // we should already know...
-            if((new File(res.getSpec()).isDirectory())) {
+
+        if (r == null) {
+            flag = false;
+        } else if (r.getClientType() == Resource.FILE) {
+            flag = true;
+        } else if (r.getClientType() == Resource.DIRECTORY) {
+            flag = false;
+        } else if (r.getEntry() != null) {
+            if (this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)r.getEntry()).isCabinet())
                 flag = false;
-            } else if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
-                flag = false;
-            else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet()) {
+            else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)r.getEntry()).isCabinet()) {
                 flag = false;
             }
         }
+        if (DEBUG.Enabled) Log.debug("isLeaf=" + (flag?"YES; ":" NO; ") + resource);
         return flag;
     }
+
+//     /**
+//      *  Return true if this node is a leaf.
+//      */
+//     public boolean isLeaf() {
+//         //if (DEBUG.Enabled) Log.debug("isLeaf?");
+//         boolean flag = true;
+//         CabinetResource res = (CabinetResource) getUserObject();
+//         if(res != null && res.getEntry() != null){
+//            // System.out.println("CabinetNode.isLeaf: type-"+this.type);
+//             // TODO: if we really want CabinetNode to do lazy setSpec, don't to this getSpec here,
+//             // is it completely defeats the purpose...
+//             // TODO: this is a rediculously slow way to go about figuring this flag, which
+//             // we should already know...
+//             if((new File(res.getSpec()).isDirectory())) {
+//                 flag = false;
+//             } else if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
+//                 flag = false;
+//             else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet()) {
+//                 flag = false;
+//             }
+//         }
+//         if (DEBUG.Enabled) Log.debug(resource + ": isLeaf="+flag);
+//         return flag;
+//     }
+
     
     /**
      *  Return the cabinet entry associated with this tree node.  If it is a cabinet,
@@ -650,6 +680,8 @@ class CabinetNode extends ResourceNode {
     public void explore() {
         if (this.explored)
             return;
+
+        if (DEBUG.Enabled) Log.debug("explore...");
         if(getCabinet() != null) {
             try {
                 if (this.type.equals(CabinetNode.REMOTE)) {
@@ -670,6 +702,7 @@ class CabinetNode extends ResourceNode {
                         if (ce.getDisplayName().startsWith(".")) // don't display dot files
                             continue;
                         CabinetResource res = CabinetResource.create(ce);
+                        if (DEBUG.Enabled) Log.debug("created " + res);
                         CabinetNode rootNode = new CabinetNode(res, this.type);
                         this.add(rootNode);
                         // todo fix: note, this is still happening twice per
@@ -682,10 +715,10 @@ class CabinetNode extends ResourceNode {
                 e.printStackTrace();
                 //return;
             }
-            return;
-        } else return;
+            
+        } 
         
-        
+        if (DEBUG.Enabled) Log.debug("explored.");
     }
     
     /**
