@@ -1752,11 +1752,17 @@ public class PresentationTool extends VueTool
 //                 focusUp(e);
 //             return true;
 //         }
-        
-        if (hit != null && hit.getTypeToken() == LWNode.TYPE_TEXT) {
-            if (hit.hasResource()) {
-                hit.getResource().displayContent();
-                return true;
+
+        if (hit != null) {
+            if (hit.getTypeToken() == LWNode.TYPE_TEXT) {
+                if (hit.hasResource()) {
+                    hit.getResource().displayContent();
+                    return true;
+                }
+            } else if (hit instanceof LWNode) { // only allow node for the moment
+                // added to handle resource icon clicks (will call displayContent)
+                if (hit.handleSingleClick(e)) 
+                    return true;
             }
             // if no resource, do not just zoom to single text item
             //return true;
