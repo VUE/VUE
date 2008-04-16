@@ -96,7 +96,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.26 $ / $Date: 2008-03-24 22:27:57 $ / $Author: mike $
+ * @version $Revision: 1.27 $ / $Date: 2008-04-16 05:42:43 $ / $Author: mike $
  *
  */
 
@@ -577,7 +577,7 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
         if (TestHarness == false && getParent() != null)
         {
             getParent().remove(this);
-            VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(this);
+           // VUE.getFormattingPanel().getTextPropsPane().getFontEditorPanel().updateFormatControlsTB(this);
         }
         if (keyWasPressed || !keyWasPressed) { // TODO: as per VueTextField, need to handle drag & drop detect
             // only do this if they typed something (so we don't wind up with "label"
