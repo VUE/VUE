@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.532 $ / $Date: 2008-04-15 04:32:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.533 $ / $Date: 2008-04-16 20:46:47 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1558,6 +1558,7 @@ public class VUE
     {
     	return ObjectInspector;
     }
+    static void _setInfoDock(DockWindow dw) { ObjectInspector = dw; }
     
     public static DockWindow getFloatingZoomDock()
     {
