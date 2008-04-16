@@ -400,7 +400,7 @@ public class NodeTool extends VueTool
     public static LWText createRichTextNode(String text)
     {
         LWText node = buildRichTextNode(text);
-        node.getRichLabelBox().overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
+        node.getRichLabelBox(true).overrideTextColor(FontEditorPanel.mTextColorButton.getColor());
         
                     
         return node;
