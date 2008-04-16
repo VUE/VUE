@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.524 $ / $Date: 2008-04-16 05:20:23 $ / $Author: sfraize $ 
+ * @version $Revision: 1.525 $ / $Date: 2008-04-16 05:40:06 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5075,7 +5075,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // forward without selecting the node and (2), the ZoomTool to also respond
             // to resource icon clicks, without having to modify the ZoomTool.
 
-            if (LWIcon.hasRolloverResource(getCursor())) {
+            // most tools behave at least somewhat reasonable by adding this
+            // (link tool may be a bit wierd), but RichTextTool ends up creating
+            // a new rich text object instead of editing the node label when
+            // this is triggered, so we disallow it for that case.
+
+            if (activeTool != RichTextTool && LWIcon.hasRolloverResource(getCursor())) {
                 LWIcon.displayRolloverResource();
                 mouseConsumed = true;
                 e.consume();
