@@ -25,7 +25,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.61 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $ 
+ * @version $Revision: 1.62 $ / $Date: 2008-04-16 20:38:48 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -365,8 +365,14 @@ public class DRBrowser extends JPanel
         DRBrowser drBrowser = new DRBrowser(true, drDock, null);
 		
         //DockWindow inspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
-        DockWindow inspector = new DockWindow("Info", owner, new tufts.vue.ui.InspectorPane(), false);
+        tufts.vue.ui.InspectorPane inspectorPane = new tufts.vue.ui.InspectorPane();
+        //ObjectInspector = GUI.createDockWindow("Info");
+        //ObjectInspector.setContent(inspectorPane.getWidgetStack());
+
+        
+        DockWindow inspector = new DockWindow("Info", owner, inspectorPane.getWidgetStack(), false);
         inspector.setMenuName("Info / Preview");
+        VUE._setInfoDock(inspector);
 
         int maxHeight = GUI.getMaximumWindowBounds().height;
 
@@ -376,7 +382,7 @@ public class DRBrowser extends JPanel
 
         inspector.setSize(inspectorWidth, maxHeight);
         inspector.setUpperRightCorner(GUI.GScreenWidth, GUI.GInsets.top);
-        //inspector.setVisible(true);
+        inspector.setVisible(true);
         
         drDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
         drDock.setUpperRightCorner(GUI.GScreenWidth - inspector.getWidth(), GUI.GInsets.top);
