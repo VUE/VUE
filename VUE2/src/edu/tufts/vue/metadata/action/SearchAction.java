@@ -601,20 +601,23 @@ public class SearchAction extends AbstractAction {
                          {
                            if(!comps.contains(parent))
                            {
-                               searchResultMap.add(parent.duplicate());
+                               LWComponent dup = parent.duplicate();
+                               if(!(dup instanceof LWSlide) && !dup.hasFlag(LWComponent.Flag.SLIDE_STYLE))  
+                                 searchResultMap.add(dup);
                            }
                          }   
                          else
                          {    
-                           searchResultMap.add(duplicate);
+                           if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE))    
+                             searchResultMap.add(duplicate);
                          }
                          
-                         if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
+                         /*if(next.hasFlag(LWComponent.Flag.SLIDE_STYLE))
                          {
                             LWSlide slide = (LWSlide)next.getParentOfType(LWSlide.class);
                             //searchResultMap.add(slide);
                             searchResultMap.add(slide.getSourceNode());
-                         }
+                         }*/
                          
                        } 
 
@@ -663,6 +666,7 @@ public class SearchAction extends AbstractAction {
                              ((LWLink)duplicate).setTail(tail); // double OOPS
                        }*/
                        
+                      
                        
                        // do we need this code any more? see
                        // "raw image" search bug in jira
@@ -672,12 +676,14 @@ public class SearchAction extends AbstractAction {
                        {
                          if(!comps.contains(parent))
                          {
-                               searchResultMap.add(parent.duplicate());
+                               if(!(parent instanceof LWSlide) && !parent.hasFlag(LWComponent.Flag.SLIDE_STYLE))  
+                                 searchResultMap.add(parent.duplicate());
                          }
                        }   
                        else
                        {    
-                           searchResultMap.add(duplicate);
+                           if(!(duplicate instanceof LWSlide) && !duplicate.hasFlag(LWComponent.Flag.SLIDE_STYLE))  
+                             searchResultMap.add(duplicate);
                        }
 
                        
@@ -736,7 +742,7 @@ public class SearchAction extends AbstractAction {
                             LWSlide slide = (LWSlide)current.getParentOfType(LWSlide.class);
                             images.add(slide);
                             LWNode source  = ((LWNode)slide.getSourceNode());
-                            images.add(source);
+                            //images.add(source);
                             if(LWNode.isImageNode(source))
                             {
                                 images.add(source.getImage());
@@ -776,7 +782,9 @@ public class SearchAction extends AbstractAction {
            Iterator<LWComponent> slides = slideComponents.iterator();
            while(slides.hasNext())
            {
-              comps.remove(slides.next());
+              LWComponent slide = slides.next();
+              if(!(slide instanceof LWSlide))
+                comps.remove(slide);
            }
            
         }
@@ -857,15 +865,23 @@ public class SearchAction extends AbstractAction {
                }
                else
                {
-                 VUE.getSelection().add(it3.next());
+                 LWComponent comp = it3.next();
+                 
+                 if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE))  
+                   VUE.getSelection().add(comp);
                }
              }
              if(resultsType == HIDE_ACTION)
              {
                // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
                // will handle child nodes/images correctly in non image nodes)
-               //it.next().setHidden(LWComponent.HideCause.DEFAULT);  
-               it3.next().setFiltered(true);
+               //it.next().setHidden(LWComponent.HideCause.DEFAULT);
+                 
+                 
+               LWComponent comp = it3.next();
+                 
+               if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE))  
+                   comp.setFiltered(true);
              }
           }
         }
@@ -927,8 +943,11 @@ public class SearchAction extends AbstractAction {
                   // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
                   // will handle child nodes/images correctly in non image nodes)
                   //comp.setHidden(LWComponent.HideCause.DEFAULT);
-                  comp.setFiltered(true);
-                  globalHides.add(comp);
+                  if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE))  
+                  {
+                    comp.setFiltered(true);
+                    globalHides.add(comp);
+                  }
               }
 
           }
@@ -1043,7 +1062,10 @@ public class SearchAction extends AbstractAction {
             // VUE-892 -- switch back to setFiltered (needs change in LWImage to work for image nodes, but this
             // will handle child nodes/images correctly in non image nodes)
             //it.next().clearHidden(LWComponent.HideCause.DEFAULT);
-            it.next().setFiltered(false);
+            LWComponent comp = it.next();
+            
+            if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE))  
+              comp.setFiltered(false);
         } 
     }
     

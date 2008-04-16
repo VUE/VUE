@@ -836,6 +836,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     
     public void activeChanged(ActiveEvent e)
     {
+        
        if(e!=null)
        {
          focusToggle = false;  
@@ -846,6 +847,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,
          //}
            
          LWComponent active = (LWComponent)e.active;
+         
+         if(active instanceof tufts.vue.LWSlide)
+         {
+             active = null;
+         }
          
          metadataTable.removeEditor();
          

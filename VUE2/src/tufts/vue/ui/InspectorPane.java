@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.66 $ / $Date: 2008-04-15 04:22:48 $ / $Author: sfraize $
+ * @version $Revision: 1.67 $ / $Date: 2008-04-16 20:09:03 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -170,8 +170,22 @@ public class InspectorPane extends JPanel
     
      public void selectionChanged(LWSelection selection) {
          
+           // also might need criteria for slides (remove slides from multiples
+           // and don't active if only slide is selected.. SLIDE_STYLE in component?'
+           // just use LWSlide -- though can this lead to phantom selections? have
+           // to make sure SearchAction also doesn't include slides in result sets'
+         
            // todo: make the single selection work as before with showNodePanes
            // i.e. as Active drives it.
+         
+           if(selection.contents().size() == 1)
+               if(selection.contents().get(0) instanceof LWSlide)
+               {
+                   Widget.setHidden(mUserMetaData,true);
+                   return;
+               }
+          
+         
            if(!selection.contents().isEmpty())
            {
                     
