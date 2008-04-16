@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.523 $ / $Date: 2008-04-15 22:49:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.524 $ / $Date: 2008-04-16 05:20:23 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5002,11 +5002,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private boolean mLabelEditWasActiveAtMousePress;
 
     private boolean activeToolAteMousePress = false;
+    private boolean mouseConsumed = false;
     
     // TODO: if APPLE (Command) down when drag starts, do NOT select the object,
     // so can drag copies off map into slide viewer more easily (if it selects
     // on the map, it will swap out the slide displayed!)
         public void mousePressed(MouseEvent e) {
+
+            mouseConsumed = false;
 
             final boolean wasFocusOwner;
          
@@ -5057,11 +5060,34 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //out("BUTTON " + e.getButton() + " mods: " + e.getModifiers() + " modEx: " + e.getModifiersEx() + " b2dm=" + InputEvent.BUTTON2_DOWN_MASK);
             setLastMousePressPoint(e.getX(), e.getY());
             setDragger(null);
+
+            //=============================================================================
+            //=============================================================================
+            // HACK HACK HACK -- last minute hack for VUE 2.0.1 2008-04-15 -- SMF
+            //-----------------------------------------------------------------------------
+            
+            // These few lines of code combined with the a tiny hacked up API in LWIcon
+            // allow several desireable features at once without having to completely
+            // re-write MapViewer and the VueTool API (as it needs at this point) to
+            // support this propertly.  Doing this here (and depending on the LWIcon
+            // code for setting the HAND cursor when over resource icons, altho that
+            // code has bugs of it's own), allows: (1) clicks on resource icons to go
+            // forward without selecting the node and (2), the ZoomTool to also respond
+            // to resource icon clicks, without having to modify the ZoomTool.
+
+            if (LWIcon.hasRolloverResource(getCursor())) {
+                LWIcon.displayRolloverResource();
+                mouseConsumed = true;
+                e.consume();
+                return;
+            }
+            //=============================================================================
+            //=============================================================================
             
             final float mapX = screenToMapX(e.getX());
             final float mapY = screenToMapY(e.getY());
             final MapMouseEvent mme = new MapMouseEvent(e, mapX, mapY, null, gotFocus);
-            
+
             if (activeTool.handleMousePressed(mme)) {
                 activeToolAteMousePress = true;
                 return;
@@ -5496,6 +5522,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             lastMouseX = e.getX();
             lastMouseY = e.getY();
 
+            LWIcon.clearRolloverResource();
+
             final float mapX = screenToMapX(e.getX());
             final float mapY = screenToMapY(e.getY());
             
@@ -5625,15 +5653,18 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 sLastMouseOver = null;
             }
 
+            LWIcon.clearRolloverResource();
+            
             mMouseHasEnteredToolTip = false;
             clearTipSoon();
             //grabVueApplicationFocus("mouseEntered", e);
-
         }
     
         public void mouseExited(MouseEvent e) {
             if (DEBUG.MOUSE||DEBUG.ROLLOVER) out(e.paramString());
 
+            LWIcon.clearRolloverResource();
+            
             if (sLastMouseOver != null && sLastMouseOver == mRollover)
                 clearRollover();
 
@@ -5749,6 +5780,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (DEBUG.VIEWER) _mouse = e.getPoint();
 
             if (DEBUG.MOUSE && DEBUG.DND) System.out.println("[" + e.paramString() + "] on " + e.getSource().getClass().getName());
+
+            if (mouseConsumed)
+                return;
 
             clearRollover();
             //System.out.println("drag " + drags++);
@@ -6106,11 +6140,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             
             MapMouseEvent mme = new MapMouseEvent(e, draggedSelectorBox);
             mme.setMousePress(lastMousePressX, lastMousePressY);
-            
+
             if (mouseWasDragged && dragControl != null) {
                 dragControl.controlPointDropped(dragControlIndex, mme);
             }
-            else if (activeTool.handleMouseReleased(mme)) {
+            else if (!mouseConsumed && activeTool.handleMouseReleased(mme)) {
                 repaint();
             }
             else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
@@ -6229,6 +6263,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             isDraggingSelectorBox = false;
             mouseWasDragged = false;
             activeToolAteMousePress = false;
+            mouseConsumed = false;
             
             
             // todo opt: only need to do this if we don't draw selection

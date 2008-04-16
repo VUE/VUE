@@ -136,6 +136,40 @@ public abstract class LWIcon extends Rectangle2D.Float
     abstract public JComponent getToolTipComponent();
     //todo: make getToolTipComponent static & take lwc arg in case anyone else wants these
 
+    
+    //=============================================================================
+    //=============================================================================
+    // This is a TOTAL hack for a last minute change to VUE 2.0.1 2008-04-15 -- SMF
+    //-----------------------------------------------------------------------------
+    
+    private static final Cursor RESOURCE_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
+//     public static final Cursor RESOURCE_CURSOR = new Cursor(Cursor.HAND_CURSOR) {
+//             public String getName() { return "VUE-RESOURCE-HAND"; }};
+    private static tufts.vue.Resource RolloverResource;
+
+    public static boolean hasRolloverResource(Cursor cursor) {
+        return RolloverResource != null && cursor == RESOURCE_CURSOR;
+    }
+    public static void clearRolloverResource() {
+        RolloverResource = null;
+    }
+    public static void displayRolloverResource() {
+        if (RolloverResource != null) {
+            
+            // uses failsafe operation to reduce buggy side effecs of this hack: only
+            // first attempt works, then we auto-clear the hacked up global state that
+            // says "a resource icon is currently active to override all single clicks
+            // on the map" until mouse moves over resource icon region again to be
+            // reconfirmed as a viable option.
+    
+            RolloverResource.displayContent();
+            clearRolloverResource();
+        }
+    }
+        
+    //=============================================================================
+    //=============================================================================
+
     public static class Block extends Rectangle2D.Float
     {
         public static final boolean VERTICAL = true;
@@ -309,13 +343,13 @@ public abstract class LWIcon extends Rectangle2D.Float
                 dc.setAbsoluteDrawing(false);
         }
 
-
         void checkAndHandleMouseOver(MapMouseEvent e)
         {
             final Point2D.Float localPoint = e.getLocalPoint(mLWC);
             float cx = localPoint.x;
             float cy = localPoint.y;
             
+            RolloverResource = null;
             
             JComponent tipComponent = null;
             LWIcon tipIcon = null;
@@ -334,29 +368,25 @@ public abstract class LWIcon extends Rectangle2D.Float
                         cy *= zoom;
                     }
                 }
-                if (icon instanceof LWIcon.Resource)
-                { 
-                	if (icon.contains(cx, cy)) 
-                    {	
-                	//	e.getViewer().clearTip();                
-                		e.getViewer().setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                		
+                if (icon instanceof LWIcon.Resource) { 
+                    if (icon.contains(cx, cy)) {	
+                        // e.getViewer().clearTip();
+                        // TODO: need cursor management system for MapViewer's that allows
+                        // us to install a temporary cursor that's auto-cleared if
+                        // mouse exits or re-enters the viewer
+                        e.getViewer().setCursor(RESOURCE_CURSOR);
+                        RolloverResource = icon.mLWC.getResource(); // hack hack hack
+                    } else {
+                        e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());                		                		
                     }
-                	else
-                	{
-                		e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());                		                		
-                	}
-                		
                 }
-                if (icon.contains(cx, cy)) 
-                {                	                	                                	
-                	
+                
+                if (icon.contains(cx, cy)) {                	                	                                	
                     tipIcon = icon;
                     break;
-                }
-                else
-                {                	
-                	e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());        
+                } else {
+                    // check: if (above condition) then: break else: reset cursor, but at the bottom of a loop?
+                    e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());        
                 }
                 	
             }
