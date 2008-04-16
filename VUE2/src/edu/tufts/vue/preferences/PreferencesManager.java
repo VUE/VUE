@@ -41,6 +41,7 @@ public class PreferencesManager {
 		  //PreferencesManager.registerPreference(edu.tufts.vue.preferences.implementations.WindowPropertiesPreference.class);
 		
 		categories.add(PreferenceConstants.MAPDISPLAY_CATEGORY);
+		categories.add(PreferenceConstants.INTERACTIONS_CATEGORY);
 		categories.add(PreferenceConstants.METADATA_CATEGORY);
 		categories.add(PreferenceConstants.WINDOW_CATEGORY);
 	  }
