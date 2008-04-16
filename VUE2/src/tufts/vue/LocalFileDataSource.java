@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.25 2008-04-09 00:48:41 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.26 2008-04-16 20:45:03 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -34,11 +34,13 @@ import tufts.vue.action.*;
 
 
 /**
- * @version $Revision: 1.25 $ / $Date: 2008-04-09 00:48:41 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2008-04-16 20:45:03 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
 public class LocalFileDataSource extends VueDataSource implements Publishable{
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalFileDataSource.class);    
     
     private JComponent resourceViewer;
     
@@ -57,15 +59,22 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         this.setResourceViewer();
     }
 
+    private void out(String s) {
+        Log.debug(String.format("@%x; %s(%s): %s", System.identityHashCode(this), getDisplayName(), getAddress(), s));
+    }
+
     public void setResourceViewer()
     {
+        if (DEBUG.Enabled) out("setResourceViewer...");
         Vector cabVector = new Vector();
         
         if (getDisplayName().equals("My Computer")) {
             // This is a bit of a hack, but we need to do this for
             // now because when the resource viewer saves it's state,
             // it saves even the defaults (so we can't make this a subclass).
+            if (DEBUG.Enabled) out("installDesktopFolders...");
             installDesktopFolders(cabVector);
+            if (DEBUG.Enabled) out("installDesktopFolders: " + cabVector);
         }
 
         if (this.getAddress().length() > 0) {
@@ -95,6 +104,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         }
             
         //DataSourceViewer.refreshDataSourcePanel(this);
+        if (DEBUG.Enabled) out("setResourceViewer: completed.");
         
     }
     
