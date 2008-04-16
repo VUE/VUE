@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.211 $ / $Date: 2008-04-15 08:29:13 $ / $Author: sfraize $
+ * @version $Revision: 1.212 $ / $Date: 2008-04-16 06:25:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -514,7 +514,7 @@ public class LWNode extends LWContainer
         
     	 if (!textBoxHit(cx, cy)) 
     	 {
-             mIconBlock.handleSingleClick(e);             
+             return mIconBlock.handleSingleClick(e);             
     	 }
               
         return true;
@@ -849,6 +849,13 @@ public class LWNode extends LWContainer
                     // don't call setResource, or our special LWNode impl will auto
                     // install the image as a node icon, and then addChildren will add
                     // it a second time.
+                    
+                    // TODO: however, this not undoable...  so we'll want to do this
+                    // after...
+
+                    // TODO: Also, dragging OUT a non-attached image to the map, but
+                    // canceling the drag, triggers this code in the re-add, and
+                    // then the image gets 'stuck' as a node icon.
                     
                     takeResource(first.getResource());
                 }
