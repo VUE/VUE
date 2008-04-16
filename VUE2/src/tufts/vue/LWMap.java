@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.193 $ / $Date: 2008-04-15 22:48:34 $ / $Author: sfraize $
+ * @version $Revision: 1.194 $ / $Date: 2008-04-16 05:19:17 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -866,7 +866,7 @@ public class LWMap extends LWContainer
         markAsSaved();
     }
 
-    public class ResourceFactory extends Resource.DefaultFactory {
+    class ResourceFactory extends Resource.DefaultFactory {
 
         private final Map<String,Resource> resourceMap = new HashMap();
 
@@ -880,7 +880,9 @@ public class LWMap extends LWContainer
             if (already != null) {
                 // this okay for the moment: we're only using this for keeping
                 // image data up to date
-                Log.debug("duplicate: " + already);
+                Log.debug("duplicate: " + already + " (tossed)");
+                if (DEBUG.Enabled)
+                Log.debug("         : " + r);
             }
         }
 
