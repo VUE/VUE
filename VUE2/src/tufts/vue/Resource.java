@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.69 $ / $Date: 2008-04-15 06:46:05 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2008-04-16 20:45:23 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -997,9 +997,7 @@ public abstract class Resource implements Cloneable
         if ((DEBUG.RESOURCE || DEBUG.IO) && file != null) Log.debug("getLocalFileIfPresent(Str): testing " + file);
 
         if (file == null || !file.exists()) {
-
             file = getLocalFileIfPresent(makeURL(urlOrPath));
-            
         }
 
         return file;
