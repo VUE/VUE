@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.525 $ / $Date: 2008-04-16 05:40:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.526 $ / $Date: 2008-04-16 06:23:46 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -5081,6 +5081,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             // this is triggered, so we disallow it for that case.
 
             if (activeTool != RichTextTool && LWIcon.hasRolloverResource(getCursor())) {
+                Log.debug("redirect to resource icon displayContent");
                 LWIcon.displayRolloverResource();
                 mouseConsumed = true;
                 e.consume();
@@ -5659,6 +5660,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
 
             LWIcon.clearRolloverResource();
+
+            setMapCursor(activeTool.getCursor());
             
             mMouseHasEnteredToolTip = false;
             clearTipSoon();
@@ -6268,7 +6271,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             isDraggingSelectorBox = false;
             mouseWasDragged = false;
             activeToolAteMousePress = false;
-            mouseConsumed = false;
             
             
             // todo opt: only need to do this if we don't draw selection
@@ -6429,6 +6431,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         
     /** MouseListener impl */
+    // this is called AFTER mouseReleased, but only if the release happened quickly enogh
     public void mouseClicked(MouseEvent e) {
         if (DEBUG.MOUSE) out("["
                              + e.paramString()
@@ -6439,7 +6442,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //if (activeTool != ArrowTool && activeTool != TextTool)
         //return;  check supportsClick, and add such to node tool
         
-        if (hitOnSelectionHandle == false) {
+        if (!mouseConsumed && hitOnSelectionHandle == false) {
             MapMouseEvent me = new MapMouseEvent(e, hitComponent);
             if (!activeTool.handleMouseClicked(me))
                 processMouseClick(me);
@@ -6784,6 +6787,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // To workaround, if the opposite component here is a right viewer,
         // and we're a left viewer, and the right viewers aren't showing,
         // do NOT grab the VUE application focus.
+        setMapCursor(activeTool.getCursor());
         repaintFocusIndicator();
         grabVueApplicationFocus("focusGained", e);
         fireViewerEvent(MapViewerEvent.FOCUSED);
