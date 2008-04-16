@@ -42,6 +42,7 @@ public class VueMetadataElement {
    public static final int ONTO_TYPE = 2;
    public static final int SEARCH_STATEMENT = 3;
    public static final int OTHER = 4;
+   public static final int RESOURCE_CATEGORY = 5;
    
    public static final String ONT_SEPARATOR = "#";
    
@@ -119,7 +120,7 @@ public class VueMetadataElement {
        }
        
        this.type = type;
-       if( ( (type == CATEGORY) || (type == ONTO_TYPE) ) && (obj == null) )
+       if( ( (type == CATEGORY) ||type == RESOURCE_CATEGORY || (type == ONTO_TYPE) ) && (obj == null) )
        {
            int len = (VUE_ONT + "#").length();
            if (DEBUG) System.out.println("VueMetadataElement setType -- getKey, getValue: " + getKey() + "," + getValue());

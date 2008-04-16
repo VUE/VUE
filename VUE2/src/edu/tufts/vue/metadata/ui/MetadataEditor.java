@@ -1904,8 +1904,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
          {
              if(current !=null)
              {   
-               MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)current.getMetadataList().getMetadata();
-               int size = list.getCategoryEndIndex();
+               //MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)current.getMetadataList().getMetadata();
+               int size = current.getMetadataList().getCategoryListSize();
                //int size = current.getMetadataList().getMetadata().size();
                if(size > 0)
                    return size;
@@ -1914,8 +1914,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
              }
              else if(currentMultiples !=null)
              {
-               MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)currentMultiples.getMetadataList().getMetadata();
-               int size = list.getCategoryEndIndex();
+               //MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)currentMultiples.getMetadataList().getMetadata();
+               int size = current.getMetadataList().getCategoryListSize();
                //int size = current.getMetadataList().getMetadata().size();
                if(size > 0)
                    return size;
@@ -1987,11 +1987,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                if(list.size() < row + 1)
                  return null;*/
                  
-               if(currentMultiples.getMetadataList().getCategoryListSize() == 0)
+               //!!!  
+               /*if(currentMultiples.getMetadataList().getCategoryListSize() == 0)
                  addNewRow();
                else
                  if(currentMultiples.getMetadataList().getCategoryListSize() < row + 1)
-                   return null;
+                   return null;*/
                  
                //while(list.size() < row + 1)
                //  addNewRow();

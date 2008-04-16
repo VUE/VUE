@@ -44,12 +44,14 @@ public class MetadataList {
     
     private static List<MetadataListListener> listeners = new ArrayList<MetadataListListener>();
     
+    private SubsetList rCategoryList;
     private SubsetList categoryList;
     private SubsetList ontologyList;
     private SubsetList otherList;
     
     public MetadataList()
     {
+        rCategoryList = new SubsetList(VueMetadataElement.RESOURCE_CATEGORY);
         categoryList = new SubsetList(VueMetadataElement.CATEGORY);
         ontologyList = new SubsetList(VueMetadataElement.ONTO_TYPE);
         otherList = new SubsetList(VueMetadataElement.OTHER);
@@ -96,13 +98,25 @@ public class MetadataList {
             fireListChanged();
           }
       }
+      if(element.getType() == VueMetadataElement.RESOURCE_CATEGORY)
+      {
+          int i = findRCategory(element.getKey());
+          if(i!=-1)
+          {    
+            metadataList.set(i,element);
+            fireListChanged();
+          }
+      }
     }
     
     public VueMetadataElement get(String key)
     {
-        int index = findCategory(key);
-        if(index != -1)
-            return getCategoryListElement(index);
+        int rcindex = findRCategory(key);
+        int cindex = findCategory(key);
+        if(rcindex != -1)
+            return getRCategoryListElement(rcindex);
+        if(cindex != -1)
+            return getCategoryListElement(cindex);
         else
             return null;
     }
@@ -135,6 +149,21 @@ public class MetadataList {
         return foundAt;
     }
     
+    public int findRCategory(String key)
+    {
+        int foundAt = -1;
+        for(int i=0;i<getRCategoryListSize();i++)
+        {
+            VueMetadataElement vme = getRCategoryListElement(i);
+            if(vme.getKey().equals(key) && foundAt == -1)
+            {
+                foundAt = i;
+            }
+        }
+        
+        return foundAt;
+    }
+    
     /**
      *
      * finds the most recently entered (last in order)
@@ -146,7 +175,8 @@ public class MetadataList {
     public int findMostRecentCategory(String key)
     {
         int foundAt = -1;
-        for(int i=0;i<getCategoryListSize();i++)
+        int startPoint = ((CategoryFirstList)metadataList).getRCategoryEndIndex();
+        for(int i=startPoint;i<getCategoryListSize();i++)
         {
             VueMetadataElement vme = getCategoryListElement(i);
             if(vme.getKey().equals(key))
@@ -184,6 +214,47 @@ public class MetadataList {
         try
         {        
           if(getCategoryListSize() > 0 && index < metadataList.size())
+            return metadataList.get(index+((CategoryFirstList)metadataList).getRCategoryEndIndex());
+          //else
+            //return new VueMetadataElement();
+        }
+        catch(Exception e)
+        {
+            return null;
+            //return new VueMetadataElement(); 
+        }
+        
+        return null;
+    }
+    
+    public void setCategoryListElement(int i,VueMetadataElement ele)
+    {
+        int index = i;
+        try
+        {        
+          if(getCategoryListSize() > 0 && index < metadataList.size())
+            metadataList.set(index+ ((CategoryFirstList)metadataList).getRCategoryEndIndex(),ele);
+          else
+            return;
+        }
+        catch(Exception e)
+        {
+            return;
+        }
+    }
+    
+    public int getRCategoryListSize()
+    {
+        CategoryFirstList cf = ((CategoryFirstList)metadataList);
+        return cf.getRCategoryEndIndex();
+    }
+    
+    public VueMetadataElement getRCategoryListElement(int i)
+    {
+        int index = i;
+        try
+        {        
+          if(getRCategoryListSize() > 0 && index < metadataList.size())
             return metadataList.get(index);
           else
             return new VueMetadataElement();
@@ -194,12 +265,12 @@ public class MetadataList {
         }
     }
     
-    public void setCategoryListElement(int i,VueMetadataElement ele)
+    public void setRCategoryListElement(int i,VueMetadataElement ele)
     {
         int index = i;
         try
         {        
-          if(getCategoryListSize() > 0 && index < metadataList.size())
+          if(getRCategoryListSize() > 0 && index < metadataList.size())
             metadataList.set(index,ele);
           else
             return;
@@ -212,12 +283,14 @@ public class MetadataList {
     
     public int getCategoryListSize()
     {
-        return ((CategoryFirstList)metadataList).getCategoryEndIndex();
+        CategoryFirstList cf = ((CategoryFirstList)metadataList);
+        return cf.getCategoryEndIndex()-cf.getRCategoryEndIndex();
     }
     
     public VueMetadataElement getOntologyListElement(int i)
     {
-        int index = i+((CategoryFirstList)metadataList).getCategoryEndIndex();
+        CategoryFirstList cf = ((CategoryFirstList)metadataList);
+        int index = i+cf.getCategoryEndIndex();
         try
         {        
           if(getOntologyListSize() > 0 && index < metadataList.size())
@@ -233,7 +306,8 @@ public class MetadataList {
     
     public void setOntologyListElement(int i,VueMetadataElement ele)
     {
-        int index = i+((CategoryFirstList)metadataList).getCategoryEndIndex();
+        CategoryFirstList cf = ((CategoryFirstList)metadataList);
+        int index = i+cf.getCategoryEndIndex();
         try
         {        
           if(getOntologyListSize() > 0 && index < metadataList.size())
@@ -449,6 +523,9 @@ public class MetadataList {
         public int indexOf(VueMetadataElement vme)
         {   
            int size = 0;
+           // not yet needed -- also add in contains..
+           //if(type == VueMetadataElement.RESOURCE_CATEGORY)
+           //    size = getRCategoryListSize();
            if(type == VueMetadataElement.CATEGORY)
                size = getCategoryListSize();
            else if(type == VueMetadataElement.ONTO_TYPE)
@@ -469,6 +546,7 @@ public class MetadataList {
                       return i;
            }
            
+           //note: currently resource categories are not found.
            return -1;
         }
         
@@ -495,6 +573,7 @@ public class MetadataList {
                       return true;
            }
            
+           // note: as in indexOf() currently resouerce categories are not found.
            return false;
         }
         
@@ -506,6 +585,11 @@ public class MetadataList {
         
         public int size()
         {
+           if(type ==  VueMetadataElement.RESOURCE_CATEGORY)
+           {
+               return getRCategoryListSize();
+           }
+           else
            if(type == VueMetadataElement.CATEGORY)
                return getCategoryListSize();
            else if(type == VueMetadataElement.ONTO_TYPE)
@@ -516,7 +600,9 @@ public class MetadataList {
         
         public VueMetadataElement get(int i)
         {
-           if(type == VueMetadataElement.CATEGORY)
+           if(type == VueMetadataElement.RESOURCE_CATEGORY)
+               return getRCategoryListElement(i);
+           else if(type == VueMetadataElement.CATEGORY)
                return getCategoryListElement(i);
            else if(type == VueMetadataElement.ONTO_TYPE)
                return getOntologyListElement(i);
@@ -526,6 +612,10 @@ public class MetadataList {
         
         public void set(int i,VueMetadataElement ele)
         {
+           if(type == VueMetadataElement.RESOURCE_CATEGORY)
+           {
+               setRCategoryListElement(i,ele);
+           } else
            if(type == VueMetadataElement.CATEGORY)
                setCategoryListElement(i,ele);
            else if(type == VueMetadataElement.ONTO_TYPE)
@@ -551,6 +641,12 @@ public class MetadataList {
       int categoryEndIndex = 0;
       int ontologyEndIndex = 0;
       int otherEndIndex = 0;
+      int rCategoryEndIndex = 0; // RESOURCE_CATEGORY
+      
+      public int getRCategoryEndIndex()
+      {
+          return rCategoryEndIndex;
+      }
       
       public int getCategoryEndIndex()
       {
@@ -629,7 +725,26 @@ public class MetadataList {
               add(ontologyEndIndex++,(E)vme);
           }
           else
-          if(vme.getObject() instanceof String[] || vme.getType() == VueMetadataElement.CATEGORY )
+          if(vme.getType() == VueMetadataElement.RESOURCE_CATEGORY && vme.getObject() instanceof String[] )
+          {
+              if(DEBUG_LOCAL)
+              {
+                  System.out.println("MetadataList adding RESOURCE_CATEGORY " + vme.getValue());
+              }
+              
+              ontologyEndIndex++;
+              categoryEndIndex++;
+              otherEndIndex++;
+              add(rCategoryEndIndex++,(E)vme);
+              
+              if(DEBUG_LOCAL)
+              {
+                  System.out.println("MetadataList adding RESOURCE_CATEGORY rCategoryIndex is now: " + rCategoryEndIndex);
+              }
+              
+          }
+          else
+          if(vme.getObject() instanceof String[] && vme.getType() == VueMetadataElement.CATEGORY )
           {
               ontologyEndIndex++;
               otherEndIndex++;
@@ -645,7 +760,23 @@ public class MetadataList {
       
       public E remove(int i)
       {
-          if(i < categoryEndIndex)
+          if(i < rCategoryEndIndex)
+          {
+              rCategoryEndIndex --;
+              if(categoryEndIndex > 0)
+              {    
+                ontologyEndIndex--;
+              }
+              if(ontologyEndIndex > 0)
+              {    
+                ontologyEndIndex--;
+              }
+              if(otherEndIndex > 0)
+              {
+                otherEndIndex--;
+              }
+          }
+          if(i < categoryEndIndex && i >= rCategoryEndIndex)
           {
               categoryEndIndex--;
               if(ontologyEndIndex > 0)
