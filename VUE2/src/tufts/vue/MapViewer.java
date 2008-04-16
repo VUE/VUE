@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.527 $ / $Date: 2008-04-16 19:18:30 $ / $Author: mike $ 
+ * @version $Revision: 1.528 $ / $Date: 2008-04-16 23:06:25 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1876,7 +1876,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
         //if (hit != null && VueSelection.size() <= 1)
         if (hit != null)
-            setRollover(hit);
+            setRollover(hit); // todo: try checking allowsRollover and triggering the clear & see if helps with the flashing cases
         else
             clearRollover();
         
@@ -1894,9 +1894,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //private double mZoomoverOldScale;
     //private Point2D mZoomoverOldLoc = null;
 
-    private static boolean allowsZoomedRollover(LWComponent c) {
+    private  boolean allowsZoomedRollover(LWComponent c) {
         //if (c == null || c instanceof LWLink || c instanceof LWPortal || c instanceof LWSlide)
-        if (c == null || c instanceof LWLink || c instanceof LWPortal)
+        if (c == null || c == getFocal() || c instanceof LWLink || c instanceof LWPortal)
             return false;
         else
             return true;
