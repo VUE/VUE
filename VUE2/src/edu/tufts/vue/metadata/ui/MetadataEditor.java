@@ -1915,7 +1915,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
              else if(currentMultiples !=null)
              {
                //MetadataList.CategoryFirstList list = (MetadataList.CategoryFirstList)currentMultiples.getMetadataList().getMetadata();
-               int size = current.getMetadataList().getCategoryListSize();
+               int size = currentMultiples.getMetadataList().getCategoryListSize();
                //int size = current.getMetadataList().getMetadata().size();
                if(size > 0)
                    return size;
