@@ -194,6 +194,22 @@ public class MetadataList {
         }
     }
     
+    public void setCategoryListElement(int i,VueMetadataElement ele)
+    {
+        int index = i;
+        try
+        {        
+          if(getCategoryListSize() > 0 && index < metadataList.size())
+            metadataList.set(index,ele);
+          else
+            return;
+        }
+        catch(Exception e)
+        {
+            return;
+        }
+    }
+    
     public int getCategoryListSize()
     {
         return ((CategoryFirstList)metadataList).getCategoryEndIndex();
@@ -212,6 +228,22 @@ public class MetadataList {
         catch(Exception e)
         {
             return new VueMetadataElement();
+        }
+    }
+    
+    public void setOntologyListElement(int i,VueMetadataElement ele)
+    {
+        int index = i+((CategoryFirstList)metadataList).getCategoryEndIndex();
+        try
+        {        
+          if(getOntologyListSize() > 0 && index < metadataList.size())
+            metadataList.set(index,ele);
+          else
+            return;
+        }
+        catch(Exception e)
+        {
+            return;
         }
     }
     
@@ -241,6 +273,22 @@ public class MetadataList {
         catch(Exception e)
         {
             return new VueMetadataElement();
+        }
+    }
+    
+    public void setOtherListElement(int i,VueMetadataElement ele)
+    {
+        int index = i+((CategoryFirstList)metadataList).getOntologyEndIndex();
+        try
+        {        
+          if(getOtherListSize() > 0 && index < metadataList.size())
+            metadataList.set(index,ele);
+          else
+            return;
+        }
+        catch(Exception e)
+        {
+            return;
         }
     }
     
@@ -398,6 +446,64 @@ public class MetadataList {
             this.type = type;
         }
         
+        public int indexOf(VueMetadataElement vme)
+        {   
+           int size = 0;
+           if(type == VueMetadataElement.CATEGORY)
+               size = getCategoryListSize();
+           else if(type == VueMetadataElement.ONTO_TYPE)
+               size = getOntologyListSize();
+           else
+               size = getOtherListSize();
+           
+           for(int i=0;i<size;i++)
+           {
+               if(type == VueMetadataElement.CATEGORY)
+                  if(getCategoryListElement(i).equals(vme))
+                      return i;
+               else if(type == VueMetadataElement.ONTO_TYPE)
+                  if(getOntologyListElement(i).equals(vme))
+                      return i;
+               else
+                  if(getOtherListElement(i).equals(vme))
+                      return i;
+           }
+           
+           return -1;
+        }
+        
+        public boolean contains(VueMetadataElement vme)
+        {  
+           int size = 0;
+           if(type == VueMetadataElement.CATEGORY)
+               size = getCategoryListSize();
+           else if(type == VueMetadataElement.ONTO_TYPE)
+               size = getOntologyListSize();
+           else
+               size = getOtherListSize();
+           
+           for(int i=0;i<size;i++)
+           {
+               if(type == VueMetadataElement.CATEGORY)
+                  if(getCategoryListElement(i).equals(vme))
+                      return true;
+               else if(type == VueMetadataElement.ONTO_TYPE)
+                  if(getOntologyListElement(i).equals(vme))
+                      return true;
+               else
+                  if(getOtherListElement(i).equals(vme))
+                      return true;
+           }
+           
+           return false;
+        }
+        
+        public void add(VueMetadataElement vme)
+        {
+            ((CategoryFirstList)getMetadata()).add(vme);
+        }
+        
+        
         public int size()
         {
            if(type == VueMetadataElement.CATEGORY)
@@ -416,6 +522,16 @@ public class MetadataList {
                return getOntologyListElement(i);
            else
                return getOtherListElement(i);            
+        }
+        
+        public void set(int i,VueMetadataElement ele)
+        {
+           if(type == VueMetadataElement.CATEGORY)
+               setCategoryListElement(i,ele);
+           else if(type == VueMetadataElement.ONTO_TYPE)
+               setOntologyListElement(i,ele);
+           else
+               setOtherListElement(i,ele);            
         }
         
         public java.util.List getList()

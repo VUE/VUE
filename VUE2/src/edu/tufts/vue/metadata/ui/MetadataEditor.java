@@ -854,7 +854,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
          current = active;
          
          
-         if(current!=null && MetadataEditor.this.current.getMetadataList().getMetadata().size() == 0)
+         if(current!=null && MetadataEditor.this.current.getMetadataList().getCategoryListSize() == 0)
          {
            VueMetadataElement vme = new VueMetadataElement();
            String[] emptyEntry = {NONE_ONT,""};
@@ -1030,9 +1030,9 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                
                Object currObject = null;
                if(current != null)
-                       currObject = current.getMetadataList().getMetadata().get(row).getObject();//table.getModel().getValueAt(row,col);
+                       currObject = current.getMetadataList().getCategoryList().get(row).getObject();//table.getModel().getValueAt(row,col);
                else if(currentMultiples!=null)
-                       currObject = currentMultiples.getMetadataList().getMetadata().get(row).getObject();//table.getModel().getValueAt(row,col);
+                       currObject = currentMultiples.getMetadataList().getCategoryList().get(row).getObject();//table.getModel().getValueAt(row,col);
                Object currValue = (((String[])currObject)[0]);
                boolean found = findCategory(currValue,row,col,n,categories); 
               
@@ -1331,24 +1331,24 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                     {
                       // also need to add/set for individuals in group.. todo: subclass LWGroup to do this?
                       // in the meantime just set these by hand
-                      if(currentMultiples.getMetadataList().getMetadata().size() > (row))
+                      if(currentMultiples.getMetadataList().getCategoryListSize() > (row))
                       {
-                        VueMetadataElement oldVME = currentMultiples.getMetadataList().getMetadata().get(row);  
+                        VueMetadataElement oldVME = currentMultiples.getMetadataList().getCategoryList().get(row);  
                           
-                        currentMultiples.getMetadataList().getMetadata().set(row,vme);
+                        currentMultiples.getMetadataList().getCategoryList().set(row,vme);
                         
                         java.util.Iterator<LWComponent> multiples = currentMultiples.getAllDescendents().iterator();
                         while(multiples.hasNext())
                         {
                           LWComponent multiple = multiples.next();
-                          java.util.List<VueMetadataElement> md = multiple.getMetadataList().getMetadata();
+                          MetadataList.SubsetList md = multiple.getMetadataList().getCategoryList();
                           if(md.contains(oldVME))
                           {
                               md.set(md.indexOf(oldVME),vme);
                           }
                           else
                           {
-                              md.add(vme);
+                              multiple.getMetadataList().getMetadata().add(vme);
                           }
                         }
                         
@@ -1361,23 +1361,23 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                         while(multiples.hasNext())
                         {
                           LWComponent multiple = multiples.next();
-                          java.util.List<VueMetadataElement> md = multiple.getMetadataList().getMetadata();
+                          MetadataList.SubsetList md = multiple.getMetadataList().getCategoryList();
                           if(md.contains(vme))
                           {
                               md.set(md.indexOf(vme),vme);
                           }
                           else
                           {
-                              md.add(vme);
+                              multiple.getMetadataList().getMetadata().add(vme);
                           }
                         }
                       }  
                     }
                     else if(current !=null)
                     {    
-                      if(current.getMetadataList().getMetadata().size() > (row))
+                      if(current.getMetadataList().getCategoryListSize() > (row))
                       {
-                        current.getMetadataList().getMetadata().set(row,vme);
+                        current.getMetadataList().getCategoryList().set(row,vme);
                       }
                       else
                       {
@@ -1463,7 +1463,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                       }
                   }
                   
-                  java.util.List<VueMetadataElement> metadata = null;
+                  //java.util.List<VueMetadataElement> metadata = null;
+                  MetadataList.SubsetList metadata = null;
                   
                   if(previousCurrent == null && current == null &&
                        previousMultiples == null && currentMultiples ==  null)
@@ -1473,24 +1474,24 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                   else
                   if(previousCurrent != null && !focusToggle)
                   {
-                     metadata = previousCurrent.getMetadataList().getMetadata();
+                     metadata = previousCurrent.getMetadataList().getCategoryList();
                   } 
                   else if(previousCurrent != null && !focusToggle)
                   {
-                     metadata = previousCurrent.getMetadataList().getMetadata();
+                     metadata = previousCurrent.getMetadataList().getCategoryList();
                   }   
                   else 
                   {
                      if( currentMultiples!=null )
                      {    
-                       metadata = currentMultiples.getMetadataList().getMetadata();
+                       metadata = currentMultiples.getMetadataList().getCategoryList();
                      }
                      else if( current!=null )
                      {
                        //going in this order should mean current == null is not
                        // needed on selection of more than one component..
                          
-                       metadata = current.getMetadataList().getMetadata();   
+                       metadata = current.getMetadataList().getCategoryList();   
                      }
                   }
                   
@@ -1539,7 +1540,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                         while(children.hasNext())
                         {
                             LWComponent child = (LWComponent)children.next();
-                            java.util.List<VueMetadataElement> cMeta = child.getMetadataList().getMetadata();
+                            MetadataList.SubsetList cMeta = child.getMetadataList().getCategoryList();
                             int size = cMeta.size();
                             if(size > 0 && cMeta.get(size-1).getValue().equals(""))
                             {
@@ -1555,7 +1556,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                                 cMeta.set(cMeta.indexOf(old),vme);
                               }
                               else
-                                cMeta.add(vme);
+                                child.getMetadataList().getMetadata().add(vme);
                             child.layout();
                             // also might need VUE activelistener repaint
                         }
@@ -1591,11 +1592,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                
                if(currentMultiples != null)
                {
-                 currObject = currentMultiples.getMetadataList().getMetadata().get(row).getObject();  
+                 currObject = currentMultiples.getMetadataList().getCategoryListElement(row).getObject();  
                }
                else if(current != null)
                {    
-                 currObject = current.getMetadataList().getMetadata().get(row).getObject();
+                 currObject = current.getMetadataList().getCategoryListElement(row).getObject();
                }
                final Object currValue = (((String[])currObject)[0]);
                Object currFieldValue = (((String[])currObject)[1]);
@@ -1772,7 +1773,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
       
      }
     
-    public class CreatorFilterModel extends MetadataTableModel
+    /*public class CreatorFilterModel extends MetadataTableModel
     {
         private int firstCreatorRow = -1;
         
@@ -1802,7 +1803,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
             else
                 return super.getValueAt(row-1,column); 
         }
-    }
+    }*/
     
     /**
      *
@@ -1978,13 +1979,20 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                  return "null";
              else if(currentMultiples != null)
              {
-               java.util.List<VueMetadataElement> list = currentMultiples.getMetadataList().getMetadata();
+               /*java.util.List<VueMetadataElement> list = currentMultiples.getMetadataList().getMetadata();
              
                if(list.size() == 0)
                  addNewRow();
                else
                if(list.size() < row + 1)
-                 return null;
+                 return null;*/
+                 
+               if(currentMultiples.getMetadataList().getCategoryListSize() == 0)
+                 addNewRow();
+               else
+                 if(currentMultiples.getMetadataList().getCategoryListSize() < row + 1)
+                   return null;
+                 
                //while(list.size() < row + 1)
                //  addNewRow();
              
@@ -1992,13 +2000,20 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                //return current.getMetadataList().getMetadata().get(row);                 
              }
              
-               java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();
+             /*java.util.List<VueMetadataElement> list = current.getMetadataList().getMetadata();
              
              if(list.size() == 0)
                  addNewRow();
              else
              if(list.size() < row + 1)
-                 return null;
+                 return null; */
+             
+             if(current.getMetadataList().getCategoryListSize() == 0)
+                 addNewRow();
+             else
+                 if(current.getMetadataList().getCategoryListSize() < row + 1)
+                   return null;
+             
              //while(list.size() < row + 1)
              //  addNewRow();
              
