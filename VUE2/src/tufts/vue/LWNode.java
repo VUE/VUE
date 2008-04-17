@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.214 $ / $Date: 2008-04-16 22:25:58 $ / $Author: sfraize $
+ * @version $Revision: 1.215 $ / $Date: 2008-04-17 21:44:06 $ / $Author: anoop $
  * @author Scott Fraize
  */
 
@@ -886,13 +886,14 @@ public class LWNode extends LWContainer
             } else {
                 deleteChildPermanently(image);
             }
-            if (r instanceof Osid2AssetResource) {
-                try {
-                    loadAssetToVueMetadata((Osid2AssetResource) r);
-                } catch (Throwable t) {
-                    Log.error(r, t);
-                }
-            }
+// commented for now. Need to think of an elegant way of implementing this.
+//            if (r instanceof Osid2AssetResource) {
+//                try {
+//                    loadAssetToVueMetadata((Osid2AssetResource) r);
+//                } catch (Throwable t) {
+ //                   Log.error(r, t);
+ //               }
+ //           }
         } else if (r.isImage()) {
             final LWImage imageIcon = new LWImage();
             addChild(imageIcon);
