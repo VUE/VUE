@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.70 $ / $Date: 2008-04-16 20:45:23 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2008-04-17 02:10:48 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -232,6 +232,7 @@ public abstract class Resource implements Cloneable
     }
     
     protected void setByteSize(long size) {
+        if (DEBUG.RESOURCE) dumpField("setByteSize", size);
         mByteSize = size;
     }
     
