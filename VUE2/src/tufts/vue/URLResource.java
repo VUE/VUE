@@ -55,7 +55,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.67 $ / $Date: 2008-04-16 20:46:21 $ / $Author: sfraize $
+ * @version $Revision: 1.68 $ / $Date: 2008-04-17 02:08:30 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -260,8 +260,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
     }
 
-
-    // can move this to Resource -- is generic enough
+    /**
+     * Set the local file that refers to this resource, if there is one.
+     * If mFile is set, mDataFile will always to same.  If this is a packaged
+     * resource, mFile will NOT be set, but mDataFile should be set to the package file
+     */
     private Object setDataFile(File file, Object type)  
     {
         // TODO performance: can skip isDirectory and exists tests if we
@@ -292,6 +295,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         }
         
         mDataFile = file;
+
+        if (mDataFile != mFile) {
+            setByteSize(mDataFile.length());
+            mLastModified = mDataFile.lastModified();
+        }
         
         if (DEBUG.RESOURCE) {
             dumpField("setDataFile", file);
@@ -995,10 +1003,16 @@ public class URLResource extends Resource implements XMLUnmarshalListener
      * This currently only monitors local disk resources (e.g., not web resources).
      */
     @Override
-    public boolean dataHasChanged() {
+    public boolean dataHasChanged()
+    {
+        final File file;
 
-        // we only bother to check this for local files
-        if (mFile != null) {
+        if (mDataFile != null)
+            file = mDataFile; // in case user edits a pacakge file
+        else
+            file = mFile;
+
+        if (file != null) {
 
             // Not an ideal impl, as only the first caller will find out if
             // the data has changed.  Ideally, Resources will have to
@@ -1008,13 +1022,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             // care of finding all objects that need updating once
             // this ever returns true.
             
-            final long curLastMod = mFile.lastModified();
-            final long curSize = mFile.length();
+            final long curLastMod = file.lastModified();
+            final long curSize = file.length();
             if (curLastMod != mLastModified || curSize != getByteSize()) {
                 if (true||DEBUG.Enabled) {
                     long diff = curLastMod - mLastModified;
                     out(TERM_CYAN
-                        + Util.tags(mFile)
+                        + Util.tags(file)
                         + "; lastMod=" + new Date(curLastMod)
                         + "; timeDelta=" + (diff/100) + " seconds"
                         + "; sizeDelta=" + (curSize-getByteSize()) + " bytes"
