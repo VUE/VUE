@@ -34,12 +34,14 @@ import tufts.vue.*;
 public class TestConnectivityMatrix extends TestCase {
     
  public void testConnectivityMatrixCreation() {
+     tufts.vue.gui.GUI.init();
      LWMap map = edu.tufts.vue.compare.Util.getMap();
      ConnectivityMatrix matrix = new ConnectivityMatrix(map);
      
  }
  
  public void testConnectivityMatrixSave() {
+     tufts.vue.gui.GUI.init();
      LWMap map = edu.tufts.vue.compare.Util.getMap();
      ConnectivityMatrix matrix = new ConnectivityMatrix(map);
      URL url = edu.tufts.vue.TestResources.getURL("ConnectivityMatrixTest");
