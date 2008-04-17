@@ -50,6 +50,7 @@ import tufts.vue.Resource;
 import tufts.vue.VUE;
 import tufts.vue.gui.GUI;
 
+import javax.swing.JButton;
 /**
 *
 * This works somewhat analogous to a JTable, except that the renderer's are persistent.
@@ -189,7 +190,7 @@ public class MetaDataPane extends JPanel
                }
            }
            
-
+           
            mValues[i].addMouseListener(CommonURLListener);
            
        }
@@ -612,6 +613,19 @@ public class MetaDataPane extends JPanel
        c.gridx = 0;
        c.fill = GridBagConstraints.BOTH;
        c.gridwidth = GridBagConstraints.REMAINDER;
+       //this truly doesn't allow users to edit metdata all the time
+       // They can edit it only if they have permissions and the metdata will be
+       // published to dublin core supported repository
+//       JButton editMetadataButton  = new JButton(new String("Edit"));
+//       c.weighty =0;
+//       c.weightx =0;
+//       c.gridx =1;
+//       c.fill = GridBagConstraints.NONE;
+//       c.anchor = GridBagConstraints.NORTHEAST;
+//       gridBag.add(editMetadataButton,c);
+       
+       
+       
        JComponent defaultExpander = new JPanel();
        defaultExpander.setPreferredSize(new Dimension(Short.MAX_VALUE, 1));
        if (DEBUG.BOXES) {
