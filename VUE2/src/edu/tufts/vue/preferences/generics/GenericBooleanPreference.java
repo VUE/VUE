@@ -125,7 +125,7 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
         value.setBackground(Color.WHITE);
         
         booleanPanel.add(value);
-        
+        System.out.println("MESSAGE : " + getMessage());
         booleanPanel.add(new JLabel(getMessage()));
         getCheckBox().addItemListener(this);
         getCheckBox().setSelected(((Boolean)getValue()).booleanValue());
@@ -145,7 +145,7 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
 	}
 	
 	public void setMessage(String s){
-		this.message = s;
+		message = s;
 	}
 	
 	public void setValue(Object b)

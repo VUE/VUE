@@ -23,11 +23,17 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 	private String name;
 	private String key;
 	private String description;
+	//private String message;
 	private Object defaultValue;
 
+	public static BooleanPreference create(String category, String key, String name, String desc, String message,Object defaultValue, boolean showInUI)
+	{
+		return new BooleanPreference(category,key,name,desc,message,defaultValue,showInUI);
+	}
+	
 	public static BooleanPreference create(String category, String key, String name, String desc, Object defaultValue, boolean showInUI)
 	{
-		return new BooleanPreference(category,key,name,desc,defaultValue,showInUI);
+		return new BooleanPreference(category,key,name,desc,null,defaultValue,showInUI);
 	}
 	/**
 	 * Example Usage:
@@ -41,10 +47,10 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 	//show in UI defaults to true
 	public static BooleanPreference create(String category, String key, String name, String desc, Object defaultValue)
 	{
-		return new BooleanPreference(category,key,name,desc,defaultValue,true);
+		return new BooleanPreference(category,key,name,desc,null,defaultValue,true);
 	}
 	
-	private BooleanPreference(String category, String key, String name, String desc, Object defaultValue, boolean showInUI)
+	private BooleanPreference(String category, String key, String name, String desc, String message, Object defaultValue, boolean showInUI)
 	{
 		super(key,defaultValue);
 		this.category=category;
@@ -52,6 +58,10 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 		this.name = name;
 		this.description = desc;
 		this.defaultValue = defaultValue;
+		if (message != null)
+			setMessage(message);
+		else
+			setMessage(name);
 	
 		edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
 	}
@@ -60,14 +70,11 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 	{
 		return defaultValue;
 	}
+		
 	public String getDescription() { 
 		return description;
 	}
 
-	public String getMessage()
-	{
-		return name;
-	}
 	public String getTitle() {
 		return name;
 	}
