@@ -25,6 +25,7 @@ import tufts.vue.VueResources;
 import tufts.vue.DEBUG;
 
 import java.util.*;
+import java.io.File;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -42,10 +43,12 @@ import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
+import sun.awt.shell.ShellFolder;
+
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.99 $ / $Date: 2008-04-15 04:22:57 $ / $Author: sfraize $
+ * @version $Revision: 1.100 $ / $Date: 2008-04-18 01:08:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -639,56 +642,88 @@ public class GUI
 //     }
 
     private static final Image NULL_IMAGE = NoImage32; // any image would do
-    
-    private static final Map<String,Image> IconCache = new java.util.concurrent.ConcurrentHashMap<String,Image>() {
-            @Override
-            public Image put(String key, Image image) {
-                if (DEBUG.Enabled||DEBUG.IMAGE) Log.debug("caching " + key + "=" + Util.tags(image));
-                if (image == null)
-                    return super.put(key, NULL_IMAGE);
-                else
-                    return super.put(key, image);
-            }
-// May not be safe for internal hash map functions if this can return null?
-//             @Override
-//             public Image get(String key) {
-//                 final Image image = super.get(key);
-//                 if (image == NULL_IMAGE)
-//                     return null
-//                 else
-//                     return image;
-//             }
-        };
 
-            
+    private static class ImageIconCache {
+
+        final Map map = new java.util.concurrent.ConcurrentHashMap();
+        
+        public void put(String key, Object image) {
+            if (DEBUG.IO||DEBUG.IMAGE) Log.debug(String.format("caching %10s: %s", key, Util.tags(image)));
+            if (image == null)
+                map.put(key, NULL_IMAGE);
+            else
+                map.put(key, image);
+        }
+        
+        public void put(String ext, int size, Object image) {
+            put(ext + "." + size, image);
+        }
+
+        public Image get(String key) {
+            return (Image) map.get(key);
+        }
+        
+        public Image get(String ext, int size)
+        {
+            final String key = ext + "." + size;
+            final Object entry = map.get(key);
+            final Image image;
+
+            if (entry instanceof ShellFolder) {
+                if (size == 16)
+                    image = ((ShellFolder)entry).getIcon(SMALL_ICON);
+                else
+                    image = ((ShellFolder)entry).getIcon(LARGE_ICON);
+
+                // now that we've unpacked the ShellFolder version,
+                // we can put the real image into the cache:
+                put(key, image);
+            }
+            else {
+                image = (Image) entry;
+            }
+
+            return image;
+        }
+    }
+
+
+        
+    private static final ImageIconCache IconCache = new ImageIconCache(); 
+
+    private static final boolean LARGE_ICON = true;
+    private static final boolean SMALL_ICON = false;
+
+    private static final String TmpIconDir = VUE.getSystemProperty("java.io.tmpdir");
     
     public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
-          
-        if(ext.equalsIgnoreCase(Resource.EXTENSION_VUE)) {
-            String desiredKey = "vueIcon64x64";
-// commenting this for now. The image looks small in the Resource Window            
-//            if(sizeRequest == 16) {
-//                desiredKey = "vueIcon16x16";
-//            }
-            Image image = IconCache.get(desiredKey);
-            if(image == null)  {
-                image= tufts.vue.VueResources.getImage(desiredKey);
-                IconCache.put(desiredKey,image);
-            }
-             return image;
-        }
-        if (ext == Resource.EXTENSION_HTTP)
-            ext = "htm";
-        
+        if (DEBUG.IO) Log.debug("icon fetch: " + ext + "@" + sizeRequest);
+
         if (ext == null)
             return null;
-
+        
         ext = ext.toLowerCase();
         
+        if (ext.equals(Resource.EXTENSION_VUE)) {
+            final String key = "vueIcon" + sizeRequest;
+            Image image = IconCache.get(key);
+            if (image == null)  {
+                image = tufts.vue.VueResources.getImage(key);
+                if (image == null)
+                    image = tufts.vue.VueResources.getImage("vueIcon64");
+                IconCache.put(key, image);
+            }
+            return image;
+        }
+
+        if (ext == Resource.EXTENSION_HTTP)
+            ext = "htm";
+
         if (Util.isMacPlatform()) {
-            // caching hanled by the tufts.macosx.MacOSX code
+
             return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
+            
 //             Image image = tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
 //             // May need an unknown type for each likely sizeRequest
 //             if ((image == null || image == UNKNOWN_TYPE) && ("readme".equals(ext) || "msg".equals(ext)))
@@ -696,60 +731,86 @@ public class GUI
 //             return image;
         }
 
-        final String largeKey = ext + ".32"; // are larger options available on Vista?
-        final String smallKey = ext + ".16"; // don't really need to construct both keys each time if is already in cache...
-        final String desiredKey;
-
-        final boolean largeDesired = sizeRequest > 16; // presume only 16x16 & 32x32 icons avail as per WinXP
-
-        if (largeDesired)
-            desiredKey = largeKey;
-        else
-            desiredKey = smallKey;
         
-        Image image = IconCache.get(desiredKey);
+        //-----------------------------------------------------------------------------
+        // Below happens for non-Mac platforms only: Windows, Linux, (etc?)
+        //-----------------------------------------------------------------------------
 
+        Image image = IconCache.get(ext, sizeRequest);
+        
         if (image != null) {
-            if (image == NULL_IMAGE)
+            if (DEBUG.IO) Log.debug(String.format("cache hit %8s: %s", ext + "." + sizeRequest, Util.tags(image)));
+            if (image == NULL_IMAGE) {
                 return null;
-            else
+            } else {
                 return image;
+            }
         }
 
-        // proceed the slow way, but all we can do until we have jdic/jdesktop and they actually handle this for us:
-
-        java.io.File file = null;
-        java.io.File root = null;
-
-        Image largeIcon = null;
-        Image smallIcon = null;
+        // proceed the SLOW way, but all we can do until we have jdic/jdesktop and they actually handle this for us:
 
         try {
-            if ("dir.".equalsIgnoreCase(ext)) {
-                root = new java.io.File(VUE.getSystemProperty("java.home"));
-                sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(root);
-                if (DEBUG.Enabled) out("got 'root' ShellFolder: " + Util.tag(shellFolder));
-                image = shellFolder.getIcon(true);
+
+            final File file;
+
+            if ("dir".equals(ext)) {
+                file = new File(TmpIconDir); // a guaranteed vanilla directory we should be able to find
             } else {
-                //Create a temporary file with the specified extension
-                file = java.io.File.createTempFile("icon", "." + ext);
-                sun.awt.shell.ShellFolder shellFolder = sun.awt.shell.ShellFolder.getShellFolder(file);
-                if (DEBUG.IO) Log.debug("created " + file);
-                largeIcon = shellFolder.getIcon(true);
-                smallIcon = shellFolder.getIcon(false);
+                file = new File(TmpIconDir + File.separator + "vueIcon." + ext);
+                if (file.createNewFile()) 
+                    if (DEBUG.Enabled) Log.debug("created " + file);
+                // we deliberately leave the above files behind, so that hopefully
+                // future runs of VUE on this machine will be faster
             }
+
+            // You MUST have found or created a real, actual file for ShellFolder
+            // to work.
+            
+            final ShellFolder shellFolder = ShellFolder.getShellFolder(file);
+            final Object large, small;
+
+            if (shellFolder == null)
+                throw new NullPointerException("no ShellFolder");
+
+            if (sizeRequest <= 24) {
+                image = shellFolder.getIcon(SMALL_ICON);
+                
+                small = image;
+                large = shellFolder; // can be fetched later
+                
+            } else {
+                image = shellFolder.getIcon(LARGE_ICON);
+                
+                small = shellFolder;  // can be fetched later
+                large = image;
+            }
+            
+            // We assume here that on Windows platforms, small is always 16x16, and large is always 32x32
+            // See IconCache code that also depends on this.
+
+            IconCache.put(ext, 16, small); 
+            IconCache.put(ext, 32, large);
+            
+            if (image != null) {
+                if (image.getHeight(null) != sizeRequest) {
+                    if (DEBUG.IO || DEBUG.IMAGE)
+                        Log.debug(Util.TERM_RED
+                                  + "image size doesn't match request size for key [" + ext + "." + sizeRequest + "]: "
+                                  + Util.tags(image)
+                                  + Util.TERM_CLEAR);
+                    IconCache.put(ext, sizeRequest, image);
+                }
+            } else {
+                throw new NullPointerException("no Image");
+            }
+            
         } catch (Throwable t) {
-            Log.debug("Could not generate Icon for filetype : " + ext + "; " + t);
+            //Log.warn("could not get Icon for filetype: " + ext + "." + sizeRequest + "; ", t);
+            Log.warn("could not get Icon for filetype: " + ext + "." + sizeRequest + "; " + t);
+            IconCache.put(ext, sizeRequest, null);
         }
-        finally {
-            if (file != null)
-                file.delete();
-        }
-        
-        IconCache.put(largeKey, largeIcon);
-        IconCache.put(smallKey, smallIcon);
-        
-        return largeDesired ? largeIcon : smallIcon;
+
+        return image;
     }
 
     /** these may change at any time, so we must fetch them newly each time */
