@@ -31,6 +31,7 @@ public class PreferenceConstants
 		 * for examples.
 		 */
 		public static final String MAPDISPLAY_CATEGORY="mapdisplay";
+		public static final String PRESENTATION_CATEGORY="presentation";
 		public static final String INTERACTIONS_CATEGORY="interactions";
 		public static final String METADATA_CATEGORY="metadata";
 		public static final String WINDOW_CATEGORY="windows";

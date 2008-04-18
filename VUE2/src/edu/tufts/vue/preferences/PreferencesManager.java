@@ -42,6 +42,7 @@ public class PreferencesManager {
 		
 		categories.add(PreferenceConstants.MAPDISPLAY_CATEGORY);
 		categories.add(PreferenceConstants.INTERACTIONS_CATEGORY);
+		categories.add(PreferenceConstants.PRESENTATION_CATEGORY);
 		categories.add(PreferenceConstants.METADATA_CATEGORY);
 		categories.add(PreferenceConstants.WINDOW_CATEGORY);
 	  }
