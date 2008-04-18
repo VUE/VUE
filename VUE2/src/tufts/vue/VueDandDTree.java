@@ -46,15 +46,11 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.38 $ / $Date: 2008-04-14 22:35:30 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2008-04-18 01:24:05 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
     
-//     private static Icon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-//     private static        Icon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-//     private static        Icon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
-
     private final int ACCEPTABLE_DROP_TYPES =
             DnDConstants.ACTION_COPY |
             DnDConstants.ACTION_LINK |
@@ -174,11 +170,12 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                     Resource resource = (Resource) iter.next();
                     if (DEBUG.DND) System.out.println("RESOURCE FOUND: " + resource+ " type ="+ resource.getClientType()+ " resource class:"+resource.getClass());
                     ResourceNode newNode;
-                    //if(resource.getClientType() == Resource.FILE || resource.getClientType() == Resource.DIRECTORY) {
+
+                    // TODO: ALL THIS CODE IS IDENNTICAL TO THAT IN DataSourceList
                     if (resource.isLocalFile()) {
-                        //newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
-                        newNode = new CabinetNode(resource,CabinetNode.LOCAL);
-                        CabinetResource cr = (CabinetResource)newNode.getResource();
+
+                        final CabinetResource cr = (CabinetResource) resource;
+                        newNode = new CabinetNode(cr, CabinetNode.LOCAL);
                         if(DEBUG.DND) System.out.println("CABINET RESOURCE: " + resource+ "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
                     } else {
                         newNode    =new  ResourceNode(resource);
@@ -196,7 +193,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                     File file = (File)iter.next();
                     System.out.println("File Drop: " +file);
                     try{
-                        LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+                        final LocalFilingManager manager = LocalFileDataSource.getLocalFilingManager();
                         osid.shared.Agent agent = null;
                         LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
                         CabinetResource res = CabinetResource.create(cab);
@@ -337,8 +334,21 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             final Resource r = node.getResource();
             final int level = node.getLevel();
 
-            if (leaf && level == 1 && r != null && r.isImage() && !r.isLocalFile()) {
-                Icon icon = r.getContentIcon(tree);
+            if (level == 1 && r != null) {
+                // Items at the top level are treated differently
+                Icon icon = null;
+                
+                if (leaf && r.isImage() /* &&!r.isLocalFile()*/ ) {
+                    
+                    // This will allow image content to show an icon that shows the image itself
+                    icon = r.getContentIcon(tree);
+
+                } else if (DEBUG.Enabled && !leaf) {
+                    
+                    // This will make folder items appear at 32x32 instead of the default tiny 16x16
+                    icon = r.getLargeIcon();
+                }
+
                 if (icon != null) {
                     hasImageIcon = true;
                     superGetTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
@@ -346,6 +356,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                     setBorder(lineBorder);
                     return this;
                 }
+                
             }
 
             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
@@ -360,92 +371,9 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             
             return this;
         }
-
-        
-//         public Component X_getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
-//                                                       boolean expanded,boolean leaf,int row, boolean hasFocus)
-//         {
-//             super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-
-//             final ResourceNode node = (ResourceNode) value;
-//             final int level = node.getLevel();
-//             final Resource r = node.getResource();
-            
-//             //if (sel) setBackground(getTextSelectionColor());
-//             //else setBackground(Color.white);
-            
-//             hasImageIcon = false;
-
-//             //r.setRuntimeProperty("node", tufts.Util.tags(node));
-
-//             // TODO: really need to merge this code with VueDragTree version,
-//             // which currently produces better results (handles the platform
-//             // dependent open/close icons)
-            
-//             Icon icon = null;
-
-//             if (leaf && level == 1 && r.isImage()) {
-//                 icon = r.getContentIcon(tree);
-//                 if (icon != null) {
-//                     hasImageIcon = true;
-//                     setIcon(icon);
-//                     setBorder(lineBorder);
-//                     return this;
-//                 }
-//             }
-            
-            
-//             if (r.getClientType() == FAVORITES && !(node instanceof FileNode)) {
-//                 if (node.getChildCount() > 0 ) {
-//                     setIcon(activeIcon);
-//                 } else {
-//                     setIcon(inactiveIcon);
-//                 }
-//             } else if (leaf) {
-
-//                 if (tufts.Util.isMacPlatform()) {
-//                     // todo: not producing reasonable results on windows for some reason: leave alone for now
-//                     icon = r.getTinyIcon();
-//                 }
-
-//                 if (icon == null)
-//                     icon = nleafIcon;
-                
-//             } else {
-                
-// //                 if (tufts.Util.isMacPlatform()) {
-// //                     // todo: not producing reasonable results on windows for some reason: leave alone for now
-// //                     icon = r.getTinyIcon();
-// //                 }
-// //                 if (icon == null)
-// //                     icon = activeIcon;
-
-//                 if (node.getChildCount() > 0)
-//                     icon = activeIcon;
-//                 else
-//                     icon = inactiveIcon;
-//             }
-
-//             setIcon(icon);
-            
-
-//             // now that icon is set, set the border
-
-//             if (level != 1 || row == 0) {
-//                 setBorder(null);
-// //             } else if (hasImageIcon) {
-// //                 setBorder(lineBorder);
-// //                 //setIconTextGap(4);
-//             } else {
-//                 setBorder(leftInsetBorder);
-//                 //setIconTextGap(12);
-//             }
-            
-//             return this;
-//         }
-        
     }
-    
+
+        
     
     public void dragEnter(DropTargetDragEvent me) { }
     public void dragExit(DropTargetEvent e) {}

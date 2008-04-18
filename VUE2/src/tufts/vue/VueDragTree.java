@@ -47,8 +47,9 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.72 $ / $Date: 2008-04-16 20:47:24 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2008-04-18 01:24:05 $ / $Author: sfraize $
  * @author  rsaigal
+ * @author  Scott Fraize
  */
 public class VueDragTree extends JTree
     implements ResourceSelection.Listener,
@@ -61,18 +62,19 @@ public class VueDragTree extends JTree
     
     public static ResourceNode oldnode;
     private ResourceSelection resourceSelection = null;
-    protected static final ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
-    protected static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
-    protected static final ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+    
     private static final int DOUBLE_CLICK = 2;
-    ///private javax.swing.JPanel previewPanel = null;
-    //	private tufts.vue.gui.DockWindow previewDockWindow = null;
 
     private static final boolean SlowStartup = VueUtil.isMacPlatform() && !DEBUG.Enabled;
+    //private static final boolean SlowStartup = false;
     
+//     protected static final ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
+//     protected static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
+//     protected static final ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
+
     public VueDragTree(Iterable iterable, String treeName) {
-        //Util.printStackTrace("NEW: " + getClass() + "; " + treeName + "; " + obj);
-        if (DEBUG.Enabled) Log.debug("NEW: " + treeName + "; " + Util.tags(iterable));
+        if (DEBUG.DR) Log.debug("NEW: " + treeName + "; " + Util.tags(iterable));
+        //if (DEBUG.Enabled) Util.printStackTrace(Util.tags(this) + "; NEW " + getClass() + " " + treeName);
         setModel(createTreeModel(iterable, treeName));
         setName(treeName);
         setRootVisible(true);
@@ -95,9 +97,12 @@ public class VueDragTree extends JTree
                 Object c = path.getLastPathComponent();
                 if (c instanceof CabinetNode) {
                     CabinetNode cabNode = (CabinetNode) path.getLastPathComponent();
-                    Object uo = cabNode.getUserObject();
-                    if (uo instanceof Resource)
-                        ((Resource)uo).displayContent();
+                    Resource r = cabNode.getResource();
+                    if (r != null)
+                        r.displayContent();
+//                     Object uo = cabNode.getUserObject();
+//                     if (uo instanceof Resource)
+//                         ((Resource)uo).displayContent();
                 }
             }
         });
@@ -120,28 +125,6 @@ public class VueDragTree extends JTree
         if (DEBUG.SELECTION) Util.printStackTrace(GUI.namex(this) + " constructed from FavoritesNode " + favoritesNode);
         
     }
-
-    /*
-    public VueDragTree(Object  obj,
-                                           String treeName,
-                                           tufts.vue.gui.DockWindow previewDockWindow,
-                                           javax.swing.JPanel previewPanel) {
-        setModel(createTreeModel(obj, treeName));
-        this.setRootVisible(true);
-        this.expandRow(0);
-        this.expandRow(1);
-        this.setRootVisible(false);
-        implementDrag(this);
-        createPopupMenu();
-                this.previewPanel = previewPanel;
-                this.previewPanel.setPreferredSize(new java.awt.Dimension(100,100));
-                this.previewDockWindow = previewDockWindow;
-     
-                this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-                resourceSelection = VUE.getResourceSelection();
-        addTreeSelectionListener(this);
-    }
-     */
 
 
     public void addNotify() {
@@ -224,12 +207,17 @@ public class VueDragTree extends JTree
     
     
     private DefaultTreeModel createTreeModel(Iterable iterable, String treeName) {
-        ResourceNode root = new ResourceNode(Resource.getFactory().get(treeName));
+        //final Resource resourceRoot = Resource.getFactory().get(treeName);
+        //final ResourceNode root = new ResourceNode(resourceRoot);
+        final ResourceNode root = new RootNode(treeName);
+        if (DEBUG.Enabled) Log.debug("createTreeModel: " + root);
+        
         if (iterable != null) {
             Iterator i = iterable.iterator();
             while (i.hasNext()){
                 Object resource = i.next();
-                if (DEBUG.DR) Log.debug("\tchild: " + resource);
+                if (DEBUG.Enabled || DEBUG.RESOURCE || DEBUG.DR) Log.debug("\tchild: " + resource);
+
                 if (resource instanceof CabinetResource) {
                     CabinetResource cabRes = (CabinetResource) resource;
                     CabinetEntry entry = cabRes.getEntry();
@@ -256,7 +244,7 @@ public class VueDragTree extends JTree
         }
         return new DefaultTreeModel(root);
     }
-    
+
     //****************************************
     
     public void dragGestureRecognized(DragGestureEvent e) {
@@ -265,32 +253,13 @@ public class VueDragTree extends JTree
             TreePath path = getLeadSelectionPath();
             oldnode = (ResourceNode)path.getLastPathComponent();
             ResourceNode parentnode = (ResourceNode)oldnode.getParent();
-            //Object resource = getObject();
             Resource resource = oldnode.getResource();
             
             if (DEBUG.DND) System.out.println(this + " dragGestureRecognized " + e);
             if (DEBUG.DND) System.out.println("selected node is " + oldnode.getClass() + "[" + oldnode + "] resource=" + resource);
 
-            if (resource != null) {
+            if (resource != null) 
                 GUI.startRecognizedDrag(e, resource, this);
-            }
-            
-//             if (resource != null) {
-//                 Image imageIcon = nleafIcon.getImage();
-//                 if (resource.getClientType() == Resource.DIRECTORY) {
-//                     imageIcon = activeIcon.getImage();
-//                 } else if (oldnode instanceof CabinetNode) {
-//                     CabinetNode cn = (CabinetNode) oldnode;
-//                     if (!cn.isLeaf())
-//                         imageIcon = activeIcon.getImage();
-//                 }
-//                 e.startDrag(DragSource.DefaultCopyDrop, // cursor
-//                         imageIcon, // drag image
-//                         new Point(-10,-10), // drag image offset
-//                         new tufts.vue.gui.GUI.ResourceTransfer(resource),
-//                         //new VueDragTreeNodeSelection(resource), // transferable
-//                         this);  // drag source listener
-//             }
             
         }
     }
@@ -312,14 +281,6 @@ public class VueDragTree extends JTree
     }
     
     
-    public Object getObject() {
-        TreePath path = getLeadSelectionPath();
-        if (path == null)
-            return null;
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        return (node.getUserObject());
-    }
-    
     public void valueChanged(TreeSelectionEvent e) {
         try {
             if (e.isAddedPath() && e.getPath().getLastPathComponent() != null ) {
@@ -332,111 +293,6 @@ public class VueDragTree extends JTree
             ex.printStackTrace();
         }
     }
-    
-    class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
-        String meta = "";
-        protected final VueDragTree tree;
-        public VueDragTreeCellRenderer(VueDragTree vdTree) {
-            this.tree = vdTree;
-        }
-
-        protected void superGetTreeCellRendererComponent(
-                JTree tree,
-                Object value,
-                boolean sel,
-                boolean expanded,
-                boolean leaf,
-                int row,
-                boolean hasFocus)
-        {
-            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
-        }
-        
-        
-        /* -----------------------------------  */
-        
-        public Component getTreeCellRendererComponent(
-                JTree tree,
-                Object value,
-                boolean sel,
-                boolean expanded,
-                boolean leaf,
-                int row,
-                boolean hasFocus) {
-            super.getTreeCellRendererComponent(tree, value, sel,
-                    expanded, leaf, row,
-                    hasFocus);
-
-            //if (VueUtil.isMacPlatform()) {
-            if (true) {
-                if (leaf && value instanceof ResourceNode) {
-                    Resource r = ((ResourceNode)value).getResource();
-                    Icon icon = r.getTinyIcon();
-                    if (icon != null)
-                        setIcon(icon);
-//                     // TODO: standardize on URLResource / a to-be abstract Resource class,
-//                     // and cache the damn ImageIcon...  and TODO: if the image we
-//                     // get back is bigger than 16px, force a scale down (maybe in the
-//                     // GUI method call)
-//                     Image image = GUI.getSystemIconForExtension(r.getExtension(), 16);
-//                     //if (image != null && image.getWidth(null) <= 16)
-//                     if (image != null) {
-//                         if (image.getWidth(null) > 16)
-//                             image = image.getScaledInstance(16, 16, Image.SCALE_SMOOTH); // TODO: CACHE IN RESOURCE
-//                         setIcon(new javax.swing.ImageIcon(image)); // create imageicon that can force-scale down size
-//                     }
-                }
-                return this;
-            }
-            
-            
-            
-            if (value instanceof FavoritesNode) {
-                
-                if ( ((FavoritesNode)value).getChildCount() >0 ) {
-                    setIcon(activeIcon);
-                } else {
-                    setIcon(inactiveIcon);
-                }
-            } else if (leaf) {
-                                /*
-                                 If we are dealing with an Asset, we can see if it has a preview
-                                 */
-                if (value instanceof ResourceNode) {
-                    //Icon i = ((ResourceNode)value).getResource().getIcon();
-                    Icon i = null;
-                    if (i == null) {
-                        setIcon(nleafIcon);
-                    } else {
-                        setIcon(i);
-                    }
-                } else {
-                    setIcon(nleafIcon);
-                }
-            } else {
-                                /*
-                                 If we are dealing with an Asset, we can see if it has a preview
-                                 */
-                if (value instanceof ResourceNode) {
-                    //Icon i = ((ResourceNode)value).getResource().getIcon();
-                    Icon i = null;
-                    if (i == null) {
-                        setIcon(activeIcon);
-                    } else {
-                        setIcon(i);
-                    }
-                } else {
-                    setIcon(activeIcon);
-                }
-            }
-            return this;
-        }
-        
-        public String getToolTipText(){
-            return meta;
-        }
-    }
-    
     
     public void createPopupMenu() {
         JMenuItem menuItem;
@@ -451,6 +307,7 @@ public class VueDragTree extends JTree
         MouseListener popupListener = new PopupListener(popup);
         this.addMouseListener(popupListener);
     }
+    
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() instanceof JMenuItem){
             JMenuItem source = (JMenuItem)(e.getSource());
@@ -492,64 +349,69 @@ public class VueDragTree extends JTree
             }
         }
     }
-}
 
 
+    class VueDragTreeCellRenderer extends DefaultTreeCellRenderer{
 
-/*---------------*/
-//If someday we want to drop favorites onto the map
-/*
-class ResourceTransfer extends Object  {
-    private Resource resource;
-    private ResourceNode parent;
-    private Vector children;
- 
-    public ResourceTransfer(){
-    }
- 
- 
-    public ResourceTransfer(ResourceNode parent,ResourceNode selectedNode){
-        this.parent = parent;
-        this.resource = selectedNode.getResource();
-        this.children = new Vector();
-        int i;
-        for (i = 1; i < selectedNode.children(); i++){
- 
- 
- 
-        }
- 
- 
- 
- 
-        }
-     public Resource getResource() {
-        return resource;
-    }
-     public ResourceNode getParent() {
-        return parent;
-    }
- 
-     public Vector getChildren() {
-        return children;
-    }
- 
-}
- 
- */
-class ResourceNode extends DefaultMutableTreeNode {
-    private boolean explored = false;
-    protected final Resource resource;
-    public ResourceNode(Resource resource) {
+        protected final VueDragTree tree;
         
+        public VueDragTreeCellRenderer(VueDragTree vdTree) {
+            this.tree = vdTree;
+        }
+
+        protected final void superGetTreeCellRendererComponent(
+                JTree tree,
+                Object value,
+                boolean sel,
+                boolean expanded,
+                boolean leaf,
+                int row,
+                boolean hasFocus)
+        {
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+        }
+        
+        
+        public Component getTreeCellRendererComponent(
+                JTree tree,
+                Object value,
+                boolean sel,
+                boolean expanded,
+                boolean leaf,
+                int row,
+                boolean hasFocus) {
+            super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
+
+            if (leaf) {
+                Icon icon = ((ResourceNode)value).getIcon();
+                if (icon != null)
+                    setIcon(icon);
+            }
+            
+            return this;
+        }
+                
+    }
+
+    
+}
+
+
+class ResourceNode extends DefaultMutableTreeNode {
+    protected Resource resource;
+    
+    protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ResourceNode.class);
+
+    public ResourceNode(Resource resource) {
         this.resource = resource;
+        //if (resource != null) resource.setDebugProperty("TREE-NODE", getClass().getSimpleName());
         setUserObject(resource);
     }
 
     protected ResourceNode() {
         resource = null;
     }
-    
+
     public Resource getResource() {
         return resource;
     }
@@ -561,47 +423,50 @@ class ResourceNode extends DefaultMutableTreeNode {
         else
             return title;
     }
+    
+    public Icon getIcon() {
+        if (resource != null) {
+            //resource.setDebugProperty("TREE-LEAF", isLeaf() ? "TRUE" : "FALSE");
+            return resource.getTinyIcon();
+        } else {
+            return null;
+        }
+    }
 }
-
+    
 
 class CabinetNode extends ResourceNode {
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(CabinetNode.class);
-    
-    //DefaultTreeModel dataModel;
-    public static final String LOCAL = "local";
-    public static final String REMOTE = "remote";
-    private String type = "unknown";
-    private boolean explored = false;
-    
-    public CabinetNode(Resource resource, String type) {
-        super(resource);
-        this.type = type;
-    }
-    
-    public static CabinetNode  getCabinetNode(String title, File file, ResourceNode rootNode, DefaultTreeModel model){
+
+    public static CabinetNode getCabinetNode(String title, File file, ResourceNode rootNode, DefaultTreeModel model){
         CabinetNode node= null;
         try{
-            //LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
             osid.shared.Agent agent = null;
             LocalCabinetEntry cab;
             if(file.isDirectory()){
                 cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
             } else {
+                
                 // todo: use factory, also -- should this be a bytestore?
+                
+                // TODO: BUG: THIS IS COMPLETELY ILLEGAL (in fact, LocalCabinetEntry
+                // should be an abstract class)
+                // SMF 2008-04-17
+                
                 cab = new LocalCabinetEntry(file.getAbsolutePath(),agent,null);
-                if (DEBUG.Enabled) Log.debug("new " + cab);
+                if (DEBUG.Enabled) Log.debug("new INDETERMINATE CABINET ENTRY " + cab);
             }
             CabinetResource res = CabinetResource.create(cab);
-            if (DEBUG.Enabled) Log.debug("new " + res);
+            //if (DEBUG.Enabled) Log.debug("new " + res);
             CabinetEntry entry = res.getEntry();
 
             //if (title != null) res.setTitle(title);
 
             if (entry instanceof RemoteCabinetEntry)
-                node =  new CabinetNode(res, CabinetNode.REMOTE);
+                node =  new CabinetNode(res, REMOTE);
             else
-                node = new CabinetNode(res, CabinetNode.LOCAL);
+                node = new CabinetNode(res, LOCAL);
             model.insertNodeInto(node, rootNode, (rootNode.getChildCount()));
             //node.explore();
         } catch(Exception ex){
@@ -611,66 +476,97 @@ class CabinetNode extends ResourceNode {
         return node;
     }
     
-    /**
-     *  Return true if this node is a leaf.
-     */
-    public boolean isLeaf() {
-
-        final CabinetResource r = (CabinetResource) super.resource;
-        boolean flag = true;
+    public static final String LOCAL = "local";
+    public static final String REMOTE = "remote";
+    
+    private final String type;
+    private final boolean isLeaf;
+    private final CabinetEntry entry;
+    
+    private boolean explored = false;
+    
+    CabinetNode(final CabinetResource r, String type) {
+        super(r);
+        this.type = type;
+        this.entry = r.getEntry();
 
         if (r == null) {
-            flag = false;
+            isLeaf = false;
         } else if (r.getClientType() == Resource.FILE) {
-            flag = true;
+            isLeaf = true;
         } else if (r.getClientType() == Resource.DIRECTORY) {
-            flag = false;
-        } else if (r.getEntry() != null) {
-            if (this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)r.getEntry()).isCabinet())
-                flag = false;
-            else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)r.getEntry()).isCabinet()) {
-                flag = false;
-            }
-        }
-        if (DEBUG.Enabled) Log.debug("isLeaf=" + (flag?"YES; ":" NO; ") + resource);
-        return flag;
+            isLeaf = false;
+        } else if (entry != null) {
+            if (type.equals(REMOTE) && ((RemoteCabinetEntry)entry).isCabinet())
+                isLeaf = false;
+            else if (type.equals(LOCAL) && ((LocalCabinetEntry)entry).isCabinet())
+                isLeaf = false;
+            else
+                isLeaf = true;
+        } else
+            isLeaf = true;
+
+        //setAllowsChildren(!isLeaf);
+        
     }
 
-//     /**
-//      *  Return true if this node is a leaf.
-//      */
-//     public boolean isLeaf() {
-//         //if (DEBUG.Enabled) Log.debug("isLeaf?");
-//         boolean flag = true;
-//         CabinetResource res = (CabinetResource) getUserObject();
-//         if(res != null && res.getEntry() != null){
-//            // System.out.println("CabinetNode.isLeaf: type-"+this.type);
-//             // TODO: if we really want CabinetNode to do lazy setSpec, don't to this getSpec here,
-//             // is it completely defeats the purpose...
-//             // TODO: this is a rediculously slow way to go about figuring this flag, which
-//             // we should already know...
-//             if((new File(res.getSpec()).isDirectory())) {
-//                 flag = false;
-//             } else if(this.type.equals(CabinetNode.REMOTE) && ((RemoteCabinetEntry)res.getEntry()).isCabinet())
-//                 flag = false;
-//             else if(this.type.equals(CabinetNode.LOCAL) && ((LocalCabinetEntry)res.getEntry()).isCabinet()) {
-//                 flag = false;
-//             }
-//         }
-//         if (DEBUG.Enabled) Log.debug(resource + ": isLeaf="+flag);
-//         return flag;
+//     public CabinetNode(final CabinetResource cabRes) {
+//         super(cabRes);
+//         this.type = LOCAL;
+//         this.entry = cabRes.getEntry();
+//         this.isLeaf = false;
 //     }
 
+    // Will allow lazy creation of the Resource (including exact app icon fetch -- helps much on Windows)
+    private static final boolean LazyResources = false;
+    
+
+    private CabinetNode(final LocalCabinetEntry lentry) {
+        super(LazyResources ? null : CabinetResource.create(lentry));
+        this.type = LOCAL;
+        this.entry = lentry;
+        this.isLeaf = !lentry.isCabinet();
+        //setAllowsChildren(!isLeaf);
+        
+    }    
+    private CabinetNode(final RemoteCabinetEntry rentry) {
+        super(LazyResources ? null : CabinetResource.create(rentry));
+        this.type = REMOTE;
+        this.entry = rentry;
+        this.isLeaf = !rentry.isCabinet();
+        //setAllowsChildren(!isLeaf);
+    }    
+
+    @Override
+    public final Resource getResource() {
+        if (LazyResources) {
+            synchronized (this) {
+                if (resource == null)  {
+                    //Util.printStackTrace("producing for " + entry);
+                    resource = CabinetResource.create(entry);
+                }
+            }
+        }
+        return resource;
+    }
+    
+    public final boolean isLeaf() {
+        return isLeaf;
+    }
+
+//     public final Icon getIcon() {
+//         if (isLeaf && resource != null)
+//             return resource.getTinyIcon();
+//         else
+//             return null;
+//     }
     
     /**
      *  Return the cabinet entry associated with this tree node.  If it is a cabinet,
      *  then return it.  Otherwise, return null.
      */
     public Cabinet getCabinet() {
-        CabinetResource res = (CabinetResource) getUserObject();
-        if (res.getEntry() instanceof Cabinet)
-            return (Cabinet) res.getEntry();
-        return null;
+        return entry instanceof Cabinet ? ((Cabinet)entry) : null;
     }
     
     /*
@@ -678,63 +574,68 @@ class CabinetNode extends ResourceNode {
      *  This only applies if the current node is a cabinet.
      */
     public void explore() {
-        if (this.explored)
+        if (explored)
             return;
 
-        if (DEBUG.Enabled) Log.debug("explore...");
-        if(getCabinet() != null) {
+        if (getCabinet() != null) {
             try {
-                if (this.type.equals(CabinetNode.REMOTE)) {
-                    CabinetEntryIterator i = (RemoteCabinetEntryIterator) getCabinet().entries();
-                    while (i.hasNext()) {
-                        CabinetEntry ce = (RemoteCabinetEntry) i.next();
-                        if (ce.getDisplayName().startsWith(".")) // don't display dot files
-                            continue;
-                        CabinetResource res = CabinetResource.create(ce);
-                        CabinetNode rootNode = new CabinetNode(res, this.type);
-                        this.add(rootNode);
-                    }
-                } else if (this.type.equals(CabinetNode.LOCAL)) {
-                    CabinetEntryIterator i = (LocalCabinetEntryIterator) getCabinet().entries();
-                    
-                    while (i.hasNext()) {
-                        CabinetEntry ce = (LocalCabinetEntry) i.next();
-                        if (ce.getDisplayName().startsWith(".")) // don't display dot files
-                            continue;
-                        CabinetResource res = CabinetResource.create(ce);
-                        if (DEBUG.Enabled) Log.debug("created " + res);
-                        CabinetNode rootNode = new CabinetNode(res, this.type);
-                        this.add(rootNode);
-                        // todo fix: note, this is still happening twice per
-                        // directory on startup! SMF 2005-03-11
-                        //System.out.println(this + " adding " + rootNode);
-                    }
-                    this.explored = true;
-                }
+                if (DEBUG.Enabled) Log.debug("explore...");
+                loadEntries();
+                if (DEBUG.Enabled) Log.debug("explored.");
             } catch (FilingException e) {
                 e.printStackTrace();
-                //return;
             }
-            
         } 
         
-        if (DEBUG.Enabled) Log.debug("explored.");
+    }
+
+    private void loadEntries()
+        throws FilingException
+    {
+        if (type.equals(LOCAL)) {
+            
+            CabinetEntryIterator i = (LocalCabinetEntryIterator) getCabinet().entries();
+                    
+            while (i.hasNext()) {
+                LocalCabinetEntry ce = (LocalCabinetEntry) i.next();
+                if (ce.getDisplayName().startsWith(".")) // don't display dot files
+                    continue;
+                this.add(new CabinetNode(ce));
+            }
+            this.explored = true;
+
+        } else if (type.equals(REMOTE)) {
+            
+            CabinetEntryIterator i = (RemoteCabinetEntryIterator) getCabinet().entries();
+            
+            while (i.hasNext()) {
+                RemoteCabinetEntry ce = (RemoteCabinetEntry) i.next();
+                if (ce.getDisplayName().startsWith(".")) // don't display dot files
+                    continue;
+                this.add(new CabinetNode(ce));
+            }
+        }
+        
     }
     
     /**
      *  Return a string version of the node.  In this implementation, the display name
      *  of the cabinet entry is returned.
      */
+    @Override
     public String toString() {
-        CabinetResource res = (CabinetResource) getUserObject();
-        if (res.getTitle() != null)
-            return res.getTitle();
-        try {
-            CabinetEntry ce = (CabinetEntry) res.getEntry();
-            return ce.getDisplayName();
-        } catch (Exception e) {
-            return userObject.getClass().toString();
-        }
+
+        if (resource != null) {
+            return resource.getTitle();
+        } else if (entry != null) {
+            try {
+                return entry.getDisplayName();
+            } catch (Throwable t) {
+                Log.warn(t);
+                return entry.toString();
+            }
+        } else
+            return String.format("%s@%x(%s)", getClass().getName(), System.identityHashCode(this), type);
     }
     
     /**
@@ -746,10 +647,44 @@ class CabinetNode extends ResourceNode {
     }
 }
 
+
+
+class FavoritesNode extends ResourceNode {
+    private boolean explored = false;
+    public FavoritesNode(Resource resource){
+        super(resource);
+        // ensure is marked as favorites (some versions of VUE may have left marked as type NONE)
+        resource.setClientType(Resource.FAVORITES);
+    }
+
+    public boolean isExplored() { return explored; }
+}
+
+class RootNode extends ResourceNode {
+    final String name;
+    public RootNode(String name) {
+        super(null);
+        this.name = name;
+    }
+
+    @Override
+    public final String toString() {
+        return name;
+    }
+
+    @Override
+    public final boolean isLeaf() {
+        return false;
+    }
+}
+
+
+
 class FileNode extends ResourceNode {
     private boolean explored = false;
     public FileNode(File file) 	{
         setUserObject(file);
+        if (DEBUG.Enabled) Log.debug("NEW FileNode: " + file);
         
         // Code w/no apparent effect commented out -- SMF 2007-10-05
         //try{
@@ -805,34 +740,5 @@ class FileNode extends ResourceNode {
         }
     }
 }
-class FavoritesNode extends ResourceNode {
-    private boolean explored = false;
-    public FavoritesNode(Resource resource){
-        super(resource);
-        // ensure is marked as favorites (some versions of VUE may have left marked as type NONE)
-        resource.setClientType(Resource.FAVORITES);
-    }
-    public boolean isExplored() { return explored; }
-    /*
-    public boolean isLeaf() {
-        File file = new File(resource.getSpec());
-        System.out.println("Resource: "+resource.getTitle()+ " Type:"+resource.getType()+" leaf?"+file.isDirectory());
-        if (file.isDirectory()) {
-            //System.out.println("Resource: "+resource.getSpec()+ " Type:"+resource.getType());
-            return false;
-        }
-        return true;
-    }
-    public void explore() {
-        File file = new File(resource.getSpec());
-        if(!file.isDirectory())
-            return;
-        if(!isExplored()) {
-            File[] contents = file.listFiles();
-            for(int i=0; i < contents.length; ++i)
-                add(new FileNode(contents[i]));
-            explored = true;
-        }
-    }
-     */
-}
+
+
