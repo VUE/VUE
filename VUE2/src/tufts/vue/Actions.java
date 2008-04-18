@@ -277,7 +277,7 @@ public class Actions implements VueConstants
     	}
     	
         public void actionPerformed(ActionEvent e) {
-        	PreferencesDialog dialog = new PreferencesDialog(null, "Vue Preferences",
+        	PreferencesDialog dialog = new PreferencesDialog(null, "Preferences",
 				      edu.tufts.vue.preferences.PreferencesManager.class, true, null, false);
 			dialog.setVisible(true);
         }
