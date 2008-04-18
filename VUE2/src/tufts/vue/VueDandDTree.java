@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.39 $ / $Date: 2008-04-18 01:24:05 $ / $Author: sfraize $
+ * @version $Revision: 1.40 $ / $Date: 2008-04-18 01:38:39 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -343,7 +343,8 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                     // This will allow image content to show an icon that shows the image itself
                     icon = r.getContentIcon(tree);
 
-                } else if (DEBUG.Enabled && !leaf) {
+              //} else if (DEBUG.Enabled && !leaf) {
+                } else if (!leaf) {
                     
                     // This will make folder items appear at 32x32 instead of the default tiny 16x16
                     icon = r.getLargeIcon();
