@@ -40,6 +40,8 @@ import java.awt.geom.RoundRectangle2D;
 import java.awt.event.*;
 import javax.swing.*;
 
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
+
 /**
  * Tool for presentation mode.
  *
@@ -63,6 +65,15 @@ public class PresentationTool extends VueTool
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
 
+    private final static BooleanPreference slideViewPref = BooleanPreference.create(
+			edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
+			"slideNodeView", 
+			"Slide/Node View", 
+			"When turning off slide thumbnails in presentation mode with the x keyboard shortcut, clicking on the node in map view will zoom in on the node as a default",
+			"Show the slide for the active pathway instead of node.",
+			Boolean.FALSE,
+			true);
+    
     private final ImageButton ZoomButton = new ImageButton("zoomOut", VueResources.getImageIcon("pathwayTool.zoomOutImageIcon")){
         void doAction() {
         	out("ZOOM BUTTON ACTION");
