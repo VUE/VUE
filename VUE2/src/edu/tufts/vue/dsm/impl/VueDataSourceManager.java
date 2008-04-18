@@ -343,7 +343,7 @@ public class VueDataSourceManager
                org.exolab.castor.mapping.MappingException,
                org.exolab.castor.xml.ValidationException
     {
-        Log.info("Unmarshalling: " + file);
+        if (tufts.vue.DEBUG.DR) Log.info("Unmarshalling: " + file);
         //System.out.println("UnMarshalling: file -"+ file.getAbsolutePath());
         
         Unmarshaller unmarshaller = tufts.vue.action.ActionUtil.getDefaultUnmarshaller(file.toString());
@@ -366,10 +366,12 @@ public class VueDataSourceManager
             
             synchronized (DataSources) {
                 for (DataSource ds : dataSourceVector) {
-                    try {
-                        debug("Unmarshalled: " + ds + "; RepositoryID=" + getRepositoryID(ds));
-                    } catch (Throwable t) {
-                        Log.warn("Unmarshalling:", t);
+                    if (tufts.vue.DEBUG.DR) {
+                        try {
+                            Log.info("Unmarshalled: " + ds + "; RepositoryID=" + getRepositoryID(ds));
+                        } catch (Throwable t) {
+                            Log.warn("Unmarshalling:", t);
+                        }
                     }
                     DataSources.add(ds);
                 }
