@@ -34,6 +34,8 @@ import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 
+import sun.awt.shell.ShellFolder;
+
 /**
  * The Resource impl handles references to local files or single URL's, as well as
  * any underlying type of asset (OSID or not) that can obtain it's various parts via URL's.
@@ -55,7 +57,7 @@ import java.awt.image.*;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.68 $ / $Date: 2008-04-17 02:08:30 $ / $Author: sfraize $
+ * @version $Revision: 1.69 $ / $Date: 2008-04-18 01:13:46 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -187,6 +189,24 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         if (mURL != null)
             mURL = null;
+
+
+//         if (knownType == FILE_UNKNOWN) {
+            
+//             // This works on XP and Vista as of at least Java6 for standard file links
+//             // (.lnk files), and recognizes .url's as links (isLink()=true), but .url's
+//             // link locations are always null. None of this appears to work on all on
+//             // the Mac, tho I've only tested Java5 there (Java6 not production release
+//             // yet)
+        
+//             try {
+//                 ShellFolder sf = ShellFolder.getShellFolder(file);
+//                 if (sf.isLink())
+//                     Util.printStackTrace("GOT LINK: " + file + " --> " + sf.getLinkLocation());
+//             } catch (Throwable t) {
+//                 t.printStackTrace();
+//             }
+//         }
         
         setFile(file, knownType);
         
@@ -242,6 +262,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         } else if (type == FILE_NORMAL) {
             
             setClientType(Resource.FILE);
+            if (DEBUG.IO) dumpField("scanning mFile", file);
             mLastModified = file.lastModified();
             setByteSize(file.length());
             // todo: could attempt setURL(file.toURL()), but might fail for Win32 C: paths on the mac
@@ -288,15 +309,19 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return FILE_DIRECTORY;
         }
             
-        if (type == FILE_UNKNOWN && !file.exists()) {
-            out_warn("no such active data file: " + file);
-            //throw new IllegalStateException(this + "; no such active data file: " + file);
-            return FILE_UNKNOWN;
+        if (type == FILE_UNKNOWN) {
+            if (DEBUG.IO) out("testing " + file);
+            if (!file.exists()) {
+                out_warn("no such active data file: " + file);
+                //throw new IllegalStateException(this + "; no such active data file: " + file);
+                return FILE_UNKNOWN;
+            }
         }
         
         mDataFile = file;
 
         if (mDataFile != mFile) {
+            if (DEBUG.IO) dumpField("scanning mDataFile ", mDataFile);
             setByteSize(mDataFile.length());
             mLastModified = mDataFile.lastModified();
         }
@@ -389,7 +414,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         // their final init.
         
         if (context != MANAGED_UNMARSHALLING) {
-            if (DEBUG.Enabled) Log.info("XML_completed: unmanaged (immediate) finalInit in context " + Util.tags(context) + "; " + this);
+            if (DEBUG.RESOURCE && DEBUG.META) out("XML_completed: unmanaged (immediate) init in context " + Util.tags(context) + "; " + this);
+            //if (DEBUG.Enabled) Log.info("XML_completed: unmanaged (immediate) finalInit in context " + Util.tags(context) + "; " + this);
             
             initAfterDeserialize(context);
             initFinal(context);
@@ -478,6 +504,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     private void parseAndInit()
     {
+        //if (DEBUG.RESOURCE) out("parseAndInit");
+        
         if (spec == SPEC_UNSET) {
             Log.error(new Throwable("cannot initialize resource " + Util.tags(this) + " without a spec: " + Util.tags(spec)));
             return;
@@ -560,23 +588,30 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 //                         setProperty(USER_FILE, mFile);
 //                     }
                     
-                    final String canonical = toCanonical(mFile);
+//---------------------------------------------------------------------------------------------------
+//                     // TODO: WARNING: COMPUTING THE CANONICAL FILE IS VERY, VERY SLOW.
+//                     // TODO: Okay to do this on map save, but to for every damn resource --
+//                     // E.g., this includes every instance of CabinetResource
+
+//                     final String canonical = toCanonical(mFile);
                     
-                    if (!mFile.getPath().equals(canonical)) {
+//                     if (!mFile.getPath().equals(canonical)) {
                         
-                        setProperty(FILE_CANONICAL, canonical); // will persist
-                        setProperty(USER_FULL_FILE, canonical);
-                        // TODO: make this a persisted property, and use it as a
-                        // backup in case the non-canonical file path (e.g., via a
-                        // volume mount on Mac OS X) goes missing, but the absolute
-                        // path is there.  This could happen if the user renames
-                        // their hard drive, changing the volume name, tho the path
-                        // would still be the same.
+//                         setProperty(FILE_CANONICAL, canonical); // will persist
+//                         setProperty(USER_FULL_FILE, canonical);
+//                         // TODO: make this a persisted property, and use it as a
+//                         // backup in case the non-canonical file path (e.g., via a
+//                         // volume mount on Mac OS X) goes missing, but the absolute
+//                         // path is there.  This could happen if the user renames
+//                         // their hard drive, changing the volume name, tho the path
+//                         // would still be the same.
                         
-                    } else {
-                            // as may have been persisted, remove now just in case
-                            //removeProperty(FILE_CANONICAL);
-                    }
+//                     } else {
+//                             // as may have been persisted, remove now just in case
+//                             //removeProperty(FILE_CANONICAL);
+//                     }
+//---------------------------------------------------------------------------------------------------
+                    
                 }
             } else {
                 setProperty(USER_FILE, spec);
@@ -1022,6 +1057,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             // care of finding all objects that need updating once
             // this ever returns true.
             
+            if (DEBUG.IO) dumpField("re-scanning", file);
             final long curLastMod = file.lastModified();
             final long curSize = file.length();
             if (curLastMod != mLastModified || curSize != getByteSize()) {
