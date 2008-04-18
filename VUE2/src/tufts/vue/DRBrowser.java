@@ -25,7 +25,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.62 $ / $Date: 2008-04-16 20:38:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.63 $ / $Date: 2008-04-18 01:20:32 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -279,15 +279,19 @@ public class DRBrowser extends JPanel
         //-----------------------------------------------------------------------------
         
         try {
-            LocalFileDataSource localFileDataSource = new LocalFileDataSource("My Computer","");
             browsePane.setBackground(Color.white);
             browsePane.setLayout(new BorderLayout());
             //startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400, 300);
             //startSize.height = GUI.GScreenHeight / 5;
             //browsePanel.setPreferredSize(startSize);
-            JComponent comp = localFileDataSource.getResourceViewer();
-            comp.setVisible(true);
-            browsePane.add(comp);
+            if (false) {
+                // SMF 2008-04-17: This is redundant, and can dramatically slow down startup,
+                // and make diagnosing problems much harder.  Appears vestigal.
+                LocalFileDataSource localFileDataSource = new LocalFileDataSource("My Computer","");
+                JComponent comp = localFileDataSource.getResourceViewer();
+                comp.setVisible(true);
+                browsePane.add(comp);
+            }
              
         } catch (Exception ex) {
             if (DEBUG.DR) out("Problem loading local file library");
@@ -353,12 +357,18 @@ public class DRBrowser extends JPanel
 
     public static void main(String args[])
     {
+        DEBUG.Enabled = true;
+        
         VUE.init(args);
         
-        DEBUG.DR = true;
+        //DEBUG.DR = true;
 
         Frame owner = new Frame("parentWindow");
         owner.setVisible(true);
+
+        Log.debug("loading disk cache...");
+        Images.loadDiskCache();
+        Log.debug("loading disk cache: done");
 
         //DockWindow drDock = GUI.createDockWindow("Content");
         DockWindow drDock = new DockWindow("Content", owner);
