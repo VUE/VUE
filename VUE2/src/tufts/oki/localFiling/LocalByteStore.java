@@ -66,26 +66,34 @@ public class LocalByteStore extends LocalCabinetEntry implements osid.filing.Byt
         
         updateDisplayName (file.getName());
 
-        if (Log.isDebugEnabled()) Log.debug("CREATED in " + parent + ": " + this);        
+        if (tufts.vue.DEBUG.IO && Log.isDebugEnabled()) Log.debug("CREATED in " + parent + ": " + this);        
     }
     
-    /**
-     *  Create a new ByteStore object given a display name, parent, and capacity.
-     *
-     *  @author Mark Norton
-     *
-     */
-     public LocalByteStore(String displayName, osid.filing.Cabinet parent, int initialCapacity) throws osid.OsidException {
-        super (displayName, parent.getCabinetEntryAgent(), parent);
 
-        //byte_store = new byte[initialCapacity]; // UNUSED
-        //file = new File (((LocalCabinet)parent).getPath(), displayName);
-        file = new File (displayName);
-        updateDisplayName (file.getName());
+// initialCapacity version not actually supported:
 
-        if (Log.isDebugEnabled()) Log.debug("CREATED in " + parent + ": " + this);        
-    }
+//     /**
+//      *  Create a new ByteStore object given a display name, parent, and capacity.
+//      *
+//      *  @author Mark Norton
+//      *
+//      */
+//      public LocalByteStore(String displayName, osid.filing.Cabinet parent, int initialCapacity) throws osid.OsidException {
+//         super (displayName, parent.getCabinetEntryAgent(), parent);
+
+//         //byte_store = new byte[initialCapacity]; // UNUSED
+//         //file = new File (((LocalCabinet)parent).getPath(), displayName);
+//         file = new File (displayName);
+//         updateDisplayName (file.getName());
+
+//         if (tufts.vue.DEBUG.IO && Log.isDebugEnabled()) Log.debug("CREATED in " + parent + ": " + this + "; w/capacity=" + initialCapacity);
+//     }
     
+    @Override
+    public final boolean isCabinet() {
+        return false;
+    }
+
     /**
      *  Commit any pending I/O operations.
      *  In this implementation, commit() doesn't do anything.
