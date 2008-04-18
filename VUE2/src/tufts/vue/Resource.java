@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.71 $ / $Date: 2008-04-17 02:10:48 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2008-04-18 01:14:57 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -584,7 +584,7 @@ public abstract class Resource implements Cloneable
                 ext = EXTENSION_HTTP;
             else
                 ext = EXTENSION_DIR;
-            if (DEBUG.RESOURCE) out("set extType=[" + ext + "]");
+            if (DEBUG.RESOURCE) out("set dataType=[" + ext + "]");
             //if (DEBUG.RESOURCE) Log.warn("set extType=[" + ext + "]", new Throwable());
         }
 
@@ -659,73 +659,55 @@ public abstract class Resource implements Cloneable
         return ext;
     }
 
-//     protected static String extractExtension(java.net.URL url) {
-//         // if HTTP, could check query for stuff like =jpeg at the end
-//         final String ext = extractExtension(url.getPath());
-//         if (ext == NO_EXTENSION && "http".equals(url.getProtocol()))
-//             return "html"; // presume a web document
-//         else
-//             return ext;
-//     }
-
-//     protected static String extractExtension(java.net.URI uri) {
-//         return extractExtension(uri.getPath());
-//     }
-    
-
-    // TODO: create a multi-sized generic smart icon class that can cache / create well-sampled standard
-    // sizes, and draw at any requested size.
-    // may want to call these getShellIcon{small,large}, etc, tho that's REALLY what
-    // we want implemented in LocalCabinetEntry (and move the GUI.getSystemIconForExtension code there),
-    // for the beginning of a truely useful OKI filing API.
 
     private ImageIcon mTinyIcon;
     /** @return a 16x16 icon */
     public Icon getTinyIcon() {
-        if (mTinyIcon != null)
-            return mTinyIcon;
-        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getDataType(), 16);
-        if (image != null) {
-            if (image.getWidth(null) > 16) {
-                // see http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
-                // on how to do this better/faster -- happens very rarely on the Mac tho, but need to test PC.
-                image = image.getScaledInstance(16, 16, 0); //Image.SCALE_SMOOTH);
-            }
-            mTinyIcon = new javax.swing.ImageIcon(image);
-        }
+        if (mTinyIcon == null)
+            mTinyIcon = makeIcon(16, 16);
         return mTinyIcon;
     }
 
-    public Image getTinyIconImage() {
-        if (mTinyIcon == null)
-            getTinyIcon();
-        if (mTinyIcon != null)
-            return mTinyIcon.getImage();
-        else
-            return null;
-    }
 
     private ImageIcon mLargeIcon;
     /** @return up to a 128x128 icon */
     public Icon getLargeIcon() {
-        if (mLargeIcon != null)
-            return mLargeIcon;
-        
-        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(getDataType(), 32);
-        if (image != null) {
-            if (image.getWidth(null) > 128) {
-                image = image.getScaledInstance(128, 128, 0); //Image.SCALE_SMOOTH);
-            }
-            mLargeIcon = new javax.swing.ImageIcon(image);
-        }
+        if (mLargeIcon == null)
+            mLargeIcon = makeIcon(32, 128);
         return mLargeIcon;
     }
 
+    private ImageIcon makeIcon(int size, int max)
+    {
+        final String ext = getDataType();
+        Image image = tufts.vue.gui.GUI.getSystemIconForExtension(ext, size);
+        
+        if (image != null) {
+            if (image.getWidth(null) > max) {
+                // see http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
+                // on how to do this better/faster -- happens very rarely on the Mac tho, but need to test PC.
+                Log.warn("scaling for dataType [" + ext + "]: " + Util.tags(image) + "; from " + image.getWidth(null) + "x" + image.getHeight(null));
+                image = image.getScaledInstance(max, max, 0); //Image.SCALE_SMOOTH);
+            }
+            return new javax.swing.ImageIcon(image);
+        } else
+            return null;
+    }
+
+    /** @return the image for our large icon if we have one, null otherwise */
     public Image getLargeIconImage() {
         if (mLargeIcon == null)
             getLargeIcon();
         if (mLargeIcon != null)
             return mLargeIcon.getImage();
+        else
+            return null;
+    }
+    public Image getTinyIconImage() {
+        if (mTinyIcon == null)
+            getTinyIcon();
+        if (mTinyIcon != null)
+            return mTinyIcon.getImage();
         else
             return null;
     }
@@ -744,25 +726,6 @@ public abstract class Resource implements Cloneable
         return image;
     }
 
-    /**
-     * @return true if the data for this resource is normally obtained by making use the
-     * the local file system (including attached network shares)
-     *
-     * This default impl always returns false.
-     */
-    public boolean isLocalFile() {
-        return false;
-    }
-    
-
-
-//     /**
-//      * Get preview of the object, e.g., a thummbnail.  Currently, this should be 32x32 pixels.
-//      */
-//     public javax.swing.Icon getIcon() {
-//         return getIcon(null);
-//     }
-    
     private tufts.vue.ui.ResourceIcon mIcon;
     /**
      * @param repainter -- the component to request repainting on when
@@ -800,6 +763,16 @@ public abstract class Resource implements Cloneable
      */
     public abstract Object getPreview();
 
+    /**
+     * @return true if the data for this resource is normally obtained by making use the
+     * the local file system (including attached network shares)
+     *
+     * This default impl always returns false.
+     */
+    public boolean isLocalFile() {
+        return false;
+    }
+    
     public boolean isPackaged() {
         return hasProperty(PACKAGE_FILE);
     }
@@ -827,11 +800,16 @@ public abstract class Resource implements Cloneable
      */
     public String getToolTipText() { return toString(); }
 
+    protected String paramString() {
+        return "";
+    }
+
     public String asDebug() {
-        return String.format("%s@%07x[%s; %s]",
+        return String.format("%s@%07x[%s; %s%s]",
                              getClass().getSimpleName(),
                              System.identityHashCode(this),
                              TYPE_NAMES[getClientType()],
+                             paramString(),
                              mDataFile == null ? getSpec() : Util.tags(mDataFile)
                              //getLocationName() // may trigger property fetches during debug which is very messy
                              //(mDataFile != null && hasProperty(PACKAGE_FILE)) ? mDataFile.getName() : getSpec()
@@ -995,12 +973,18 @@ public abstract class Resource implements Cloneable
             
         } 
 
-        if ((DEBUG.RESOURCE || DEBUG.IO) && file != null) Log.debug("getLocalFileIfPresent(Str): testing " + file);
+        //if (DEBUG.IO && file != null) Log.debug("getLocalFileIfPresent(Str): testing " + file);
+        //if (file == null || !file.exists())
+        //    file = getLocalFileIfPresent(makeURL(urlOrPath));
 
-        if (file == null || !file.exists()) {
+        if (file == null) {
             file = getLocalFileIfPresent(makeURL(urlOrPath));
+        } else {
+            if (DEBUG.IO) Log.debug("GLFIP testing " + file);
+            if (!file.exists()) 
+                file = getLocalFileIfPresent(makeURL(urlOrPath));
         }
-
+        
         return file;
     }
     
@@ -1085,7 +1069,7 @@ public abstract class Resource implements Cloneable
                 }
                 
 
-                if (DEBUG.RESOURCE || DEBUG.IO) Log.debug("getLocalFileIfPresent(URL): testing " + file);
+                if (DEBUG.IO) Log.debug("getLocalFileIfPresent(URL): testing " + file);
                 if (!file.exists()) {
                     if (DEBUG.Enabled) Log.debug("ignoring non-existent " + Util.tags(file));
                     return null;
