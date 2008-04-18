@@ -44,7 +44,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.51 $ / $Date: 2008-04-14 19:16:09 $ / $Author: sfraize $
+ * @version $Revision: 1.52 $ / $Date: 2008-04-18 01:19:34 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -197,12 +197,12 @@ public class DataSourceList extends JList implements DropTargetListener
                     for (Resource resource : droppedResources) {
                         if (DEBUG.DND) Log.debug("Found: " + Util.tags(resource));
                         ResourceNode newNode;
-                        //if(resource.getClientType() == Resource.FILE){
-                        //if (resource.getClientType() == Resource.FILE || resource.getClientType() == Resource.DIRECTORY) {
+
+                        // TODO: ALL THIS CODE IS IDENNTICAL TO THAT IN VueDandDTree
+                        
                         if (resource.isLocalFile()) {
-                         //   newNode = CabinetNode.getCabinetNode(resource.getTitle(),new File(resource.getSpec()),rootNode,model);
-                            newNode = new CabinetNode(resource,CabinetNode.LOCAL);
-                            CabinetResource cr = (CabinetResource)newNode.getResource();
+                            final CabinetResource cr = (CabinetResource) resource;
+                            newNode = new CabinetNode(cr, CabinetNode.LOCAL);
                             if (DEBUG.DND) Log.debug("CABINET RESOURCE: " + resource + "Entry: "+cr.getEntry()+ "entry type:"+cr.getEntry().getClass()+" type:"+cr.getEntry());
                         } else {
                             newNode    =new  ResourceNode(resource);
@@ -218,7 +218,7 @@ public class DataSourceList extends JList implements DropTargetListener
                         File file = (File)iter.next();
                         if (file.isDirectory()){
                             try{
-                                LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+                                final LocalFilingManager manager = LocalFileDataSource.getLocalFilingManager();
                                 osid.shared.Agent agent = null;
                                 LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
                                 // todo: need to extend Resource class and/or refactor this code so
@@ -249,10 +249,33 @@ public class DataSourceList extends JList implements DropTargetListener
                                 favoritesTree.setRootVisible(false);
                                 cabNode.explore();
                             }catch (Exception ex) {System.out.println("DataSourceList.drop: "+ex);}
-                        } else{
+                        } else {
+
+
+//                             // TODO: this uses an empty CabinetResource as simply a file path
+//                             // holder, so we can create a CabinetNode (and maybe persist the
+//                             // CabinetResource.  Can refactor most of this all out.  Handle the
+//                             // shortcut processing FIRST, then can create a CabinetResource from a
+//                             // java.io.File, tho even that is probably overkill...
+                            
+//                             FileNode fileNode = new FileNode(file);
+                            
+//                             //tufts.Util.printStackTrace("Unsupported DROP onto " + ds + "; of " + transfer);
+
+//                             model.insertNodeInto(cabNode, rootNode, 0);
+//                             favoritesTree.expandPath(new TreePath(rootNode.getPath()));
+//                             favoritesTree.setRootVisible(false);
+
+                                
+
                             try{
                                 LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
                                 osid.shared.Agent agent = null;
+
+                                // SMF 2008-04-17: THIS IS BROKEN ANYWAY -- did it every work?
+                                // We always create a LocalCabinet, even if it's a LocalByteStore!
+                                // So dropping directories in works fine, but drop anything else and you're hosed.
+                                // Yeah: it's not working in the current build.  Can't tell if it ever has.
                                 LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);
                                 CabinetResource res = CabinetResource.create(cab);
                                 //res.setTitle(file.getAbsolutePath());
