@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.153 $ / $Date: 2008-04-14 16:39:05 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.153 2008-04-14 16:39:05 mike Exp $ -->
+<!-- $Revision: 1.154 $ / $Date: 2008-04-18 01:25:32 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.154 2008-04-18 01:25:32 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -1212,7 +1212,7 @@ VUE_Installer.zip - ${installerMD5}
     
     <!-- ==================== Debugging tasks  ================================ -->
     <target name="info" description="Display Library and Classpath Variables">
-      <pathconvert pathsep="${line.separator}" property="dist.jarfiles" refid="thirdparty.jarfiles.classpath"/>
+      <pathconvert pathsep="${line.separator}lib: " property="dist.jarfiles" refid="thirdparty.jarfiles.classpath"/>
       <pathconvert pathsep="  " property="info.classpath" refid="runtime.classpath"/>
       <pathconvert pathsep="  " property="info.compilepath.common" refid="compile.classpath.common"/>
       <pathconvert pathsep="  " property="info.compilepath.vue" refid="compile.classpath.vue"/>
