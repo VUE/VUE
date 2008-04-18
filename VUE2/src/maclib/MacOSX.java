@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-10-30 00:40:28 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2008-04-18 01:26:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -115,7 +115,8 @@ public class MacOSX
     	else    		
             nsImage = NSWorkspace.sharedWorkspace().iconForFileType(ext);
 
-        if (DEBUG) System.out.println(key + "; image w/reps: " + nsImage);
+        //System.out.println("fetching reps for " + ext);
+        if (DEBUG) Log.debug(Util.TERM_CYAN + key + Util.TERM_CLEAR + "; image w/reps: " + nsImage);
 
         final NSArray reps = nsImage.representations();
         NSData nsData = null;
@@ -136,6 +137,17 @@ public class MacOSX
             nsData = nsImage.TIFFRepresentation();
 
         image = NStoJavaImage(nsData);
+
+        // see http://today.java.net/pub/a/today/2007/04/03/perils-of-image-getscaledinstance.html
+        // on how to do this better/faster -- happens very rarely on the Mac tho, but need to test PC.
+        if (sizeRequest != image.getHeight(null)) {
+            //if (DEBUG) Log.debug(Util.TERM_RED + "scaling for key " + key + ": "
+            Log.info(Util.TERM_RED + "scaling for key " + key + ": "
+                     + Util.tags(image)
+                     + "; from " + image.getWidth(null) + "x" + image.getHeight(null)
+                     + Util.TERM_CLEAR);
+            image = image.getScaledInstance(sizeRequest, sizeRequest, 0); //Image.SCALE_SMOOTH);
+        }
 
         if (image == null)
             out("Could not generate Icon for filetype : " + ext);
