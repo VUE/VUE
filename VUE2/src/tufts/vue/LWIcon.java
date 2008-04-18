@@ -56,7 +56,7 @@ public abstract class LWIcon extends Rectangle2D.Float
 			edu.tufts.vue.preferences.PreferenceConstants.INTERACTIONS_CATEGORY,
 			"oneClickResLaunch", 
 			"Resource Launching", 
-			"Enable the single-click launching of resources ?",
+			"Enable launching resources on nodes with a single-click?",
 			Boolean.TRUE,
 			true);
     
