@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.26 2008-04-16 20:45:03 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.27 2008-04-18 01:17:52 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -31,10 +31,11 @@ import tufts.oki.remoteFiling.*;
 import tufts.oki.localFiling.*;
 import tufts.oki.shared.*;
 import tufts.vue.action.*;
+import tufts.Util;
 
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2008-04-16 20:45:03 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2008-04-18 01:17:52 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
@@ -43,29 +44,52 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalFileDataSource.class);    
     
     private JComponent resourceViewer;
+
+    private static final LocalFilingManager LocalFileManager = produceManager();
+
+    private static LocalFilingManager produceManager() {
+        try {
+            return new LocalFilingManager();
+        } catch (FilingException t) {
+            tufts.Util.printStackTrace(t, "new LocalFilingManager");
+        }
+        return null;
+    }
+
+    public static LocalFilingManager getLocalFilingManager() {
+        return LocalFileManager;
+    }
     
-    public LocalFileDataSource() {        
+    public LocalFileDataSource() {
     }
     
     public LocalFileDataSource(String displayName, String address) throws DataSourceException
     {
+        if (DEBUG.DR) out("NEW: name=" + Util.tags(displayName) + "; address=" + Util.tag(address) + "; " + address);
+        //if (DEBUG.Enabled) Util.printStackTrace(Util.tags(this) + " NEW: name=" + Util.tags(displayName) + "; address=" + Util.tag(address) + "; " + address);
         this.setDisplayName(displayName);
         this.setAddress(address);
         
     }
     
-    public void setAddress(String address)  throws DataSourceException{
+    @Override
+    public void setAddress(String address)
+        throws DataSourceException
+    {
+        if (DEBUG.DR) out("setAddress " + Util.tag(address) + "; " + address);
         super.setAddress(address);
         this.setResourceViewer();
     }
 
-    private void out(String s) {
-        Log.debug(String.format("@%x; %s(%s): %s", System.identityHashCode(this), getDisplayName(), getAddress(), s));
+    @Override
+    public void setResourceViewer() {
+        // do nothing -- lazy eval, as we may never need the UI components!
+        //getResourceViewer();
     }
-
-    public void setResourceViewer()
+    
+    private JComponent buildResourceViewer()
     {
-        if (DEBUG.Enabled) out("setResourceViewer...");
+        if (DEBUG.Enabled) out("buildResourceViewer...");
         Vector cabVector = new Vector();
         
         if (getDisplayName().equals("My Computer")) {
@@ -87,26 +111,36 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         VueDragTree fileTree = new VueDragTree(cabVector, this.getDisplayName());
         fileTree.setRootVisible(true);
         fileTree.setShowsRootHandles(true);
-
-   		fileTree.expandRow(0);
-        
+        fileTree.expandRow(0);
         fileTree.setRootVisible(false);
 
-        if (false) {
-            JPanel localPanel = new JPanel();
-            JScrollPane rSP = new JScrollPane(fileTree);
-            localPanel.setMinimumSize(new Dimension(290,100));
-            localPanel.setLayout(new BorderLayout());
-            localPanel.add(rSP,BorderLayout.CENTER);
-            this.resourceViewer = localPanel;
-        } else {
-            this.resourceViewer = fileTree;
-        }
+        if (DEBUG.Enabled) out("buildResourceViewer: completed.");
+        return fileTree;
+
+//         if (false) {
+//             JPanel localPanel = new JPanel();
+//             JScrollPane rSP = new JScrollPane(fileTree);
+//             localPanel.setMinimumSize(new Dimension(290,100));
+//             localPanel.setLayout(new BorderLayout());
+//             localPanel.add(rSP,BorderLayout.CENTER);
+//             this.resourceViewer = localPanel;
+//         } else {
+//             this.resourceViewer = fileTree;
+//         }
             
         //DataSourceViewer.refreshDataSourcePanel(this);
-        if (DEBUG.Enabled) out("setResourceViewer: completed.");
         
     }
+
+    @Override
+    public synchronized JComponent getResourceViewer()
+    {
+        if (resourceViewer == null)
+            resourceViewer = buildResourceViewer();
+        return resourceViewer;
+    }
+    
+    
     
     private void installDesktopFolders(Vector cabVector)
     {
@@ -188,7 +222,7 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
             if (!tufts.Util.isWindowsPlatform())
             	fsview = FileSystemView.getFileSystemView();
             
-            final LocalFilingManager manager = new LocalFilingManager();   // get a filing manager
+            final LocalFilingManager manager = getLocalFilingManager();   // get a filing manager
                 
             LocalCabinetEntryIterator rootCabs = (LocalCabinetEntryIterator) manager.listRoots();
             while(rootCabs.hasNext()){
@@ -223,12 +257,6 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     }
 
         
-    public JComponent getResourceViewer(){
-        
-        return this.resourceViewer;
-        
-    }
-    
     public int[] getPublishableModes() {
         int modes[] = {Publishable.PUBLISH_MAP,Publishable.PUBLISH_CMAP,Publishable.PUBLISH_ZIP};
         return modes;
@@ -312,6 +340,13 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     private void publishAll(LWMap map) {
           JOptionPane.showMessageDialog(VUE.getDialogParent(), "Export all Not supported","Export Error",JOptionPane.PLAIN_MESSAGE);
     }
+
+
+    private void out(String s) {
+        Log.debug(String.format("@%x; %s(addr=%s): %s", System.identityHashCode(this), getDisplayName(), getAddress(), s));
+    }
+
+    
 }
 
 
