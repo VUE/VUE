@@ -66,7 +66,9 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
         this.saveFile = saveFile;
         load();
         if (!fileOpen){
-            System.out.println("Creating new favorites");
+            Log.info("Creating new favorites: " + displayName);
+            // todo: refactor such that we don't need to create this dummy "name only" resource
+            // (e.g., create the FavoritesNode directly, which might subclass the new "RootNode")
             URLResource favResource = (URLResource) Resource.getFactory().get(displayName);
             favResource.setClientType(FAVORITES);
             favoritesTree = new VueDandDTree(new FavoritesNode(favResource));
@@ -399,7 +401,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
                         if (path == null)
                             return;
                         Object uo = selTreeNode.getUserObject();
-                        System.out.println("instance of favorites node- res class"+ uo.getClass());
+                        if (DEBUG.Enabled) System.out.println("instance of favorites node- res class"+ tufts.Util.tags(uo));
                     
                         if (uo instanceof Resource)
                             ((Resource)uo).displayContent();
