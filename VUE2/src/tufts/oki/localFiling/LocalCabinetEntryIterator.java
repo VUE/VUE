@@ -28,37 +28,29 @@ import java.util.*;
  *  The CabinetEntryIterator provides a way to list all entries in a given cabinet entry.
  *
  * @author  Mark Norton
+ * @author  Scott Fraize
  *
  *  CabinetEntryIterator is fully implemented.
  */
 public class LocalCabinetEntryIterator implements osid.filing.CabinetEntryIterator{
     
-    //private SortedSet cabinet_vector = null;
     private final osid.filing.CabinetEntry[] sorted;
     private int offset = 0;
     
     /** Creates a new instance of CabinetEntryIterator  given a vector of CabinetEntry.  */
     public LocalCabinetEntryIterator(SortedSet vect) {
+        // Slow, but thread-safe:
         sorted = (osid.filing.CabinetEntry[]) vect.toArray(new osid.filing.CabinetEntry[vect.size()]);
-        //cabinet_vector = vect;
     }
     
     /**  Check to see if there is at least one more entry.  */
     public boolean hasNext() {
         return offset < sorted.length;
-        //return (offset < cabinet_vector.size());
     }
     
     /**  Get the next entry and increment offset.  */
     public osid.filing.CabinetEntry next() {
         return sorted[offset++];
-        
-        // this is a highly inefficient impl, and could allow the iterator
-        // to produce incoherent results if the vector changes during iteration -- SMF 2007-10-10
-        // osid.filing.CabinetEntry ce = (osid.filing.CabinetEntry) cabinet_vector.toArray()[offset];
-        //offset++;
-        //return ce;
-
     }
     
 }
