@@ -33,6 +33,7 @@ import osid.OsidException;
  *  of the filing system.  Usually this is empty or contains the drive letter, if a PC.
  *
  * @author  Mark Norton
+ * @author  Scott Fraize
  *
  */
 public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabinet
@@ -40,7 +41,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     private static final boolean UseCache = false;
     private static final Map<String,LocalCabinet> Cache;
 
-    static { Cache = UseCache ? new java.util.HashMap() : null; }
+    static { Cache = UseCache ? new java.util.concurrent.ConcurrentHashMap() : null; }
 
     //private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalCabinet.class);
     
@@ -56,13 +57,12 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
 
     public static LocalCabinet instance(String path, osid.shared.Agent owner, osid.filing.Cabinet parent) {
         if (UseCache) {
-            LocalCabinet cabinet = null;
-            synchronized (Cache) {
-                if (cabinet == null) {
-                    cabinet = new LocalCabinet(path, owner, parent);
-                    Cache.put(path, cabinet);
-                } else
-                    if (Log.isDebugEnabled()) Log.debug("CACHE HIT " + cabinet);
+            LocalCabinet cabinet = Cache.get(path);
+            if (cabinet == null) {
+                cabinet = new LocalCabinet(path, owner, parent);
+                Cache.put(path, cabinet);
+            } else {
+                if (Log.isDebugEnabled()) Log.debug("instance cache: " + cabinet);
             }
             return cabinet;
         } else
@@ -128,12 +128,17 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
             rootBase = null;
         }
 
-        if (Log.isDebugEnabled()) {
+        if (tufts.vue.DEBUG.IO && Log.isDebugEnabled()) {
             if (parent != null)
                 Log.debug("CREATED in " + parent + ": " + this);
             else
                 Log.debug("CREATED " + this);
         }
+    }
+    
+    @Override
+    public final boolean isCabinet() {
+        return true;
     }
     
    /**
@@ -288,13 +293,11 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
     *
     *   @return Return an iterator for the entries in this cabinet.    
     */
-    public osid.filing.CabinetEntryIterator entries() throws osid.filing.FilingException {
-        if (!initialized) {
-            synchronized (this) {
-                if (!initialized)
-                    loadChildren();
-            }
-        }
+    public synchronized osid.filing.CabinetEntryIterator entries() throws osid.filing.FilingException {
+
+        if (!initialized)
+            loadChildren();
+        
         return new LocalCabinetEntryIterator(children);
     }
 
@@ -346,6 +349,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
         open = true;
         initialized = true;
         debug("initialized");
+        //new Throwable("HERE").printStackTrace();
     }
     
     
