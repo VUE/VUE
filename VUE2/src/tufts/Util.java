@@ -1728,7 +1728,7 @@ public class Util
             pst.print(stamp);
             log.print(stamp);
 
-            pst.print(TERM_CLEAR);
+            //pst.print(TERM_CLEAR);
             
             if (prefix == null || prefix == NO_CLASS_FILTER)
                 prefix = "!tufts.Util.print";
@@ -1759,6 +1759,9 @@ public class Util
             }
             pst.println("END " + t + "\n");
             log.println("END " + t + "\n");
+
+            pst.print(TERM_CLEAR);
+            
             
         }
         }}
@@ -1833,6 +1836,11 @@ public class Util
         if (o instanceof java.lang.String) {
             // special case for strings: we dont care about hashCode / type -- just return quoted
             return '"' + o.toString() + '"';
+            //return TERM_RED + '"' + o.toString() + '"' + TERM_CLEAR;
+        }
+        if (o instanceof java.lang.Number) {
+            // special case for strings: we dont care about hashCode / type -- just return quoted
+            return o.toString() + " (" + o.getClass().getSimpleName() + ")";
             //return TERM_RED + '"' + o.toString() + '"' + TERM_CLEAR;
         }
             

@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.528 $ / $Date: 2008-04-16 23:06:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.529 $ / $Date: 2008-04-18 01:24:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3890,9 +3890,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	sSinglePopup.add(Actions.AddPathwayItem);
     	sSinglePopup.add(Actions.RemovePathwayItem);
         
-        if (DEBUG.Enabled) {
-            sSinglePopup.add(Actions.ImageToNaturalSize);
-        }
         sSinglePopup.add(syncMenu);
         sSinglePopup.addSeparator();
         sSinglePopup.add(Actions.Copy);
@@ -4053,7 +4050,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     	 sSinglePopup.addSeparator();
     	 sSinglePopup.add(Actions.Copy);
          sSinglePopup.add(Actions.Paste);    
-         sSinglePopup.add(Actions.Delete);    	 
+         sSinglePopup.add(Actions.Delete);
+
+        if (DEBUG.Enabled)
+            sSinglePopup.add(Actions.ImageToNaturalSize);
     }
     private JMenu syncMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.syncMenu.label"));
     private JMenu arrangeMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.arrangeMenu.label"));
