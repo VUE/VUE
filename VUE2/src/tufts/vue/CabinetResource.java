@@ -21,6 +21,7 @@
  */
 
 package tufts.vue;
+
 import osid.filing.*;
 import java.util.*;
 import java.io.*;
@@ -36,7 +37,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.37 $ / $Date: 2008-04-16 20:37:14 $ / $Author: sfraize $
+ * @version $Revision: 1.38 $ / $Date: 2008-04-18 01:20:54 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -45,27 +46,26 @@ public class CabinetResource extends URLResource
     
     //  Filing metadata property keywords.
     public static final String MD_NAME = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_TITLE];
-    //public static final String MD_TIME = "md.filing.time";
     public static final String MD_OWNER = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_CREATOR];
+    public static final String MD_MIME = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_TYPE];
+    //public static final String MD_TIME = "md.filing.time";
     //public static final String MD_READ = "md.filing.read";
     //public static final String MD_WRITE = "md.filing.write";
     //public static final String MD_APPEND = "md.filing.append";
     //public static final String MD_LENGTH = "md.filing.length";
-    public static final String MD_MIME = DublinCoreConstants.DC_FIELDS[DublinCoreConstants.DC_TYPE];
     
-    private osid.filing.CabinetEntry entry = null;  //  This is not marshalled.
-    
-    //private int type = Resource.FILE;           //  Resource type.
-    private boolean selected = false;           //  Selection flag.
-             //  Object specification, usually URL.
-    private String extension = null;                  //  Extension.
+    //private final transient osid.filing.CabinetEntry entry;  //  This is not marshalled.
+    private transient osid.filing.CabinetEntry entry;  //  This is not marshalled.
     
     
     /**
      *  Create a new instance of CabinetResource.  This creator should be used when
      *  the resource is being unmarshalled.
      */
-    public CabinetResource () {}
+    public CabinetResource() {
+        //if (DEBUG.RESOURCE) Log.debug("empty instance: " + this);
+        //this.entry = null; // entries are currently never marshalled, so we don't need this for the moment
+    }
     
     /** 
      *  Creates a new instance of CabinetResource .  This creator is used when the
@@ -81,9 +81,21 @@ public class CabinetResource extends URLResource
     }
 
     // todo: shouldn't be public -- eventually everything should go thru factory
-    public static CabinetResource create(osid.filing.CabinetEntry entry) {
-        return new CabinetResource(entry);
+    static CabinetResource create(final osid.filing.CabinetEntry entry) {
+        final CabinetResource r = new CabinetResource(entry);
+        if (DEBUG.RESOURCE)
+            Log.debug("created: " + r + "; from: " + entry);
+//         else
+//             if (DEBUG.Enabled && tufts.Util.isWindowsPlatform()) System.err.print(".");
+        return r;
     }
+
+//     static CabinetResource create(java.io.File file) {
+//         final CabinetResource r = new CabinetResource();
+//         if (DEBUG.RESOURCE) Log.debug("created: " + r + "; from: " + tufts.Util.tags(file));
+//         return r;
+//     }
+    
     
     /**
      *  Display the content associated with this resource.  For a cabinet resource,
@@ -179,9 +191,9 @@ public class CabinetResource extends URLResource
     
     
     
-    public void setExtension(String extenstion) {
-        this.extension = extension;
-    }
+//     public void setExtension(String extenstion) {
+//         this.extension = extension;
+//     }
     /**
      *  Return the metadata properties associated with this object.  Metadata is extracted
      *  from the various flavors of CabinetEntry and collected into a Properties object,
@@ -285,23 +297,23 @@ public class CabinetResource extends URLResource
 //         }
 //     }
 
-    /**
-     *  Return the selected flag.
-     *
-     *  @author Mark Norton
-     */
-    public boolean isSelected() {
-        return selected;
-    }
+//     /**
+//      *  Return the selected flag.
+//      *
+//      *  @author Mark Norton
+//      */
+//     public boolean isSelected() {
+//         return selected;
+//     }
     
-    /**
-     *  Set the selected flag to the value provided.
-     *
-     *  @author Mark Norton
-     */
-    public void setSelected(boolean selected) {
-        this.selected = selected;
-    }
+//     /**
+//      *  Set the selected flag to the value provided.
+//      *
+//      *  @author Mark Norton
+//      */
+//     public void setSelected(boolean selected) {
+//         this.selected = selected;
+//     }
     
     /**
      *  Return the cabinet entry associated with this resource.
@@ -313,6 +325,7 @@ public class CabinetResource extends URLResource
     }
     
     public void setEntry(osid.filing.CabinetEntry entry){
+        if (DEBUG.RESOURCE) out("setEntry: " + entry);
         this.entry = entry;
     }
     
@@ -326,6 +339,12 @@ public class CabinetResource extends URLResource
         VueUtil.openURL(tempFile.getAbsolutePath());
         
     }
+
+    @Override
+    protected String paramString() {
+        return entry == null ? "NO-CABINET-ENTRY; " : "";
+    }
+    
     
     
 //     @Override
