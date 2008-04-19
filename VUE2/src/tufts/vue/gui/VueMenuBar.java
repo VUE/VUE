@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.95 $ / $Date: 2008-04-15 21:33:21 $ / $Author: mike $
+ * @version $Revision: 1.96 $ / $Date: 2008-04-19 02:13:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1074,6 +1074,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     
     private static class ShortcutsAction extends VueAction {
         private static DockWindow window;
+
         ShortcutsAction() {
             super("Keyboard Shortcuts");
         }
@@ -1081,22 +1082,29 @@ public class VueMenuBar extends javax.swing.JMenuBar
         @Override
         public boolean isUserEnabled() { return true; }
         
+        private boolean wasDebug;
+        private JComponent content;
         public void act() {
             if (window == null)
-                window = createWindow();
-            //window.setWidth(400);
+                window = GUI.createDockWindow(VUE.getName() + " Short-Cut Keys");
+
+            if (content == null || (wasDebug != DEBUG.Enabled)) {
+                wasDebug = DEBUG.Enabled;
+                content = buildShortcutsComponent();
+                window.setContent(content);
+            }
             window.pack(); // fit to widest line
             window.setVisible(true);
         }
-        private DockWindow createWindow() {
-            return GUI.createDockWindow(VUE.getName() + " Short-Cut Keys", createShortcutsList());
-        }
+//         static DockWindow createWindow() {
+//             return GUI.createDockWindow(VUE.getName() + " Short-Cut Keys", createShortcutsList());
+//         }
 
-        private static String keyCodeName(int keyCode) {
-            return keyCodeName(keyCode, false);
+        private static String keyCodeChar(int keyCode) {
+            return keyCodeChar(keyCode, false);
         }
         
-        private static String keyCodeName(int keyCode, boolean lowerCase) {
+        private static String keyCodeChar(int keyCode, boolean lowerCase) {
             
             if (lowerCase && keyCode >= KeyEvent.VK_A && keyCode <= KeyEvent.VK_Z) {
                 return String.valueOf((char)keyCode).toLowerCase();
@@ -1112,71 +1120,335 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 return KeyEvent.getKeyText(keyCode);
         }
 
-        private JComponent createShortcutsList() {
-            String text = new String();
+        static StringBuffer html;
+
+        private static int BOLD = 1;
+        private static int ITAL = 2;
+        private static int RIGHT = 4;
+        private static int CENTER = 8;
+        
+        private static void add(int bits, Object o) {
+
+            html.append("<td");
+            
+            if ((bits & CENTER) != 0) // CENTER takes priority over RIGHT
+                html.append(" align=center");
+            else if ((bits & RIGHT) != 0)
+                html.append(" align=right");
+
+            html.append(">&nbsp;");
+
+            if ((bits & BOLD) != 0) html.append("<b>");
+            if ((bits & ITAL) != 0) html.append("<i>");
+                
+            html.append(o == null ? (DEBUG.Enabled?"null":"") : o.toString());
+            
+//             if ((bits & BOLD) != 0) html.append("</b>");
+//             if ((bits & ITAL) != 0) html.append("</i>");
+            
+            html.append("&nbsp;</td>");
+        }
+        private static void add(Object o) {
+            add(0, o);
+        }
+
+        private static void addRow(int row) {
+            if (row % 2 == 0) {
+                if (Util.isMacPlatform())
+                    html.append("<tr bgcolor=#DDDDFF>");
+                else
+                    html.append("<tr bgcolor=#FFFFFF>");
+            } else {
+                html.append("<tr>");
+            }
+        }
+
+
+        private static void addTable(int border) {
+            if (border == 0 && DEBUG.Enabled)
+                border = 1;
+            html.append("<html><table border=" + border + " cellpadding=2>");
+        }
+        
+        
+
+        private static final int SHIFT = Event.SHIFT_MASK + InputEvent.SHIFT_DOWN_MASK;
+        private static final int CTRL = Event.CTRL_MASK + InputEvent.CTRL_DOWN_MASK;
+        private static final int ALT = Event.ALT_MASK + InputEvent.ALT_DOWN_MASK;
+
+        private static boolean hasOnlyShift(int mods)   { return (mods & SHIFT) == (mods | SHIFT); }
+        private static boolean hasOnlyCtrl(int mods)    { return (mods & CTRL) == (mods | CTRL); }
+        private static boolean hasOnlyAlt(int mods)     { return (mods & ALT) == (mods | ALT); }
+        
+        private static boolean hasOnlyOne(int mods) {
+            return hasOnlyShift(mods) || hasOnlyAlt(mods) || hasOnlyCtrl(mods);
+        }
+        
+        static JComponent buildShortcutsComponent()
+        {
+            if (html == null) {
+                if (DEBUG.Enabled)
+                    html = new StringBuffer(65536);
+                else
+                    html = new StringBuffer(8192);
+            }
+            html.setLength(0);
+            
+            addTable(0);
+            
+            int row = 0;
+            
+            if (DEBUG.Enabled) {
+                
+                html.append("<tr bgcolor=#00FFFF>");
+                add(BOLD+ITAL, "TOOL ID");
+                add(BOLD+ITAL, "ShortCut");
+                add(BOLD+ITAL, "DownKey");
+                //add(BOLD+ITAL, "DownStroke");
+                add(BOLD+ITAL, "Name");
+                //if (Util.isMacPlatform()) add(BOLD+ITAL, "OSX");
+                add(BOLD+ITAL, VueTool.class);
+                html.append("</tr>");
+                
+            } else {
+
+                html.append("<tr bgcolor=#888888>");
+                add(BOLD+ITAL, "Key");
+                add(BOLD+ITAL+CENTER, "Tmp");
+                add(BOLD+ITAL, "Tool");
+                html.append("</tr>");
+                
+            }
+
+
             
             // get tool short-cuts
             for (VueTool t : VueTool.getTools()) {
-                final int downKey = t.getActiveWhileDownKeyCode();
-                if (DEBUG.TOOL) {
-                    text += String.format(" %-25s (%c) %-12s %-23s %s \n",
-                                          t.getID()+":",
-                                          t.getShortcutKey() == 0 ? ' ' : t.getShortcutKey(),
-                                          "("+keyCodeName(downKey) + ")",
-                                          t.getToolName(),
-                                          t.getClass().getName()
-                                          );
+
+                if (t.getShortcutKey() == 0)
+                    continue;
+
+                final char downKey = (char) t.getActiveWhileDownKeyCode();
+
+                addRow(row);
+                row++;
+
+                
+                if (DEBUG.Enabled) {
+                    
+                    add(t.getID());
+                    add(BOLD+CENTER, t.getShortcutKey());
+                    add(BOLD+CENTER, keyCodeChar(downKey));
+                    //add(BOLD+CENTER, KeyStroke.getKeyStroke((char)downKey));
+                    add(BOLD, t.getToolName());
+                    add(t.getClass().getName());
+                
                 } else if (t.getShortcutKey() != 0) {
-                    text += String.format(" (%c) %-12s %s \n",
-                                          t.getShortcutKey(),
-                                          downKey == 0 ? "" : "(" + keyCodeName(downKey, true) + ")",
-                                          t.getToolName());
+
+                    add(BOLD+CENTER, t.getShortcutKey());
+                    if (downKey == 0)
+                        add("");
+                    else
+                        add(BOLD+CENTER, keyCodeChar(downKey, true));
+                    add(BOLD, t.getToolName());
+                    //add(BOLD+CENTER, '(' + keyCodeChar(downKey, true) + ')');
                 }
             }
             
-            text += "\n";
+            if (DEBUG.Enabled) {
+                html.append("</table><p>");
+                addTable(0);
 
-            // get action short-cuts
+                html.append("<tr bgcolor=#00FFFF>");
+                add(BOLD+ITAL, "row");
+                add(BOLD+ITAL, "mod bits");
+                add(BOLD+ITAL, "mod text");
+                if (Util.isMacPlatform()) add(BOLD+ITAL, "OSX");
+                add(BOLD+ITAL, "K");
+                add(BOLD+ITAL, "ACTION NAME");
+                add(BOLD+ITAL, KeyStroke.class.getName());
+                add(BOLD+ITAL, "ACTION");
+                html.append("</tr>");
+            } else {
+
+                html.append("<tr></tr>");
+                
+                html.append("<tr bgcolor=#888888>");
+                add(BOLD+ITAL, "Key");
+                add(BOLD+ITAL, "Char");
+                add(BOLD+ITAL, "Action");
+                html.append("</tr>");
+                
+            }
+
+           // get action short-cuts
+
+            row = 0;
             for (VueAction a : getAllActions()) {
                 
                 KeyStroke k = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
-                if (k == null)
+                if (k == null && !(DEBUG.Enabled && DEBUG.WORK))
                     continue;
+                row++;
                 
-                String keyModifiers = KeyEvent.getKeyModifiersText(k.getModifiers());
-                if (keyModifiers.length() > 0)
-                    keyModifiers += " ";
+                String modNames = "";
 
-                String strokeName = keyModifiers + keyCodeName(k.getKeyCode());
+                if (k != null) {
+                    modNames = KeyEvent.getKeyModifiersText(k.getModifiers());
+                    //if (modNames != null && modNames.length() > 0)
+                    //modNames += " ";
+                }
 
-                text += String.format(" %-20s %s \n", strokeName, a.getPermanentActionName());
+                addRow(row);
+                    
+                final int mods = k == null ? 0 : k.getModifiers();
+                int goRight = hasOnlyOne(mods) ? RIGHT : 0;
+
+                if (goRight != 0 && (mods & Actions.COMMAND) != 0) // not for the platform primary
+                    goRight = 0;
+                    
+                if (DEBUG.Enabled) {
+
+                    //=============================================================================
+                    // DEBUG
+                    //=============================================================================
+                    
+                    add(RIGHT, row);
+                    if (k == null) {
+                        add("");
+                        add("");
+                        if (Util.isMacPlatform()) add("");
+                        add("");                        
+                    } else {
+                        add(RIGHT+BOLD, Integer.toBinaryString(mods));
+
+                        if (Util.isMacLeopard()) {
+                            add(BOLD+goRight, get_MacOSX_Leopard_Modifier_Names(mods));
+                            add(BOLD+goRight+(DEBUG.Enabled?0:CENTER), KeyEvent.getKeyModifiersText(mods));
+                        } else {
+                            add(BOLD+goRight, KeyEvent.getKeyModifiersText(mods)); 
+                        }
+                        add(BOLD+CENTER, keyCodeChar(k.getKeyCode()));
+                    }
+                    
+                    add(BOLD, a.getPermanentActionName());
+                    add(k == null ? "" : k);
+                    add(a.getClass().getName());
+
+                } else {
+
+                    //=============================================================================
+                    // Production
+                    //=============================================================================
+                    
+                    if (Util.isMacLeopard()) {
+                        //add(BOLD+goRight, get_MacOSX_Leopard_Modifier_Names(mods));
+                        //add(BOLD, KeyEvent.getKeyModifiersText(mods) + keyCodeName(k.getKeyCode()));
+                        add(BOLD+goRight, KeyEvent.getKeyModifiersText(mods).replace('+', (char)0));
+                        add(BOLD+CENTER, keyCodeChar(k.getKeyCode()));
+                    } else {
+                        add(BOLD+goRight, KeyEvent.getKeyModifiersText(mods));
+                        add(BOLD, keyCodeChar(k.getKeyCode()));
+                    }
+                    add(BOLD, a.getPermanentActionName());
+
+                }
+
             }
             
-            javax.swing.JTextArea t = new javax.swing.JTextArea();
-//             javax.swing.JTextArea t = new javax.swing.JTextArea() {
-//                     public void paint(java.awt.Graphics g) {
-//                         ((java.awt.Graphics2D)g).setRenderingHint
-//                             (java.awt.RenderingHints.KEY_TEXT_ANTIALIASING,
-//                              java.awt.RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-//                         super.paint(g);
-//                     }};
+            final javax.swing.JLabel t = new javax.swing.JLabel();
             
-            t.setFont(VueConstants.SmallFixedFont);
-            t.setEditable(false);
-          //  t.setFocusable(false);
-            t.setText(text);
+            if (DEBUG.Enabled)
+                t.setFont(VueConstants.LargeFont);
+            else
+                t.setFont(VueConstants.MediumFont);
+
+            if (DEBUG.Enabled) Log.debug("HTML size: " + ShortcutsAction.html.length());
+            t.setText(html.toString());
+
             t.setOpaque(false);
+            //t.setFocusable(false);
+            
             return new JScrollPane(t,
                                    JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                                    JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                                    );
         }
-        
+
+        // The Mac OSX Leopard JVM impl changed KeyEvent.getKeyModifiersText(mods) to return the actual
+        // special mac glyphs representing these keys.  This replaces the old functionality
+        // (swiped from the java source), in case we want to use it.
+        private static String get_MacOSX_Leopard_Modifier_Names(int modifiers) {
+            StringBuffer buf = new StringBuffer();
+            if ((modifiers & InputEvent.META_MASK) != 0) {
+                //buf.append(Toolkit.getProperty("AWT.meta", "Meta"));
+                buf.append("Command");
+                buf.append("+");
+            }
+            if ((modifiers & InputEvent.CTRL_MASK) != 0) {
+                //buf.append(Toolkit.getProperty("AWT.control", "Ctrl"));
+                buf.append("Ctrl");
+                buf.append("+");
+            }
+            if ((modifiers & InputEvent.ALT_MASK) != 0) {
+                //buf.append(Toolkit.getProperty("AWT.alt", "Alt"));
+                buf.append("Alt");
+                buf.append("+");
+            }
+            if ((modifiers & InputEvent.SHIFT_MASK) != 0) {
+                //buf.append(Toolkit.getProperty("AWT.shift", "Shift"));
+                buf.append("Shift");
+                buf.append("+");
+            }
+            if ((modifiers & InputEvent.ALT_GRAPH_MASK) != 0) {
+                //buf.append(Toolkit.getProperty("AWT.altGraph", "Alt Graph"));
+                buf.append("Alt Graph");
+                buf.append("+");
+            }
+            if ((modifiers & InputEvent.BUTTON1_MASK) != 0) {
+                //buf.append(Toolkit.getProperty("AWT.button1", "Button1"));
+                buf.append("Button1");
+                buf.append("+");
+            }
+            if (buf.length() > 0) {
+                buf.setLength(buf.length()-1); // remove trailing '+'
+            }
+            return buf.toString();
+        }
+    
     }
+
     
-    
+    public static void main(String args[])
+    {
+        VUE.init(args);
+
+        // Ensure the tools are loaded to we can see their shortcuts:
+        VueToolbarController.getController();
+        
+        JFrame frame = new JFrame("vueParentWindow");
+
+        // Ensure that all the Actions are instantiated so we can see them:
+        tufts.vue.Actions.Delete.toString();
+	         
+        // Let us see the actual menu bar:
+        frame.setJMenuBar(new VueMenuBar());
+        frame.setVisible(true); // do this or we can't see the menu bar
+
+        new ShortcutsAction().act();
+
+//         Log.info("creating...");
+//         DockWindow shortcuts = ShortcutsAction.createWindow();
+//         Log.info("showing...");
+//         shortcuts.pack(); // fit to HTML content
+//         shortcuts.setVisible(true);
+
+        if (DEBUG.META) System.out.println("HTML: " + ShortcutsAction.html);
+
+    }
     
 
     
-    
+
 }
+
