@@ -52,6 +52,8 @@ public class Util
     private static boolean MacAquaLAF_set = false;
     private static boolean UnixPlatform = false;
     private static final String PlatformName;
+    private static final String OSVersion;
+    private static final boolean OSisMacLeopard;
     private static float javaVersion = 1.0f;
     
     private static int MacMRJVersion = -1;
@@ -65,11 +67,16 @@ public class Util
         if (!DEBUG)
             DEBUG = System.getProperty("tufts.Util.debug") != null;
             
-        String osName = System.getProperty("os.name");
-        String javaSpec = System.getProperty("java.specification.version");
+        final String osName = System.getProperty("os.name");
+        final String osArch = System.getProperty("os.arch");
+        OSVersion = System.getProperty("os.version");
+        final String javaSpec = System.getProperty("java.specification.version");
 
-        PlatformName = osName + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch");
+        PlatformName = osName + " " + OSVersion + " " + osArch;
 
+        if (DEBUG) out(String.format("Platform: %s / %s / %s", osName, OSVersion, osArch));
+        //if (DEBUG) out(String.format("Platform: %s / %s / %s; Leopard=%s", osName, OSVersion, osArch, OSisMacLeopard));
+        
         try {
             javaVersion = Float.parseFloat(javaSpec);
             if (DEBUG) out("Java Version: " + javaVersion);
@@ -78,10 +85,11 @@ public class Util
             errorOut(e.toString());
         }
 
-        String osn = osName.toUpperCase();
+        final String osn = osName.toUpperCase();
         if (osn.startsWith("MAC")) {
             MacPlatform = true;
-            if (DEBUG) out("Mac JVM: " + osName);
+            OSisMacLeopard = OSVersion.startsWith("10.5");
+            if (DEBUG) out(String.format("Mac: Leopard=%s", OSisMacLeopard));
             String mrj = System.getProperty("mrj.version");
             int i = 0;
             while (i < mrj.length()) {
@@ -100,10 +108,14 @@ public class Util
             
         } else if (osn.indexOf("WINDOWS") >= 0) {
             WindowsPlatform = true;
-            if (DEBUG) out("Windows JVM: " + osName);
+            OSisMacLeopard = false;
+            //if (DEBUG) out("Windows Platform: " + PlatformName);
         } else {
             UnixPlatform = true;
+            OSisMacLeopard = false;
         }
+
+        if (DEBUG) out(String.format("OSFlags: isWin=%b; isMac=%b(leopard=%b); isUnix=%b;", WindowsPlatform, MacPlatform, OSisMacLeopard, UnixPlatform));
 
         String term = System.getenv("TERM");
         boolean allowColor = false;
@@ -164,6 +176,14 @@ public class Util
     
     public static String getPlatformName() {
         return PlatformName == null ? (System.getProperty("os.name") + "?") : PlatformName;
+    }
+       
+    public static String getOSVersion() {
+        return OSVersion;
+    }
+    
+    public static boolean isMacLeopard() {
+        return OSisMacLeopard;
     }
        
 
@@ -2132,7 +2152,7 @@ public class Util
             while (e.hasMoreElements()) {
                 Object key = e.nextElement();
                 //System.out.println("[1;36m" + key + "[m=" + props.get(key));
-                System.out.println(key + "=" + props.get(key));
+                System.out.println(TERM_PURPLE + key + TERM_CLEAR + " " + props.get(key));
             }
         }
         
