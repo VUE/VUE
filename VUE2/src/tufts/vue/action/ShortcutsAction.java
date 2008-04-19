@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.1 $ / $Date: 2008-04-19 23:31:22 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-04-19 23:33:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -419,7 +419,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
         StringBuffer buf = new StringBuffer();
         if ((modifiers & InputEvent.META_MASK) != 0) {
             //buf.append(Toolkit.getProperty("AWT.meta", "Meta"));
-            buf.append("Command");
+            //buf.append("Command");
+            buf.append("Apple");
             buf.append("+");
         }
         if ((modifiers & InputEvent.CTRL_MASK) != 0) {
