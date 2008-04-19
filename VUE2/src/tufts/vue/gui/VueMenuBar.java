@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.96 $ / $Date: 2008-04-19 02:13:36 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2008-04-19 02:33:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -1350,7 +1350,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                         add(BOLD+goRight, KeyEvent.getKeyModifiersText(mods));
                         add(BOLD, keyCodeChar(k.getKeyCode()));
                     }
-                    add(BOLD, a.getPermanentActionName());
+                    add(a.getPermanentActionName());
 
                 }
 
