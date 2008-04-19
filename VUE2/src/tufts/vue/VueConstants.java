@@ -26,7 +26,7 @@ import java.awt.font.FontRenderContext;
  *
  * Is an interface so can be "implemented" as virtual java 1.5 static import.
  *
- * @version $Revision: 1.57 $ / $Date: 2008-04-08 15:40:06 $ / $Author: mike $ 
+ * @version $Revision: 1.58 $ / $Date: 2008-04-19 02:12:25 $ / $Author: sfraize $ 
  */
 
 // todo: rename GUI constants & move to GUI
@@ -40,9 +40,19 @@ public interface VueConstants
     static Font FixedSmallFont = new Font("Courier", Font.BOLD, 10);
     static Font MediumFont = new Font("SansSerif", Font.PLAIN, 12);
     static Font SmallFont = new Font("SansSerif", Font.PLAIN, 10);
+    static Font LargeFont = new Font("SansSerif", Font.PLAIN, 14);
     //static Font LinkLabelFont = new Font("SansSerif", Font.PLAIN, 10);
 
-    static Font SmallFixedFont = new Font("Lucida Sans Typewriter", Font.PLAIN, 10);
+    //static Font SmallFixedFont = new Font("Lucida Sans Typewriter", Font.PLAIN, 10); // will not show special character glyphs
+    //static Font SmallFixedFont = new Font("Lucida Console", Font.PLAIN, 12);
+    //: new Font("Lucida Sans Typewriter", Font.PLAIN, 10); 
+
+    static Font SmallFixedFont = VueUtil.isMacPlatform()
+        ? new Font("Monaco", Font.PLAIN, 11) // a fixed-width mac font that shows propertly shows special mac character glyphs (needed for Leopard)
+        : new Font("Lucida Console", Font.PLAIN, 10); // will not show special character glyphs on mac, nor will be anti-aliased
+
+    // Note that "Lucida Console" on Mac OS X gets mapped to "Monaco" in any case
+    
     static Font LargeFixedFont = new Font("Lucida Sans Typewriter", Font.PLAIN, 12);
 
     static Font FONT_DEFAULT = new Font("SansSerif", Font.PLAIN, 14);
