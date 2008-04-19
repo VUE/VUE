@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.120 $ / $Date: 2007-11-27 20:31:02 $ / $Author: mike $
+ * @version $Revision: 1.121 $ / $Date: 2008-04-19 01:00:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -955,7 +955,7 @@ public class DockWindow extends javax.swing.JWindow
     /** @return true of bounds were modified */
     private boolean keepOnScreen(Rectangle r) {
         int bottom = r.y + r.height;
-        int maxBottom = GUI.GScreenHeight;// - GUI.GInsets.bottom;
+        int maxBottom = GUI.GScreenHeight - GUI.GInsets.bottom;
         //out("        y="+r.y);
         //out("   bottom="+bottom);
         //out("maxBottom="+maxBottom);
