@@ -31,7 +31,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.34 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $ 
+ * @version $Revision: 1.35 $ / $Date: 2008-04-19 02:12:10 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -116,7 +116,7 @@ public class VueAction extends javax.swing.AbstractAction
 	putValue(Action.NAME, getClass().getName() + anonIndex++);
     }    
 
-    public List<VueAction> getAllActions() {
+    public static List<VueAction> getAllActions() {
         return Collections.unmodifiableList(AllActionList);
     }
 
