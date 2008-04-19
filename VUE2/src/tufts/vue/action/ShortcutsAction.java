@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.2 $ / $Date: 2008-04-19 23:33:39 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-04-19 23:53:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -133,17 +133,20 @@ public class ShortcutsAction extends tufts.vue.VueAction
     }
 
     private static void addGap() {
-        add(" &nbsp; ");
+        add(" &nbsp;&nbsp; ");
+        //add(" &nbsp; &nbsp; ");
+        //add("x&nbsp;x&nbsp;x");
     }
 
     private static void addRow(int row) {
         if (row % 2 == 0) {
             if (Util.isMacPlatform())
-                html.append("<tr bgcolor=#DDDDFF>");
+                html.append("\n<tr bgcolor=#DDDDFF>");
             else
-                html.append("<tr bgcolor=#FFFFFF>");
+                html.append("\n<tr bgcolor=#FFFFFF>");
         } else {
-            html.append("\n<tr>");
+            html.append('\n');
+            html.append("<tr>");
         }
     }
 
@@ -153,6 +156,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
         if (DEBUG.Enabled)
             border = 1;
 
+        html.append('\n');
         html.append("<table border=" + border + " cellpadding=2");
 
         if (attr != null) {
@@ -300,7 +304,6 @@ public class ShortcutsAction extends tufts.vue.VueAction
             //=======================================================
             // Production ACTION Title/Header Line
             //=======================================================
-
                 
             html.append("<tr bgcolor=" + TitleColor + ">");
 
@@ -376,7 +379,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 //=============================================================================
                     
                 if (Util.isMacLeopard()) {
-                    add(""); // for gap
+                    //add(""); // for gap
+                    addGap(); // for gap
                     add(BOLD + NO_EAST_GAP + goRight, get_MacOSX_Leopard_Modifier_Glyphs(mods));
                     add(BOLD + NO_WEST_GAP + CENTER, keyCodeChar(k.getKeyCode()));
                 } else {
@@ -385,8 +389,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 }
                 add(a.getPermanentActionName());
 
-                if (Util.isMacLeopard())
-                    add(""); // for gap
+                //if (Util.isMacLeopard()) add(""); // for gap: implied
                 
 
             }
