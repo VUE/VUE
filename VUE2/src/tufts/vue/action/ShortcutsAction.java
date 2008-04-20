@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.3 $ / $Date: 2008-04-19 23:53:57 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-04-20 00:18:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -152,12 +152,17 @@ public class ShortcutsAction extends tufts.vue.VueAction
 
 
     private static void addTable(String... attr) {
-        int border = 0;
-        if (DEBUG.Enabled)
-            border = 1;
 
         html.append('\n');
-        html.append("<table border=" + border + " cellpadding=2");
+        html.append("<table");
+        html.append(" cellpadding=2");
+        
+        if (DEBUG.Enabled)
+            html.append(" border=1");
+        else
+            html.append(" border=0");
+
+        //html.append(" rules=rows bordercolor=red"); // Java does not support these
 
         if (attr != null) {
             for (String s : attr) {
@@ -268,6 +273,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
                     add(BOLD+CENTER, keyCodeChar(downKey, true));
                 
                 add(BOLD+CENTER, t.getShortcutKey());
+                //add(BOLD+CENTER, t.getShortcutKey(), "bgcolor=black color=white");
                 add(BOLD, t.getToolName());
             }
         }
@@ -389,7 +395,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 }
                 add(a.getPermanentActionName());
 
-                //if (Util.isMacLeopard()) add(""); // for gap: implied
+                //if (Util.isMacLeopard()) add(""); // for gap: implied via header line
                 
 
             }
