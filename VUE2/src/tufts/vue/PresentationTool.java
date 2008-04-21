@@ -71,7 +71,7 @@ public class PresentationTool extends VueTool
 			"Slide/Node View",
                         
 			"When turning off slide thumbnails in presentation mode with the keyboard shortcut "
-                        + Actions.ToggleSlideIcons.getKeystrokeDescription()
+                        + Actions.ToggleSlideIcons.getKeyStrokeDescription()
                         + ", clicking on the node in map view will zoom in on the node as a default",
                         
 			"Show the slide for the active pathway instead of node.",
