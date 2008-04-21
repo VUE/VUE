@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.125 $ / $Date: 2008-04-21 01:26:36 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2008-04-21 05:52:10 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1023,8 +1023,7 @@ public class PathwayPanel extends JPanel
 
             final LWPathway.Entry entry = VUE.getActiveEntry();
             if (entry != null && entry.getSlide().canSync() && entry.getSlide().numChildren() == 0) {
-                //Actions.SyncToSlide.fire(e);
-                Actions.SyncToSlide.fire(this);
+                Actions.SyncToSlide.fire(this, e);
             } else {
         	setFocusable(false);
         	new SyncDialog(mParentFrame, getLocationOnScreen()).setVisible(true);
@@ -1121,7 +1120,7 @@ public class PathwayPanel extends JPanel
             toggleHideEverythingButCurrentPathway(!btnPathwayOnly.isSelected());
         } else if (btn == btnShowSlides) {
 
-            Actions.ToggleSlideIcons.fire(this);
+            Actions.ToggleSlideIcons.fire(this, e);
             
         }
         else {
