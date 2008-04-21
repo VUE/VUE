@@ -2162,8 +2162,6 @@ public class Actions implements VueConstants
                       keyStroke(KeyEvent.VK_BACK_SLASH, COMMAND) :
                       keyStroke(KeyEvent.VK_F11)) {
     	
-    	//AbstractButton mlinkedButton = null;
-    	
             public void act() {
                 if (PresentationTool.ResumeActionName.equals(getActionName())) {
                     PresentationTool.ResumePresentation();
@@ -2173,40 +2171,72 @@ public class Actions implements VueConstants
                 }
             }
             
+            @Override
+            public Boolean getToggleState() {
+        	return tufts.vue.gui.FullScreen.inFullScreen();
+            }
+            
             public boolean overrideIgnoreAllActions() { return true; }
         
-        /*public void setLinkedButton(AbstractButton b) {
-            mLinkedButton = b;         
-        }
-        private void setButtonState(boolean checked) {
-            if (DEBUG.DOCK) out("setButtonState " + checked);
-            if (mLinkedButton != null)
-                mLinkedButton.setSelected(checked);
-            else
-                if (DEBUG.DOCK) out("setButtonState: NO LINKED BUTTON");
-        }
 
-        private boolean isConsideredShown() {
-        	return tufts.vue.gui.FullScreen.inFullScreen();
-        }*/    
+    };
+    
+    public static final VueAction ToggleSlideIcons =
+        new VueAction("Slide Thumbnails", keyStroke(KeyEvent.VK_T, SHIFT+COMMAND)) {
+            public void act() {
+                LWPathway.toggleSlideIcons();
+                PathwayPanel.getInstance().updateShowSlidesButton();
+
+                VUE.getActiveMap().notify(this, LWKey.Repaint);
+                
+//                 if (VUE.getActivePathway() != null) {
+//                     //VUE.getActivePathway().notify("pathway.showSlides");
+//                     VUE.getActivePathway().notify(this, LWKey.Repaint);
+//                 } else {
+//                     VUE.getActiveMap().notify(this, LWKey.Repaint);
+//                 }
+            }
+
+            @Override
+            public Boolean getToggleState() {
+                return LWPathway.isShowingSlideIcons();
+            }    
+            
+            public boolean overrideIgnoreAllActions() { return true; }
+        };
+
+    
+
+    public static final Action ToggleSplitScreen =
+        new VueAction("Split Screen") {
+            boolean state;
+            public void act() {
+                // todo: doesn't work (see VUE.java)
+                state = VUE.toggleSplitScreen();
+            }
+            
+            @Override
+            public Boolean getToggleState() {
+                return state;
+            }    
+            
+            public boolean overrideIgnoreAllActions() { return true; }
     };
     
     public static final Action TogglePruning =
         new VueAction("Pruning") {
         public void act() {
             boolean enabled = LWLink.isPruningEnabled();
+
+            // Currently, this action is ONLY fired via a menu item.  If other code
+            // points might set this directly, this should be changed to a toggleState
+            // action (impl getToggleState), and those code points should call this
+            // action to do the toggle, so the menu item checkbox state will stay
+            // synced.
+
             LWLink.setPruningEnabled(!enabled);
-                        
         }
     };
-    
-    public static final Action ToggleSplitScreen =
-        new VueAction("Split Screen") {
-        public void act() {
-            VUE.toggleSplitScreen();
-        }
-    };
-    
     public static final LWCAction NewSlide = new LWCAction(VueResources.getString("actions.newSlide.label")) {        
                 public void act(Iterator i) {
                     VUE.getActivePathway().add(i);
@@ -2225,9 +2255,6 @@ public class Actions implements VueConstants
              node.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
              VUE.getActiveViewer().getMap().add(node);
              VUE.getActivePathway().add(node);
-
-             
-             
          }
          boolean enabledFor(LWSelection s) {
              // items can be added to pathway as many times as you want
@@ -2258,7 +2285,8 @@ public class Actions implements VueConstants
     };
 
     public static final VueAction NewRichText =
-        new NewItemAction("New Rich Text", keyStroke(KeyEvent.VK_R, COMMAND)) {
+      new NewItemAction("New Rich Text", keyStroke(KeyEvent.VK_R, COMMAND)) {
+    //new NewItemAction("New Rich Text", null) { // SMF 2008-04-19 removed keystroke: was in no menus, and was conflicting
             @Override
             LWComponent createNewItem() {
                 return NodeModeTool.createRichTextNode("new text");
