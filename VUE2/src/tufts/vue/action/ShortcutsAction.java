@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.4 $ / $Date: 2008-04-20 00:18:44 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-04-21 01:38:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -45,6 +45,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
 
         if (content == null || (wasDebug != DEBUG.Enabled)) {
             wasDebug = DEBUG.Enabled;
+            if (DEBUG.Enabled)
+                tufts.vue.VueAction.checkForDupeStrokes();
             content = buildShortcutsComponent();
             window.setContent(content);
         }
@@ -139,14 +141,22 @@ public class ShortcutsAction extends tufts.vue.VueAction
     }
 
     private static void addRow(int row) {
-        if (row % 2 == 0) {
+        addRow(row, false);
+    }
+    
+    private static void addRow(int row, boolean debug) {
+
+        html.append("\n<tr");
+        
+        if (debug) {
+            html.append(" bgcolor=#FF0000");
+        } else if (row % 2 == 0) {
             if (Util.isMacPlatform())
-                html.append("\n<tr bgcolor=#DDDDFF>");
+                html.append(" bgcolor=#DDDDFF");
             else
-                html.append("\n<tr bgcolor=#FFFFFF>");
+                html.append(" bgcolor=#FFFFFF");
         } else {
-            html.append('\n');
-            html.append("<tr>");
+            html.append('>');
         }
     }
 
@@ -342,7 +352,14 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 //modNames += " ";
             }
 
-            addRow(row++);
+            if (DEBUG.Enabled) {
+                if (tufts.vue.VueAction.isDupeStrokeAction(a))
+                    addRow(row++, true);
+                else
+                    addRow(row++, false);
+            } else {
+                addRow(row++);
+            }
                     
             final int mods = k == null ? 0 : k.getModifiers();
             int goRight = hasOnlyOne(mods) ? RIGHT : 0;
@@ -419,6 +436,19 @@ public class ShortcutsAction extends tufts.vue.VueAction
                                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                                );
+    }
+
+    /** @return a standard, short and unqiue description of the given KeyStroke */
+    public static String getDescription(KeyStroke k) {
+
+        if (Util.isMacLeopard()) {
+            //return get_MacOSX_Leopard_Modifier_Names(k.getModifiers()) + "+" + keyCodeChar(k.getKeyCode()); // longest
+            //return KeyEvent.getKeyModifiersText(k.getModifiers()) + "+" + keyCodeChar(k.getKeyCode()); // much shorter
+            return get_MacOSX_Leopard_Modifier_Glyphs(k.getModifiers()) + keyCodeChar(k.getKeyCode()); // shortest
+        } else {
+            return KeyEvent.getKeyModifiersText(k.getModifiers()) + "+" + keyCodeChar(k.getKeyCode());
+        }
+        
     }
 
     // The Mac OSX Leopard JVM impl changed KeyEvent.getKeyModifiersText(mods) to return the actual
