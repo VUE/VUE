@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.36 $ / $Date: 2008-04-21 01:37:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.37 $ / $Date: 2008-04-21 08:18:40 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -142,6 +142,9 @@ public class VueAction extends javax.swing.AbstractAction
         setSmallIcon(icon);
         //if (DEBUG.Enabled) System.out.println("Constructed: " + this + " icon=" + getValue(SMALL_ICON));
         AllActionList.add(this);
+
+        if (isSelectionWatcher())
+            SelectionWatchers.add(this);
 
         if (DEBUG.Enabled)
             trackForDupeStrokes(this, keyStroke);
@@ -278,46 +281,61 @@ public class VueAction extends javax.swing.AbstractAction
     
 
     public boolean overrideIgnoreAllActions() { return false; }
+
+    private void dumpEvent(ActionEvent actionEvent) {
+
+        final StringBuffer m = new StringBuffer(512);
+            
+        m.append(this);
+        m.append(Util.TERM_GREEN);
+        m.append("; actionPerformed: " + getClass().getName());
+        m.append(";\n    ActionEvent: (" + actionEvent.paramString() + ")");
+            
+        String src;
+        Object source = actionEvent.getSource();
+            
+        for (int i = 0; i < 10; i++) { // looping failsafe: should never be more than 2 levels
+                
+            if (source instanceof EventWrap) {
+                m.append(String.format("\n%15s: %s", "from", ((EventWrap)source).target));
+                source = ((EventWrap)source).event;
+            }
+                
+            if (source instanceof EventObject) {
+                EventObject e = (EventObject) source;
+                
+                //m.append('\n');
+                if (e instanceof InputEvent) {
+                    m.append(String.format("\n%14s%d: %s[%s]", "input source", i, e.getClass().getSimpleName(), ((InputEvent)e).paramString()));
+                } else {
+                    m.append(String.format("\n%14s%d: %s", "source", i, Util.tags(e)));
+                }
+                source = e.getSource();
+            } else {
+                m.append(String.format("\n%15s: %s", "source#", Util.tags(source)));
+                break;
+            }
+        }
+        m.append(Util.TERM_CLEAR);
+        //m.append('\n');
+        Log.debug(m.toString());
+    }
         
     public void actionPerformed(ActionEvent ae)
     {
         if (DEBUG.EVENTS) {
-            String src;
-
-            if (ae.getSource() instanceof EventObject) {
-                EventObject e = (EventObject) ae.getSource();
-                src = e.getClass().getSimpleName() + "[" + (e instanceof InputEvent ? ((InputEvent)e).paramString() : e) + "]"
-                    + "\n\t     target: " + Util.tags(e.getSource());
-            } else {
-                src = ""+ae.getSource();
-            }
-            
-            Log.debug(//Util.TERM_GREEN
-                      "\n\n===============================================================================================================\n"
-                      + this
-                      + " START OF actionPerformed: " + getClass().getName()
-                      + ";\n\tActionEvent: (" + ae.paramString()
-                      + ")\n\t     source: " + src
-                      + "\n"
-                      );
+            System.out.println("\n===============================================================================================================");
+            try { dumpEvent(ae); } catch (Throwable t) { t.printStackTrace(); }
         }
+        
         if (allIgnored && !isUserEnabled()) {
             if (DEBUG.Enabled) Log.debug("ALL ACTIONS DISABLED; " + this + "; " + ae);
             return;
         }
-//         if (allEditIgnored && isEditAction()) {
-//             if (DEBUG.Enabled) System.out.println("ALL EDIT ACTIONS DISABLED; " + this + "; " + ae);
-//             return;
-//         }
         boolean hadException = false;
+        
         try {
-            /*
-              String msg = "VueAction: " + getActionName();
-              if (!ae.getActionCommand().equals(getActionName()))
-              msg += " (" + ae.getActionCommand() + ")";
-              msg += " n=" + VUE.getSelection().size();
-              System.out.println(msg);
-            */
+
             if (isUserEnabled()) {
                 
                 act();
@@ -345,23 +363,22 @@ public class VueAction extends javax.swing.AbstractAction
             }
             hadException = true;
         }
-        //if (DEBUG.EVENTS) System.out.println("\n" + this + " UPDATING JUST THE ACTION LISTENERS FOR ENABLED STATES");
-        if (VUE.getUndoManager() != null && undoable()) {
-            
+
+        if (VUE.getUndoManager() != null && undoable())
             VUE.getUndoManager().markChangesAsUndo(getUndoName(ae,hadException));
-        }
-        //Actions.Undo.putValue(NAME, "Undo " + ae.getActionCommand());
-        updateActionListeners();
-        if (DEBUG.EVENTS) Log.debug(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
-        // normally handled by updateActionListeners, but if someone
-        // has actually defined "enabled" instead of enabledFor, we'll
-        // need this.
+
+        updateSelectionWatchers(VUE.getSelection());
+
+        //if (DEBUG.EVENTS) Log.debug(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
+        if (DEBUG.EVENTS) Log.debug("\n===============================================================================================================\n");
+        
+        // normally handled by updateActionListeners, but if someone has actually
+        // defined "enabled" instead of enabledFor, we'll need this.
         // setEnabled(enabled());
-        // Okay, do NOT do this -- enabled sometimes use to just
-        // ring the bell when an action is attempted that you
-        // can't actually do right now -- problem is if we
-        // disable the action based on enabled(), it has
-        // no way of ever getting turned back on!
+        // Okay, do NOT do this -- enabled sometimes use to just ring the bell when an
+        // action is attempted that you can't actually do right now -- problem is if we
+        // disable the action based on enabled(), it has no way of ever getting turned
+        // back on!
     }
     
     public String getUndoName()
@@ -383,10 +400,6 @@ public class VueAction extends javax.swing.AbstractAction
         return undoName;
     }
     
-    public void fire(Object source) {
-        fire(source, getActionName());
-    }
-
     public KeyStroke getKeyStroke() {
         return (KeyStroke) getValue(ACCELERATOR_KEY);
     }
@@ -399,6 +412,27 @@ public class VueAction extends javax.swing.AbstractAction
             return "Menu item: " + getActionName();
     }
 
+    public void fire(Object source) {
+        fire(source, getActionName());
+    }
+
+    private static class EventWrap {
+        final Object target;
+        final EventObject event;
+        EventWrap(Object t, EventObject e) {
+            target = t;
+            event = e;
+        }
+    }
+    
+    public void fire(Object source, EventObject event) {
+        fire(new EventWrap(source, event), getActionName());
+    }
+
+    private void fire(Object source, String name) {
+        actionPerformed(new ActionEvent(source, 0, name));
+    }
+    
     /**
      * Fire this action, but only if the given key event matches our accelerator key.
      * @return true if the action was fired
@@ -420,10 +454,6 @@ public class VueAction extends javax.swing.AbstractAction
         return fireIfMatching(e, e);
     }
 
-    public void fire(Object source, String name) {
-        actionPerformed(new ActionEvent(source, 0, name));
-    }
-    
 
     // To update action's enabled state after an action is performed.
 
@@ -435,18 +465,52 @@ public class VueAction extends javax.swing.AbstractAction
     // also consider just putting all that info directly in
     // the selection.
     
-    private void updateActionListeners()
-    {
-        Iterator i = VUE.getSelection().getListeners().iterator();
-        while (i.hasNext()) {
-            LWSelection.Listener l = (LWSelection.Listener) i.next();
-            if (l instanceof javax.swing.Action) {
-                l.selectionChanged(VUE.getSelection());
-                //System.out.println("Notifying action " + l);
+    // This should be static / not run from here: should be
+    // run at any "user-mark" (any undo-manager possible checkpoint)
+
+//     protected void updateActionListeners()
+//     {
+//         Iterator i = VUE.getSelection().getListeners().iterator();
+//         while (i.hasNext()) {
+//             LWSelection.Listener l = (LWSelection.Listener) i.next();
+//             if (l instanceof javax.swing.Action) {
+//                 l.selectionChanged(VUE.getSelection());
+//                 //System.out.println("Notifying action " + l);
+//             }
+//             //else System.out.println("Skipping listener " + l);
+//         }
+//     }
+
+    private static final Collection<VueAction> SelectionWatchers = new java.util.ArrayList();
+    
+    private static void updateSelectionWatchers(LWSelection s) {
+        final LWSelection selection = VUE.getActiveViewer() == null ? null : s;
+        for (VueAction a : SelectionWatchers) {
+            try {
+                a.updateEnabled(selection);
+            } catch (Throwable t) {
+                Log.error("updateEnabled failed in: " + Util.tags(a) + "; with selection " + selection);
             }
-            //else System.out.println("Skipping listener " + l);
         }
     }
+
+    static {
+        VUE.getSelection().addListener(new LWSelection.Listener() {
+                public void selectionChanged(LWSelection s) {
+                    updateSelectionWatchers(s);
+                }
+                @Override
+                public String toString() {
+                    return "Global " + VueAction.class.getSimpleName() + " enabled-state updater";
+                }
+            });
+    }
+    
+
+    /** @return false in this impl: override to change */
+    protected boolean isSelectionWatcher() { return false; }
+    /** does nothing in this impl: override to make use of */
+    protected void updateEnabled(LWSelection s) { }
 
     /** Note that overriding enabled() will not update the action's enabled
      * state based on what's in the selection -- you need to subclass
@@ -459,8 +523,11 @@ public class VueAction extends javax.swing.AbstractAction
      * that, the action will need it's own listener for whatever event
      * it's interested in.
      */
-    boolean enabled() { return VUE.getActiveViewer() != null; }
+    protected boolean enabled() { return VUE.getActiveViewer() != null; }
 
+    /** @return true: must be overriden to be put to use */
+    boolean enabledFor(LWSelection s) { return true; }
+    
     /** public access enabled checker that also checks master action enabled states */
     public boolean isUserEnabled() {
         if (allIgnored && !overrideIgnoreAllActions())
