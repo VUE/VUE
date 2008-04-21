@@ -21,9 +21,13 @@ import tufts.Util;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EventObject;
+import java.awt.event.InputEvent;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
+import javax.swing.AbstractButton;
 import javax.swing.KeyStroke;
 import javax.swing.Icon;
 
@@ -31,21 +35,25 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.35 $ / $Date: 2008-04-19 02:12:10 $ / $Author: sfraize $ 
+ * @version $Revision: 1.36 $ / $Date: 2008-04-21 01:37:29 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueAction.class);
     
     public static final boolean EnableSmallIconsForMenus = false;
-    public static final String LARGE_ICON = "LargeIcon";
+    public static final String LARGE_ICON = "vue.largeIcon";
+    private static final String CHECKBOX_LIST = "vue.checkBoxList";
 
     private static List<VueAction> AllActionList = new ArrayList();
 
     private static boolean allIgnored = false;
-    private static boolean allEditIgnored = false;
 
     private final String permanentName;
+
+    public static List<VueAction> getAllActions() {
+        return Collections.unmodifiableList(AllActionList);
+    }
 
     static class DeniedException extends RuntimeException {
         DeniedException(String msg) { super(msg); }
@@ -68,17 +76,56 @@ public class VueAction extends javax.swing.AbstractAction
         for (VueAction a : AllActionList)
             a.setEnabled(a.isUserEnabled());
     }
-
-//     // todo: need to update Actions.java for all actions
-//     static void setAllEditActionsIgnored(boolean tv)
-//     {
-//         if (DEBUG.Enabled) {
-//             System.out.println("VueAction: allIEditgnored=" + tv);
-//             if (DEBUG.META) tufts.Util.printStackTrace("ALL EDIT ACTIONS ENABLED: " + tv);
-//         }
+    
+    /** for debug only */
+    private static java.util.Map<KeyStroke,VueAction> AllStrokes;
+    /** for debug only */
+    private static java.util.Set<VueAction> DupeStrokeActions;
+    /** for debug only */
+    public static boolean isDupeStrokeAction(VueAction a) {
+        if (DupeStrokeActions != null)
+            return DupeStrokeActions.contains(a);
+        else
+            return false;
+    }
+    
+    public static void checkForDupeStrokes()
+    {
+        if (AllStrokes != null)
+            return; // already checked
         
-//         allEditIgnored = tv;
-//     }
+        for (VueAction a : AllActionList)
+            trackForDupeStrokes(a, (KeyStroke) a.getValue(ACCELERATOR_KEY));
+    }
+    
+    private static void trackForDupeStrokes(VueAction a, KeyStroke keyStroke)
+    {
+        if (AllStrokes == null) {
+            AllStrokes = new java.util.HashMap();
+            DupeStrokeActions = new java.util.HashSet();
+        }
+
+        if (keyStroke != null) {
+
+            // this is more complicated than it needs to be because KeyStroke.hashCode
+            // is imperfect (different KeyStroke's can have the same hash code)
+                
+            final VueAction existingAction = AllStrokes.get(keyStroke);
+            if (existingAction != null) {
+                final KeyStroke existingStroke = (KeyStroke) existingAction.getValue(ACCELERATOR_KEY);
+                if (existingStroke.equals(keyStroke)) {
+                    Util.printStackTrace("WARNING; DUPLICATE KEYSTROKE: " + keyStroke + "; conflicting actions:"
+                                         + "\n\t" + Util.tags(existingStroke) + "; " + Util.tags(existingAction)
+                                         + "\n\t" + Util.tags(keyStroke) + "; " + Util.tags(a)
+                                         );
+                    DupeStrokeActions.add(existingAction);
+                    DupeStrokeActions.add(a);
+                }
+            } else {
+                AllStrokes.put(keyStroke, a);
+            }
+        }
+    }
     
 
     public VueAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon)
@@ -95,7 +142,11 @@ public class VueAction extends javax.swing.AbstractAction
         setSmallIcon(icon);
         //if (DEBUG.Enabled) System.out.println("Constructed: " + this + " icon=" + getValue(SMALL_ICON));
         AllActionList.add(this);
+
+        if (DEBUG.Enabled)
+            trackForDupeStrokes(this, keyStroke);
     }
+
     public VueAction(String name, KeyStroke keyStroke, String iconSpec) {
         this(name, null, keyStroke, null);
         setIcon(iconSpec);
@@ -116,8 +167,49 @@ public class VueAction extends javax.swing.AbstractAction
 	putValue(Action.NAME, getClass().getName() + anonIndex++);
     }    
 
-    public static List<VueAction> getAllActions() {
-        return Collections.unmodifiableList(AllActionList);
+
+    /** add a button that supports toggle state (e.g., a
+    /** JCheckBoxMenuItem) to be updated if this action represents the
+    /** toogle of a boolean the checkbox should stay synced with */
+    
+    public void trackToggler(AbstractButton toggler) {
+
+        Collection list = (Collection) getValue(CHECKBOX_LIST);
+        if (list == null)
+            putValue(CHECKBOX_LIST, list = new java.util.ArrayList());
+        
+        list.add(toggler);
+        toggler.setSelected(getToggleState());
+    }
+
+    protected void updateTogglers(boolean state) {
+        final List<AbstractButton> toggles = (List<AbstractButton>) getValue(CHECKBOX_LIST);
+
+        // JCheckBoxMenuItem's, which do add themselves as a property change
+        // listener to the Action if you create them based on the Action, really
+        // ought to override the default property change listener handler to
+        // deal with this simple case: (then we wouldn't need the calls to trackToggler)
+        //firePropertyChange("selected", state, !state); 
+
+        if (toggles != null) {
+            for (AbstractButton item : toggles) {
+                if (DEBUG.EVENTS) out("selected->" + state + " for " + tufts.vue.gui.GUI.name(item) + " (isSelected=" + item.isSelected() + ")");
+                item.setSelected(state);
+            }
+        }
+    }
+
+    private static final Boolean IS_NOT_A_TOGGLER = new Boolean(false);
+
+    /**
+     * if this is overridden to return a varying result, any AbstractButton watchers
+     * of this action (added via trackToggler) will have their setSelected method
+     * called with it's value.
+     */
+    public Boolean getToggleState() {
+        // returning a fixed boolean instance is a clever way of knowing if
+        // this has been overridden
+        return IS_NOT_A_TOGGLER;
     }
 
     private void setIcon(String iconSpec) {
@@ -189,12 +281,26 @@ public class VueAction extends javax.swing.AbstractAction
         
     public void actionPerformed(ActionEvent ae)
     {
-        if (DEBUG.EVENTS)
-            Log.debug("\n-----------------------------------------------------------------------------\n"
+        if (DEBUG.EVENTS) {
+            String src;
+
+            if (ae.getSource() instanceof EventObject) {
+                EventObject e = (EventObject) ae.getSource();
+                src = e.getClass().getSimpleName() + "[" + (e instanceof InputEvent ? ((InputEvent)e).paramString() : e) + "]"
+                    + "\n\t     target: " + Util.tags(e.getSource());
+            } else {
+                src = ""+ae.getSource();
+            }
+            
+            Log.debug(//Util.TERM_GREEN
+                      "\n\n===============================================================================================================\n"
                       + this
                       + " START OF actionPerformed: " + getClass().getName()
                       + ";\n\tActionEvent: (" + ae.paramString()
-                      + ")\n\t     source: " + ae.getSource());
+                      + ")\n\t     source: " + src
+                      + "\n"
+                      );
+        }
         if (allIgnored && !isUserEnabled()) {
             if (DEBUG.Enabled) Log.debug("ALL ACTIONS DISABLED; " + this + "; " + ae);
             return;
@@ -213,10 +319,19 @@ public class VueAction extends javax.swing.AbstractAction
               System.out.println(msg);
             */
             if (isUserEnabled()) {
+                
                 act();
+
+                final Boolean state = getToggleState();
+                if (getToggleState() != IS_NOT_A_TOGGLER) {
+                    //if (DEBUG.EVENTS) out("new toggle state: " + Util.tags(state));
+                    updateTogglers(state);
+                }
+                
+                
             } else {
                 java.awt.Toolkit.getDefaultToolkit().beep();
-                System.err.println(getActionName() + ": Not currently enabled");
+                Log.info(getActionName() + ": Not currently enabled");
             }
         } catch (DeniedException e) {
             Log.info("Denied: " + this + "; " + e.getMessage());
@@ -267,9 +382,48 @@ public class VueAction extends javax.swing.AbstractAction
         
         return undoName;
     }
+    
     public void fire(Object source) {
-        actionPerformed(new ActionEvent(source, 0, (String) getValue(NAME)));
+        fire(source, getActionName());
     }
+
+    public KeyStroke getKeyStroke() {
+        return (KeyStroke) getValue(ACCELERATOR_KEY);
+    }
+    
+    public String getKeyStrokeDescription() {
+        final KeyStroke keyStroke = getKeyStroke();
+        if (keyStroke != null)
+            return tufts.vue.action.ShortcutsAction.getDescription(keyStroke);
+        else
+            return "Menu item: " + getActionName();
+    }
+
+    /**
+     * Fire this action, but only if the given key event matches our accelerator key.
+     * @return true if the action was fired
+     */
+    public boolean fireIfMatching(Object source, java.awt.event.KeyEvent e) {
+        if (KeyStroke.getKeyStrokeForEvent(e).equals(getValue(ACCELERATOR_KEY))) {
+            fire(source);
+            return true;
+        } else
+            return false;
+    }
+    
+    /**
+     * Fire this action, but only if the given key event matches our accelerator key.
+     * The KeyEvent will be used as the source of the action.
+     * @return true if the action was fired
+     */
+    public boolean fireIfMatching(java.awt.event.KeyEvent e) {
+        return fireIfMatching(e, e);
+    }
+
+    public void fire(Object source, String name) {
+        actionPerformed(new ActionEvent(source, 0, name));
+    }
+    
 
     // To update action's enabled state after an action is performed.
 
