@@ -127,6 +127,7 @@ public class MetaDataPane extends JPanel
     }
 
     private final Border WindowsPlatformAdjustBorder = new EmptyBorder(0,0,2,0);
+    private boolean wasDebug = DEBUG.Enabled;
 
    /**
     * Make sure at least this minimum number of slots is available.
@@ -134,11 +135,12 @@ public class MetaDataPane extends JPanel
     **/
    private boolean ensureSlots(int minSlots) {
        int curSlots;
-       if (mLabels == null)
+       if (mLabels == null || (wasDebug != DEBUG.Enabled)) {
            curSlots = 0;
-       else
+           wasDebug = DEBUG.Enabled;
+       } else
            curSlots = mLabels.length;
-
+       
        if (minSlots <= curSlots)
            return false;
 
