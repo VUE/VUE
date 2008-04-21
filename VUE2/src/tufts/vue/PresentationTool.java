@@ -68,8 +68,12 @@ public class PresentationTool extends VueTool
     private final static BooleanPreference slideViewPref = BooleanPreference.create(
 			edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
 			"slideNodeView", 
-			"Slide/Node View", 
-			"When turning off slide thumbnails in presentation mode with the x keyboard shortcut, clicking on the node in map view will zoom in on the node as a default",
+			"Slide/Node View",
+                        
+			"When turning off slide thumbnails in presentation mode with the keyboard shortcut "
+                        + Actions.ToggleSlideIcons.getKeystrokeDescription()
+                        + ", clicking on the node in map view will zoom in on the node as a default",
+                        
 			"Show the slide for the active pathway instead of node.",
 			Boolean.FALSE,
 			true);
@@ -1156,6 +1160,10 @@ public class PresentationTool extends VueTool
             mForceShowNavNodes = mShowNavNodes = !mShowNavNodes;
             repaint("toggleNav="+mShowNavNodes);
             break;
+
+//         case KeyEvent.VK_T:
+//             if (Actions.ToggleSlideIcons.fireIfMatching(e))
+//                 break;
             
         default:
             handled = false;
