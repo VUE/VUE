@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.534 $ / $Date: 2008-04-21 01:34:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.535 $ / $Date: 2008-04-21 20:54:18 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -680,16 +680,21 @@ public class VUE
             initUI();
             initApplication();
             
+//             java.awt.EventQueue.invokeAndWait(new Runnable() {
+//                     public void run() {
+//                         initApplication();
+//                     }
+//                 });
+            
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
             VueUtil.alert("VUE init failed", t);
-            /*
-            StringWriter buf = new StringWriter();
-            t.printStackTrace(new java.io.PrintWriter(buf));
-            JComponent msg = new JTextArea("VUE init failed:\n" + buf);
-            msg.setBorder(new EmptyBorder(22,22,22,22));
-            tufts.Util.displayComponent(msg);
-            */
+        }
+
+        if (Util.isMacLeopard()) {
+            // Critical for keeping DockWindow's on top.
+            // See tufts.vue.gui.FullScreen.FSWindow constructor for more on this.
+            DockWindow.raiseAll();
         }
 
         
@@ -733,7 +738,7 @@ public class VUE
 
         try {
             Log.debug("loading fonts...");
-            // let this run in the remainer of the main thread
+            // let this run in the remainder of the main thread
             FontEditorPanel.getFontNames();
         } catch (Throwable t) {
             Log.warn("font cache", t);
@@ -1246,17 +1251,12 @@ public class VUE
 
         //fontDock.setLowerRightCorner(GUI.GScreenWidth, GUI.GScreenHeight);
         
-        //=============================================================================
-        //
-        // Now that we have all the DockWindow's created the VueMenuBar, which needs the
-        // list of Windows for the Window's menu.  The order they appear in this list is
-        // the order they appear in the Window's menu.
-        //
-        //=============================================================================
-
         /*
          * This isn't currently used now but I have a feeling it'll come back if not i'll remove it.
          */
+        // Now that we have all the DockWindow's created the VueMenuBar, which needs the
+        // list of Windows for the Window's menu.  The order they appear in this list is
+        // the order they appear in the Window's menu.
         //VUE.ToolWindows = new Object[] {
         	//unused stuff.
         	//searchDock,
@@ -1689,7 +1689,8 @@ public class VUE
         // setting them to the left of that, and then set first in
         // preShown at left edge of screen
 
-        if (DEBUG.INIT || (DEBUG.DOCK /*&& DEBUG.META*/)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
+        if (DEBUG.DOCK) Log.debug("positionForDocking " + Arrays.asList(preShown));
+        if (DEBUG.INIT || (DEBUG.DOCK && DEBUG.META)) Util.printStackTrace("\n\nSTARTING PLACEMENT");
         
         int top = GUI.GInsets.top;
 
