@@ -678,7 +678,15 @@ public class Util
 
     private static void execMacOpenURL(String url)
     {
-        if (getJavaVersion() >= 1.4f) {
+        if (isMacLeopard()) {
+            final String cmd = "/usr/bin/open";
+            try {
+                if (DEBUG) System.err.println("    Leopard: " + cmd + " " + url);
+                Runtime.getRuntime().exec(new String[]{ cmd, url });
+            } catch (Throwable t) {
+                printStackTrace(t, cmd + " " + url);
+            }
+        } if (getJavaVersion() >= 1.4f) {
             // Can't call this directly because wont compile on the PC
             //com.apple.eio.FileManager.openURL(url);
             
@@ -2000,6 +2008,8 @@ public class Util
     public static void main(String args[])
         throws Exception
     {
+
+        //System.out.println("System.in: " + tags(System.in));
 
         if (false) {
             openURL(makeQueryURL("MAILTO:foo@foobar.com",
