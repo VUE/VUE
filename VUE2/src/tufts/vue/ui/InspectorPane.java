@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.69 $ / $Date: 2008-04-17 15:33:36 $ / $Author: dan $
+ * @version $Revision: 1.70 $ / $Date: 2008-04-21 23:50:17 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -123,6 +123,7 @@ public class InspectorPane extends JPanel
         this.setEnabled(false);
         showNodePanes(false);
         Widget.setHidden(mUserMetaData,true);
+        Widget.setHidden(ontologicalMetadata,true);
         showResourcePanes(false);       
     }
 
