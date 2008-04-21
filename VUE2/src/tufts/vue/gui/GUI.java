@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.100 $ / $Date: 2008-04-18 01:08:48 $ / $Author: sfraize $
+ * @version $Revision: 1.101 $ / $Date: 2008-04-21 01:38:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -519,10 +519,10 @@ public class GUI
 
             if (DockWindow.MainDock != null) {
                 if (DockWindow.MainDock.mGravity == DockRegion.BOTTOM) {
-                    DockWindow.MainDock.moveToY(VUE.ApplicationFrame.getY());
+                    DockWindow.MainDock.moveToY(VUE.getApplicationFrame().getY());
                 } else {
                     Point contentLoc = VUE.mViewerSplit.getLocation();
-                    SwingUtilities.convertPointToScreen(contentLoc, VUE.ApplicationFrame.getContentPane());
+                    SwingUtilities.convertPointToScreen(contentLoc, VUE.getApplicationFrame().getContentPane());
                     DockWindow.MainDock.moveToY(contentLoc.y);
                 }
             }
@@ -1061,7 +1061,7 @@ public class GUI
             // cursor than the default currently active.
             
             //activateWaitCursor(ViewerWithWaitCursor = VUE.getActiveViewer());
-            activateWaitCursor(VUE.ApplicationFrame);
+            activateWaitCursor(VUE.getApplicationFrame());
             activateWaitCursor(getFullScreenWindow());
             for (DockWindow dw : DockWindow.AllWindows)
                 activateWaitCursor(dw);
@@ -1110,7 +1110,7 @@ public class GUI
                 return;
             }
             //clearWaitCursor(ViewerWithWaitCursor);
-            clearWaitCursor(VUE.ApplicationFrame);
+            clearWaitCursor(VUE.getApplicationFrame());
             clearWaitCursor(getFullScreenWindow());
             for (DockWindow dw : DockWindow.AllWindows)
                 clearWaitCursor(dw);
