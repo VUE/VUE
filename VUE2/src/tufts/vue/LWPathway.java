@@ -44,13 +44,13 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.208 $ / $Date: 2008-03-31 20:42:15 $ / $Author: sfraize $
+ * @version $Revision: 1.209 $ / $Date: 2008-04-21 01:21:53 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
 {
     private static final int NO_INDEX_CHANGE = Short.MIN_VALUE;
-    private static boolean ShowSlides = false;
+    private static boolean ShowSlides = true;
     
     private int mCurrentIndex = -1;
     private MasterSlide mMasterSlide;
@@ -581,10 +581,22 @@ public class LWPathway extends LWContainer
     }
     
 
+    /** set the global show-slides state */
     public static void setShowSlides(boolean showSlides) {
-        ShowSlides = showSlides;
+        LWPathway.ShowSlides = showSlides;
+    }
+    
+    /** toggle the global show-slides state */
+    public static void toggleSlideIcons() {
+        setShowSlides(!LWPathway.ShowSlides);
+    }
+    
+    /** @return true if the global state for showing slide icons is set */
+    public static boolean isShowingSlideIcons() {
+        return ShowSlides;
     }
 
+    /** @return true if *this* pathway is currently showing slides (it's currently visible, and slide icons are turned on) */
     public boolean isShowingSlides() {
         return ShowSlides && isDrawn();
     }
