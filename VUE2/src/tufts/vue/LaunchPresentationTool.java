@@ -44,7 +44,7 @@ public class LaunchPresentationTool extends VueSimpleTool
 
     
     public void actionPerformed(ActionEvent e) {
-        Actions.LaunchPresentation.act();
+        Actions.LaunchPresentation.fire(this, e);
         return;
     }
 
