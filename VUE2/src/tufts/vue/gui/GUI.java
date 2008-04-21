@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.101 $ / $Date: 2008-04-21 01:38:29 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2008-04-21 08:21:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1294,7 +1294,9 @@ public class GUI
     
     public static void setAlwaysOnTop(Window w, boolean onTop) {
         Log.debug("setAlwaysOnTop " + onTop + " " + name(w));
-        Util.invoke(w, "setAlwaysOnTop", onTop ? Boolean.TRUE : Boolean.FALSE);
+        // this was needed for pre Java 1.5 support:
+        //Util.invoke(w, "setAlwaysOnTop", onTop ? Boolean.TRUE : Boolean.FALSE);
+        w.setAlwaysOnTop(onTop);
     }
 
     /**
