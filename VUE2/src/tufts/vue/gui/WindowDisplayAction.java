@@ -30,11 +30,13 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.5 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.6 $ / $Date: 2008-04-21 20:57:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(WindowDisplayAction.class);
+    
     private AbstractButton mLinkedButton;
     private Window mWindow;
     private String mTitle;
@@ -88,13 +90,13 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
     }
 
     private void handleShown() {
-        if (DEBUG.DOCK) out("handleShown");
+        //if (DEBUG.DOCK) out("handleShown");
         firstDisplay = false;
         setButtonState(isConsideredShown());
         updateActionTitle(false);
     }
     private void handleHidden() {
-        if (DEBUG.DOCK) out("handleHidden");
+        //if (DEBUG.DOCK) out("handleHidden");
         setButtonState(false);
         updateActionTitle(false);
     }
@@ -116,11 +118,12 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
         setButtonState(isConsideredShown());
     }
     private void setButtonState(boolean checked) {
-        if (DEBUG.DOCK) out("setButtonState " + checked);
-        if (mLinkedButton != null)
+        if (mLinkedButton != null) {
+            if (DEBUG.DOCK) out("setButtonState " + checked);
             mLinkedButton.setSelected(checked);
-        else
-            if (DEBUG.DOCK) out("setButtonState: NO LINKED BUTTON");
+        } else {
+            if (DEBUG.DOCK) out("setButtonState " + checked + "; NO LINKED ITEM");
+        }
     }
 
     private boolean isConsideredShown() {
@@ -215,7 +218,12 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
     }
     
     private void out(String s) {
-        System.out.println("WindowDisplayAction[" + GUI.name(mWindow) + "] " + s);
+        //System.out.println("WindowDisplayAction[" + GUI.name(mWindow) + "] " + s);
+        Log.debug(String.format("@%x [%s] %s",
+                                System.identityHashCode(this),
+                                //Util.tags(mWindow),
+                                GUI.name(mWindow),
+                                s));
     }
 
 

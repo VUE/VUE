@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.17 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.18 $ / $Date: 2008-04-21 20:52:03 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -127,7 +127,7 @@ public class ActiveInstance<T>
             AllActiveHandlers.put(itemType, this);
         }
         unlock(clazz, "INIT");
-        if (DEBUG.INIT || DEBUG.EVENTS) System.out.println("Created " + this);
+        if (DEBUG.INIT || DEBUG.EVENTS) Log.debug("created " + this);
     }
 
     public static ActiveInstance getHandler(Class type) {
@@ -195,9 +195,8 @@ public class ActiveInstance<T>
     private synchronized void setActiveAndNotify(final Object source, final T oldActive)
     {
         if (DEBUG.EVENTS) {
-            System.out.println(TERM_GREEN
-                               + this
-                               + "\n\toldActive: " + oldActive
+            Log.debug(TERM_YELLOW + itemTypeName);
+            System.out.println(  "\toldActive: " + oldActive
                                + "\n\tnewActive: " + nowActive
                                + "\n\t   source: " + sourceName(source)
                                + "\n\tlisteners: " + mListeners.size() + " in " + Thread.currentThread().getName()
@@ -312,7 +311,7 @@ public class ActiveInstance<T>
 
     public void addListener(ActiveListener listener) {
         if (mListeners.addIfAbsent(listener)) {
-            if (DEBUG.EVENTS) outf(TERM_YELLOW + "%-50s added listener %s\n" + TERM_CLEAR, this, listener);
+            if (DEBUG.EVENTS) Log.debug(String.format(TERM_YELLOW + "%-50s added listener %s" + TERM_CLEAR, itemTypeName, listener));
         } else {
             Log.warn(this + "; add: is already listening: " + listener);
             if (DEBUG.Enabled)
@@ -363,12 +362,12 @@ public class ActiveInstance<T>
         for (int x = 0; x < depth; x++) System.err.print("    ");
         //for (int x = 0; x < depth; x++) System.err.print("----");
         System.out.format(fmt, args);
+        //Log.debug(String.format(fmt, args));
     }
     
 
     public String toString() {
         return "ActiveInstance" + itemTypeName;
-        
     }
 
 

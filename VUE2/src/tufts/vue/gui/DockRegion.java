@@ -27,11 +27,13 @@ import java.util.Iterator;
  * whenver a DockWindow's relvant edge is placed in the the region
  * while visible.
  *
- * @version $Revision: 1.3 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.4 $ / $Date: 2008-04-21 20:54:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
-class DockRegion {
+class DockRegion
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DockRegion.class);
 
     static final int TOP = 1;
     static final int BOTTOM = 2;
@@ -113,7 +115,7 @@ class DockRegion {
     {
         clearAll();
 
-        if (DEBUG.DOCK) System.out.println("DockWindow.assignAllMemebers");
+        if (DEBUG.DOCK) Log.debug("assignAllMemebers");
             
         for (DockWindow dockWindow : DockWindow.AllWindows) {
             DockRegion dockRegion = findRegion(dockWindow);
