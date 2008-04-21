@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.529 $ / $Date: 2008-04-18 01:24:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.530 $ / $Date: 2008-04-21 01:22:46 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4589,7 +4589,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // todo: can't we add this to a keymap for the MapViewer JComponent?
                 // (Why doesn't the entry for this in the Edit menu auto-provide this mapping?)
                 if (!e.isConsumed() && Actions.Delete.enabled())
-                    Actions.Delete.fire(this);
+                    Actions.Delete.fire(e);
                 else
                     handled = false;
                 break;
@@ -4603,7 +4603,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // here just in case this happens to be a full-screen viewer (FocusManager normallhy relays
                     // possible action keys to the VueMenuBar manually, but VK_ENTER isn't a safe one to do this
                     // with) TODO: handle this kind of thing generically via direct access to action key bindings.
-                    Actions.Rename.fire(this);
+                    Actions.Rename.fire(e);
                 } else
                     handled = false;
 
@@ -4628,7 +4628,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     isDraggingSelectorBox = false;
                     repaint();
                 } else if (VUE.inFullScreen()) { // todo: can now more cleanly just handle this in FullScreen.FSWindow
-                    VUE.toggleFullScreen(false, true);
+                    
+                    //VUE.toggleFullScreen(false, true);
+                    Actions.ToggleFullScreen.fire(e);
 
                     // THE BELOW NOW DOES NOTHING AS THE VIEWER INSTANCE IS DIFFERENT!
                     //if (mFocal != null)
@@ -4650,7 +4652,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // if the actual action (Command-\) was fired.
                     handled = false;
                 } else
-                    VUE.toggleFullScreen(false, true);
+                    //VUE.toggleFullScreen(false, true);
+                    Actions.ToggleFullScreen.fire(e);
                 break;
                 // fallthru:
 //             case KeyEvent.VK_F11:
@@ -4694,15 +4697,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                         // there's something in the selection, and only shift might be down: apply big or small nudge
                         if (e.isShiftDown()) {
-                                 if (keyCode == KeyEvent.VK_UP)    Actions.BigNudgeUp.fire(this);
-                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.fire(this);
-                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.fire(this);
-                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.fire(this);
+                                 if (keyCode == KeyEvent.VK_UP)    Actions.BigNudgeUp.fire(e);
+                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.BigNudgeDown.fire(e);
+                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.BigNudgeLeft.fire(e);
+                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.BigNudgeRight.fire(e);
                         } else {
-                                 if (keyCode == KeyEvent.VK_UP)    Actions.NudgeUp.fire(this);
-                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.NudgeDown.fire(this);
-                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.NudgeLeft.fire(this);
-                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.NudgeRight.fire(this);
+                                 if (keyCode == KeyEvent.VK_UP)    Actions.NudgeUp.fire(e);
+                            else if (keyCode == KeyEvent.VK_DOWN)  Actions.NudgeDown.fire(e);
+                            else if (keyCode == KeyEvent.VK_LEFT)  Actions.NudgeLeft.fire(e);
+                            else if (keyCode == KeyEvent.VK_RIGHT) Actions.NudgeRight.fire(e);
                         }
                     } else
                         handled = false;
@@ -4854,7 +4857,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 else if (c == '(') { DEBUG.setAllEnabled(true); }
                 else if (c == ')') { DEBUG.setAllEnabled(false); }
                 else if (c == '|') { VUE.toggleFullScreen(true); }
-                //else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(this); }
+                //else if (c == '*') { tufts.vue.action.PrintAction.getPrintAction().fire(e); }
                 //else if (c == '&') { tufts.macosx.Screen.fadeFromBlack(); }
                 //else if (c == '@') { tufts.macosx.Screen.setMainAlpha(.5f); }
                 //else if (c == '$') { tufts.macosx.Screen.setMainAlpha(1f); }
@@ -6500,11 +6503,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         
                 if (!mLabelEditWasActiveAtMousePress) {
                     if (activeTool == NodeModeTool && (oneClickNodePref.getValue() == Boolean.TRUE))
-                        Actions.NewNode.fire(MapViewer.this);
+                        Actions.NewNode.fire(e);
                     else if (activeTool == TextTool)
-                        Actions.NewText.fire(MapViewer.this);
+                        Actions.NewText.fire(e);
                     else if (activeTool == RichTextTool)
-                        Actions.NewRichText.fire(MapViewer.this);
+                        Actions.NewRichText.fire(e);
 
                 }
             }
