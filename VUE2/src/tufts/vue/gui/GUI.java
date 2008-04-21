@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.102 $ / $Date: 2008-04-21 08:21:14 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2008-04-21 20:57:31 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -129,7 +129,6 @@ public class GUI
         }
     }
 
-    
     public static Color getVueColor() {
         return VueColor;
     }
@@ -442,6 +441,19 @@ public class GUI
                            + "\n\t\t screen insets: " + GToolkit.getScreenInsets(d.getDefaultConfiguration())
                            );
     }
+    
+    public static int getScreenWidth() {
+        if (GScreenWidth == 0)
+            initGraphicsInfo();
+        return GScreenWidth;
+    }
+    
+    public static int getScreenHeight() {
+        if (GScreenHeight == 0)
+            initGraphicsInfo();
+        return GScreenHeight;
+    }
+
     
 
     public static Rectangle getMaximumWindowBounds() {
@@ -1420,22 +1432,35 @@ public class GUI
     
     public static void dumpSizes(Component c, String msg) {
         //if (DEBUG.META) tufts.Util.printStackTrace("java 1.5 only");
-        boolean prfSet = false, maxSet = false, minSet = false;
-        String     sp = "     ";
-        String setMsg = " ??? ";
-        try {
-            prfSet = ((Boolean)Util.invoke(c, "isPreferredSizeSet")).booleanValue();
-            maxSet = ((Boolean)Util.invoke(c, "isMinimumSizeSet")).booleanValue();
-            minSet = ((Boolean)Util.invoke(c, "isMaximumSizeSet")).booleanValue();
-            setMsg = " SET ";
-        } catch (Throwable t) {}
-
+        final boolean prfSet, maxSet , minSet;
+        final String     sp = "     ";
+        final String setMsg = " SET ";
+        
+        prfSet = c.isPreferredSizeSet();
+        maxSet = c.isMinimumSizeSet();
+        minSet = c.isMaximumSizeSet();
         out(name(c) + " sizes; " + msg
             + "\n\t    Size" + sp + name(c.getSize())
             + "\n\tprefSize" + (prfSet?setMsg:sp) + name(c.getPreferredSize())
             + "\n\t minSize" + (maxSet?setMsg:sp) + name(c.getMinimumSize())
             + "\n\t maxSize" + (minSet?setMsg:sp) + name(c.getMaximumSize())
             );
+
+// Pre-Java 1.5
+//         boolean prfSet = false, maxSet = false, minSet = false;
+//         String setMsg = " ??? ";
+//         try {
+//             prfSet = ((Boolean)Util.invoke(c, "isPreferredSizeSet")).booleanValue();
+//             maxSet = ((Boolean)Util.invoke(c, "isMinimumSizeSet")).booleanValue();
+//             minSet = ((Boolean)Util.invoke(c, "isMaximumSizeSet")).booleanValue();
+//             setMsg = " SET ";
+//         } catch (Throwable t) {}
+//         out(name(c) + " sizes; " + msg
+//             + "\n\t    Size" + sp + name(c.getSize())
+//             + "\n\tprefSize" + (prfSet?setMsg:sp) + name(c.getPreferredSize())
+//             + "\n\t minSize" + (maxSet?setMsg:sp) + name(c.getMinimumSize())
+//             + "\n\t maxSize" + (minSet?setMsg:sp) + name(c.getMaximumSize())
+//             );
     }
 
     
