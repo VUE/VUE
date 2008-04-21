@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.69 $ / $Date: 2008-04-18 01:13:46 $ / $Author: sfraize $
+ * @version $Revision: 1.70 $ / $Date: 2008-04-21 01:27:14 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -839,7 +839,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             if (file.canRead()) {
                 // only change the spec if we can actually find the file (todo: test Vista -- does canRead work?)
                 if (DEBUG.RESOURCE) setDebugProperty("relative URI", relativeURI);
-                Log.info("resolved " + relativeURI.getPath() + " to: " + file);
+                Log.info(TERM_PURPLE + "resolved " + relativeURI.getPath() + " to: " + file + TERM_CLEAR);
                 setRelativeURI(relativeURI);
                 setSpecByFile(file);
             } else {
