@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.98 $ / $Date: 2008-04-19 23:30:24 $ / $Author: sfraize $
+ * @version $Revision: 1.99 $ / $Date: 2008-04-21 01:40:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -93,11 +93,29 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
     }
 
-    private final JCheckBoxMenuItem viewFullScreen = new JCheckBoxMenuItem(Actions.ToggleFullScreen);
-    //public VueMenuBar(Object[] toolWindows)
+
+    private static class MenuToggleItem extends JCheckBoxMenuItem
+    {
+        MenuToggleItem(VueAction va) {
+            super(va);
+            va.trackToggler(this);
+        }
+
+        @Override
+        public final void setSelected(boolean selected) {
+            if (DEBUG.EVENTS) Log.debug(GUI.name(this) + "; setSelected " + selected + " (isSelected=" + isSelected() + ")");
+            super.setSelected(selected);
+        }
+    }
+    
+    
+
+    //private final JCheckBoxMenuItem viewFullScreen = new JCheckBoxMenuItem(Actions.ToggleFullScreen);
+    private final JCheckBoxMenuItem viewFullScreen = new MenuToggleItem(Actions.ToggleFullScreen);
+
     public VueMenuBar()
     {
-        final int metaMask = VueUtil.isMacPlatform() ? Event.META_MASK : Event.CTRL_MASK;
+        final int metaMask = tufts.vue.Actions.COMMAND;
         
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Top Level Menus
@@ -128,8 +146,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Initialize Actions
         ////////////////////////////////////////////////////////////////////////////////////
 
-        final JCheckBoxMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
-        final JCheckBoxMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
+        final JMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
+        final JMenuItem toggleSlideIconsItem = new MenuToggleItem(Actions.ToggleSlideIcons);
+        final JMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
 
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Actions
@@ -395,22 +414,21 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	viewMenu.add(viewFullScreen);
         viewMenu.add(splitScreenItem);
         viewMenu.addSeparator();
+        viewMenu.add(toggleSlideIconsItem);
+        viewMenu.addSeparator();
         viewMenu.add(togglePruningItem);
         
 
-        
-        GUI.getFullScreenWindow().addWindowFocusListener(new WindowFocusListener()
-        {
-			public void windowGainedFocus(WindowEvent arg0) {
-				viewFullScreen.setSelected(true);
-				
-			}
-
-			public void windowLostFocus(WindowEvent arg0) {
-				viewFullScreen.setSelected(false);
-				
-			}
-		});
+//         GUI.getFullScreenWindow().addWindowFocusListener(new WindowFocusListener()
+//         {
+//             public void windowGainedFocus(WindowEvent arg0) {
+//                 viewFullScreen.setSelected(true);
+//             }
+            
+//             public void windowLostFocus(WindowEvent arg0) {
+//                 viewFullScreen.setSelected(false);
+//             }
+//             });
 
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Format Menu
