@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.121 $ / $Date: 2008-04-19 01:00:53 $ / $Author: sfraize $
+ * @version $Revision: 1.122 $ / $Date: 2008-04-21 20:54:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -69,7 +69,7 @@ public class DockWindow extends javax.swing.JWindow
     public static final int DefaultWidth = 300;
     private static boolean AllVisible = true;
     
-    final static java.util.List<DockWindow> AllWindows = new java.util.ArrayList();
+    final static LinkedList<DockWindow> AllWindows = new LinkedList();
     final static char RightArrowChar = 0x25B8; // unicode
     final static char DownArrowChar = 0x25BE; // unicode
     //final static String RightArrow = "" + RightArrowChar;
@@ -259,7 +259,9 @@ public class DockWindow extends javax.swing.JWindow
             ;//pack(); // ensure peer's created
         
         // add us to the static list of all DockWindow's
-        AllWindows.add(this);
+        synchronized (AllWindows) {
+            AllWindows.add(this);
+        }
 
         /* WAIT-CURSOR DEBUG
            setMenuActions(new Action[] {
@@ -908,7 +910,7 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     public synchronized static void ImmediatelyRepaintAllWindows() {
-        if (DEBUG.Enabled) Log.debug("repaint all synchronously");
+        if (DEBUG.Enabled) Log.debug("ImmediatelyRepaintAllWindows");
         for (DockWindow dw : AllWindows) {
             if (dw.isVisible()) {
                 Rectangle bounds = dw.getContentPanel().getBounds();
@@ -925,22 +927,42 @@ public class DockWindow extends javax.swing.JWindow
     
     
     public synchronized static void ShowPreviouslyHiddenWindows() {
-        if (DEBUG.Enabled) Log.debug("show all");
+        if (DEBUG.Enabled) Log.debug("ShowPreviouslyHiddenWindows");
         if (VUE.inNativeFullScreen()) {
             Log.debug("Ignoring show all windows: in native full screen");
             // don't touch windows if in native full screen, as can
             // completely hang us on Mac OS X
             return;
         }
-        for (DockWindow dw : AllWindows) {
-            if (dw.mWasVisible)
-                dw.superSetVisible(true);
-            dw.mWasVisible = false;
+
+        if (Util.isMacLeopard()) {
+
+            for (DockWindow dw : AllWindows) {
+                if (dw.mWasVisible) {
+                    dw.superSetVisible(true);
+                    dw.toFront(); // 2008-04-21 required for Mac OSX Leopard to keep them on top
+                }
+                dw.mWasVisible = false;
+            }
+            
+        } else {
+            
+            for (DockWindow dw : AllWindows) {
+                if (dw.mWasVisible)
+                    dw.superSetVisible(true); // non-Leopard platforms automatically toFront on this
+                dw.mWasVisible = false;
+            }
         }
-        // The give the focus back to the viewer, which loses
-        // it when they go visible:
-        if (VUE.getActiveViewer() != null)
-            VUE.getActiveViewer().requestFocus();
+        // The give the focus back to the viewer, which can 
+        // lose it it when they go visible:
+        final tufts.vue.MapViewer viewer = VUE.getActiveViewer();
+        if (viewer != null) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                if (DEBUG.DOCK) Log.debug("ShowPreviouslyHiddenWindows: focusRequest to return focus to " + viewer);
+                viewer.requestFocus();
+                //VUE.getActiveViewer().grabVueApplicationFocus(DockWindow.class.getName(), null);
+            }});
+        }
         AllVisible = true;
     }
     
@@ -2068,7 +2090,8 @@ public class DockWindow extends javax.swing.JWindow
     }
     */
     
-    static void raiseAll() {
+    public static void raiseAll() {
+        if (DEBUG.DOCK) Log.debug("raiseAll");
         for (DockWindow dw : AllWindows)
             dw.toFront();
     }
@@ -2519,8 +2542,26 @@ public class DockWindow extends javax.swing.JWindow
         // It's okay to do this in java 1.4, as we can't be alwaysOnTop, which
         // is why this is a problem.
         
-        if (MacWindowShadowEnabled && (!GUI.UseAlwaysOnTop || !isMac))
+        // 2008-04-21 SMF: On Mac Leopard apparently windows are no longer automatically
+        // raised when they get focus / are click on, so we also always do it in that case.
+        
+        if (Util.isMacLeopard() || (MacWindowShadowEnabled && (!GUI.UseAlwaysOnTop || !isMac)))
             raiseStack();
+
+        if (AllWindows.getLast() != this) {
+            // Maintain stacking order: last one in list will be last to show/toFront,
+            // so will be on top.
+            
+            // TODO: safer: simply added an index we can increment every time for
+            // the top window based on a global static count, then sort
+            // based on the index for traversals that need to pay addention to order.
+            
+            synchronized (AllWindows) {
+                AllWindows.remove(this);
+                AllWindows.addLast(this);
+            }
+
+        }
                 
         return false;
     }
@@ -3216,7 +3257,8 @@ public class DockWindow extends javax.swing.JWindow
             mChild._raiseChildren();
         }
         
-        GUI.invokeAfterAWT(new Runnable() { public void run() { updateWindowShadow(); }});
+        if (isMac && MacWindowShadowEnabled)
+            GUI.invokeAfterAWT(new Runnable() { public void run() { updateWindowShadow(); }});
 
         StackDepth--;
     }
