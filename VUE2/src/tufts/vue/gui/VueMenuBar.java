@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.99 $ / $Date: 2008-04-21 01:40:50 $ / $Author: sfraize $
+ * @version $Revision: 1.100 $ / $Date: 2008-04-21 08:21:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -94,24 +94,27 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
 
 
-    private static class MenuToggleItem extends JCheckBoxMenuItem
-    {
-        MenuToggleItem(VueAction va) {
-            super(va);
-            va.trackToggler(this);
-        }
+//     private static class MenuToggleItem extends JCheckBoxMenuItem
+//     {
+//         MenuToggleItem(VueAction va) {
+//             super(va);
+//             va.trackToggler(this);
+//         }
+// //         @Override
+// //         public final void setSelected(boolean selected) {
+// //             if (DEBUG.EVENTS) Log.debug(GUI.name(this) + "; setSelected " + selected + " (isSelected=" + isSelected() + ")");
+// //             super.setSelected(selected);
+// //         }
+//     }
 
-        @Override
-        public final void setSelected(boolean selected) {
-            if (DEBUG.EVENTS) Log.debug(GUI.name(this) + "; setSelected " + selected + " (isSelected=" + isSelected() + ")");
-            super.setSelected(selected);
-        }
+    private static JCheckBoxMenuItem makeCheckBox(VueAction a) {
+        final JCheckBoxMenuItem item = new JCheckBoxMenuItem(a);
+        a.trackToggler(item);
+        return item;
     }
     
-    
 
-    //private final JCheckBoxMenuItem viewFullScreen = new JCheckBoxMenuItem(Actions.ToggleFullScreen);
-    private final JCheckBoxMenuItem viewFullScreen = new MenuToggleItem(Actions.ToggleFullScreen);
+    private final JCheckBoxMenuItem viewFullScreen = makeCheckBox(Actions.ToggleFullScreen);
 
     public VueMenuBar()
     {
@@ -147,7 +150,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
 
         final JMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
-        final JMenuItem toggleSlideIconsItem = new MenuToggleItem(Actions.ToggleSlideIcons);
+        final JMenuItem toggleSlideIconsItem = makeCheckBox(Actions.ToggleSlideIcons);
         final JMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
 
         ////////////////////////////////////////////////////////////////////////////////////
