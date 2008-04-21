@@ -61,7 +61,8 @@ public class VuePopupMenu<T> extends MenuButton<T>
             JComponent c = (JComponent) mPopup.getComponent(i);
             if (c instanceof JMenuItem) {
                 JMenuItem mi = (JMenuItem) c;
-                if (mi.getClientProperty(ValueKey).equals(value))
+                //if (mi.getClientProperty(ValueKey).equals(value))
+                if (value != null && value.equals(mi.getClientProperty(ValueKey)))
                     return mi.getIcon();
             }
         }
