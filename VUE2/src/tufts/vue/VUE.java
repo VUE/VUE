@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.533 $ / $Date: 2008-04-16 20:46:47 $ / $Author: sfraize $ 
+ * @version $Revision: 1.534 $ / $Date: 2008-04-21 01:34:59 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -84,7 +84,7 @@ public class VUE
     private static ResourceSelection sResourceSelection;
     
     //private static com.jidesoft.docking.DefaultDockableHolder frame;
-    public static VueFrame ApplicationFrame;
+    private static VueFrame ApplicationFrame;
     
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
@@ -501,13 +501,18 @@ public class VUE
             if (args[i].equals("-nosplash")) {
                 SKIP_SPLASH = true;
             } else if (args[i].equals("-nodr")) {
-                //DEBUG.Enabled = true;
-                SKIP_SPLASH = true;
                 SKIP_DR = true;
+                SKIP_SPLASH = true;
             } else if (args[i].equals("-noem")) {
                 SKIP_EDITOR_MANAGER = true;
             } else if (args[i].equals("-noidx")) {
                 SKIP_RDF_INDEX = true;
+            } else if (args[i].equals("-nocat")) {
+                SKIP_CAT = true;
+            } else if (args[i].equals("-skip")) {
+                SKIP_DR = true;
+                SKIP_CAT = true;
+                SKIP_SPLASH = true;
             } else if (args[i].equals("-exit_after_init")) // for startup time trials
                 exitAfterInit = true;
             else
@@ -591,6 +596,7 @@ public class VUE
     
     private static boolean exitAfterInit = false;
     private static boolean SKIP_DR = false; // don't load DRBrowser, no splash & no startup map
+    private static boolean SKIP_CAT = false; // don't load category model
     private static boolean SKIP_SPLASH = false;
     private static boolean SKIP_EDITOR_MANAGER = false;
     private static boolean SKIP_RDF_INDEX = false;
@@ -691,13 +697,50 @@ public class VUE
         VUE.getSelection().clearAndNotify();
         
         VUE.isStartupUnderway = false;
-        
+
         Log.info("startup completed.");
+        
+        try {
+            // this must now happen AFTER data-sources are loaded,
+            // as it's possible that they will be providing authentication
+            // that will be required to get content on the maps that
+            // will be opened.
+            handleOutstandingVueMapFileOpenRequests();
+        } catch (Throwable t) {
+            Log.error("failed to handle file open at init: " + FilesToOpen, t);
+        }
+
+        if (DEBUG.Enabled) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                for (AbstractAction a : VueAction.getAllActions())  {
+                    KeyStroke ks = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
+                    if (ks != null && a.getPropertyChangeListeners().length == 0)
+                        Log.warn("Action has no listeners, may be unable to activate by keystroke: " + Util.tags(a) + "; " + ks);
+                }
+            }});
+        }
+        
+//         GUI.invokeAfterAWT(new Runnable() { public void run() {
+//             Log.debug("loading fonts...");
+//             FontEditorPanel.getFontNames();
+//         }});
 
         if (exitAfterInit) {
             out("init completed: exiting");
             System.exit(0);
         }
+
+
+        try {
+            Log.debug("loading fonts...");
+            // let this run in the remainer of the main thread
+            FontEditorPanel.getFontNames();
+        } catch (Throwable t) {
+            Log.warn("font cache", t);
+        }
+        
+
+        
     }
 
     static void initApplication()
@@ -745,10 +788,80 @@ public class VUE
             splashScreen.setVisible(false);
 
         //------------------------------------------------------------------
+
+        //VUE.clearWaitCursor();
+
+// No longer used:
+//         if (SKIP_DR == false) {
+//             Log.debug("caching tool panels...");
+//             NodeTool.getNodeToolPanel();
+//            // LinkTool.getLinkToolPanel();
+//         }
         
+        // Must call this after all LWEditors have been created and
+        // put in the AWT hierarchy:
+        if (!SKIP_EDITOR_MANAGER)
+            EditorManager.install();
+        
+        //---------------------------------------------
+        // Start the loading of the data source viewer
+        if (SKIP_DR == false && DR_BROWSER != null) {
+            DR_BROWSER.loadDataSourceViewer();
+            UrlAuthentication.getInstance(); // VUE-879
+        }
+            
+        //---------------------------------------------
+        
+        //Preferences p = Preferences.userNodeForPackage(VUE.class);
+        //p.put("DRBROWSER.RUN", "yes, it has");
+
+        // MAC v.s. PC WINDOW PARENTAGE & FOCUS BEHAVIOUR:
+        //
+        // Window's that are shown before their parent's are shown do NOT adopt a
+        // stay-on-top-of-parent behaviour! (at least on mac).  FURTHERMORE: if you iconfiy the
+        // parent and de-iconify it, the keep-on-top is also lost permanently!  (Even if you
+        // hide/show the child window after that) None of this happens on the PC, only Mac OS X.
+        // Iconifying also hides the child windows on the PC, but not on Mac.  On the PC, there's
+        // also no automatic way to install the action behaviours to take effect (the ones in the
+        // menu bar) when a tool window has focus.  Actually, mac appears to do something smart
+        // also: if parent get's MAXIMIZED, it will return to the keep on top behaviour, but you
+        // have to manually hide/show it to get it back on top.
+        //
+        // Also: for some odd reason, if we use an intermediate root window as the
+        // master parent, the MapPanner display doesn't repaint itself when dragging it
+        // or it's map!
+        //
+        // Addendum: keep-on-top now appears to survive iconification on mac.
+        //
+        // [ Assuming this is java 1.4 -- 1.5? ]
+        
+        // is done in buildApplicationInterface
+        //getRootWindow().setVisible(true);
+
+        //out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
+        //out("INPUTMAP " + java.util.Arrays.asList(frame.getRootPane().getInputMap().allKeys()));
+        //out("\n\nACTIONTMAP " + java.util.Arrays.asList(frame.getActionMap().allKeys()));
+        //out("ACTIONTMAP " + Arrays.asList(VUE.getActiveViewer().getActionMap().allKeys()));
+        //out("INPUTMAP " + Arrays.asList(VUE.getActiveViewer().getInputMap().keys()));
+        //out("INPUTMAP " + Arrays.asList(getInputMap().keys()));
+
+        //VUE.clearWaitCursor();
+
+        
+        if (!SKIP_DR)
+            getCategoryModel(); // load the category model
+
+        Log.debug("initApplication completed.");
+    }
+
+
+
+    private static void handleOutstandingVueMapFileOpenRequests()
+    {
         boolean openedUserMap = false;
 
         if (FilesToOpen.size() > 0) {
+            Log.info("outstanding file open requests: " + FilesToOpen);
             try {
                 Iterator i = FilesToOpen.iterator();
                 while (i.hasNext()) {
@@ -808,75 +921,8 @@ public class VUE
         */
 
         //VUE.clearWaitCursor();
-
-        Log.debug("loading fonts...");
-        FontEditorPanel.getFontNames();
-        
-        if (SKIP_DR == false) {
-            Log.debug("caching tool panels...");
-            NodeTool.getNodeToolPanel();
-           // LinkTool.getLinkToolPanel();
-        }
-        
-        // Must call this after all LWEditors have been created and
-        // put in the AWT hierarchy:
-        if (!SKIP_EDITOR_MANAGER)
-            EditorManager.install();
-        
-        // Start the loading of the data source viewer
-        if (SKIP_DR == false && DR_BROWSER != null)
-            DR_BROWSER.loadDataSourceViewer();
-            /*
-            DR_BROWSER.loadDataSourceViewer(DR_BROWSER_DOCK,
-                                            searchDock,
-                                            browseDock,
-                                            savedResourcesDock,
-                                            previewDock);
-            */
-        
-        //Preferences p = Preferences.userNodeForPackage(VUE.class);
-        //p.put("DRBROWSER.RUN", "yes, it has");
-
-        // MAC v.s. PC WINDOW PARENTAGE & FOCUS BEHAVIOUR:
-        //
-        // Window's that are shown before their parent's are shown do NOT adopt a
-        // stay-on-top-of-parent behaviour! (at least on mac).  FURTHERMORE: if you
-        // iconfiy the parent and de-iconify it, the keep-on-top is also lost
-        // permanently!  (Even if you hide/show the child window after that) None of
-        // this happens on the PC, only Mac OS X.  Iconifying also hides the child
-        // windows on the PC, but not on Mac.  On the PC, there's also no automatic way
-        // to install the action behaviours to take effect (the ones in the menu bar)
-        // when a tool window has focus.  Actually, mac appears to do something smart
-        // also: if parent get's MAXIMIZED, it will return to the keep on top behaviour,
-        // but you have to manually hide/show it to get it back on top.
-        //
-        // Also: for some odd reason, if we use an intermediate root window as the
-        // master parent, the MapPanner display doesn't repaint itself when dragging it
-        // or it's map!
-        //
-        // Addendum: keep-on-top now appears to survive iconification on mac.
-        //
-        // [ Assuming this is java 1.4 -- 1.5? ]
-        
-        // is done in buildApplicationInterface
-        //getRootWindow().setVisible(true);
-
-        //out("ACTIONTMAP " + java.util.Arrays.asList(frame.getRootPane().getActionMap().allKeys()));
-        //out("INPUTMAP " + java.util.Arrays.asList(frame.getRootPane().getInputMap().allKeys()));
-        //out("\n\nACTIONTMAP " + java.util.Arrays.asList(frame.getActionMap().allKeys()));
-        //out("ACTIONTMAP " + Arrays.asList(VUE.getActiveViewer().getActionMap().allKeys()));
-        //out("INPUTMAP " + Arrays.asList(VUE.getActiveViewer().getInputMap().keys()));
-        //out("INPUTMAP " + Arrays.asList(getInputMap().keys()));
-
-        //VUE.clearWaitCursor();
-
-        // load the category model
-        getCategoryModel();
-        Log.debug("initApplication completed.");
-        //VUE-879
-        UrlAuthentication.getInstance();
-        
     }
+    
 
     private static void installMacOSXApplicationEventHandlers()
     {
@@ -1690,16 +1736,27 @@ public class VUE
     
     private static ActionListener SplitPaneRightButtonOneTouchActionHandler = null;
 
-    public static void toggleSplitScreen()
+    public static boolean toggleSplitScreen()
     {
-    	if (mViewerSplit.getDividerLocation() >= mViewerSplit.getMaximumDividerLocation())    	
-    		mViewerSplit.setDividerLocation(0.50D);    		
-    	else
-    		  SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);
-      
+        // Oops -- no good for updating the action state -- will need
+        // to extract both the AbstractButtons for the expand & collapse
+        // (currently we only grab the ActionListener for the collapse button),
+        // and manually add an action listener to them in our ToggleSplitScreen
+        // action.  Or, maybe easier, would be to monitor the display events
+        // on the right MapViewer component or PropertyChangeEvents on mViewerSplit.
+        
+    	if (mViewerSplit.getDividerLocation() >= mViewerSplit.getMaximumDividerLocation()) {
+            // open to split:
+            mViewerSplit.setDividerLocation(0.50D);
+            return true;
+    	} else {
+            // close the split:
+            SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);
+            return false;
+        }
+    }      
        
     	 
-    }
     private static JSplitPane buildSplitPane(Component leftComponent, Component rightComponent)
     {
         JSplitPane split;
@@ -1720,6 +1777,7 @@ public class VUE
                     Util.printStackTrace("setUI: " + newUI);
                     super.setUI(newUI);
                 }
+                @Override
                 protected void addImpl(Component c, Object constraints, int index) {
                     //out("splitPane.addImpl: index=" + index + " constraints=" + constraints + " " + GUI.name(c));
                     if (c instanceof javax.swing.plaf.basic.BasicSplitPaneDivider) {
@@ -1728,6 +1786,7 @@ public class VUE
                     }
                     super.addImpl(c, constraints, index);
                 }
+                @Override
                 public void addNotify() {
                     //Util.printStackTrace("splitPane.addNotify");
                     super.addNotify();
@@ -1735,6 +1794,7 @@ public class VUE
                     
                         // Util.printStackTrace("addNotify");
                         //AbstractButton jumpLeft = (AbstractButton) divider.getComponent(0);
+                        
                         AbstractButton jumpRight = (AbstractButton) divider.getComponent(1);
                         //System.err.println("child0 " + jumpLeft);
                         //System.err.println("child1 " + jumpRight);
@@ -1747,7 +1807,7 @@ public class VUE
 
                         SplitPaneRightButtonOneTouchActionHandler
                             = jumpRight.getActionListeners()[0];
-                        
+
                         // BTW: can't call action listener now: must wait till after validation
                         
                     } catch (Throwable t) {
@@ -2491,7 +2551,7 @@ public class VUE
 
     
     /** return the root VUE application frame (where the documents are) */
-    public static Frame getApplicationFrame() {
+    public static JFrame getApplicationFrame() {
         //if (getRootWindow() instanceof Frame)
         //    return (Frame) getRootWindow();
         //else
