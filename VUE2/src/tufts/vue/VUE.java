@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.535 $ / $Date: 2008-04-21 20:54:18 $ / $Author: sfraize $ 
+ * @version $Revision: 1.536 $ / $Date: 2008-04-21 21:45:18 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1083,7 +1083,7 @@ public class VUE
         formattingPanel = new FormatPanel();
         formatDock = GUI.createDockWindow("Format",true,true);
         formatDock.setContent(formattingPanel);
-        formatDock.setFocusable(true);
+        //formatDock.setFocusable(true);
         
 
         //-----------------------------------------------------------------------------
@@ -1094,7 +1094,7 @@ public class VUE
         floatingZoomPanel = new FloatingZoomPanel();
         floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
         floatingZoomDock.setContent(floatingZoomPanel);
-        floatingZoomDock.setFocusable(true);
+        //floatingZoomDock.setFocusable(true); // can grab key events causing MapViewer actions to be disabled
         floatingZoomDock.setSize(new Dimension(280,30));
         floatingZoomDock.setLocation(0,GUI.GInsets.top+15);        
         

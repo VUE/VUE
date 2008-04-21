@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.122 $ / $Date: 2008-04-21 20:54:50 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2008-04-21 21:45:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -124,7 +124,7 @@ public class DockWindow extends javax.swing.JWindow
     private Point mDragStart;
     /** absolute point on screen mouse was at when drag started */
     private Point mDragStartScreen;
-    private Dimension mMinContentSize;
+    private Dimension mMinContentSize = new Dimension(0,0);
     
     private Dimension mDragSizeStart;
     private boolean mMouseWasPressed;
@@ -206,6 +206,7 @@ public class DockWindow extends javax.swing.JWindow
         showCloseBtn = showCloseButton;
         
         if (asToolbar) {
+            
             // SMF: even tho you can't have any tool-tips without window
             // being enabled, combo box pop-ups dissapear way
             // to easily unless you do this (as soon as you mouse
@@ -217,14 +218,19 @@ public class DockWindow extends javax.swing.JWindow
             //you click on its borderbar, maybe this was a problem in
             //an old java verison since the dockwinow hadn't been used 
             //in toolbar mode in a while? -MK
+
+            // SMF 2008-04-21: The ongoing saga.  See interceptMousePress
+            // for more on this.  All toolbars are henceforth not
+            // focusable, except for Linux, where I haven't tested this.
             
-            
-            if (VueUtil.isMacPlatform()) {
-                // SMF: seems better on mac -- re-enabled for mac 2007-10-29
-                // In particular, very narrow drop-downs are problematic w/out doing
-                // this: as soon as you roll off them, they dissapear.  E.g., makes changing
+            if (!Util.isUnixPlatform()) {
+                
+                // SMF: seems better on mac -- re-enabled for mac 2007-10-29 In
+                // particular, very narrow drop-downs are problematic w/out doing this:
+                // as soon as you roll off them, they dissapear.  E.g., makes changing
                 // the font via the font-size drop-down very problematic.  Worth not
                 // having rollovers for this.
+                
                 setFocusableWindowState(false); 
             }
 
@@ -907,25 +913,11 @@ public class DockWindow extends javax.swing.JWindow
             if (dw.mWasVisible)
                 dw.superSetVisible(false);
         }
+        // TODO: when prophylactically hiding these for full-screen mode,
+        // this is overkill / could even be problematic.
+        ensureViewerHasFocus(); 
     }
 
-    public synchronized static void ImmediatelyRepaintAllWindows() {
-        if (DEBUG.Enabled) Log.debug("ImmediatelyRepaintAllWindows");
-        for (DockWindow dw : AllWindows) {
-            if (dw.isVisible()) {
-                Rectangle bounds = dw.getContentPanel().getBounds();
-                // adjust bounds to force repainting of the entire window contents
-                bounds.x = -50;
-                bounds.y = -50;
-                bounds.width += 100;
-                bounds.height += 100;
-                if (DEBUG.PAINT) Log.debug("repaint " + dw + "; " + bounds);
-                dw.getContentPanel().paintImmediately(bounds);
-            }
-        }
-    }
-    
-    
     public synchronized static void ShowPreviouslyHiddenWindows() {
         if (DEBUG.Enabled) Log.debug("ShowPreviouslyHiddenWindows");
         if (VUE.inNativeFullScreen()) {
@@ -953,20 +945,47 @@ public class DockWindow extends javax.swing.JWindow
                 dw.mWasVisible = false;
             }
         }
-        // The give the focus back to the viewer, which can 
-        // lose it it when they go visible:
-        final tufts.vue.MapViewer viewer = VUE.getActiveViewer();
-        if (viewer != null) {
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                if (DEBUG.DOCK) Log.debug("ShowPreviouslyHiddenWindows: focusRequest to return focus to " + viewer);
-                viewer.requestFocus();
-                //VUE.getActiveViewer().grabVueApplicationFocus(DockWindow.class.getName(), null);
-            }});
-        }
+
+        ensureViewerHasFocus();
         AllVisible = true;
     }
     
+    private static void ensureViewerHasFocus() {
+        
+        // The give the focus back to the viewer, which can lose it it
+        // when they go visible or invisible.  E.g., on WinXP, even
+        // the hidden FullScreen.FSWindow is somes getting focus,
+        // which it never should, given that it's focusable state is
+        // false.
+        
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            final tufts.vue.MapViewer viewer = VUE.getActiveViewer();
+            if (viewer != null) {
+                if (DEBUG.DOCK) Log.debug("focusRequest to return focus to " + viewer);
+                viewer.requestFocus();
+                //VUE.getActiveViewer().grabVueApplicationFocus(DockWindow.class.getName(), null);
+            }}});
+    }
 
+
+
+    public synchronized static void ImmediatelyRepaintAllWindows() {
+        if (DEBUG.Enabled) Log.debug("ImmediatelyRepaintAllWindows");
+        for (DockWindow dw : AllWindows) {
+            if (dw.isVisible()) {
+                Rectangle bounds = dw.getContentPanel().getBounds();
+                // adjust bounds to force repainting of the entire window contents
+                bounds.x = -50;
+                bounds.y = -50;
+                bounds.width += 100;
+                bounds.height += 100;
+                if (DEBUG.PAINT) Log.debug("repaint " + dw + "; " + bounds);
+                dw.getContentPanel().paintImmediately(bounds);
+            }
+        }
+    }
+    
+    
     /** keep the bottom of the window from going below the bottom screen edge */
     private void keepOnScreen() {
         Rectangle r = getBounds();
@@ -2544,9 +2563,28 @@ public class DockWindow extends javax.swing.JWindow
         
         // 2008-04-21 SMF: On Mac Leopard apparently windows are no longer automatically
         // raised when they get focus / are click on, so we also always do it in that case.
-        
-        if (Util.isMacLeopard() || (MacWindowShadowEnabled && (!GUI.UseAlwaysOnTop || !isMac)))
+
+        // 2008-04-21 SMF: We always auto-raise on any mouse click when on Windows now
+        // too.  Toolbars must not be focusable or they can steal key events and the
+        // user doesn't know where the input is going.  This is why all toolbars are
+        // setFocusableWindowState(false).  This creates problems elsewhere tho: windows
+        // won't always auto-raise when clicked on if they don't have focusable window
+        // state.  E.g., the Format toolbar raises just fine when when clicked on and not
+        // focusable, but for some reason, the FloatingZoomPanel does not.
+
+        // 2008-04-21 SMF: Oh, and now that all toolbars are not focusable, we want to
+        // do this for all mac platforms, not just Leopard, tho note that this code is
+        // MUCH more important for Leopard than it is for Tiger.
+
+        if (!Util.isUnixPlatform())
             raiseStack();
+
+//         if (Util.isMacLeopard()
+//             || Util.isWindowsPlatform()
+//             || (MacWindowShadowEnabled && (!GUI.UseAlwaysOnTop || !isMac)))
+//             {
+//                 raiseStack();
+//             }
 
         if (AllWindows.getLast() != this) {
             // Maintain stacking order: last one in list will be last to show/toFront,
