@@ -2285,8 +2285,8 @@ public class Actions implements VueConstants
     };
 
     public static final VueAction NewRichText =
-      new NewItemAction("New Rich Text", keyStroke(KeyEvent.VK_R, COMMAND)) {
-    //new NewItemAction("New Rich Text", null) { // SMF 2008-04-19 removed keystroke: was in no menus, and was conflicting
+    //new NewItemAction("New Rich Text", keyStroke(KeyEvent.VK_R, COMMAND)) {
+      new NewItemAction("New Rich Text", null) { // SMF 2008-04-19 removed keystroke: was in no menus, and was conflicting
             @Override
             LWComponent createNewItem() {
                 return NodeModeTool.createRichTextNode("new text");
