@@ -101,6 +101,7 @@ public class NodeTool extends VueTool
     // and calls subclass factory for creating tool panel
     static NodeToolPanel getNodeToolPanel()
     {
+        if (DEBUG.Enabled) tufts.Util.printStackTrace("deprecated");
         synchronized (LOCK) {
             if (sNodeToolPanel == null) {
                 sNodeToolPanel = new NodeToolPanel();
