@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.124 $ / $Date: 2008-04-15 22:58:47 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2008-04-21 01:26:36 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -162,7 +162,7 @@ public class PathwayPanel extends JPanel
         //String[] textColorNames = VueResources.getStringArray("textColorNames");
         bkgrndColorButton = new ColorMenuButton(bkColors, true);
 
-        LWPathway.setShowSlides(btnShowSlides.isSelected());    
+        LWPathway.setShowSlides(btnShowSlides.isSelected());
     	
         //Font defaultFont = new Font("Helvetica", Font.PLAIN, 12);
         //Font highlightFont = new Font("Helvetica", Font.BOLD, 12);
@@ -1023,6 +1023,7 @@ public class PathwayPanel extends JPanel
 
             final LWPathway.Entry entry = VUE.getActiveEntry();
             if (entry != null && entry.getSlide().canSync() && entry.getSlide().numChildren() == 0) {
+                //Actions.SyncToSlide.fire(e);
                 Actions.SyncToSlide.fire(this);
             } else {
         	setFocusable(false);
@@ -1119,19 +1120,23 @@ public class PathwayPanel extends JPanel
         else if (btn == btnPathwayOnly) {
             toggleHideEverythingButCurrentPathway(!btnPathwayOnly.isSelected());
         } else if (btn == btnShowSlides) {
-            LWPathway.setShowSlides(btnShowSlides.isSelected());
-            pathway.notify("pathway.showSlides");
-            btnShowSlides.setSelected(btnShowSlides.isSelected());
-        }/* else if (btn == btnShowSlides2) {
-            LWPathway.setShowSlides(btnShowSlides2.isSelected());
-            pathway.notify("pathway.showSlides");
-            btnShowSlides.setSelected(btnShowSlides2.isSelected());
-        }*/
+
+            Actions.ToggleSlideIcons.fire(this);
+            
+        }
         else {
             Log.warn(this + ": Unhandled action: " + e);
         }
 
         VUE.getUndoManager().mark();
+    }
+
+    void updateShowSlidesButton() {
+        btnShowSlides.setSelected(LWPathway.isShowingSlideIcons());
+    }
+
+    static PathwayPanel getInstance() {
+        return Singleton;
     }
 
     public static void TogglePathwayExclusiveFilter() {
