@@ -1195,11 +1195,17 @@ public class PresentationTool extends VueTool
 //         case 'B':
 //             mToBlack.doClick();
 //             break;
+        case 'M':
         case 'm':
             mShowOverview = !mShowOverview;
             repaint("showOverview");
             break;
 
+        case 'T':
+        case 't':
+            Actions.ToggleSlideIcons.fire(this, e);
+            break;
+                
         case 'p':
             PathwayPanel.TogglePathwayExclusiveFilter();
             break;
