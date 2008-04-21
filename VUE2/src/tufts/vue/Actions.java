@@ -2058,16 +2058,17 @@ public class Actions implements VueConstants
     new VueAction("New", keyStroke(KeyEvent.VK_N, COMMAND+SHIFT), ":general/New") {
         private int count = 1;
         boolean undoable() { return false; }
-        boolean enabled() { return true; }
+        protected boolean enabled() { return true; }
         public void act() {
             VUE.displayMap(new LWMap("New Map " + count++));
         }
     };
     public static final Action Revert =
         //new VueAction("Revert", keyStroke(KeyEvent.VK_R, COMMAND+SHIFT), ":general/Revert") { // conflicts w/align centers in row
-        new VueAction("Revert", null, ":general/Revert") {            
+        //new VueAction("Revert", null, ":general/Revert") {            
+        new VueAction("Revert") {
             boolean undoable() { return false; }
-            boolean enabled() 
+            protected boolean enabled() 
             { 
             	 
             		return true;
@@ -2386,13 +2387,17 @@ public class Actions implements VueConstants
     // again, tho this should in fact be "impossible"...
     
     public static class LWCAction extends VueAction
-        implements LWSelection.Listener
+//implements LWSelection.Listener
     {
         LWCAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon) {
             super(name, shortDescription, keyStroke, icon);
-            VUE.getSelection().addListener(this);
             init();
         }
+        LWCAction(String name, KeyStroke keyStroke, String iconName) {
+            super(name, keyStroke, iconName);
+            init();
+        }
+        
         LWCAction(String name, String shortDescription, KeyStroke keyStroke) {
             this(name, shortDescription, keyStroke, (Icon) null);
         }
@@ -2405,11 +2410,7 @@ public class Actions implements VueConstants
         LWCAction(String name, KeyStroke keyStroke) {
             this(name, null, keyStroke, (Icon) null);
         }
-        LWCAction(String name, KeyStroke keyStroke, String iconName) {
-            super(name, keyStroke, iconName);
-            VUE.getSelection().addListener(this);
-            init();
-        }
+        
         public void act() {
             LWSelection selection = VUE.getSelection();
             //System.out.println("LWCAction: " + getActionName() + " n=" + selection.size());
@@ -2430,17 +2431,14 @@ public class Actions implements VueConstants
             }
         }
 
-        /** option initialization code called at end of constructor */
-        void init() {}
-        
-        /*
-          //debug
-        public void setEnabled(boolean tv)
-        {
-            super.setEnabled(tv);
-            System.out.println(this + " enabled=" + tv);
+        ///** option initialization code called at end of constructor */
+        private void init() {
+            //VUE.getSelection().addListener(this);
         }
-         */
+        
+        @Override
+        protected boolean isSelectionWatcher() { return true; }
+
 
         /** @return true -- the default for LWCAction's */
         @Override
@@ -2449,19 +2447,33 @@ public class Actions implements VueConstants
         }
 
         @Override
-        boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
+        protected boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
         
-        public void selectionChanged(LWSelection selection) {
-            if (VUE.getActiveViewer() == null)
+//         public void selectionChanged(LWSelection selection) {
+//             if (VUE.getActiveViewer() == null)
+//                 setEnabled(false);
+//             else
+//                 setEnabled(enabledFor(selection));
+//         }
+//         void checkEnabled() {
+//             selectionChanged(VUE.getSelection());
+//         }
+        
+        void checkEnabled() {
+            //selectionChanged(VUE.getSelection());
+            updateEnabled(VUE.getSelection());
+        }
+        
+        protected final void updateEnabled(LWSelection selection) {
+            if (selection == null)
                 setEnabled(false);
             else
                 setEnabled(enabledFor(selection));
         }
-        void checkEnabled() {
-            selectionChanged(VUE.getSelection());
-        }
+        
         
         /** Is this action enabled given this selection? */
+        @Override
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
         
         /** mayModifySelection: the action may result in an event that
