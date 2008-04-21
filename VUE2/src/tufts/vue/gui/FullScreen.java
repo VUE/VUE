@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.28 $ / $Date: 2008-04-08 16:46:39 $ / $Author: mike $
+ * @version $Revision: 1.29 $ / $Date: 2008-04-21 20:56:57 $ / $Author: sfraize $
  *
  */
 
@@ -84,20 +84,136 @@ public class FullScreen
                 setName(FULLSCREEN_NAME);
 
             GUI.setRootPaneNames(this, FULLSCREEN_NAME);
-            GUI.setOffScreen(this);
             
-            if (Util.isMacPlatform()) {
-                // On the Mac, this must be shown before any DockWindows display,
-                // or they won't stay on top of their parents (this is a mac bug;
-                // as of 2006 anyway -- don't know if we still need this,
-                // but best to leave it in -- SMF 2007-05-22).
-                setVisible(true);
-                setVisible(false);
+
+            if (DEBUG.DOCK) {
+                
+                Util.printStackTrace("creating FSWindow");
+                setOffScreen();
+
+                if (Util.isMacPlatform()) {
+                    setVisibleImpl(true, true);
+                    setVisibleImpl(false, true);
+                } else {
+                    super.setVisible(true);
+                    setFocusableWindowState(false);
+                }
+                
+            } else {
+                setOffScreen();
+                setBackground(Color.black);
+                
+                if (Util.isMacPlatform()) {
+
+                    //=============================================================================
+                    
+                    // On the Mac, this window *MUST* be shown before any DockWindows display, or they
+                    // won't stay on top of their parents (On top of the main VUE window).  This is a
+                    // mac bug; as of 2006 anyway -- SMF 2007-05-22.
+                    
+                    // SMF UPDATE 2008-04-21: Still needed on Mac OS X Tiger (10.4.x) for this to work, and
+                    // we must call our setVisible impl, not just super.setVisible().  Unfortunately,
+                    // this is NO LONGER WORKING to keep DockWindow's on top on Mac OSX Leopard
+                    // (10.5+), however, there is SOME way to get it to happen (iconifying the whole
+                    // app and de-iconifying seems to do it), but I don't know if we can find another
+                    // workaround...
+                    
+                    //=============================================================================
+                    
+                    setVisibleImpl(true, true);
+                    setVisibleImpl(false, true);
+                    
+                }
             }
-            setBackground(Color.black);
+
             VUE.addActiveListener(tufts.vue.LWMap.class, FSWindow.this);
         }
 
+        /**
+           
+         * When set to hide, this instead sets us off-screen and forces us to be
+         * non-focusable (we don't want an "invisible" window accidentally having the
+         * focus).
+         
+         * We need to do this because all the DockWindows are children of this window,
+         * (so they always stay on top of it in full-screen working mode, which is
+         * currently the only way to ensure this), and as children, if we actually hid
+         * this window, they'd all hide with it.
+
+         * And when shown, we prophylacticly raise all the DockWindows, in case one of
+         * the various window hierarchy display bugs in the various java platform
+         * implementations left them behind something.
+         
+         */
+        
+        @Override
+        public void setVisible(boolean show) {
+            setVisibleImpl(show, false);
+        }
+
+        private void setOffScreen() {
+            if (DEBUG.DOCK) {
+                // instead of hiding it, keep it around so we can observe it and
+                // it's layering relative to other VUE windows (it should always
+                // be OVER the main window, and UNDER all DockWindow's)
+
+                // we set the color so we notice this window in its debug state, but it
+                // turns out it's also important on Leopard for this to work at all (see
+                // comment below)
+                setBackground(Color.red);
+                
+                setSize(GUI.getScreenWidth() / 10, GUI.getScreenHeight() / 10);
+                
+            } else {
+                GUI.setOffScreen(this);
+                
+                if (Util.isMacLeopard()) {
+
+                    //------------------------------------------------------------------
+                    
+                    // This odd workaround, which I was lucky to stumble upon, is to
+                    // allow us to enter native full screen mode on Leopard more than
+                    // once.  Forcing an actualy color change through to the peer is
+                    // changing some kind of state such that the bug, which normally
+                    // leaves the full screen window entirely blank the second time it's
+                    // set in place appears to go away.  Note: the resulting bad case
+                    // behavior of this bug is similar to the other bug that happens if
+                    // any other windows try to appear/get focus while in native full
+                    // screen -- we get a blank screen, except at least in this case, it
+                    // doesn't lock up the entire Mac operating system event loop.
+                    //
+                    // -- SMF 2008-04-21
+                    
+                    //------------------------------------------------------------------
+                    
+                    Color c = getBackground();
+                    if (Color.black.equals(c))
+                        setBackground(Color.darkGray);
+                    else
+                        setBackground(Color.black);
+                }
+            }
+        }
+
+        private void setVisibleImpl(boolean show, boolean init)
+        {
+            setFocusableWindowState(show);
+            
+            // if set we allow it to actually go invisible
+            // all children will hide (hiding all the DockWindow's)
+            
+            if (show) {
+                super.setVisible(true);
+            } else {
+                setOffScreen();
+            }
+
+            if (!init && show && !inNativeFullScreen())  {
+                //if (DEBUG.Enabled) Util.printStackTrace("FS DW RAISE ALL");
+                DockWindow.raiseAll(); // just in case
+            }
+        }
+        
         public void activeChanged(tufts.vue.ActiveEvent e, tufts.vue.LWMap map) {
             if (fullScreenWorking)
                 FullScreenViewer.loadFocal(map);
@@ -219,41 +335,9 @@ public class FullScreen
                 getRootPane().setJMenuBar(null);
         }
         
-        /**
-           
-         * When set to hide, this instead sets us off-screen and forces us to be
-         * non-focusable (we don't want an "invisible" window accidentally having the
-         * focus).
-         
-         * We need to do this because all the DockWindows are children of this window,
-         * (so they always stay on top of it in full-screen working mode, which is
-         * currently the only way to ensure this), and as children, if we actually hid
-         * this window, they'd all hide with it.
-
-         * And when shown, we prophylacticly raise all the DockWindows, in case one of
-         * the various window hierarchy display bugs in the various java platform
-         * implementations left them behind something.
-         
-         */
-        
-        @Override
-        public void setVisible(boolean show)
-        {
-            setFocusableWindowState(show);
-            
-            // if set we allow it to actually go invisible
-            // all children will hide (hiding all the DockWindow's)
-            
-            if (show)
-                super.setVisible(true);
-            else 
-                GUI.setOffScreen(this);
-
-            if (show && !inNativeFullScreen()) 
-                DockWindow.raiseAll(); // just in case
-        }
-        
     }
+
+    
 
     private static void goBlack() {
         if (Util.isMacPlatform()) {
@@ -616,9 +700,13 @@ public class FullScreen
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 DockWindow.ShowPreviouslyHiddenWindows();
                 if (Util.isMacPlatform()) {
-                    // Only need to do this on mac, as we can't
-                    // hide what's happening on WinXP by fading
-                    // to/from black anyway.
+
+                    // This will ensure the windows are fully painted when we return
+                    // from fade-back.
+                    
+                    // Only need to do this on mac, as we can't hide what's happening on
+                    // WinXP by fading to/from black anyway.
+                    
                     DockWindow.ImmediatelyRepaintAllWindows();
                 }
             }});
