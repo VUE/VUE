@@ -506,14 +506,14 @@ public abstract class LWIcon extends Rectangle2D.Float
         		return false;
         	}
 
-        void doDoubleClickAction() {}
-//         void doDoubleClickAction() {
-//         	if (!((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
-//         	{
-//                     Log.debug("DOUBLE-CLICK " + getClass());
-//                     mLWC.getResource().displayContent();
-//         	}
-//         }
+     //   void doDoubleClickAction() {}
+         void doDoubleClickAction() {
+         	if (!((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
+         	{
+                     Log.debug("DOUBLE-CLICK " + getClass());
+                     mLWC.getResource().displayContent();
+         	}
+         }
         void doSingleClickAction() {
         	if (((Boolean)oneClickLaunchResPref.getValue()).booleanValue())
         	{
