@@ -528,6 +528,10 @@ public class Actions implements VueConstants
             			presTool.startPresentation();
             		}});
             	}
+
+                @Override
+                public boolean overrideIgnoreAllActions() { return true; }        
+                
             };
             
             public static final Action DeleteSlide = new VueAction("Delete")
@@ -1286,48 +1290,52 @@ public class Actions implements VueConstants
 	//private static double zoomFactor =0;  
 	//private static Point2D originOffset = null;
 
-	public static class ReturnToMapAction extends VueAction
+    public static class ReturnToMapAction extends VueAction
     {
         public void act() 
         {
-        	if (VUE.getActiveViewer() != null)
-            {
-            	if (VUE.getActiveViewer().getFocal() instanceof LWSlide || VUE.getActiveViewer().getFocal() instanceof MasterSlide)
-            	{
-            		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
-            		VUE.setActive(LWMap.class, this, VUE.getActiveMap());
-            		/*ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),
-                            zoomBounds,
-                            0,
-                            false);
-                            */
+            final LWComponent focal = VUE.getActiveFocal();
+            
+            if (focal instanceof LWSlide || focal instanceof MasterSlide) {
+                
+                VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
+                VUE.setActive(LWMap.class, this, VUE.getActiveMap());
+                
+                /*ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),
+                  zoomBounds,
+                  0,
+                  false);
+                */
             		
-            		//Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
-            		//double tempZoom = VUE.getActiveMap().getTempZoom();
+                //Point2D.Float originOffset = VUE.getActiveMap().getTempUserOrigin();
+                //double tempZoom = VUE.getActiveMap().getTempZoom();
             		
-            		//System.out.println("temp #s : " +originOffset + " " + tempZoom);
-            	//	ZoomTool.setZoom(tempZoom);
-            		//if (originOffset != null)
-            			//VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
-            		if (VUE.getActiveMap().getTempBounds() != null)
-            			ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
-            		VUE.getReturnToMapButton().setVisible(false);
-            		//ZoomTool.setZoom(zoomFactor);
+                //System.out.println("temp #s : " +originOffset + " " + tempZoom);
+                //	ZoomTool.setZoom(tempZoom);
+                //if (originOffset != null)
+                //VUE.getActiveViewer().setMapOriginOffset(originOffset.getX(), originOffset.getY());
+                if (VUE.getActiveMap().getTempBounds() != null)
+                    ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+                VUE.getReturnToMapButton().setVisible(false);
+                //ZoomTool.setZoom(zoomFactor);
             	    
 
             		
-            	}
-            	else if (VUE.getActiveViewer().getFocal() instanceof LWGroup)
-            	{
-            		VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
-            		if (VUE.getActiveMap().getTempBounds() != null)
-            			ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
-            		VUE.getReturnToMapButton().setVisible(false);
-            	}
+            }
+            else if (focal instanceof LWGroup) {
+                VUE.getActiveViewer().loadFocal(VUE.getActiveMap());
+                if (VUE.getActiveMap().getTempBounds() != null)
+                    ZoomTool.setZoomFitRegion(VUE.getActiveMap().getTempBounds());
+                VUE.getReturnToMapButton().setVisible(false);
             }
         }
-    };
+
+        @Override
+        public boolean overrideIgnoreAllActions() { return true; }        
+    }
+    
     public static final VueAction ReturnToMap = new ReturnToMapAction();
+    
     public static final LWCAction EditSlide = new LWCAction("Edit slide")
     {
     	public void act(LWSlide slide)
@@ -2188,7 +2196,10 @@ public class Actions implements VueConstants
                 LWPathway.toggleSlideIcons();
                 PathwayPanel.getInstance().updateShowSlidesButton();
 
-                VUE.getActiveMap().notify(this, LWKey.Repaint);
+                // This won't do anything if something deeper in the map is the focal
+                //VUE.getActiveMap().notify(this, LWKey.Repaint);
+                
+                VUE.getActiveFocal().notify(this, LWKey.Repaint);
                 
 //                 if (VUE.getActivePathway() != null) {
 //                     //VUE.getActivePathway().notify("pathway.showSlides");
@@ -2411,6 +2422,11 @@ public class Actions implements VueConstants
             this(name, null, keyStroke, (Icon) null);
         }
         
+//         public void act() {
+//             actOn(VUE.getSelection());
+//         }
+//         public void actOn(LWSelection selection) {
+            
         public void act() {
             LWSelection selection = VUE.getSelection();
             //System.out.println("LWCAction: " + getActionName() + " n=" + selection.size());
@@ -2430,6 +2446,12 @@ public class Actions implements VueConstants
                 System.err.println(getActionName() + ": Not enabled given this selection: " + selection);
             }
         }
+
+
+//         public void fire(InputEvent e, LWComponent c) {
+//             actionPerformed(new ActionEvent(source, 0, name));
+//         }
+        
 
         ///** option initialization code called at end of constructor */
         private void init() {
