@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.532 $ / $Date: 2008-04-22 07:00:34 $ / $Author: sfraize $ 
+ * @version $Revision: 1.533 $ / $Date: 2008-04-22 10:57:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2839,7 +2839,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         dc.setClipOptimized(false);
         dc.setDrawPathways(false);
         //dc.setAlpha(0.8f); // Not what we want here (for image generation only?)
-        dc.g.setComposite(ZoomTransparency);
+        //dc.g.setComposite(ZoomTransparency);
         zoomed.transformZero(dc.g);
         if (zoomed.hasChildren() && zoomed.isTransparent()) {
 
