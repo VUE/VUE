@@ -60,7 +60,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.100 $ / $Date: 2008-03-12 13:48:02 $ / $Author: mike $
+ * @version $Revision: 1.101 $ / $Date: 2008-04-22 07:01:32 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -1126,28 +1126,32 @@ public class PathwayTable extends JTable
               && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0;
 
       }
-	public void mouseClicked(MouseEvent e) {
-		if (isDoubleClickEvent(e))
-		{
-	    	final PresentationTool presTool = PresentationTool.getTool();
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                VUE.toggleFullScreen(true);
-            }});
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                //VueToolbarController.getController().setSelectedTool(presTool);
-                VUE.setActive(VueTool.class, this, presTool);
-            }});
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                presTool.startPresentation();
-            }});
-		}
+
+    
+    public void mouseClicked(MouseEvent e) {
+
+        if (isDoubleClickEvent(e)) {
+
+            Actions.LaunchPresentation.fire(this, e);
+            
+// 	    	final PresentationTool presTool = PresentationTool.getTool();
+//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                     VUE.toggleFullScreen(true);
+//                 }});
+//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                     //VueToolbarController.getController().setSelectedTool(presTool);
+//                     VUE.setActive(VueTool.class, this, presTool);
+//                 }});
+//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                     presTool.startPresentation();
+//                 }});
+        }
 			
-			
-		
-	}
-	private void displayContextMenu(MouseEvent e) {
+        
+    }
+    private void displayContextMenu(MouseEvent e) {
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
-	}
+    }
 
 	private JPopupMenu m = null;
 	
