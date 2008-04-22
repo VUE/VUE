@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.123 $ / $Date: 2008-04-21 21:45:19 $ / $Author: sfraize $
+ * @version $Revision: 1.124 $ / $Date: 2008-04-22 07:04:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -918,6 +918,17 @@ public class DockWindow extends javax.swing.JWindow
         ensureViewerHasFocus(); 
     }
 
+    public void toFront() {
+        //tufts.Util.printClassTrace(DockWindow.class, "RAISING");
+        if (isVisible()) {
+            if (DEBUG.DOCK) out("toFront");
+            super.toFront();
+        } else {
+            // Window.toFront does nothing if not visible anyway
+            //if (DEBUG.DOCK) out("(toFront)");
+        }
+    }
+
     public synchronized static void ShowPreviouslyHiddenWindows() {
         if (DEBUG.Enabled) Log.debug("ShowPreviouslyHiddenWindows");
         if (VUE.inNativeFullScreen()) {
@@ -929,13 +940,34 @@ public class DockWindow extends javax.swing.JWindow
 
         if (Util.isMacLeopard()) {
 
+            // Okay, this is seriously messed.  If we have only ONE DockWindow visible,
+            // we can hide/show all ONCE, and it stays on top, but the SECOND time
+            // we hide/show (or enter/exit full screen mode), it starts going behind!
+            // Showing a second DockWindow then hiding/showing all once or twice
+            // seems to put things back in order.  Delaying the toFront to be
+            // invoked later on the AWT thread appears to offer no help, nor does
+            // just raising them all at the end.
+            
             for (DockWindow dw : AllWindows) {
                 if (dw.mWasVisible) {
                     dw.superSetVisible(true);
-                    dw.toFront(); // 2008-04-21 required for Mac OSX Leopard to keep them on top
+                    dw.toFront();
+
+                    //dw.setAlwaysOnTop(true);
+//                     final DockWindow d = dw;
+//                     GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                         d.toFront(); // 2008-04-21 required for Mac OSX Leopard to keep them on top
+//                     }});
                 }
+                
                 dw.mWasVisible = false;
             }
+
+//             // hope this helps the random Leopard cases that still break...
+//             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                 DockWindow.raiseAll();
+//             }});
+            
             
         } else {
             
@@ -958,6 +990,7 @@ public class DockWindow extends javax.swing.JWindow
         // which it never should, given that it's focusable state is
         // false.
         
+        if (!Util.isMacLeopard()) // still having problems: too risky
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             final tufts.vue.MapViewer viewer = VUE.getActiveViewer();
             if (viewer != null) {
@@ -1062,6 +1095,7 @@ public class DockWindow extends javax.swing.JWindow
         }
     }
     
+    @Override
     public void setVisible(boolean show) {
         setVisible(show, true);
     }
@@ -2608,12 +2642,6 @@ public class DockWindow extends javax.swing.JWindow
         if (DEBUG.DOCK) out("toFront my stack");
         toFront();
         raiseChildren();
-    }
-
-    public void toFront() {
-        //tufts.Util.printClassTrace(DockWindow.class, "RAISING");
-        if (DEBUG.DOCK) out("toFront");
-        super.toFront();
     }
 
     

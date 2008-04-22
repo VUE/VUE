@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.29 $ / $Date: 2008-04-21 20:56:57 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2008-04-22 07:04:35 $ / $Author: sfraize $
  *
  */
 
@@ -47,6 +47,7 @@ import org.apache.log4j.NDC;
 // for Java with Sun Micro on this, which was accepted, but the desired clean
 // functionality won't be in there till Java 6 at the earliest, maybe not till Java 7.
 // -- SMF 2007-05-22
+// See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6373178
 
 public class FullScreen
 {
@@ -64,6 +65,15 @@ public class FullScreen
     public static final String VIEWER_NAME = "FULL";
 
     //private static final boolean ExtraDockWindowHiding = !Util.isMacPlatform(); // must be done on WinXP
+
+    // this "must be done" on XP -- need to recall why
+
+    // It also is nice to be done on Mac OS X or the DockWindows appear over the temporary "working"
+    // full screen window during a presentation (as would be expected), when we drop into that mode
+    // to allow the display of an external app for content display (e.g., a web browser)
+
+    // This may also end up being required for Leopard, tho it's anyones guess what that might
+    // take at this point...
     private static final boolean ExtraDockWindowHiding = true;
     
 
@@ -148,6 +158,7 @@ public class FullScreen
         
         @Override
         public void setVisible(boolean show) {
+            if (DEBUG.DOCK) Log.debug("FS setVisible " + show);
             setVisibleImpl(show, false);
         }
 
@@ -208,10 +219,13 @@ public class FullScreen
                 setOffScreen();
             }
 
-            if (!init && show && !inNativeFullScreen())  {
-                //if (DEBUG.Enabled) Util.printStackTrace("FS DW RAISE ALL");
-                DockWindow.raiseAll(); // just in case
-            }
+//             if (!init && show && !inNativeFullScreen())  {
+//                 //if (DEBUG.Enabled) Util.printStackTrace("FS DW RAISE ALL");
+//                 DockWindow.raiseAll(); // just in case, and required for this to work on Leopard
+// //                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+// //                     DockWindow.raiseAll(); // hope this helps the random Leopard that still break...
+// //                 }});
+//             }
         }
         
         public void activeChanged(tufts.vue.ActiveEvent e, tufts.vue.LWMap map) {
@@ -690,10 +704,10 @@ public class FullScreen
             // it flashes a small window briefly in the upper left.
         }
         
-        FullScreenWindow.setVisible(false);
-        FullScreenViewer.loadFocal(null);
         fullScreenWorking = false;
         fullScreenNative = false;
+        FullScreenWindow.setVisible(false);
+        FullScreenViewer.loadFocal(null);
 
         if (ExtraDockWindowHiding && nativeModeHidAllDockWindows) {
             nativeModeHidAllDockWindows = false;
