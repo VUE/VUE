@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.30 $ / $Date: 2008-04-22 07:04:35 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2008-04-22 07:46:09 $ / $Author: sfraize $
  *
  */
 
@@ -158,7 +158,7 @@ public class FullScreen
         
         @Override
         public void setVisible(boolean show) {
-            if (DEBUG.DOCK) Log.debug("FS setVisible " + show);
+            if (DEBUG.DOCK) Log.debug("FSW setVisible " + show);
             setVisibleImpl(show, false);
         }
 
@@ -184,7 +184,7 @@ public class FullScreen
                     
                     // This odd workaround, which I was lucky to stumble upon, is to
                     // allow us to enter native full screen mode on Leopard more than
-                    // once.  Forcing an actualy color change through to the peer is
+                    // once.  Forcing an actual color change through to the peer is
                     // changing some kind of state such that the bug, which normally
                     // leaves the full screen window entirely blank the second time it's
                     // set in place appears to go away.  Note: the resulting bad case
@@ -219,12 +219,12 @@ public class FullScreen
                 setOffScreen();
             }
 
+// Let this be handled by our callers -- was important before ExtraDockWindowHiding, which is
+// pretty much mandatory now.
 //             if (!init && show && !inNativeFullScreen())  {
+//                 // just in case
 //                 //if (DEBUG.Enabled) Util.printStackTrace("FS DW RAISE ALL");
-//                 DockWindow.raiseAll(); // just in case, and required for this to work on Leopard
-// //                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-// //                     DockWindow.raiseAll(); // hope this helps the random Leopard that still break...
-// //                 }});
+//                 DockWindow.raiseAll(); 
 //             }
         }
         
@@ -709,6 +709,10 @@ public class FullScreen
         FullScreenWindow.setVisible(false);
         FullScreenViewer.loadFocal(null);
 
+        // Note: several of these invokeAfterAWT calls are probably overkill,
+        // but the focus issues we're dealing with here can be very delicate,
+        // so be careful in here...
+
         if (ExtraDockWindowHiding && nativeModeHidAllDockWindows) {
             nativeModeHidAllDockWindows = false;
             GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -739,38 +743,46 @@ public class FullScreen
         }});
 
 
-        if (fadeBack) {
-
-            // note: if the DockWindows were hidden, and requested to be shown above,
-            // this fadeFromBlack still gets into the AWT EDT queue before those paints
-            // complete (paints have special low priority?) -- even if we try cascading
-            // the queue requests as much as four times!
-            
-            if (DEBUG.Enabled) Log.debug("requesting fadeFromBlack");
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                fadeFromBlack();
-            }});
-        }
-
 
         GUI.invokeAfterAWT(new Runnable() { public void run() {
-            NDC.pop();
-            //VUE.getActiveViewer().setZ
+            
             //set zoom to what it was in the fullscreen
             if (!wasNative)
             {
-            	if (focal != VUE.getActiveViewer().getFocal())
-            		VUE.getActiveViewer().loadFocal(focal);	         
+                final MapViewer viewer = VUE.getActiveViewer();
+                
+            	if (focal != viewer.getFocal())
+                    viewer.loadFocal(focal);	         
             		
             	//ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);
 
-            	if (VUE.getActiveViewer().getWidth() != VUE.getActiveViewer().getVisibleWidth() ||VUE.getActiveViewer().getHeight() != VUE.getActiveViewer().getVisibleHeight())
-            		ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),VUE.getActiveViewer().getVisibleMapBounds());
+            	if (viewer.getWidth() != viewer.getVisibleWidth() || viewer.getHeight() != viewer.getVisibleHeight())
+                    ZoomTool.setZoomFitRegion(viewer, viewer.getVisibleMapBounds());
             	else
-            		ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),VUE.getActiveViewer().getMap().getMapBounds(),VUE.getActiveViewer().getMap().getFocalMargin(),false);
+                    ZoomTool.setZoomFitRegion(viewer, viewer.getMap().getMapBounds(), viewer.getMap().getFocalMargin(), false);
 
             }
+
+            if (!fadeBack) NDC.pop();
+            
         }});
+
+
+// This works to have the toolbar painted, vut the tabbed pane and viewer apparently aren't ready yet (just shows dark gray)
+//         if (Util.isMacPlatform())
+//             ((javax.swing.JComponent)VUE.getApplicationFrame().getContentPane()).paintImmediately(new Rectangle(-256,-256,4096,4096));
+        
+        
+        if (fadeBack) {
+            if (DEBUG.Enabled) Log.debug("requesting fadeFromBlack");
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                fadeFromBlack();
+                NDC.pop();
+            }});
+        }
+
+        
+
     
     }
 
