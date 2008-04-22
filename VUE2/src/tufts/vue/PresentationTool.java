@@ -224,7 +224,7 @@ public class PresentationTool extends VueTool
 
         boolean contains(MouseEvent e) {
             boolean hit = contains(e.getX(), e.getY());
-            if (DEBUG.PRESENT) out(this + " contains=" + hit + "; " + e);
+            //if (DEBUG.PRESENT) out(this + " contains=" + hit + "; " + e);
             return hit;
         }
         
@@ -271,7 +271,7 @@ public class PresentationTool extends VueTool
                 }
             } else {
                 
-                LWPathway.Entry picked = null;
+                LWPathway.Entry slideInsteadOfNode = null;
                 
                 if (mPathway != null // if we have a current pathway
                     && !LWPathway.isShowingSlideIcons() // and slide icons are turned off
@@ -279,17 +279,25 @@ public class PresentationTool extends VueTool
                     && c instanceof LWNode // and this is a node
                     && c.hasEntries()) // and it has slides available
                 {
+                    LWPathway.Entry fallbackEntry = null;
+                    int fallbackCount = 0;
                     for (LWPathway.Entry e : c.getEntries()) {
-                        if (e.pathway == mPathway) { // && e.pathway.isDrawn()
+                        if (e.pathway == mPathway) {
                             // we've found a slide on the current pathway (which should always be visible)
-                            picked = e;
+                            slideInsteadOfNode = e;
                             break;
                         }
+                        if (e.pathway.isDrawn()) {
+                            fallbackEntry = e;
+                            fallbackCount++;
+                        }
                     }
+                    if (slideInsteadOfNode == null && fallbackCount == 1)
+                        slideInsteadOfNode = fallbackEntry;
                 }
 
-                if (picked != null) {
-                    entry = picked;
+                if (slideInsteadOfNode != null && !slideInsteadOfNode.isMapView()) {
+                    entry = slideInsteadOfNode;
                     node = null;
                 } else {
                     entry = null;
@@ -2037,8 +2045,8 @@ public class PresentationTool extends VueTool
 
         LWPathway pathway = VUE.getActivePathway();
 
-        if (!pathway.isVisible()) {
-            if (!pathway.isLocked())
+        if (pathway != null && !pathway.isVisible()) {
+            if (!pathway.isLocked() && pathway.hasEntries())
                 pathway.setVisible(true);
             else
                 pathway = null; // non-pathway presentation mode
