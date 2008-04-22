@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.409 $ / $Date: 2008-04-16 17:14:56 $ / $Author: dan $
+ * @version $Revision: 1.410 $ / $Date: 2008-04-22 06:58:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -4172,10 +4172,12 @@ u                    getSlot(c).setFromString((String)value);
      */
     public Rectangle2D.Float getPaintBounds()
     {
-        if (inDrawnPathway()) {
+        if (LWPathway.isShowingSlideIcons() && inDrawnPathway()) {
             Rectangle2D.Float b = addStrokeToBounds(getMapBounds(), LWPathway.PathBorderStrokeWidth);
-            if (farthestVisibleSlideCorner != null)
+            if (farthestVisibleSlideCorner != null) {
+                //if (DEBUG.WORK) out("IN DRAWN PATHWAY w/CORNER");
                 b.add(farthestVisibleSlideCorner);
+            }
             return b;
         } else
             return addStrokeToBounds(getMapBounds(), 0);
@@ -5263,6 +5265,12 @@ u                    getSlot(c).setFromString((String)value);
 
 
     private Point2D.Float farthestVisibleSlideCorner;
+
+    private void recordCorner(Point2D.Float p) {
+        //if (p == null) return; // try always leaving last corner for now
+        if (DEBUG.WORK) out("corner=" + p);
+        farthestVisibleSlideCorner = p;
+    }
     
     
     /** @return a slide to be drawn last, or null if none in particular */
@@ -5327,10 +5335,10 @@ u                    getSlot(c).setFromString((String)value);
             if (lastSlide != null) {
                 corner.x = lastSlide.getMapX() + lastSlide.getLocalWidth();
                 corner.y = lastSlide.getMapY() + lastSlide.getLocalHeight();
-                farthestVisibleSlideCorner = corner;
+                recordCorner(corner);
                 //out("far corner: " + Util.fmt(corner));
             } else
-                farthestVisibleSlideCorner = null;
+                recordCorner(null);
 
 
             // Now just in case, layout all the non-visible ones after the visible, in case
@@ -5632,10 +5640,19 @@ u                    getSlot(c).setFromString((String)value);
     {
         notifyLWCListeners(new LWCEvent(source, this, what));
     }
-
+    
     void notifyProxy(LWCEvent e) {
         notifyLWCListeners(e);
     }
+    
+//     /** This generates an event with NO COMPONENT IN IT: we just want access to the model hierarchy at
+//      * this point, but the component itself is not interesting here.
+//      */
+//     void notifyProxy(Object source, String what)
+//     {
+//         notifyProxy(new LWCEvent(source, null, what));
+//     }
+
 
     protected void notify(String what, LWComponent contents)
     {
@@ -5944,17 +5961,12 @@ u                    getSlot(c).setFromString((String)value);
             getResource().displayContent();
             return true;
         } 
-        else if (this instanceof LWSlide)
-        {
-        	Actions.EditSlide.act((LWSlide)this);
-        	return true;
-        }
-        else if (this instanceof LWGroup) 
+        else if (this instanceof LWGroup)  // todo: in override
         {
             //} else if (this instanceof LWSlide || this instanceof LWGroup || this instanceof LWPortal)
             // MapViewer "null remote focal" code would need fixing to enable selection if a portal is the focal
             // (the selected objects are not children of the focal, so they don't look like we should be seeing them)
-        	VUE.getReturnToMapButton().setVisible(true);
+            VUE.getReturnToMapButton().setVisible(true);
             return doZoomingDoubleClick(e);
         } else
             return false;
