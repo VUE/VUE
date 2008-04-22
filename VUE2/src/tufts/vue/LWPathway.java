@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.209 $ / $Date: 2008-04-21 01:21:53 $ / $Author: sfraize $
+ * @version $Revision: 1.210 $ / $Date: 2008-04-22 08:49:44 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -60,7 +60,7 @@ public class LWPathway extends LWContainer
     private transient boolean mOpen = true;
 
     /** The pathway Entry's */
-    private java.util.List<Entry> mEntries = new java.util.ArrayList();
+    private java.util.List<Entry> mEntries = new java.util.ArrayList(); // could re-use from LWComponent, but may be dangerous
     /** Read-only version of the entry list */
     private java.util.List<Entry> mSecureEntries = java.util.Collections.unmodifiableList(mEntries);
 
@@ -1430,6 +1430,13 @@ public class LWPathway extends LWContainer
     public java.util.List<Entry> getPersistEntries() {
         return mEntries;
     }
+
+    /** changes in semantics from LWComponent: count entries IN this pathway, not pathways we're a member of */
+    @Override
+    public boolean hasEntries() {
+        return mEntries.size() > 0;
+    }
+    
     @Override
     public LWComponent getChild(int index) {
         throw new UnsupportedOperationException("pathways don't have proper children");
