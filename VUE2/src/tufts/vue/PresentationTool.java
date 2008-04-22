@@ -65,7 +65,7 @@ public class PresentationTool extends VueTool
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
 
-    private final static BooleanPreference slideViewPref = BooleanPreference.create(
+    private final static BooleanPreference ChooseNodesOverSlidesPref = BooleanPreference.create(
 			edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
 			"slideNodeView", 
 			"Slide/Node View",
@@ -159,7 +159,7 @@ public class PresentationTool extends VueTool
     private volatile Page mCurrentPage = NO_PAGE;
     private volatile Page mLastPage = NO_PAGE;
     private volatile Page mLastSlidePage;
-    private volatile LWPathway mPathway; // current pathway (last pathway we were on)
+    private static volatile LWPathway mPathway; // current pathway (last pathway we were on)
     private volatile LWPathway mStartPathway; // pathway when started presentation
     private volatile Page mLastPathwayPage;
     private volatile Page mLastStartPathwayPage;
@@ -258,6 +258,7 @@ public class PresentationTool extends VueTool
             entry = e;
             node = null;
         }
+        
         Page(LWComponent c) {
             if (c instanceof LWSlide) {
                 if (((LWSlide)c).getPathwayEntry() != null) {
@@ -269,8 +270,31 @@ public class PresentationTool extends VueTool
                     node = c;
                 }
             } else {
-                entry = null;
-                node = c;
+                
+                LWPathway.Entry picked = null;
+                
+                if (mPathway != null // if we have a current pathway
+                    && !LWPathway.isShowingSlideIcons() // and slide icons are turned off
+                    && !Boolean.TRUE.equals(ChooseNodesOverSlidesPref.getValue())  // todo: can GenericBooleanPref getValue return a Boolean?
+                    && c instanceof LWNode // and this is a node
+                    && c.hasEntries()) // and it has slides available
+                {
+                    for (LWPathway.Entry e : c.getEntries()) {
+                        if (e.pathway == mPathway) { // && e.pathway.isDrawn()
+                            // we've found a slide on the current pathway (which should always be visible)
+                            picked = e;
+                            break;
+                        }
+                    }
+                }
+
+                if (picked != null) {
+                    entry = picked;
+                    node = null;
+                } else {
+                    entry = null;
+                    node = c;
+                }
             }
         }
 
@@ -1357,6 +1381,10 @@ public class PresentationTool extends VueTool
         //final LWMap map = viewer.getMap();
         //dc.setDrawPathways(true);
         //map.drawFit(dc.push(), overview, 10); dc.pop();
+
+//         if (DEBUG.WORK) out("painting viewer for overview: " + viewer
+//                             + ";\n\twith standount=" + standout
+//                             + ";\n\tslideIcons=" + LWPathway.isShowingSlideIcons());
         
         final Graphics2D pannerGC = (Graphics2D) dc.g.create();
         mNavMapDC = MapPanner.paintViewerIntoRectangle(null,
@@ -1418,7 +1446,7 @@ public class PresentationTool extends VueTool
         // is still at full brighness (alpha=1)
         //-----------------------------------------------------------------------------
 
-        if (DEBUG.WORK) out("overview drawing standout: " + standout);
+        //if (DEBUG.WORK) out("overview drawing standout: " + standout);
         DrawContext standoutDC = new DrawContext(mNavMapDC, standout);
         standoutDC.focused = standout;
         standout.draw(standoutDC);
@@ -1478,7 +1506,7 @@ public class PresentationTool extends VueTool
             // redraw the reticle at full brightness:
             mNavMapDC.setAntiAlias(true);
                 
-            if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + reticle);
+            //if (DEBUG.WORK) out("overview showing map bounds for: " + mCurrentPage + " in " + viewer + " bounds " + reticle);
 
 //             mNavMapDC.g.setColor(Color.white);
 //             mNavMapDC.setAlpha(0.2);
@@ -1710,10 +1738,9 @@ public class PresentationTool extends VueTool
             return true;
         }
         if (ZoomButton.contains(e)){
-        	ZoomButton.doAction();
-        	return true;
+            ZoomButton.doAction();
+            return true;
         }
-        	
         if (ResumeButton.contains(e)) {
             ResumeButton.doAction();
             return true;
