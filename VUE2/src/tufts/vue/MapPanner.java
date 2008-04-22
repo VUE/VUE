@@ -25,7 +25,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.63 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.64 $ / $Date: 2008-04-22 07:00:11 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -348,6 +348,7 @@ public class MapPanner extends javax.swing.JPanel
         } else
             pannerRect = allComponentBounds;
 
+        //if (DEBUG.WORK) Log.debug("pannerRect: " + tufts.Util.fmt(pannerRect));
         
         /*
          * Compute the zoom required to fit everything in the size of the
