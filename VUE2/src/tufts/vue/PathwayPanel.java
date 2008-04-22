@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.126 $ / $Date: 2008-04-21 05:52:10 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2008-04-22 07:01:04 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -95,7 +95,9 @@ public class PathwayPanel extends JPanel
     //                                                      VueResources.getImageIcon("presentationDialog.button.playSlides.raw"),
     //                                                      VueResources.getImageIcon("presentationDialog.button.playSlides.disabled"));
     
-    private final VueButton btnPlay = new VueButton("presentationDialog.button.play",this);    
+    private final VueButton btnPlay = new VueButton("presentationDialog.button.play",this);
+    // if have a real action to fire, can always just do this:
+    //private final VueButton btnPlay = new VueButton("presentationDialog.button.play", Actions.LaunchPresentation);
                                             
     //Section Labels for the top
     private JLabel lblCreateSlides = new JLabel(VueResources.getString("presentationDialog.createslides.label"));
@@ -1002,11 +1004,10 @@ public class PathwayPanel extends JPanel
         	}*/
         	/*long now = System.currentTimeMillis();
     		MapMouseEvent mme = new MapMouseEvent(new MouseEvent(VUE.getActiveViewer(),
-    															MouseEvent.MOUSE_CLICKED,
-    															now,
-    															5,5,5,5,
-    															false));
-    		
+                MouseEvent.MOUSE_CLICKED,
+                now,
+                5,5,5,5,
+                false));
     		pathway.getCurrentEntry().getSlide().doZoomingDoubleClick(mme);*/
         	//Actions.PreviewOnMap.actionPerformed(e);
         	if (pathway.getCurrentEntry() != null && pathway.getCurrentEntry().getSlide() != null)
@@ -1016,11 +1017,10 @@ public class PathwayPanel extends JPanel
         }    
         else if (btn == btnPlay)
         {
-           Actions.LaunchPresentation.act();
+            Actions.LaunchPresentation.fire(this, e);
         }
         else if (btn == btnRefresh)
         {
-
             final LWPathway.Entry entry = VUE.getActiveEntry();
             if (entry != null && entry.getSlide().canSync() && entry.getSlide().numChildren() == 0) {
                 Actions.SyncToSlide.fire(this, e);
@@ -1041,11 +1041,10 @@ public class PathwayPanel extends JPanel
         	}
         }*/
         else if (btn == btnAddSlide)  { 
-
-        	if (!pathway.isOpen())
-        		pathway.setOpen(true);
-        	pathway.add(VUE.getSelection().iterator());
-        	}
+            if (!pathway.isOpen())
+                pathway.setOpen(true);
+            pathway.add(VUE.getSelection().iterator());
+        }
         else if (btn == btnMergeInto)  {
             final LWComponent node = pathway.createMergedNode(VUE.getSelection());
             node.setLocation(VUE.getActiveViewer().getLastMousePressMapPoint());
