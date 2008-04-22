@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.531 $ / $Date: 2008-04-21 08:19:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.532 $ / $Date: 2008-04-22 07:00:34 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1645,10 +1645,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //super.repaint(0,r.x,r.y,r.width,r.height);            
         } else if (OPTIMIZED_REPAINT == false) {
             LWComponent singleSrc = e.onlyComponent();
-            if (singleSrc != null && singleSrc.isHidden() && !(singleSrc instanceof LWPathway)) {
+            // todo: these conditions require too much knowlege about the way things
+            // work outside of MapViewer -- refactor.
+            if (singleSrc != null && e.isModelSourced() && singleSrc.isHidden() && !(singleSrc instanceof LWPathway)) {
                 // todo: some kind of semantic check that knows pathway visibility
                 // is irrelevant here, as opposed to the type check.
-                if (DEBUG.Enabled) out("skipping update from hidden component: " + e);
+                //if (DEBUG.Enabled) out("skipping update from hidden component: " + e);
+                if (DEBUG.Enabled) Util.printStackTrace("skipping update from hidden component: " + e);
             } else
                 repaint();
         } else {
