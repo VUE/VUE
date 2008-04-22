@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.211 $ / $Date: 2008-04-22 09:13:57 $ / $Author: sfraize $
+ * @version $Revision: 1.212 $ / $Date: 2008-04-22 19:33:20 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -216,9 +216,8 @@ public class LWPathway extends LWContainer
         }
 
         public LWComponent getFocal() {
-            return isMapView() ? node : (canProvideSlide() ? getSlide() : node);
+            return isMapView() ? node : (canProvideSlide() ? getSlide() : node); // For VUE-967
             //return canProvideSlide() ? getSlide() : node;
-            //return isMapView() ? node : getSlide();
         }
 
         
