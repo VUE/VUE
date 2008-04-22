@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.43 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.44 $ / $Date: 2008-04-22 10:57:53 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -184,7 +184,7 @@ public class LWTraversal {
                 Util.printStackTrace("found local root in pick list (loop!), skipping: " + c);
                 continue;
             }
-            if (c.isZoomedFocus()) {
+            if (false && c.isZoomedFocus()) { // Sibling priority turned off 2008-04-22 -- SMF
                 zoomedFocus = c;
             } else {
                 traverse(c);
