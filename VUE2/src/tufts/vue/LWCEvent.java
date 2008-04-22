@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.34 $ / $Date: 2008-04-09 00:46:22 $ / $Author: sfraize $  
+ * @version $Revision: 1.35 $ / $Date: 2008-04-22 06:57:07 $ / $Author: sfraize $  
  
  */
 
@@ -106,6 +106,20 @@ public class LWCEvent
     public Object getSource()
     {
         return this.source;
+    }
+
+    /** @return true if this event originated within the model itself (e.g., not something like a proxy repaint event) */
+    public boolean isModelSourced() {
+
+        // todo: this won't be accurate for group events where component is null and
+        // components is set.  We'll return false, tho that's okay for now as this will
+        // only increase the handle priority of the event, so it's an okay fallback
+        // position.  Eventually, we should set component to the parent LWComponent
+        // experiencing the add/remove of a collection of children, so we can accurately
+        // determine if this was a model-sourced event (as oppsed to, say, an Action
+        // sourced event).
+        
+        return source == component;
     }
 
     public LWComponent getComponent()
