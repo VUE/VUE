@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.536 $ / $Date: 2008-04-21 21:45:18 $ / $Author: sfraize $ 
+ * @version $Revision: 1.537 $ / $Date: 2008-04-22 07:03:12 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -327,7 +327,15 @@ public class VUE
     public static LWPathway.Entry getActiveEntry() { return ActivePathwayEntryHandler.getActive(); }
     public static MapViewer getActiveViewer() { return ActiveViewerHandler.getActive(); }
     public static LWComponent getActiveComponent() { return ActiveComponentHandler.getActive(); }
-    
+
+    public static LWComponent getActiveFocal() {
+        MapViewer viewer = getActiveViewer();
+        if (viewer != null)
+            return viewer.getFocal();
+        else
+            return null;
+    }
+
     public static VueTool getActiveTool() { return VueToolbarController.getActiveTool(); }
     
     public static void setActive(Class clazz, Object source, Object newActive) {
@@ -1165,7 +1173,7 @@ public class VUE
         //-----------------------------------------------------------------------------
         // Slide Viewer
         //-----------------------------------------------------------------------------
-        if (DEBUG.Enabled) {
+        if (false && DEBUG.Enabled) {
             slideViewer = new tufts.vue.ui.SlideViewer(null);
             slideDock = GUI.createDockWindow(slideViewer);
             slideDock.setLocation(100,100);
@@ -1230,6 +1238,22 @@ public class VUE
         outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
         
         //-----------------------------------------------------------------------------
+
+        if (Util.isMacLeopard()) {
+            // Workaround for DockWindow's going behind the VUE Window on Leopard bug, especially
+            // when there's only one DockWindow open.  So we literally create a DockWindow
+            // to always hang around, and just set it off screen.
+            // See DockWindow.ShowPreviouslyHiddenWindows and FullScreenWindow.FSWindow for more related comments.
+            // SMF 2008-04-22
+            JTextArea t = new JTextArea("Do Not Close This Window.\nSee http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6373178");
+            t.setFont(VueConstants.SmallFont);
+            t.setEditable(false);
+            DockWindow anchor = GUI.createDockWindow("VUE-leopard-anchor", t);
+            if (!DEBUG.DOCK)
+                GUI.setOffScreen(anchor);
+            anchor.pack();
+            anchor.setVisible(true);
+        }
 
 
         // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
