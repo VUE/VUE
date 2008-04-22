@@ -2606,7 +2606,8 @@ public class PresentationTool extends VueTool
                 if (DEBUG.PRESENT) out("handlePreDraw: FILLING FOR ENTRY: " + mCurrentPage.entry);
                 if (mCurrentPage.entry != null) {
                     dc.fillBackground(mCurrentPage.entry.getFullScreenFillColor(dc));
-                    if (!mCurrentPage.entry.hasSlide())
+                    //if (!mCurrentPage.entry.hasSlide())
+                    if (mCurrentPage.entry.isMapView() || !mCurrentPage.entry.hasSlide())
                         drawMaster = true;
                 } else {
                     dc.fillBackground(master.getFillColor());
