@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import tufts.vue.gui.TextRow;
+import tufts.vue.ui.ResourceIcon;
 
 import java.awt.*;
 import java.awt.geom.*;
