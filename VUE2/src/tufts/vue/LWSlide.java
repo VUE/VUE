@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.101 $ / $Date: 2008-04-14 19:31:16 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2008-04-22 07:00:07 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -589,6 +589,26 @@ public class LWSlide extends LWContainer
         return newSlide;
     }
     
+    @Override
+    public boolean handleDoubleClick(MapMouseEvent e)
+    {
+        // todo: a VueAction or LWCAction fire call that takes an InputEvent and an LWComponent so we
+        // can track the source of these events
+
+        
+        if (false) { // can't use SHIFT, as 2nd click de-selects, option/command also seem problematic on Mac
+
+            // TODO: this action depends on this slide having been selected by
+            // the first click, and the pathway entrie being made the active entry
+            // before the action fires -- we should be passing in the LWSlide.
+            
+            Actions.LaunchPresentation.fire(e);
+            
+        } else {
+            Actions.EditSlide.act(this);
+        }
+        return true;
+    }
     
 
     @Override
