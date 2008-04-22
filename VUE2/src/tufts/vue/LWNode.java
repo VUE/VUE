@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.215 $ / $Date: 2008-04-17 21:44:06 $ / $Author: anoop $
+ * @version $Revision: 1.216 $ / $Date: 2008-04-22 08:47:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -514,12 +514,9 @@ public class LWNode extends LWContainer
         
     	 if (!textBoxHit(cx, cy)) 
     	 {
-             mIconBlock.handleSingleClick(e);
-             //return mIconBlock.handleSingleClick(e);
+             return mIconBlock.handleSingleClick(e);
     	 }
-              
          return false;
-        //return true;
     }
 
 //     @Override
