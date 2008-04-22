@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.216 $ / $Date: 2008-04-22 08:47:17 $ / $Author: sfraize $
+ * @version $Revision: 1.217 $ / $Date: 2008-04-22 10:58:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2147,7 +2147,7 @@ public class LWNode extends LWContainer
 //         */
 //     }
 
-    private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
+    //private static final AlphaComposite ZoomTransparency = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.8f);
 
     @Override
     public Color getRenderFillColor(DrawContext dc)
