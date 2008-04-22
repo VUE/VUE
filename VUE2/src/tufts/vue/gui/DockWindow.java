@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.125 $ / $Date: 2008-04-22 07:46:20 $ / $Author: sfraize $
+ * @version $Revision: 1.126 $ / $Date: 2008-04-22 11:39:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -990,7 +990,6 @@ public class DockWindow extends javax.swing.JWindow
         // which it never should, given that it's focusable state is
         // false.
         
-        if (!Util.isMacLeopard()) // still having problems: too risky
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             final tufts.vue.MapViewer viewer = VUE.getActiveViewer();
             if (viewer != null) {
