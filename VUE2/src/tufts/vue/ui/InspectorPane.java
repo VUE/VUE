@@ -38,7 +38,7 @@ import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.70 $ / $Date: 2008-04-21 23:50:17 $ / $Author: dan $
+ * @version $Revision: 1.71 $ / $Date: 2008-04-22 15:55:01 $ / $Author: dan $
  */
 
 public class InspectorPane extends JPanel
@@ -180,7 +180,8 @@ public class InspectorPane extends JPanel
            // i.e. as Active drives it.
          
            if(selection.contents().size() == 1)
-               if(selection.contents().get(0) instanceof LWSlide)
+               if(selection.contents().get(0) instanceof LWSlide ||
+                   selection.contents().get(0).hasAncestorOfType(LWSlide.class))
                {
                    Widget.setHidden(mUserMetaData,true);
                    Widget.setHidden(ontologicalMetadata, true);
