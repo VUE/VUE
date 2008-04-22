@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.538 $ / $Date: 2008-04-22 07:46:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.539 $ / $Date: 2008-04-22 07:47:11 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -2582,11 +2582,6 @@ public class VUE
         return VUE.ApplicationFrame;
     }
 
-//     static VueFrame getVUEFrame() {
-//         return VUE.ApplicationFrame;
-//     }
-    
-    
 
     /** @return a new JWindow, parented to the root VUE window */
     public static JWindow createWindow()
