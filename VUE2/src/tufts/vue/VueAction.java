@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.37 $ / $Date: 2008-04-21 08:18:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.38 $ / $Date: 2008-04-22 07:46:29 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -329,7 +329,13 @@ public class VueAction extends javax.swing.AbstractAction
         }
         
         if (allIgnored && !isUserEnabled()) {
-            if (DEBUG.Enabled) Log.debug("ALL ACTIONS DISABLED; " + this + "; " + ae);
+            //if (DEBUG.Enabled) Log.debug("ALL ACTIONS DISABLED; " + this + "; " + ae);
+            if (DEBUG.Enabled) {
+                Util.printStackTrace("ALL ACTIONS DISABLED; " + this + "; " + ae);
+            } else {
+                Log.debug("all actions disabled; disallowed: " + this + "; " + ae);
+                java.awt.Toolkit.getDefaultToolkit().beep();
+            }
             return;
         }
         boolean hadException = false;
@@ -432,6 +438,7 @@ public class VueAction extends javax.swing.AbstractAction
     private void fire(Object source, String name) {
         actionPerformed(new ActionEvent(source, 0, name));
     }
+
     
     /**
      * Fire this action, but only if the given key event matches our accelerator key.

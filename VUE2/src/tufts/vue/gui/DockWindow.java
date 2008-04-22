@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.124 $ / $Date: 2008-04-22 07:04:23 $ / $Author: sfraize $
+ * @version $Revision: 1.125 $ / $Date: 2008-04-22 07:46:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -921,7 +921,7 @@ public class DockWindow extends javax.swing.JWindow
     public void toFront() {
         //tufts.Util.printClassTrace(DockWindow.class, "RAISING");
         if (isVisible()) {
-            if (DEBUG.DOCK) out("toFront");
+            if (DEBUG.DOCK||DEBUG.WORK) out("toFront");
             super.toFront();
         } else {
             // Window.toFront does nothing if not visible anyway
@@ -2144,7 +2144,7 @@ public class DockWindow extends javax.swing.JWindow
     */
     
     public static void raiseAll() {
-        if (DEBUG.DOCK) Log.debug("raiseAll");
+        if (DEBUG.DOCK||DEBUG.WORK) Log.debug("raiseAll");
         for (DockWindow dw : AllWindows)
             dw.toFront();
     }
