@@ -754,6 +754,18 @@ public abstract class LWIcon extends Rectangle2D.Float
         
         void draw(DrawContext dc)
         {
+            if (false&&DEBUG.Enabled) {
+                // test code for inserting actual icon into node icon gutter (should at least do by
+                // default for local file icons)
+                Icon icon = mLWC.getResource().getContentIcon();
+                if (icon instanceof ResourceIcon) {
+                    ((ResourceIcon)icon).setSize((int)Math.round(getWidth()-4),(int)Math.round(getHeight()));
+                    icon.paintIcon(null, dc.g, (int)Math.round(getX()+2), (int)Math.round(getY()+2));
+                    super.draw(dc);
+                    return;
+                }
+            }
+            
             if (true || extension == null) // TODO PERF: sometimes starts with boxBounds wrong...
                 internalLayout();
             

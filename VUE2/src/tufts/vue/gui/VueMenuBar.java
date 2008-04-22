@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.100 $ / $Date: 2008-04-21 08:21:56 $ / $Author: sfraize $
+ * @version $Revision: 1.101 $ / $Date: 2008-04-22 19:32:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -860,10 +860,43 @@ public class VueMenuBar extends javax.swing.JMenuBar
         add(analysisMenu);        
         add(windowMenu);
         add(helpMenu);
-            
+        
+        if (DEBUG.Enabled) {
+            add(new JMenu("    ")); // gap
+            add(TitleItem);
+            VUE.addActiveListener(LWMap.class, this);
+        }
+        
         if (RootMenuBar == null)
             RootMenuBar = this;
     }
+
+    private final JMenuItem TitleItem = new JMenu("");
+    public void activeChanged(tufts.vue.ActiveEvent e, LWMap map) {
+        //TitleItem.setFont(VueConstants.SmallFont);
+        TitleItem.setLabel("[ " + (map==null?"?":map.getLabel()) + " ]");
+        TitleItem.removeAll();
+        MapTabbedPane tp = VUE.getLeftTabbedPane();
+        for (int i = 0; i < tp.getTabCount(); i++) {
+            final MapViewer v = tp.getViewerAt(i);
+            final LWMap m = v.getMap();
+            if (m == map)
+                continue;
+
+            JMenuItem item = new JMenuItem(new VueAction(m.getLabel()) {
+                    public void act() {
+                        Log.debug("quik-map " + m);
+                        // this currently only works in full-screen mode
+                        ActiveInstance.getHandler(LWMap.class).setActive(this, m);
+                        //VUE.displayMap(m);
+                    }});
+            
+            item.setToolTipText(m.getFile().toString());
+            TitleItem.add(item);
+        }
+    }
+
+    
     
     public static void toggleFullScreenTools()
     {
