@@ -162,6 +162,11 @@ public abstract class LWIcon extends Rectangle2D.Float
     }
     public static void clearRolloverResource() {
         RolloverResource = null;
+        if (VUE.getActiveViewer().getCursor() == RESOURCE_CURSOR)
+        {
+        	VUE.getActiveViewer().setCursor(VueToolbarController.getActiveTool().getCursor());
+        	VUE.getActiveViewer().getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());
+        }
     }
     public static void displayRolloverResource() {
         if (RolloverResource != null) {
@@ -384,10 +389,14 @@ public abstract class LWIcon extends Rectangle2D.Float
                         // TODO: need cursor management system for MapViewer's that allows
                         // us to install a temporary cursor that's auto-cleared if
                         // mouse exits or re-enters the viewer
+                    	
                         e.getViewer().setCursor(RESOURCE_CURSOR);
+                        e.getViewer().getTopLevelAncestor().setCursor(RESOURCE_CURSOR);
+                        
                         RolloverResource = icon.mLWC.getResource(); // hack hack hack
-                    } else {
-                        e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());                		                		
+                    } else {                    	
+                        e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());
+                        e.getViewer().getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());
                     }
                 }
                 
@@ -396,7 +405,8 @@ public abstract class LWIcon extends Rectangle2D.Float
                     break;
                 } else {
                     // check: if (above condition) then: break else: reset cursor, but at the bottom of a loop?
-                    e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());        
+                    e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());
+                    e.getViewer().getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());                    
                 }
                 	
             }
