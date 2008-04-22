@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.537 $ / $Date: 2008-04-22 07:03:12 $ / $Author: sfraize $ 
+ * @version $Revision: 1.538 $ / $Date: 2008-04-22 07:46:51 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -699,13 +699,6 @@ public class VUE
             VueUtil.alert("VUE init failed", t);
         }
 
-        if (Util.isMacLeopard()) {
-            // Critical for keeping DockWindow's on top.
-            // See tufts.vue.gui.FullScreen.FSWindow constructor for more on this.
-            DockWindow.raiseAll();
-        }
-
-        
         // initialize enabled state of actions via a selection set:
         VUE.getSelection().clearAndNotify();
         
@@ -795,6 +788,12 @@ public class VUE
         
         buildApplicationInterface();
 
+        if (Util.isMacLeopard()) {
+            // Critical for keeping DockWindow's on top.
+            // See tufts.vue.gui.FullScreen.FSWindow constructor for more on this.
+            DockWindow.raiseAll();
+        }
+        
         Log.debug("interface built; splash down...");
         
         if (splashScreen != null)
@@ -2582,6 +2581,11 @@ public class VUE
         //else
         return VUE.ApplicationFrame;
     }
+
+//     static VueFrame getVUEFrame() {
+//         return VUE.ApplicationFrame;
+//     }
+    
     
 
     /** @return a new JWindow, parented to the root VUE window */
