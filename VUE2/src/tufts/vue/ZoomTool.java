@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.80 $ / $Date: 2008-04-23 14:41:26 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2008-04-23 14:54:52 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -875,7 +875,7 @@ public class ZoomTool extends VueTool
 
                 final float percent = -borderGap;
 
-                Log.debug("viewport: " + Util.fmt(viewport) + "; gap=" + borderGap + "; pct=" + percent + "; bounds=" + Util.fmt(bounds));
+                //Log.debug("viewport: " + Util.fmt(viewport) + "; gap=" + borderGap + "; pct=" + percent + "; bounds=" + Util.fmt(bounds));
                     
                 // now claim that the viewport is smaller than it is before computing
                 // the actual fit:
@@ -886,14 +886,14 @@ public class ZoomTool extends VueTool
                 marginX = (w * percent) / 100;
                 marginY = (h * percent) / 100;
 
-                Log.debug(" marginX=" + marginX);
-                Log.debug(" marginY=" + marginY);
+                //Log.debug(" marginX=" + marginX);
+                //Log.debug(" marginY=" + marginY);
 
                 viewWidth = w - marginX * 2;
                 viewHeight = h - marginY * 2;
 
                 //percentOfViewportMargin = true;
-                Log.debug("simulatedViewport=" + viewWidth + "x" + viewHeight);
+                //Log.debug("simulatedViewport=" + viewWidth + "x" + viewHeight);
                     
             } else {
 
