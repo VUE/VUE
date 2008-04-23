@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.79 $ / $Date: 2008-04-08 16:46:39 $ / $Author: mike $
+ * @version $Revision: 1.80 $ / $Date: 2008-04-23 14:41:26 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -825,26 +825,93 @@ public class ZoomTool extends VueTool
      */
     public static double computeZoomFit(Dimension2D viewport,
                                         float borderGap,
-                                        java.awt.geom.Rectangle2D bounds,
-                                        java.awt.geom.Point2D outgoingOffset,
+                                        Rectangle2D bounds,
+                                        Point2D outgoingOffset,
                                         boolean centerSmallerDimensionInViewport)
     {
-        double newZoom;
-
         if (viewport.getWidth() <= 0 || viewport.getHeight() <= 0 || bounds.isEmpty()) {
             
-            newZoom = 1.0;
+            return 1.0;
             
         } else {
-        
-            final double viewWidth, viewHeight;
 
-            if (borderGap < 0) {
-                // < 0 borderGap means using compute the gap at scale (just add it to
-                // the bounds of the region we want to zoom to) -- and of course
-                // use the magnitude of the gap -- we never shrink the zoom-to region.
+            return computeZoomFitImpl(viewport, borderGap, bounds, outgoingOffset, centerSmallerDimensionInViewport);
+            
+        }
+            
+//         if (DEBUG.PRESENT) {
+//             Log.debug(String.format("computed zoom of %7.2f%% for map bounds %s in viewport %s",
+//                                     newZoom * 100, Util.fmt(bounds), viewport));
+//         }
+
+        
+    }
+
+    private static double computeZoomFitImpl(final Dimension2D viewport,
+                                              final float borderGap,
+                                              Rectangle2D bounds,
+                                              final Point2D outgoingOffset,
+                                              final boolean centerSmallerDimensionInViewport)
+    {
+        
+        final double viewWidth, viewHeight;
+        final double marginX, marginY;
+            
+        if (borderGap < 0) {
+
+            // A borderGap that is negative indicates special semantics
+            // for how to interpret the magnitude of it's value.
+                
+            if (true) {
+
+                //-----------------------------------------------------------------------------
+                //
+                // 2008-04-23 SMF: change in default semantics: < 0 borderGap no
+                // longer means "at scale" -- it now means a standard percent of the viewport
+                // dimensions.  E.g., -10 means create a minimum 10% of height vertical margin,
+                // and 10% of width horizontal margin.  
+                //
+                //-----------------------------------------------------------------------------
+
+                final float percent = -borderGap;
+
+                Log.debug("viewport: " + Util.fmt(viewport) + "; gap=" + borderGap + "; pct=" + percent + "; bounds=" + Util.fmt(bounds));
+                    
+                // now claim that the viewport is smaller than it is before computing
+                // the actual fit:
+
+                final double w = viewport.getWidth();
+                final double h = viewport.getHeight();
+                    
+                marginX = (w * percent) / 100;
+                marginY = (h * percent) / 100;
+
+                Log.debug(" marginX=" + marginX);
+                Log.debug(" marginY=" + marginY);
+
+                viewWidth = w - marginX * 2;
+                viewHeight = h - marginY * 2;
+
+                //percentOfViewportMargin = true;
+                Log.debug("simulatedViewport=" + viewWidth + "x" + viewHeight);
+                    
+            } else {
+
+                // [ OLD SEMANTICS: ] < 0 borderGap means using compute the gap at scale
+                // To do this we just add it to the bounds of the region we want to zoom
+                // to.  So if the region is small in pixel magnitude, this will produce
+                // a big relative gap, but if the region is of large pixel magnitude,
+                // this will produce a small relative gap.  E.g., 10 pixels at the edge
+                // of of 20x20 region produces a much larger gap when zoomed to than 10
+                // pixels at the edge of a 200x200 region.
+
+                // One possible advantage to this method is that as we focal in on nodes
+                // at smaller scales, the net margin grows -- so the size of the node,
+                // while larger as focal, gives some subtle indication that it is deeper
+                // in a hierarchy.
 
                 final Rectangle2D.Float grownBounds = new Rectangle2D.Float();
+
                 grownBounds.setRect(bounds);
                 grownBounds.x -= -borderGap;
                 grownBounds.y -= -borderGap;
@@ -855,55 +922,57 @@ public class ZoomTool extends VueTool
                 
                 viewWidth = viewport.getWidth();
                 viewHeight = viewport.getHeight();
-
-            } else {
-                viewWidth = (viewport.getWidth() - borderGap * 2);
-                viewHeight = (viewport.getHeight() - borderGap * 2);
-            }
-
-            final double vertZoom = viewHeight / bounds.getHeight();
-            final double horzZoom = viewWidth / bounds.getWidth();
-            
-            boolean centerVertical;
-            if (horzZoom < vertZoom) {
-                newZoom = horzZoom;
-                centerVertical = true;
-            } else {
-                newZoom = vertZoom;
-                centerVertical = false;
-            }
-
-            // Now center the components within the dimension
-            // that had extra room to scale in.
-                    
-            if (outgoingOffset != null) {
-                double offsetX, offsetY;
                 
-                if (borderGap < 0) {
-                    offsetX = bounds.getX() * newZoom;
-                    offsetY = bounds.getY() * newZoom;
-                } else {
-                    offsetX = bounds.getX() * newZoom - borderGap;
-                    offsetY = bounds.getY() * newZoom - borderGap;
-                }
-            
-                if (centerSmallerDimensionInViewport) {
-                    if (centerVertical)
-                        offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
-                    else // center horizontal
-                        offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
-                }
-                outgoingOffset.setLocation(offsetX, offsetY);
+                marginX = 0;
+                marginY = 0;
             }
+
+
+        } else {
+
+            marginX = borderGap;
+            marginY = borderGap;
+            
+            viewWidth = (viewport.getWidth() - marginX * 2);
+            viewHeight = (viewport.getHeight() - marginY * 2);
+            
+        }
+
+        final double vertZoom = viewHeight / bounds.getHeight();
+        final double horzZoom = viewWidth / bounds.getWidth();
+            
+        final double newZoom;
+        final boolean centerVertical;
+        
+        if (horzZoom < vertZoom) {
+            newZoom = horzZoom;
+            centerVertical = true;
+        } else {
+            newZoom = vertZoom;
+            centerVertical = false;
+        }
+
+        // Now center the components within the dimension
+        // that had extra room to scale in.
+                    
+        if (outgoingOffset != null) {
+                
+            double offsetX = bounds.getX() * newZoom - marginX;
+            double offsetY = bounds.getY() * newZoom - marginY;
+            
+            if (centerSmallerDimensionInViewport) {
+                if (centerVertical)
+                    offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
+                else // center horizontal
+                    offsetX -= (viewWidth - bounds.getWidth()*newZoom) / 2;
+            }
+            outgoingOffset.setLocation(offsetX, offsetY);
         }
         
-//         if (DEBUG.PRESENT) {
-//             Log.debug(String.format("computed zoom of %7.2f%% for map bounds %s in viewport %s",
-//                                     newZoom * 100, Util.fmt(bounds), viewport));
-//         }
                       
         return newZoom < ZoomDefaults[0] ? ZoomDefaults[0] : newZoom; // never let us be less than min-zoom
     }
+
 
 
     public static String prettyZoomPercent(double zoom) {
