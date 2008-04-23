@@ -274,8 +274,8 @@ public class PresentationTool extends VueTool
                 
                 LWPathway.Entry slideInsteadOfNode = null;
                 
-                if (mPathway != null // if we have a current pathway
-                    && !LWPathway.isShowingSlideIcons() // and slide icons are turned off
+                if (// mPathway != null // if we have a current pathway
+                       !LWPathway.isShowingSlideIcons() // and slide icons are turned off
                     && Boolean.FALSE.equals(ChooseNodesOverSlidesPref.getValue())  // todo: can GenericBooleanPref getValue return a Boolean?
                     && c instanceof LWNode // and this is a node
                     && c.hasEntries()) // and it has slide views available (is on any pathway)
