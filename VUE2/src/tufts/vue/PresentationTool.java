@@ -260,6 +260,7 @@ public class PresentationTool extends VueTool
         }
         
         Page(LWComponent c) {
+            
             if (c instanceof LWSlide) {
                 if (((LWSlide)c).getPathwayEntry() != null) {
                     entry = ((LWSlide)c).getPathwayEntry();
@@ -275,9 +276,9 @@ public class PresentationTool extends VueTool
                 
                 if (mPathway != null // if we have a current pathway
                     && !LWPathway.isShowingSlideIcons() // and slide icons are turned off
-                    && !Boolean.TRUE.equals(ChooseNodesOverSlidesPref.getValue())  // todo: can GenericBooleanPref getValue return a Boolean?
+                    && Boolean.FALSE.equals(ChooseNodesOverSlidesPref.getValue())  // todo: can GenericBooleanPref getValue return a Boolean?
                     && c instanceof LWNode // and this is a node
-                    && c.hasEntries()) // and it has slides available
+                    && c.hasEntries()) // and it has slide views available (is on any pathway)
                 {
                     LWPathway.Entry fallbackEntry = null;
                     int fallbackCount = 0;
@@ -296,7 +297,7 @@ public class PresentationTool extends VueTool
                         slideInsteadOfNode = fallbackEntry;
                 }
 
-                if (slideInsteadOfNode != null && !slideInsteadOfNode.isMapView()) {
+                if (slideInsteadOfNode != null) {
                     entry = slideInsteadOfNode;
                     node = null;
                 } else {
