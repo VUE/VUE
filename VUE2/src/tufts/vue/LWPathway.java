@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.214 $ / $Date: 2008-04-23 15:27:04 $ / $Author: sfraize $
+ * @version $Revision: 1.215 $ / $Date: 2008-04-23 16:02:19 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1295,7 +1295,7 @@ public class LWPathway extends LWContainer
             if (e.node instanceof LWContainer) {
                 setParent((LWContainer)e.node);
             } else {
-                if (DEBUG.Enabled) 
+                if (DEBUG.CONTAINMENT) 
                     Util.printStackTrace(this + ";\n\tcan't yet parent this slide to non-container LWComponent:\n\t" + e.node
                                          + ";\n\t(This node cannot yet have an on-map slide icon.)");
                 else
