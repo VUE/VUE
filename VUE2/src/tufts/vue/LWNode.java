@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.217 $ / $Date: 2008-04-22 10:58:30 $ / $Author: sfraize $
+ * @version $Revision: 1.218 $ / $Date: 2008-04-23 14:40:43 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -406,6 +406,12 @@ public class LWNode extends LWContainer
     public boolean hasContent() {
         return true;
     }
+
+    @Override
+    public int getFocalMargin() {
+        return -10;
+    }
+    
     
 
     @Override
