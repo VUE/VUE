@@ -1530,6 +1530,12 @@ public class Util
         else
             return String.format("%.1f,%.1f -> %.1f,%.1f", l.getX1(), l.getY1(), l.getX2(), l.getY2());
     }
+    public static String fmt(java.awt.geom.Dimension2D d) {
+        if (d == null)
+            return "<null-Dimension>";
+        else
+            return String.format("[%.1f x %.1f]", d.getWidth(), d.getHeight());
+    }
     
 
     public static void out(Object o) {
