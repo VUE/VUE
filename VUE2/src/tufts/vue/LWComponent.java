@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.410 $ / $Date: 2008-04-22 06:58:51 $ / $Author: sfraize $
+ * @version $Revision: 1.411 $ / $Date: 2008-04-23 14:53:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -5187,14 +5187,19 @@ u                    getSlot(c).setFromString((String)value);
         drawFit(dc, dc.getMasterClipRect(), borderGap);
     }
 
-    /** fit and center us into the given frame */
+    /**
+     * fit and center us into the given frame
+     * @param borderGap: if positive, a fixed amount of pixels, if NEGATIVE, the % of viewport size to leave as a margin
+     */
     public void drawFit(DrawContext dc, Rectangle2D frame, int borderGap)
     {
         final Point2D.Float offset = new Point2D.Float();
-        final float totalBorder = getStrokeWidth()/2 + borderGap;
+        //final float totalBorder = getStrokeWidth()/2 + borderGap;
         final Size size = new Size(frame);
-        final double zoom = ZoomTool.computeZoomFit(size, -totalBorder, getZeroBounds(), offset);
-        if (DEBUG.PDF) out("drawFit into " + fmt(frame) + " totalBorder " + totalBorder + " zoom " + zoom);
+        //final double zoom = ZoomTool.computeZoomFit(size, -totalBorder, getZeroBounds(), offset);
+        final double zoom = ZoomTool.computeZoomFit(size, borderGap, getZeroBounds(), offset);
+        if (DEBUG.PDF) out("drawFit into " + fmt(frame) + " zoom " + zoom);
+        //if (DEBUG.PDF) out("drawFit into " + fmt(frame) + " totalBorder " + totalBorder + " zoom " + zoom);
         dc.g.translate(-offset.x + frame.getX(),
                        -offset.y + frame.getY());
         dc.g.scale(zoom, zoom);
