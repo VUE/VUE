@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.212 $ / $Date: 2008-04-22 19:33:20 $ / $Author: sfraize $
+ * @version $Revision: 1.213 $ / $Date: 2008-04-23 14:35:41 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -1301,25 +1301,16 @@ public class LWPathway extends LWContainer
         @Override
         protected void drawChildren(DrawContext dc)
         {
-            // as we're drawing the source-node somewhere arbitrary, we must draw
-            // everything no matter what -- it or it's children can't check their
-            // bounds against the clip region
+
+            // must turn off clip-optimization: as we're drawing the source-node
+            // somewhere arbitrary, we must draw everything no matter what -- it or it's
+            // children can't check their bounds against the clip region
+            
             dc.setClipOptimized(false);
             
-            //getSourceNode().drawFit(dc, new Size(getWidth(), getHeight()), 10);
-            getSourceNode().drawFit(dc, getZeroBounds(), 10);
+            final LWComponent node = getSourceNode();
+            node.drawFit(dc, getZeroBounds(), node.getFocalMargin());
             
-//             final DrawContext dc = _dc.create();
-//             final Point2D.Float offset = new Point2D.Float();
-//             final LWComponent content = getSourceNode();
-//             //final double zoom = ZoomTool.computeZoomFit(new java.awt.Dimension((int)getWidth(), (int)getHeight()),
-//             final double zoom = ZoomTool.computeZoomFit(new Size(getWidth(), getHeight()),
-//                                                         -10,
-//                                                         content.getZeroBounds(),
-//                                                         offset);
-//             dc.g.translate(-offset.x, -offset.y);
-//             dc.g.scale(zoom, zoom);
-//             content.drawZero(dc);
         }
 
         /** @return true -- MapSlides always have content (even tho no children) */
