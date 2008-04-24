@@ -50,10 +50,10 @@ public class CategoryEditor extends JPanel
     
     public final static int BUTTON_COL_WIDTH = 35;
     
-    private JTable metadataSetTable;
+    //private JTable metadataSetTable;
     private JTable customCategoryTable;
     
-    private JPanel setPanel;
+    //private JPanel setPanel;
     private JPanel customPanel;
     
     private JPanel buttonPanel;
@@ -72,11 +72,11 @@ public class CategoryEditor extends JPanel
     {
         this.dialog = dialog;
         setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
-        setPanel = new JPanel();
-        metadataSetTable = new JTable(new FullMetadataSetTableModel());
-        metadataSetTable.setDefaultRenderer(java.lang.Object.class,new SetTableRenderer());
-        metadataSetTable.setDefaultEditor(java.lang.Object.class,new SetTableEditor());
-        setPanel.add(metadataSetTable);
+        //setPanel = new JPanel();
+        //metadataSetTable = new JTable(new FullMetadataSetTableModel());
+        //metadataSetTable.setDefaultRenderer(java.lang.Object.class,new SetTableRenderer());
+        //metadataSetTable.setDefaultEditor(java.lang.Object.class,new SetTableEditor());
+        //setPanel.add(metadataSetTable);
         customPanel = new JPanel(new java.awt.BorderLayout());
         customCategoryTable = new JTable(new MetadataCategoryTableModel());
         customCategoryTable.setOpaque(false);
@@ -92,8 +92,8 @@ public class CategoryEditor extends JPanel
         customCategoryTable.setRowHeight(ROW_HEIGHT);
         customCategoryTable.getTableHeader().setReorderingAllowed(false);
         
-        metadataSetTable.setRowHeight(ROW_HEIGHT);
-        metadataSetTable.getTableHeader().setReorderingAllowed(false);
+        //metadataSetTable.setRowHeight(ROW_HEIGHT);
+        //metadataSetTable.getTableHeader().setReorderingAllowed(false);
 
         customCategoryTable.setGridColor(new java.awt.Color(getBackground().getRed(),getBackground().getBlue(),getBackground().getGreen(),0));
         customCategoryTable.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
@@ -111,6 +111,14 @@ public class CategoryEditor extends JPanel
                        {
                            
                          newCategoryRequested = true;
+                         
+                         /*if(customCategoryTable.getCellEditor() != null)
+                         {
+                             customCategoryTable.getCellEditor().stopCellEditing();
+                             //scroll.requestFocus();
+                             CategoryEditor.this.requestFocus(false);
+                         }*/
+                         
                          ((MetadataCategoryTableModel)customCategoryTable.getModel()).refresh();
 
                          SwingUtilities.invokeLater(new Runnable(){
@@ -119,6 +127,16 @@ public class CategoryEditor extends JPanel
                               scroll.getVerticalScrollBar().setValue(scroll.getVerticalScrollBar().getMaximum());                              
                             }
                          });
+                       }
+                   }
+                   
+                   
+                   public void mouseEntered(java.awt.event.MouseEvent e)
+                   {
+                       // todo -- use mouse moved to make it any move near the add button.. 
+                       if((customCategoryTable.getCellEditor() != null)/* && (e.getX()>customCategoryTable.getWidth()-BUTTON_COL_WIDTH)*/) 
+                       {
+                          customCategoryTable.getCellEditor().stopCellEditing(); 
                        }
                    }
        });
@@ -273,7 +291,7 @@ public class CategoryEditor extends JPanel
     }
     
     
-    class SetTableEditor extends DefaultCellEditor
+    /*class SetTableEditor extends DefaultCellEditor
     {
         JPanel checkPanel = new JPanel();
         JCheckBox check = new JCheckBox();
@@ -312,7 +330,7 @@ public class CategoryEditor extends JPanel
             label.setText("ERROR");
             return label;
         }
-    }
+    }*/
     
     class CustomCategoryTableRenderer extends DefaultTableCellRenderer
     {
@@ -371,12 +389,39 @@ public class CategoryEditor extends JPanel
         JCheckBox check = new JCheckBox();
         JTextField label = new JTextField();
         
+        //private int row;
+        //private int col;
+        
         public CustomCategoryTableEditor()
         {
             super(new JTextField());
             label = (JTextField)getComponent();
-            // test for save of loaded file -- not saving correctly 8-21-07
-            //tufts.vue.VUE.getCategoryModel().saveCustomOntology();
+            
+            /*label.addFocusListener(new java.awt.event.FocusAdapter(){
+                   public void focusLost(java.awt.event.FocusEvent fe)
+                   {
+                       if( (row == customCategoryTable.getModel().getRowCount() - 1) && newCategoryRequested )
+                       {
+                           CategoryModel cats = tufts.vue.VUE.getCategoryModel();
+                           cats.addCustomCategory(label.getText());
+                           
+                           ((MetadataCategoryTableModel)customCategoryTable.getModel()).refresh();
+                           
+                           cats.saveCustomOntology();
+                           
+                           newCategoryRequested = false;
+                       }
+                       else
+                       {
+                           CategoryModel cats = tufts.vue.VUE.getCategoryModel();
+                           cats.addCustomCategory(label.getText(),cats.getCustomOntology().getOntTypes().get(row));
+                           
+                           ((MetadataCategoryTableModel)customCategoryTable.getModel()).refresh();
+                           
+                           cats.saveCustomOntology(); 
+                       }
+                   }
+                }); */
         }
         
         public java.awt.Component getTableCellEditorComponent(final JTable table,Object value,boolean isSelected,
@@ -392,7 +437,9 @@ public class CategoryEditor extends JPanel
             }
             if(col == 0)
             {
-                label = new JTextField();
+                final JTextField label = new JTextField();
+                //this.row = row;
+                //this.col = col;
                 
                 if(DEBUG_LOCAL)
                 {    
@@ -402,6 +449,16 @@ public class CategoryEditor extends JPanel
                 {
                     label.setText(((OntType)value).getLabel());
                 }
+                
+                /*label.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseExited(java.awt.event.MouseEvent e)
+                    {
+                       if(customCategoryTable.getCellEditor() != null) 
+                       {
+                          customCategoryTable.getCellEditor().stopCellEditing(); 
+                       }
+                    }
+                });*/
                 
                 label.addFocusListener(new java.awt.event.FocusAdapter(){
                    public void focusLost(java.awt.event.FocusEvent fe)
@@ -440,7 +497,7 @@ public class CategoryEditor extends JPanel
         }
     }
     
-    class FullMetadataSetTableModel extends AbstractTableModel
+    /*class FullMetadataSetTableModel extends AbstractTableModel
     {
         List<Boolean> selections = new ArrayList<Boolean>();
         private CategoryModel vueCategoryModel = tufts.vue.VUE.getCategoryModel();
@@ -450,12 +507,10 @@ public class CategoryEditor extends JPanel
             return vueCategoryModel.size();
         }
         
-        /**
-         *
-         * first column contains checkbox that will remove or add ontologies
-         * second column contains ontology names 
-         *
-         **/
+        
+         
+        //  first column contains checkbox that will remove or add ontologies
+        //  second column contains ontology names   
         public int getColumnCount()
         {
             return 2;
@@ -475,7 +530,7 @@ public class CategoryEditor extends JPanel
             }
 
         }
-    }
+    }*/
     
     class MetadataCategoryTableModel extends AbstractTableModel
     {
