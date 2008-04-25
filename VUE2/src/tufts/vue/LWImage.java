@@ -627,8 +627,8 @@ public class LWImage extends
             	/*
             	 * Added this in response to VUE-948
             	 */
-            	if ((DEBUG.Enabled || DEBUG.IMAGE) && newSize.width != width || newSize.height !=height)
-            		System.out.println("autoShapeToAspect in:" + width + "," + height + " out newSize: " + newSize.width + "," + newSize.height);
+            	if ((DEBUG.Enabled || DEBUG.IMAGE) && (newSize.width != width || newSize.height !=height))
+                    Log.debug("autoShapeToAspect in:" + width + "," + height + " out newSize: " + newSize.width + "," + newSize.height);
             	//if (DEBUG.IMAGE) out("autoShapeToAspect out: " + newSize);
             	setSize(newSize.width, newSize.height);
         }
