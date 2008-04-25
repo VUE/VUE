@@ -162,10 +162,11 @@ public abstract class LWIcon extends Rectangle2D.Float
     }
     public static void clearRolloverResource() {
         RolloverResource = null;
-        if (VUE.getActiveViewer().getCursor() == RESOURCE_CURSOR)
+        final MapViewer viewer = VUE.getActiveViewer();
+        if (viewer != null && viewer.getCursor() == RESOURCE_CURSOR)
         {
-        	VUE.getActiveViewer().setCursor(VueToolbarController.getActiveTool().getCursor());
-        	VUE.getActiveViewer().getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());
+            viewer.setCursor(VueToolbarController.getActiveTool().getCursor());
+            viewer.getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());
         }
     }
     public static void displayRolloverResource() {
