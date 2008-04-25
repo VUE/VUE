@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.101 $ / $Date: 2008-04-22 19:32:11 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2008-04-25 22:45:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -889,9 +889,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
                         // this currently only works in full-screen mode
                         ActiveInstance.getHandler(LWMap.class).setActive(this, m);
                         //VUE.displayMap(m);
-                    }});
+                    }
+                    public boolean overrideIgnoreAllActions() { return true; }
+                }
+                );
             
-            item.setToolTipText(m.getFile().toString());
+            item.setToolTipText(""+m.getFile());
             TitleItem.add(item);
         }
     }

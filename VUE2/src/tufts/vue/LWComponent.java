@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.412 $ / $Date: 2008-04-23 16:29:20 $ / $Author: sfraize $
+ * @version $Revision: 1.413 $ / $Date: 2008-04-25 22:45:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -554,7 +554,11 @@ public class LWComponent
             final Property propertySlot = getSlotSafely(c);
             try {
                 if (propertySlot == NO_SLOT_PROVIDED) {
-                    tufts.Util.printStackTrace(this + ": no slot, and getValue not overriden");
+                    if (DEBUG.META)
+                        Log.error(this + ";\n\tNo property, or: no slot, and getValue not overriden on client subclass:\n\t"
+                                  + (c == null ? null : c.getClass()) + ";\n\t" + c, new Throwable());
+                    else
+                        Log.warn(c == null ? null : c.getClass() + "; has no property of type: " + this);
                     return null;
                 } else
                     return (TValue) propertySlot.get();
@@ -2695,6 +2699,11 @@ u                    getSlot(c).setFromString((String)value);
 
     /** @return false by default */
     public boolean isTextNode() {
+        return false;
+    }
+
+    /** @return false by default */
+    public boolean isLikelyTextNode() {
         return false;
     }
     

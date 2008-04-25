@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.194 $ / $Date: 2008-04-16 05:19:17 $ / $Author: sfraize $
+ * @version $Revision: 1.195 $ / $Date: 2008-04-25 22:45:22 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1564,7 +1564,8 @@ public class LWMap extends LWContainer
             //mCachedBoundsOld = false;
             //if (DEBUG.CONTAINMENT && DEBUG.META)
             if (DEBUG.CONTAINMENT && DEBUG.META)
-                System.out.println("COMPUTED BOUNDS: " + mCachedBounds + " for map " + this);
+                Log.debug("COMPUTED BOUNDS " + Util.fmt(mCachedBounds) + "; for " + this);
+
         }
         //setSize((float)bounds.getWidth(), (float)bounds.getHeight());
             //new Throwable("computedBounds").printStackTrace();
