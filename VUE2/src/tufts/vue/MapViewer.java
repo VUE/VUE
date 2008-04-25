@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.534 $ / $Date: 2008-04-22 13:19:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.535 $ / $Date: 2008-04-25 19:23:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4744,9 +4744,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // If any modifier keys down, may be an action command.
                 // Is actually okay if a mouse is down while we do this tho.
 
-                if ((e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
+                if (keyChar != 0 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
                     for (VueTool tool : VueTool.getTools()) {
-                        if (tool.getShortcutKey() == keyChar) {
+                        if (tool.getShortcutKey() == keyChar || tool.getBackwardCompatShortcutKey() == keyChar) {
                             VueToolbarController.getController().setSelectedTool(tool);
                             return;
                         }

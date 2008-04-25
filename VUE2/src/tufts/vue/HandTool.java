@@ -26,6 +26,13 @@ public class HandTool extends VueTool
         return VueToolbarController.getController().getSuggestedContextualPanel();
     }
 
+    /** @return 'h' */
+    @Override
+    public char getBackwardCompatShortcutKey() {
+        return 'h';
+    }
+    
+
     public boolean supportsSelectorBox()
     {
         return false;

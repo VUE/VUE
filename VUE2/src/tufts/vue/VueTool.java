@@ -33,7 +33,7 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.80 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.81 $ / $Date: 2008-04-25 19:23:45 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
@@ -298,6 +298,11 @@ public abstract class VueTool extends AbstractAction
     public char getShortcutKey() {
         return mShortcutKey;
     }
+
+    public char getBackwardCompatShortcutKey() {
+        return 0;
+    }
+    
 
     public void setActiveWhileDownKeyCode(int keyCode) {
         mActiveWhileDownKeyCode = keyCode;

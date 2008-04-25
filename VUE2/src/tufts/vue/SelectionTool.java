@@ -45,7 +45,14 @@ public class SelectionTool extends VueTool
                 }
             }
         }
-    }    
+    }
+    
+    /** @return 'a' */
+    @Override
+    public char getBackwardCompatShortcutKey() {
+        return 'a';
+    }
+
 
     static class Direct extends SelectionTool {
         @Override
@@ -53,6 +60,13 @@ public class SelectionTool extends VueTool
             pc.pickDepth = 1;
             return pc;
         }
+
+        /** undo SelectionTool version */
+        @Override
+        public char getBackwardCompatShortcutKey() {
+            return 0;
+        }
+        
     }
     
 }
