@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.127 $ / $Date: 2008-04-22 07:01:04 $ / $Author: sfraize $
+ * @version $Revision: 1.128 $ / $Date: 2008-04-25 20:06:54 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1053,6 +1053,7 @@ public class PathwayPanel extends JPanel
         }
         else if (btn == btnLiveMap)  {
             LWPortal portal = LWPortal.create();
+            portal.setCenterAt(VUE.getActiveViewer().getVisibleMapCenter());
             pathway.getMap().add(portal);
             pathway.getMap().sendToBack(portal);
             pathway.add(portal);
