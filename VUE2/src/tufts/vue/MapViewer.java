@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.535 $ / $Date: 2008-04-25 19:23:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.536 $ / $Date: 2008-04-25 20:06:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -808,6 +808,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return viewportToCanvasPoint(getVisibleWidth() / 2.0, getVisibleHeight() / 2.0);
     }
     
+    public Point2D getVisibleMapCenter() {
+        return screenToMapPoint2D(getVisibleCenter());
+    }
+    
     private Point2D viewportToCanvasPoint(double x, double y) {
         if (inScrollPane)
             return new Point2D.Double(x - getX(), y - getY());
@@ -844,6 +848,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         return screenToMapRect(getVisibleBounds());
     }
+
     
     /**
      * @return in map coordinate space, the bounds represented by the
