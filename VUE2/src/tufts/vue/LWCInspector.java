@@ -474,7 +474,7 @@ class LWCInspector extends javax.swing.JPanel
             final JTextField field = e.getKey();
             final LWComponent.Key key = e.getValue();
             try {
-                if (true||c.supportsProperty(key))
+                if (DEBUG.PROPERTY || c.supportsProperty(key))
                     field.setText(key.getStringValue(c));
                 else
                     field.setText("<unsupported for " + c.getClass().getName() + ">");
