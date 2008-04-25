@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.218 $ / $Date: 2008-04-23 14:40:43 $ / $Author: sfraize $
+ * @version $Revision: 1.219 $ / $Date: 2008-04-25 22:46:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -587,17 +587,33 @@ public class LWNode extends LWContainer
     
     @Override
     public boolean isTextNode() {
-        // todo: "text" node should display no note icon, but display the note if any when any part of it is rolled over.
-        // Just what a text node is is a bit confusing right now, but it's useful
-        // guess for now.
-    	//return (mIsTextNode || (getFillColor() == null && isRectShape)) && !hasChildren();
 
+        // todo: "text" node should display no note icon, but display
+        // the note if any when any part of it is rolled over.  Just
+        // what a text node is is a bit confusing right now, but it's
+        // useful guess for now.
+        
+        return isLikelyTextNode() && mShape instanceof Rectangle2D;
+    }
+
+    @Override
+    public boolean isLikelyTextNode() {
+
+        // SMF 2008-04-25: This is a hack for VUE-822 until the underlying bug can be
+        // found ("text" nodes being created with non-rectangular shapes).  The
+        // PresentationTool is going to call this directly. These are all the conditions
+        // from the original isTextNode, less the check for the shape.  We're not just
+        // changing isTextNode as getTypeToken relies on it, and allowing shapes into
+        // text nodes would changed EditorManager behaivor for how style properties are
+        // used to load tool states and copy/apply style values.
+        
         return getClass() == LWNode.class // sub-classes don't count
             && isTranslucent()
             && !hasChildren()
-            && mShape instanceof Rectangle2D
             && !inPathway(); // heuristic to exclude LWNode portals (not likely to just put a piece of text alone on a pathway)
     }
+    
+    
     
     /** If true, compute node size from label & children */
     @Override

@@ -1815,7 +1815,9 @@ public class PresentationTool extends VueTool
 //         }
 
         if (hit != null) {
-            if (hit.getTypeToken() == LWNode.TYPE_TEXT) {
+            if (hit.getTypeToken() == LWNode.TYPE_TEXT || hit.isLikelyTextNode()) {
+                if (hit.getTypeToken() != LWNode.TYPE_TEXT)
+                    Log.warn("likely text node has non-text type token: " + hit + "; token=" + hit.getTypeToken());
                 if (hit.hasResource()) {
                     hit.getResource().displayContent();
                     return true;
