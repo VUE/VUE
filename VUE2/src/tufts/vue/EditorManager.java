@@ -88,18 +88,24 @@ public class EditorManager
         {
             if (token == LWNode.TYPE_TEXT || token == LWText.TYPE_RICHTEXT) {
                 // special case for "text" nodes:
+
+                Object shape;
+                
                 if (style.isTransparent() &&
                     style.getStrokeWidth() <= 0 &&
-                    style.getPropertyValue(LWKey.Shape) != java.awt.geom.Rectangle2D.Float.class)
-                {
-                        // If completely transparent, assume no point in having a shape that's non-rectangular
-                        style.setProperty(LWKey.Shape, java.awt.geom.Rectangle2D.Float.class);
-
-                        // just in case, make sure synced with provisional:
-                        provisional.setProperty(LWKey.Shape, java.awt.geom.Rectangle2D.Float.class);
-                }
+                    (shape = style.getPropertyValue(LWKey.Shape)) != java.awt.geom.Rectangle2D.Float.class)
+                    {
+                        // It also must HAVE a shape property (e.g., LWText does not)
+                        if (shape != null) {
+                            // If completely transparent, assume no point in having a shape that's non-rectangular
+                            style.setProperty(LWKey.Shape, java.awt.geom.Rectangle2D.Float.class);
+                            
+                            // just in case, make sure synced with provisional:
+                            provisional.setProperty(LWKey.Shape, java.awt.geom.Rectangle2D.Float.class);
+                        }
+                    }
             }
-
+            
             return style;
         }
 
