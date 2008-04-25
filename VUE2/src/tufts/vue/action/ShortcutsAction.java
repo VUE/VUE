@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.5 $ / $Date: 2008-04-21 01:38:14 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-04-25 19:12:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -41,7 +41,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     /** display the shortcuts DockWindow (create it if needed) */
     public void act() {
         if (window == null)
-            window = GUI.createDockWindow(VUE.getName() + " Short-Cut Keys");
+            window = GUI.createDockWindow(VUE.getName() + " Shortcut Keys");
 
         if (content == null || (wasDebug != DEBUG.Enabled)) {
             wasDebug = DEBUG.Enabled;
@@ -91,6 +91,18 @@ public class ShortcutsAction extends tufts.vue.VueAction
     private static int SPAN3 = 32;
     private static int NO_EAST_GAP = 64;
     private static int NO_WEST_GAP = 128;
+    private static int NO_GAP = NO_EAST_GAP + NO_WEST_GAP;
+
+    private static final String NBSP = "&nbsp;";
+    //private static final String NBSP = "X";
+    private static final String BIG_NBSP =
+        " " + NBSP
+        + " " + NBSP
+        + " " + NBSP
+        + " " + NBSP
+        + " " + NBSP
+        ;
+;
         
     private static void add(int bits, Object o, String... attr) {
 
@@ -115,29 +127,23 @@ public class ShortcutsAction extends tufts.vue.VueAction
         html.append('>');
         
         if ((bits & NO_WEST_GAP) == 0)
-            html.append("&nbsp;");
+            html.append(NBSP);
 
         if ((bits & BOLD) != 0) html.append("<b>");
         if ((bits & ITAL) != 0) html.append("<i>");
                 
         html.append(o == null ? (DEBUG.Enabled?"null":"") : o.toString());
             
-        // if ((bits & BOLD) != 0) html.append("</b>"); // is implied
-        // if ((bits & ITAL) != 0) html.append("</i>"); // is implied
+        // if ((bits & BOLD) != 0) html.append("</b>"); // implied
+        // if ((bits & ITAL) != 0) html.append("</i>"); // implied
             
         if ((bits & NO_EAST_GAP) == 0)
-            html.append("&nbsp;");
+            html.append(NBSP);
 
-        //html.append("</td>"); // is implied
+        //html.append("</td>"); // implied
     }
     private static void add(Object o) {
         add(0, o);
-    }
-
-    private static void addGap() {
-        add(" &nbsp;&nbsp; ");
-        //add(" &nbsp; &nbsp; ");
-        //add("x&nbsp;x&nbsp;x");
     }
 
     private static void addRow(int row) {
@@ -214,10 +220,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
         html.setLength(0);
         html.append("<html>");
             
-        if (Util.isMacLeopard())
-            addTable();
-        else
-            addTable("width=100%"); // fill to wider width of actions below
+        addTable("width=100%"); // fill to wider width of actions below
+        //addTable();
             
         int row = 0;
             
@@ -242,9 +246,9 @@ public class ShortcutsAction extends tufts.vue.VueAction
             //=============================================================================
 
             html.append("<tr bgcolor=" + TitleColor + ">");
-            add(BOLD+ITAL+CENTER, "Quick-Key");
-            add(BOLD+ITAL+CENTER, "Key");
             add(BOLD+ITAL, "Tool");
+            add(BOLD+ITAL+CENTER, "Key");
+            add(BOLD+ITAL+CENTER, "Quick-Key");
             html.append("</tr>");
                 
         }
@@ -276,25 +280,23 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 //=======================================================
                 // Production TOOLS 
                 //=======================================================
+                
+                add(BOLD, t.getToolName());
+                
+                add(BOLD+CENTER, t.getShortcutKey());
 
                 if (downKey == 0)
                     add("");
                 else
                     add(BOLD+CENTER, keyCodeChar(downKey, true));
                 
-                add(BOLD+CENTER, t.getShortcutKey());
                 //add(BOLD+CENTER, t.getShortcutKey(), "bgcolor=black color=white");
-                add(BOLD, t.getToolName());
             }
         }
 
         html.append("</table><br>");
-        //if (Util.isMacLeopard()) html.append("<center>");
 
-        if (Util.isMacLeopard())
-            addTable("width=100%"); // fill to wider width of tools above
-        else
-            addTable();
+        addTable();
         
         if (DEBUG.Enabled) {
 
@@ -324,13 +326,15 @@ public class ShortcutsAction extends tufts.vue.VueAction
             html.append("<tr bgcolor=" + TitleColor + ">");
 
             if (Util.isMacLeopard())
-                add(BOLD+ITAL+SPAN3+RIGHT, "Shortcut");
+                add(NO_GAP, " " + NBSP + " " + NBSP + " " + NBSP + " ");
+
+            add(BOLD+ITAL, "Action");
+            
+            if (Util.isMacLeopard())
+                add(BOLD+ITAL+SPAN3, "Shortcut");
             else 
                 add(BOLD+ITAL+SPAN2, "Shortcut Key");
             
-            add(BOLD+ITAL, "Action");
-            if (Util.isMacLeopard())
-                addGap();
             html.append("</tr>");
                 
         }
@@ -401,19 +405,23 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 // Production ACTIONS
                 //=============================================================================
                     
+                if (Util.isMacLeopard())
+                    add(NO_GAP, "");
+                
+                add(a.getPermanentActionName());
+                
                 if (Util.isMacLeopard()) {
-                    //add(""); // for gap
-                    addGap(); // for gap
-                    add(BOLD + NO_EAST_GAP + goRight, get_MacOSX_Leopard_Modifier_Glyphs(mods));
-                    add(BOLD + NO_WEST_GAP + CENTER, keyCodeChar(k.getKeyCode()));
+                    add(BOLD + NO_GAP + goRight, get_MacOSX_Leopard_Modifier_Glyphs(mods));
+                    add(BOLD + NO_GAP, keyCodeChar(k.getKeyCode()));
                 } else {
                     add(BOLD + goRight, KeyEvent.getKeyModifiersText(mods));
                     add(BOLD + NO_WEST_GAP, keyCodeChar(k.getKeyCode()));
                 }
-                add(a.getPermanentActionName());
 
-                //if (Util.isMacLeopard()) add(""); // for gap: implied via header line
+                if (row == 1 && Util.isMacLeopard()) 
+                    add(NO_GAP, BIG_NBSP); // for colspan 3 in header
                 
+                //=============================================================================
 
             }
 
@@ -525,8 +533,10 @@ public class ShortcutsAction extends tufts.vue.VueAction
         //         shortcuts.pack(); // fit to HTML content
         //         shortcuts.setVisible(true);
 
-        if (args.length > 1)
+        if (args.length > 1) {
             System.out.println(ShortcutsAction.html);
+            System.out.println("length=" + ShortcutsAction.html.length());
+        }
 
     }
 }
