@@ -382,6 +382,15 @@ public class LWImage extends
             //Util.printStackTrace("ADD SELCTED IMAGE CLEANUP " + this);
             // don't know if this really needs to be a cleanup task,
             // or just an after-AWT task, but safer to do one of them:
+
+            // TODO: this may be conflicting with our new image update code, and this
+            // would much better be handled in the ActiveComponentHandler than via a
+            // cleanup task (which should generally be a solution of last resort)
+
+            // Note that this code does however also deal with a missing
+            // network resource suddenly appearing, and then we can
+            // load the image from that
+            
             addCleanupTask(new Runnable() { public void run() {
                 if (VUE.getSelection().only() == LWImage.this)
                     loadResourceImage(getResource(), null);
