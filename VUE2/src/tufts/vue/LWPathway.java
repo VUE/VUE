@@ -44,7 +44,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.216 $ / $Date: 2008-04-25 23:05:54 $ / $Author: sfraize $
+ * @version $Revision: 1.217 $ / $Date: 2008-04-26 00:04:02 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -923,7 +923,7 @@ public class LWPathway extends LWContainer
         if (c instanceof LWPathway ||
             c instanceof LWMap ||       // just in case
             c instanceof LWLink ||      // no longer allowed -- decided in staff 2007-08-29 -- SMF
-            c instanceof LWText ||      // disallowed 2008-04-25 SMF: usually can't see them
+            //c instanceof LWText ||      // disallowed 2008-04-25 SMF: usually can't see them
             c.isPathwayOwned() ||       // e.g.: slides appearing as slide icons
             !c.isMoveable() ||          // just in case, don't allow any non-moveables
             (c instanceof LWImage && ((LWImage)c).isNodeIcon()) ||
