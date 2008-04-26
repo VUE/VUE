@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.103 $ / $Date: 2008-04-22 13:24:00 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2008-04-26 00:43:30 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -606,7 +606,8 @@ public class LWSlide extends LWContainer
 
             // Too hairy for now: leaves the hand tool selected;
             //VUE.getSelection().setTo(this);
-            //Actions.LaunchPresentation.fire("MapViewerHandToolDoubleClick");
+            if (DEBUG.Enabled) 
+                Actions.LaunchPresentation.fire("MapViewerHandToolDoubleClick");
             //Actions.LaunchPresentation.fire(e);
             
         } else {
