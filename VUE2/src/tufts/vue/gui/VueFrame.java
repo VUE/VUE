@@ -38,7 +38,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $ 
+ * @version $Revision: 1.13 $ / $Date: 2008-04-26 00:44:59 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -118,9 +118,22 @@ public class VueFrame extends javax.swing.JFrame
                 out(e.toString());
                 Log.debug(e);
             }
+            public void windowActivated(WindowEvent e) {
+                if (LastOpenedResource != null) {
+                    tufts.vue.Resource r = LastOpenedResource;
+                    LastOpenedResource = null;
+                    tufts.vue.VUE.checkForAndHandleResourceUpdate(r, null);
+                }
+            }
         });
 
         VUE.addActiveListener(MapViewer.class, this);
+    }
+
+    private static tufts.vue.Resource LastOpenedResource;
+    
+    public static void setLastOpenedResource(tufts.vue.Resource r) {
+        LastOpenedResource = r;
     }
 
     public void activeChanged(ActiveEvent<MapViewer> e) {

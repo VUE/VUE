@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.70 $ / $Date: 2008-04-21 01:27:14 $ / $Author: sfraize $
+ * @version $Revision: 1.71 $ / $Date: 2008-04-26 00:44:59 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1220,6 +1220,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         } catch (Throwable t) {
             Log.error(systemSpec + "; " + t);
         }
+
+        tufts.vue.gui.VueFrame.setLastOpenedResource(this);
     }
     
 
