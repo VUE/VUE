@@ -51,7 +51,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.128 $ / $Date: 2008-04-25 20:06:54 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2008-04-26 00:43:05 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1308,7 +1308,7 @@ public class PathwayPanel extends JPanel
             // check should now be redundant.
 
             if (selection.size() == 1)
-                btnAddSlide.setEnabled(path.isPathwayAllowed(selection.first()));
+                btnAddSlide.setEnabled(LWPathway.isPathwayAllowed(selection.first()));
             else
                 btnAddSlide.setEnabled(true);
             
