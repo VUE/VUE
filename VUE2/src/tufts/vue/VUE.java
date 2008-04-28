@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.541 $ / $Date: 2008-04-28 05:11:00 $ / $Author: sfraize $ 
+ * @version $Revision: 1.542 $ / $Date: 2008-04-28 05:18:41 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -198,7 +198,12 @@ public class VUE
         }
     };
 
-    /** If map is null, will check active map */
+    /**
+     * If and only if the given Resource has changed on disk: check all open maps for
+     * any LWImage's using it, and tell them to reload. Also, find any OTHER
+     * Resources that have changed on disk, and update their LWImage's.
+     */
+    
     public static boolean checkForAndHandleResourceUpdate(Resource r)
     {
         if (r != null && r.isImage() && r.dataHasChanged()) {
