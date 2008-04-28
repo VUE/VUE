@@ -36,6 +36,8 @@ import java.util.regex.*;
 import java.io.File;
 import java.io.FileInputStream;
 
+import static java.awt.dnd.DnDConstants.*;
+
 import java.net.*;
 
 /**
@@ -44,7 +46,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.90 $ / $Date: 2008-04-14 19:18:30 $ / $Author: sfraize $  
+ * @version $Revision: 1.91 $ / $Date: 2008-04-28 05:21:58 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -60,6 +62,12 @@ class MapDropTarget
     private static final int DROP_ONTOLOGY_TYPE = 5;
 
     
+    public static final int ALL_DROP_TYPES =
+        DnDConstants.ACTION_COPY        // 0x1
+        | DnDConstants.ACTION_MOVE      // 0x2
+        | DnDConstants.ACTION_LINK      // 0x40000000
+        ;
+        
     public static final int ACCEPTABLE_DROP_TYPES =
         DnDConstants.ACTION_COPY        // 0x1
         //| DnDConstants.ACTION_MOVE      // 0x2
@@ -94,9 +102,17 @@ class MapDropTarget
     }
 
     private void trackDrag(DropTargetDragEvent e) {
-        e.acceptDrag(ACCEPTABLE_DROP_TYPES);
+
+        // There's no point in doings this unless we want to request
+        // a change for the default operation
+        
+//         if (DEBUG.DND && DEBUG.META) out("acceptDrag " + e);
+//         if (Util.isMacPlatform())
+//             e.acceptDrag(ALL_DROP_TYPES);
+//         else
+//             e.acceptDrag(ACCEPTABLE_DROP_TYPES);
         // This may be helping, er, sometimes...
-        //mViewer.setCursor(DragSource.DefaultCopyDrop);
+        //mViewer.setTopCursor(DragSource.DefaultCopyDrop);
     }
 
     /** DropTargetListener */
@@ -112,7 +128,8 @@ class MapDropTarget
     /** DropTargetListener */
     public void dropActionChanged(DropTargetDragEvent e) {
         if (DEBUG.DND) out("dropActionChanged: " + GUI.dragName(e));
-        trackDrag(e);
+        dragOver(e); // in case action type has changed and we want to change indication color
+        //trackDrag(e);
     }
     /** DropTargetListener */
     public void dragOver(DropTargetDragEvent e)
@@ -122,7 +139,7 @@ class MapDropTarget
         LWComponent over = mViewer.pickDropTarget(dropToMapLocation(e.getLocation()), null);
 
         if (over != null)
-            mViewer.setIndicated(over);
+            mViewer.setIndicated(over, e.getDropAction() == DnDConstants.ACTION_LINK);
         else
             mViewer.clearIndicated();
 
@@ -167,7 +184,19 @@ class MapDropTarget
                                } catch (Exception ex) { System.err.println(ex); }*/
 
         
-        e.acceptDrop(e.getDropAction());
+        if (e.getDropAction() == ACTION_NONE) {
+            final int sa = e.getSourceActions();
+            int accept;
+            if ((sa & ACTION_COPY_OR_MOVE) != 0)
+                accept = ACTION_COPY;
+            else if ((sa & ACTION_LINK) != 0)
+                accept = ACTION_LINK;
+            else
+                accept = ACTION_COPY;
+            if (DEBUG.Enabled) out("DROP ACTION NONE: ACCEPTING AS: " + dropName(accept));
+            e.acceptDrop(accept);
+        } else
+            e.acceptDrop(e.getDropAction());
         
         // Scan thru the data-flavors, looking for a useful mime-type
         boolean success =

@@ -428,7 +428,9 @@ public class LWImage extends
     }
 
     public void reloadImage() {
-        loadResourceImage(getResource(), null);
+        mImage = null;
+        mImageStatus = Status.UNLOADED;
+        notify(LWKey.RepaintAsync);
     }
 
 
@@ -828,6 +830,18 @@ public class LWImage extends
 //             super.drawChildren(dc);
     }
 
+    private boolean isIndicatedIn(DrawContext dc) {
+
+        if (dc.hasIndicated()) {
+            final LWComponent indication = dc.getIndicated();
+
+            return indication == this
+                || (isNodeIcon() && getParent() == indication);
+        } else {
+            return false;
+        }
+    }
+
     
     public void drawWithoutShape(DrawContext dc)
     {
@@ -852,10 +866,15 @@ public class LWImage extends
         
         if (isNodeIcon && dc.focal != this) {
 
-            drawImageBox(dc);
+            boolean indicated = false;
+            if (isIndicatedIn(dc)) {
+                indicated = true;
+            } else {
+                drawImageBox(dc);
+            }
             
             // Forced border for node-icon's:
-            if (mImage != null && !getParent().isTransparent()) {
+            if ((mImage != null || indicated) && !getParent().isTransparent()) {
                 // this is somehow making itext PDF generation through a GC worse... (probably just a bad tickle)
                 dc.g.setStroke(STROKE_TWO);
                 //dc.g.setColor(IconBorderColor);
@@ -938,7 +957,7 @@ public class LWImage extends
 
     private void drawImageBox(DrawContext dc)
     {
-        if (mImage == null) 
+        if (mImage == null && !dc.isIndicated(this)) 
             drawImageStatus(dc);
         else
             drawImage(dc);

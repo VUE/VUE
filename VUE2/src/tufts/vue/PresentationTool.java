@@ -1457,7 +1457,11 @@ public class PresentationTool extends VueTool
 
         //if (DEBUG.WORK) out("overview drawing standout: " + standout);
         DrawContext standoutDC = new DrawContext(mNavMapDC, standout);
-        standoutDC.focused = standout;
+        if (standout instanceof LWSlide) {
+            // only slides attend to focused for this, and currently
+            // it will conflict with LWImage using it for setIndicated
+            standoutDC.focused = standout;
+        }
         standout.draw(standoutDC);
         standoutDC.dispose();
 

@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.536 $ / $Date: 2008-04-25 20:06:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.537 $ / $Date: 2008-04-28 05:21:58 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -152,6 +152,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //protected Point2D.Float dragPosition = new Point2D.Float();
     
     protected static LWComponent indication;   // current indication (drag rollover hilite -- ONLY ONE PER ALL MAPS)
+    protected static boolean indicationIsAlternate;
     
     private final MapDropTarget mapDropTarget;
     private MapScrollPane mapScrollPane;
@@ -401,19 +402,37 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         VUE.setActive(VueTool.class, this, tool);
     }
     
+    @Override
+    public void setCursor(Cursor cursor) {
+
+        if (DEBUG.Enabled)
+            out("setCursor " + cursor);
+
+        super.setCursor(cursor);
+        //getTopLevelAncestor().setCursor(cursor);
+    }
+    
     private void setMapCursor(Cursor cursor) {
         //JRootPane rootPane = SwingUtilities.getRootPane(this);
         //if (DEBUG.FOCUS) out("setting cursor for RootPane " + GUI.name(rootPane));
         //rootPane.setCursor(cursor);
         //SwingUtilities.getRootPane(this).setCursor(cursor);
         // could compute cursor-set pane in addNotify
+
         setCursor(cursor);
+
         // todo: also set this on the VueToolPanel so you can see cursor change
         // when selecting new tool -- actually, VueToolPanel should
         // do this itself as we're going to put the cursors right in
         // the tool
         
     }
+
+    public void setTopCursor(Cursor cursor) {
+        setCursor(cursor);
+        getTopLevelAncestor().setCursor(cursor);
+    }
+    
     
     public double getZoomFactor() {
         return mZoomFactor;
@@ -1685,13 +1704,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     
     void setIndicated(LWComponent c) {
-        if (indication == c)
+        setIndicated(c, false);
+    }
+    
+    void setIndicated(LWComponent c, boolean alternate) {
+
+        if (indication == c && indicationIsAlternate == alternate)
             return;
 
         if (c == null) {
             clearIndicated();
             return;
         }
+
 
 //         if (c instanceof LWSlide && !c.isMoveable()) {
 //             //if (c instanceof LWSlide && mFocal != c) {
@@ -1709,8 +1734,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             return;
 //         }
             
-        clearIndicated();
-        indication = c;
+        if (indication != c) {
+            clearIndicated();
+            indication = c;
+        }
+        indicationIsAlternate = alternate;
         if (DEBUG.PARENTING) out("indication  set  to " + c);
         //c.setIndicated(true);
         repaintMapRegion(indication.getBounds());
@@ -1731,6 +1759,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (DEBUG.PARENTING) out("clearing indication " + indication);
             indication = null;
         }
+        indicationIsAlternate = false;
     }
     LWComponent getIndication() { return indication; }
 
@@ -2649,17 +2678,39 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (indication == null)
             return;
 
+        boolean alternate = false;
+        if (indicationIsAlternate) {
+            if (indication instanceof LWNode && ((LWNode)indication).iconShowing()) {
+                dc.setIndicated(indication);
+                indication.draw(dc);
+                alternate = true;
+//                 if (LWNode.isImageNode(indication))
+//                     // this is enough of an indication if it has an image icon
+//                     return;
+            }
+        } else {
+            // always show on top
+            indication.draw(dc);
+        }
+        
         dc.setMapDrawing();
         indication.transformZero(dc.g);
 
         //boolean asFill = DEBUG.PICK;
         boolean asFill = !(indication instanceof LWLink);
 
-        dc.g.setColor(COLOR_INDICATION);
-        dc.setAlpha(0.5);
+        dc.g.setColor(indicationIsAlternate ? COLOR_INDICATION_ALTERNATE : COLOR_INDICATION);
+        if (alternate)
+            dc.setAlpha(0.25);
+        else
+            dc.setAlpha(0.5);
         
         if (asFill) {
-            dc.g.fill(indication.getZeroShape());
+            final Shape shape = indication.getZeroShape();
+            dc.g.fill(shape);
+//             dc.setAlpha(1);
+//             dc.setAbsoluteStroke(2);
+//             dc.g.draw(shape);
         } else {
             double minStroke = STROKE_SELECTION.getLineWidth() * 3;// * mZoomInverse;
             if (indication.getStrokeWidth() > minStroke)

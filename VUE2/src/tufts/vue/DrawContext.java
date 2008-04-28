@@ -34,7 +34,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.57 $ / $Date: 2008-02-08 17:24:45 $ / $Author: sfraize $
+ * @version $Revision: 1.58 $ / $Date: 2008-04-28 05:21:58 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -58,7 +58,7 @@ public final class DrawContext
     public final Rectangle frame; // if we have the pixel dimensions of the surface we're drawing on, they go here
 
     public final LWComponent focal;
-
+    
     LWComponent focused;
 
     private float alpha = 1f;
@@ -376,11 +376,11 @@ public final class DrawContext
         isInteractive = t;
     }
 
-    public final boolean isInteractive() {
+    public boolean isInteractive() {
         return isInteractive;
     }
 
-    public final boolean isBlackWhiteReversed() {
+    public boolean isBlackWhiteReversed() {
         return isBlackWhiteReversed;
     }
 
@@ -392,11 +392,29 @@ public final class DrawContext
         isPresenting = t;
     }
 
-    public final boolean isPresenting() {
+    public boolean isPresenting() {
         return isPresenting;
     }
 
-    public final boolean drawPathways() {
+    /** @return true for special temporary state alternate indications */
+    public void setIndicated(LWComponent c) {
+        focused = c; // using focused field for now (overloaded)
+    }
+
+    public boolean isIndicated(LWComponent c) {
+        return focused == c;
+    }
+
+    public boolean hasIndicated() {
+        return focused != null;
+    }
+
+    public LWComponent getIndicated() {
+        return focused;
+    }
+    
+
+    public boolean drawPathways() {
         return isDrawingPathways;
         //return !isPresenting() && focal instanceof LWMap;
         //    return !isFocused && !isPresenting();
@@ -405,9 +423,8 @@ public final class DrawContext
     public void setDrawPathways(boolean drawPathways) {
         isDrawingPathways = drawPathways;
     }
-    
 
-    public final boolean isFocused() {
+    public boolean isFocused() {
         return focal instanceof LWMap == false;
     }
 
@@ -415,7 +432,7 @@ public final class DrawContext
         isDraftQuality = t;
     }
 
-    public final boolean isDraftQuality() {
+    public boolean isDraftQuality() {
         return isDraftQuality;
     }
 

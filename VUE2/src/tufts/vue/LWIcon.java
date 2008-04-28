@@ -165,8 +165,7 @@ public abstract class LWIcon extends Rectangle2D.Float
         final MapViewer viewer = VUE.getActiveViewer();
         if (viewer != null && viewer.getCursor() == RESOURCE_CURSOR)
         {
-            viewer.setCursor(VueToolbarController.getActiveTool().getCursor());
-            viewer.getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());
+            viewer.setTopCursor(VueToolbarController.getActiveTool().getCursor());
         }
     }
     public static void displayRolloverResource() {
@@ -391,13 +390,12 @@ public abstract class LWIcon extends Rectangle2D.Float
                         // us to install a temporary cursor that's auto-cleared if
                         // mouse exits or re-enters the viewer
                     	
-                        e.getViewer().setCursor(RESOURCE_CURSOR);
-                        e.getViewer().getTopLevelAncestor().setCursor(RESOURCE_CURSOR);
+                        e.getViewer().setTopCursor(RESOURCE_CURSOR);
                         
                         RolloverResource = icon.mLWC.getResource(); // hack hack hack
-                    } else {                    	
-                        e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());
-                        e.getViewer().getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());
+                    } else {
+                        
+                        e.getViewer().setTopCursor(VueToolbarController.getActiveTool().getCursor());
                     }
                 }
                 
@@ -406,8 +404,8 @@ public abstract class LWIcon extends Rectangle2D.Float
                     break;
                 } else {
                     // check: if (above condition) then: break else: reset cursor, but at the bottom of a loop?
-                    e.getViewer().setCursor(VueToolbarController.getActiveTool().getCursor());
-                    e.getViewer().getTopLevelAncestor().setCursor(VueToolbarController.getActiveTool().getCursor());                    
+                    e.getViewer().setTopCursor(VueToolbarController.getActiveTool().getCursor());
+
                 }
                 	
             }
@@ -783,7 +781,23 @@ public abstract class LWIcon extends Rectangle2D.Float
             
             super.draw(dc);
 
+
+            if (dc.isIndicated(mLWC)) {
+                
+                dc.g.setColor(Color.white);
+                dc.g.fill(boxBounds);
+
+                dc.g.setColor(Color.gray);
+                dc.g.setStroke(STROKE_HALF);
+                dc.g.draw(boxBounds);
+
+                // Leave an empty box:
+                return;
+                
+            }
+
             // TODO PERF: if BoxFill has alpha, pre-mix it with node.getRenderFillColor()
+            
             dc.g.setColor(BoxFill);
             dc.g.fill(boxBounds);
             //dc.g.setColor(BoxBorder);
@@ -793,7 +807,6 @@ public abstract class LWIcon extends Rectangle2D.Float
             dc.g.draw(boxBounds);
             dc.g.setColor(mColor);
             dc.g.setFont(FONT_ICON);
-            
 
 //             String extension = NoResource;
 //             if (mLWC.hasResource())
