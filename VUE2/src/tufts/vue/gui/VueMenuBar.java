@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.102 $ / $Date: 2008-04-25 22:45:38 $ / $Author: sfraize $
+ * @version $Revision: 1.103 $ / $Date: 2008-04-28 04:49:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -872,27 +872,40 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
 
     private final JMenuItem TitleItem = new JMenu("");
+    //private final java.util.Map<LWMap,JCheckBoxMenuItem> items = new java.util.HashMap();
+    
     public void activeChanged(tufts.vue.ActiveEvent e, LWMap map) {
         //TitleItem.setFont(VueConstants.SmallFont);
+
+        if (VUE.isStartupUnderway())
+            return;
+        
         TitleItem.setLabel("[ " + (map==null?"?":map.getLabel()) + " ]");
         TitleItem.removeAll();
+        
         MapTabbedPane tp = VUE.getLeftTabbedPane();
         for (int i = 0; i < tp.getTabCount(); i++) {
             final MapViewer v = tp.getViewerAt(i);
             final LWMap m = v.getMap();
-            if (m == map)
-                continue;
+            
+            //if (m == map) continue;
 
-            JMenuItem item = new JMenuItem(new VueAction(m.getLabel()) {
+            JCheckBoxMenuItem item = new JCheckBoxMenuItem(new VueAction(m.getLabel()) {
                     public void act() {
                         Log.debug("quik-map " + m);
                         // this currently only works in full-screen mode
                         ActiveInstance.getHandler(LWMap.class).setActive(this, m);
-                        //VUE.displayMap(m);
+                        // VueTabbedPane should be auto-updating based
+                        // on the active map event, but too close to
+                        // release to mess with fundamental events right now.
+                        VUE.getLeftTabbedPane().setSelectedMap(m);
                     }
                     public boolean overrideIgnoreAllActions() { return true; }
                 }
                 );
+
+            if (m == map)
+                item.setSelected(true);
             
             item.setToolTipText(""+m.getFile());
             TitleItem.add(item);
