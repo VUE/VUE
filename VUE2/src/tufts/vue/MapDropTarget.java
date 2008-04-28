@@ -46,7 +46,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.91 $ / $Date: 2008-04-28 05:21:58 $ / $Author: sfraize $  
+ * @version $Revision: 1.92 $ / $Date: 2008-04-28 06:56:29 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -136,10 +136,12 @@ class MapDropTarget
     {
         if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
 
-        LWComponent over = mViewer.pickDropTarget(dropToMapLocation(e.getLocation()), null);
+        final boolean isSetResourceAction = (e.getDropAction() == DnDConstants.ACTION_LINK);
+
+        final LWComponent over = mViewer.pickDropTarget(dropToMapLocation(e.getLocation()), null, isSetResourceAction);
 
         if (over != null)
-            mViewer.setIndicated(over, e.getDropAction() == DnDConstants.ACTION_LINK);
+            mViewer.setIndicated(over, isSetResourceAction);
         else
             mViewer.clearIndicated();
 
@@ -528,14 +530,17 @@ class MapDropTarget
             if (DEBUG.DND) out("processTransferable: (no drop event) transfer=" + transfer);
         }
 
+        final boolean isLinkAction = (dropAction == DnDConstants.ACTION_LINK);
+        
         LWComponent dropTarget = null;
         Point2D.Float hitLocation = null;
 
+
         if (dropLocation != null) {
-            dropTarget = mViewer.pickDropTarget(mapLocation, null);
+            dropTarget = mViewer.pickDropTarget(mapLocation, null, isLinkAction);
             if (DEBUG.DND) out("dropTarget=" + dropTarget + " in " + mViewer);
             if (dropTarget != null) {
-                if (!dropTarget.supportsChildren()) {
+                if (!dropTarget.supportsChildren() && !isLinkAction) {
                     
                     // this SHOULD be preventing drops onto MapSlides, but dropTarget is
                     // coming back null because pickDropTarget is checking
@@ -798,8 +803,6 @@ class MapDropTarget
                       + Util.TERM_CLEAR
                       );
         }
-
-        final boolean isLinkAction = (dropAction == DnDConstants.ACTION_LINK);
 
         DropContext drop =
             new DropContext(transfer,

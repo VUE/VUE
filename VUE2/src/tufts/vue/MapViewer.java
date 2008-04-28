@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.537 $ / $Date: 2008-04-28 05:21:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.538 $ / $Date: 2008-04-28 06:56:29 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1836,8 +1836,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public LWComponent pickNode(Point2D.Float p) {
         return pickNode(p.x, p.y);
     }
-    public LWComponent pickDropTarget(Point2D.Float p, Object dropping) {
-        return pickDropTarget(p.x, p.y, dropping);
+    public LWComponent pickDropTarget(Point2D.Float p, Object dropping, boolean isResourceSetAction) {
+        return pickDropTarget(p.x, p.y, dropping, isResourceSetAction);
     }
 
     
@@ -1849,14 +1849,33 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private static final LWComponent POSSIBLE_NODE = new LWComponent();
     private static final Object POSSIBLE_RESOURCE = new Object();
     
-    public LWComponent pickDropTarget(float mapX, float mapY, Object dropping) {
+    public LWComponent pickDropTarget(float mapX, float mapY, Object dropping, boolean isResourceSetAction) {
         PickContext pc = getPickContext(mapX, mapY);
         if (dropping == null)
             pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
         else
             pc.dropping = dropping;
         LWComponent hit = LWTraversal.PointPick.pick(pc);
-        if (hit != null) {
+
+        if (hit == null)
+            return null;
+        
+        if (isResourceSetAction) {
+
+            // Only pure nodes support the dropping of resources at the user level.
+            // (note: could theoretically apply to LWLink's and LWImages also)
+            if (hit instanceof LWNode) {
+                return hit;
+            } else if (hit instanceof LWImage && ((LWImage)hit).isNodeIcon()) {
+                // resource-set's on LWImages work fine, so we could pick
+                // and set that, but they don't currently update their parent node resource,
+                // so we just pick the parent in this case.
+                return hit.getParent();
+            } else
+                return null;
+                
+        } else {
+            
             if (hit.supportsChildren()) {
                 if (hit instanceof LWSlide && hit != mFocal)
                     hit = null; // disable slide icon dropping for now
@@ -1874,8 +1893,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 } else
                     return null;
             }
-        } else
-            return null;
+        }
     }
 
     
@@ -2678,20 +2696,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (indication == null)
             return;
 
-        boolean alternate = false;
+        boolean lessIndication = false;
         if (indicationIsAlternate) {
-            if (indication instanceof LWNode && ((LWNode)indication).iconShowing()) {
-                dc.setIndicated(indication);
-                indication.draw(dc);
-                alternate = true;
-//                 if (LWNode.isImageNode(indication))
-//                     // this is enough of an indication if it has an image icon
-//                     return;
+            
+            dc.setIndicated(indication);
+
+            if (indication instanceof LWNode) {
+                // note that slide nodes can't normally have icons
+                lessIndication = LWNode.isImageNode(indication) || ((LWNode)indication).iconShowing();
             }
-        } else {
-            // always show on top
-            indication.draw(dc);
+            
         }
+            
+        // always show on top
+        indication.draw(dc);
         
         dc.setMapDrawing();
         indication.transformZero(dc.g);
@@ -2700,10 +2718,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         boolean asFill = !(indication instanceof LWLink);
 
         dc.g.setColor(indicationIsAlternate ? COLOR_INDICATION_ALTERNATE : COLOR_INDICATION);
-        if (alternate)
+        if (lessIndication) {
             dc.setAlpha(0.25);
-        else
+            //dc.setAlpha(0.5);
+        } else {
             dc.setAlpha(0.5);
+            // if (DEBUG.Enabled) dc.g.setColor(Color.red);
+        }
         
         if (asFill) {
             final Shape shape = indication.getZeroShape();

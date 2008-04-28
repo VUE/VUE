@@ -856,18 +856,22 @@ public class LWImage extends
             }
         }*/
 
-        final Shape shape = getClipShape();
+        final Shape shape = getZeroShape();
 
         if (isSelected() && dc.isInteractive() && dc.focal != this) {
             dc.g.setColor(COLOR_HIGHLIGHT);
             dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-            dc.g.draw(getZeroShape());
+            dc.g.draw(shape);
         }
         
         if (isNodeIcon && dc.focal != this) {
 
             boolean indicated = false;
             if (isIndicatedIn(dc)) {
+                if (getParent().isTransparent()) {
+                    dc.g.setColor(Color.gray);
+                    dc.g.fill(shape);
+                }
                 indicated = true;
             } else {
                 drawImageBox(dc);
