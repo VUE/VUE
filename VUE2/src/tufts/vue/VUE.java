@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.540 $ / $Date: 2008-04-26 00:44:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.541 $ / $Date: 2008-04-28 05:11:00 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -168,7 +168,7 @@ public class VUE
                 
             } else if (node.hasResource()) {
 
-                checkForAndHandleResourceUpdate(node.getResource(), node);
+                checkForAndHandleResourceUpdate(node.getResource());
                          
             } else if (false) {
 
@@ -199,47 +199,70 @@ public class VUE
     };
 
     /** If map is null, will check active map */
-    public static void checkForAndHandleResourceUpdate(Resource r, LWComponent nodeOrMap)
+    public static boolean checkForAndHandleResourceUpdate(Resource r)
     {
         if (r != null && r.isImage() && r.dataHasChanged()) {
+
+            VUE.activateWaitCursor();
                     
-            r.flushCache();
+            try {
 
-            final LWMap map;
+                final Collection<LWComponent> everything = new ArrayList(64);
+                
+                for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+                    LWMap map = mMapTabsLeft.getMapAt(i);
+                    if (map == null)
+                        continue;
+                    everything.addAll(map.getAllDescendents(LWMap.ChildKind.ANY));
+                }
+                
+                handleResourceUpdate(r, everything, true);
 
-            if (nodeOrMap == null)
-                map = VUE.getActiveMap();
-            else 
-                map = nodeOrMap.getMap();
+            } catch (Throwable t) {
 
-            if (map == null)
-                return;
+                Log.error("resource update: " + r, t);
+                
+            } finally {
 
-            // This will find all LWImage's anywhere in the current map that
-            // point to the same resource, and thus may (probably) need updatng.
-                    
-            // TODO: this will NOT find LWImage's in any OTHER maps that are holding a ref
-            // to the same Resource.  They will become "lost" to the change, unless there's
-            // a different instance of the Resource object somewhere in that map that can
-            // be clicked on.  We do need to be moving to an impl where single resources
-            // instances are never shared across maps however (as the same Resource may no
-            // be be made relative to each map it's on, and thus different), so this will
-            // eventually be taken care of.  Or: we could have LWImage itself record the
-            // modification time, add an updateModificationTime method to Resource, and use
-            // each LWImage modification time for the trigger.
+                GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    VUE.clearWaitCursor();
+                }});
 
-            for (LWComponent c : map.getAllDescendents(LWMap.ChildKind.ANY)) {
-                if (c instanceof LWImage) {
-                    final LWImage image = (LWImage) c;
-                    if (r.equals(image.getResource())) {
-                        GUI.invokeAfterAWT(new Runnable() { public void run() {
-                            image.reloadImage();
-                        }});
+            }
+
+            return true;
+            
+        } else
+            return false;
+    }
+
+    private static void handleResourceUpdate(Resource r, Iterable<LWComponent> everything, boolean firstPass) {
+
+        r.flushCache();
+
+        // This will find all LWImage's anywhere in any open map that points to the
+        // same resource, and thus may (probably) need updatng.
+        
+        for (LWComponent c : everything) {
+            if (c instanceof LWImage) {
+                final LWImage image = (LWImage) c;
+                if (r.equals(image.getResource())) {
+                    if (r != image.getResource())
+                        image.getResource().dataHasChanged(); // make sure all other instances are also current
+                    Log.info("reloading in " + c.getMap().getLabel() + ": " + image.getUniqueComponentTypeLabel() + "; " + image.getLabel());
+                    image.reloadImage();
+                } else if (firstPass) {
+                    // Check them all as long as we're updating.
+                    if (image.hasResource() && image.getResource().dataHasChanged()) {
+                        try {
+                            handleResourceUpdate(image.getResource(), everything, false);
+                        } catch (Throwable t) {
+                            Log.error("auto-discovery resource update " + image.getResource(), t);
+                        }
                     }
                 }
             }
         }
-        
     }
     
 
