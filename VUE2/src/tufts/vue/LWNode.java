@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.219 $ / $Date: 2008-04-25 22:46:59 $ / $Author: sfraize $
+ * @version $Revision: 1.220 $ / $Date: 2008-04-28 21:13:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -612,6 +612,12 @@ public class LWNode extends LWContainer
             && !hasChildren()
             && !inPathway(); // heuristic to exclude LWNode portals (not likely to just put a piece of text alone on a pathway)
     }
+
+    @Override
+    public boolean isExternalResourceLinkForPresentations() {
+        return hasResource() && !hasChildren();
+    }
+    
     
     
     

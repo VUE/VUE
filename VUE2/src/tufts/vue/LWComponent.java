@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.413 $ / $Date: 2008-04-25 22:45:59 $ / $Author: sfraize $
+ * @version $Revision: 1.414 $ / $Date: 2008-04-28 21:13:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2706,6 +2706,12 @@ u                    getSlot(c).setFromString((String)value);
     public boolean isLikelyTextNode() {
         return false;
     }
+
+    /** @return false by default */
+    public boolean isExternalResourceLinkForPresentations() {
+        return false;
+    }
+    
     
 
     /**

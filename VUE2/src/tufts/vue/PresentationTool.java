@@ -1819,14 +1819,21 @@ public class PresentationTool extends VueTool
 //         }
 
         if (hit != null) {
-            if (hit.getTypeToken() == LWNode.TYPE_TEXT || hit.isLikelyTextNode()) {
-                if (hit.getTypeToken() != LWNode.TYPE_TEXT)
-                    Log.warn("likely text node has non-text type token: " + hit + "; token=" + hit.getTypeToken());
-                if (hit.hasResource()) {
-                    hit.getResource().displayContent();
-                    return true;
-                }
-            } else if (hit instanceof LWNode) { // only allow node for the moment
+            
+//             if (hit.getTypeToken() == LWNode.TYPE_TEXT || hit.isLikelyTextNode()) {
+//                 if (hit.getTypeToken() != LWNode.TYPE_TEXT)
+//                     Log.warn("likely text node has non-text type token: " + hit + "; token=" + hit.getTypeToken());
+//                 if (hit.hasResource()) {
+//                     hit.getResource().displayContent();
+//                     return true;
+//                 }
+//             }
+            
+            if (hit.isExternalResourceLinkForPresentations()) {
+                hit.getResource().displayContent();
+                return true;
+            }
+            else if (hit instanceof LWNode) { // only allow node for the moment
                 // added to handle resource icon clicks (will call displayContent)
                 if (hit.handleSingleClick(e)) 
                     return true;
