@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.71 $ / $Date: 2008-04-26 00:44:59 $ / $Author: sfraize $
+ * @version $Revision: 1.72 $ / $Date: 2008-04-28 04:16:28 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -1043,7 +1043,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         final File file;
 
         if (mDataFile != null)
-            file = mDataFile; // in case user edits a pacakge file
+            file = mDataFile; // in case user edits a package file
         else
             file = mFile;
 
@@ -1057,18 +1057,18 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             // care of finding all objects that need updating once
             // this ever returns true.
             
-            if (DEBUG.IO) dumpField("re-scanning", file);
+            if (DEBUG.Enabled||DEBUG.IO) dumpField("re-scanning", file);
             final long curLastMod = file.lastModified();
             final long curSize = file.length();
             if (curLastMod != mLastModified || curSize != getByteSize()) {
-                if (true||DEBUG.Enabled) {
+                if (DEBUG.Enabled) {
                     long diff = curLastMod - mLastModified;
-                    out(TERM_CYAN
-                        + Util.tags(file)
-                        + "; lastMod=" + new Date(curLastMod)
-                        + "; timeDelta=" + (diff/100) + " seconds"
-                        + "; sizeDelta=" + (curSize-getByteSize()) + " bytes"
-                        + TERM_CLEAR);
+                    out_info(TERM_CYAN
+                             + Util.tags(file)
+                             + "; lastMod=" + new Date(curLastMod)
+                             + "; timeDelta=" + (diff/100) + " seconds"
+                             + "; sizeDelta=" + (curSize-getByteSize()) + " bytes"
+                             + TERM_CLEAR);
                 }
                 //if (DEBUG.Enabled) out("lastModified: dataHasChanged");
                 mLastModified = curLastMod;
