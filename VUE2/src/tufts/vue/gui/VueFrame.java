@@ -38,7 +38,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.13 $ / $Date: 2008-04-26 00:44:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.14 $ / $Date: 2008-04-28 05:20:42 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -120,9 +120,23 @@ public class VueFrame extends javax.swing.JFrame
             }
             public void windowActivated(WindowEvent e) {
                 if (LastOpenedResource != null) {
-                    tufts.vue.Resource r = LastOpenedResource;
-                    LastOpenedResource = null;
-                    tufts.vue.VUE.checkForAndHandleResourceUpdate(r, null);
+                    try {
+                        if (DEBUG.Enabled) Log.debug("resource check: " + LastOpenedResource);
+                        tufts.vue.VUE.checkForAndHandleResourceUpdate(LastOpenedResource);
+                        
+                        // TODO: skip clearing to null to handle repeated editing
+                        // bad idea of now until this is threaded, as if happened to
+                        // be local network resource that went offline, we could
+                        // hang -- so at least this would only happen the first time.
+                        // Once this is in a thread, the check could just run entirely
+                        // at low priority in the background checking everything once
+                        // VUE gains focus again.
+                        LastOpenedResource = null; 
+
+                    } catch (Throwable t) {
+                        Log.error("resource check: " + LastOpenedResource, t);
+                        LastOpenedResource = null;
+                    }
                 }
             }
         });
