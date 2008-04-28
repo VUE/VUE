@@ -30,7 +30,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.46 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $ 
+ * @version $Revision: 1.47 $ / $Date: 2008-04-28 04:05:56 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -117,6 +117,12 @@ public class MapTabbedPane extends JTabbedPane
 
     @Override
     public void setSelectedIndex(final int index) {
+
+//         if (index < 0) {
+//             Log.debug("invalid tab index: " + index);
+//             return;
+//         }
+        
 	super.setSelectedIndex(index);
         
         final MapViewer viewer = getViewerAt(index);
@@ -379,6 +385,11 @@ public class MapTabbedPane extends JTabbedPane
     public MapViewer getViewerWithMap(LWMap map) {
         return getViewerAt(findTabWithMap(map));
     }
+
+    public void setSelectedMap(LWMap map) {
+        setSelectedIndex(findTabWithMap(map));
+    }
+    
         
     private int findTabWithMap(LWMap map) {
         int tabs = getTabCount();
