@@ -46,7 +46,7 @@ public class CategoryEditor extends JPanel
     public final static int ROW_HEIGHT = 39;
     public final static int ROW_GAP = 7;
     
-    public final static int ROW_INSET = 5;
+    public final static int ROW_INSET = 0;
     
     public final static int BUTTON_COL_WIDTH = 35;
     
@@ -96,11 +96,11 @@ public class CategoryEditor extends JPanel
         //metadataSetTable.getTableHeader().setReorderingAllowed(false);
 
         customCategoryTable.setGridColor(new java.awt.Color(getBackground().getRed(),getBackground().getBlue(),getBackground().getGreen(),0));
-        customCategoryTable.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        customCategoryTable.setBorder(BorderFactory.createEmptyBorder(5,5,5,5));
         customCategoryTable.setIntercellSpacing(new java.awt.Dimension(0,0));
         final JScrollPane scroll = new JScrollPane(customCategoryTable);
         scroll.setBackground(getBackground());
-        scroll.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        scroll.setBorder(BorderFactory.createEmptyBorder(10,20,10,20));
         scroll.getViewport().setOpaque(false);
 
         customCategoryTable.getTableHeader().addMouseListener(new java.awt.event.MouseAdapter()
@@ -163,7 +163,7 @@ public class CategoryEditor extends JPanel
 
 
         
-        customPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+        //customPanel.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
 
         customPanel.add(scroll);
         //add(setPanel);
@@ -177,7 +177,7 @@ public class CategoryEditor extends JPanel
         //}
         
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0,0,10,0));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0,0,5,15));
         cancelButton = new JButton("Cancel");
         cancelButton.setFont(GUI.LabelFace);
         doneButton = new JButton("Done");
@@ -228,7 +228,7 @@ public class CategoryEditor extends JPanel
     {   
        public java.awt.Component getTableCellRendererComponent(JTable table, Object value,boolean isSelected,boolean hasFocus,int row,int col)
        {
-           setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+           //setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
            JComponent comp = new JPanel();
            if(col == 0)
            {    
@@ -345,6 +345,7 @@ public class CategoryEditor extends JPanel
         {
             deletePanel.setBorder(BorderFactory.createEmptyBorder(5,1,0,0));
             deletePanel.add(deleteButton);
+            label.setFont(tufts.vue.gui.GUI.LabelFace);
         }
         
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,
