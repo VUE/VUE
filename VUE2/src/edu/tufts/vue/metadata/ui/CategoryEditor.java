@@ -141,7 +141,7 @@ public class CategoryEditor extends JPanel
                    }
        });
        
-       customCategoryTable.addMouseListener(new java.awt.event.MouseAdapter()
+       /*customCategoryTable.addMouseListener(new java.awt.event.MouseAdapter()
                {
                    public void mouseReleased(java.awt.event.MouseEvent evt)
                    {
@@ -159,7 +159,7 @@ public class CategoryEditor extends JPanel
                          }
                        }
                    }
-        }); 
+        });*/ 
 
 
         
@@ -170,11 +170,11 @@ public class CategoryEditor extends JPanel
         // todo: add separator
         add(customPanel);
 
-        if(DEBUG_LOCAL)
-        {    
-          System.out.println("scroll: " + scroll);
-          System.out.println("categoryTable: " + customCategoryTable);
-        }
+        //if(DEBUG_LOCAL)
+        //{    
+        //  System.out.println("scroll: " + scroll);
+        //  System.out.println("categoryTable: " + customCategoryTable);
+        //}
         
         buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(0,0,10,0));
@@ -237,8 +237,10 @@ public class CategoryEditor extends JPanel
            }
            else if(col == 1)
            {
-               comp = new JLabel();
-               ((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
+               //comp = new JLabel();
+               //((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
+               comp.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
+               comp.add(new tufts.vue.gui.VueButton("keywords.button.add"));
            }
            else
            {
@@ -249,13 +251,12 @@ public class CategoryEditor extends JPanel
            comp.setBackground(CategoryEditor.this.getBackground());
            comp.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
 
-           //System.out.println("MetadataEditor - Table Header Renderer background color: " + MetadataEditor.this.getBackground());
            return comp;
        }
     }
 
     
-    class SetTableRenderer extends DefaultTableCellRenderer
+    /*class SetTableRenderer extends DefaultTableCellRenderer
     {
         JPanel checkPanel = new JPanel();
         JCheckBox check = new JCheckBox();
@@ -288,7 +289,7 @@ public class CategoryEditor extends JPanel
             label.setText("ERROR");
             return label;
         }
-    }
+    } */
     
     
     /*class SetTableEditor extends DefaultCellEditor
@@ -337,6 +338,14 @@ public class CategoryEditor extends JPanel
         JPanel checkPanel = new JPanel();
         //JCheckBox check = new JCheckBox();
         JTextField label = new JTextField();
+        tufts.vue.gui.VueButton deleteButton = new tufts.vue.gui.VueButton("keywords.button.delete");
+        JPanel deletePanel = new JPanel();
+        
+        public CustomCategoryTableRenderer()
+        {
+            deletePanel.setBorder(BorderFactory.createEmptyBorder(5,1,0,0));
+            deletePanel.add(deleteButton);
+        }
         
         public java.awt.Component getTableCellRendererComponent(JTable table,Object value,boolean isSelected,
                                                                 boolean hasFocus,int row,int col)
@@ -345,27 +354,35 @@ public class CategoryEditor extends JPanel
             
             if(col == 1)
             {
-                JLabel button = new JLabel();
-                button.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
-                comp.add(button);
+                //JLabel button = new JLabel();
+                //button.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
+                //comp.add(button);
+                
                 //return checkPanel;
+                
+                /*if(DEBUG_LOCAL)
+                {
+                    System.out.println("CE: in table renderer -- showing delete button: " + row);
+                }*/
+                
+                return deletePanel;
             }
             if(col == 0)
             {
                 //label.setBorder(BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET));
                 
-                if(DEBUG_LOCAL)
-                {    
-                  System.out.println("CategoryEditor: " + value.getClass());
-                }
+                //if(DEBUG_LOCAL)
+                //{    
+                //  System.out.println("CategoryEditor: " + value.getClass() + " row: " + row + " col: " + col);
+                //}
                 
                 if(value instanceof OntType)
                 {
                     label.setText(((OntType)value).getLabel());
-                    if(DEBUG_LOCAL)
-                    {    
-                      System.out.println("Label text in category component: " + label.getText());
-                    }
+                    //if(DEBUG_LOCAL)
+                    //{    
+                    //  System.out.println("Label text in category component: " + label.getText());
+                    //}
                 }
                     
                 else
@@ -385,8 +402,9 @@ public class CategoryEditor extends JPanel
     
     class CustomCategoryTableEditor extends DefaultCellEditor
     {
-        JPanel checkPanel = new JPanel();
-        JCheckBox check = new JCheckBox();
+        //JPanel checkPanel = new JPanel();
+        //JPanel deletePanel = new JPanel();
+        //JCheckBox check = new JCheckBox();
         JTextField label = new JTextField();
         
         //private int row;
@@ -431,9 +449,46 @@ public class CategoryEditor extends JPanel
             
             if(col == 1)
             {
-                checkPanel.add(check);
-                comp.add(check);
+                //if(DEBUG_LOCAL)
+                //{
+                //  System.out.println("CE - creating delete button editor " + row);    
+                //}
+                
+                //checkPanel.add(check);
+                //comp.add(check);
                 //return checkPanel;
+                JPanel deletePanel = new JPanel();
+                deletePanel.setBorder(BorderFactory.createEmptyBorder(5,1,0,0));
+                tufts.vue.gui.VueButton deleteButton = new tufts.vue.gui.VueButton("keywords.button.delete");
+                
+                       
+                deleteButton.addMouseListener(new java.awt.event.MouseAdapter()
+                {
+                   public void mouseReleased(java.awt.event.MouseEvent evt)
+                   {
+                       //if(evt.getX()>customCategoryTable.getWidth()-BUTTON_COL_WIDTH)
+                       //{
+                         CategoryModel vueCategoryModel = tufts.vue.VUE.getCategoryModel();
+                         java.util.List<OntType> ontTypes = vueCategoryModel.getCustomOntology().getOntTypes();
+                         //int selectedRow = customCategoryTable.getSelectedRow();
+                         //if(customCategoryTable.getSelectedColumn()== 1 && ontTypes.size() > selectedRow)
+                         //{
+                            if(ontTypes.size() > row)
+                              ontTypes.remove(row);
+                            //customCategoryTable.repaint();
+                            //requestFocusInWindow();
+                            tufts.vue.VUE.getCategoryModel().saveCustomOntology();
+                            
+                            ((MetadataCategoryTableModel)customCategoryTable.getModel()).refresh();
+                            customCategoryTable.repaint();
+                            requestFocusInWindow();
+                         //}
+                       //}
+                   }
+                }); 
+                
+                deletePanel.add(deleteButton);
+                return deletePanel;
             }
             if(col == 0)
             {
@@ -441,10 +496,10 @@ public class CategoryEditor extends JPanel
                 //this.row = row;
                 //this.col = col;
                 
-                if(DEBUG_LOCAL)
-                {    
-                  System.out.println("CategoryEditor: " + value.getClass());
-                }
+                //if(DEBUG_LOCAL)
+                //{    
+                //  System.out.println("CategoryEditor: " + value.getClass());
+                //}
                 if(value instanceof OntType)
                 {
                     label.setText(((OntType)value).getLabel());
@@ -463,6 +518,11 @@ public class CategoryEditor extends JPanel
                 label.addFocusListener(new java.awt.event.FocusAdapter(){
                    public void focusLost(java.awt.event.FocusEvent fe)
                    {
+                       if(DEBUG_LOCAL)
+                       {
+                         System.out.println("CE: label focus lost -- " + row);    
+                       }
+                       
                        if( (row == table.getModel().getRowCount() - 1) && newCategoryRequested )
                        {
                            CategoryModel cats = tufts.vue.VUE.getCategoryModel();
@@ -552,10 +612,11 @@ public class CategoryEditor extends JPanel
         
         public boolean isCellEditable(int row,int col)
         {
-            if(col == 0)
+            return true;
+            /*if(col == 0)
                 return true;
             else
-                return false;
+                return false; */
         }
         
         public int getRowCount()
