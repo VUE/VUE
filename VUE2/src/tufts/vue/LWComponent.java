@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.414 $ / $Date: 2008-04-28 21:13:03 $ / $Author: sfraize $
+ * @version $Revision: 1.415 $ / $Date: 2008-04-30 19:01:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -686,8 +686,10 @@ u                    getSlot(c).setFromString((String)value);
         
 
         /** @return true if the value for this Key in LWComponent is equivalent to otherValue
-         * Override to provide non-standard equivalence (Object.equals) */
-        boolean valueEquals(TSubclass c, TValue otherValue) 
+         * Override to provide non-standard equivalence.
+         * The default provided here uses Object.equals to compare the values.
+         */
+        boolean valueEquals(TSubclass c, Object otherValue) 
         {
             final TValue value = getValue(c);
             return value == otherValue || (otherValue != null && otherValue.equals(value));
@@ -696,15 +698,15 @@ u                    getSlot(c).setFromString((String)value);
         void copyValue(TSubclass source, TSubclass target)
         {
             if (!source.supportsProperty(this)) {
-                if (DEBUG.STYLE && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; source doesn't support this property; " + source);
+                if (DEBUG.STYLE && DEBUG.META) System.err.println("   COPY-VALUE: " + this + "; source doesn't support this property; " + source);
             } else if (!target.supportsProperty(this)) {
-                if (DEBUG.STYLE && DEBUG.META) System.err.println(" COPY-VALUE: " + this + "; target doesn't support this property; " + target);
+                if (DEBUG.STYLE && DEBUG.META) System.err.println("   COPY-VALUE: " + this + "; target doesn't support this property; " + target);
             } else {
                 final TValue newValue = getValue(source);
                 final TValue oldValue = getValue(target);
 
                 if (newValue != oldValue && (newValue == null || !newValue.equals(oldValue))) {
-                    if (DEBUG.STYLE) System.out.format("  COPY-VALUE: %s %-15s %-40s -> %s over (%s)\n",
+                    if (DEBUG.STYLE) System.out.format("    COPY-VALUE: %s %-15s %-40s -> %s over (%s)\n",
                                                        source,
                                                        name,
                                                        "(" + newValue + ")",
@@ -5626,7 +5628,7 @@ u                    getSlot(c).setFromString((String)value);
         // components "listening" to this style (pointing to it), and copy over
         // the value that just changed on the style object.
         
-        if (DEBUG.Enabled) out("STYLE OBJECT UPDATING STYLED CHILDREN with " + key);
+        if (DEBUG.Enabled) out("\nSTYLE OBJECT UPDATING STYLED CHILDREN with " + key + "; value " + Util.tags(e.getOldValue()));
         //final LWPathway path = ((MasterSlide)getParent()).mOwner;
         
         // We can traverse all objects in the system, looking for folks who
@@ -5642,8 +5644,11 @@ u                    getSlot(c).setFromString((String)value);
             if (dest.mParentStyle == this && dest.supportsProperty(key) && dest != this) {
                 // Only copy over the style value if was previously set to our existing style value
                 try {
-                    if (key.valueEquals(dest, e.getOldValue()))
+                    if (key.valueEquals(dest, e.getOldValue())) {
                         key.copyValue(this, dest);
+                    } else if (DEBUG.STYLE) {
+                        System.err.println(" SKIP-USER-SET: " + dest + "; target has user-override value: " + Util.tags(key.getValue(dest)));
+                    }
                 } catch (Throwable t) {
                     tufts.Util.printStackTrace(t, "Failed to copy value from " + e + " old=" + e.getOldValue());
                 }
