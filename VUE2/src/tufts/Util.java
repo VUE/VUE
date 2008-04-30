@@ -228,6 +228,7 @@ public class Util
     public static void openURL(String url)
         throws java.io.IOException
     {
+        // TODO: isLocalFile should check for inital '\' also (File.separator) -- but follow-on code will now need re-testing
         boolean isLocalFile = (url.length() >= 5 && "file:".equalsIgnoreCase(url.substring(0,5))) || url.startsWith("/");
         boolean isMailTo = url.length() >= 7 && "mailto:".equalsIgnoreCase(url.substring(0,7));
 
@@ -726,7 +727,8 @@ public class Util
         
     }
 
-    
+    private static boolean HasGnomeOpen = false;
+    private static boolean GnomeOpenSet = false;
 
     private static void openURL_Unix(String url, boolean isLocalFile, boolean isMailTo)
         throws java.io.IOException
@@ -745,76 +747,89 @@ public class Util
     	should be in the mix too maybe but this is better than it was and catches alot of cases.
     	*/
     	
-		Process process = null;
-    	Runtime runtime = Runtime.getRuntime();
+    	final Runtime runtime = Runtime.getRuntime();
+        Process process = null;
     	int waitFor = -1;
 
-    	//test for gnome    
-    	try 
-    	{    	    	
-    		process =runtime.exec("gnome-open");    	
-    		waitFor = process.waitFor();
-    	} catch (InterruptedException e) 
-    	{    			
-    			e.printStackTrace();    		
-    	}
-    	catch (IOException ioe2)
-    	{
-    		ioe2.printStackTrace();
-    		waitFor = 2;
-    	}
+        if (!GnomeOpenSet) {
 
-		if (waitFor != 2)
-		{
-			//open file with gnome
-			if (isLocalFile)
-			{
-				url = decodeURL(url);
-				//jjurl = url.replaceAll(" ","\\ ");
-				url = "file:///" + url.substring(6);
-				//url ="\""+url+"\"";
-				System.out.println(url);
-			}
-			process = runtime.exec(new String[] {"gnome-open" , url});
-//			out("process: " + process);
-			InputStream stdin = process.getErrorStream();
-			InputStreamReader isr = new InputStreamReader(stdin);
-			BufferedReader br = new BufferedReader(isr);
-			String line = null;
-			System.out.println("<OUTPUT>");
-			while ((line = br.readLine()) != null)
-				System.out.println(line);
-			System.out.println("<OUTPUT>");
-			try
-			{
-				int exitVal = process.waitFor();
-				System.out.println("exit val : " + exitVal);
-			}
-			catch(InterruptedException inte)
-			{
-				inte.printStackTrace();
-			}
-			return;
-		}
-		else
-			waitFor=-1;
+            // test for gnome    
+            try {    	    	
+                process = runtime.exec("gnome-open");    	
+                waitFor = process.waitFor();
+            }
+            catch (InterruptedException e) {    			
+                e.printStackTrace();    		
+            }
+            catch (IOException ioe2) {
+                ioe2.printStackTrace();
+                waitFor = 2;
+            }
+
+            GnomeOpenSet = true;
+            if (waitFor != 2)
+                HasGnomeOpen = true;
+        }
+
+        if (HasGnomeOpen) {
+            //open file with gnome
+            if (isLocalFile) {
+                url = decodeURL(url);
+                
+                // SMF 2008-04-30: commented this out: was ensuring that most
+                // local file links would not work -- not sure what cases
+                // this was handling.
+                //
+                //url = "file:///" + url.substring(6); 
+                
+                // old:
+                ////jjurl = url.replaceAll(" ","\\ ");
+                ////url ="\""+url+"\"";
+            }
+
+            Log.info("gnome-open " + url);
+
+            process = runtime.exec(new String[] {"gnome-open" , url});
+            //			out("process: " + process);
+            InputStream stdin = process.getErrorStream();
+            InputStreamReader isr = new InputStreamReader(stdin);
+            BufferedReader br = new BufferedReader(isr);
+            String line = null;
+            System.out.println("<OUTPUT>");
+            while ((line = br.readLine()) != null)
+                System.out.println(line);
+            System.out.println("<OUTPUT>");
+            try
+                {
+                    int exitVal = process.waitFor();
+                    System.out.println("exit val : " + exitVal);
+                }
+            catch(InterruptedException inte)
+                {
+                    inte.printStackTrace();
+                }
+            return;
+        }
+        else
+            waitFor=-1;
     	
-//    	kde
+
+        //    	kde
     	try 
-    	{    	    	
+            {    	    	
     		System.out.println("TESTING KDE");
     		process =runtime.exec("kfmexec");    	
     		waitFor = process.waitFor();
-    	} catch (InterruptedException e) 
-    	{    			
-    			e.printStackTrace();    		
-    	}
+            } catch (InterruptedException e) 
+            {    			
+                e.printStackTrace();    		
+            }
     	catch (IOException ioe2)
-    	{
+            {
     		ioe2.printStackTrace();
     		waitFor=2;
    
-    	}
+            }
     	
     	if (waitFor != 2)
     	{
