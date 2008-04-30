@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.104 $ / $Date: 2008-04-26 00:43:30 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2008-04-30 05:48:30 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -368,7 +368,7 @@ public class LWSlide extends LWContainer
 
         if (DEBUG.Enabled) {
             if (c.getStyle() == null)
-                track("ignored", String.format("%-14s %s",
+                track("skip-style", String.format("%-14s %s",
                                                "(" + (c.getTypeToken() instanceof Class ? ((Class)c.getTypeToken()).getSimpleName() : c.getTypeToken()) + ")",
                                                c));
             else
