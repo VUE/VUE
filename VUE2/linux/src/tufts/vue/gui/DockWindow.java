@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- *
+ * 
  * http://www.osedu.org/licenses/ECL-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -39,7 +39,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 // a Frame still make that Frame go inactive if they get focus.
 
 /**
-
+   
  * Our own floating window class so we can do things like control decorations, add
  * features like double-click to roll-up, make sticky to other windows when dragged,
  * etc.
@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.1 $ / $Date: 2008-04-14 16:34:18 $ / $Author: mike $
+ * @version $Revision: 1.2 $ / $Date: 2008-04-30 01:31:59 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -65,11 +65,11 @@ public class DockWindow extends javax.swing.JDialog
                , java.beans.PropertyChangeListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(DockWindow.class);
-
+    
     public static final int DefaultWidth = 300;
     private static boolean AllVisible = true;
-
-    final static java.util.List<DockWindow> AllWindows = new java.util.ArrayList();
+    
+    final static LinkedList<DockWindow> AllWindows = new LinkedList();
     final static char RightArrowChar = 0x25B8; // unicode
     final static char DownArrowChar = 0x25BE; // unicode
     //final static String RightArrow = "" + RightArrowChar;
@@ -80,7 +80,7 @@ public class DockWindow extends javax.swing.JDialog
     private static Border WindowBorder;
     private static Border ContentBorder;
     private static Border ContentBorderInset;
-
+    
     static DockRegion TopDock;
     static DockRegion BottomDock;
     static DockRegion MainDock;
@@ -88,30 +88,30 @@ public class DockWindow extends javax.swing.JDialog
     private static final Color
         TopGradientColor = VueResources.getColor("gui.dockWindow.title.background.top"),
         BottomGradientColor = VueResources.getColor("gui.dockWindow.title.background.bottom");
-
-
+    
+    
     private final static String NORTH_WEST = "northWest";
     private final static String NORTH_EAST = "northEast";
     private final static String SOUTH_WEST = "southWest";
     private final static String SOUTH_EAST = "southEast";
-
+    
     private final static int TitleHeight = VueResources.getInt("gui.dockWindow.title.height", 19);
     private final static int ResizeCornerSize = VueResources.getInt("gui.dockWindow.resizeCorner.size", 12);
     private final static Font TitleFont = VueResources.getFont("gui.dockWindow.title.font", tufts.vue.VueConstants.FONT_MEDIUM);
     private final static int MacAquaMetalMinHeight = 37; // Mac Aqua Brushed Metal window size bug
-
+    
     private final ContentPane mContentPane;
     private JComponent mResizeCorner;
     private JComponent mResizeCorner2;
     //private Action[] mMenuActions;
-
+    
     private String mTitleName;
     private String mMenuName; // if non-null, will be used for name in menus
     private final String mBaseTitle;
     private int mTitleWidth;
     private int mMinTitleWidth;
     private boolean showCloseBtn=true;
-
+    
     private DockWindow mChild;
     private DockWindow mParent;
     private DockWindow mChildWhenHidden;
@@ -124,8 +124,8 @@ public class DockWindow extends javax.swing.JDialog
     private Point mDragStart;
     /** absolute point on screen mouse was at when drag started */
     private Point mDragStartScreen;
-    private Dimension mMinContentSize;
-
+    private Dimension mMinContentSize = new Dimension(0,0);
+    
     private Dimension mDragSizeStart;
     private boolean mMouseWasPressed;
     private boolean mMouseWasDragged;
@@ -148,7 +148,7 @@ public class DockWindow extends javax.swing.JDialog
     static int CollapsedHeight = 0;
     /** visible exposed height of parent DockWindow that child window shouldn't overlap */
     private static int CollapsedHeightVisible;
-
+    
             static boolean isMac;
     private static boolean isMacAqua;
     private static boolean isMacAquaMetal;
@@ -171,26 +171,24 @@ public class DockWindow extends javax.swing.JDialog
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar,boolean showCloseButton)
     {
         //super(owner == null ? getHiddenFrame() : owner);
-
-        super(VUE.getApplicationFrame());
-        //setAlwaysOnTop(true);
-
-        setUndecorated(true);
+    	super(VUE.getApplicationFrame());
+    	setUndecorated(true);
+    	setAlwaysOnTop(false);
         /* Black ghosts on windows...
          * This is fixed in 1.6 as far as I can tell, but this has become an annoying
          * problem on 1.5 that multiple people on the team have complained about.  The
          * problem seems to be related to this issue:
          * http://mindprod.com/jgloss/contentpane.html
          * On a mac if you look closely you really do see the same problem as windows
-         * (at least on my pokey mac) but the background color by default on the mac
-         * is light gray so its not as noticable.
+         * (at least on my pokey mac) but the background color by default on the mac 
+         * is light gray so its not as noticable.  
          */
         if (Util.isWindowsPlatform() && Util.getJavaVersion() < 1.6)
         	setBackground(Color.lightGray);
-
+        
         if (CollapsedHeight == 0)
             staticInit();
-
+        
         /*
         if (getParent() == HiddenParentFrame) {
             // We use this in java 1.5
@@ -204,39 +202,45 @@ public class DockWindow extends javax.swing.JDialog
         wpp = WindowPropertiesPreference.create(
         		"windows",
         		"window" + title.replace(" ", ""),
-        		title,
+        		title, 
         		"Remember size and position of window",
         		false);
-
+        
         showCloseBtn = showCloseButton;
-
+        
         if (asToolbar) {
+            
             // SMF: even tho you can't have any tool-tips without window
             // being enabled, combo box pop-ups dissapear way
             // to easily unless you do this (as soon as you mouse
             // into the toolbar, they dismiss)
-
+            
             // MK: I'll have to check this against a mac but on windows
             //this behaves better without this set to false.  you can
-            //actually bring the window forward in the z-order when
+            //actually bring the window forward in the z-order when 
             //you click on its borderbar, maybe this was a problem in
-            //an old java verison since the dockwinow hadn't been used
+            //an old java verison since the dockwinow hadn't been used 
             //in toolbar mode in a while? -MK
 
-
-            if (VueUtil.isMacPlatform()) {
-                // SMF: seems better on mac -- re-enabled for mac 2007-10-29
-                // In particular, very narrow drop-downs are problematic w/out doing
-                // this: as soon as you roll off them, they dissapear.  E.g., makes changing
+            // SMF 2008-04-21: The ongoing saga.  See interceptMousePress
+            // for more on this.  All toolbars are henceforth not
+            // focusable, except for Linux, where I haven't tested this.
+            
+            if (!Util.isUnixPlatform()) {
+                
+                // SMF: seems better on mac -- re-enabled for mac 2007-10-29 In
+                // particular, very narrow drop-downs are problematic w/out doing this:
+                // as soon as you roll off them, they dissapear.  E.g., makes changing
                 // the font via the font-size drop-down very problematic.  Worth not
                 // having rollovers for this.
-                setFocusableWindowState(false);
+                
+                setFocusableWindowState(false); 
             }
 
         }
         mBaseTitle = title;
         setTitle(title);
-
+        
         isToolbar = asToolbar;
 
         mContentPane = new ContentPane(title, asToolbar);
@@ -245,26 +249,28 @@ public class DockWindow extends javax.swing.JDialog
             setContentPane(mContentPane);
         else
             setContentPane(new Box(BoxLayout.Y_AXIS));
-
+                               
         setResizeEnabled(!isToolbar);
 
         if (DEBUG.INIT || DEBUG.DOCK) out("constructed (child of " + GUI.name(owner) + ")");
 
         if (!isToolbar) {
             // set a default size
-
+   
         		setSize(DefaultWidth,150);
             //setMinimumSize(new Dimension(180,100)); // java 1.5 only
             //setPreferredSize(new Dimension(300,150)); // interferes with height
         }
-
+       
         if (content != null) {
             setContent(content);
         } else
             ;//pack(); // ensure peer's created
-
+        
         // add us to the static list of all DockWindow's
-        AllWindows.add(this);
+        synchronized (AllWindows) {
+            AllWindows.add(this);
+        }
 
         /* WAIT-CURSOR DEBUG
            setMenuActions(new Action[] {
@@ -277,15 +283,15 @@ public class DockWindow extends javax.swing.JDialog
            });} */
         setFocusable(true);
     }
-
+   
     public void scrollToTop()
     {
     	JScrollPane jsp = this.mContentPane.getScroller();
     	if ( jsp != null)
     	{
     		jsp.getVerticalScrollBar().setValue(0);
-    		jsp.getVerticalScrollBar().setValueIsAdjusting(false);
-    	}
+    		jsp.getVerticalScrollBar().setValueIsAdjusting(false);    		    		
+    	}    	
     }
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar)
     {
@@ -294,11 +300,11 @@ public class DockWindow extends javax.swing.JDialog
     public DockWindow(String title, Window owner) {
         this(title, owner, null, false,true);
     }
-
+    
     public DockWindow(String title) {
         this(title, null, null, false,true);
     }
-
+    
     public DockWindow(String title, JComponent content) {
         this(title, null, content, false,true);
     }
@@ -322,7 +328,7 @@ public class DockWindow extends javax.swing.JDialog
             else
                 getContentPanel().setBorder(new EmptyBorder(0,0,1,0));
                 }*/
-
+        
         if (hadContent)
             getContent().removePropertyChangeListener(this);
 
@@ -338,7 +344,7 @@ public class DockWindow extends javax.swing.JDialog
 
         toListen.addPropertyChangeListener(this);
         if (DEBUG.DOCK) out("addPropertyChangeListener: " + GUI.name(toListen));
-
+        
         if (!hadContent || !isDisplayable()) {
             pack();
             if (isToolbar)
@@ -349,15 +355,15 @@ public class DockWindow extends javax.swing.JDialog
             validate();
         }
 
-
-
+        
+        
         //int width = minUnrolledWidth(getWidth());
         //if (width < 300) width = 300;
 
         /*
         boolean neverDisplayed = false;
         int minHeight = getHeight();
-
+        
         if (!isDisplayable()) { // has never been displayed (or pack() called)
             neverDisplayed = true;
             int minWidth = 300;
@@ -369,13 +375,13 @@ public class DockWindow extends javax.swing.JDialog
             minHeight = ms.height;
             setSize(minWidth, minHeight);
         }
-
+        
         pack();
 
         if (neverDisplayed)
             setSize(300, minHeight);
         */
-
+        
     }
 
     /** this is overriden from Container just in case it is accidentally called.  An Error is thrown if this is called. */
@@ -392,7 +398,7 @@ public class DockWindow extends javax.swing.JDialog
      */
     public void setContentSize(int width, int height) {
         Dimension winBorder = getBorderSize();
-
+        
         setSize(width + winBorder.width, height + CollapsedHeight);
     }
 
@@ -402,10 +408,10 @@ public class DockWindow extends javax.swing.JDialog
         else
             return null;
     }
-
+    
     /** interface java.beans.PropertyChangeListener for contained component */
     public void propertyChange(java.beans.PropertyChangeEvent e) {
-
+        
         final String key = e.getPropertyName();
 
         if (DEBUG.DOCK /*&& !key.equals("ancestor")*/) {
@@ -419,7 +425,7 @@ public class DockWindow extends javax.swing.JDialog
                 boolean expand = ((Boolean) e.getNewValue()).booleanValue();
                 setRolledUp(!expand, isDisplayable(), true);
             }
-
+            
         } else if (key == Widget.HIDDEN_KEY) {
 
             if (!mWasVisible) {
@@ -429,15 +435,15 @@ public class DockWindow extends javax.swing.JDialog
                 else
                     setRolledUp(false, isVisible(), true);
             }
-
+            
         } else if (key == Widget.MENU_ACTIONS_KEY) {
             setMenuActions((Action[]) e.getNewValue());
-
+                
         } else if (key.equals("TITLE-INFO")) {
-
+            
             String auxTitle = auxTitle = (String) e.getNewValue();
             setAuxTitle(auxTitle);
-
+            
         }
     }
 
@@ -462,16 +468,16 @@ public class DockWindow extends javax.swing.JDialog
         //mMenuActions = actions;
         mContentPane.mTitle.setMenuActions(actions);
     }
-
+        
     public void setMenuActions(java.util.List actions) {
         setMenuActions( (Action[]) actions.toArray(new Action[actions.size()]));
     }
-
+        
     private static void staticInit() {
         //-------------------------------------------------------
         // INIT STATIC'S
         //-------------------------------------------------------
-
+        
         isMac = VueUtil.isMacPlatform();
         isMacAqua = GUI.isMacAqua();
         isMacAquaMetal = GUI.isMacBrushedMetal();
@@ -483,7 +489,7 @@ public class DockWindow extends javax.swing.JDialog
 
         if (OverrideMacAquaBrushedMetal && Util.getJavaVersion() >= 1.5f)
             isMacAquaMetal = false;
-
+        
         if (isMacAquaMetal) {
             SidewaysRollup = false; // can't work in 1.4 brushed metal due to mac java bug
             CollapsedHeight = MacAquaMetalMinHeight;
@@ -494,7 +500,7 @@ public class DockWindow extends javax.swing.JDialog
         CollapsedHeightVisible = TitleHeight;
 
         WindowBorder = makeWindowBorder();
-
+        
         if (WindowBorder != null) {
             Insets bi = WindowBorder.getBorderInsets(null);
             CollapsedHeightVisible += bi.top + bi.bottom;
@@ -545,7 +551,7 @@ public class DockWindow extends javax.swing.JDialog
     public static boolean isTopDockEmpty() {
         return TopDock == null ? true : TopDock.isEmpty();
     }
-
+    
     public static DockRegion getTopDock() {
         if (CollapsedHeight == 0)
             staticInit();
@@ -619,7 +625,7 @@ public class DockWindow extends javax.swing.JDialog
         }
         return mBorderSize;
     }
-
+    
 
     /** @return first child of component, if it is a Container and has children, otherwise null */
     private static Component firstChild(Component component) {
@@ -629,9 +635,9 @@ public class DockWindow extends javax.swing.JDialog
                 return c.getComponent(0);
         }
         return null;
-
+            
     }
-
+    
     private static Border makeWindowBorder() {
 
         if (isMacAqua && (MacWindowShadowEnabled || isMacAquaMetal)) {
@@ -646,7 +652,7 @@ public class DockWindow extends javax.swing.JDialog
                 //                          new LineBorder(new Color(137,137,137)));
                 //return new LineBorder(new Color(51,51,51));
             }
-
+            
             /*
             if (isMacAqua) {
                 if (DEBUG.BOXES)
@@ -659,20 +665,20 @@ public class DockWindow extends javax.swing.JDialog
                 // For Windows:
 
                 Color base = GUI.getVueColor();
-
+                
                 return new BevelBorder(BevelBorder.RAISED,
                                        base,
                                        Util.brighterColor(base),
                                        //base.brighter(),
                                        base.darker().darker(),
                                        base.darker());
-
+                
                 //return BorderFactory.createRaisedBevelBorder();
             }
             */
         }
     }
-
+    
 
     public void setResizeEnabled(boolean canResize) {
         isResizeEnabled = canResize;
@@ -700,7 +706,7 @@ public class DockWindow extends javax.swing.JDialog
         sun.java2d.SurfaceData sd = null;
         if (g instanceof sun.java2d.SunGraphics2D)
             sd = ((sun.java2d.SunGraphics2D)g).surfaceData;
-
+        
         System.out.println("\t" +
                            Util.objectTag(g) + " surface=" + sd
                            + "\n\t      clip " + g.getClip()
@@ -722,7 +728,7 @@ public class DockWindow extends javax.swing.JDialog
 
     public void paint(Graphics g) {
         //Util.printClassTrace("!java.awt.EventDispatchThread", "paint");
-
+        
         if (DEBUG.PAINT) out("paint");
 
         // For subclassing Window impl:
@@ -772,7 +778,7 @@ public class DockWindow extends javax.swing.JDialog
             if (DEBUG.DOCK && DEBUG.META) out("validate");
             //Util.printStackTrace("validate " + this);
             super.validate();
-
+            
             if (mResizeCorner != null) {
                 int width = getWidth();
                 int height = getHeight();
@@ -787,16 +793,16 @@ public class DockWindow extends javax.swing.JDialog
             }
         }
     }
-
+    
     public void invalidate() {
 
         //Util.printClassTrace("!java.awt.EventDispatchThread", "invalidate");
-
+        
         if (mAnimatingReshape) {
             if (DEBUG.DOCK && DEBUG.META) out("invalidate: skipping");
-
+            
             //Util.printStackTrace("invalidate " + this);
-
+            
             // This doesn't help unless we make sure we don't clear mAnimatingReshape
             // until the AWT EventQueue is cleared after we're done animating, as a
             // COMPONENT_RESIZED event for each resize during animation is being posted
@@ -812,7 +818,7 @@ public class DockWindow extends javax.swing.JDialog
             // multiple repaints in this case, we're skipping these as they're probably
             // slowing things down.  Actually, at the moment on my PowerBook 1.5Ghz, I
             // can detect no difference at all...
-
+            
         } else {
             if (DEBUG.DOCK && DEBUG.META) out("invalidate");
             super.invalidate();
@@ -824,14 +830,14 @@ public class DockWindow extends javax.swing.JDialog
         if (OverrideMacAquaBrushedMetal && GUI.isMacBrushedMetal()) {
 
             // This trick only works on MacOSX Java 1.5:
-
+            
             // If we have this special name when the peer is created, the Window will
             // NOT be MacOSX brushed metal, even if that's what we're running under.
             // This is the name java uses for popup windows such as menus and tool
             // tips, which don't appear as brushed metal under 1.5 (they do under 1.4).
             // This is also a way to get around the minimum size bug of Windows when
             // using Mac Aqua Brushed Metal.
-
+            
             setName(GUI.OVERRIDE_REDIRECT);
 
             // Note that we can re-set the name for debugging purposes after
@@ -841,10 +847,10 @@ public class DockWindow extends javax.swing.JDialog
         super.addNotify();
 
         updateWindowShadow();
-
+        
         addMouseListener(this);
         addMouseMotionListener(this);
-
+        
         // make sure peer has title for a native MacOSX code, and re-set name if it was ###override
         setTitle(mTitleName);
 
@@ -864,7 +870,7 @@ public class DockWindow extends javax.swing.JDialog
         else
             return null;
     }
-
+    
     private boolean _firstDisplay = true;
     private void superSetVisible(final boolean show) {
         if (DEBUG.DOCK) out("superSetVisible " + show);
@@ -874,15 +880,15 @@ public class DockWindow extends javax.swing.JDialog
             _firstDisplay = false;
             keepOnScreen();
         }
-
+        
         super.setVisible(show);
 
         /*
         if (isMacAqua && show && !isStacked())
             setWindowShadow(true);
-
+        
         super.setVisible(show);
-
+        
         if (isMacAqua && !show) {
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 setWindowShadow(false);
@@ -910,10 +916,96 @@ public class DockWindow extends javax.swing.JDialog
             if (dw.mWasVisible)
                 dw.superSetVisible(false);
         }
+        // TODO: when prophylactically hiding these for full-screen mode,
+        // this is overkill / could even be problematic.
+        ensureViewerHasFocus(); 
     }
 
+    public void toFront() {
+        //tufts.Util.printClassTrace(DockWindow.class, "RAISING");
+        if (isVisible()) {
+            if (DEBUG.DOCK||DEBUG.WORK) out("toFront");
+            super.toFront();
+        } else {
+            // Window.toFront does nothing if not visible anyway
+            //if (DEBUG.DOCK) out("(toFront)");
+        }
+    }
+
+    public synchronized static void ShowPreviouslyHiddenWindows() {
+        if (DEBUG.Enabled) Log.debug("ShowPreviouslyHiddenWindows");
+        if (VUE.inNativeFullScreen()) {
+            Log.debug("Ignoring show all windows: in native full screen");
+            // don't touch windows if in native full screen, as can
+            // completely hang us on Mac OS X
+            return;
+        }
+
+        if (Util.isMacLeopard()) {
+
+            // Okay, this is seriously messed.  If we have only ONE DockWindow visible,
+            // we can hide/show all ONCE, and it stays on top, but the SECOND time
+            // we hide/show (or enter/exit full screen mode), it starts going behind!
+            // Showing a second DockWindow then hiding/showing all once or twice
+            // seems to put things back in order.  Delaying the toFront to be
+            // invoked later on the AWT thread appears to offer no help, nor does
+            // just raising them all at the end.
+            
+            for (DockWindow dw : AllWindows) {
+                if (dw.mWasVisible) {
+                    dw.superSetVisible(true);
+                    dw.toFront();
+
+                    //dw.setAlwaysOnTop(true);
+//                     final DockWindow d = dw;
+//                     GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                         d.toFront(); // 2008-04-21 required for Mac OSX Leopard to keep them on top
+//                     }});
+                }
+                
+                dw.mWasVisible = false;
+            }
+
+//             // hope this helps the random Leopard cases that still break...
+//             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                 DockWindow.raiseAll();
+//             }});
+            
+            
+        } else {
+            
+            for (DockWindow dw : AllWindows) {
+                if (dw.mWasVisible)
+                    dw.superSetVisible(true); // non-Leopard platforms automatically toFront on this
+                dw.mWasVisible = false;
+            }
+        }
+
+        ensureViewerHasFocus();
+        AllVisible = true;
+    }
+    
+    private static void ensureViewerHasFocus() {
+        
+        // The give the focus back to the viewer, which can lose it it
+        // when they go visible or invisible.  E.g., on WinXP, even
+        // the hidden FullScreen.FSWindow is somes getting focus,
+        // which it never should, given that it's focusable state is
+        // false.
+        
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            final tufts.vue.MapViewer viewer = VUE.getActiveViewer();
+            if (viewer != null) {
+                if (DEBUG.DOCK) Log.debug("focusRequest to return focus to " + viewer);
+                viewer.requestFocus();
+                //VUE.getActiveViewer().grabVueApplicationFocus(DockWindow.class.getName(), null);
+            }}});
+    }
+
+
+
     public synchronized static void ImmediatelyRepaintAllWindows() {
-        if (DEBUG.Enabled) Log.debug("repaint all synchronously");
+        if (DEBUG.Enabled) Log.debug("ImmediatelyRepaintAllWindows");
         for (DockWindow dw : AllWindows) {
             if (dw.isVisible()) {
                 Rectangle bounds = dw.getContentPanel().getBounds();
@@ -927,40 +1019,19 @@ public class DockWindow extends javax.swing.JDialog
             }
         }
     }
-
-
-    public synchronized static void ShowPreviouslyHiddenWindows() {
-        if (DEBUG.Enabled) Log.debug("show all");
-        if (VUE.inNativeFullScreen()) {
-            Log.debug("Ignoring show all windows: in native full screen");
-            // don't touch windows if in native full screen, as can
-            // completely hang us on Mac OS X
-            return;
-        }
-        for (DockWindow dw : AllWindows) {
-            if (dw.mWasVisible)
-                dw.superSetVisible(true);
-            dw.mWasVisible = false;
-        }
-        // The give the focus back to the viewer, which loses
-        // it when they go visible:
-        if (VUE.getActiveViewer() != null)
-            VUE.getActiveViewer().requestFocus();
-        AllVisible = true;
-    }
-
-
+    
+    
     /** keep the bottom of the window from going below the bottom screen edge */
     private void keepOnScreen() {
         Rectangle r = getBounds();
         if (keepOnScreen(r))
             setSize(r.width, r.height);
     }
-
+            
     /** @return true of bounds were modified */
     private boolean keepOnScreen(Rectangle r) {
         int bottom = r.y + r.height;
-        int maxBottom = GUI.GScreenHeight;// - GUI.GInsets.bottom;
+        int maxBottom = GUI.GScreenHeight - GUI.GInsets.bottom;
         //out("        y="+r.y);
         //out("   bottom="+bottom);
         //out("maxBottom="+maxBottom);
@@ -994,18 +1065,18 @@ public class DockWindow extends javax.swing.JDialog
         mDockRegion = region;
         updateWindowShadow();
     }
-
+    
     public static void assignAllDockRegions() {
         DockRegion.assignAllMembers();
     }
-
+    
     public void setStackVisible(boolean show) {
 
         // If showing, show us first, then children.
         // If hiding, do reverse.
-
+        
         if (show) {
-            // Invoking later helps ensure DockWindow's that
+            // Invoking later helps ensure DockWindow's that 
             // are set visible last are on the top of the z-order,
             // which is important for MacOSX window shadow.
             // Unfrotunately, this is not full-proof, but
@@ -1025,7 +1096,8 @@ public class DockWindow extends javax.swing.JDialog
             superSetVisible(false);
         }
     }
-
+    
+    @Override
     public void setVisible(boolean show) {
         setVisible(show, true);
     }
@@ -1034,7 +1106,7 @@ public class DockWindow extends javax.swing.JDialog
         // apparently, sometimes, we must raise the children later for toFront to work
         GUI.invokeAfterAWT(new Runnable() { public void run() { raiseChildren(); }});
     }
-
+    
     protected void setVisible(boolean show, boolean autoUnrollOnShow)
     {
         mShowing = show;
@@ -1059,16 +1131,16 @@ public class DockWindow extends javax.swing.JDialog
             else if (false && mSavedShape != null)
                 // need to show before we do this!  Will need to tweak us so that's okay to do.
                 setShapeAnimated(getX(), getY(), mSavedShape.width, mSavedShape.height);
-
+            
         } else if (false) {
             if (!isRolledUp())
                 mSavedShape = getBounds();
             setShapeAnimated(getX(), getY(), getWidth(), 0);
         }
-
+            
         if (isVisible() == mShowing)
             return;
-
+        
         updateOnVisibilityChange();
         superSetVisible(show);
 
@@ -1088,7 +1160,7 @@ public class DockWindow extends javax.swing.JDialog
             }
             mChildWhenHidden = null;
             mParentWhenHidden = null;
-
+            
             if (isMac && true || windowStackChanged) {
                 raiseChildrenLater();
             }
@@ -1127,25 +1199,25 @@ public class DockWindow extends javax.swing.JDialog
         if (DEBUG.DOCK) out("DISMISS");
         //setShapeAnimated(getX(), getY(), getWidth(), 0);
         // oops: this never handled showing us again anyway :)
-
+       
         setVisible(false);
     }
-
+    
     public void saveWindowProperties()
-    {
+    {   
      	Dimension size = null;
-
+     	
      	if (isRolledUp)
      		size = new Dimension((int)mSavedShape.getWidth(),(int)mSavedShape.getHeight());
      	else
      		size = getSize();
      	Point p;
-
+     	
      	if (isShowing())
      		p = getLocationOnScreen();
      	else
      		p = new Point(-1,-1);
-
+     	
      	wpp.updateWindowProperties(isShowing(), (int)size.getWidth(), (int)size.getHeight(), (int)p.getX(), (int)p.getY(),isRolledUp);
     }
 
@@ -1156,20 +1228,20 @@ public class DockWindow extends javax.swing.JDialog
             Dimension size = wpp.getWindowSize();
             Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
             if (((int)p.getX()) > -1 && isPointFullyOnScreen(p,size,screenSize)) {
-
+                
                 if (isToolbar) // ignore size on toolbars: they always get their designed size
                     setLocation((int)p.getX(),(int)p.getY());
                 else
                     setBounds((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
-
+    		
                 if (wpp.isRolledUp())
                     {
                         mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
                         showRolledUp();
                     }
                 else
-                    setVisible(wpp.isWindowVisible());
-            }
+                    setVisible(wpp.isWindowVisible());    		
+            }    	
             else
                 {
                     if (wpp.isWindowVisible())
@@ -1178,26 +1250,26 @@ public class DockWindow extends javax.swing.JDialog
                             suggestLocation((int)p.getX(),(int)p.getY());
 
                             if (wpp.isRolledUp())
-                                {
+                                {        			
                                     mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
                                     showRolledUp();
                                 }
                             else
                                 setVisible(wpp.isWindowVisible());
-                        }
-
+                        }    	
+    			
                 }
-        }
+        }    	
     }
-
+    
     private boolean isPointFullyOnScreen(Point p, Dimension size, Dimension screenSize)
     {
     	int rightCorner =  (int)p.getX() + (int)size.getWidth();
     	int bottomCorner = (int)p.getY() + (int)size.getHeight();
-
+    	
     	if ((rightCorner <= screenSize.getWidth()) && (bottomCorner <= screenSize.getHeight()))
     		return true;
-    	else
+    	else 
     		return false;
     }
     public WindowPropertiesPreference getWindowProperties()
@@ -1207,7 +1279,7 @@ public class DockWindow extends javax.swing.JDialog
 
     /** look for a tabbed pane within us with the given title, and select it */
     public void showTab(final String name) {
-
+        
         new EventRaiser<JTabbedPane>(this, JTabbedPane.class) {
             public void dispatch(JTabbedPane tabbedPane) {
                 int i = tabbedPane.indexOfTab(name);
@@ -1217,7 +1289,7 @@ public class DockWindow extends javax.swing.JDialog
                 }
             }
         }.raiseStartingAt(this);
-
+        
         setVisible(true);
     }
 
@@ -1227,7 +1299,7 @@ public class DockWindow extends javax.swing.JDialog
             return;
 
         // TODO: don't update the root title if the aux title changes
-
+        
         mTitleName = title;
         mTitleWidth = GUI.stringLength(TitleFont, title);
         mMinTitleWidth = mTitleWidth + 4;
@@ -1251,21 +1323,21 @@ public class DockWindow extends javax.swing.JDialog
         }
         repaint();
     }
-
+    
     public String getTitle() {
         return mTitleName;
     }
-
+    
     /** Return the name to use in a menu action to refer to this window: defaults to title */
     public String getMenuName() {
         return mMenuName == null ? getTitle() : mMenuName;
     }
-
+    
     /** Set a separate menu name: if null, will default to title */
     public void setMenuName(String s) {
         mMenuName = s;
     }
-
+    
     private int minUnrolledHeight(int height) {
         int absoluteMin =
             TitleHeight
@@ -1274,7 +1346,7 @@ public class DockWindow extends javax.swing.JDialog
 
         if (absoluteMin < TitleHeight + ResizeCornerSize)
             absoluteMin = TitleHeight + ResizeCornerSize;
-
+        
         if (height < absoluteMin)
             return absoluteMin;
         else
@@ -1284,33 +1356,33 @@ public class DockWindow extends javax.swing.JDialog
     private int minUnrolledWidth(int requestedWidth)
     {
         final DockWindow stackTop = getStackTop();
-
+        
         int absoluteMin = getBorderSize().width + mMinContentSize.width;
 
         if (absoluteMin < mMinTitleWidth)
             absoluteMin = mMinTitleWidth;
-
+        
         if (stackTop.isStackOwner && stackTop != this) {
             if (absoluteMin < stackTop.getWidth())
                 absoluteMin = stackTop.getWidth();
         }
-
+        
         if (requestedWidth < absoluteMin)
             return absoluteMin;
         else
             return requestedWidth;
     }
-
+    
     public void setBounds(int x, int y, int width, int height)
     {
         if (DEBUG.DOCK) out("setBounds " + x+","+y + " " + width+"x"+height);
 
         if (DEBUG.Enabled && width == 0 && mTitleName != null) // mTitle only null during <init>
             Util.printStackTrace(this + " zero width setBounds " + x+","+y + " " + width+"x"+height);
-
+        
         /*
           // no way to erase minimum brushed metal window size...
-
+          
         apple.awt.CWindow peer = (apple.awt.CWindow) getPeer();
         if (peer != null) {
             invalidate();
@@ -1339,7 +1411,7 @@ public class DockWindow extends javax.swing.JDialog
                 width = (int) (height * mAspect);
         }
         */
-
+        
 
         int curHeight = getHeight();
 
@@ -1357,15 +1429,15 @@ public class DockWindow extends javax.swing.JDialog
                 super.setBounds(x, y, width, height);
                 updateAllChildLocations(height, getY());
             }
-
+        
         } else
             super.setBounds(x, y, width, height);
 
         if (!isMacAqua) {
-            // needed for Java Metal L&F
-            validate();
+            // needed for Java Metal L&F                
+            validate(); 
         }
-
+        
 
 
     }
@@ -1377,7 +1449,7 @@ public class DockWindow extends javax.swing.JDialog
             && !atScreenBottom()
             && !isStacked();
     }
-
+    
 
     private int minRolledHeight() {
         if (wantsSidewaysRollup())
@@ -1394,12 +1466,12 @@ public class DockWindow extends javax.swing.JDialog
         else
             return minUnrolledWidth(getWidth());
     }
-
+        
     private int XminRolledWidth()
     {
         if (mDockRegion != null)
             return mDockRegion.getRolledWidth(this);
-
+            
         if (isStacked() == false) {
             if (wantsSidewaysRollup()) {
                 return CollapsedHeight;
@@ -1410,7 +1482,7 @@ public class DockWindow extends javax.swing.JDialog
                 return getWidth() > 180 ? 180 : getWidth();
             }
         }
-
+        
         // choose the widest of either parent or child's stacked {unrolled,rolled} size
 
         // TODO: need more work: if parent or child rolled-up, their width may even have
@@ -1419,7 +1491,7 @@ public class DockWindow extends javax.swing.JDialog
 
         //final int parentWidth = mParent == null ? 0 : mParent.getStackedWidth();
         //final int childWidth = mChild == null ? 0 : mChild.getStackedWidth();
-
+        
         final int parentWidth = mParent == null ? Integer.MAX_VALUE : mParent.getWidth();
         final int childWidth = mChild == null ? Integer.MAX_VALUE : mChild.getWidth();
 
@@ -1430,16 +1502,16 @@ public class DockWindow extends javax.swing.JDialog
     private int XgetRolledWidth() {
         if (mParent == null && mChild == null)
             return 180;
-
+        
         // choose the widest of either parent or child
 
         final int parentWidth = mParent == null ? 0 : mParent.getWidth();
         final int childWidth = mChild == null ? 0 : mChild.getWidth();
-
+        
         return parentWidth > childWidth ? parentWidth : childWidth;
     }
-
-
+    
+    
 
     /** return width in stack: the smaller of current rolled width or unrolled width */
     private int getStackedWidth() {
@@ -1463,24 +1535,24 @@ public class DockWindow extends javax.swing.JDialog
         //if (DEBUG.Enabled) out("atScreenTop: y=" + getY() + " <= " + GUI.GInsets.top);
         return getY() <= GUI.GInsets.top;
     }
-
+    
     public boolean atScreenLeft() {
         return getX() == 0;
         //return getX() <= GUI.GInsets.left;
     }
-
+    
     public boolean atScreenRight() {
         return (getX() + getWidth()) == GUI.GScreenWidth;
         /*
         // will need to align to the PARENT, not the screen, if to support this.
-
+        
         if (GUI.GScreenWidth == 0)
             return false;
         else
             return getX() > GUI.GScreenWidth / 2;
         */
     }
-
+    
     public boolean atScreenBottom() {
         int bottomEdge = getY() + getHeight();
 
@@ -1492,7 +1564,7 @@ public class DockWindow extends javax.swing.JDialog
 
             return bottomEdge <= GUI.GScreenHeight
                 && bottomEdge >= GUI.GScreenHeight - GUI.GInsets.bottom;
-
+                
         } else {
             return bottomEdge == GUI.GScreenHeight;
         }
@@ -1508,11 +1580,11 @@ public class DockWindow extends javax.swing.JDialog
     public void setRolledUp(boolean rollup) {
         setRolledUp(rollup, isDisplayable());
     }
-
+    
     public void setRolledUp(boolean makeRolledUp, boolean animate) {
         setRolledUp(makeRolledUp, animate, false);
     }
-
+    
     private void setRolledUp(boolean makeRolledUp, boolean animate, boolean propertyChangeEvent) {
         if (DEBUG.DOCK) out("setRolledUp " + makeRolledUp + " animate=" + animate + " propertyChangeEvent="+propertyChangeEvent);
         if (isRolledUp == makeRolledUp || isToolbar)
@@ -1535,7 +1607,7 @@ public class DockWindow extends javax.swing.JDialog
         isRolledUp = makeRolledUp;
 
         // updateWindowShadow();
-
+        
         if (makeRolledUp) {
 
             // make us rolled up
@@ -1562,7 +1634,7 @@ public class DockWindow extends javax.swing.JDialog
             int rolledHeight = minRolledHeight();
             int rolledX = getX();
             int rolledY = getY();
-
+            
             if (atScreenBottom() && mParent == null  && !atScreenTop()// don't roll-down in stacks for now
                 //|| (isDocked() && mDockRegion.mGravity == DockRegion.BOTTOM)
                 ) {
@@ -1571,12 +1643,12 @@ public class DockWindow extends javax.swing.JDialog
                 mStickingRight = true;
                 rolledX = GUI.GScreenWidth - rolledWidth;
             }
-
+            
             if (animate)
                 setShapeAnimated(rolledX, rolledY, rolledWidth, rolledHeight);
             else
                 setBounds(rolledX, rolledY, rolledWidth, rolledHeight);
-
+            
             getContentPanel().setVisible(false);
 
             if (wantsSidewaysRollup())
@@ -1589,24 +1661,24 @@ public class DockWindow extends javax.swing.JDialog
 
             if (animate) // only during normal use: not during init
                 GUI.postEvent(new ComponentEvent(this, ComponentEvent.COMPONENT_HIDDEN) {} );
-
-
+                                                                        
+            
         } else {
 
             if (SidewaysRollup) // ensure vertical cleared
                 mContentPane.setVerticalTitle(false);
-
+            
             mStickingRight = false;
 
             Rectangle newShape = new Rectangle(mSavedShape);
-
+            
             if (atScreenBottom() && mParent == null
                 //|| (isDocked() && mDockRegion.mGravity == DockRegion.BOTTOM)
                 ) {
 
                 newShape.x = getX();
                 newShape.y = getY() + getHeight() - mSavedShape.height;
-
+                
             } else if (atScreenRight()) {
 
                 newShape.x = GUI.GScreenWidth - mSavedShape.width;
@@ -1618,18 +1690,18 @@ public class DockWindow extends javax.swing.JDialog
                 newShape.x = getX();
                 newShape.y = getY();
             }
-
+            
             keepOnScreen(newShape);
 
             setShapeAnimated(newShape.x, newShape.y, newShape.width, newShape.height);
-
+                
             getContentPanel().setVisible(true);
             mSavedShape = null;
 
             // pretend like we've been shown so that VueMenuBar.WindowDisplayAction
             // will know we're visible again.
             GUI.postEvent(new ComponentEvent(this, ComponentEvent.COMPONENT_SHOWN));
-
+            
         }
 
         mContentPane.mTitle.showAsOpen(!isRolledUp);
@@ -1638,14 +1710,14 @@ public class DockWindow extends javax.swing.JDialog
             mResizeCorner.setVisible(!isRolledUp);
             mResizeCorner2.setVisible(!isRolledUp);
         }
-
+            
         updateWindowShadow();
 
         if (mDockPrev != null)
             mDockPrev.repaintTitle();
         if (mDockNext != null)
             mDockNext.repaintTitle();
-
+        
 
         /*
         if (mParent != null)
@@ -1655,7 +1727,7 @@ public class DockWindow extends javax.swing.JDialog
         */
 
         /*
-
+        
         if (mParent != null && mParent.isRolledUp())
             mParent.setSizeAnimated(getWidth(), mParent.getHeight());
         if (mChild != null && mChild.isRolledUp())
@@ -1676,7 +1748,7 @@ public class DockWindow extends javax.swing.JDialog
                 System.out.println("Interpolate " + name + " from " + start + " to " + end
                                    + " in " + steps + " steps: "
                                    + "range=" + delta + " inc=" + increment);
-
+            
         }
         public Interpolator(int steps, int start, int end) {
             this(steps, start, end, "");
@@ -1705,14 +1777,14 @@ public class DockWindow extends javax.swing.JDialog
         // christ: JVM 1.5, on an old WIN2K box, animates a resize easily
         // 10 times faster than the mac
         final int steps = isWindows ? 16 : 4;
-
+        
         final boolean moved = (x != getX() || y != getY());
         final boolean resized = (width != getWidth() || height != getHeight());
-
+        
         Interpolator ix, iy, iw, ih;
 
         ix = iy = iw = ih = null;
-
+        
         if (moved) {
             ix = new Interpolator(steps, getX(), x, "x");
             iy = new Interpolator(steps, getY(), y, "y");
@@ -1741,7 +1813,7 @@ public class DockWindow extends javax.swing.JDialog
                     public void run() {
                         mAnimatingReshape = false;
                         if (DEBUG.DOCK) out("setShapeAnimated: AWT eventQueue cleared, animating stopped.");
-
+                        
                         // You might thinking calling the final setBounds in here would
                         // be cleaner than the manual invalidate/validate but what you get
                         // is a much messier result on screen.
@@ -1752,26 +1824,26 @@ public class DockWindow extends javax.swing.JDialog
                         }
                     }
                 });
-
+            
             //setIgnoreRepaint(false); // can apparently never recover from this on Mac
             //repaint();
         }
 
         if (DEBUG.DOCK) out("setShapeAnimated: returning");
-
+        
     }
-
+    
     public boolean isRolledUp() {
         return isRolledUp;
     }
-
+    
     private void dragToConstrained(int x, int y, boolean relaxed)
     {
         final Point p;
 
         /*
            // can't drag up into top dock region if we do this.
-
+          
         if (y < GUI.GInsets.top) {
             // HARD CONSTRAINT: never above the top screen inset.
             // don't allow us above an OS menu bar on top of the screen,
@@ -1792,27 +1864,27 @@ public class DockWindow extends javax.swing.JDialog
         else if (p.y > GUI.GScreenHeight - CollapsedHeightVisible)
             p.y = GUI.GScreenHeight - CollapsedHeightVisible;
 
-
+        
         if (DEBUG.DOCK) out("dragToConstrained " + x + "," + y + ((p.x == x && p.y == y) ? "" : " = " + Util.out(p)));
-
+        
         dragSetLocation(p.x, p.y);
     }
-
+    
     private void superSetLocation(int x, int y)
     {
         if (DEBUG.DOCK && DEBUG.META) out("superSetLocation " + x + "," + y);
         super.setLocation(x, y);
         mStickingRight = atScreenRight();
     }
-
+    
     public void dragSetLocation(int x, int y)
     {
         if (DEBUG.DOCK && DEBUG.META) out("dragSetLocation " + x + "," + y);
 
         superSetLocation(x, y);
-
+        
         if (isMac == false && mChild != null) {
-
+            
             // Manually move all of our children (and their children).  This works
             // beauftifly smoothly on PC, and gets terribly behind on Mac unless we set
             // up the native OSX to handle it.
@@ -1820,7 +1892,7 @@ public class DockWindow extends javax.swing.JDialog
             updateAllChildLocations();
         }
     }
-
+    
 
     public void setLocation(int x, int y)
     {
@@ -1830,14 +1902,14 @@ public class DockWindow extends javax.swing.JDialog
         updateAllChildLocations();
     }
 
-
+    
     private static class Edge {
         static final int LIP_LEFT = -1;
         static final int LIP_RIGHT = 1;
         static final int LIP_UP = -1;
         static final int LIP_DOWN = 1;
 
-
+        
         final int axis; // x or y value
         final int min;  // if axis is x, min y, if axis is y, min x
         final int max;  // if axis is x, max y, if axis is y, max x
@@ -1856,7 +1928,7 @@ public class DockWindow extends javax.swing.JDialog
                 this.min = oppositeAxisEnd;
                 this.max = oppositeAxisStart;
             }
-            isLip = max - min < 2;
+            isLip = max - min < 2;            
         }
         Edge(int axis) {
             this(axis, Integer.MIN_VALUE, Integer.MAX_VALUE);
@@ -1864,7 +1936,7 @@ public class DockWindow extends javax.swing.JDialog
 
         boolean inRangeOf(Edge e) {
             if (false && isLip)
-                return max > e.min && e.max > min && e.min >= min;
+                return max > e.min && e.max > min && e.min >= min; 
             else
                 return max > e.min && e.max > min;
         }
@@ -1886,14 +1958,14 @@ public class DockWindow extends javax.swing.JDialog
             else
                 return s + " len " + (max-min) + ":" + min + "-" + max + "]";
         }
-
+        
     }
 
     private static class EdgeBox {
-
+        
         public Edge top, left, right, bottom;
         public final int width, height;
-
+        
         public EdgeBox(final Component given) {
             if (given == null) {
                 top = left = right = bottom = null;
@@ -1912,7 +1984,7 @@ public class DockWindow extends javax.swing.JDialog
 
                 if (c instanceof Window == false)
                     SwingUtilities.convertPointToScreen(loc, c);
-
+                    
                 int TOP = loc.y;
                 int LEFT = loc.x;
                 int RIGHT = LEFT + c.getWidth();
@@ -1925,7 +1997,7 @@ public class DockWindow extends javax.swing.JDialog
 
                 this.width = RIGHT - LEFT;
                 this.height = BOTTOM - TOP;
-
+                
                 if (DEBUG.EDGE)
                     System.out.println(this + " for " + GUI.name(c)
                                        + " parent=" + GUI.name(c.getParent())
@@ -1945,11 +2017,11 @@ public class DockWindow extends javax.swing.JDialog
             this.bottom =   new Edge(BOTTOM, LEFT, RIGHT);
             this.left =     new Edge(LEFT,   TOP, BOTTOM);
             this.right =    new Edge(RIGHT,  TOP, BOTTOM);
-
+            
             this.width = RIGHT - LEFT;
             this.height = BOTTOM - TOP;
         }
-
+        
 
         public String toString() {
             return "EdgeBox[top" + top + " left" + left + " bottom" + bottom + " right" + right + "]";
@@ -1971,7 +2043,7 @@ public class DockWindow extends javax.swing.JDialog
                 array[length++] = e;
             }
         }
-
+        
         void add(int i) {
             add(new Edge(i));
         }
@@ -1984,7 +2056,7 @@ public class DockWindow extends javax.swing.JDialog
     private static void addEdges(EdgeBox b, DockWindow dw) {
 
         //if (DEBUG.DOCK) System.out.println("addEdges " + e);
-
+        
         StickyLeftEdges.add(b.right);
         StickyRightEdges.add(b.left);
 
@@ -1995,12 +2067,12 @@ public class DockWindow extends javax.swing.JDialog
         // away from if we were stacked, as it appears as if its bottom
         // edge is in the "middle", which is why we check mMouseWasPressed
         // on the child.
-
+        
         // TODO-FYI: currently double impl: dw may always be null: see addEdges(DockWindow)
 
         if (dw == null || dw.mChild == null || dw.getWidth() != dw.mChild.getWidth() || dw.mChild.mMouseWasPressed)
             StickyTopEdges.add(b.bottom);
-
+        
         if (dw == null || dw.mParent == null || dw.getWidth() != dw.mParent.getWidth())
             StickyBottomEdges.add(b.top);
 
@@ -2025,19 +2097,19 @@ public class DockWindow extends javax.swing.JDialog
                 b.right.addLip(Edge.LIP_RIGHT);
             }
         }
-
+        
     }
-
+    
     private static void addEdges(Component c) {
         if (c != null)
             addEdges(new EdgeBox(c), null);
     }
-
+    
     private static void addEdges(DockWindow dw) {
         if (false) {
 
             // get rid of all inter-stack edges, but keep inter-stack outside lips
-
+            
             addEdges(new EdgeBox(dw), dw);
 
         } else {
@@ -2045,19 +2117,19 @@ public class DockWindow extends javax.swing.JDialog
             // get rid of all inter-stack edges, including outside lips
 
             EdgeBox edges = new EdgeBox(dw);
-
+            
             if (dw.mParent != null)
                 edges.top = null;
-
+            
             // don't add our bottom if we have a child, unless it's about to be the mover
 
             // Also, would nice if dragging a wide top window with a narrow
             // child window (e.g., current tester Font on top of tester Link),
             // that the wider Font also adds it's bottom for sticking.
-
+            
             if (dw.mChild != null && !dw.mChild.mMouseWasPressed)
                 edges.bottom = null;
-
+            
             addEdges(edges, null);
         }
     }
@@ -2072,12 +2144,13 @@ public class DockWindow extends javax.swing.JDialog
         }
     }
     */
-
-    static void raiseAll() {
+    
+    public static void raiseAll() {
+        if (DEBUG.DOCK||DEBUG.WORK) Log.debug("raiseAll");
         for (DockWindow dw : AllWindows)
             dw.toFront();
     }
-
+        
     private static void refreshScreenInfo(DockWindow mover)
     {
         GUI.refreshGraphicsInfo();
@@ -2086,7 +2159,7 @@ public class DockWindow extends javax.swing.JDialog
         StickyRightEdges.reset();
         StickyTopEdges.reset();
         StickyBottomEdges.reset();
-
+        
         if (GUI.GInsets.left <= 4) {
             StickyLeftEdges.add(0);
         } else {
@@ -2102,7 +2175,7 @@ public class DockWindow extends javax.swing.JDialog
         // todo: add bottom edge of other displays in case resolution
         // is different: should really only take effect if on that
         // screen tho, not across entire virtual desktop.
-
+        
         //if (GUI.GInsets.bottom > 0)
         //    StickyBottomEdges.add(GUI.GScreenHeight - GUI.GInsets.bottom);
 
@@ -2116,14 +2189,14 @@ public class DockWindow extends javax.swing.JDialog
             TopDock.moveToY(GUI.GInsets.top);
             BottomDock.moveToY(GUI.GScreenHeight - GUI.GInsets.bottom);
         }
-
+        
         if (mover == null)
             return;
-
+        
         addEdges(VUE.getMainWindow());
         //addEdges(VUE.getActiveViewer());
 
-
+        
         for (DockWindow dw : AllWindows) {
             //if (dw == mover || !dw.isVisible() || dw.inSameStack(mover))
             if (dw == mover || !dw.isVisible() || mover.hasDescendant(dw))
@@ -2131,7 +2204,7 @@ public class DockWindow extends javax.swing.JDialog
 
             addEdges(dw);
         }
-
+        
     }
 
     private DockWindow getStackTop() {
@@ -2140,7 +2213,7 @@ public class DockWindow extends javax.swing.JDialog
         else
             return mParent.getStackTop();
     }
-
+    
     private DockWindow getStackBottom() {
         if (mChild == null)
             return this;
@@ -2155,11 +2228,11 @@ public class DockWindow extends javax.swing.JDialog
     public boolean isStacked() {
         return mChild != null || mParent != null;
     }
-
+    
     public boolean isDocked() {
         return mDockRegion != null;
     }
-
+    
     public boolean inSameStack(DockWindow dw) {
         DockWindow ourTop = getStackTop();
         return ourTop != null && ourTop == dw.getStackTop();
@@ -2174,7 +2247,7 @@ public class DockWindow extends javax.swing.JDialog
         } else
             return mChild.hasDescendant(child);
     }
-
+    
 
     /** @return total stack height BELOW us, or just our height if no children under us */
     public int getStackHeight() {
@@ -2183,7 +2256,7 @@ public class DockWindow extends javax.swing.JDialog
         else
             return getVisibleHeight() + mChild.getStackHeight();
     }
-
+    
     private static final int StickyDistance = 15;
 
     /** columns sticky on their right side (window left edges stick to them) */
@@ -2202,13 +2275,13 @@ public class DockWindow extends javax.swing.JDialog
 
         if (mMovingStackHeight > 0)
             movingBounds.height = mMovingStackHeight;
-
+        
         // out("movingBounds " + Util.out(movingBounds));
-
+            
         // moving bounds is now the would-be bounds of what's
         // moving (a DockWindow or a DockWindow stack) if we
         // didn't constrain the movement at all.
-
+        
         EdgeBox movingBox = new EdgeBox(movingBounds);
 
         return getConstrainedXY(x, y, movingBox);
@@ -2220,7 +2293,7 @@ public class DockWindow extends javax.swing.JDialog
                                               EdgeHit result)
     {
         boolean hitResult = false;
-
+            
         for (int i = 0; i < stickyEdges.length; i++) {
 
             hitResult |= mergeWithResult(stickyEdges.array[i], movingEdge, result);
@@ -2235,7 +2308,7 @@ public class DockWindow extends javax.swing.JDialog
 
             int rawDelta = edge.axis - movingEdge.axis;
             int delta = Math.abs(rawDelta);
-
+            
             if (delta < result.delta) {
                 result.rawDelta = rawDelta;
                 result.delta = delta;
@@ -2244,7 +2317,7 @@ public class DockWindow extends javax.swing.JDialog
             }
             */
         }
-
+        
         return hitResult;
     }
 
@@ -2259,14 +2332,14 @@ public class DockWindow extends javax.swing.JDialog
 
         int rawDelta = edge.axis - movingEdge.axis;
         int delta = Math.abs(rawDelta);
-
+            
         if (delta < result.delta) {
             result.rawDelta = rawDelta;
             result.delta = delta;
             result.edge = edge;
             return true;
         }
-
+        
         return false;
     }
 
@@ -2299,11 +2372,11 @@ public class DockWindow extends javax.swing.JDialog
         final EdgeHit Yresult = new EdgeHit();
 
         // COMPUTE X
-
+        
         computeClosestEdge(movingBox.left, StickyLeftEdges, Xresult);
         boolean matchedRight =
             computeClosestEdge(movingBox.right, StickyRightEdges, Xresult);
-
+        
         if (DEBUG.EDGE) {
             Edge movingEdge = matchedRight ? movingBox.right : movingBox.left;
             out("X " + movingEdge + " sees " + (matchedRight?"RIGHT":"LEFT") + Xresult);
@@ -2321,7 +2394,7 @@ public class DockWindow extends javax.swing.JDialog
         }
 
         // ADJUST RESULTS FOR LIPS
-
+        
         if (Xresult.delta < StickyDistance) {
             if (matchedRight)
                 x = Xresult.edge.axis - movingBox.width;
@@ -2346,7 +2419,7 @@ public class DockWindow extends javax.swing.JDialog
     }
 
     /*
-
+      
     private int getConstrainedX(int x, EdgeBox movingBox)
     {
         final EdgeHit result = new EdgeHit();
@@ -2354,7 +2427,7 @@ public class DockWindow extends javax.swing.JDialog
         computeClosestEdge(movingBox.left, StickyLeftEdges, result);
         boolean matchedRight =
             computeClosestEdge(movingBox.right, StickyRightEdges, result);
-
+        
         if (DEBUG.DOCK) {
             Edge movingEdge = matchedRight ? movingBox.right : movingBox.left;
             out("X " + movingEdge + " sees " + (matchedRight?"RIGHT":"LEFT") + result);
@@ -2413,9 +2486,9 @@ public class DockWindow extends javax.swing.JDialog
         }
     }
     */
-
-
-
+    
+    
+    
     /*
     public void setLocationAnimated(int x, int y)
     {
@@ -2425,20 +2498,20 @@ public class DockWindow extends javax.swing.JDialog
 
         for (int i = 1; i < steps; i++)
             placeWindow(ix.next(), iy.next());
-
+        
         placeWindow(x, y);
     }
     */
-
+    
 
     private DockWindow getNearWindow(int localMouseX, int localMouseY) {
         int winX = getX();
         int winY = getY();
 
-        // convert from window to screen mouse coords
+        // convert from window to screen mouse coords        
         int mouseX = localMouseX + winX;
         int mouseY = localMouseY + winY;
-
+        
         for (DockWindow dw : AllWindows) {
 
             if (!dw.isVisible() || dw == this)
@@ -2461,7 +2534,7 @@ public class DockWindow extends javax.swing.JDialog
             if (winY == bottom &&
                 ((winX >= left && winX < right) ||
                  (winRight > left && winRight < right)))
-
+                
                 return dw;
 
 
@@ -2469,11 +2542,11 @@ public class DockWindow extends javax.swing.JDialog
              * This is too agressive: from now only, ONLY attach if the window is
              * already just below the parent.
              *
-
+             
             Rectangle bounds = dw.getBounds();
-
+            
             if (bounds.contains(mouseX, mouseY)) {
-
+                
                 if (hasDescendant(dw)) {
                     // This can happen if stickiness has moved as stack up,
                     // and the mouse is now over a child of the mover.
@@ -2501,7 +2574,7 @@ public class DockWindow extends javax.swing.JDialog
         return e.getY() < CollapsedHeightVisible
             || (SidewaysRollup && mContentPane.mTitle.contains(e.getX(), e.getY()));
     }
-
+    
     /** interface FocusManager.MouseInterceptor impl */
     public boolean interceptMousePress(MouseEvent e) {
 
@@ -2523,10 +2596,47 @@ public class DockWindow extends javax.swing.JDialog
 
         // It's okay to do this in java 1.4, as we can't be alwaysOnTop, which
         // is why this is a problem.
+        
+        // 2008-04-21 SMF: On Mac Leopard apparently windows are no longer automatically
+        // raised when they get focus / are click on, so we also always do it in that case.
 
-        if (MacWindowShadowEnabled && (!GUI.UseAlwaysOnTop || !isMac))
+        // 2008-04-21 SMF: We always auto-raise on any mouse click when on Windows now
+        // too.  Toolbars must not be focusable or they can steal key events and the
+        // user doesn't know where the input is going.  This is why all toolbars are
+        // setFocusableWindowState(false).  This creates problems elsewhere tho: windows
+        // won't always auto-raise when clicked on if they don't have focusable window
+        // state.  E.g., the Format toolbar raises just fine when when clicked on and not
+        // focusable, but for some reason, the FloatingZoomPanel does not.
+
+        // 2008-04-21 SMF: Oh, and now that all toolbars are not focusable, we want to
+        // do this for all mac platforms, not just Leopard, tho note that this code is
+        // MUCH more important for Leopard than it is for Tiger.
+
+        if (!Util.isUnixPlatform())
             raiseStack();
 
+//         if (Util.isMacLeopard()
+//             || Util.isWindowsPlatform()
+//             || (MacWindowShadowEnabled && (!GUI.UseAlwaysOnTop || !isMac)))
+//             {
+//                 raiseStack();
+//             }
+
+        if (AllWindows.getLast() != this) {
+            // Maintain stacking order: last one in list will be last to show/toFront,
+            // so will be on top.
+            
+            // TODO: safer: simply added an index we can increment every time for
+            // the top window based on a global static count, then sort
+            // based on the index for traversals that need to pay addention to order.
+            
+            synchronized (AllWindows) {
+                AllWindows.remove(this);
+                AllWindows.addLast(this);
+            }
+
+        }
+                
         return false;
     }
 
@@ -2536,17 +2646,11 @@ public class DockWindow extends javax.swing.JDialog
         raiseChildren();
     }
 
-    public void toFront() {
-        //tufts.Util.printClassTrace(DockWindow.class, "RAISING");
-        if (DEBUG.DOCK) out("toFront");
-        super.toFront();
-    }
-
-
+    
     public void mousePressed(MouseEvent e)
     {
         mMouseWasPressed = true;
-
+        
         if (DEBUG.MOUSE && DEBUG.META) out(e);
 
         if (e.getSource().getClass() == ResizeCorner.class) {
@@ -2563,7 +2667,7 @@ public class DockWindow extends javax.swing.JDialog
         mWasStickingRight = mStickingRight;
 
         if (DEBUG.MOUSE) out("mDragStartScreen=" + mDragStartScreen + " mDragStart=" + mDragStart);
-
+        
         if (false && isMac) { // don't shadow child
             // better: don't raise us up if we're rolling up, but then would
             // have to do this on mouseReleased
@@ -2574,7 +2678,7 @@ public class DockWindow extends javax.swing.JDialog
         // update screen size, insets, etc for window dragging constraints.
         refreshScreenInfo(this);
     }
-
+    
     public void mouseDragged(MouseEvent e)
     {
         if (mDragStart == null) {
@@ -2584,9 +2688,9 @@ public class DockWindow extends javax.swing.JDialog
 
         if (e.getSource().getClass() == ResizeCorner.class)
             e = SwingUtilities.convertMouseEvent(e.getComponent(), e, this);
-
+        
         mMouseWasDragged = true;
-
+        
         if (mDragSizeStart != null) {
             dragResizeWindow(e);
         } else {
@@ -2603,11 +2707,11 @@ public class DockWindow extends javax.swing.JDialog
 
         newWidth = minUnrolledWidth(newWidth);
         newHeight = minUnrolledHeight(newHeight);
-
+            
         setSize(newWidth, newHeight);
 
     }
-
+    
     private void dragMoveWindow(MouseEvent e)
     {
         if (mWindowDragUnderway == false) {
@@ -2617,7 +2721,7 @@ public class DockWindow extends javax.swing.JDialog
 
         int x = e.getX() + getX() - mDragStart.x;
         int y = e.getY() + getY() - mDragStart.y;
-
+        
         boolean relaxed = e.isShiftDown();
 
         dragToConstrained(x, y, relaxed);
@@ -2629,18 +2733,18 @@ public class DockWindow extends javax.swing.JDialog
         //---------------------------------
         // We're just starting the drag
         //---------------------------------
-
+            
         Point screen = e.getPoint();
         screen.translate(getX(), getY());
-
+            
         int dx = screen.x - mDragStartScreen.x;
         int dy = screen.y - mDragStartScreen.y;
-
+            
         if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
             if (DEBUG.MOUSE) out("delaying drag start with dx="+dx + " dy="+dy + " screen=" + screen);
             return false;
         }
-
+            
         if (isMac) {
             // Make sure we're all on top, otherwise can get wierd effects such as free-floating
             // DockWindow's "slicing" in between our stack windows if it happens to have a MacOSX
@@ -2654,7 +2758,7 @@ public class DockWindow extends javax.swing.JDialog
             // We need to raise them again here, because if some OTHER DockWindow was MacOSX
             // "activated" (clicked on), it's z-order may just happen to wind up smack in the
             // middle of our stack, which will show up as slicing thru our stack during the drag.
-
+                
             raiseStack();
         }
 
@@ -2680,7 +2784,7 @@ public class DockWindow extends javax.swing.JDialog
                 // window drag begins: attach (via OSX) all children to the parent
                 // being dragged if we're on the mac
                 attachChildrenForMoving(this);
-
+                    
                 if (e.isAltDown())
                     attachSiblingsForMoving();
 
@@ -2689,19 +2793,19 @@ public class DockWindow extends javax.swing.JDialog
 
         return true;
     }
-
-
+    
+    
     // TODO: okay, if we get a damn click-count in here and as long as drag start was still
     // delayed, do mouseClicked roll-up handling in here instead of mouseClicked -- too easy
     // to miss clicks when mouse is moving too fast (prob mainly a trackpad problem)
-
+    
     public void mouseReleased(MouseEvent e)
     {
         if (DEBUG.MOUSE && DEBUG.META) out(e);
 
         if (e.getSource().getClass() == ResizeCorner.class) // should never be needed, but just in case
             e = SwingUtilities.convertMouseEvent(mResizeCorner, e, this);
-
+        
         if (mWindowDragUnderway)
             dropWindow(e);
         else if (!isToolbar)
@@ -2715,15 +2819,15 @@ public class DockWindow extends javax.swing.JDialog
 
         if (mWasStickingRight != mStickingRight)
             updateAllChildLocations();
-
+        
     }
-
+    
     private void handleMouseClicked(MouseEvent e) {
         if (DEBUG.MOUSE && DEBUG.META) out(e);
-
+        
         if (e.getSource().getClass() == ResizeCorner.class)
             return;
-
+         
         //On windows the click count kept growing if i I didn't move the mouse slightly between clicks so I put
         //an extra test in here for clicks > 2 % 2 to test for additional double clicks seems to work
         //well on windows i'll double check with mac.
@@ -2731,7 +2835,7 @@ public class DockWindow extends javax.swing.JDialog
             // clickCount != 0 prevents action with long mouse down
             // clickCount != 2 allows double-click not undo what just happened on single click,
             // but rapid clicking for testing (clickCount keeps climbing) is allowed.
-
+        	
             setRolledUp(!isRolledUp());
 
         } else {
@@ -2741,7 +2845,7 @@ public class DockWindow extends javax.swing.JDialog
             // So this can always work, we enforce at least a 1 pixel empty bottom
             // border around the content pane for any tool component that has no
             // internal border of it's own (such as the current MapPanner).
-
+        
             if (e.getY() > getHeight() - 5 && !isRolledUp() /*&& atScreenBottom() */ ) {
                 setRolledUp(true);
             }
@@ -2764,7 +2868,7 @@ public class DockWindow extends javax.swing.JDialog
 
         int myTop = getY();
         int myLeft = getX();
-
+        
         while (i.hasNext()) {
             DockWindow dw = (DockWindow) i.next();
 
@@ -2782,8 +2886,8 @@ public class DockWindow extends javax.swing.JDialog
         return closest;
     }
     */
-
-
+    
+    
 
     /** @param MouseEvent should be the MOUSE_RELEASED event where the window was dropped*/
     private void dropWindow(MouseEvent e)
@@ -2793,12 +2897,12 @@ public class DockWindow extends javax.swing.JDialog
         //if (isMacAqua) MacOSX.setAlpha(this, 1f);
 
         GUI.refreshGraphicsInfo();
-
+        
         DockWindow near;
         DockRegion dockRegion = DockRegion.findRegion(this);
 
         detachSiblingsForMoving();
-
+            
         if (dockRegion != null) {
             near = null;
         } else if (e.isShiftDown()) { // don't allow attachment if relaxed movement
@@ -2808,11 +2912,11 @@ public class DockWindow extends javax.swing.JDialog
 
             // don't attach a child below something that's already
             // at the bottom of the screen!
-
+            
             if (near != null && near.atScreenBottom())
                 near = null;
         }
-
+        
         if (DEBUG.DOCK) out("dropWindow: near " + near + ", region " + dockRegion);
 
         // if (isMac) detachChildrenForMoving(this);
@@ -2824,7 +2928,7 @@ public class DockWindow extends javax.swing.JDialog
             } else {
                 near.setChild(this);
             }
-
+                
         } else if (mParent != null) {
 
             // If we had a parent, detach from it.
@@ -2843,7 +2947,7 @@ public class DockWindow extends javax.swing.JDialog
         DockRegion.assignAllMembers();
 
         if (isMac) {
-
+                
             // do this as late as possible or sometimes the setLocation from updateChild is
             // actually *failing* (no error or exception) for the child of a window that was
             // just reparented.  Must be related to using Mac NSWindow code w/java.
@@ -2861,16 +2965,16 @@ public class DockWindow extends javax.swing.JDialog
             // setLocation just for good measure? always or at end?  oh, i think at end is
             // where it's happening.  Or hey, maybe *that* setLocation is screwing us up,
             // because java thinks it needs to be moved when it really doesn't?
-
+                
             detachChildrenForMoving(this);
-
+            
             // This is CRUCIAL to restore z-ordering based on proper java window parentage
             raiseStack();
         }
 
         updateWindowShadow();
         repaintTitle();
-
+        
     }
 
     void assignDockRegion(DockRegion region) {
@@ -2882,7 +2986,7 @@ public class DockWindow extends javax.swing.JDialog
             // just the title bar showing (we dragged the visible part off
             // the bottom of the screen), auto roll-up the DockWindow
             // so when it's clicked on again it will roll upwards.
-
+            
             if (region == BottomDock && !isRolledUp() && getY() + getHeight() > GUI.GScreenHeight)
                 setRolledUp(true);
         }
@@ -2915,9 +3019,9 @@ public class DockWindow extends javax.swing.JDialog
         // We're trying this to make sure any rollover's in the DockWindow will always work.
         requestFocus();
     }
-
+    
     public void mouseExited(MouseEvent e) {}
-
+    
 
     private void updateWindowShadow() {
         if (isMac) {
@@ -2925,8 +3029,8 @@ public class DockWindow extends javax.swing.JDialog
             if (!MacWindowShadowEnabled) {
                 setWindowShadow(false);
                 return;
-            }
-
+            } 
+            
             if (DEBUG.DOCK) out("updateWindowShadow: docked=" + isDocked() + " rolled=" + isRolledUp());
 
             boolean hideShadow =
@@ -2974,7 +3078,7 @@ public class DockWindow extends javax.swing.JDialog
         getStackBottom().setChild(newChild, true);
         return this;
     }
-
+    
 
     private void setChild(DockWindow newChild, boolean updateChildren)
     {
@@ -3022,12 +3126,12 @@ public class DockWindow extends javax.swing.JDialog
                 Util.printStackTrace("is already descendent of " + this + " " + newChild);
                 return;
             }
-
+            
             mChild = newChild;
             mChild.setParent(this);
             //tufts.macosx.Screen.addChildWindow(getTopParent(), mChild);
             if (updateChildren) {
-
+                
                 if (isMac) {
                     // If on mac, child window's of the window just dropped on us
                     // are "attached" to it, and we only need to set the location
@@ -3044,7 +3148,7 @@ public class DockWindow extends javax.swing.JDialog
                 } else {
                     updateAllChildLocations();
                 }
-
+                
             }
 
             if (!newChild.isRolledUp())
@@ -3057,7 +3161,7 @@ public class DockWindow extends javax.swing.JDialog
     private void setParent(DockWindow parent) {
         if (mParent == parent)
             return;
-
+        
         /*
           // This doesn't help window shadow at all...
         if (isMac) {
@@ -3069,7 +3173,7 @@ public class DockWindow extends javax.swing.JDialog
             }
         }
         */
-
+        
         mParent = parent;
         //mContentPane.setCloseButtonVisible(parent == null || !parent.getStackTop().isStackOwner);
         mContentPane.setCloseButtonVisible(!isStacked() || isStackTop());
@@ -3080,23 +3184,23 @@ public class DockWindow extends javax.swing.JDialog
     private void updateAllChildLocations(int newHeight, int newY) {
         updateChildLocation(true, newHeight, newY);
     }
-
+    
     /** recursively move all children under us */
     private void updateAllChildLocations() {
         updateChildLocation(true, getHeight(), getY());
     }
-
+    
     /** move just the first child under us -- used when on the mac and the windows are "attached" */
     private void updateChildLocation() {
         updateChildLocation(false, getHeight(), getY());
     }
-
+    
     // if last in chain and is Aqua Brushed Metal, could move UP to obscure the extra
     // window size, tho then we'd have to set it's title to BorderLayout.SOUTH, (easy)
     // and more problematically, keep it stacked BELOW it's parent, which would be fine
     // as long as the parent was open, but as soon as it rolled up, we'd have the
     // problem again.
-
+    
     /**
      * Set location of an attached child (if we have one) based on
      * our current location and size.
@@ -3128,7 +3232,7 @@ public class DockWindow extends javax.swing.JDialog
             throw new LoopError("updateChildLocation");
 
         StackDepth++;
-
+        
         if (mChild != null) {
 
             if (DEBUG.DOCK)
@@ -3145,7 +3249,7 @@ public class DockWindow extends javax.swing.JDialog
                 x = getX();
                 mChild.mStickingRight = false;
             }
-
+            
             if (CollapsedHeight != CollapsedHeightVisible) {
                 // see getVisibleHeight for repeat of this logic
                 if (isRolledUp())
@@ -3157,7 +3261,7 @@ public class DockWindow extends javax.swing.JDialog
             // To prevent background desktop from flashing thru: If the stack is moving
             // down, move us down first, then our child.  If the stack is moving up,
             // pull up the child first, then move us up.
-
+            
             if (y >= mChild.getY()) {
                 mChild.superSetLocation(x, y);
                 if (allChildren)
@@ -3168,7 +3272,7 @@ public class DockWindow extends javax.swing.JDialog
                 mChild.superSetLocation(x, y);
             }
         }
-
+        
         StackDepth--;
     }
 
@@ -3207,7 +3311,7 @@ public class DockWindow extends javax.swing.JDialog
             Util.printStackTrace(e);
         }
     }
-
+    
     /** recursive down children */
     private void _raiseChildren()
     {
@@ -3215,17 +3319,18 @@ public class DockWindow extends javax.swing.JDialog
             throw new LoopError("raiseChildren");
 
         StackDepth++;
-
+        
         if (mChild != null) {
             mChild.toFront();
             mChild._raiseChildren();
         }
-
-        GUI.invokeAfterAWT(new Runnable() { public void run() { updateWindowShadow(); }});
+        
+        if (isMac && MacWindowShadowEnabled)
+            GUI.invokeAfterAWT(new Runnable() { public void run() { updateWindowShadow(); }});
 
         StackDepth--;
     }
-
+    
     // either move to DockRegion, or make this attach only
     // everyone who's to our right...
     private void attachSiblingsForMoving() {
@@ -3288,12 +3393,12 @@ public class DockWindow extends javax.swing.JDialog
                 //if (MacWindowShadowEnabled)
                 // BE SURE TO RESTORE Z-ORDER OVER PROPER JAVA  PARENT
                 // (also keeps on top of shadow)
-                //mChild.toFront();
+                //mChild.toFront(); 
                 //}});
                 // Don't do this here, as this only hits children
                 // in stack: we need the whole stack, including top.
-
-
+            
+            
             mChild.detachChildrenForMoving(topOfWindowStack);
 
             // Need to keep last one detached over it's parent if there is one --
@@ -3353,12 +3458,12 @@ public class DockWindow extends javax.swing.JDialog
     public void setLowerRightCorner(int lowerX, int lowerY) {
         setLocation(lowerX - getWidth(), lowerY - getHeight());
     }
-
+    
     private void out(Object o) {
         Log.debug("(" + mTitleName + ") " + o);
 //         String s = "DockWindow " + (""+System.currentTimeMillis()).substring(9);
 //         s += " [" + mTitle + "]";
-
+        
 //         System.err.println(s + " " + (o==null?"null":o.toString()));
     }
 
@@ -3373,7 +3478,7 @@ public class DockWindow extends javax.swing.JDialog
 
     private static class ScrollableWidthTracker extends JPanel implements Scrollable {
         private JComponent tracked;
-
+        
         ScrollableWidthTracker(JComponent wrapped, JComponent tracked) {
             super(new BorderLayout());
             if (DEBUG.BOXES) setBorder(new LineBorder(Color.red, 4));
@@ -3397,11 +3502,11 @@ public class DockWindow extends javax.swing.JDialog
         public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
             return 64;
         }
-
+    
         public boolean getScrollableTracksViewportWidth() { return true; }
         public boolean getScrollableTracksViewportHeight() { return false; }
     }
-
+    
     /** The content-pane for the Window: has the window border, contains
         the title and the widget content panel (which holds the widget border) */
     private class ContentPane extends JPanel
@@ -3416,7 +3521,7 @@ public class DockWindow extends javax.swing.JDialog
         private JScrollPane mScroller;
 
         private Object contentConstraints;
-
+        
         public ContentPane(String title, boolean asToolbar)
         {
             mContent.setName(title + ".dockContent");
@@ -3430,12 +3535,12 @@ public class DockWindow extends javax.swing.JDialog
                 contentConstraints = BorderLayout.CENTER;
             } else {
                 setLayout(new GridBagLayout());
-
+                
                 GridBagConstraints c = new GridBagConstraints();
                 c.gridwidth = GridBagConstraints.REMAINDER;
                 c.weightx = 1;
                 c.gridx = 0;
-
+                
                 c.gridy = 0;
                 c.fill = GridBagConstraints.HORIZONTAL;
                 titleConstraints = c.clone();
@@ -3445,11 +3550,11 @@ public class DockWindow extends javax.swing.JDialog
                 c.weighty = 1;
                 contentConstraints = c;
             }
-
+            
             // Apparently, max bounds not respected by BorderLayout: try GridBag
             // pref size is respected, but then it sets *everything* to max size.
             // Okay, BoxLayout and not even freakin GridBag is handling this...
-
+            
 //             Rectangle max = GUI.getMaximumWindowBounds();
 //             mContent.
 //                 setMaximumSize(new Dimension(max.width, max.height-100));
@@ -3460,7 +3565,7 @@ public class DockWindow extends javax.swing.JDialog
             	setBorder(BorderFactory.createLineBorder(Color.black));
             else
             	setBorder(getWindowBorder());
-
+            
             installTitlePanel(title, asToolbar);
             add(mContent, contentConstraints);
 
@@ -3484,15 +3589,15 @@ public class DockWindow extends javax.swing.JDialog
 
             if (false && !mWindowDragUnderway && !isRolledUp()) {
                 if (DEBUG.DOCK && DEBUG.SCROLL) GUI.dumpSizes(this, "doLayout");
-
+                
                 int height = getHeight();
                 int prefHeight = Math.max(getPreferredSize().height, getMinimumSize().height);
                 prefHeight = Math.min(prefHeight, GUI.GScreenHeight);
-
+                
                 if (height != prefHeight)
                     setHeight(prefHeight);
             }
-
+            
             super.doLayout();
         }
 
@@ -3524,7 +3629,7 @@ public class DockWindow extends javax.swing.JDialog
         }
 
         private void changeAll(JComponent root) {
-
+            
             new EventRaiser<JComponent>(this, JComponent.class) {
                 protected void visit(Component c) {
 
@@ -3546,13 +3651,13 @@ public class DockWindow extends javax.swing.JDialog
                     //return;
 
                     // apparently can't make a JTabbedPane transparent...
-
+                    
                     c.setBackground(null);
                     c.setOpaque(false);
                     //c.setBackground(Color.red);
                 }
             }.raiseStartingAt(root);
-
+            
         }
 
         void setWidget(JComponent widget, boolean scrolled, boolean scrollAlways) {
@@ -3581,7 +3686,7 @@ public class DockWindow extends javax.swing.JDialog
 
                 mScroller.setViewportView(new ScrollableWidthTracker(widget, mContent));
                 //mScroller.setViewportView(widget);
-
+                
                 //JPanel p = new JPanel(new BorderLayout());
                 //p.add(widget);
                 //p.setBorder(new LineBorder(Color.red));
@@ -3598,8 +3703,8 @@ public class DockWindow extends javax.swing.JDialog
             super.addNotify();
             changeAll(mContent);
         }
-
-
+            
+        
 
         public void Xpaint(Graphics g) {
             //out("paint");
@@ -3614,7 +3719,7 @@ public class DockWindow extends javax.swing.JDialog
             else
                 super.paintComponent(g);
         }
-
+        
         private void paintBackgroundGradient(Graphics g) {
             //out("paintComponent");
             GradientPaint gp;
@@ -3624,7 +3729,7 @@ public class DockWindow extends javax.swing.JDialog
             gp = new GradientPaint(0,             0, TopGradientColor,
                                    0,   getHeight(), BottomGradientColor);
 
-
+                
             ((Graphics2D)g).setPaint(gp);
             //g.setColor(Color.blue);
             g.fillRect(0,0, getWidth(), getHeight());
@@ -3634,7 +3739,7 @@ public class DockWindow extends javax.swing.JDialog
                 g.setColor(Color.lightGray);
                 g.drawLine(0, 0, getWidth(),0);
             }
-
+            
         }
 
         public void setVerticalTitle(boolean vertical) {
@@ -3645,7 +3750,7 @@ public class DockWindow extends javax.swing.JDialog
                 return;
 
             isVertical = vertical;
-
+            
             if (vertical) {
                 //setBorder(new LineBorder(Color.gray));
                 setBorder(new LineBorder(Color.lightGray));
@@ -3659,8 +3764,8 @@ public class DockWindow extends javax.swing.JDialog
                 add(mTitle, BorderLayout.NORTH);
             }
         }
-
-
+            
+        
 
         private void installTitlePanel(String title, boolean asToolbar) {
             mTitle = new TitlePanel(title);
@@ -3679,14 +3784,14 @@ public class DockWindow extends javax.swing.JDialog
             return GUI.processKeyBindingToMenuBar(this, ks, e, condition, pressed);
         }
         */
-
-
+        
+        
     }
 
     //private class Gripper extends javax.swing.JPanel {
     private class Gripper extends javax.swing.Box {
         private JComponent closeButton;
-
+        
         Gripper() {
             super(BoxLayout.Y_AXIS);
             //super(new BorderLayout()); // close-button expands to fill whole gripper...
@@ -3729,7 +3834,7 @@ public class DockWindow extends javax.swing.JDialog
                     }
                 });
             */
-
+               
         }
 
         public void paintComponent(Graphics g) {
@@ -3750,9 +3855,9 @@ public class DockWindow extends javax.swing.JDialog
             final int right = getWidth();
         	final int width = right - left;
         	GradientPaint mGradient = new GradientPaint(0, 0,BottomGradientColor,
-                     width,           0, TopGradientColor  );
-
-
+                     width,           0, TopGradientColor  );         
+         
+        	
             ((Graphics2D)g).setPaint(mGradient);
 
             g.fillRect(0,0, width, height);
@@ -3806,15 +3911,15 @@ public class DockWindow extends javax.swing.JDialog
                 g.drawLine(width-1,0, width-1,height);
             }*/
         }
-
+        
     }
-
+    
 
     // TODO: allow for info in the title panel: e.g., Panner shows zoom or
     // Font shows current selected font v.s. the font we'll "apply"???
 
     private class TitlePanel extends javax.swing.Box {
-
+        
         private CloseButton mCloseButton;
         private GradientPaint mGradient;
         private JLabel mLabel;
@@ -3824,7 +3929,7 @@ public class DockWindow extends javax.swing.JDialog
 
         //private final Icon DownArrow = GUI.getIcon("DockDownArrow.gif");
         //private final Icon RightArrow = GUI.getIcon("DockRightArrow.gif");
-
+        
         TitlePanel(String title)
         {
             //setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -3865,24 +3970,24 @@ public class DockWindow extends javax.swing.JDialog
                                               iconColor,
                                               15, // fixed width
                                               TitleHeight); // fixed height
-            */
+            */         
              //if (isMacAqua)
            //      mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
-
+             
              if (DEBUG.BOXES) {
                  mLabel.setBackground(Color.yellow);
                  mLabel.setOpaque(true);
              }
-
+             
              //JLabel helpButton = new JLabel(GUI.getIcon("btn_help_top.gif"));
              // todo for Melanie: new icons should be appearing in gui/icons
              VueLabel helpButton = new VueLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
              //helpButton.setToolTipText("Help Text");
-
+             
              String helpText = VueResources.getString("dockWindow." + getName().replaceAll(" ","") + ".helpText");
              if (helpText != null)
                  helpButton.setToolTipText(helpText);
-
+                          
              if (isMacAqua) {
                  // close button at left
                  add(Box.createHorizontalStrut(6));
@@ -3907,7 +4012,7 @@ public class DockWindow extends javax.swing.JDialog
              }
 
              add(Box.createHorizontalStrut(2));
-
+             
              if (isGradientTitle)
                  installGradient(false);
         }
@@ -3955,7 +4060,7 @@ public class DockWindow extends javax.swing.JDialog
             mCloseButton.setVisible(!vertical);
             isVertical = vertical;
         }
-
+        
         private void installGradient(boolean vertical) {
             if (vertical)
                 mGradient = new GradientPaint(getHeight(), 0, TopGradientColor,
@@ -3985,7 +4090,7 @@ public class DockWindow extends javax.swing.JDialog
             //if (!isMac || !DEBUG.DOCK) // for tufts.macosx.MacTest
             paintGradientEtc(g);
         }
-
+        
         private void paintGradientEtc(Graphics g)
         {
             final int width = getWidth();
@@ -4020,7 +4125,7 @@ public class DockWindow extends javax.swing.JDialog
 
             /*
               This looks great, but more so during testing when no content in the DockWindow.
-
+              
             if (isMac && !isVertical && !isMacAquaMetal && !isRolledUp()) {
                 g.setColor(sBottomEdgeColor);
                 g.drawLine(0, height-1, width, height-1);
@@ -4035,25 +4140,25 @@ public class DockWindow extends javax.swing.JDialog
                 g.drawString(mLabel.getText(), 4, -4);
             }
         }
-
+        
     }
 
 
-    private class MenuButton extends JLabel implements MouseListener
+    private class MenuButton extends JLabel implements MouseListener 
     {
 
 
-        MenuButton(Action[] actions)
+        MenuButton(Action[] actions) 
         {
-        	super();
+        	super();        	
         	setFocusable(true);
-        	setIcon(VueResources.getIcon("dockWindow.panner.menu.raw"));
-
+        	setIcon(VueResources.getIcon("dockWindow.panner.menu.raw"));        	
+        
             setName(DockWindow.this.getName());
             setFont(new Font("Arial", Font.PLAIN, 18));
-
+        
             Insets borderInsets = new Insets(1,1,1,1);
-
+        
             if (DEBUG.BOXES) {
                 setBorder(new MatteBorder(borderInsets, Color.orange));
                 setBackground(Color.red);
@@ -4068,16 +4173,16 @@ public class DockWindow extends javax.swing.JDialog
 
             setMenuActions(actions);
         }
-
-
-    		public void mouseEntered(MouseEvent arg0) {
+            
+            
+    		public void mouseEntered(MouseEvent arg0) {    			
     			setIcon(VueResources.getImageIcon("dockWindow.panner.menu.hover"));
     		}
 
     		public void mouseExited(MouseEvent arg0) {
-    			setIcon(VueResources.getImageIcon("dockWindow.panner.menu.raw"));
-
-    		}
+    			setIcon(VueResources.getImageIcon("dockWindow.panner.menu.raw"));    			
+    			
+    		}       
 
 
         void setMenuActions(Action[] actions)
@@ -4094,7 +4199,7 @@ public class DockWindow extends javax.swing.JDialog
                         setForeground(inactiveColor);
                         }
                 */
-
+                
                 public int getMenuX(Component c) { return c.getWidth(); }
                 public int getMenuY(Component c) { return -getY(); } // 0 in parent
             };
@@ -4113,30 +4218,30 @@ public class DockWindow extends javax.swing.JDialog
 
 		public void mouseClicked(MouseEvent arg0) {
 			// TODO Auto-generated method stub
-
+			
 		}
 
 
 		public void mousePressed(MouseEvent arg0) {
 			// TODO Auto-generated method stub
-
+			
 		}
 
 
 		public void mouseReleased(MouseEvent arg0) {
 			// TODO Auto-generated method stub
-
-		}
+			
+		}	
 
     }
-
+    
     private static class CloseButton extends JLabel {
-
+            
         private final Icon iconClose;
         private final Icon iconOver;
 
         private boolean visible = true;
-
+        
         public CloseButton(final DockWindow dockWindow) {
 
             setName(dockWindow.getName());
@@ -4150,7 +4255,7 @@ public class DockWindow extends javax.swing.JDialog
             }
 
             setIcon(iconClose);
-
+            
 //             if (isMacAqua)
 //                 setIcon(iconBlank);
 //             else
@@ -4194,14 +4299,14 @@ public class DockWindow extends javax.swing.JDialog
             private boolean isRollover = false;
 
             private final Border border = BorderFactory.createRaisedBevelBorder();
-
+            
             public SquareCloseIcon() {
                 X_STROKE = new java.awt.BasicStroke(1.3f);
                 iconSize = TitleHeight - 5;
 
                 iconWidth = iconSize + 1;
                 iconHeight = iconSize + 1;
-
+                
                 /*
                 if (isMacAqua) {
                     iconWidth = iconSize + 3;
@@ -4220,10 +4325,10 @@ public class DockWindow extends javax.swing.JDialog
                 isRollover = t;
                 repaint();
             }
-
+            
             public int getIconWidth() { return iconWidth; }
             public int getIconHeight() { return iconHeight; }
-
+            
             public void paintIcon(Component c, Graphics g, int x, int y) {
                 int xoff = x-1;
                 int yoff = y+1;
@@ -4252,16 +4357,16 @@ public class DockWindow extends javax.swing.JDialog
 
                 //border.paintBorder(c, g, x, y, iconSize, iconSize);
             }
-
+            
         }
 
         private String out(Color c) {
             return "color[" + c.getRed() + "," + c.getGreen() + "," + c.getBlue() + "]";
         }
-
+            
 
     }
-
+    
     private static class ResizeCorner extends javax.swing.JComponent {
         final Object mCorner;
         ResizeCorner(DockWindow mouseListener, Object corner) {
@@ -4273,7 +4378,7 @@ public class DockWindow extends javax.swing.JDialog
                 setSize(ResizeCornerSize, ResizeCornerSize);
             else
                 setSize(ResizeCornerSize/2, ResizeCornerSize/2);
-
+            
             addMouseListener(mouseListener);
             addMouseMotionListener(mouseListener);
 
@@ -4298,10 +4403,10 @@ public class DockWindow extends javax.swing.JDialog
 
 
         public void paintComponent(Graphics g) {
-
+            
             if (mCorner == SOUTH_EAST)
                 paintResizeCorner((Graphics2D)g);
-
+            
             if (DEBUG.BOXES) {
                 g.setColor(Color.green);
                 g.drawRect(0,0, getWidth()-1, getHeight()-1);
@@ -4311,15 +4416,15 @@ public class DockWindow extends javax.swing.JDialog
         private void paintResizeCorner(Graphics2D g)
         {
             if (DEBUG.PAINT) System.out.println("ResizeCorner paint " + g.getClipBounds());
-
+            
             int width = getWidth();
             int right = width - 1;
             int bottom = getHeight() - 1;
 
             int x = 0, y = 0;
-
+            
             //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+            
             g.setColor(getForeground());
             for (int i = 0; i < width/2; i++) {
                 g.drawLine(x,bottom, right,y);
@@ -4327,9 +4432,9 @@ public class DockWindow extends javax.swing.JDialog
                 y += 2;
             }
         }
-
+        
     }
-
+    
     public static Frame getHiddenFrame() {
         Util.printStackTrace();
         if (HiddenParentFrame == null) {
@@ -4351,10 +4456,10 @@ public class DockWindow extends javax.swing.JDialog
                     // make sure is never preferred window group for handing focus to
                     // CANNOT do this or an installed menu-bar won't work
                     //public boolean getFocusableWindowState() { return false; } // doesn't help
-
+                    
                     //public boolean isFocusable() { return true; }
                     //public boolean getFocusableWindowState() { return true; }
-
+                    
                     public String toString() { return getName(); }
                 };
             HiddenParentFrame.setName("(VUE Hidden Dock Parent)");
@@ -4362,11 +4467,11 @@ public class DockWindow extends javax.swing.JDialog
             // If we have a menu-bar attached, it must be focusable for the menu bar to work.
             // (perhaps also now that it's returning isVisible() == true?
             //HiddenParentFrame.setFocusableWindowState(true);
-
+            
             // Don't need to attach MenuBar now that ToolWindow's do NOT "officially" take the focus at all --
             // the active frame with it's attached menu bar stays active.
             //HiddenParentFrame.setJMenuBar(new tufts.vue.gui.VueMenuBar());
-
+            
             // fortunately, does NOT need to be visible for menu bar to work
             //HiddenParentFrame.setVisible(true);
             HiddenParentFrame.setVisible(false);
@@ -4374,9 +4479,9 @@ public class DockWindow extends javax.swing.JDialog
 
         return HiddenParentFrame;
     }
+    
 
-
-
+    
     public static DockWindow getTestWindow() {
         DockWindow dw = new DockWindow("Interactive");
         JPanel p = new JPanel();
@@ -4390,20 +4495,20 @@ public class DockWindow extends javax.swing.JDialog
         dw.setVisible(true);
         return dw;
     }
-
+    
     public static void main(String args[]) {
 
         VUE.init(args);
         //DEBUG.BOXES=true;
         //DEBUG.KEYS=true;
-
-
+        
+        
         if (false) {
 
             //new Frame("A Frame").show();
-
+            
             DockWindow dw = getTestWindow();
-
+            
             dw.setLocationRelativeTo(null);
         }
 
@@ -4420,7 +4525,7 @@ public class DockWindow extends javax.swing.JDialog
         final DockWindow win1 = new DockWindow("Dock 1", owner, null, false);
         //win1.add(new FontPropertyPanel());
         //win1.setLocationRelativeTo(null); // center's on screen
-
+        
         win1.setMenuActions(new Action[] {
                 new tufts.vue.VueAction("Test 1"),
                 null,
@@ -4442,7 +4547,7 @@ public class DockWindow extends javax.swing.JDialog
                     public boolean enabled() { return true; }
                 },
             });
-
+        
         //win1.add(new WidgetBox("Folders", new JLabel("Hello World")));
 
         WidgetStack stack = new WidgetStack();
@@ -4461,15 +4566,15 @@ public class DockWindow extends javax.swing.JDialog
              //   win1.setContent(stack);
              win1.setContent(new JLabel("foo"));
          }
-
+        
         win1.setVisible(true);
-
+        
         DockWindow win2 = new DockWindow("Dock 2", owner);
         //win2.add(new FontPropertyPanel());
         win2.setLocationRelativeTo(null); // center's on screen
         win2.setFocusableWindowState(true);
         win2.setVisible(true);
-
+                
         /*
         if (false) {
 
@@ -4477,25 +4582,25 @@ public class DockWindow extends javax.swing.JDialog
             DockWindow win4 = new DockWindow("Dock 4", owner);
             //DockWindow win3 = new DockWindow("King Objumpy");
             //DockWindow win4 = new DockWindow("Canvas");
-
+            
             win1.setChild(win2);
             //win2.setChild(win3);
             win3.setChild(win4);
-
+            
             //win2.setVisible(true);
             win3.setVisible(true);
             win4.setVisible(true);
-
+            
         }
         */
-
+            
         // called indirectly so this compiles in java 1.4
         //tufts.Util.invoke(tw0.mWindow, "setAlwaysOnTop", Boolean.TRUE);
         //tufts.Util.invoke(tw1.mWindow, "setAlwaysOnTop", Boolean.TRUE);
-
+            
 
     }
 
-
-
+    
+    
 }
