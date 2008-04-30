@@ -39,7 +39,7 @@ import javax.swing.border.*;
  * transparency, etc, based on button state.  Can also handle a null raw icon for just drawing borders.
  * Can install, via installGenerated, a set of icons into any AbstractButton using our default VUE GUI scheme.
  *
- * @version $Revision: 1.12 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.13 $ / $Date: 2008-04-30 07:09:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -111,8 +111,14 @@ public class VueButtonIcon implements Icon
         this.mRawIcon = rawIcon;
         this.mType = t;
         if (rawIcon != null) {
-            this.width = width <= 0 ? rawIcon.getIconWidth() + 4 : width;
-            this.height = height <= 0 ? rawIcon.getIconHeight() + 4 : height;
+            if (tufts.Util.isMacLeopard()) {
+                // TODO: not sure why we need this -- may have to do with clipping
+                this.width = width <= 0 ? rawIcon.getIconWidth() + 6 : width;
+                this.height = height <= 0 ? rawIcon.getIconHeight() + 6 : height;
+            } else {
+                this.width = width <= 0 ? rawIcon.getIconWidth() + 4 : width;
+                this.height = height <= 0 ? rawIcon.getIconHeight() + 4 : height;
+            }
         } else {
             this.width = width;
             this.height = height;
@@ -184,8 +190,18 @@ public class VueButtonIcon implements Icon
         } else if (mType == ROLLOVER) {
             // Draw an etched rollover border:
 
+            if (DEBUG.BOXES) {
+                g.setColor(Color.green);
+                g.fillRect(0,0, w, h);
+            }
+
             if (true) {
-                sRolloverBorder.paintBorder(c, g, 0, 0, w, h);
+                if (tufts.Util.isMacLeopard()) {
+                    // TODO: not sure why we need this -- may have to do with clipping
+                    sRolloverBorder.paintBorder(c, g, 0, 2, w, h-2);
+                } else {
+                    sRolloverBorder.paintBorder(c, g, 0, 0, w, h);
+                }
             } else {
                 // experiment in separate border for drop-down portions
                 sRolloverBorder.paintBorder(c, g, 0, 0, w-8, h);
