@@ -38,7 +38,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.14 $ / $Date: 2008-04-28 05:20:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.15 $ / $Date: 2008-04-30 19:04:28 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -302,10 +302,10 @@ public class VueFrame extends javax.swing.JFrame
         
     private void setTitleFromViewer(MapViewer viewer) {
         String title = VUE.getName();
-        if (DEBUG.Enabled) title += ("[" + tufts.vue.LWMap.getCurrentModelVersion() + "]");
-        if (viewer != null) {
-            if (viewer.getMap() != null)
-                title += ": " + viewer.getMap().getLabel();
+        final tufts.vue.LWMap map = viewer == null ? null : viewer.getMap();
+        if (map != null) {
+            if (DEBUG.Enabled) title += ("[" + map.getSaveFileModelVersion() + "]");
+            title += ": " + map.getLabel();
         }
         //if (viewer.getMap().isCurrentlyFiltered())
         // will need to listen to map for filter change state or this gets out of date
