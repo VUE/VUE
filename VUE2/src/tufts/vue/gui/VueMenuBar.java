@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.103 $ / $Date: 2008-04-28 04:49:26 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2008-04-30 07:10:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -872,7 +872,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
     }
 
     private final JMenuItem TitleItem = new JMenu("");
-    //private final java.util.Map<LWMap,JCheckBoxMenuItem> items = new java.util.HashMap();
+    //private final java.util.Map<LWMap,JMenuItem> items = new java.util.HashMap();
     
     public void activeChanged(tufts.vue.ActiveEvent e, LWMap map) {
         //TitleItem.setFont(VueConstants.SmallFont);
@@ -888,9 +888,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             final MapViewer v = tp.getViewerAt(i);
             final LWMap m = v.getMap();
             
-            //if (m == map) continue;
-
-            JCheckBoxMenuItem item = new JCheckBoxMenuItem(new VueAction(m.getLabel()) {
+            JMenuItem item = new JMenuItem(new VueAction(m.getLabel()) {
                     public void act() {
                         Log.debug("quik-map " + m);
                         // this currently only works in full-screen mode
@@ -905,7 +903,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                 );
 
             if (m == map)
-                item.setSelected(true);
+                item.setEnabled(false);
             
             item.setToolTipText(""+m.getFile());
             TitleItem.add(item);
