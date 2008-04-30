@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.220 $ / $Date: 2008-04-28 21:13:03 $ / $Author: sfraize $
+ * @version $Revision: 1.221 $ / $Date: 2008-04-30 19:03:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -225,6 +225,41 @@ public class LWNode extends LWContainer
                 return null;
             }
         }
+
+        /**
+         * This is overridden to allow for equivalence tests against an instance value
+         * RectangularShape, as opposed to just types of Class<? extends
+         * RectangularShape>.
+         *
+         * @param other
+         * If this is an instance of RectangularShape, we compare
+         * our getValue() against it's Class object, not it's instance.
+         */
+        @Override
+        boolean valueEquals(LWNode c, Object other)
+        {
+            final Class<? extends RectangularShape> value = getValue(c);
+            final Class<? extends RectangularShape> otherValue;
+
+            if (other instanceof RectangularShape) {
+                
+                otherValue = ((RectangularShape)other).getClass();
+                
+            } else if (other instanceof Class) {
+
+                otherValue = (Class) other;
+                
+            } else if (other != null) {
+                
+                if (DEBUG.Enabled) Log.warn(this + "; valueEquals against unexpected type: " + Util.tags(other));
+                return false;
+                
+            } else
+                otherValue = null;
+
+            return value == otherValue || (otherValue != null && otherValue.equals(value));
+        }
+        
     };
 
     
