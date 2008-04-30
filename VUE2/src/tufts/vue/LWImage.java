@@ -115,16 +115,16 @@ public class LWImage extends
 
 
     public LWImage() {
-    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
         setFillColor(null);
+    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
     }
 
     public LWImage(Resource r) {
         if (r == null || !r.isImage())
             throw new IllegalArgumentException("resource is not image content: " + r);
-    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
         setFillColor(null);
         setResource(r);
+    	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
     }
 
     protected void out(String s) {
@@ -311,8 +311,16 @@ public class LWImage extends
     {
         if (DEBUG.IMAGE) out("setMaxSizeDimension " + max);
 
-        if (mImageWidth <= 0)
+        if (mImageWidth <= 0) {
+
+            // this fixes the "gray link" which was being created when an image was
+            // dropped into a node on a slide -- it's size was never being set, leaving
+            // it infintesimally small / invisible, making it look like a link.  (see
+            // above condition on updateNodeIconStatus, where SLIDE_STYLE is checked).
+            
+            setSize((float)max, (float)max);
             return;
+        }
 
         final double width = mImageWidth;
         final double height = mImageHeight;
@@ -614,25 +622,37 @@ public class LWImage extends
 			as well as cases where it'd be moot anyway.
 		*/
         if (!(w == h && mImageAspect == 1.0))
-        	autoShapeToAspect();
+            autoShapeToAspect();
         
         //setAspect(aspect); // LWComponent too paternal for us right now
     }
 
+    @Override
+    public void setSize(float w, float h) {
+        if (DEBUG.IMAGE) out("setSize " + w + "x" + h);
+        super.setSize(w, h);
+    }
+    
+
     private void autoShapeToAspect() {
+        
         if (mImageAspect > 0) {
+
+            if (super.width == NEEDS_DEFAULT || super.height == NEEDS_DEFAULT) {
+                Log.error("cannot auto-shape without request size: " + this);
+                return;
+            }
      
-                if (DEBUG.IMAGE) out("autoShapeToAspect  in: " + width + "," + height);
-                
+            if (DEBUG.IMAGE) out("autoShapeToAspect in: " + width + "," + height);
              
-            	Size newSize = ConstrainToAspect(mImageAspect, width, height);
-            	/*
-            	 * Added this in response to VUE-948
-            	 */
-            	if ((DEBUG.Enabled || DEBUG.IMAGE) && (newSize.width != width || newSize.height !=height))
-                    Log.debug("autoShapeToAspect in:" + width + "," + height + " out newSize: " + newSize.width + "," + newSize.height);
-            	//if (DEBUG.IMAGE) out("autoShapeToAspect out: " + newSize);
-            	setSize(newSize.width, newSize.height);
+            Size newSize = ConstrainToAspect(mImageAspect, width, height);
+            /*
+             * Added this in response to VUE-948
+             */
+            if ((DEBUG.Enabled || DEBUG.IMAGE) && (newSize.width != width || newSize.height != height))
+                out("autoShapeToAspect in: " + width + "," + height + " -> newSize: " + newSize.width + "," + newSize.height);
+
+            setSize(newSize.width, newSize.height);
         }
     }
 
