@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.538 $ / $Date: 2008-04-28 06:56:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.539 $ / $Date: 2008-04-30 05:48:55 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -419,7 +419,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //SwingUtilities.getRootPane(this).setCursor(cursor);
         // could compute cursor-set pane in addNotify
 
-        setCursor(cursor);
+        setTopCursor(cursor);
 
         // todo: also set this on the VueToolPanel so you can see cursor change
         // when selecting new tool -- actually, VueToolPanel should
