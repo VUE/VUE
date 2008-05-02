@@ -42,7 +42,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.183 $ / $Date: 2008-02-08 17:24:45 $ / $Author: sfraize $
+ * @version $Revision: 1.184 $ / $Date: 2008-05-02 23:56:44 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -463,21 +463,78 @@ public class LWLink extends LWComponent
     
     /** @return the component connected at the head end, or null if none or if it's pruned */
     public LWComponent getHead() {
+        System.err.println("HEAD RETURNS " + head);
         if (head.node == null || head.node.isHidden(HideCause.PRUNE))
             return null;
         else
             return head.node;
-        //return headIsPruned ? null : head;
     }
-    /** @return the component connected at the tail end, or null if none */
+    /** @return the component connected at the tail end, or null if none or of it's pruned*/
     public LWComponent getTail() {
+        System.err.println("TAIL RETURNS " + tail);
         if (tail.node == null || tail.node.isHidden(HideCause.PRUNE))
             return null;
         else
             return tail.node;
-        //return tailIsPruned ? null : tail;
     }
 
+    /** persistance only */
+    public LWComponent getPersistHead() {
+        return head.node;
+    }
+    /** persistance only */
+    public LWComponent getPersistTail() {
+        return tail.node;
+    }
+    /** persistance only */
+    public void setPersistHead(LWComponent c) {
+        head.node = c;
+        if (c != null)
+            c.addLinkRef(this);
+    }
+    /** persistance only */
+    public void setPersistTail(LWComponent c) {
+        tail.node = c;
+        if (c != null)
+            c.addLinkRef(this);
+    }
+            
+    public void setHead(LWComponent c)
+    {
+        if (c == head.node)
+            return;
+        if (head.hasNode())
+            head.node.removeLinkRef(this);            
+        final LWComponent oldHead = head.node;
+        setPersistHead(c);
+        mRecompute = true;
+        addCleanupTask(this);        
+        notify("link.head.connect", new Undoable(oldHead) { void undo() { setHead(oldHead); }} );
+    }
+    
+    public void setTail(LWComponent c)
+    {
+        if (c == tail.node)
+            return;
+        if (tail.hasNode())
+            tail.node.removeLinkRef(this);            
+        final LWComponent oldTail = tail.node;
+        setPersistTail(c);
+        mRecompute = true;
+        addCleanupTask(this);        
+        notify("link.tail.connect", new Undoable(oldTail) { void undo() { setTail(oldTail); }} );
+    }
+
+    void disconnectFrom(LWComponent c)
+    {
+        if (head.node == c)
+            setHead(null);
+        else if (tail.node == c)
+            setTail(null);
+        else
+            throw new IllegalArgumentException(this + " cannot disconnect: not connected to " + c);
+    }
+    
     public void setHeadPoint(float x, float y) {
         head.setPoint(this, x, y, KEY_LinkHeadPoint);
     }
@@ -1404,49 +1461,6 @@ public class LWLink extends LWComponent
         return minDistSq - hitDistSq;
     }
     
-    void disconnectFrom(LWComponent c)
-    {
-        if (head.node == c)
-            setHead(null);
-        else if (tail.node == c)
-            setTail(null);
-        else
-            throw new IllegalArgumentException(this + " cannot disconnect: not connected to " + c);
-    }
-            
-    public void setHead(LWComponent c)
-    {
-        if (c == head.node)
-            return;
-        if (head.hasNode())
-            head.node.removeLinkRef(this);            
-        final LWComponent oldHead = head.node;
-        head.node = c;
-        if (c != null)
-            c.addLinkRef(this);
-        //head_ID = null;
-        mRecompute = true;
-        addCleanupTask(this);        
-        notify("link.head.connect", new Undoable(oldHead) { void undo() { setHead(oldHead); }} );
-    }
-    
-    public void setTail(LWComponent c)
-    {
-        if (c == tail.node)
-            return;
-        if (tail.hasNode())
-            tail.node.removeLinkRef(this);            
-        final LWComponent oldTail = tail.node;
-        tail.node = c;
-        if (c != null)
-            c.addLinkRef(this);
-        //tail_ID = null;
-        mRecompute = true;
-        addCleanupTask(this);        
-        notify("link.tail.connect", new Undoable(oldTail) { void undo() { setTail(oldTail); }} );
-    }
-
-
     public boolean isConnected() {
         return head.isConnected() || tail.isConnected();
     }

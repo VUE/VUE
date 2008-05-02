@@ -144,10 +144,10 @@
 	        <field name="tailPoint">
 			<bind-xml name="point2" node="element"/>
 		</field>
-		<field name="head">
+		<field name="persistHead">
 			<bind-xml name="ID1" node="element" reference="true"/>
 		</field>
-	        <field name="tail">
+	        <field name="persistTail">
 			<bind-xml name="ID2" node="element" reference="true"/>
 		</field>
 	        <field name="controlCount">

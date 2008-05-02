@@ -154,18 +154,12 @@
 	        <field name="tailPoint">
 			<bind-xml name="point2" node="element"/>
 		</field>
-		<field name="head">
+		<field name="persistHead">
 			<bind-xml name="ID1" node="element" reference="true"/>
 		</field>
-		<field name="tail">
+		<field name="persistTail">
 			<bind-xml name="ID2" node="element" reference="true"/>
 		</field>
-		<!-- field name="head_ID" type="string">
-			<bind-xml name="ID1" node="element"/>
-		</field -->
-	        <!-- field name="tail_ID" type="string">
-			<bind-xml name="ID2" node="element"/>
-		</field -->
 	        <field name="controlCount">
 			<bind-xml name="controlCount" node="attribute"/>
 		</field>
