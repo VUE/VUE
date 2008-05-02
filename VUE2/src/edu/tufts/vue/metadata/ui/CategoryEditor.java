@@ -239,8 +239,10 @@ public class CategoryEditor extends JPanel
            {
                //comp = new JLabel();
                //((JLabel)comp).setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.add.up"));
-               comp.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
-               comp.add(new tufts.vue.gui.VueButton("keywords.button.add"));
+               //comp.setBorder(BorderFactory.createEmptyBorder(5,0,0,0));
+               JPanel holder = new JPanel();
+               holder.add(new tufts.vue.gui.VueButton("keywords.button.add"));
+               comp.add(holder);
            }
            else
            {
@@ -414,6 +416,7 @@ public class CategoryEditor extends JPanel
         public CustomCategoryTableEditor()
         {
             super(new JTextField());
+            label.setFont(GUI.LabelFace);
             label = (JTextField)getComponent();
             
             /*label.addFocusListener(new java.awt.event.FocusAdapter(){
@@ -494,6 +497,7 @@ public class CategoryEditor extends JPanel
             if(col == 0)
             {
                 final JTextField label = new JTextField();
+                label.setFont(GUI.LabelFace);
                 //this.row = row;
                 //this.col = col;
                 
