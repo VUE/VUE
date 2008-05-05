@@ -45,6 +45,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import edu.tufts.vue.preferences.ui.PreferencesDialog;
 import tufts.vue.action.SaveAction;
+import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueFileChooser;
 import tufts.vue.gui.WindowDisplayAction;
@@ -553,9 +554,31 @@ public class Actions implements VueConstants
             	  LWPathway pathway = VUE.getActivePathway();
             	  
                   if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
-                      pathway.remove(pathway.getCurrentIndex());
+                	  DeleteSlideDialog dsd = PathwayPanel.getDeleteSlideDialog();
+      		        java.awt.Point p = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+                      p.x -= dsd.getWidth() / 2;
+                      p.y -= dsd.getHeight() / 2;
+                      dsd.setLocation(p);
+                      if (dsd.showAgain())
+                      {
+                      	dsd.setVisible(true);
+                      }
+                      
+                      if (dsd.getOkCanel())
+                    	  pathway.remove(pathway.getCurrentIndex());
                   } else {
-                      pathway.remove(VUE.getSelection().iterator());
+                	  DeleteSlideDialog dsd = PathwayPanel.getDeleteSlideDialog();
+      		          java.awt.Point p = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+                      p.x -= dsd.getWidth() / 2;
+                      p.y -= dsd.getHeight() / 2;
+                      dsd.setLocation(p);
+                      if (dsd.showAgain())
+                      {
+                      	dsd.setVisible(true);
+                      }
+                      
+                      if (dsd.getOkCanel())
+                    	  pathway.remove(VUE.getSelection().iterator());
                   }
         
 

@@ -35,6 +35,7 @@ import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
 import javax.swing.border.*;
 
+import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
 
 /**
@@ -51,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.129 $ / $Date: 2008-04-26 00:43:05 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2008-05-05 18:04:00 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -123,6 +124,7 @@ public class PathwayPanel extends JPanel
     private LWPathway.Entry mSelectedEntry;
     private boolean mNoteKeyWasPressed = false;
 
+    private static final ShowAgainDialog sad = null;
     private final Color BGColor = new Color(241, 243, 246);
  
     //MK - Despite these not being used on the presentation window anymore they are still
@@ -135,12 +137,12 @@ public class PathwayPanel extends JPanel
   //  private final JTabbedPane tabbedPane = new JTabbedPane();
 
     private static PathwayPanel Singleton;
+    private static DeleteSlideDialog dsd = null;
     
     public PathwayPanel(Frame parent) 
     {
         Singleton = this;
-            
-        
+        dsd = new DeleteSlideDialog(parent);                  
     	//DISABLE THE NOTES BUTTONS FOR NOW UNTIL WE FIGURE OUT WHAT THEY DO -MK
     	Icon i =VueResources.getIcon("presentationDialog.button.viewAll.raw");
     	addToolTips();
@@ -462,7 +464,10 @@ public class PathwayPanel extends JPanel
     	}
          
     }
-    
+    public static DeleteSlideDialog getDeleteSlideDialog()
+    {
+    	return dsd;
+    }
     private void addToolTips()
     {
     	String baseProp = "presentationDialog.button.";    	
@@ -1103,9 +1108,31 @@ public class PathwayPanel extends JPanel
                 // the pathway entirely.
 
                 if (pathway.getCurrentIndex() >= 0 && VUE.ModelSelection.size() < 2) {
-                    pathway.remove(pathway.getCurrentIndex());
+                
+                	  
+                      java.awt.Point p = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+                      p.x -= dsd.getWidth() / 2;
+                      p.y -= dsd.getHeight() / 2;
+                      dsd.setLocation(p);
+                      if (dsd.showAgain())
+                      {
+                      	dsd.setVisible(true);
+                      }
+                      
+                      if (dsd.getOkCanel())
+                    	  pathway.remove(pathway.getCurrentIndex());
                 } else {
-                    pathway.remove(VUE.getSelection().iterator());
+                    java.awt.Point p = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+                    p.x -= dsd.getWidth() / 2;
+                    p.y -= dsd.getHeight() / 2;
+                    dsd.setLocation(p);
+                    if (dsd.showAgain())
+                    {
+                    	dsd.setVisible(true);
+                    }
+                    
+                    if (dsd.getOkCanel())
+                    	pathway.remove(VUE.getSelection().iterator());
                 }
         	}
         //	deletePathway(pathway); 

@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import tufts.vue.gui.DeleteSlideDialog;
 import tufts.vue.gui.GUI;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -60,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.101 $ / $Date: 2008-04-22 07:01:32 $ / $Author: sfraize $
+ * @version $Revision: 1.102 $ / $Date: 2008-05-05 18:04:00 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable
@@ -1234,7 +1235,18 @@ public class PathwayTable extends JTable
 		else if (e.getSource().equals(deleteEntry))
 		{
 		    GUI.invokeAfterAWT(new Runnable() { public void run() {
-		    	VUE.getActivePathway().remove(VUE.getActivePathway().getCurrentIndex());
+		    	DeleteSlideDialog dsd = PathwayPanel.getDeleteSlideDialog();
+		        java.awt.Point p = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+                p.x -= dsd.getWidth() / 2;
+                p.y -= dsd.getHeight() / 2;
+                dsd.setLocation(p);
+                if (dsd.showAgain())
+                {
+                	dsd.setVisible(true);
+                }
+                
+                if (dsd.getOkCanel())
+                	VUE.getActivePathway().remove(VUE.getActivePathway().getCurrentIndex());
 		    	
             }});
 			   
