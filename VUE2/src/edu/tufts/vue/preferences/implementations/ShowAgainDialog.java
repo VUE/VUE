@@ -46,9 +46,9 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     		"Not Used",
     		true,
     		false);
-            
+     
         //setSize(250, 100);
-        this.setFocusable(true);
+ 
         this.setResizable(false);        
         
      
@@ -68,27 +68,15 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         okButton = new JButton("OK");
         cancelButton = new JButton("Cancel");
 
-        okButton.addActionListener(this);
+        
         Insets i = okButton.getMargin();
         i.left=i.left+6;
         i.right=i.right+6;
-        okButton.setMargin(i);
+        okButton.setMargin(i);        
         okButton.addKeyListener(this);
+        okButton.addActionListener(this);
         cancelButton.addActionListener(this);
-        cancelButton.addKeyListener(this);
-     
-
-        //JPanel buttons = new JPanel();
-        //buttons.setLayout(new FlowLayout());
-        
-       // buttons.add(cancelButton);
-       // buttons.add(okButton);
-
-     //   JPanel showAgainPanel = new JPanel();
-     //   showAgainPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
-        
-     //   showAgainPanel.add(showAgainBox);
-     //   showAgainPanel.add(showAgain);
+        cancelButton.addKeyListener(this);     
         
         Container dialogContentPane = getContentPane();
         GridBagLayout gbl = new GridBagLayout();
@@ -109,17 +97,19 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         gbc.gridx=0;
         gbc.gridy=1;
         gbc.gridwidth=1;
-        gbc.insets = new Insets(1,80,10,5);
-        gbc.anchor=GridBagConstraints.CENTER;
-        gbc.fill=GridBagConstraints.NONE;               
+        gbc.insets = new Insets(1,110,10,5);
+        gbc.anchor=GridBagConstraints.EAST;
+        gbc.fill=GridBagConstraints.NONE;
+       
         dialogContentPane.add(cancelButton,gbc);
+        this.getRootPane().setDefaultButton(okButton);
         
         gbc.gridx=1;
         gbc.gridy=1;
         gbc.gridwidth=1;
-        gbc.ipadx=10;
-        gbc.insets = new Insets(1,5,10,60);
-        gbc.anchor=GridBagConstraints.CENTER;
+        
+        gbc.insets = new Insets(1,5,10,110);
+        gbc.anchor=GridBagConstraints.WEST;
         gbc.fill=GridBagConstraints.NONE;               
         dialogContentPane.add(okButton,gbc);
         
@@ -165,8 +155,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     {
         if (e.getKeyChar()== KeyEvent.VK_ENTER)
         {
-            if (DEBUG.PATHWAY) System.out.println(this + " ENTER");
-            //if the ok button or the text field has the focus, add a designated new pathway
+        	
             if (okButton.isFocusOwner()) {
             	okCancel = true;
             	showAgainPref.setValue(new Boolean(!showAgainBox.isSelected()));
@@ -176,6 +165,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
             	okCancel = false;
                 dispose();
             }
+            
         }
     }
     
