@@ -20,14 +20,17 @@ import java.io.*;
 import java.util.Iterator;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.19 $ / $Date: 2008-04-22 02:33:17 $ / $Author: mike $ *
+ * @version $Revision: 1.20 $ / $Date: 2008-05-05 20:28:09 $ / $Author: mike $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
     
+	private Dimension imageDimensions;
     private int xOffset, yOffset;
    
     /** Creates a new instance of ImageConversion */
@@ -69,7 +72,7 @@ public class ImageMap extends VueAction {
        
        //createJpeg(imageLocation, "jpeg", currentMap, size);
        //ImageConversion.createActiveMapJpeg(new File(imageLocation));
-       ImageConversion.createActiveMapPng(imageLocationFile,1.0);
+       imageDimensions = ImageConversion.createActiveMapPng(imageLocationFile,1.0);
        createHtml(imageName, fileName);
     }
     
@@ -190,13 +193,13 @@ public class ImageMap extends VueAction {
         String out = "<HTML><HEAD><TITLE>" + currentMap.getLabel();
         out += "</TITLE>";
         //write out css
-    
+        
         out +="<style type=\"text/css\">\n";
         out+="#map {\n";
         out+="	margin:0;\n";
         out+="	padding:0;\n";
-        out+="	width:"+(int)currentMap.getWidth()+"px;\n";
-        out+="	height:"+(int)currentMap.getHeight()+"px;\n";
+        out+="	width:"+(int)imageDimensions.getWidth()+"px;\n";
+        out+="	height:"+(int)imageDimensions.getHeight()+"px;\n";
         out+="	background:url(" + imageName +") top left no-repeat #fff;\n";
         out+="	font-family:arial, helvetica, sans-serif;\n";
         out+="	font-size:8pt;}\n\n";
