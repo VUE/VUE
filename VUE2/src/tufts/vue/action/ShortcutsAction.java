@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.8 $ / $Date: 2008-05-06 20:44:20 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2008-05-06 20:46:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -158,11 +158,14 @@ public class ShortcutsAction extends tufts.vue.VueAction
         if (debug) {
             html.append(" bgcolor=#FF0000");
         } else if (row % 2 == 0) {
-            if (Util.isMacPlatform())
-                html.append(" bgcolor=#EEEEEE"); // VUE-1036
-              //html.append(" bgcolor=#DDDDFF");
-            else
+            if (Util.isMacPlatform()) {
+                if (DEBUG.Enabled)
+                    html.append(" bgcolor=#DDDDFF");
+                else
+                    html.append(" bgcolor=#EEEEEE"); // VUE-1036
+            } else {
                 html.append(" bgcolor=#FFFFFF");
+            }
         } else {
             html.append('>');
         }
