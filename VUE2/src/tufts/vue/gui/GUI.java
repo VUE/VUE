@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.103 $ / $Date: 2008-04-21 20:57:31 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2008-05-06 17:33:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -227,17 +227,17 @@ public class GUI
 
         if (Util.isMacPlatform()) {
 
-            try
-            {
-            	UIManager.setLookAndFeel(
-                    "ch.randelshofer.quaqua.QuaquaLookAndFeel");
-            	System.setProperty("Quaqua.design", "panther");
+            if (!SKIP_CUSTOM_LAF) {
+
+                try {
+                    UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
+                    System.setProperty("Quaqua.design", "panther");
+                }
+                catch (Throwable t) {
+                    Log.error("Couldn't load quaqua look and feel", t);
+                }
             }
-            catch(Exception e)
-            {
-            	Log.error("Couldn't load quaqua look and feel");
-            }
-     
+            
         } else {
 
             // We're leaving the default look and feel alone (e.g. Windows)
@@ -733,8 +733,11 @@ public class GUI
             ext = "htm";
 
         if (Util.isMacPlatform()) {
-
-            return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
+            
+            if (tufts.macosx.MacOSX.supported())
+                return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
+            else
+                return null;
             
 //             Image image = tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
 //             // May need an unknown type for each likely sizeRequest
