@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.104 $ / $Date: 2008-04-30 07:10:08 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2008-05-06 17:34:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -888,7 +888,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
             final MapViewer v = tp.getViewerAt(i);
             final LWMap m = v.getMap();
             
-            JMenuItem item = new JMenuItem(new VueAction(m.getLabel()) {
+            JMenuItem item = new JMenuItem(new VueAction(m.getSaveFileModelVersion() + " | " +  m.getLabel()) {
                     public void act() {
                         Log.debug("quik-map " + m);
                         // this currently only works in full-screen mode
