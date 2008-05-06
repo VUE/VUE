@@ -26,11 +26,11 @@ import javax.swing.*;
  * Display the VUE splash screen.  Show the VUE splash graphic with current version
  * text drawn on top of it,
  *
- * @version $Revision: 1.12 $ / $Date: 2008-03-07 23:23:08 $ / $Author: anoop $ 
+ * @version $Revision: 1.13 $ / $Date: 2008-05-06 18:02:30 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
-public class SplashScreen extends Frame
+public class SplashScreen extends JFrame
 {
     public SplashScreen() {
         setName(tufts.vue.gui.GUI.OVERRIDE_REDIRECT); // ignore textured background if we can
@@ -39,8 +39,17 @@ public class SplashScreen extends Frame
         createSplash();
 
         if (GUI.isMacAqua()) {
-            pack(); // ensure peer created for MacOSX
-            MacOSX.setTransparent(SplashScreen.this);
+            if (MacOSX.supported()) {
+                pack(); // ensure peer created for MacOSX
+                MacOSX.setTransparent(SplashScreen.this);
+            } else { //if (tufts.Util.getJavaVersion() >= 1.6) {
+                // this doesn't work: it sets the alpha of the window AND the contents
+                // we only want the window to be invisible (non-opaque in the NSWindow world,
+                // as opposed to having an alpha)  Apple hasn't added a special property
+                // for that.
+                //getRootPane().putClientProperty("Window.alpha", Float.valueOf(0));
+                setBackground(Color.white);
+            }
         } else {
             // This will give it a transparent "look"
             // if no other window's are open on the
