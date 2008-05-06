@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.7 $ / $Date: 2008-05-06 20:37:49 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2008-05-06 20:44:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -97,6 +97,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
     //private static final String NBSP = "X";
     private static final String BIG_NBSP =
         " " + NBSP
+        + " " + NBSP
         + " " + NBSP
         + " " + NBSP
         + " " + NBSP
