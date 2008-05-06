@@ -42,7 +42,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.184 $ / $Date: 2008-05-02 23:56:44 $ / $Author: sfraize $
+ * @version $Revision: 1.185 $ / $Date: 2008-05-06 17:29:48 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -400,6 +400,7 @@ public class LWLink extends LWComponent
      * @param key property key (see LWKey)
      * @return object representing appropriate value
      */
+    @Override
     public Object getPropertyValue(Object key)
     {
         //if (key == LWKey.LinkCurves)       return new Integer(getControlCount());else
@@ -410,6 +411,7 @@ public class LWLink extends LWComponent
             return super.getPropertyValue(key);
     }
 
+    @Override
     public void setProperty(final Object key, Object val)
     {
         //if (key == LWKey.LinkCurves)       setControlCount(((Integer) val).intValue());else
@@ -1197,6 +1199,7 @@ public class LWLink extends LWComponent
         notify(Key_Control_1, old);
     }
 
+    @Override
     protected void removeFromModel()
     {
         if (head.pruned)
@@ -1209,6 +1212,7 @@ public class LWLink extends LWComponent
         if (tail.hasNode()) tail.node.removeLinkRef(this);
     }
 
+    @Override
     protected void restoreToModel()
     {
         super.restoreToModel();
@@ -2505,6 +2509,7 @@ public class LWLink extends LWComponent
         }
     }
 
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         if (mRecompute)
