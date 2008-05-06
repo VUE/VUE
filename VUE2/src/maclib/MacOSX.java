@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
  * for things such as fading the screen to black and forcing
  * child windows to stay attached to their parent.
  *
- * @version $Revision: 1.14 $ / $Date: 2008-04-18 01:26:32 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2008-05-06 17:35:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class MacOSX
@@ -37,9 +37,21 @@ public class MacOSX
 
     private static int DefaultColorCycleSteps = 10; // old was 32, then 8
 
+    private static final boolean NSGone;
+
     static {
         if (System.getProperty("tufts.macosx.debug") != null)
             DEBUG = true;
+        // 64bit Java 6 VM
+        if (Util.getJavaVersion() >= 1.6) // is this actually supported on Java 1.6 Tiger?
+            NSGone = true;
+        else
+            NSGone = false;
+        //HasNS = !"64".equals(System.getProperty("sun.arch.data.model"));
+    }
+
+    public static boolean supported() {
+        return !NSGone;
     }
 
     public interface ApplicationListener {
@@ -102,6 +114,8 @@ public class MacOSX
     
     private static Image fetchIconForExtension(String ext, int sizeRequest)
     {
+        if (NSGone) return null;
+        
         final String key = ext + '.' + sizeRequest;
         
         Image image = IconCache.get(key);
@@ -177,11 +191,13 @@ public class MacOSX
     
     
     public static void goBlack() {
+        if (NSGone) return;
         goBlack(getFullScreenWindow());
     }
 
     
     public static void goBlack(NSWindow w) {
+        if (NSGone) return;
         if (DEBUG) out(w + " goBlack");
         w.setAlphaValue(1f);
         w.orderFrontRegardless();
@@ -192,6 +208,7 @@ public class MacOSX
     }
     
     public static void hideFSW() {
+        if (NSGone) return;
         final NSWindow w = getFullScreenWindow();
         if (DEBUG) out(w + " hiding (closing)");
         w.close();
@@ -199,6 +216,7 @@ public class MacOSX
     }
 
     public static void fadeToBlack() {
+        if (NSGone) return;
         NSWindow w = getFullScreenWindow();
         if (DEBUG) out(w + " fadeToBlack");
         //w.setAlphaValue(0);
@@ -210,10 +228,12 @@ public class MacOSX
 
     public static void fadeFromBlack() {
         if (DEBUG) out("fadeFromBlack");
+        if (NSGone) return;
         fadeFromBlack(getFullScreenWindow());
     }
     
     public static void fadeFromBlack(NSWindow w) {
+        if (NSGone) return;
         if (DEBUG) out(w + " fadeFromBlack");
         goBlack(w);
         cycleAlpha(w, 1, 0);
@@ -225,19 +245,23 @@ public class MacOSX
     }
 
     public static void cycleAlpha(Window w, float start, float end) {
+        if (NSGone) return;
         cycleAlpha(getWindow(w), start, end, DefaultColorCycleSteps);
     }
     
     private static void cycleAlpha(float start, float end) {
+        if (NSGone) return;
         cycleAlpha(getFullScreenWindow(), start, end, DefaultColorCycleSteps);
     }
     
     
     private static void cycleAlpha(NSWindow w, float start, float end) {
+        if (NSGone) return;
         cycleAlpha(w, start, end, DefaultColorCycleSteps);
     }
 
     private static void cycleAlpha(NSWindow w, float start, float end, final int steps) {
+        if (NSGone) return;
         if (DEBUG) out(w + " cycleAlpha: " + start + " -> " + end + " in " + steps + " steps");
         //new Throwable("CYCLEALPHA").printStackTrace();
         float alpha;
@@ -269,6 +293,9 @@ public class MacOSX
     }
 
     private static NSWindow getFullScreenWindow() {
+        
+        if (NSGone) return null;
+        
         if (sFullScreen == null) {
             if (DEBUG) out("creating FSW:");
             final Dimension screen = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
@@ -313,14 +340,23 @@ public class MacOSX
     }
 
     public static NSWindow getMainWindow() {
+        
+        if (NSGone) return null;
+        
         return NSApplication.sharedApplication().mainWindow();
     }
     
     public static NSMenu getMainMenu() {
+        
+        if (NSGone) return null;
+        
         return NSApplication.sharedApplication().mainMenu();
     }
 
     public static void setApplicationIcon(String imageFileName) {
+
+        if (NSGone) return;
+
         try {
             NSImage icon = new NSImage(imageFileName, false);
             NSApplication.sharedApplication().setApplicationIconImage(icon);
@@ -583,6 +619,9 @@ public class MacOSX
      * (unless it's a Frame), and is mainly for debug tracking.
      */
     public static void setTitle(Window w, String title) {
+
+        if (NSGone) return;
+        
         try {
             NSWindow nsw = getWindow(w);
             if (nsw != null) {
@@ -595,6 +634,9 @@ public class MacOSX
     
     
     public static void setShadow(Window w, boolean hasShadow) {
+
+        if (NSGone) return;
+        
         NSWindow nsw = getWindow(w);
         if (nsw != null) {
             //if (DEBUG) out("setShadow: " + name(w) + " " + hasShadow);
@@ -688,6 +730,9 @@ public class MacOSX
     // This should be private as we don't want to export NSWindow dependencies,
     // but is public for testing right now.
     public static NSWindow getWindow(Window javaWindow) {
+
+        if (NSGone) return null;
+        
         try {
             return findWindow(javaWindow);    
         } catch (LinkageError e) {
@@ -698,6 +743,8 @@ public class MacOSX
     
     private static NSWindow findWindow(Window javaWindow)
     {
+        if (NSGone) return null;
+
         NSWindow macWindow = (NSWindow) WindowMap.get(javaWindow);
         //NSWindow macWindowCached = (NSWindow) WindowMap.get(javaWindow);
         //NSWindow macWindow = null;
@@ -867,22 +914,26 @@ public class MacOSX
     }
     
     public static void makeMainInvisible() {
+        if (NSGone) return;
         final NSWindow w = getMainWindow();
         if (DEBUG) out(w + " making main invisible");
         w.setAlphaValue(0);
     }
 
     public static boolean isMainInvisible() {
+        if (NSGone) return false;
         return getMainWindow().alphaValue() == 0;
     }
     
     public static void fadeUpMainWindow() {
+        if (NSGone) return;
         final NSWindow w = getMainWindow();
         if (DEBUG) out(w + " fadeUp main window");
         cycleAlpha(w, 0, 1);
     }
     
     public static void setMainAlpha(float alpha) {
+        if (NSGone) return;
         final NSWindow w = getMainWindow();
         if (DEBUG) out(w + " setMainAlpha " + alpha);
         w.setAlphaValue(alpha);
