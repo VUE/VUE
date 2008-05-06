@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.112 $ / $Date: 2008-05-06 20:46:19 $ / $Author: mike $
+ * @version $Revision: 1.113 $ / $Date: 2008-05-06 21:12:09 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -109,17 +109,42 @@ public class ActionUtil
     
     /**A static method which displays a file chooser for the user to choose which file to save into.
        It returns the selected file or null if the process didn't complete*/
+    protected static VueFileChooser saveChooser = null;        
     public static File selectFile(String title, final String fileType)
     {
         File picked = null;
-        final VueFileChooser chooser = new VueFileChooser();
+       
+    	
+    	if (!Util.isMacPlatform())
+    	{
+    		saveChooser = new VueFileChooser();
+    		if (VueUtil.isCurrentDirectoryPathSet()) 
+    			saveChooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
+    	}
+    	else
+    	{
+    		
+    		if (VueUtil.isCurrentDirectoryPathSet()) 
+    		{
+    			/*
+    			 * Despite Quaqua fixes in 3.9 you can still only set the 
+    			 * current directory if you set it in the constructor, 
+    			 * setCurrentDirectory fails to do anything but cause the
+    			 * top bar and the panels to be out of sync.... -MK 10/29
+    			 */
+    			saveChooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
+    		}
+    		else
+    			saveChooser = new VueFileChooser();
+
+    	}
 
      
         
-        chooser.setDialogTitle(title);
-        chooser.setAcceptAllFileFilterUsed(false);    
+    	saveChooser.setDialogTitle(title);
+    	saveChooser.setAcceptAllFileFilterUsed(false);    
         //chooser.set
-        chooser.addPropertyChangeListener(new PropertyChangeListener()
+    	saveChooser.addPropertyChangeListener(new PropertyChangeListener()
         {
 			public void propertyChange(PropertyChangeEvent arg0) {				
 				if (arg0.getPropertyName() == VueFileChooser.FILE_FILTER_CHANGED_PROPERTY)
@@ -138,66 +163,56 @@ public class ActionUtil
 			     
 			        if (fileType == null)
 			        {
-			        	chooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));
+			        	ActionUtil.saveChooser.setSelectedFile(new File(baseName.replaceAll("\\*", "")));
 			        }
 				}
 			}
         });
         
         if (fileType != null && !fileType.equals("export"))
-         chooser.setFileFilter(new VueFileFilter(fileType)); 
+        	saveChooser.setFileFilter(new VueFileFilter(fileType)); 
         else if (fileType != null && fileType.equals("export"))
         {
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
+        	saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
+        	saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
             //chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
+        	saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
+        	saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
           //  chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
         }
         else
         {
             VueFileFilter defaultFilter = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
             
-            chooser.addChoosableFileFilter(defaultFilter);  
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+            saveChooser.addChoosableFileFilter(defaultFilter);  
+            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
         //SIMILE    chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SIMILE_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter("PDF"));
+            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
+            saveChooser.addChoosableFileFilter(new VueFileFilter("PDF"));
             
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
+            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.JPEG_DESCRIPTION));
+            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.PNG_DESCRIPTION));
             //chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));
             //chooser.addChoosableFileFilter(new VueFileFilter("html"));
             
-            chooser.addChoosableFileFilter(new VueFileFilter("RDF"));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
+            saveChooser.addChoosableFileFilter(new VueFileFilter("RDF"));
+            saveChooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
          //   chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
             
             //chooser.addChoosableFileFilter(new VueFileFilter("HTML Outline", "htm"));
             
-            chooser.setFileFilter(defaultFilter); 
-        }
-         
-    //    JPanel p1 = (JPanel)chooser.getComponent(2);
-      //  JPanel p2 = (JPanel)p1.getComponent(2);
-       // JPanel p3 = (JPanel)p2.getComponent(2);
-       // JComboBox box = (JComboBox)p3.getComponent(3);
-        //box.g
-       // box.setRenderer(new PaddedCellRenderer());
+            saveChooser.setFileFilter(defaultFilter); 
+        }         
         
-        if(VueUtil.isCurrentDirectoryPathSet()) 
-          chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));  
-        
-        int option = chooser.showDialog(VUE.getDialogParentAsFrame(), "Save");
+        int option = saveChooser.showDialog(VUE.getDialogParentAsFrame(), "Save");
         
         if (option == VueFileChooser.APPROVE_OPTION) 
         {
-            picked = chooser.getSelectedFile();
+            picked = saveChooser.getSelectedFile();
             
             String fileName = picked.getAbsolutePath();
             //String extension = chooser.getFileFilter().getDescription();
-              String extension = ((VueFileFilter)chooser.getFileFilter()).getExtensions()[0];  
+              String extension = ((VueFileFilter)saveChooser.getFileFilter()).getExtensions()[0];  
             //if it isn't a file name with the right extension 
             if (!fileName.endsWith("." + extension)) {
                 fileName += "." + extension;
