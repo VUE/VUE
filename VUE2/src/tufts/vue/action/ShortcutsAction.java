@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.6 $ / $Date: 2008-04-25 19:12:30 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2008-05-06 20:37:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -158,7 +158,8 @@ public class ShortcutsAction extends tufts.vue.VueAction
             html.append(" bgcolor=#FF0000");
         } else if (row % 2 == 0) {
             if (Util.isMacPlatform())
-                html.append(" bgcolor=#DDDDFF");
+                html.append(" bgcolor=#EEEEEE"); // VUE-1036
+              //html.append(" bgcolor=#DDDDFF");
             else
                 html.append(" bgcolor=#FFFFFF");
         } else {
@@ -205,8 +206,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
         return hasOnlyShift(mods) || hasOnlyAlt(mods) || hasOnlyCtrl(mods);
     }
 
-    private static final String TitleColor = "#AAAAAA";
-            
+    private static final String TitleColor = "#C5C5C5"; // As per VUE-1036
 
         
     static JComponent buildShortcutsComponent()
@@ -246,9 +246,9 @@ public class ShortcutsAction extends tufts.vue.VueAction
             //=============================================================================
 
             html.append("<tr bgcolor=" + TitleColor + ">");
-            add(BOLD+ITAL, "Tool");
-            add(BOLD+ITAL+CENTER, "Key");
-            add(BOLD+ITAL+CENTER, "Quick-Key");
+            add(BOLD, "Tool");
+            add(BOLD+CENTER, "Key");
+            add(BOLD+CENTER, "Quick-Key");
             html.append("</tr>");
                 
         }
@@ -328,12 +328,12 @@ public class ShortcutsAction extends tufts.vue.VueAction
             if (Util.isMacLeopard())
                 add(NO_GAP, " " + NBSP + " " + NBSP + " " + NBSP + " ");
 
-            add(BOLD+ITAL, "Action");
+            add(BOLD, "Action");
             
             if (Util.isMacLeopard())
-                add(BOLD+ITAL+SPAN3, "Shortcut");
+                add(BOLD+SPAN3, "Shortcut");
             else 
-                add(BOLD+ITAL+SPAN2, "Shortcut Key");
+                add(BOLD+SPAN2, "Shortcut Key");
             
             html.append("</tr>");
                 
@@ -411,11 +411,11 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 add(a.getPermanentActionName());
                 
                 if (Util.isMacLeopard()) {
-                    add(BOLD + NO_GAP + goRight, get_MacOSX_Leopard_Modifier_Glyphs(mods));
-                    add(BOLD + NO_GAP, keyCodeChar(k.getKeyCode()));
+                    add(NO_GAP + goRight, get_MacOSX_Leopard_Modifier_Glyphs(mods));
+                    add(NO_GAP, keyCodeChar(k.getKeyCode()));
                 } else {
-                    add(BOLD + goRight, KeyEvent.getKeyModifiersText(mods));
-                    add(BOLD + NO_WEST_GAP, keyCodeChar(k.getKeyCode()));
+                    add(goRight, KeyEvent.getKeyModifiersText(mods));
+                    add(NO_WEST_GAP, keyCodeChar(k.getKeyCode()));
                 }
 
                 if (row == 1 && Util.isMacLeopard()) 
