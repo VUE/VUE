@@ -57,7 +57,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.542 $ / $Date: 2008-04-28 05:18:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.543 $ / $Date: 2008-05-06 17:31:37 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1269,14 +1269,17 @@ public class VUE
         // Outline View
         //-----------------------------------------------------------------------------
 
-        OutlineViewTree outlineTree = new OutlineViewTree();
-        JScrollPane outlineScroller = new JScrollPane(outlineTree);
-        VUE.getSelection().addListener(outlineTree);
-        //VUE.addActiveMapListener(outlineTree);
-        VUE.ActiveMapHandler.addListener(outlineTree);
-        outlineScroller.setPreferredSize(new Dimension(500, 300));
-        //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
-        outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+        if (!SKIP_DR) {
+        
+            OutlineViewTree outlineTree = new OutlineViewTree();
+            JScrollPane outlineScroller = new JScrollPane(outlineTree);
+            VUE.getSelection().addListener(outlineTree);
+            //VUE.addActiveMapListener(outlineTree);
+            VUE.ActiveMapHandler.addListener(outlineTree);
+            outlineScroller.setPreferredSize(new Dimension(500, 300));
+            //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
+            outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+        }
         
         //-----------------------------------------------------------------------------
 
@@ -1580,10 +1583,13 @@ public class VUE
         
         final DockWindow[] acrossTop = acrossTopList.toArray(new DockWindow[acrossTopList.size()]);
         
-        outlineDock.setLowerLeftCorner(0,
-                                       GUI.GScreenHeight - GUI.GInsets.bottom);
-        pannerDock.setLowerRightCorner(GUI.GScreenWidth - GUI.GInsets.right,
-                                       GUI.GScreenHeight - GUI.GInsets.bottom);
+        if (outlineDock != null)
+            outlineDock.setLowerLeftCorner(0,
+                                           GUI.GScreenHeight - GUI.GInsets.bottom);
+        if (pannerDock != null)
+            pannerDock.setLowerRightCorner(GUI.GScreenWidth - GUI.GInsets.right,
+                                           GUI.GScreenHeight - GUI.GInsets.bottom);
+        
         if (DockWindow.getTopDock() != null)
             prepareForTopDockDisplay(acrossTop);
         if (acrossTop.length > 0)
@@ -1595,13 +1601,13 @@ public class VUE
         	}});
        }
         
-        if (false) {
-            // old positioning code
-            int inspectorx = ApplicationFrame.getX() + ApplicationFrame.getWidth();
-            MapInspector.suggestLocation(inspectorx, ApplicationFrame.getY());
-            ObjectInspector.suggestLocation(inspectorx, ApplicationFrame.getY() + MapInspector.getHeight() );
-            pannerDock.suggestLocation(ApplicationFrame.getX() - pannerDock.getWidth(), ApplicationFrame.getY());
-        }
+//         if (false) {
+//             // old positioning code
+//             int inspectorx = ApplicationFrame.getX() + ApplicationFrame.getWidth();
+//             MapInspector.suggestLocation(inspectorx, ApplicationFrame.getY());
+//             ObjectInspector.suggestLocation(inspectorx, ApplicationFrame.getY() + MapInspector.getHeight() );
+//             pannerDock.suggestLocation(ApplicationFrame.getX() - pannerDock.getWidth(), ApplicationFrame.getY());
+//         }
         
         //restore window
         DR_BROWSER_DOCK.positionWindowFromProperties();
@@ -1614,7 +1620,8 @@ public class VUE
         pannerDock.positionWindowFromProperties();
         MapInspector.positionWindowFromProperties();
         ObjectInspector.positionWindowFromProperties();
-        outlineDock.positionWindowFromProperties();       
+        if (outlineDock != null)
+            outlineDock.positionWindowFromProperties();       
     
         mapInspectorPanel.metadataPanel.refresh();
         
@@ -2073,13 +2080,14 @@ public class VUE
         DR_BROWSER_DOCK.saveWindowProperties();
         pathwayDock.saveWindowProperties();
         if (formatDock != null)
-        	formatDock.saveWindowProperties();
+            formatDock.saveWindowProperties();
         if (slideDock != null)
             slideDock.saveWindowProperties();
         pannerDock.saveWindowProperties();
         MapInspector.saveWindowProperties();
         ObjectInspector.saveWindowProperties();
-        outlineDock.saveWindowProperties();
+        if (outlineDock != null)
+            outlineDock.saveWindowProperties();
         ApplicationFrame.saveWindowProperties();
        
         if (mMapTabsLeft == null) // so debug harnesses can quit (no maps displayed)
