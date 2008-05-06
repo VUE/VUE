@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.540 $ / $Date: 2008-04-30 05:51:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.541 $ / $Date: 2008-05-06 17:30:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2702,7 +2702,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
             if (indication instanceof LWNode) {
                 // note that slide nodes can't normally have icons
-                lessIndication = LWNode.isImageNode(indication) || ((LWNode)indication).iconShowing();
+                // below would need to check if actual RESOURCE icon is showing, not any icon
+                //lessIndication = LWNode.isImageNode(indication) || ((LWNode)indication).iconShowing();
+                lessIndication = LWNode.isImageNode(indication);
             }
             
         }
@@ -2717,13 +2719,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         boolean asFill = !(indication instanceof LWLink);
 
         dc.g.setColor(indicationIsAlternate ? COLOR_INDICATION_ALTERNATE : COLOR_INDICATION);
-        if (lessIndication) {
-            dc.setAlpha(0.25);
-            //dc.setAlpha(0.5);
-        } else {
-            dc.setAlpha(0.5);
-            // if (DEBUG.Enabled) dc.g.setColor(Color.red);
-        }
+        dc.setAlpha(0.5);
+        
+//         if (lessIndication) {
+//             dc.setAlpha(0.25);
+//             //dc.setAlpha(0.5);
+//         } else {
+//             dc.setAlpha(indicationIsAlternate ? 0.75 : 0.5);
+//             dc.setAlpha(0.5);
+//             // if (DEBUG.Enabled) dc.g.setColor(Color.red);
+//         }
         
         if (asFill) {
             final Shape shape = indication.getZeroShape();
