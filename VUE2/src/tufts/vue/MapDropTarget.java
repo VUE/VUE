@@ -46,7 +46,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.92 $ / $Date: 2008-04-28 06:56:29 $ / $Author: sfraize $  
+ * @version $Revision: 1.93 $ / $Date: 2008-05-06 18:05:59 $ / $Author: mike $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1111,7 +1111,7 @@ class MapDropTarget
         if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " where=" + where);
 
         LWComponent c = createNode(drop, resource, properties, where, true);
-
+        EditorManager.targetAndApplyCurrentProperties(c);
         // TODO: get this so that one call is triggering the async stuff for both
         // meta-data and image loading.  Maybe the resource can will load the image...,
         // yeah, probably.  Tho we also need activate separate animation threads that
