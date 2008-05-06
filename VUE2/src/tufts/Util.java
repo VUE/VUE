@@ -1939,23 +1939,23 @@ public class Util
                     txt = txt.substring(stdShortTag0.length());
                 } else if (txt.startsWith(simpleType)) {
                     txt = txt.substring(simpleType.length());
+                } else if (txt.startsWith(type)) {
+                    txt = txt.substring(type.length());
                 }
+
             }
         } catch (Throwable t) {
             txt = t.toString();
         }
 
-//         else {
-//             final String shortTag = String.format("%s@%x", simpleType, ident);
-//             // remove redunant (short) type info from toString
-//             if (txt.startsWith(shortTag))
-//                 txt = txt.substring(shortTag.length());
-//         }
-        
         final String s;
-        if (txt.length() > 0)
-            s = String.format("%s@%07x[%s]", type, ident, txt);
-        else
+        if (txt.length() > 0) {
+            if (txt.length() > 2 && txt.charAt(0) == '[' && txt.charAt(txt.length() - 1) == ']') {
+                // skip redundant brackets
+                s = String.format("%s@%07x%s", type, ident, txt);
+            } else
+                s = String.format("%s@%07x[%s]", type, ident, txt);
+        } else
             s = String.format("%s@%07x", type, ident);
             
         return s;
