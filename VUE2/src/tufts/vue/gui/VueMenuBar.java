@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.105 $ / $Date: 2008-05-06 17:34:47 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2008-05-06 18:21:09 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -580,6 +580,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
         //slidePreviewMenu.add(Actions.PreviewOnMap);
         presentationMenu.add(Actions.PreviewOnMap);
+        presentationMenu.add(Actions.EditMasterSlide);
         // slidePreviewMenu.add(Actions.PreviewInViewer);
       //  presentationMenu.add(slidePreviewMenu);
    /*
