@@ -26,11 +26,11 @@ import javax.swing.*;
  * Display the VUE splash screen.  Show the VUE splash graphic with current version
  * text drawn on top of it,
  *
- * @version $Revision: 1.13 $ / $Date: 2008-05-06 18:02:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.14 $ / $Date: 2008-05-06 18:03:22 $ / $Author: sfraize $ 
  * @author  akumar03
  */
 
-public class SplashScreen extends JFrame
+public class SplashScreen extends Frame
 {
     public SplashScreen() {
         setName(tufts.vue.gui.GUI.OVERRIDE_REDIRECT); // ignore textured background if we can
