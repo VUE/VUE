@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.111 $ / $Date: 2008-04-14 19:38:28 $ / $Author: sfraize $
+ * @version $Revision: 1.112 $ / $Date: 2008-05-06 20:46:19 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -153,7 +153,7 @@ public class ActionUtil
             //chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SVG_DESCRIPTION));        	
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
+          //  chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
         }
         else
         {
@@ -161,6 +161,7 @@ public class ActionUtil
             
             chooser.addChoosableFileFilter(defaultFilter);  
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.VPK_DESCRIPTION));
+        //SIMILE    chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.SIMILE_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMAGEMAP_DESCRIPTION));
             chooser.addChoosableFileFilter(new VueFileFilter("PDF"));
             
@@ -171,7 +172,7 @@ public class ActionUtil
             
             chooser.addChoosableFileFilter(new VueFileFilter("RDF"));
             chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.IMS_DESCRIPTION));
-            chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
+         //   chooser.addChoosableFileFilter(new VueFileFilter(VueFileFilter.ZIP_DESCRIPTION));
             
             //chooser.addChoosableFileFilter(new VueFileFilter("HTML Outline", "htm"));
             
