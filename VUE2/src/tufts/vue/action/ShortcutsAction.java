@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.9 $ / $Date: 2008-05-06 20:46:11 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2008-05-07 17:29:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -99,9 +99,9 @@ public class ShortcutsAction extends tufts.vue.VueAction
         " " + NBSP
         + " " + NBSP
         + " " + NBSP
-        + " " + NBSP
-        + " " + NBSP
-        + " " + NBSP
+        //+ " " + NBSP // these if tool lines are bold on Leopard
+        //+ " " + NBSP
+        //+ " " + NBSP
         ;
 ;
         
@@ -285,14 +285,14 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 // Production TOOLS 
                 //=======================================================
                 
-                add(BOLD, t.getToolName());
+                add(t.getToolName());
                 
-                add(BOLD+CENTER, t.getShortcutKey());
+                add(CENTER, t.getShortcutKey());
 
                 if (downKey == 0)
                     add("");
                 else
-                    add(BOLD+CENTER, keyCodeChar(downKey, true));
+                    add(CENTER, keyCodeChar(downKey, true));
                 
                 //add(BOLD+CENTER, t.getShortcutKey(), "bgcolor=black color=white");
             }
@@ -335,7 +335,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
             add(BOLD, "Action");
             
             if (Util.isMacLeopard())
-                add(BOLD+SPAN3, "Shortcut");
+                add(BOLD+SPAN3+NO_WEST_GAP, "Shortcut");
             else 
                 add(BOLD+SPAN2, "Shortcut Key");
             
