@@ -42,7 +42,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.185 $ / $Date: 2008-05-06 17:29:48 $ / $Author: sfraize $
+ * @version $Revision: 1.186 $ / $Date: 2008-05-07 19:27:27 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -465,7 +465,6 @@ public class LWLink extends LWComponent
     
     /** @return the component connected at the head end, or null if none or if it's pruned */
     public LWComponent getHead() {
-        System.err.println("HEAD RETURNS " + head);
         if (head.node == null || head.node.isHidden(HideCause.PRUNE))
             return null;
         else
@@ -473,7 +472,6 @@ public class LWLink extends LWComponent
     }
     /** @return the component connected at the tail end, or null if none or of it's pruned*/
     public LWComponent getTail() {
-        System.err.println("TAIL RETURNS " + tail);
         if (tail.node == null || tail.node.isHidden(HideCause.PRUNE))
             return null;
         else
