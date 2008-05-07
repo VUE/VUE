@@ -37,6 +37,9 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.plaf.FileChooserUI;
 import javax.swing.plaf.basic.BasicFileChooserUI;
 
+import tufts.Util;
+import tufts.vue.VueUtil;
+
 import edu.tufts.vue.preferences.PreferencesManager;
 
 public class VueFileChooser extends JFileChooser{
@@ -54,6 +57,42 @@ public class VueFileChooser extends JFileChooser{
 		
 		 
 	}
+	public VueFileChooser(File f)
+	{
+		super(f);
+		checkForChooser();
+		
+	}
+	
+	public static VueFileChooser getVueFileChooser()
+	{
+		VueFileChooser chooser = null;
+		if (!Util.isMacPlatform())
+    	{
+    		chooser = new VueFileChooser();
+    		if (VueUtil.isCurrentDirectoryPathSet()) 
+    			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
+    	}
+    	else
+    	{
+    		
+    		if (VueUtil.isCurrentDirectoryPathSet()) 
+    		{
+    			/*
+    			 * Despite Quaqua fixes in 3.9 you can still only set the 
+    			 * current directory if you set it in the constructor, 
+    			 * setCurrentDirectory fails to do anything but cause the
+    			 * top bar and the panels to be out of sync.... -MK 10/29
+    			 */
+    			chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
+    		}
+    		else
+    			chooser = new VueFileChooser();
+
+    	}
+		return chooser;
+	}
+	
 	protected JDialog createDialog(Component parent)
 	{
 		JDialog log = super.createDialog(parent);
@@ -122,12 +161,6 @@ public class VueFileChooser extends JFileChooser{
 			}
 				
 		}
-	}
-	public VueFileChooser(File f)
-	{
-		super(f);
-		checkForChooser();
-		
 	}
 	
 	private void checkForChooser()
