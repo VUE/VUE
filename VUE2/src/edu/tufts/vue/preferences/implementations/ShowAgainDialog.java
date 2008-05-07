@@ -65,7 +65,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     private static int newcnt = 1;
     private void setUpUI(JPanel panel)
     {
-        okButton = new JButton("OK");
+        okButton = new JButton("Delete");
         cancelButton = new JButton("Cancel");
 
         
@@ -85,49 +85,54 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         
         gbc.gridx=0;
         gbc.gridy=0;
-        gbc.gridwidth=2;
-        gbc.insets = new Insets(10,10,10,10);
+        gbc.gridwidth=4;
+        gbc.weightx=4.0;
+        gbc.insets = new Insets(15,10,10,10);
         gbc.anchor=GridBagConstraints.CENTER;
         gbc.fill=GridBagConstraints.BOTH;                   	
         dialogContentPane.add(panel, gbc);
 
         ///////////////////////////////////////////////////////
         
-      
+        gbc.weightx=1.0;
+        this.getRootPane().setDefaultButton(okButton);
+        gbc.ipadx=0;
         gbc.gridx=0;
         gbc.gridy=1;
         gbc.gridwidth=1;
-        gbc.insets = new Insets(1,110,10,5);
+        //gbc.weightx=0.5;
+        gbc.insets = new Insets(2,10,15,1);
         gbc.anchor=GridBagConstraints.EAST;
-        gbc.fill=GridBagConstraints.NONE;
-       
-        dialogContentPane.add(cancelButton,gbc);
-        this.getRootPane().setDefaultButton(okButton);
-        
+        gbc.fill=GridBagConstraints.BOTH;
+        showAgainBox.setText("don't show again");
+        showAgainBox.setSelected(!((Boolean)showAgainPref.getValue()).booleanValue());
+        dialogContentPane.add(showAgainBox,gbc);
+
         gbc.gridx=1;
         gbc.gridy=1;
+        gbc.gridwidth=2;
+        gbc.weightx=14.0;
+       // gbc.insets = new Insets(1,110,10,5);
+        gbc.anchor=GridBagConstraints.EAST;
+        gbc.fill=GridBagConstraints.NONE;
+        gbc.insets = new Insets(2,20,15,2);
+        dialogContentPane.add(cancelButton,gbc);
+     
+        gbc.weightx=1.0;
+        gbc.gridx=3;
+        gbc.gridy=1;
         gbc.gridwidth=1;
+        gbc.insets = new Insets(2,2,15,10);
         
-        gbc.insets = new Insets(1,5,10,110);
-        gbc.anchor=GridBagConstraints.WEST;
-        gbc.fill=GridBagConstraints.NONE;               
+       // gbc.insets = new Insets(1,5,10,110);
+        gbc.anchor=GridBagConstraints.EAST;
+        gbc.fill=GridBagConstraints.REMAINDER;               
         dialogContentPane.add(okButton,gbc);
         
         
         ////////////////////////////////////////////////////////
         
-        gbc.ipadx=0;
-        gbc.gridx=0;
-        gbc.gridy=2;
-        gbc.gridwidth=0;
-        gbc.weightx=0.5;
-        gbc.insets = new Insets(1,20,6,1);
-        gbc.anchor=GridBagConstraints.EAST;
-        gbc.fill=GridBagConstraints.HORIZONTAL;
-        showAgainBox.setText("don't show again");
-        showAgainBox.setSelected(!((Boolean)showAgainPref.getValue()).booleanValue());
-        dialogContentPane.add(showAgainBox,gbc);
-        this.pack();
+                this.pack();
     
         
     }
