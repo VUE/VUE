@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import static tufts.Util.*;
 import tufts.vue.gui.GUI;
 import tufts.vue.NodeTool.NodeModeTool;
 import java.awt.dnd.*;
@@ -46,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.93 $ / $Date: 2008-05-06 18:05:59 $ / $Author: mike $  
+ * @version $Revision: 1.94 $ / $Date: 2008-05-07 05:33:17 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -70,7 +71,7 @@ class MapDropTarget
         
     public static final int ACCEPTABLE_DROP_TYPES =
         DnDConstants.ACTION_COPY        // 0x1
-        //| DnDConstants.ACTION_MOVE      // 0x2
+        | DnDConstants.ACTION_MOVE      // 0x2
         | DnDConstants.ACTION_LINK      // 0x40000000
         ;
 
@@ -93,27 +94,33 @@ class MapDropTarget
     
     private final MapViewer mViewer;
 
-    /** for Windows, track the last dropAction we got during dragOver, as it can somehow be reverted by
-     * the time we get the drop event */
-    private int dropActionOverride = 0;
+//     /** for Windows, track the last dropAction we got during dragOver, as it can somehow be reverted by
+//      * the time we get the drop event */
+//     private int dropActionOverride = 0;
+    
+    /**
+     * This is what we want to ACCEPT: it may be different from the user-indicated drop action, and
+     * may not even be one of the availble source actions, tho we can accept any action we like,
+     * and the drag/drop cursor should be set appropriately
+     */
+    private int DropAccept;
+
+    /** This is the selected drop affecting hit target, which will depend on the drop action and drop context */
+    private LWComponent DropHit;
 
     public MapDropTarget(MapViewer viewer) {
        mViewer = viewer;
     }
 
     private void trackDrag(DropTargetDragEvent e) {
-
-        // There's no point in doings this unless we want to request
-        // a change for the default operation
-        
-//         if (DEBUG.DND && DEBUG.META) out("acceptDrag " + e);
-//         if (Util.isMacPlatform())
-//             e.acceptDrag(ALL_DROP_TYPES);
-//         else
-//             e.acceptDrag(ACCEPTABLE_DROP_TYPES);
-        // This may be helping, er, sometimes...
-        //mViewer.setTopCursor(DragSource.DefaultCopyDrop);
+        acceptDrag(e);
     }
+
+    private void acceptDrag(DropTargetDragEvent e) {
+        computeDropAcceptAndTarget(e);
+        e.acceptDrag(DropAccept);
+    }    
+    
 
     /** DropTargetListener */
     public void dragEnter(DropTargetDragEvent e)
@@ -121,37 +128,43 @@ class MapDropTarget
         if (DEBUG.DND) out("dragEnter " + GUI.dragName(e));
         trackDrag(e);
     }
+    
     /** DropTargetListener */
     public void dragExit(DropTargetEvent e) {
         if (DEBUG.DND) out("dragExit " + e);
     }
+    
     /** DropTargetListener */
     public void dropActionChanged(DropTargetDragEvent e) {
         if (DEBUG.DND) out("dropActionChanged: " + GUI.dragName(e));
-        dragOver(e); // in case action type has changed and we want to change indication color
-        //trackDrag(e);
+
+        // Just re-use our dragOver code:
+        // (e.g., in case action type has changed and we want to change indication color)
+        dragOver(e); 
     }
+
     /** DropTargetListener */
     public void dragOver(DropTargetDragEvent e)
     {
         if (DEBUG.DND && DEBUG.META) out("dragOver " + GUI.dragName(e));
-
-        final boolean isSetResourceAction = (e.getDropAction() == DnDConstants.ACTION_LINK);
-
-        final LWComponent over = mViewer.pickDropTarget(dropToMapLocation(e.getLocation()), null, isSetResourceAction);
-
-        if (over != null)
-            mViewer.setIndicated(over, isSetResourceAction);
+        
+        // This will compute DropAccept & DropHit
+        computeDropAcceptAndTarget(e);
+        
+        e.acceptDrag(DropAccept);
+        
+        if (DropHit != null)
+            mViewer.setIndicated(DropHit, DropAccept == ACTION_LINK);
         else
             mViewer.clearIndicated();
 
-        if (Util.isWindowsPlatform()) {
-            // this is being "forgot" on WinXP sometimes between now
-            // and when they let go of the mouse!
-            dropActionOverride = e.getDropAction();
-        } else {
-            dropActionOverride = 0;
-        }
+//         if (Util.isWindowsPlatform()) {
+//             // this is being "forgot" on WinXP sometimes between now
+//             // and when they let go of the mouse!
+//             dropActionOverride = e.getDropAction();
+//         } else {
+//             dropActionOverride = 0;
+//         }
 
         /*
           // HANDLE IN TRAVERSAL!
@@ -166,181 +179,132 @@ class MapDropTarget
 
         */
 
-        trackDrag(e);
     }
+
     
     /** DropTargetListener */
     public void drop(DropTargetDropEvent e)
     {
-        if (DEBUG.DND) out(Util.TERM_GREEN + "\nDROP: " + e 
-                           + "\n\t        dropAction: " + dropName(e.getDropAction())
-                           + "\n\tdropActionOverride: " + dropName(dropActionOverride)
-                           + "\n\t     sourceActions: " + dropName(e.getSourceActions())
-                           + "\n\t          location: " + e.getLocation()
-                           + Util.TERM_CLEAR
-                           );
-
         /* UnsupportedOperation (tring to discover key's being held down ourselves) try {
             System.out.println("caps state="+mViewer.getToolkit()
                                .getLockingKeyState(java.awt.event.KeyEvent.VK_CAPS_LOCK));
                                } catch (Exception ex) { System.err.println(ex); }*/
 
-        
-        if (e.getDropAction() == ACTION_NONE) {
-            final int sa = e.getSourceActions();
-            int accept;
-            if ((sa & ACTION_COPY_OR_MOVE) != 0)
-                accept = ACTION_COPY;
-            else if ((sa & ACTION_LINK) != 0)
-                accept = ACTION_LINK;
-            else
-                accept = ACTION_COPY;
-            if (DEBUG.Enabled) out("DROP ACTION NONE: ACCEPTING AS: " + dropName(accept));
-            e.acceptDrop(accept);
-        } else
-            e.acceptDrop(e.getDropAction());
+        computeDropAcceptAndTarget(e);        
+
+        if (DEBUG.DND) out(TERM_GREEN + "\nDROP: " + Util.tag(e)
+                           + "\n\t     sourceActions: " + dropName(e.getSourceActions())
+                           + "\n\t        dropAction: " + dropName(e.getDropAction())
+                           + "\n\t        dropAccept: " + dropName(DropAccept)
+//                            + (Util.isWindowsPlatform() ?
+//                               "\n\tdropActionOverride: " + dropName(dropActionOverride) : "")
+                           + "\n\t          location: " + e.getLocation()
+                           + TERM_CLEAR
+                           );
+
+        e.acceptDrop(DropAccept);
         
         // Scan thru the data-flavors, looking for a useful mime-type
         boolean success =
             processTransferable(e.getTransferable(), e);
 
+        if (DEBUG.DND) out(TERM_CYAN + "processTransferable: success=" + success + TERM_CLEAR);
+
         e.dropComplete(success);
         
         mViewer.clearIndicated();        
     }
-
-    // TODO: to cleanup the dropping onto hit/hitParent v.s. dropping into the focal in
-    // all the below code, have a single drop.hit that is allowed to take on the value
-    // of the focal (e.g., the LWMap, or a master slide, or any slide in the slide
-    // viewer).  Always assume you may need to set the coords on new children, and do
-    // that, and if whatever the new children are added to wants to re-lay them out,
-    // fine.  Then all you need to do is be able to distinguish between something you're
-    // allowed to set a resource on...  I supposed a boolean LWComponent.takesResource()
-    // could tell us this (off for LWSlide, LWMap, LWGroup, LWText?), tho before doing
-    // that, if we manage a fully dynamic property system, that might handle it for us.
     
-//     private static class DropData {
-//         final Transferable transfer;
 
-//         DataFlavor flavor;
-//         Object data;
-
-//         URL mainURL;
-//         URL iconURL;
-//         URL contextURL; // referrer page for search-engine light-tray results that provide them
-//         URL searchURL; // search engine this was found at
-//         List list;
-//         String text;
-        
-//         DropData(Transferable t) {
-//             transfer = t;
-//         }
-
-// //         void select(DataFlavor pickFlavor) {
-// //             this.flavor = pickFlavor;
-// //             this.data = extractData(transfer, pickFlavor);
-// //         }
-        
-//     }
-
-//     private static final Collection<DropHandler> DropHandlers = new java.util.ArrayList();
-
-//     private abstract static class DropHandler<T> {
-
-//         final DataFlavor flavor;
-
-//         T data;
-        
-//         DropHandler(DataFlavor f) {
-//             flavor = f;
-//             DropHandlers.add(this); // not threadsafe
-//         }
-
-//         // override for anything more complicated
-//         boolean accept(DropContext drop) {
-//             return drop.transfer.isDataFlavorSupported(flavor);
-//         }
-
-//         void processDrop(DropContext drop) {
-//             Object data = extractData(drop.transfer, flavor);
-//             process(drop, data); // just set data in drop context?
-//         }
-        
-//         abstract void process(DropContext drop, Object data);
-//     }
+    private static final Object POSSIBLE_RESOURCE = new Object();
     
-//     static {
-
-//         // may want to change impl to just adding anon inner class impls to a list...
-//         // how handle priorities?
-        
-//         new DropHandler(edu.tufts.vue.ontology.ui.TypeList.DataFlavor) {
-// //             boolean accept(DropContext drop) {
-// //                 return drop.dropAction == DnDConstants.ACTION_LINK && super.accept(drop);
-// //             }
+    private void computeDropAcceptAndTarget(DropTargetDragEvent e) {
+        computeDropAcceptAndTarget(e, e.getSourceActions(), e.getDropAction(), dropToMapLocation(e.getLocation()));
+    }
     
-//             void process(DropContext drop, Object data) {
-//                 //private boolean processDroppedOntologyType(DropContext drop,Object foundData)
-//                 edu.tufts.vue.metadata.VueMetadataElement ele = new edu.tufts.vue.metadata.VueMetadataElement();
-//                 ele.setObject(data);
-//                 drop.hit.getMetadataList().getMetadata().add(ele);
+    private void computeDropAcceptAndTarget(DropTargetDropEvent e) {
+        computeDropAcceptAndTarget(e, e.getSourceActions(), e.getDropAction(), dropToMapLocation(e.getLocation()));
+    }
+    
+    private void computeDropAcceptAndTarget(final DropTargetEvent e,
+                                            final int sourceActions,
+                                            final int dropAction,
+                                            final Point2D.Float mapLoc
+                                            )
+    {
+        if (dropAction == ACTION_MOVE && (sourceActions & ACTION_COPY) != 0) {
+            
+            DropAccept = ACTION_COPY; // will show '+' cursor
+        }
+        else if (dropAction == ACTION_NONE) {
+            
+            // NOTE: The user cannot currently generate ACTION_LINK when dragging an image from the
+            // Safari web browser content window (tho you can when dragging from the address bar).
+            // Changing the action in any way via user modifier keys leaves us only with
+            // ACTION_NONE, so we always override that here to mean ACTION_LINK, assuming the
+            // special case was intended.  SMF 2008-05-07
+            
+            DropAccept = ACTION_LINK;
+        }
+        else
+            DropAccept = dropAction;
+
+        final PickContext pc = mViewer.getPickContext(mapLoc.x, mapLoc.y);
+        pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
+        final LWComponent hit = LWTraversal.PointPick.pick(pc);
+
+        DropHit = null;
+
+       if (hit instanceof LWImage) {
+            final LWImage image = (LWImage) hit;
+            
+            if (image.isNodeIcon()) {
+                DropHit =  hit.getParent();
+            }
+            else if (image.getStatus() == LWImage.Status.ERROR || DropAccept == ACTION_LINK) {
+                DropHit = hit;
+                DropAccept = ACTION_LINK;
+            }
+
+       } else if (hit != null) {
+            
+           if (hit.supportsChildren() && hit != mViewer.getFocal()) {
+               // above: we can always drop into focals that support children
+               if (hit instanceof LWSlide)
+                   ; // disable slide icon dropping for now
+                     // (mapToLocalLocation doesn't seem to be working in this case)
+               else if (hit instanceof LWGroup)
+                   ; // don't allow drops into groups sitting on maps (when not the focal)
+               else
+                   DropHit = hit;
+           }
+// This case not currently needed, as our LWImage case above was only supportsChildre() == false
+// object, and anytime the hit results in null, we automatically go to the focal anyway below.
+//             else {
+//                 if (hit.getAncestorOfType(LWSlide.class) == mViewer.getFocal()) {
+//                     // make sure we can always drop onto slides, even if "hit" a non-parenting
+//                     // This should probably be even more generic, but need to reconcile/merge
+//                     // this code with MapDropTarget.processTransferrable, which calls us.
+//                     hit = mViewer.getFocal();
 //             }
-//         };
+        }
+
+// DropHit currently must be null if we want our old hairy code below to
+// properly create new objects in the focal.
+//        if (DropHit == null)
+//            DropHit = mViewer.getFocal();
+       
+       
+       if (DEBUG.DND) out("DND: " + Util.tag(e) + "; sourceActions=" + dropName(sourceActions)
+                           + "; drop=" + dropName(dropAction)
+                           + "; accept=" + dropName(DropAccept)
+                           //+ ";    hit=" + hit
+                           + "; target=[" + (DropHit == null ? null : DropHit.getDiagnosticLabel()) + "]"
+                           );
+
+    }
 
 
-//         new DropHandler(LWComponent.DataFlavor) {
-//             //private boolean processDroppedNodes(DropContext drop)
-//             void process(DropContext drop, Object data) {
-//                 final List<LWComponent> items = (List) data;
-        
-//                 // now add them to the map
-                
-//                 // Always to the set center, in case hitParent isn't something
-//                 // that is going to auto-layout the new children
-//                 setCenterAt(items, drop.location);
-                
-//                 if (drop.hitParent != null) {
-//                     drop.hitParent.addChildren(items);
-//                 } else {
-//                     drop.viewer.getFocal().addChildren(items);
-//                 }
-//                 drop.added.addAll(items);
-//             }
-//         };
-
-
-// //         // createNode needs to be made static / moved to this drop handler
-// //         new DropHandler(Resource.DataFlavor) {
-// //             //private boolean processDroppedResourceList(DropContext drop)
-// //             void process(DropContext drop, Object data)
-// //             {
-// //                 final List<Resource> items = (List) data;
-
-// //                 if (items.size() == 1 && drop.hit != null && drop.isLinkAction) {
-            
-// //                     // Only one item is in the list, and we've hit a component, and
-// //                     // it's a link-action drop: replace the hit component resource
-// //                     drop.hit.setResource(items.get(0));
-            
-// //                 } else {
-            
-// //                     for (Resource resource : items) {
-
-// //                         if (drop.hitParent != null && !drop.isLinkAction) {
-// //                             // create new node children of the hit node
-// //                             //drop.hitParent.addChild(createNode(drop, resource, null));
-// //                             drop.hitParent.addChild(createNode(drop, resource, drop.nextDropLocation()));
-// //                         } else {
-// //                             createNode(drop, resource, drop.nextDropLocation());
-// //                         }
-                        
-// //                     }
-// //                 }
-// //             } // end process
-// //         };
-
-        
-//     }
         
         
     private static class DropContext {
@@ -489,6 +453,7 @@ class MapDropTarget
         Point dropLocation = null;
         Point2D.Float mapLocation = null;
         //Point2D.Float focalLocation = null;
+        
         int dropAction = DnDConstants.ACTION_COPY; // default action, in case no DropTargetDropEvent
 
         // On current JVM's on Mac and PC, default action for dragging a desktop item is
@@ -512,16 +477,21 @@ class MapDropTarget
         
         if (e != null) {
             dropLocation = e.getLocation();
-            if (dropActionOverride != 0)
-                dropAction = dropActionOverride;
-            else
-                dropAction = e.getDropAction();
+            dropAction = DropAccept;
+//             if (dropActionOverride != 0) // TODO: handle above once in setting dropAccept
+//                 dropAction = dropActionOverride;
+//             else
+//                 dropAction = DropAccept;
+            //dropAction = e.getDropAction();
             mapLocation = dropToMapLocation(dropLocation);
             //focalLocation = dropToFocalLocation(dropLocation);
-            //if (DEBUG.DND) out(Util.TERM_GREEN + "processTransferable: " + GUI.dropName(e) + Util.TERM_CLEAR
-            if (DEBUG.DND) out("processTransferable: " + GUI.dropName(e)
-                               + "\n\t        dropAction: " + dropName(e.getDropAction())                               
-                               + "\n\tdropActionOverride: " + dropName(dropActionOverride)
+            //if (DEBUG.DND) out(TERM_GREEN + "processTransferable: " + GUI.dropName(e) + TERM_CLEAR
+            if (DEBUG.DND) out("processTransferable: " + Util.tag(e)
+                               + "\n\t       description: " + GUI.dropName(e)
+                               + "\n\t        dropAction: " + dropName(e.getDropAction())
+                               + "\n\t        dropAccept: " + dropName(DropAccept)
+//                                + (Util.isWindowsPlatform() ? 
+//                                   "\n\tdropActionOverride: " + dropName(dropActionOverride) : "")
                                + "\n\t     dropScreenLoc: " + Util.fmt(dropLocation)
                                + "\n\t        dropMapLoc: " + Util.fmt(mapLocation)
                                //+ "\n\t      dropFocalLoc: " + Util.fmt(focalLocation)
@@ -530,28 +500,28 @@ class MapDropTarget
             if (DEBUG.DND) out("processTransferable: (no drop event) transfer=" + transfer);
         }
 
-        final boolean isLinkAction = (dropAction == DnDConstants.ACTION_LINK);
+        final boolean isLinkAction = (dropAction == ACTION_LINK);
         
         LWComponent dropTarget = null;
         Point2D.Float hitLocation = null;
 
 
         if (dropLocation != null) {
-            dropTarget = mViewer.pickDropTarget(mapLocation, null, isLinkAction);
+            //dropTarget = pickDropTarget(mapLocation, isLinkAction);
+            dropTarget = DropHit;
+            
             if (DEBUG.DND) out("dropTarget=" + dropTarget + " in " + mViewer);
             if (dropTarget != null) {
                 if (!dropTarget.supportsChildren() && !isLinkAction) {
                     
-                    // this SHOULD be preventing drops onto MapSlides, but dropTarget is
-                    // coming back null because pickDropTarget is checking
-                    // supportsChildren itself (and returning null) -- we might want to
-                    // have a special DROP_DENIED return value from pickDropTarget, or
-                    // change semantics to return NULL only when denied, and return the
-                    // actual map/focal we want to hit/added to, but that value thread
-                    // down through the DropContext to tons of code below that we need
-                    // to check.  In any case, code down below denying based on the
-                    // focal being non-map when there's no target found handles this for
-                    // now.
+                    // this SHOULD be preventing drops onto MapSlides, but dropTarget is coming
+                    // back null because pickDropTarget is checking supportsChildren itself (and
+                    // returning null) -- we might want to have a special DROP_DENIED return value
+                    // from pickDropTarget, or change semantics to return NULL only when denied,
+                    // and return the actual map/focal we want to hit/added to, but that value
+                    // thread down through the DropContext to tons of code below that we need to
+                    // check.  In any case, code down below denying based on the focal being
+                    // non-map when there's no target found handles this for now.
                     
                     if (DEBUG.DND) out("dropTarget: doesn't support children: " + dropTarget);
                     return false;
@@ -562,8 +532,10 @@ class MapDropTarget
                 // drop target is null
                 if (mViewer.getFocal() instanceof LWMap == false) {
                     // this prevents drops on MapSlides, and off-slide when real slides are the focal
-                    if (DEBUG.DND) out("null dropTarget: default drop denied to non-map focal");
-                    return false;
+                    if (DEBUG.DND) out("warning: drop to non-map focal " + mViewer.getFocal());
+                    hitLocation = mapToLocalLocation(mapLocation, mViewer.getFocal());
+                    //if (DEBUG.DND) out("null dropTarget: default drop denied to non-map focal");
+                    //return false;
                 }
             }
             /*
@@ -583,7 +555,6 @@ class MapDropTarget
 
         if (hitLocation == null)
             hitLocation = mapLocation;
-            
             
         DataFlavor foundFlavor = null;
         Object foundData = null;
@@ -794,21 +765,18 @@ class MapDropTarget
                 }
             }
             //Log.debug("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
-            Log.debug(Util.TERM_CYAN + "\nTRANSFER: Found a supported DataFlavor; " //+ foundFlavor
+            Log.debug(TERM_CYAN + "\nTRANSFER: Found a supported DataFlavor; " //+ foundFlavor
                       + "\n\t flavor: " + foundFlavor
                       + "\n\tdataTag: " + Util.tag(foundData) + size
                       //+ bagType0
                       + "\n\tdataRaw: [" + foundData + "]"
                       + bagEntry0
-                      + Util.TERM_CLEAR
+                      + TERM_CLEAR
                       );
         }
 
         DropContext drop =
             new DropContext(transfer,
-                            //dropLocation,
-                            //mapLocation,
-                            //focalLocation,
                             hitLocation,
                             mViewer,
                             dropItems,
@@ -1154,12 +1122,16 @@ class MapDropTarget
         if (properties == null)
             properties = Collections.EMPTY_MAP;
 
-        // can't currently generate link action when dragging an image from
-        // a web browser.
-        boolean dropImagesAsNodes =
+        final boolean dropImagesAsNodes =
             DropImagesAsNodes
             && !drop.isLinkAction
-            && !(drop.hitParent instanceof LWSlide);
+            && !(drop.hitParent instanceof LWSlide)
+            && !(drop.hit == null && mViewer.getFocal() instanceof LWSlide)
+            ;
+        
+        // TODO: above conditions a mess: see commented experimental code at end of file on how
+        // we're going to clean this up
+        
 
         LWComponent node;
         LWImage lwImage = null;
@@ -1202,7 +1174,12 @@ class MapDropTarget
                     mapResource.setProperty("image.height", hs);
                 }
                 */
+            } else {
+                // give it some kind of size so the center-on-drop code can at least do something
+                lwImage.setSize(128,128);
             }
+            
+            
             //lwImage.setLabel(displayName);
         }
         
@@ -1230,8 +1207,8 @@ class MapDropTarget
         // and looks like the parent, it's added to map first needlessly, then
         // reparented to where it needs to go.
 
-        if (where != null)
-            addNodeToFocal(node, where);
+//         if (where != null)
+//             addNodeToFocal(node, where);
 
         if (lwImage != null) {
             // this will cause the LWImage to start loading the image
@@ -1241,6 +1218,9 @@ class MapDropTarget
             ((URLResource)resource).scanForMetaDataAsync(node, true);
         }
 
+         if (where != null)
+             addNodeToFocal(node, where);
+         
         drop.add(node);
 
         return node;
@@ -1253,6 +1233,11 @@ class MapDropTarget
 
     private LWComponent addNodeToFocal(LWComponent node, Point2D where)
     {
+        if (DEBUG.DND) Log.debug("addNodeToFocal: " + node + "; where=" + where + "; centerAt=" + CenterNodesOnDrop);
+
+        // todo: if we're adding an LWImage, and it isn't loaded / it's LWComponent size
+        // isn't known yet, setCenterAt will have no discernable effect (because size is 0x0)
+         	
         if (CenterNodesOnDrop)
             node.setCenterAt(where);
         else
@@ -1659,6 +1644,140 @@ class MapDropTarget
         }
         return value;
     }
+
+    // TODO TODO TODO: to cleanup the dropping onto hit/hitParent v.s. dropping into the focal in
+    // all the below code, have a single drop.hit that is allowed to take on the value
+    // of the focal (e.g., the LWMap, or a master slide, or any slide in the slide
+    // viewer).  Always assume you may need to set the coords on new children, and do
+    // that, and if whatever the new children are added to wants to re-lay them out,
+    // fine.  Then all you need to do is be able to distinguish between something you're
+    // allowed to set a resource on...  I supposed a boolean LWComponent.takesResource()
+    // could tell us this (off for LWSlide, LWMap, LWGroup, LWText?), tho before doing
+    // that, if we manage a fully dynamic property system, that might handle it for us.
+    
+//     private static class DropData {
+//         final Transferable transfer;
+
+//         DataFlavor flavor;
+//         Object data;
+
+//         URL mainURL;
+//         URL iconURL;
+//         URL contextURL; // referrer page for search-engine light-tray results that provide them
+//         URL searchURL; // search engine this was found at
+//         List list;
+//         String text;
+        
+//         DropData(Transferable t) {
+//             transfer = t;
+//         }
+
+// //         void select(DataFlavor pickFlavor) {
+// //             this.flavor = pickFlavor;
+// //             this.data = extractData(transfer, pickFlavor);
+// //         }
+        
+//     }
+
+//     private static final Collection<DropHandler> DropHandlers = new java.util.ArrayList();
+
+//     private abstract static class DropHandler<T> {
+
+//         final DataFlavor flavor;
+
+//         T data;
+        
+//         DropHandler(DataFlavor f) {
+//             flavor = f;
+//             DropHandlers.add(this); // not threadsafe
+//         }
+
+//         // override for anything more complicated
+//         boolean accept(DropContext drop) {
+//             return drop.transfer.isDataFlavorSupported(flavor);
+//         }
+
+//         void processDrop(DropContext drop) {
+//             Object data = extractData(drop.transfer, flavor);
+//             process(drop, data); // just set data in drop context?
+//         }
+        
+//         abstract void process(DropContext drop, Object data);
+//     }
+    
+//     static {
+
+//         // may want to change impl to just adding anon inner class impls to a list...
+//         // how handle priorities?
+        
+//         new DropHandler(edu.tufts.vue.ontology.ui.TypeList.DataFlavor) {
+// //             boolean accept(DropContext drop) {
+// //                 return drop.dropAction == DnDConstants.ACTION_LINK && super.accept(drop);
+// //             }
+    
+//             void process(DropContext drop, Object data) {
+//                 //private boolean processDroppedOntologyType(DropContext drop,Object foundData)
+//                 edu.tufts.vue.metadata.VueMetadataElement ele = new edu.tufts.vue.metadata.VueMetadataElement();
+//                 ele.setObject(data);
+//                 drop.hit.getMetadataList().getMetadata().add(ele);
+//             }
+//         };
+
+
+//         new DropHandler(LWComponent.DataFlavor) {
+//             //private boolean processDroppedNodes(DropContext drop)
+//             void process(DropContext drop, Object data) {
+//                 final List<LWComponent> items = (List) data;
+        
+//                 // now add them to the map
+                
+//                 // Always to the set center, in case hitParent isn't something
+//                 // that is going to auto-layout the new children
+//                 setCenterAt(items, drop.location);
+                
+//                 if (drop.hitParent != null) {
+//                     drop.hitParent.addChildren(items);
+//                 } else {
+//                     drop.viewer.getFocal().addChildren(items);
+//                 }
+//                 drop.added.addAll(items);
+//             }
+//         };
+
+
+// //         // createNode needs to be made static / moved to this drop handler
+// //         new DropHandler(Resource.DataFlavor) {
+// //             //private boolean processDroppedResourceList(DropContext drop)
+// //             void process(DropContext drop, Object data)
+// //             {
+// //                 final List<Resource> items = (List) data;
+
+// //                 if (items.size() == 1 && drop.hit != null && drop.isLinkAction) {
+            
+// //                     // Only one item is in the list, and we've hit a component, and
+// //                     // it's a link-action drop: replace the hit component resource
+// //                     drop.hit.setResource(items.get(0));
+            
+// //                 } else {
+            
+// //                     for (Resource resource : items) {
+
+// //                         if (drop.hitParent != null && !drop.isLinkAction) {
+// //                             // create new node children of the hit node
+// //                             //drop.hitParent.addChild(createNode(drop, resource, null));
+// //                             drop.hitParent.addChild(createNode(drop, resource, drop.nextDropLocation()));
+// //                         } else {
+// //                             createNode(drop, resource, drop.nextDropLocation());
+// //                         }
+                        
+// //                     }
+// //                 }
+// //             } // end process
+// //         };
+
+        
+//     }
+    
 
     /*
         

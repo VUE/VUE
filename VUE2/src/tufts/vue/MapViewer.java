@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.541 $ / $Date: 2008-05-06 17:30:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.542 $ / $Date: 2008-05-07 05:33:17 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1835,65 +1835,68 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public LWComponent pickNode(Point2D.Float p) {
         return pickNode(p.x, p.y);
     }
-    public LWComponent pickDropTarget(Point2D.Float p, Object dropping, boolean isResourceSetAction) {
-        return pickDropTarget(p.x, p.y, dropping, isResourceSetAction);
-    }
-
     
     public LWComponent pickNode(float mapX, float mapY) {
         if (DEBUG.PICK) out("pickNode " + mapX + "," + mapY);
         return pick(mapX, mapY, false);
     }
     
-    private static final LWComponent POSSIBLE_NODE = new LWComponent();
-    private static final Object POSSIBLE_RESOURCE = new Object();
+//     private static final LWComponent POSSIBLE_NODE = new LWComponent();
+//     private static final Object POSSIBLE_RESOURCE = new Object();
     
-    public LWComponent pickDropTarget(float mapX, float mapY, Object dropping, boolean isResourceSetAction) {
-        PickContext pc = getPickContext(mapX, mapY);
-        if (dropping == null)
-            pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
-        else
-            pc.dropping = dropping;
-        LWComponent hit = LWTraversal.PointPick.pick(pc);
+//     public LWComponent pickDropTarget(Point2D.Float p, Object dropping, boolean isResourceSetAction) {
+//         return pickDropTarget(p.x, p.y, dropping, isResourceSetAction);
+//     }
 
-        if (hit == null)
-            return null;
+//     public LWComponent pickDropTarget(float mapX, float mapY, Object dropping, boolean isResourceSetAction) {
+//         PickContext pc = getPickContext(mapX, mapY);
+//         if (dropping == null)
+//             pc.dropping = POSSIBLE_RESOURCE; // most lenient targeting if unknown
+//         else
+//             pc.dropping = dropping;
+//         LWComponent hit = LWTraversal.PointPick.pick(pc);
+
+//         if (hit == null)
+//             return null;
         
-        if (isResourceSetAction) {
+//         if (isResourceSetAction || hit instanceof LWImage) {
 
-            // Only pure nodes support the dropping of resources at the user level.
-            // (note: could theoretically apply to LWLink's and LWImages also)
-            if (hit instanceof LWNode) {
-                return hit;
-            } else if (hit instanceof LWImage && ((LWImage)hit).isNodeIcon()) {
-                // resource-set's on LWImages work fine, so we could pick
-                // and set that, but they don't currently update their parent node resource,
-                // so we just pick the parent in this case.
-                return hit.getParent();
-            } else
-                return null;
+//             // Only pure nodes support the dropping of resources at the user level.
+//             // (note: could theoretically apply to LWLink's and LWImages also)
+//             if (hit instanceof LWNode) {
+//                 return hit;
+//             } else if (hit instanceof LWImage) {
+//                 final LWImage image = (LWImage) hit;
+//                 if (image.isNodeIcon())
+//                     return hit.getParent();
+//                 else if (image.getStatus() == LWImage.Status.ERROR)
+//                     return hit;
+//                 else
+//                     return null;
+//             } else
+//                 return null;
                 
-        } else {
+//         } else {
             
-            if (hit.supportsChildren()) {
-                if (hit instanceof LWSlide && hit != mFocal)
-                    hit = null; // disable slide icon dropping for now
+//             if (hit.supportsChildren()) {
+//                 if (hit instanceof LWSlide && hit != mFocal)
+//                     hit = null; // disable slide icon dropping for now
                 
-                if (dropping instanceof LWComponent)
-                    return ((LWComponent)dropping).supportsReparenting() ? hit : null;
-                else
-                    return hit;
-            } else {
-                if (hit.getAncestorOfType(LWSlide.class) == mFocal) {
-                    // make sure we can always drop onto slides, even if "hit" a non-parenting
-                    // This should probably be even more generic, but need to reconcile/merge
-                    // this code with MapDropTarget.processTransferrable, which calls us.
-                    return mFocal;
-                } else
-                    return null;
-            }
-        }
-    }
+//                 if (dropping instanceof LWComponent)
+//                     return ((LWComponent)dropping).supportsReparenting() ? hit : null;
+//                 else
+//                     return hit;
+//             } else {
+//                 if (hit.getAncestorOfType(LWSlide.class) == mFocal) {
+//                     // make sure we can always drop onto slides, even if "hit" a non-parenting
+//                     // This should probably be even more generic, but need to reconcile/merge
+//                     // this code with MapDropTarget.processTransferrable, which calls us.
+//                     return mFocal;
+//                 } else
+//                     return null;
+//             }
+//         }
+//     }
 
     
     protected LWComponent pick(float mapX, float mapY, boolean ignoreSelected)
