@@ -422,6 +422,7 @@ public class LWImage extends
     
     private void setImageResource(Resource r, boolean isNodeIconSync) {
         if (DEBUG.IMAGE) Log.debug("setImageResource " + r  + "; isNodeIconSync=" + isNodeIconSync);
+
         if (r == null) {
             // this will happen normally if when the creation of a new image is undone
             // (altho this is kind of pointless: may want to just deny this, tho we
@@ -439,6 +440,13 @@ public class LWImage extends
             // we should be called back again with isNodeIconSync == true
             getParent().setResource(r);
         } else {
+
+            mImage = null;
+            mImageWidth = -1;
+            mImageHeight = -1;
+            mImageStatus = Status.UNLOADED;
+            mImageAspect = NO_ASPECT;
+            
             setResourceAndLoad(r, null);
         }
     }
@@ -507,7 +515,6 @@ public class LWImage extends
         if (DEBUG.IMAGE) out("gotImageSize " + width + "x" + height + " bytes=" + byteSize);
         mDataSize = byteSize;
         mImageStatus = Status.LOADING;
-        setImageSize(width, height);
 
         if (mUndoMarkForThread == null) {
             if (DEBUG.IMAGE || DEBUG.UNDO || DEBUG.THREAD) out("gotImageSize: no undo key");
@@ -521,6 +528,11 @@ public class LWImage extends
 
         if (!javax.swing.SwingUtilities.isEventDispatchThread())
             UndoManager.attachCurrentThreadToMark(mUndoMarkForThread);
+        
+        // As this now calls autoShapeToAspect, it can trigger a setSize,
+        // so it MUST be done after we've been attached to the proper
+        // undo-mark in order for the undo to work properly.
+        setImageSize(width, height);
         
         // If we're interrupted before this happens, and this is the drop of a new image,
         // we'll see a zombie event complaint from this setSize which is safely ignorable.
