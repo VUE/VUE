@@ -375,6 +375,10 @@ public class LWImage extends
 //             }
         }
     }
+
+    public Status getStatus() {
+        return mImageStatus;
+    }
     
     // TODO: this wants to be on LWComponent, in case this is a
     // regular node containing an LWImage, we want the image to
@@ -394,6 +398,7 @@ public class LWImage extends
             // TODO: this may be conflicting with our new image update code, and this
             // would much better be handled in the ActiveComponentHandler than via a
             // cleanup task (which should generally be a solution of last resort)
+            // See if we can handle this in VUE.checkForAndHandleResourceUpdate
 
             // Note that this code does however also deal with a missing
             // network resource suddenly appearing, and then we can
@@ -408,6 +413,15 @@ public class LWImage extends
     
     @Override
     public void setResource(Resource r) {
+        setImageResource(r, false);
+    }
+    
+    public void setNodeIconResource(Resource r) {
+        setImageResource(r, true);
+    }
+    
+    private void setImageResource(Resource r, boolean isNodeIconSync) {
+        if (DEBUG.IMAGE) Log.debug("setImageResource " + r  + "; isNodeIconSync=" + isNodeIconSync);
         if (r == null) {
             // this will happen normally if when the creation of a new image is undone
             // (altho this is kind of pointless: may want to just deny this, tho we
@@ -421,6 +435,9 @@ public class LWImage extends
             super.setResource(r);
         } else if (mXMLRestoreUnderway) {
             super.setResource(r);
+        } else if (isNodeIcon() && !isNodeIconSync) {
+            // we should be called back again with isNodeIconSync == true
+            getParent().setResource(r);
         } else {
             setResourceAndLoad(r, null);
         }
@@ -451,7 +468,9 @@ public class LWImage extends
         // us displaying that size.  If not, we'll set
         // us to a minimum size for display until we
         // know the real size.
-        setImageSize(width, height);
+
+        if (mImageWidth <= 0 || mImageHeight <= 0)
+            setImageSize(width, height);
         
         // save a key that marks the current location in the undo-queue,
         // to be applied to the subsequent thread that make calls
@@ -617,12 +636,16 @@ public class LWImage extends
         mImageAspect = ((double)w) / ((double)h);
         // todo: may want to just always update the node status here -- covers most cases, plus better when the drop code calls this?
         if (DEBUG.IMAGE) out("setImageSize " + w + "x" + h + " aspect=" + mImageAspect);
-        /*
-			If below stops autoShapeToAspect from being called with default data,
-			as well as cases where it'd be moot anyway.
-		*/
-        if (!(w == h && mImageAspect == 1.0))
-            autoShapeToAspect();
+        
+// SMF 2008-05-06: can't make sense of this: if we replace the image content, and the
+// old content aspect != 1, and the new content aspect == 1, this prevents us from
+// updating our shape to the new 1.0 aspect (and squeezes/stretches the 1.0 aspect image
+// into the old aspect shape)
+//         // If below stops autoShapeToAspect from being called with default data,
+//         // as well as cases where it'd be moot anyway.
+//         if (!(w == h && mImageAspect == 1.0))
+        
+        autoShapeToAspect();
         
         //setAspect(aspect); // LWComponent too paternal for us right now
     }
@@ -1009,15 +1032,23 @@ public class LWImage extends
     }
 
 
-// This will cause images to start loading during parsing of persisted map files:
-//     @Override
-//     public void XML_completed() {
-//         super.XML_completed();
+    @Override
+    public void XML_completed(Object context) {
+        super.XML_completed(context);
+
+        if (super.width < MinWidth || super.height < MinHeight) {
+            Log.debug("bad size: " + this);
+            super.width = MinWidth;
+            super.height = MinHeight;
+        }
+        
+//         // This will cause images to start loading during parsing of persisted map files:
 //         if (mImageStatus == Status.UNLOADED) {
 //             mImageStatus = Status.LOADING;
 //             loadResourceImage(getResource(), null);
 //         }
-//     }
+    }
+    
     
 
     
