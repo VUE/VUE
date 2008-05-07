@@ -33,12 +33,14 @@ import java.awt.event.*;
  * that usage is probably on it's way out when we get around
  * to cleaning up the VueTool code & it's supporting GUI classes.
  *
- * @version $Revision: 1.81 $ / $Date: 2008-04-25 19:23:45 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2008-05-07 18:40:10 $ / $Author: sfraize $
  */
 
 public abstract class VueTool extends AbstractAction
     implements PickContext.Acceptor
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueTool.class);
+    
     /** the tool's unique id **/        protected String mID = null;
     /** the tool name **/               protected String mToolName = null;
     /** the tool tip text, if any **/   protected String mToolTipText = null;
@@ -378,7 +380,7 @@ public abstract class VueTool extends AbstractAction
 
     /** what to do, if anything, when the tool is selected */
     public void handleToolSelection(boolean selected, VueTool otherTool) {
-        if (DEBUG.Enabled) out("handleToolSelection: selected=" + selected + "; otherTool=" + otherTool);
+        if (DEBUG.Enabled) Log.debug("handleToolSelection: " + this + ": " + selected + "; from=" + otherTool);
     }
 
     public DrawContext getDrawContext(DrawContext dc) {
@@ -766,7 +768,9 @@ public abstract class VueTool extends AbstractAction
     }
 
     public void out(String s) {
-        System.out.println(this + ": " + s);
+        //System.out.println(this + ": " + s);
+        //Log.debug(getClass().getSimpleName() + ": " + s);
+        Log.debug(this + ": " + s);
     }
 
     protected static void outln(String s) {
@@ -790,15 +794,32 @@ public abstract class VueTool extends AbstractAction
 
     public String toString()
     {
-        String s = "VueTool:" + getClass().getName() + "[" + getID();
+        final String name =
+            tufts.Util.TERM_PURPLE
+            + getClass().getSimpleName() 
+            + "@" + Integer.toHexString(System.identityHashCode(this))
+            + tufts.Util.TERM_CLEAR
+            ;
+        
+        
+        String params = getID();
+
         if (getSelectedSubTool() != null)
-            s += " subSelected=" + getSelectedSubTool();
-        if (getSelectionType() != null)
-            s += " type=" + getSelectionType();
-        if (isTemporary())
-            s += " TEMPORARY";
-        s += "]";
-        return s;
+            params += " sub=" + getSelectedSubTool();
+        if (getSelectionType() != null) {
+            if (params != null) params += "; ";
+            params += "type=" + getSelectionType();
+        }
+        if (isTemporary()) {
+            if (params != null) params += "; ";
+            params += "TEMPORARY";
+        }
+        
+        if (params != null)
+            return name + "[" + params + "]";
+        else
+            return name;
+
     }
 
     /**

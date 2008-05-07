@@ -34,7 +34,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.74 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.75 $ / $Date: 2008-05-07 18:40:18 $ / $Author: sfraize $
  *
  **/
 public class VueToolbarController  
@@ -249,9 +249,11 @@ public class VueToolbarController
      *
      * @param VeuTool - selected tool
      **/
-    public void setSelectedTool( VueTool pTool) {
+    public void setSelectedTool(VueTool pTool) {
 
         final VueTool activeTool = getSelectedTool();
+
+        if (DEBUG.TOOL) Log.debug("setSelectedTool: " + pTool);
 
         if (activeTool != null && !activeTool.permitsToolChange()) {
             Log.warn("tool change not permitted to: " + pTool + "; active tool denies: " + activeTool);
