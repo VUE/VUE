@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.104 $ / $Date: 2008-05-06 17:33:06 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2008-05-07 02:09:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2092,11 +2092,19 @@ public class GUI
     public static String dropName(int dropAction) {
         String name = "";
         if ((dropAction & DnDConstants.ACTION_COPY) != 0) name += "COPY";
-        if ((dropAction & DnDConstants.ACTION_MOVE) != 0) name += "MOVE";
-        if ((dropAction & DnDConstants.ACTION_LINK) != 0) name += "LINK";
+        if ((dropAction & DnDConstants.ACTION_MOVE) != 0) {
+            if (name.length() > 0)
+                name += "+";
+            name += "MOVE";
+        }
+        if ((dropAction & DnDConstants.ACTION_LINK) != 0) {
+            if (name.length() > 0)
+                name += "+";
+            name += "LINK";
+        }
         if (name.length() < 1)
             name = "NONE";
-        name += "(0x" + Integer.toHexString(dropAction) + ")";
+        //name += "(0x" + Integer.toHexString(dropAction) + ")";
         return name;
     }
 
