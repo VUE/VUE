@@ -459,6 +459,7 @@ public class LWImage extends
     }
 
 
+    /** @param um currently ignored (TODO) */
     private void loadResourceImage(final Resource r, final UndoManager um)
     {
         int width = r.getProperty("image.width", 32);
@@ -484,11 +485,13 @@ public class LWImage extends
             // we can get any image callbacks.
 
             //Util.printStackTrace("GET IMAGE IN " + this);
-            
-            if (!Images.getImage(r, this))
-                mUndoMarkForThread = UndoManager.getKeyForNextMark(this);
-            else
+
+            final boolean immediatelyAvailable = Images.getImage(r, this);
+
+            if (immediatelyAvailable)
                 mUndoMarkForThread = null;
+            else
+                mUndoMarkForThread = UndoManager.getKeyForNextMark(this);
         }
     }
 
@@ -906,19 +909,21 @@ public class LWImage extends
             dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
             dc.g.draw(shape);
         }
+
+        final boolean indicated = isIndicatedIn(dc);
+
+        if (indicated && dc.focal != this) {
+            Color c = getParent().getRenderFillColor(dc);
+            if (VueUtil.isTranslucent(c))
+                c = Color.gray;
+            dc.g.setColor(c);
+            dc.g.fill(shape);
+        }
         
         if (isNodeIcon && dc.focal != this) {
 
-            boolean indicated = false;
-            if (isIndicatedIn(dc)) {
-                if (getParent().isTransparent()) {
-                    dc.g.setColor(Color.gray);
-                    dc.g.fill(shape);
-                }
-                indicated = true;
-            } else {
+            if (!indicated)
                 drawImageBox(dc);
-            }
             
             // Forced border for node-icon's:
             if ((mImage != null || indicated) && !getParent().isTransparent()) {
@@ -929,7 +934,7 @@ public class LWImage extends
                 dc.g.draw(shape);
             }
             
-        } else {
+        } else if (!indicated) {
             
             if (!super.isTransparent()) {
                 final Color fill = getFillColor();
@@ -940,6 +945,7 @@ public class LWImage extends
                     dc.g.fill(shape);
                 }
             }
+
 
             drawImageBox(dc);
             
