@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.105 $ / $Date: 2008-05-07 02:09:22 $ / $Author: sfraize $
+ * @version $Revision: 1.106 $ / $Date: 2008-05-07 05:26:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2110,29 +2110,29 @@ public class GUI
 
     public static String dragName(DragSourceDragEvent e) {
         return VueUtil.pad(20, baseObjectName(e))
-            + " drop=" + dropName(e.getDropAction())
-            + "  user=" + dropName(e.getUserAction())
-            + "  target=" + dropName(e.getTargetActions());
+            + "; dropAction=" + dropName(e.getDropAction())
+            + "; userAction=" + dropName(e.getUserAction())
+            + "; targetActions=" + dropName(e.getTargetActions());
     }
 
     public static String dragName(DropTargetDragEvent e) {
         return VueUtil.pad(20, baseObjectName(e))
-            + " drop=" + dropName(e.getDropAction())
-            + "  source=" + dropName(e.getSourceActions())
+            + "; dropAction=" + dropName(e.getDropAction())
+            + "; sourceActions=" + dropName(e.getSourceActions())
             ;
     }
     
     public static String dropName(DropTargetDropEvent e) {
         return baseObjectName(e)
-            + " drop=" + dropName(e.getDropAction())
-            + "  source=" + dropName(e.getSourceActions())
-            + "  isLocal=" + e.isLocalTransfer()
+            + "; dropAction=" + dropName(e.getDropAction())
+            + "; sourceActions=" + dropName(e.getSourceActions())
+            + "; isLocal=" + e.isLocalTransfer()
             ;
 
     }
     
     public static String dragName(DragSourceDropEvent e) {
-        return VueUtil.pad(20, baseObjectName(e)) + " drop=" + dropName(e.getDropAction()) + " success=" + e.getDropSuccess();
+        return VueUtil.pad(20, baseObjectName(e)) + "; drop=" + dropName(e.getDropAction()) + "; success=" + e.getDropSuccess();
     }
 
     // todo: move to DELAYED-init block for GUI called at end of main during caching runs
