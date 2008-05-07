@@ -50,7 +50,19 @@ public class SelectionTool extends VueTool
     /** @return 'a' */
     @Override
     public char getBackwardCompatShortcutKey() {
-        return 'a';
+
+        // TODO: VueToolbarController / VueTool could use some redesign.  Due to the the
+        // current architecture, we need to be sure to only return the backward compat
+        // key for the version of this tool that does NOT have a sub tool.  As to why
+        // there are multiple versions of the tool instance, it has to do with the
+        // original design being closely tied to the implementation of our custom menu
+        // bar for the tools, where multiple types of the tool can be grouped under a
+        // single pull-down.
+        
+        if (getSelectedSubTool() == null)
+            return 'a';
+        else
+            return 0;
     }
 
 
