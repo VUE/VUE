@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.94 $ / $Date: 2008-05-07 05:33:17 $ / $Author: sfraize $  
+ * @version $Revision: 1.95 $ / $Date: 2008-05-08 19:52:02 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -752,23 +752,19 @@ class MapDropTarget
         if (DEBUG.Enabled) {
             String size = "";
             Object firstInBag = null;
-            //String bagType0 = "";
             String bagEntry0 = "";
             if (foundData instanceof Collection) {
                 Collection bag = (Collection) foundData;
                 size = " (Collection size " + bag.size() + ")";
                 if (bag.size() > 0) {
                     final Object o = bag.iterator().next();
-                    //bagType0 =   "\n\ttype[0]: " + o.getClass();
                     firstInBag = o;
                     bagEntry0 =  "\n\tdata[0]: " + Util.tags(firstInBag);
                 }
             }
-            //Log.debug("TRANSFER: Found supported flavor \"" + foundFlavor.getHumanPresentableName() + "\""
-            Log.debug(TERM_CYAN + "\nTRANSFER: Found a supported DataFlavor; " //+ foundFlavor
+            Log.debug(TERM_CYAN + "\nTRANSFER: Found a supported DataFlavor among the " + dataFlavors.length + " available;"
                       + "\n\t flavor: " + foundFlavor
                       + "\n\tdataTag: " + Util.tag(foundData) + size
-                      //+ bagType0
                       + "\n\tdataRaw: [" + foundData + "]"
                       + bagEntry0
                       + TERM_CLEAR
