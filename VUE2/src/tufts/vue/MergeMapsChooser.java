@@ -974,7 +974,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
         }
         if(e.getSource() == baseBrowseButton)
         {
-            VueFileChooser choose = new VueFileChooser();
+            VueFileChooser choose = VueFileChooser.getVueFileChooser();
             choose.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
             choose.showDialog(this,"Set Base Map");
             selectedBaseFile = choose.getSelectedFile();
@@ -1853,7 +1853,7 @@ implements ActiveListener<LWMap>, ActionListener,ChangeListener,LWComponent.List
             }
             if(e.getSource() == browseButton)
             {
-                VueFileChooser fileChooser = new VueFileChooser();
+                VueFileChooser fileChooser = VueFileChooser.getVueFileChooser();
                 fileChooser.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
                 fileChooser.showDialog(this,"Add Map");
                 selectedFile = fileChooser.getSelectedFile();       

@@ -373,7 +373,7 @@ public class MapChooser extends JDialog implements ActionListener{
             {
               file.setText("");
               generateButton.setEnabled(false);
-              VueFileChooser chooseFile = new VueFileChooser();
+              VueFileChooser chooseFile = VueFileChooser.getVueFileChooser();
               chooseFile.setFileFilter(new VueFileFilter(VueFileFilter.VUE_DESCRIPTION));
               chooseFile.showDialog(this,"Select");
               selectedFile = chooseFile.getSelectedFile();

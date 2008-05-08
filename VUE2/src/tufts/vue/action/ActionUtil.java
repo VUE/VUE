@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.113 $ / $Date: 2008-05-06 21:12:09 $ / $Author: mike $
+ * @version $Revision: 1.114 $ / $Date: 2008-05-08 15:46:07 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -115,32 +115,9 @@ public class ActionUtil
         File picked = null;
        
     	
-    	if (!Util.isMacPlatform())
-    	{
-    		saveChooser = new VueFileChooser();
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    			saveChooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
-    	}
-    	else
-    	{
+        	saveChooser =  VueFileChooser.getVueFileChooser();
     		
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    		{
-    			/*
-    			 * Despite Quaqua fixes in 3.9 you can still only set the 
-    			 * current directory if you set it in the constructor, 
-    			 * setCurrentDirectory fails to do anything but cause the
-    			 * top bar and the panels to be out of sync.... -MK 10/29
-    			 */
-    			saveChooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
-    		}
-    		else
-    			saveChooser = new VueFileChooser();
-
-    	}
-
-     
-        
+    	
     	saveChooser.setDialogTitle(title);
     	saveChooser.setAcceptAllFileFilterUsed(false);    
         //chooser.set
@@ -244,32 +221,9 @@ public class ActionUtil
     {
         File file = null;              
         
-        VueFileChooser chooser = null;        
+        VueFileChooser chooser = VueFileChooser.getVueFileChooser();
+            	
     	
-    	if (!Util.isMacPlatform())
-    	{
-    		chooser = new VueFileChooser();
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
-    	}
-    	else
-    	{
-    		
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    		{
-    			/*
-    			 * Despite Quaqua fixes in 3.9 you can still only set the 
-    			 * current directory if you set it in the constructor, 
-    			 * setCurrentDirectory fails to do anything but cause the
-    			 * top bar and the panels to be out of sync.... -MK 10/29
-    			 */
-    			chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
-    		}
-    		else
-    			chooser = new VueFileChooser();
-
-    	}  
-        
         int option = chooser.showOpenDialog(VUE.getDialogParent());
         
         if (option == VueFileChooser.APPROVE_OPTION) {
@@ -313,31 +267,9 @@ public class ActionUtil
     {
     	File file = null;
      
-    	VueFileChooser chooser = null;        
+    	VueFileChooser chooser = VueFileChooser.getVueFileChooser();        
     	
-    	if (!Util.isMacPlatform())
-    	{
-    		chooser = new VueFileChooser();
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
-    	}
-    	else
-    	{
-    		
-    		if (VueUtil.isCurrentDirectoryPathSet()) 
-    		{
-    			/*
-    			 * Despite Quaqua fixes in 3.9 you can still only set the 
-    			 * current directory if you set it in the constructor, 
-    			 * setCurrentDirectory fails to do anything but cause the
-    			 * top bar and the panels to be out of sync.... -MK 10/29
-    			 */
-    			chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
-    		}
-    		else
-    			chooser = new VueFileChooser();
-
-    	}
+    	
     	chooser.setDialogTitle(title);
     	chooser.setMultiSelectionEnabled(true);
     	chooser.setFileFilter(new VueFileFilter(extension));

@@ -103,7 +103,8 @@ public class Actions implements VueConstants
 			VueUtil.alert(null,VueResources.getString("presentationNotes.invalidPresentation.message"), VueResources.getString("presentationNotes.invalidPathway.title"));
 			return null;
     	}
-		VueFileChooser chooser = new VueFileChooser();
+		VueFileChooser chooser = VueFileChooser.getVueFileChooser();
+
 		File pdfFileName = null;
 		chooser.setDialogTitle("Save PDF as");
 		
@@ -147,7 +148,7 @@ public class Actions implements VueConstants
 			VueUtil.alert(null,"There is no active map, please open a valid map.", "Invalid Map");
 			return null;
     	}
-		VueFileChooser chooser = new VueFileChooser();
+		VueFileChooser chooser = VueFileChooser.getVueFileChooser();
 		File pdfFileName = null;
 		
 		String baseName = VUE.getActiveMap().getLabel();
@@ -989,20 +990,7 @@ public class Actions implements VueConstants
     public static final LWCAction AddFileAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addFile.label")) {
         public void act(LWComponent c) 
         {
-        	VueFileChooser chooser = null;
-        	if (VueUtil.isCurrentDirectoryPathSet()) 
-    		{
-    			/*
-    			 * Despite Quaqua fixes in 3.9 you can still only set the 
-    			 * current directory if you set it in the constructor, 
-    			 * setCurrentDirectory fails to do anything but cause the
-    			 * top bar and the panels to be out of sync.... -MK 10/29
-    			 */
-        		chooser = new VueFileChooser(new File(VueUtil.getCurrentDirectoryPath()));
-    		}
-    		else
-    			chooser = new VueFileChooser();
-        	
+        	VueFileChooser chooser = VueFileChooser.getVueFileChooser();        	        	
         	
     		File fileName = null;
     		

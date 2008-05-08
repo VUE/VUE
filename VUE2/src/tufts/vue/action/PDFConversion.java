@@ -79,7 +79,7 @@ public class PDFConversion extends AbstractAction {
         String label = VUE.getActiveMap().getLabel();
         try {
             
-            VueFileChooser chooser = new VueFileChooser();
+            VueFileChooser chooser = VueFileChooser.getVueFileChooser();
             chooser.setDialogTitle("Save as PDF");
             int option = chooser.showDialog(tufts.vue.VUE.getDialogParent(), "Save");
             if (option == VueFileChooser.APPROVE_OPTION) {
