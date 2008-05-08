@@ -647,7 +647,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         }
         if(e.getSource() == ontBrowseButton)
         {
-            VueFileChooser ontChooser = new VueFileChooser();
+            VueFileChooser ontChooser = VueFileChooser.getVueFileChooser();
             if(lastDirectory != null)
             { 
               try
@@ -679,7 +679,7 @@ public class OntologyChooser2 extends javax.swing.JDialog implements java.awt.ev
         }
         if(e.getSource() == cssBrowseButton)
         {
-            VueFileChooser cssChooser = new VueFileChooser();
+            VueFileChooser cssChooser = VueFileChooser.getVueFileChooser();
             if(lastDirectory !=null)
             {
               try

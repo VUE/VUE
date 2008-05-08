@@ -350,7 +350,7 @@ public class OntologyChooser extends javax.swing.JDialog implements java.awt.eve
         }
         if(e.getSource() == browseButton)
         {
-            VueFileChooser chooser = new VueFileChooser();
+            VueFileChooser chooser = VueFileChooser.getVueFileChooser();
             chooser.showOpenDialog(tufts.vue.VUE.getDialogParentAsFrame());
             File selectedFile = chooser.getSelectedFile();
             if(selectedFile!=null)

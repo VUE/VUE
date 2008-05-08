@@ -206,7 +206,8 @@ public class OntologyBrowser extends JPanel {
         }
         
         public void actionPerformed(java.awt.event.ActionEvent e) {
-            VueFileChooser chooser = new VueFileChooser();
+            VueFileChooser chooser = VueFileChooser.getVueFileChooser();
+            
             chooser.showOpenDialog(OntologyBrowser.this);
             if(chooser.getSelectedFile()!=null) {
                 java.net.URL cssURL = null;

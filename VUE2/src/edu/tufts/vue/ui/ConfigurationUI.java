@@ -414,7 +414,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         
                         chooserActionListener = new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
-                                VueFileChooser fileChooser = new VueFileChooser();
+                                VueFileChooser fileChooser = VueFileChooser.getVueFileChooser();
                                 fileChooser.setCurrentDirectory(new java.io.File("."));
                                 fileChooser.setDialogTitle(VueResources.getString("resourceInstallation.chooserTitle"));
                                 fileChooser.setFileSelectionMode(VueFileChooser.FILES_AND_DIRECTORIES);

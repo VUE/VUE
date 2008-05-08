@@ -18,7 +18,7 @@
  *
  * Created on May 3, 2007, 11:17 AM
  *
- * @version $Revision: 1.39 $ / $Date: 2008-04-11 20:36:55 $ / $Author: dan $
+ * @version $Revision: 1.40 $ / $Date: 2008-05-08 15:40:10 $ / $Author: mike $
  * @author dhelle01
  */
 
@@ -108,7 +108,7 @@ public class MapsSelectionPanel extends JPanel  {
         {
            public void actionPerformed(ActionEvent e)
            {
-               VueFileChooser choose = new VueFileChooser();
+               VueFileChooser choose = VueFileChooser.getVueFileChooser();
                if(lastDirectory!=null)
                    choose.setCurrentDirectory(lastDirectory);
                VueFileFilter vff = new VueFileFilter(VueFileFilter.VUE_DESCRIPTION);
