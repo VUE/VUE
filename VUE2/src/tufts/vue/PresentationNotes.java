@@ -82,7 +82,7 @@ public class PresentationNotes {
             //TODO: allow horizontal centering, but not vertical centering (handle in computeZoomFit)
             Rectangle2D bounds = VUE.getActiveMap().getBounds();
             double scale = ZoomTool.computeZoomFit(page, 5, bounds, offset, true);
-            System.out.println(scale  + " zoom factor...");
+          //  System.out.println(scale  + " zoom factor...");
             // set up the DrawContext
             DrawContext dc = new DrawContext(g2d,
                       scale,
@@ -1016,31 +1016,15 @@ public class PresentationNotes {
 			}
             
 			int entryCount=1;
+			float indentation = 0.0f;
             Iterator it = VUE.getActiveMap().getNodeIterator();
             while (it.hasNext())            
             {
             	LWNode n = (LWNode)it.next();
-                String notes = n.getNotes();
-                String nodeLabel = n.getLabel();
+            	outlineChildNode(document, indentation, n, entryCount);
+            	entryCount++;
+            	iterateChildren(document,indentation+10,n,1);
                 
-                if (nodeLabel == null || nodeLabel.length()==0)
-                	nodeLabel = "Node";
-                
-                Paragraph p = new Paragraph(entryCount + ".  " + n.getLabel().replaceAll("\\n",""));
-                f = p.getFont();
-                f.setStyle(Font.BOLD);
-                f.setSize(14f);
-                p.setFont(f);
-                Paragraph notesP = new Paragraph(notes);
-               // f = notesP.getFont();
-			//	f.setSize(f.getSize()-2);
-                notesP.setIndentationLeft(30.0f);                
-                notesP.setSpacingAfter(15.0f);
-                document.add(p);
-                document.add(notesP);
-                
-                
-                entryCount++;
             }
             
             it = VUE.getActiveMap().getLinkIterator();
@@ -1091,6 +1075,56 @@ public class PresentationNotes {
         document.close();
         
     }
+	
+	private static void iterateChildren(Document d, float indentation,LWNode n, int entryCount)
+	{
+		if (n.hasChildren())
+    	{
+    		Iterator i = n.getChildIterator();
+    		
+    		while (i.hasNext())
+    		{
+    			
+    			Object o = i.next();
+    		//	System.out.println("child : " + o);
+    			if (o instanceof LWNode)
+    			{
+    				//System.out.println("outlineChildNode");
+    				outlineChildNode(d,indentation,(LWNode)o,entryCount);
+    				entryCount++;
+    				iterateChildren(d,indentation+10,(LWNode)o,1);
+    			}
+    			else
+    				continue;
+    		}
+    	}
+	}
+	private static void outlineChildNode(Document d, float indentation,LWNode n, int entryCount)
+	{
+		String notes = n.getNotes();
+        String nodeLabel = n.getLabel();
+        
+        if (nodeLabel == null || nodeLabel.length()==0)
+        	nodeLabel = "Node";
+        
+        Paragraph p = new Paragraph(entryCount + ".  " + n.getLabel().replaceAll("\\n",""));
+        Font f = p.getFont();
+        f.setStyle(Font.BOLD);
+        f.setSize(14f);
+        p.setFont(f);
+        p.setIndentationLeft(indentation);
+        Paragraph notesP = new Paragraph(notes);
+
+        notesP.setIndentationLeft(indentation+20);                
+        notesP.setSpacingAfter(15.0f);
+        try {
+			d.add(p);
+			d.add(notesP);
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}        		
+			
+	}
 }
 
 
