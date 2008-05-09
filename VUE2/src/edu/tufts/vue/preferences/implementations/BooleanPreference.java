@@ -23,7 +23,7 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 	private String name;
 	private String key;
 	private String description;
-	//private String message;
+	private String message;
 	private Object defaultValue;
 
 	public static BooleanPreference create(String category, String key, String name, String desc, String message,Object defaultValue, boolean showInUI)
@@ -58,14 +58,19 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 		this.name = name;
 		this.description = desc;
 		this.defaultValue = defaultValue;
+		
 		if (message != null)
-			setMessage(message);
+			this.message = message;
 		else
-			setMessage(name);
+			this.message = name;
 		if (showInUI)
 			edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
 	}
 		
+	public String getMessage(){
+		return message;
+	}
+	
 	public Object getDefaultValue()
 	{
 		return defaultValue;
@@ -74,7 +79,7 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 	public String getDescription() { 
 		return description;
 	}
-
+	
 	public String getTitle() {
 		return name;
 	}

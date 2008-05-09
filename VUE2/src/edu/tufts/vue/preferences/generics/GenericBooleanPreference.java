@@ -37,7 +37,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 public abstract class GenericBooleanPreference extends BasePref implements ItemListener 
 {
 	
-	private String message;
+	
 	private JCheckBox value = new JCheckBox();
 	private Object previousValue = null;
 	
@@ -79,6 +79,7 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
 	}
 	public abstract String getTitle();
 	public abstract String getDescription();
+	public abstract String getMessage();
 	
 	public JComponent getPreferenceUI() {
 		JPanel panel = new JPanel();
@@ -123,19 +124,21 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
         booleanPanel.setBackground(Color.WHITE);
         
         value.setBackground(Color.WHITE);
-        
+        value.setLabel(getMessage());
         booleanPanel.add(value);
-        System.out.println("MESSAGE : " + getMessage());
-        booleanPanel.add(new JLabel(getMessage()));
+        booleanPanel.setOpaque(false);
+     
+      //  JLabel message = new JLabel(getMessage());
+       // message.setBackground(Color.red);
+       // message.setForeground(Color.black);
+       // booleanPanel.add(message);
         getCheckBox().addItemListener(this);
         getCheckBox().setSelected(((Boolean)getValue()).booleanValue());
         panel.add(booleanPanel, gbConstraints);
 	return panel;
 	}
 	
-	public String getMessage(){
-		return message;
-	}
+
 
 	public Object getValue(){
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
@@ -144,9 +147,6 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
 	
 	}
 	
-	public void setMessage(String s){
-		message = s;
-	}
 	
 	public void setValue(Object b)
 	{
