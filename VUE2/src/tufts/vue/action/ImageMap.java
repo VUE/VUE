@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.20 $ / $Date: 2008-05-05 20:28:09 $ / $Author: mike $ *
+ * @version $Revision: 1.21 $ / $Date: 2008-05-09 21:01:15 $ / $Author: mike $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -100,6 +100,21 @@ public class ImageMap extends VueAction {
             if (node.hasChildren())
               out += writeOutCss(imageName,(LWContainer)node);
                 
+            String altLabel = null;
+            
+            if ((altLabel = node.getNotes()) == null)
+            {
+            	 if(node.getResource() != null){
+                     Resource resource = node.getResource();
+                     //res = resource.toString();
+                     altLabel=resource.getSpec();
+                     
+                     // see VUE-873 getSpec() should be fine for now
+                     //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
+                 } 
+                 else
+                	 continue;
+            }
             int groupX=0;
             int groupY=0;
             
@@ -150,8 +165,20 @@ public class ImageMap extends VueAction {
             String shape = "rect";
             String altLabel = null;
             
-            if ((altLabel = node.getNotes()) == null)            	
-            	altLabel = "No Notes";
+            if ((altLabel = node.getNotes()) == null)
+            {
+            	 if(node.getResource() != null){
+                     Resource resource = node.getResource();
+                     //res = resource.toString();
+                     altLabel=resource.getSpec();
+                     
+                     // see VUE-873 getSpec() should be fine for now
+                     //if(!(res.startsWith("http://") || res.startsWith("https://"))) res = "file:///" + res;
+                 } 
+                 else
+                	 continue;
+            }
+            	
             
             String res = "";
             String href = "";
