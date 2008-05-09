@@ -35,7 +35,9 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     //private JLabel showAgain = new JLabel("don't show again ");
     private JCheckBox showAgainBox = new JCheckBox();
     private BooleanPreference showAgainPref = null; 
-    public ShowAgainDialog(Frame parentFrame, String prefName, String title)
+    private String okLabel;
+    private String cancelLabel;
+    public ShowAgainDialog(Frame parentFrame, String prefName, String title, String okLabel, String cancelLabel)
     {
     	super(parentFrame, title, true);
     	this.setDefaultCloseOperation(javax.swing.JFrame.DO_NOTHING_ON_CLOSE);
@@ -48,7 +50,8 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     		false);
      
         //setSize(250, 100);
- 
+    	this.okLabel = okLabel;
+    	this.cancelLabel = cancelLabel;
         this.setResizable(false);        
         
      
@@ -65,8 +68,8 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     private static int newcnt = 1;
     private void setUpUI(JPanel panel)
     {
-        okButton = new JButton("Delete");
-        cancelButton = new JButton("Cancel");
+        okButton = new JButton(okLabel);
+        cancelButton = new JButton(cancelLabel);
 
         
         Insets i = okButton.getMargin();
@@ -116,6 +119,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         gbc.anchor=GridBagConstraints.EAST;
         gbc.fill=GridBagConstraints.NONE;
         gbc.insets = new Insets(2,20,15,2);
+        if (cancelLabel != null)
         dialogContentPane.add(cancelButton,gbc);
      
         gbc.weightx=1.0;
@@ -126,7 +130,8 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
         
        // gbc.insets = new Insets(1,5,10,110);
         gbc.anchor=GridBagConstraints.EAST;
-        gbc.fill=GridBagConstraints.REMAINDER;               
+        gbc.fill=GridBagConstraints.REMAINDER;
+        if (okLabel != null)
         dialogContentPane.add(okButton,gbc);
         
         
@@ -188,7 +193,7 @@ public class ShowAgainDialog  extends JDialog implements ActionListener, KeyList
     {
     	JPanel panel = new JPanel();    	
     	panel.add(new JLabel("By deleting this slide, your work on this slide will be lost."));
-    	ShowAgainDialog sad = new ShowAgainDialog(null,"blah","Delete Pathway");
+    	ShowAgainDialog sad = new ShowAgainDialog(null,"blah","Delete Pathway","OK","Cancel");
     	sad.setContentPanel(panel);
  //   	sad.setSize(375, 130);
     	sad.pack();

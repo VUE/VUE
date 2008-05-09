@@ -14,7 +14,7 @@ public class DeleteSlideDialog extends ShowAgainDialog{
 
 	 public DeleteSlideDialog(Frame parentFrame)
 	 {		 	 
-		super(parentFrame,"deleteSlide","Delete Slide");
+		super(parentFrame,"deleteSlide","Delete Slide","Delete","Cancel");
 	    panel.add(new JLabel("By deleting this slide, your work on this slide will be lost."));
 	    setContentPanel(panel);
 	 }
