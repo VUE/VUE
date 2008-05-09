@@ -52,12 +52,23 @@ import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.XMLConstants;
+import org.apache.xpath.NodeSet;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 /**
  * Vue application class.
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.544 $ / $Date: 2008-05-07 05:33:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.545 $ / $Date: 2008-05-09 19:51:52 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -1663,8 +1674,14 @@ public class VUE
             if (DEBUG.Enabled) fontDock.setVisible(true);
         }});
         */
-
-
+        Thread versionThread = new Thread() {
+            public void run() {
+                checkLatestVersion();
+            }
+        };
+        versionThread.setPriority(Thread.MIN_PRIORITY);
+        versionThread.start();
+       
     }
 
     public static FormatPanel getFormattingPanel()
@@ -2613,7 +2630,69 @@ public class VUE
     }
     */
 
-
+    /* This mehtod checks if later version of VUE is available. In case later version
+     * is available it prompts user to download it.
+     */
+    
+   public static void checkLatestVersion() {
+       System.out.println("Checking for latest version of VUE");
+        try {
+            URL url = new URL(VueResources.getString("vue.release.url"));
+            XPathFactory  factory=XPathFactory.newInstance();
+            XPath xPath=factory.newXPath();
+            InputSource inputSource =  new InputSource(url.openStream());
+            XPathExpression  xSession= xPath.compile("/current_release/version/text()");
+            String version = xSession.evaluate(inputSource);
+            if(!version.trim().equalsIgnoreCase(VueResources.getString("vue.version").trim())) {
+                final JDialog window = new JDialog(VUE.getApplicationFrame(),"New Release Available", true);
+                JPanel backPanel = new JPanel();
+                backPanel.setBorder(new EmptyBorder(20,20,5,20));
+                backPanel.setMinimumSize(new Dimension(250,80));
+                
+                JLabel vLabel = new  JLabel("<html>Newer version of VUE is available.<font color = \"#20316A\"><u>Get the latest version</u></font></html");
+                vLabel.addMouseListener(new javax.swing.event.MouseInputAdapter() {
+                    public void mouseClicked(MouseEvent evt) {
+                        try {
+                            VueUtil.openURL(VueResources.getString("vue.download.url"));
+                            window.setVisible(false);
+                            window.dispose();
+                        }catch (Throwable t) { t.printStackTrace();}
+                    }
+                    
+                    
+                });
+                
+                JPanel labelPanel = new JPanel();
+                labelPanel.setLayout(new BorderLayout());
+                labelPanel.add(vLabel,BorderLayout.CENTER);
+                
+                JPanel buttonPanel = new JPanel();
+                buttonPanel.setBorder(new EmptyBorder(20,2,2,2));
+                buttonPanel.setLayout(new BorderLayout());
+                
+                JButton  remindLaterButton = new JButton("Remind Me Later");
+                remindLaterButton.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        window.setVisible(false);
+                        window.dispose();
+                    }
+                });
+                buttonPanel.add(remindLaterButton);
+                             
+                backPanel.setLayout(new BorderLayout());
+                backPanel.add(labelPanel,BorderLayout.CENTER);
+                backPanel.add(buttonPanel,BorderLayout.SOUTH);
+                
+                window.setContentPane(backPanel);
+                window.pack();
+                VueUtil.centerOnScreen(window);
+                window.setVisible(true);
+              }
+        }catch(Throwable t) {
+            Log.error("Error Checking latest VUE release"+t.getMessage());
+            t.printStackTrace();
+        }
+   }
 
     public static String getName() {
         if (NAME == null)
