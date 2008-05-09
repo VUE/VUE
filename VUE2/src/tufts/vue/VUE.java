@@ -49,6 +49,7 @@ import org.apache.log4j.PatternLayout;
 import org.apache.log4j.LogManager;
 
 import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
+import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
 
@@ -68,7 +69,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.545 $ / $Date: 2008-05-09 19:51:52 $ / $Author: anoop $ 
+ * @version $Revision: 1.546 $ / $Date: 2008-05-09 21:32:33 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -2643,50 +2644,39 @@ public class VUE
             InputSource inputSource =  new InputSource(url.openStream());
             XPathExpression  xSession= xPath.compile("/current_release/version/text()");
             String version = xSession.evaluate(inputSource);
-            if(!version.trim().equalsIgnoreCase(VueResources.getString("vue.version").trim())) {
-                final JDialog window = new JDialog(VUE.getApplicationFrame(),"New Release Available", true);
-                JPanel backPanel = new JPanel();
-                backPanel.setBorder(new EmptyBorder(20,20,5,20));
-                backPanel.setMinimumSize(new Dimension(250,80));
+            if(!version.trim().equalsIgnoreCase(VueResources.getString("vue.version").trim())) 
+            {
+            	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
+            	JPanel panel = new JPanel();
+            	JLabel vLabel = new  JLabel("<html>Newer version of VUE is available.  <font color = \"#20316A\"><u>Get the latest version</u></font></html");
+        	    panel.add(vLabel);
+        	    sad.setContentPanel(panel);
                 
-                JLabel vLabel = new  JLabel("<html>Newer version of VUE is available.<font color = \"#20316A\"><u>Get the latest version</u></font></html");
                 vLabel.addMouseListener(new javax.swing.event.MouseInputAdapter() {
                     public void mouseClicked(MouseEvent evt) {
                         try {
                             VueUtil.openURL(VueResources.getString("vue.download.url"));
-                            window.setVisible(false);
-                            window.dispose();
+                            sad.setVisible(false);
+                            sad.dispose();
                         }catch (Throwable t) { t.printStackTrace();}
                     }
                     
                     
                 });
+                                                                                                      
                 
-                JPanel labelPanel = new JPanel();
-                labelPanel.setLayout(new BorderLayout());
-                labelPanel.add(vLabel,BorderLayout.CENTER);
+                VueUtil.centerOnScreen(sad);
+                if (sad.showAgain())
+                {
+                	sad.setVisible(true);
+                	
                 
-                JPanel buttonPanel = new JPanel();
-                buttonPanel.setBorder(new EmptyBorder(20,2,2,2));
-                buttonPanel.setLayout(new BorderLayout());
+                	sad.setVisible(false);
+                    sad.dispose();
                 
-                JButton  remindLaterButton = new JButton("Remind Me Later");
-                remindLaterButton.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        window.setVisible(false);
-                        window.dispose();
-                    }
-                });
-                buttonPanel.add(remindLaterButton);
-                             
-                backPanel.setLayout(new BorderLayout());
-                backPanel.add(labelPanel,BorderLayout.CENTER);
-                backPanel.add(buttonPanel,BorderLayout.SOUTH);
+                }
+    
                 
-                window.setContentPane(backPanel);
-                window.pack();
-                VueUtil.centerOnScreen(window);
-                window.setVisible(true);
               }
         }catch(Throwable t) {
             Log.error("Error Checking latest VUE release"+t.getMessage());
