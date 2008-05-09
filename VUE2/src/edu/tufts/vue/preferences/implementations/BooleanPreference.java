@@ -62,8 +62,8 @@ public class BooleanPreference extends edu.tufts.vue.preferences.generics.Generi
 			setMessage(message);
 		else
 			setMessage(name);
-	
-		edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
+		if (showInUI)
+			edu.tufts.vue.preferences.PreferencesManager.registerPreference(this);
 	}
 		
 	public Object getDefaultValue()
