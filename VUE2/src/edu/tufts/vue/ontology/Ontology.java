@@ -194,6 +194,17 @@ abstract public class Ontology {
     public  void readOntTypes(ExtendedIterator iter) {
         while(iter.hasNext()) {
             OntResource c = (OntResource) iter.next();
+            
+            // getLocalName only gets the value passed any spaces
+            // todo: find documentation -- is it a bug in Jena or a feature?
+            String fullString = c.toString();
+            int dividerIndex = fullString.indexOf("#");
+            String name = "";
+            if(dividerIndex != -1 && dividerIndex < fullString.length() - 2)
+            {
+               name = fullString.substring(dividerIndex+1);                
+            }
+            
             OntType type = new OntType();
             type.setId(c.getLocalName());
             if(c.getLabel(null) == null) {
@@ -204,6 +215,13 @@ abstract public class Ontology {
             type.setBase(base);
             type.setComment(c.getComment(null));
             Style style;
+            
+            // see comment about getLocalName() above
+            if(!name.equals(""))
+            {
+                type.setId(name);
+                type.setLabel(name);
+            }
             
             // disable for now, see VUE-866 reapplying style without rereading
             // ontology loses this styling information
