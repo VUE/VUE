@@ -69,7 +69,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.546 $ / $Date: 2008-05-09 21:32:33 $ / $Author: mike $ 
+ * @version $Revision: 1.547 $ / $Date: 2008-05-13 21:17:00 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -757,8 +757,6 @@ public class VUE
             VueUtil.alert("VUE init failed", t);
         }
 
-        // initialize enabled state of actions via a selection set:
-        VUE.getSelection().clearAndNotify();
         
         VUE.isStartupUnderway = false;
 
@@ -857,6 +855,7 @@ public class VUE
         if (splashScreen != null)
             splashScreen.setVisible(false);
 
+        
         //------------------------------------------------------------------
 
         //VUE.clearWaitCursor();
@@ -873,6 +872,9 @@ public class VUE
         if (!SKIP_EDITOR_MANAGER)
             EditorManager.install();
         
+        // initialize enabled state of actions via a selection set:
+        VUE.getSelection().clearAndNotify();
+
         //---------------------------------------------
         // Start the loading of the data source viewer
         if (SKIP_DR == false && DR_BROWSER != null) {
