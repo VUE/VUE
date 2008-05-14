@@ -19,6 +19,10 @@ package edu.tufts.vue.metadata.gui;
 /**
  *
  * MetaButton.java
+ *
+ * VueButton for deleting category items
+ * todo: make this work for adding new items as well 
+ *
  * 
  * @author dhelle01
  */
