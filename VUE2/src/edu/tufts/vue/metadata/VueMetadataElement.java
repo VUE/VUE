@@ -30,6 +30,8 @@ import java.net.*;
  */
 public class VueMetadataElement {
     
+   public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none"; 
+    
    private static final boolean DEBUG_LOCAL = false; 
     
    private String value;
@@ -167,6 +169,15 @@ public class VueMetadataElement {
        {
            return false;
        }
+   }
+   
+   public static VueMetadataElement getNewCategoryElement()
+   {
+      VueMetadataElement vme = new VueMetadataElement();
+      String[] emptyEntry = {NONE_ONT,""};
+      vme.setObject(emptyEntry);
+      vme.setType(VueMetadataElement.CATEGORY);
+      return vme;
    }
     
 }

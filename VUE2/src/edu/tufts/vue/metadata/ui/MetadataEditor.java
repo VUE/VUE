@@ -45,6 +45,28 @@ import tufts.vue.gui.GUI;
 /*
  * MetadataEditor.java
  *
+ * The Metadata Editor is primarily a keyword(/category) editor
+ * in VUE 2.0.
+ *
+ * It has the potential to display VueMetadataElements
+ * of non category type and was developed in initial demos
+ * to be more flexible in this regard. If neccesary, it shouldn't 
+ * be too difficult to recover such flexibility.
+ *
+ * See OntologicalMembershipPane for an example of 
+ * an editor for other types of VueMetadataElement data
+ *
+ * A slightly thornier issue has arisen in terms of applying
+ * keywords to multiple selections as this component now
+ * listens to both the current Active and current Selection so
+ * that it can display/edit either the current Component's 
+ * MetadataList or that of an LWGroup - additionally
+ * the behavior that propagates the editing/merging of data into the sub
+ * components of the group currently resides here - at some
+ * point it might make sense to factor this behavior into
+ * a subclass, particularly if needed elsewhere. 
+ *
+ *
  * Created on June 29, 2007, 2:37 PM
  *
  * @author dhelle01
@@ -60,6 +82,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     
     // for best results: modify next two in tandem (at exchange rate of one pirxl from ROW_GAP for 
     // each two in ROW_HEIGHT in order to maintain proper text box height
+    // todo: define a text box height/ think about a layout that can combine control
+    // over margins with great control/cross platform consistency for textbox height.
     public final static int ROW_HEIGHT = 31;
     public final static int ROW_GAP = 4;
     
@@ -75,6 +99,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     public final static int CC_ADD_RIGHT = 1;
     
     //public final static String TAG_ONT = "http://vue.tufts.edu/vue.rdfs#Tag";
+    // todo: use VueMetadataElement NONE_ONT exclusively (or perhaps put this in Ontology
+    // class itself? Maybe also might fit in rdf package)
     public final static String NONE_ONT = "http://vue.tufts.edu/vue.rdfs#none";
     
     public final static Border insetBorder = BorderFactory.createEmptyBorder(ROW_GAP,ROW_INSET,ROW_GAP,ROW_INSET);
@@ -83,8 +109,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     public final static Border verticalFollowingBox = BorderFactory.createMatteBorder(1,1,0,1,SAVED_KEYWORD_BORDER_COLOR);
     public final static Border leftLeadingFullBox = BorderFactory.createMatteBorder(1,1,1,0,SAVED_KEYWORD_BORDER_COLOR);
     public final static Border leftLeadingVerticalFollowingBox = BorderFactory.createMatteBorder(1,1,0,0,SAVED_KEYWORD_BORDER_COLOR);
-    
-    
+        
     private JTable metadataTable;
     private LWComponent current;
     private LWGroup currentMultiples;
@@ -94,16 +119,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     private int buttonColumn = 1;
 
     private boolean focusToggle = false;
-    
-    // also for VUE-846 -- but not fully operational yet..
-    // will likely switch to setPreferredSize on creation
-    // and on addition/subtraction of rows
-    /*
-    public java.awt.Dimension getPreferredSize()
-    {
-        int height = Math.max(metadataTable.getModel().getRowCount()*50,200);
-        return new java.awt.Dimension(300,metadataTable.getModel().getRowCount()*50);
-    }*/
    
     public MetadataEditor(tufts.vue.LWComponent current,boolean showOntologicalMembership,boolean followAllActive)
     {
@@ -116,7 +131,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,
            
         }
         
-     //   setMinimumSize(new java.awt.Dimension(300,200));
         
         this.current = current;
         // clear gui below after create table.
@@ -150,10 +164,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,
         };
         
         ((MetadataTableModel)metadataTable.getModel()).clearGUIInfo();
-
-        //*
-          //addNewRow();
-        //*
         
         metadataTable.setShowGrid(false);
         metadataTable.setIntercellSpacing(new java.awt.Dimension(0,0));
@@ -179,8 +189,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,
             
                    public void mousePressed(java.awt.event.MouseEvent evt)
                    {  
-                       // todo: stand alone class for header renderer allows this
-                       // for now using variable in MetadataEditor
                        //tufts.vue.gui.VueButton addButton = 
                        //        MetadataTableHeaderRenderer.getButton();
                        
@@ -763,7 +771,8 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                       int numberToRemove = Math.abs(sharedCount - compCount);
                       for(int i=0;i<numberToRemove;i++)
                       {
-                          shared.remove(shared.indexOf(next));
+                          if(shared.indexOf(next) != -1)
+                            shared.remove(shared.indexOf(next));
                       }
                   }
                   
@@ -862,12 +871,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,
          
          if(current!=null && MetadataEditor.this.current.getMetadataList().getCategoryListSize() == 0)
          {
-           VueMetadataElement vme = new VueMetadataElement();
-           String[] emptyEntry = {NONE_ONT,""};
-           vme.setObject(emptyEntry);
-           vme.setType(VueMetadataElement.CATEGORY);
+           //VueMetadataElement vme = new VueMetadataElement();
+           //String[] emptyEntry = {NONE_ONT,""};
+           //vme.setObject(emptyEntry);
+           //vme.setType(VueMetadataElement.CATEGORY);
 
-           MetadataEditor.this.current.getMetadataList().getMetadata().add(vme);
+           MetadataEditor.this.current.getMetadataList().getMetadata().add(VueMetadataElement.getNewCategoryElement());
          }
         
 
@@ -1036,9 +1045,29 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                
                Object currObject = null;
                if(current != null)
-                       currObject = current.getMetadataList().getCategoryList().get(row).getObject();//table.getModel().getValueAt(row,col);
+                 currObject = current.getMetadataList().getCategoryList().get(row).getObject();
                else if(currentMultiples!=null)
-                       currObject = currentMultiples.getMetadataList().getCategoryList().get(row).getObject();//table.getModel().getValueAt(row,col);
+               {    
+                 VueMetadataElement ele = currentMultiples.getMetadataList().getCategoryList().get(row);
+                 
+                 if(DEBUG_LOCAL)
+                 {
+                     System.out.println("ME - getTableCellRendererComponent - ele: " + ele);
+                 }
+                 
+                 currObject = ele.getObject();
+                 
+                 /*if(currObject !=null)
+                   currObject = ele.getObject();
+                 else
+                 {
+                   VueMetadataElement vme = VueMetadataElement.getNewCategoryElement();
+                   currentMultiples.getMetadataList().getCategoryList().set(row,vme);
+                     
+                   currObject = vme.getObject();
+                 }*/
+               }
+               
                Object currValue = (((String[])currObject)[0]);
                boolean found = findCategory(currValue,row,col,n,categories); 
               
@@ -1671,17 +1700,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                //JLabel buttonLabel = new JLabel();
                //buttonLabel.setIcon(tufts.vue.VueResources.getImageIcon("metadata.editor.delete.up"));
                //comp.add(buttonLabel);
-               
-               //$
-                 //JPanel tempPanel = new JPanel();
-                 //tempPanel.setOpaque(true);
-                 //tempPanel.setBackground(java.awt.Color.BLUE);
-                 //tempPanel.add(deleteButton);
-                 //tempPanel.addActionListener(deleteButton);
-                 
-                 
-               //$
-               
+                              
                metaButtonPanel.setRow(row);
                //deleteButton.setRow(row);
                //comp.add(deleteButton);
@@ -1710,8 +1729,6 @@ public class MetadataEditor extends JPanel implements ActiveListener,
     
     public Border getMetadataCellBorder(int row,int col)
     {
-
-      
       if(col == buttonColumn)
           return insetBorder;
       
@@ -1779,6 +1796,12 @@ public class MetadataEditor extends JPanel implements ActiveListener,
       
      }
     
+    // the following was for the MapInfoPanel usage of this
+    // component -- currently using a more direct approach
+    // with JTable filtering built into JDK 1.6 the following
+    // approach might make more sense (and if additional
+    // filtering is needed and/or additional flexibility/
+    // modifiability of filters)
     /*public class CreatorFilterModel extends MetadataTableModel
     {
         private int firstCreatorRow = -1;
@@ -1993,12 +2016,11 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                if(list.size() < row + 1)
                  return null;*/
                  
-               //!!!  
-               /*if(currentMultiples.getMetadataList().getCategoryListSize() == 0)
+               if(currentMultiples.getMetadataList().getCategoryListSize() == 0)
                  addNewRow();
                else
                  if(currentMultiples.getMetadataList().getCategoryListSize() < row + 1)
-                   return null;*/
+                   return null;
                  
                //while(list.size() < row + 1)
                //  addNewRow();

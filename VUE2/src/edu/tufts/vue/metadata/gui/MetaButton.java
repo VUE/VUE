@@ -124,8 +124,10 @@ public class MetaButton extends tufts.vue.gui.VueButton //implements java.awt.ev
                                           compMLList.indexOf(vme));
                    }
                    
-                   // todo: this may not be exactly accurate in the case of exact duplicates
-                   compMLList.remove(compMLList.indexOf(vme));
+                   if(compMLList.indexOf(vme) != -1)
+                   {
+                    compMLList.remove(compMLList.indexOf(vme));
+                   }
                    
                    // really only need to do this if the component now doesn't have any user metadata
                    if(compMLList.size() == 0)
