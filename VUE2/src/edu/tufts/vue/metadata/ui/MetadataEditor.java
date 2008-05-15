@@ -750,12 +750,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
               {
                   LWComponent comp = children.next();
                   
-                  // actually could now skip this step to add some efficiency just use the loop
-                  // below, don't add if frequency zero in any spot
                   shared.retainAll(comp.getMetadataList().getCategoryList().getList());
-                  
-                  //next part is inefficient, but need to do something quickly for 2.1 release
-                  //and need to handle duplicates consistently:
                   
                   // create set from shared
                   //  use set iterator -- use element,count(frequency) in shared,count in comp
@@ -768,11 +763,22 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                       VueMetadataElement next = us.next();
                       int sharedCount = java.util.Collections.frequency(shared,next);
                       int compCount = java.util.Collections.frequency(comp.getMetadataList().getCategoryList().getList(),next);
-                      int numberToRemove = Math.abs(sharedCount - compCount);
-                      for(int i=0;i<numberToRemove;i++)
+                      int numberToRemove = sharedCount - compCount;
+                      
+                      if(DEBUG_LOCAL)
                       {
+                          System.out.println("ME -- for comp - " + comp.getID());
+                          System.out.println("ME -- comp count vs shared count " + compCount + "-" + sharedCount);
+                          System.out.println("ME - number of " + next.getObject() + " to remove from shared: " + numberToRemove);
+                      }
+                      
+                      if(sharedCount > compCount)
+                      {    
+                        for(int i=0;i<numberToRemove;i++)
+                        {
                           if(shared.indexOf(next) != -1)
                             shared.remove(shared.indexOf(next));
+                        }
                       }
                   }
                   
