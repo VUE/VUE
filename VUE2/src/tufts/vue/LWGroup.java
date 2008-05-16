@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.85 $ / $Date: 2008-04-11 13:00:47 $ / $Author: dan $
+ * @version $Revision: 1.86 $ / $Date: 2008-05-16 20:56:42 $ / $Author: sfraize $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -151,34 +151,35 @@ public class LWGroup extends LWContainer
         // time (UNDO breaks: see below), so we never allow the explicit grabbing of a
         // link into a group when it is initially created.  The links will add
         // themselves as needed later via the link cleanup task.  So newly created
-        // groups go through two phases: in the first phased, completed in this method,
-        // is be a group containing all non-links, fully normalized when we're done.
-        // The normalization process is different during creation in that we set the
-        // location & size first (based on just the non-link content), then we normalize
-        // only the added children (by calling normalize(false)) -- so they're locations
-        // are properly relative to the newly created group.  In the second phase, all
-        // connected links to anything that was added to the group will automatically
-        // run their cleanup tasks (having detected changes in the endpoints), and will
-        // then be able to join an already stabilized group and map-parented group, so
-        // that if it's a curved link, when localizeCoordinates is called to translate
-        // it's control points into the new group coordinate space, the undo manager
-        // will be able to record the old positions of those control points, so they can
-        // be faithfully restored on undo.  Theoretically, localizeCoordinates /
-        // setLocation on the entire link could handle this during undo, tho we've had
-        // so many problems faithfully handling the redirection of setLocation on links
-        // to a translate for all link sub-points (as links don't have a 0,0 of their
-        // own: just sub-points recorded within their parent), that ensuring we have
-        // real coordinates to restore for undo is the only safe way to handle this.
+        // groups go through two phases: in the first phase, completed in this method,
+        // there will be a group containing all non-links, fully normalized when we're
+        // done.  The normalization process is different during creation in that we set
+        // the location & size first (based on just the non-link content), then we
+        // normalize only the added children (by calling normalize(false)) -- so their
+        // locations are properly relative to the newly created group.  In the second
+        // phase, all connected links to anything that was added to the group will
+        // automatically run their cleanup tasks (having detected changes in the
+        // endpoints), and will then be able to join an already stabilized group and
+        // map-parented group, so that if it's a curved link, when localizeCoordinates
+        // is called to translate it's control points into the new group coordinate
+        // space, the undo manager will be able to record the old positions of those
+        // control points, so they can be faithfully restored on undo.  Theoretically,
+        // localizeCoordinates / setLocation on the entire link could handle this during
+        // undo, tho we've had so many problems faithfully handling the redirection of
+        // setLocation on links to a translate for all link sub-points (as links don't
+        // have a 0,0 of their own: just sub-points recorded within their parent), that
+        // ensuring we have real coordinates to restore for undo is the only safe way to
+        // handle this.
         
         // Another potential problem is that if we're creating this new group inside
         // another group, there's an issue with the cleanup tasks: there's nothing that
-        // ensures that the child group's cleanup task runs before the parents, which is
+        // ensures that the child group's cleanup task runs before the parents, which
         // would be critical if a newly created group were to rely on it's standard
         // later normalization pass to sort itself out.  This is why on creation, we
-        // ensure the group is a fully normalized and stable state before it's done
-        // being created, even if later it will be re-normalized to do link cleanup
-        // tasks adding themselves to the group.  We could be hit again someday with
-        // this issue of cleanup tasks not enforcing a depth-first task order, tho our
+        // ensure the group is in a fully normalized and stable state before it's done
+        // being created, even if later it will be re-normalized by link cleanup tasks
+        // adding themselves to the group.  We could be hit again someday with this
+        // issue of cleanup tasks not enforcing a depth-first task order, tho our
         // current FIFO ordering appears to cover us (as long as the group is normalized
         // by the end of it's creation).
         
@@ -673,6 +674,8 @@ public class LWGroup extends LWContainer
     @Override
     protected void drawImpl(DrawContext dc)
     {
+        // TODO: DON'T DRAW ANYTHING BUT CHILDREN IF WE'RE FILTERED OUT
+        
         if (DEBUG.CONTAINMENT && !isForSelection) {
             java.awt.Shape shape = getZeroShape();
             dc.g.setColor(new java.awt.Color(64,64,64,64));
