@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.45 $ / $Date: 2008-05-07 02:08:31 $ / $Author: sfraize $
+ * @version $Revision: 1.46 $ / $Date: 2008-05-16 20:48:46 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -289,28 +289,46 @@ public class LWTraversal {
         
         /** If we reject traversal, we are also rejecting all children of this object */
         @Override
-        public boolean acceptTraversal(LWComponent c) {
-            if (c == pc.dropping) {
-                if (DEBUG.PICK) eoutln("DENIED: dropping " + c);
+        public boolean acceptTraversal(LWComponent target) {
+
+            if (target == pc.dropping) {
+                if (DEBUG.PICK) eoutln("DENIED: dropping == target: " + target);
                 return false;
             }
-            
-            if (c != pc.root) {
+
+            if (target instanceof LWLink && pc.dropping instanceof LWComponent) {
+
+                // If we're dragging a node around a map that has links to it, and
+                // we drag it over another node to drop it in, we'd often hit (pick) the
+                // connected links, and in this case, we clearly should just be ignoring
+                // them (never picking any links connected to us).
+
+                // This code would probably be better handled via some LWComponent API,
+                // so we're not directly referring to LWLink here.
+                if (((LWLink)target).hasEndpoint((LWComponent)pc.dropping)) {
+                    if (DEBUG.PICK)
+                        eoutln("DENIED: dropping: " + pc.dropping + "; onto connected link: " + target.getDiagnosticLabel());
+                    return false;
+                }
+            }
+                
+
+            if (target != pc.root) {
 
                 // The below checks never apply to the root
                 
-                if (!c.isDrawn()) {
-                    if (DEBUG.PICK) eoutln("DENIED: not-drawn " + c);
+                if (!target.isDrawn()) {
+                    if (DEBUG.PICK) eoutln("DENIED: not-drawn " + target);
                     return false;
                 }
                 
                 if (depth > pc.maxDepth) {
-                    if (DEBUG.PICK) eoutln("DENIED: depth " + c + " depth " + depth + " > maxDepth " + pc.maxDepth);
+                    if (DEBUG.PICK) eoutln("DENIED: depth " + target + " depth " + depth + " > maxDepth " + pc.maxDepth);
                     return false;
                 }
                 
-                if (c.getLayer() > pc.maxLayer) {
-                    if (DEBUG.PICK) eoutln("DENIED: layer " + c);
+                if (target.getLayer() > pc.maxLayer) {
+                    if (DEBUG.PICK) eoutln("DENIED: layer " + target);
                     return false;
                 }
             }
@@ -445,7 +463,7 @@ public class LWTraversal {
 //                 // If we expand impl to handle the contained children optimization (non-strayChildren):
 //                 //      Since we're POST_ORDER, if strayChildren is false, we already know this
 //                 //      object contains the point, because acceptTraversal had to accept it.
-//                 //if (VUE.RELATIVE_COORDS) System.out.println("hit with " + p);
+//                 //System.out.println("hit with " + p);
 //                 hit = c;
 //                 done = true;
 //                 return;
@@ -471,6 +489,7 @@ public class LWTraversal {
         public LWComponent getPicked() {
 
             if (DEBUG.PICK) {
+                if (pc.dropping != null) eoutln("PointPick:   DROPPING: " + Util.tags(pc.dropping));
                             eoutln("PointPick: DIRECT-HIT: " + hit);
                 eout(String.format("PointPick:  CLOSE-HIT: %s; distance=%.2f;", closeHit, Math.sqrt(closestDistSq)));
             }
@@ -525,23 +544,25 @@ public class LWTraversal {
                 final LWContainer parent = hit.getParent();
                 if (parent != null) {
 
-                    // This is a hack for groups to replace our getPickLevel functionality:
+                    // This is a special case for handling LWGroups's to replace our getPickLevel functionality:
 
-                    LWGroup topGroupAncestor = (LWGroup) parent.getTopMostAncestorOfType(LWGroup.class, pc.root);
+                    final LWGroup topGroupAncestor = (LWGroup) parent.getTopMostAncestorOfType(LWGroup.class, pc.root);
 
-                    if (pc.pickDepth > 0) {
-                        // DEEP PICK:
-                        // Even if deep picking, only pick the deepest group we can find,
-                        // not the contents.  TODO: Really, we should be picking the second
-                        // top-most (that is, only penetrate through the top-level group when
-                        // deep picking, not straight to the bottom.)
-                        final LWGroup groupAncestor = (LWGroup) parent.getAncestorOfType(LWGroup.class, pc.root);
-                        if (groupAncestor != topGroupAncestor)
-                            picked = groupAncestor;
-                    } else {
-                        // SHALLOW PICK:
-                        if (topGroupAncestor != null)
+                    if (topGroupAncestor != null) {
+
+                        if (pc.pickDepth > 0) {
+                            // DEEP PICK:
+                            // Even if deep picking, only pick the deepest group we can find,
+                            // not the contents.  TODO: Really, we should be picking the second
+                            // top-most (that is, only penetrate through the top-level group when
+                            // deep picking, not straight to the bottom.)
+                            final LWGroup groupAncestor = (LWGroup) parent.getAncestorOfType(LWGroup.class, pc.root);
+                            if (groupAncestor != topGroupAncestor)
+                                picked = groupAncestor;
+                        } else {
+                            // SHALLOW PICK:
                             picked = topGroupAncestor;
+                        }
                     }
                     
                     if (picked == null) {
