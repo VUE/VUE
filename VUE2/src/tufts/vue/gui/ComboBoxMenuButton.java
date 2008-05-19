@@ -29,7 +29,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.11 $ / $Date: 2008-05-19 15:47:02 $ / $Author: sfraize $
  */
 
 // as this class is now specialized to handle vue LWKey properties,
@@ -55,6 +55,10 @@ public abstract class ComboBoxMenuButton<T> extends JComboBox
 
     public ComboBoxMenuButton() {
         setFocusable(false);
+        if (DEBUG.Enabled && tufts.Util.isMacPlatform()) {
+            //putClientProperty("JComboBox.isPopDown", Boolean.TRUE); // can't see what difference this makes
+            putClientProperty("JComboBox.isSquare", Boolean.TRUE);
+        }
     }
 
     public void setPropertyKey(Object key) {
