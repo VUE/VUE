@@ -38,7 +38,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.16 $ / $Date: 2008-05-06 17:34:15 $ / $Author: sfraize $ 
+ * @version $Revision: 1.17 $ / $Date: 2008-05-19 23:41:36 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
 //public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
@@ -153,17 +153,27 @@ public class VueFrame extends javax.swing.JFrame
     public void activeChanged(ActiveEvent<MapViewer> e) {
         setTitleFromViewer(e.active);
         
-        if (tufts.Util.isMacLeopard()) {
-
+        if (tufts.Util.isMacPlatform()) {
+            
             if (e.active != null && e.active.getMap() != null) {
+                
                 final tufts.vue.LWMap map = e.active.getMap();
-
                 final javax.swing.JRootPane rootPane = getRootPane();
+                    
+                // If the below documentModified is TRUE, the icon in the title-bar will appear, but
+                // will be grayed out (as the file is considered to be in an indeterminate state).
+                // Note that putting null values for client properties removes the property completely.
+
+                // These client properties only have effect in Java 1.5 on Mac OS X Leopard:
+                
+                rootPane.putClientProperty("Window.documentFile", map.getFile());
+            
+                //if (tufts.Util.isMacLeopard()) {
 
                 if (DEBUG.Enabled)  {
                     // will also need this update on ANY change to the map's status (from either edits or undo's)
                     // in order to keep this up to date.
-
+                    
                     // Technically, I'm guessing that the Mac guidelines would say this dirty bit should be
                     // set if ANY open document is modified (as it's feedback that says if you click on the
                     // dirty red close icon, you're going to get dialogs to confirm this).  Anyway,
@@ -171,13 +181,6 @@ public class VueFrame extends javax.swing.JFrame
                     // is going to be asked anyway.
                     rootPane.putClientProperty("Window.documentModified", Boolean.valueOf(map.isModified()));
                 }
-                
-                // If the above documentModified is TRUE, the icon in the title-bar will appear, but
-                // will be grayed out (as the file is considered to be in an indeterminate state).
-                // Note that putting null values for client properties removes the property completely.
-
-                rootPane.putClientProperty("Window.documentFile", map.getFile());
-                
             }
         }
     }
