@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.196 $ / $Date: 2008-05-19 15:56:23 $ / $Author: sfraize $
+ * @version $Revision: 1.197 $ / $Date: 2008-05-19 15:57:18 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -1200,7 +1200,7 @@ public class LWMap extends LWContainer
         // We don't draw the pathways on top if we're zoomed in: otherwise
         // they may obscure a pseudo-focal (e.g., a slide)
         
-        if (dc.zoom > PathwayOnTopZoomThreshold || dc.isPresenting()) {
+        if (dc.zoom > PathwayOnTopZoomThreshold || dc.isPresenting()) { // VUE-1177
             drawPathways(dc);
             super.drawChildren(dc);
         } else {
