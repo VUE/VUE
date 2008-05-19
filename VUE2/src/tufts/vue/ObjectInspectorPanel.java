@@ -26,13 +26,13 @@ import javax.swing.border.*;
 import tufts.vue.gui.*;
 import tufts.vue.filter.*;
 
-
-
-
 /**
+ *
+ * @deprecated -- no longer in use
+ *
  * The Object Inspector Panel!
  *
- * @version $Revision: 1.32 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $ 
+ * @version $Revision: 1.33 $ / $Date: 2008-05-19 16:51:52 $ / $Author: sfraize $ 
  *
  */
 public class ObjectInspectorPanel extends JPanel
