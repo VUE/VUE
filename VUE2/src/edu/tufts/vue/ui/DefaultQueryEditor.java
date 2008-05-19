@@ -77,6 +77,11 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	private String[] advancedSearchFieldsText = null;
 	
 	public DefaultQueryEditor() {
+
+            // for mac leopard: would need to handle whatever event clicking the 'x' in the search field delivers
+            // for stopping the search
+            //field.putClientProperty("JTextField.variant", "search");
+            
 		try {
 			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
 			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
