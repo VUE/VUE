@@ -887,7 +887,7 @@ public class SearchAction extends AbstractAction {
                LWComponent comp = it3.next();
                  
                if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                 && (!(comp.hasAncestorOfType(LWSlide.class))) )  
+                 && (!(comp.hasAncestorOfType(LWSlide.class))) && !(comp instanceof LWGroup) )  
                    comp.setFiltered(true);
              }
           }
@@ -951,7 +951,7 @@ public class SearchAction extends AbstractAction {
                   // will handle child nodes/images correctly in non image nodes)
                   //comp.setHidden(LWComponent.HideCause.DEFAULT);
                   if(!(comp instanceof LWSlide) && !comp.hasFlag(LWComponent.Flag.SLIDE_STYLE)
-                    && (!(comp.hasAncestorOfType(LWSlide.class))) )  
+                    && (!(comp.hasAncestorOfType(LWSlide.class))) && !(comp instanceof LWGroup) )  
                   {
                     comp.setFiltered(true);
                     globalHides.add(comp);
