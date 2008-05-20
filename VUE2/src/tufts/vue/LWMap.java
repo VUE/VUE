@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.197 $ / $Date: 2008-05-19 15:57:18 $ / $Author: sfraize $
+ * @version $Revision: 1.198 $ / $Date: 2008-05-20 22:01:39 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -149,6 +149,7 @@ public class LWMap extends LWContainer
         disablePropertyTypes(KeyType.STYLE);
         enableProperty(LWKey.FillColor);
         disableProperty(LWKey.Label);
+        mFillColor.setAllowAlpha(false);
     }
 
     // if/when we support maps embedded in maps, we'll want to have these return something real
