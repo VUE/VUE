@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.96 $ / $Date: 2008-05-20 21:15:13 $ / $Author: sfraize $  
+ * @version $Revision: 1.97 $ / $Date: 2008-05-20 21:16:42 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -268,7 +268,10 @@ class MapDropTarget
 
        } else if (hit instanceof LWLink) {
            DropHit = hit;
-           DropAccept = ACTION_LINK;
+           // drop-action is "link" for setting the resource -- not to be confused
+           // with the fact that his happens to be a LWLink object.  LWLink's
+           // can't have children, so the only allowable action is a resource-set.
+           DropAccept = ACTION_LINK; 
        } else if (hit != null) {
             
            if (hit.supportsChildren() && hit != mViewer.getFocal()) {
