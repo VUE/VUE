@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.198 $ / $Date: 2008-05-20 22:01:39 $ / $Author: sfraize $
+ * @version $Revision: 1.199 $ / $Date: 2008-05-20 22:02:05 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -145,7 +145,6 @@ public class LWMap extends LWContainer
     }
 
     protected void initMap() {
-        //mFillColor.setAllowAlpha(false);        
         disablePropertyTypes(KeyType.STYLE);
         enableProperty(LWKey.FillColor);
         disableProperty(LWKey.Label);
