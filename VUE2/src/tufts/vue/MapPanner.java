@@ -25,7 +25,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.64 $ / $Date: 2008-04-22 07:00:11 $ / $Author: sfraize $
+ * @version $Revision: 1.65 $ / $Date: 2008-05-20 21:46:37 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -73,11 +73,13 @@ public class MapPanner extends javax.swing.JPanel
      */
     public MapPanner()
     {
-        setPreferredSize(new Dimension(150,100));
+        //setPreferredSize(new Dimension(150,100));
         
         addMouseListener(this);
         addMouseMotionListener(this);
         addMouseWheelListener(this);
+
+        setMinimumSize(new Dimension(200,125));
 
         VUE.addActiveListener(MapViewer.class, this);
     }
