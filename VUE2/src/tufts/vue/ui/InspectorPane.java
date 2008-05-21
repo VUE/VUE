@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.76 $ / $Date: 2008-05-21 18:35:39 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2008-05-21 18:42:54 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -186,6 +186,8 @@ public class InspectorPane extends WidgetStack
         stack.putClientProperty("TITLE-ITEM", "Content");
     }
 
+    private LWComponent activeEntryNode;
+
     public void activeChanged(final tufts.vue.ActiveEvent e, final LWPathway.Entry entry)
     {
         final int index = entry.index() + 1;
@@ -195,6 +197,8 @@ public class InspectorPane extends WidgetStack
             mPathwayNotes.detach();
             return;
         }
+
+        activeEntryNode = entry.node;
 
         mPathwayNotes.attach(entry.getSlide());
         mPathwayNotes.setTitle("Pathway Notes (" + entry.pathway.getLabel() + ": #" + index + ")");
@@ -216,6 +220,12 @@ public class InspectorPane extends WidgetStack
 //             } else
 //                 Widget.setHidden(ontologicalMetadata, false);
 
+            if (activeEntryNode != c)
+                mPathwayNotes.setHidden(true);
+            activeEntryNode = null;
+
+            load(c);
+            
             showNodePanes(true);
              	
             if (c.hasResource()) {
@@ -225,8 +235,6 @@ public class InspectorPane extends WidgetStack
                 showResourcePanes(false);
             }
 
-            load(c);
-            
             setVisible(true);
         }
     }
