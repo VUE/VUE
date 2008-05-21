@@ -35,10 +35,11 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.40 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.41 $ / $Date: 2008-05-21 03:06:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
+    implements Scrollable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(WidgetStack.class);
     
@@ -48,7 +49,7 @@ public class WidgetStack extends Widget
     private final Insets CollapsedTitleBarInsets = new Insets(0,0,1,0);
     private final GridBagLayout mLayout;
     private final JComponent mDefaultExpander;
-    private final ArrayList mWidgets = new ArrayList();
+    private final Collection mWidgets = new ArrayList();
 
     private WidgetTitle mLockedWidget = null;
     private int mExpanderCount = 0;
@@ -110,7 +111,7 @@ public class WidgetStack extends Widget
 
     /**
      * At least one pane MUST have a non-zero vertical expansion
-     * weight (usually values between 0.0 and 1.0: meaninful only
+     * weight (usually values between 0.0 and 1.0: they are meaningful only
      * relative to each other), otherwise the panes will all clump
      * together in the middle.
      */
@@ -187,6 +188,149 @@ public class WidgetStack extends Widget
         
     }
 
+    @Override
+    public void addNotify() {
+        //if (DEBUG.WIDGET) out("minSize " + mMinSize);
+        updateDefaultExpander();
+        super.addNotify();
+        if (mExpanderCount == 0)
+            if (DEBUG.Enabled) out("no vertical expanders");
+            //tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
+        setName("in " + GUI.name(getParent()));
+
+        Log.debug(this + "; PARENT=" + getParent());
+    }
+    
+//     @Override
+//     public Dimension getMaximumSize() {
+//         return getPreferredSize();
+//     }
+    
+//     @Override
+//     public final Dimension getMinimumSize() {
+//         if (isMinimumSizeSet())
+//             return super.getMinimumSize();
+//         else
+//             return sizeTrack("getMinimumSize");
+//     }
+    
+    @Override
+    public final Dimension getPreferredSize() {
+        return sizeTrack("getPreferredSize");
+    }
+
+    /**
+     * If we've been requested to track the size of an object (normally for scroll-pane viewport auto-size purposes),
+     * Enforce reporting our preferred with as the width of what's being tracked, and our preferred height as
+     * no less than what is being tracked.  This is so that when in a JScrollPane with a vertical scroll bar, and
+     * no horizontal scrollbar, we fill to the exact width (no more, no less), and we can use up all available
+     * visible vertical space (so any auto-expanding Widget's can take up the slack).
+     */
+    private Dimension sizeTrack(String src)
+    {
+        final JComponent sizeTrack = (JComponent) getClientProperty("VUE.sizeTrack");
+        if (sizeTrack != null) {
+            if (DEBUG.WIDGET) out(src + "; TRACKING SIZE OF: " + GUI.name(sizeTrack));
+            final Dimension ps = super.getPreferredSize();
+            final int th = sizeTrack.getHeight();
+            final int tw = sizeTrack.getWidth();
+            if (th > ps.height) {
+                if (DEBUG.WIDGET) out(src + "; OVERRIDE PREF-HEIGHT " + ps.height + " WITH TRACK HEIGHT " + th);
+                ps.height = th;
+            }
+            if (tw != ps.width) {
+                // if (DEBUG.WIDGET) out(src + "; OVERRIDE  PREF-WIDTH " + ps.width +  " WITH TRACK  WIDTH " + tw);
+                ps.width = tw;
+            }
+            return ps;
+        } else {
+            return super.getPreferredSize();
+        }
+    }
+    
+    /** interface Scrollable */
+    public Dimension getPreferredScrollableViewportSize() {
+        Dimension d = getPreferredSize();
+        if (DEBUG.WIDGET) out("GPSVS " + Util.fmt(d));
+        return d;
+    }
+
+    /** interface Scrollable -- clicking on the up/down arrows of the scroll bar use this */
+    public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return 16;
+    }
+    /** interface Scrollable */
+    public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+        return 32;
+    }
+    
+    /** interface Scrollable */
+    public boolean getScrollableTracksViewportWidth() { return false; }
+    /** interface Scrollable */
+    public boolean getScrollableTracksViewportHeight() { return false; }
+    
+
+//     private Dimension maxSize(String src)
+//     {
+//         JComponent widthTracker = (JComponent) getClientProperty("VUE.widthTracker");
+//         if (widthTracker != null) {
+//             final Dimension ps = super.getPreferredSize();
+//             int trackWidth = widthTracker.getWidth();
+// //             final javax.swing.border.Border border = widthTracker.getBorder();
+// //             if (border != null) {
+// //                 Insets insets = border.getBorderInsets(widthTracker);
+// //                 Log.debug(src + "; INSETS: " + insets);
+// //                 trackHeight -= (insets.top + insets.bottom) * (DEBUG.BOXES ? 3 : 1);
+// //             }
+//             if (trackWidth != ps.width) {
+//                 Log.debug(src + "; OVERRIDE PREF WIDTH " + ps.width + " WITH TRACK WIDTH " + trackWidth);
+//                 //Util.printStackTrace();
+//                 ps.width = trackWidth-20;
+//             }
+//             return ps;
+//         } else {
+//             return super.getPreferredSize();
+//         }
+//     }
+    
+//     private Dimension minSize(String src) {
+
+// // //         if (getParent() instanceof Scrollable) {
+// // //             return ((Scrollable)getParent()).getPreferredScrollableViewportSize();
+// //         if (getParent() instanceof DockWindow.ScrollableWidthTracker) {
+// //             DockWindow.ScrollableWidthTracker swt = (DockWindow.ScrollableWidthTracker) getParent();
+// //             Dimension d = super.getPreferredSize();
+// //             if (swt.getHeight() > d.height)
+// //                 d.height = swt.getHeight() - 8;
+// //             //d.height = swt.getHeight() - 20;
+// //             return d;
+// // //             if (d.height < )
+// // //                 d.height = 50;
+// // //             return d;
+//         //DockWindow dw = (DockWindow) getClientProperty(DockWindow.class);
+//         JComponent heightTracker = (JComponent) getClientProperty("VUE.heightTracker");
+//         if (heightTracker != null) {
+//             // This works to allow expansion, but seems to completely break our containing scrollbar...
+//             final Dimension ps = super.getPreferredSize();
+//             final javax.swing.border.Border border = heightTracker.getBorder();
+//             int trackHeight = heightTracker.getHeight();
+//             if (border != null) {
+//                 Insets insets = border.getBorderInsets(heightTracker);
+//                 Log.debug(src + "; INSETS: " + insets);
+//                 trackHeight -= (insets.top + insets.bottom) * (DEBUG.BOXES ? 3 : 1);
+//             }
+//             if (trackHeight > ps.height) {
+//                 Log.debug(src + "; OVERRIDE PREF HEIGHT " + ps.height + " WITH TRACK HEIGHT " + trackHeight);
+//                 //Util.printStackTrace();
+//                 ps.height = trackHeight;
+//             }
+//             return ps;
+//         } else {
+//             return super.getPreferredSize();
+//         }
+//     }
+
+
     /**
 
      * The given widget *must* already have it's name set to be used as the title.
@@ -220,16 +364,6 @@ public class WidgetStack extends Widget
         addPane(c, 1f);
     }
 
-    public void addNotify() {
-        //if (DEBUG.WIDGET) out("minSize " + mMinSize);
-        updateDefaultExpander();
-        super.addNotify();
-        if (mExpanderCount == 0)
-            if (DEBUG.Enabled) out("no vertical expanders");
-            //tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
-        setName("in " + GUI.name(getParent()));
-    }
-    
     private void updateDefaultExpander() {
         //System.out.println("EXPANDERS OPEN: " + mExpandersOpen);
         if (mExpandersOpen == 0)
@@ -282,6 +416,24 @@ public class WidgetStack extends Widget
     private static final boolean isMac = tufts.Util.isMacPlatform();
 
     //private static final char Chevron = 0xBB; // unicode "right-pointing double angle quotation mark"
+
+    private boolean _forcePrefSize = false;
+    @Override
+    public Dimension getSize() {
+        if (DEBUG.WIDGET) {
+            Dimension d;
+            if (_forcePrefSize) {
+                d = getPreferredSize();
+                out("getSize; OVERRIDE SIZE w/PREF " + Util.fmt(d));
+            } else {
+                d =  super.getSize();
+                out("getSize " + Util.fmt(d));
+            }
+            return d;
+        } else {
+            return super.getSize();
+        }
+    }
 
     class WidgetTitle extends Box implements java.beans.PropertyChangeListener {
 
@@ -444,8 +596,94 @@ public class WidgetStack extends Widget
         private void handleMouseClicked() {
             if (isLocked)
                 return;
-            Widget.setExpanded(mWidget, !mExpanded);
+            boolean doExpand = !mExpanded;
+            Widget.setExpanded(mWidget, doExpand);
+            
+            if (doExpand || DEBUG.WIDGET) {
+                final Rectangle bounds = getBounds();
+                final int titleHeight = bounds.height;
+                final int wh = mWidget.getPreferredSize().height;
+                
+                if (DEBUG.WIDGET) {
+                    out("TITLE BOUNDS", Util.fmt(bounds) + "; height=" + titleHeight);
+                    out("WIDGT HEIGHT", wh);
+                }
+                //bounds.height += wh;
+
+                // Add the height if the title in again, so that in case there's another
+                // widget below us, we at least can see it's title.
+                // Technically, don't need to add if last one, but can't scroll off bottom.
+                //bounds.height += titleHeight;
+                
+                if (DEBUG.WIDGET) out("TOTAL BOUNDS", Util.fmt(bounds));
+
+                //_forcePrefSize=true;
+
+                final JScrollPane s = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, this);
+                if (s != null) {
+                    final JViewport vp = s.getViewport();
+                    final Component view = vp.getView();
+
+                    // Validating/invalidating lets it work when expanding *down* a
+                    // widget w/out messing with the scroll bar / scroll region, but
+                    // non-validating works when we want to expand something "up" at
+                    // bottom and then scroll down to see it (making it look like it's
+                    // "opening upwards")
+                    
+                    // both invalidate then validate on the view required for above hack to work
+                    view.invalidate();
+                    // is working best at the moment letting the validate happen in JViewport.scrollRectToVisible:
+                    //view.validate(); 
+                    
+                    if (DEBUG.WIDGET){
+                        out("VIEWPORT SIZE",        Util.fmt(vp.getSize()));
+                        out("EXTENT SIZE",          Util.fmt(vp.getExtentSize()));
+                        out("VIEW POSITION",        Util.fmt(vp.getViewPosition()));
+                        out("VIEW SIZE",            Util.fmt(view.getSize()));
+                        out("PrefVIEW SIZE",        Util.fmt(view.getPreferredSize()));
+                        out("VIEW", GUI.name(view));
+                        //vp.setViewSize(view.getPreferredSize()); // hack
+                    }
+                }
+
+
+                if (!doExpand) 
+                    return; // only get here if DEBUG.WIDGET
+
+                if (wantsScrollerAlways(WidgetStack.this)) {
+                    
+                    // this works best if scroll-bar is a constant.  this also produces
+                    // the least jumpy results (no flashing) in cases where we
+                    // transition from no-scroll bar to having a scroll bar, although
+                    // this method can be less accurate -- it's probably missing changes
+                    // to the viewport size that haven't completed yet
+
+                    if (DEBUG.WIDGET) out("IMMEDIATE SCROLL");
+                    scrollRectToVisible(bounds);
+                    //_forcePrefSize=false;
+                    
+                } else {
+
+                    // This produces the most accurate results, tho is pretty much
+                    // always going to show some flashing in the scroll-bar.
+                    
+                    if (DEBUG.WIDGET) out("DELAYED SCROLL");
+                    final JScrollPane sp = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, this);
+                    if (sp != null) {
+                        sp.getVerticalScrollBar().setValueIsAdjusting(true);
+                        GUI.invokeAfterAWT(new Runnable() { public void run() {
+                            // Wait for scroll-bar to appear and/or adjust after
+                            // we're made visible before doing this
+                            scrollRectToVisible(bounds);
+                            sp.getVerticalScrollBar().setValueIsAdjusting(false);
+                            //_forcePrefSize=false;
+                            if (DEBUG.WIDGET) out("DELAYED SCROLL COMPLETE");
+                        }});
+                    }
+                }
+            }
         }
+
 
         /** interface java.beans.PropertyChangeListener for contained component */
         public void propertyChange(java.beans.PropertyChangeEvent e) {
@@ -555,7 +793,7 @@ public class WidgetStack extends Widget
         
 
         private void setWidgetExpanded(boolean expanded) {
-            if (DEBUG.WIDGET) out("setWidgetExpanded " + expanded);
+            if (DEBUG.WIDGET) out("setWidgetExpanded", expanded);
             if (mExpanded == expanded)
                 return;
             mExpanded = expanded;
@@ -609,6 +847,9 @@ public class WidgetStack extends Widget
         private void out(Object o) {
             Log.debug(GUI.name(this) + " " + (o==null?"null":o.toString()));
             //System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
+        }
+        private void out(String s, Object o) {
+            Log.debug(String.format("%s %17s: %s", GUI.name(this), s, o));
         }
 
     
