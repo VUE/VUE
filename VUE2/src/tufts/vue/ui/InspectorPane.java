@@ -32,17 +32,17 @@ import javax.swing.border.*;
 
 import edu.tufts.vue.metadata.ui.MetadataEditor;
 import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
-// import edu.tufts.vue.fsm.event.SearchEvent;
-// import edu.tufts.vue.fsm.event.SearchListener;
+import edu.tufts.vue.fsm.event.SearchEvent;
+import edu.tufts.vue.fsm.event.SearchListener;
 
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.72 $ / $Date: 2008-05-21 03:09:22 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2008-05-21 03:13:18 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
-    implements VueConstants, ResourceSelection.Listener, LWSelection.Listener
+    implements VueConstants, ResourceSelection.Listener, LWSelection.Listener, SearchListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(InspectorPane.class);
     
@@ -1052,30 +1052,26 @@ public class InspectorPane extends WidgetStack
         
     }
 
-//     public void searchPerformed(SearchEvent evt) {
-//         if ((VUE.getSelection().size() > 0) && (VUE.getResourceSelection().get() == null))
-//             return;
-//         else
-//             {
-//                 showNodePanes(false);
-//                 showResourcePanes(false);
-//                 LWSelection selection = VUE.getSelection();
-			
-//                 LWComponent c = selection.first();
-//                 if (c != null)
-//                     {
-//                         if (c.hasResource()) {
-//                             loadResource(c.getResource());
-//                             showNodePanes(true);
-//                             showResourcePanes(true);                
-//                         }
-//                         else
-//                             showNodePanes(true);
-           
-//                     }
-//             }
-//     }
+    public void searchPerformed(SearchEvent evt) {
+        if ((VUE.getSelection().size() > 0) && (VUE.getResourceSelection().get() == null))
+            return;
 
-    
+        showNodePanes(false);
+        showResourcePanes(false);
+        LWSelection selection = VUE.getSelection();
+			
+        LWComponent c = selection.first();
+        
+        if (c != null) {
+            if (c.hasResource()) {
+                loadResource(c.getResource());
+                showNodePanes(true);
+                showResourcePanes(true);                
+            }
+            else
+                showNodePanes(true);
+            
+        }
+    }
     
 }
