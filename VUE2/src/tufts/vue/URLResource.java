@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.72 $ / $Date: 2008-04-28 04:16:28 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2008-05-21 02:57:07 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -147,7 +147,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
     
     private void init() {
         //if (DEBUG.RESOURCE || DEBUG.DR) {
-        if (DEBUG.Enabled) {
+        if (DEBUG.RESOURCE) {
             //out("init");
             String iname = getClass().getName() + "@" + Integer.toHexString(System.identityHashCode(this));
             //tufts.Util.printStackTrace("INIT " + iname);

@@ -98,7 +98,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.61 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.62 $ / $Date: 2008-05-21 02:56:58 $ / $Author: sfraize $
  *
  */
 
@@ -757,7 +757,7 @@ public class TextBox extends JTextPane
             s.width += 1; // leave room for cursor, which at least on mac gets clipped if at EOL
         //if (getParent() == null)
         //    s.width += 10;//fudge factor for understated string widths (don't do this here -- need best accuracy here)
-        if (TestDebug||DEBUG.TEXT) out("getPrefer", s);
+        if (TestDebug) out("getPrefer", s);
         //if (TestDebug && DEBUG.META) new Throwable("getPreferredSize").printStackTrace();
         return s;
     }
@@ -823,7 +823,7 @@ public class TextBox extends JTextPane
     public Dimension getSize() {
         Dimension s = super.getSize();
         //s.width = (int) lwc.getWidth();
-        if (TestDebug||DEBUG.TEXT) out("getSize", s);
+        if (TestDebug) out("getSize", s);
         //if (DEBUG.TEXT&&DEBUG.META) new Throwable("getSize").printStackTrace();
         return s;
     }
@@ -960,7 +960,7 @@ public class TextBox extends JTextPane
     
     public void draw(DrawContext dc)
     {
-        if (TestDebug||DEBUG.TEXT) out("draw");
+        if (TestDebug) out("draw");
 
         if (getParent() != null)
             System.err.println("Warning: 2nd draw of an AWT drawn component!");
