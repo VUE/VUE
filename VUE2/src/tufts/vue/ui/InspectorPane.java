@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.75 $ / $Date: 2008-05-21 18:10:13 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2008-05-21 18:35:39 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -190,18 +190,14 @@ public class InspectorPane extends WidgetStack
     {
         final int index = entry.index() + 1;
         
-        if (entry == null || index < 1) {
+        if (entry == null || index < 1 || entry.pathway.isShowingSlides()) {
             mPathwayNotes.setHidden(true);
             mPathwayNotes.detach();
             return;
         }
-        
-        if (entry.pathway.isShowingSlides())
-            return;
-
 
         mPathwayNotes.attach(entry.getSlide());
-        mPathwayNotes.setTitle("Pathway Notes (" + entry.pathway.getLabel() + " #" + index + ")");
+        mPathwayNotes.setTitle("Pathway Notes (" + entry.pathway.getLabel() + ": #" + index + ")");
         mPathwayNotes.setHidden(false);
     }
     
