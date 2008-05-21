@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.78 $ / $Date: 2008-05-21 18:44:59 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2008-05-21 18:50:05 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -217,11 +217,16 @@ public class InspectorPane extends WidgetStack
             
         } else {
              	
-//             if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
-//                 Widget.setHidden(mKeywords, true);
-//                 Widget.setHidden(ontologicalMetadata, true);
-//             } else
-//                 Widget.setHidden(ontologicalMetadata, false);
+            showNodePanes(true);
+
+            if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
+                mKeywords.setHidden(true);
+                Widget.setHidden(ontologicalMetadata, true);
+            } else {
+                // showNodePanes will have shown these:
+                //mKeywords.setHidden(false);
+                //Widget.setHidden(ontologicalMetadata, false);
+            }
 
             if (activeEntryNode != c)
                 mPathwayNotes.setHidden(true);
@@ -229,7 +234,6 @@ public class InspectorPane extends WidgetStack
 
             load(c);
             
-            showNodePanes(true);
              	
             if (c.hasResource()) {
                 loadResource(c.getResource());
@@ -630,14 +634,15 @@ public class InspectorPane extends WidgetStack
         ontologicalMetadata.refresh();
     }
     
-    public static class UserMetaData extends JPanel
+    public static class UserMetaData extends Widget
     {
         private NodeFilterEditor userMetaDataEditor = null;
         private MetadataEditor userMetadataEditor = null;
         
         public UserMetaData()
         {
-            super(new BorderLayout());
+            super("Keywords");
+            setLayout(new BorderLayout());
           
             if(META_VERSION == NEW)
                 setLayout(new BoxLayout(this,BoxLayout.Y_AXIS));
