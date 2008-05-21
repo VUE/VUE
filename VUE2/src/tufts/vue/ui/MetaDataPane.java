@@ -110,7 +110,7 @@ public class MetaDataPane extends JPanel
                    }
                });
        */
-       
+
    }
 
     private JLabel createLabel() {
@@ -229,47 +229,47 @@ public class MetaDataPane extends JPanel
     }
 
 
-   public void loadResource(Resource r) {
-       if (DEBUG.RESOURCE) out("loadResource:  " + r);
-       loadProperties(r.getProperties());
-   }
+    public void loadResource(Resource r) {
+        if (DEBUG.RESOURCE) out("loadResource:  " + r);
+        loadProperties(r.getProperties());
+    }
    
-   private Dimension size = new Dimension(200,100);
+//     private Dimension size = new Dimension(200,100);
    
-  // int height = 5;
-   
-   public Dimension getMinimumSize()
-   {
-	   if (scroll)
-		   return super.getMinimumSize();
+//     @Override
+//     public Dimension getMinimumSize()
+//     {
+//         if (scroll)
+//             return super.getMinimumSize();
 	   
-	   int height = 5;
-	   int lines = 1;
-	   for (int i = 0; i < mValues.length; i++)
-	   {
-	    	 lines = getWrappedLines(mValues[i]);
-	    	 if (mValues[i].isVisible())
-	    	 {
-	    		 FontMetrics fm = mValues[i].getFontMetrics(mValues[i].getFont());
-	    		 height +=((lines * fm.getHeight()) + TopPad + BotPad);
-	    	 }
-	    	 //I wasn't taking into account the space between values
-	    	 height +=4;
-	   }
+//         int height = 5;
+//         int lines = 1;
+//         for (int i = 0; i < mValues.length; i++)
+//             {
+//                 lines = getWrappedLines(mValues[i]);
+//                 if (mValues[i].isVisible())
+//                     {
+//                         FontMetrics fm = mValues[i].getFontMetrics(mValues[i].getFont());
+//                         height +=((lines * fm.getHeight()) + TopPad + BotPad);
+//                     }
+//                 //I wasn't taking into account the space between values
+//                 height +=4;
+//             }
            
-	   if (height > size.getHeight())
-		   return new Dimension(200,height);
-	   else
-		   return size;    	
-   }
+//         if (height > size.getHeight())
+//             return new Dimension(200,height);
+//         else
+//             return size;    	
+//     }
    
-   public Dimension getPreferredSize()
-   {
-	   if (scroll)
-		   return super.getMinimumSize();
+//     @Override
+//     public Dimension getPreferredSize()
+//     {
+//         if (scroll)
+//             return super.getMinimumSize();
 	   
-	   return getMinimumSize();
-   }
+//         return getMinimumSize();
+//     }
    
     private PropertyMap mRsrcProps;
    
@@ -627,15 +627,16 @@ public class MetaDataPane extends JPanel
 //       gridBag.add(editMetadataButton,c);
        
        
-       
-       JComponent defaultExpander = new JPanel();
-       defaultExpander.setPreferredSize(new Dimension(Short.MAX_VALUE, 1));
-       if (DEBUG.BOXES) {
-           defaultExpander.setOpaque(true);
-           defaultExpander.setBackground(Color.red);
-       } else
-           defaultExpander.setOpaque(false);
-       gridBag.add(defaultExpander, c);
+       if (false) {
+           JComponent defaultExpander = new JPanel();
+           defaultExpander.setPreferredSize(new Dimension(Short.MAX_VALUE, 1));
+           if (DEBUG.BOXES) {
+               defaultExpander.setOpaque(true);
+               defaultExpander.setBackground(Color.orange);
+           } else
+               defaultExpander.setOpaque(false);
+           gridBag.add(defaultExpander, c);
+       }
        
      return; 
    }
