@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.74 $ / $Date: 2008-05-21 03:52:06 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2008-05-21 18:10:13 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -183,15 +183,26 @@ public class InspectorPane extends WidgetStack
         showResourcePanes(true);
         loadResource(e.selected);
         setVisible(true);
+        stack.putClientProperty("TITLE-ITEM", "Content");
     }
 
     public void activeChanged(final tufts.vue.ActiveEvent e, final LWPathway.Entry entry)
     {
+        final int index = entry.index() + 1;
+        
+        if (entry == null || index < 1) {
+            mPathwayNotes.setHidden(true);
+            mPathwayNotes.detach();
+            return;
+        }
+        
         if (entry.pathway.isShowingSlides())
             return;
 
+
         mPathwayNotes.attach(entry.getSlide());
-        Widget.setHidden(mPathwayNotes, false);
+        mPathwayNotes.setTitle("Pathway Notes (" + entry.pathway.getLabel() + " #" + index + ")");
+        mPathwayNotes.setHidden(false);
     }
     
     
@@ -217,11 +228,17 @@ public class InspectorPane extends WidgetStack
             } else {
                 showResourcePanes(false);
             }
-            mSummaryPane.load(c);
-            mKeywords.load(c);
 
+            load(c);
+            
             setVisible(true);
         }
+    }
+
+    private void load(LWComponent c) {
+        mSummaryPane.load(c);
+        mKeywords.load(c);
+        stack.putClientProperty("TITLE-ITEM", c.getComponentTypeLabel());
     }
 
 //     public void selectionChanged(LWSelection selection) {
@@ -305,22 +322,25 @@ public class InspectorPane extends WidgetStack
     private void setTypeName(JComponent component, LWComponent c, String suffix)
     {
         final String type = c.getComponentTypeLabel();
-        String title;
-        if (DEBUG.Enabled) {
-            String name = c.getDisplayLabel();
-            
-            if (name == null)
-                title = type;
-            else
-                title = type + " (" + name + ")";
-            stack.putClientProperty("TITLE-ITEM", title);
-        }// else
-        //stack.putClientProperty("TITLE-INFO", null);
+        
+        //stack.putClientProperty("TITLE-ITEM", type);
 
+//         String name = c.getComponentTypeLabel();
+//         if (name == null)
+//             title = type;
+//         else
+//             title = type + " (" + name + ")";
+//         stack.putClientProperty("TITLE-ITEM", title);
+
+//         else
+//             stack.putClientProperty("TITLE-INFO", null);
+
+        String title;
         if (suffix != null)
             title = type + " " + suffix;
         else
             title = type;
+        
         component.setName(title);
     }
 
