@@ -42,7 +42,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.17 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.18 $ / $Date: 2008-05-21 03:03:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -90,7 +90,7 @@ public class Widget extends javax.swing.JPanel
         setBoolean(c, WANTS_SCROLLER_KEY, scroller);
     }
     
-    public static void setWantsScrollerAsNeeded(JComponent c, boolean scroller) {
+    public static void setWantsScrollerAlways(JComponent c, boolean scroller) {
         if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setWantsScrollerAlways " + scroller);
         setBoolean(c, WANTS_SCROLLERALWAYS_KEY, scroller);
     }
@@ -112,21 +112,23 @@ public class Widget extends javax.swing.JPanel
     	boolean current = currentProp == null ? false : currentProp.booleanValue();
     	return current;
     }
-    protected static void setExpandedImpl(JComponent c, boolean expanded) {
-        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setExpanded " + expanded);
+    protected static void setExpandedImpl(JComponent c, boolean expand) {
+        if (DEBUG.WIDGET) System.out.println(GUI.name(c) + " Widget.setExpanded " + expand);
         //c.putClientProperty(EXPANSION_KEY, expanded ? Boolean.TRUE : Boolean.FALSE);
 
-        setBoolean(c, EXPANSION_KEY, expanded);
+        setBoolean(c, EXPANSION_KEY, expand);
         
         // We do NOT auto-display the containing window if startup is
         // underway, otherwise all sorts of stuff will show while the
         // windows are being pre-configured.
         
-        if (expanded && !tufts.vue.VUE.isStartupUnderway()) {
+        if (expand && !tufts.vue.VUE.isStartupUnderway()) {
             if (isBooleanTrue(c, HIDDEN_KEY) || !c.isVisible())
                 setHidden(c, false);
-            if (!DockWindow.AllWindowsHidden() && !tufts.vue.VUE.inNativeFullScreen())
+            if (!DockWindow.AllWindowsHidden() && !tufts.vue.VUE.inNativeFullScreen()) {
+                // make sure the parent window containing us is visible:
                 GUI.makeVisibleOnScreen(c);
+            }
         }
 
         //c.firePropertyChange("TESTPROPERTY", false, true);
@@ -164,7 +166,7 @@ public class Widget extends javax.swing.JPanel
         return isBooleanTrue(c, WANTS_SCROLLER_KEY);
     }
     
-    public static boolean wantsScrollerAsNeeded(JComponent c) {
+    public static boolean wantsScrollerAlways(JComponent c) {
         return isBooleanTrue(c, WANTS_SCROLLERALWAYS_KEY);
     }
 
