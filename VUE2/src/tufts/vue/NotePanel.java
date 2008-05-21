@@ -16,7 +16,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.22 $ / $Date: 2008-05-21 03:45:16 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2008-05-21 18:10:05 $ / $Author: sfraize $
  */
 
 package tufts.vue;
@@ -29,14 +29,14 @@ import javax.swing.JScrollPane;
 import javax.swing.border.*;
 import java.awt.*;
 
-public class NotePanel extends JPanel
+public class NotePanel extends tufts.vue.gui.Widget
 {
     /** the text pane **/
     private VueTextPane mTextPane = new VueTextPane();
 
     public NotePanel(boolean autoAttach)
     {
-        setName("Notes");
+        super("Notes");
         setLayout(new BorderLayout());
 		
         if (false) {
@@ -106,6 +106,11 @@ public class NotePanel extends JPanel
             mTextPane.attachProperty(c, LWKey.Notes);
         }
     }
+
+    public void detach() {
+        attach(null);
+    }
+    
     
     private void load(LWComponent c) {
         attach(c);
