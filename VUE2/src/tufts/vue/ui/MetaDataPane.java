@@ -129,18 +129,53 @@ public class MetaDataPane extends JPanel
     private final Border WindowsPlatformAdjustBorder = new EmptyBorder(0,0,2,0);
     private boolean wasDebug = DEBUG.Enabled;
 
+    private static final Font LabelFace;
+    private static final Font ValueFace;
+
+    private static final boolean EasyReading = true;
+
+    static {
+
+        if (EasyReading) {
+
+            String fontName;
+            int fontSize;
+    
+            if (GUI.isMacAqua()) {
+                fontName = "Lucida Grande";
+                fontSize = 11;
+            } else {
+                //fontName = "SansSerif";
+                fontSize = 12;
+                // looks better for values, maybe not so much for bold labels tho
+                // note: this is a smaller font than SansSerif, and switching
+                // it in has revealed that our spacing code isn't entirely
+                // font determined -- some of the constants (e.g., in MetaDataPane),
+                // are manually tuned, for SansSerif.
+                fontName = "Lucida Sans Unicode";
+            }
+
+            LabelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
+            ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
+        } else {
+            LabelFace = GUI.LabelFace;
+            ValueFace = GUI.ValueFace;
+        }
+    }
+    
    /**
     * Make sure at least this minimum number of slots is available.
     * @return true if # of slots is expanded
     **/
    private boolean ensureSlots(int minSlots) {
        int curSlots;
+
        if (mLabels == null || (wasDebug != DEBUG.Enabled)) {
            curSlots = 0;
            wasDebug = DEBUG.Enabled;
        } else
            curSlots = mLabels.length;
-       
+
        if (minSlots <= curSlots)
            return false;
 
@@ -166,8 +201,8 @@ public class MetaDataPane extends JPanel
            mValues[i] = new JTextArea();
            mValues[i].setEditable(false);
            mValues[i].setLineWrap(true);
-           GUI.apply(GUI.LabelFace, mLabels[i]);
-           GUI.apply(GUI.ValueFace, mValues[i]);
+           GUI.apply(LabelFace, mLabels[i]);
+           GUI.apply(ValueFace, mValues[i]);
            mLabels[i].setOpaque(false);
            mValues[i].setOpaque(false);
            mLabels[i].setVisible(false);
@@ -176,7 +211,7 @@ public class MetaDataPane extends JPanel
            if (Util.isWindowsPlatform())
                mValues[i].setBorder(WindowsPlatformAdjustBorder);
 
-           if (DEBUG.Enabled) {
+           if (EasyReading) {
                if (i % 2 == 0) {
                    //mLabels[i].setBackground(alternatingColor);
                    mValues[i].setBackground(alternatingColor);
@@ -446,7 +481,7 @@ public class MetaDataPane extends JPanel
         JLabel label = mLabels[row];
         JTextArea field = mValues[row];       
 
-        if (DEBUG.Enabled) {
+        if (EasyReading) {
             label.setText(labelText);
         } else {
             StringBuffer labelBuf = new StringBuffer(labelText.length() + 1);
@@ -459,10 +494,10 @@ public class MetaDataPane extends JPanel
             //field.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
             field.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             field.putClientProperty(CAN_OPEN, Boolean.TRUE);
-            if (DEBUG.Enabled) field.setForeground(Color.blue);
+            if (EasyReading) field.setForeground(Color.blue);
         } else {
             field.putClientProperty(CAN_OPEN, Boolean.FALSE);
-            if (DEBUG.Enabled) field.setForeground(Color.black);
+            if (EasyReading) field.setForeground(Color.black);
             //label.removeMouseListener(CommonURLListener);
             field.setCursor(Cursor.getDefaultCursor());
             //GUI.apply(GUI.ValueFace, mValues[i]);
@@ -476,7 +511,6 @@ public class MetaDataPane extends JPanel
         
         field.setText(valueText);
         
-
         if (DEBUG.Enabled) {
 
             if (Resource.canDump(value)) {
