@@ -16,7 +16,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.20 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.21 $ / $Date: 2008-05-21 02:56:46 $ / $Author: sfraize $
  */
 
 package tufts.vue;
@@ -26,6 +26,7 @@ import tufts.vue.gui.VueTextPane;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.border.*;
 import java.awt.*;
 
 public class NotePanel extends JPanel
@@ -33,35 +34,59 @@ public class NotePanel extends JPanel
     /** the text pane **/
     private VueTextPane mTextPane = new VueTextPane();
 
-    public NotePanel()
+    public NotePanel(boolean autoAttach)
     {
         setName("Notes");
-        setLayout( new BorderLayout() );
+        setLayout(new BorderLayout());
 		
-        JScrollPane scrollPane = new JScrollPane();
-	
+        if (false) {
+            JScrollPane scrollPane = new JScrollPane();
+            
+            //scrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            //scrollPane.setLocation(new Point(8, 9));
+            scrollPane.getViewport().add(mTextPane);
+            add(BorderLayout.CENTER, scrollPane);
+        } else {
+            if (tufts.Util.isMacPlatform()) {
+                // be sure to fetch and include the existing border, to get the special mac focus hilighting border
+                final int b = 2;
+                mTextPane.setBorder(new CompoundBorder(new MatteBorder(b,b,b,b,SystemColor.control),
+                                                       mTextPane.getBorder()));
+            } else {
+                mTextPane.setBorder(new EmptyBorder(2,4,2,4));
+            }
+            add(BorderLayout.CENTER, mTextPane);
+        }
 
-        //scrollPane.setVerticalScrollBarPolicy(javax.swing.JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        scrollPane.setHorizontalScrollBarPolicy( JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        //scrollPane.setLocation(new Point(8, 9));
-        scrollPane.getViewport().add(mTextPane);
+        if (autoAttach)
+            VUE.addActiveListener(LWComponent.class, this);
+    }
 
-        add(BorderLayout.CENTER, scrollPane);
-
-        VUE.addActiveListener(LWComponent.class, this);
+    public NotePanel() {
+        this(true);
     }
     
-    public Dimension getMinimumSize()
-    {
-    	return new Dimension(200,200);    	
+    
+    @Override
+    public Dimension getMinimumSize() {
+        return minSize("getMinimumSize");
     }
     
-    public Dimension getPreferredSize()
-    {
-    	return new Dimension(200,200);
+    @Override
+    public Dimension getPreferredSize() {
+        return minSize("getPreferredSize");
     }
-    public VueTextPane getTextPane()
-    {
+
+    private Dimension minSize(String src) {
+        Dimension d = super.getPreferredSize();
+        if (d.height < 30)
+            d.height = 30;
+        //System.out.format("NotePanel %16s %s\n", src, tufts.Util.fmt(d));
+    	return d;
+    }
+    
+    public VueTextPane getTextPane() {
     	return mTextPane;
     }
     
@@ -71,18 +96,22 @@ public class NotePanel extends JPanel
     private static void setTypeName(JComponent component, LWComponent c, String suffix) {
         component.setName(c.getComponentTypeLabel() + " " + suffix);
     }
-    private void load(LWComponent c) {
     
-    	
-        
-    	if (c == null)
+    public void attach(LWComponent c) {
+    	if (c == null) {
             mTextPane.detachProperty();
-        else
-        {	setTypeName(this, c, "Notes");
+        } else {
             mTextPane.attachProperty(c, LWKey.Notes);
         }
     }
+    
+    private void load(LWComponent c) {
+        attach(c);
+        if (c != null)
+            setTypeName(this, c, "Notes");
+    }
 
+    @Override
     public String toString()
     {
         return "NotePanel[" + mTextPane + "]";
