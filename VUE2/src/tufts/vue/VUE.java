@@ -69,7 +69,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.547 $ / $Date: 2008-05-13 21:17:00 $ / $Author: mike $ 
+ * @version $Revision: 1.548 $ / $Date: 2008-05-21 02:58:40 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -792,6 +792,15 @@ public class VUE
             System.exit(0);
         }
 
+        if (!SKIP_SPLASH) {
+            Thread versionThread = new Thread("VersionCheck") {
+                    public void run() {
+                        checkLatestVersion();
+                    }
+                };
+            versionThread.setPriority(Thread.MIN_PRIORITY);
+            versionThread.start();
+        }
 
         try {
             Log.debug("loading fonts...");
@@ -1677,13 +1686,13 @@ public class VUE
             if (DEBUG.Enabled) fontDock.setVisible(true);
         }});
         */
-        Thread versionThread = new Thread() {
-            public void run() {
-                checkLatestVersion();
-            }
-        };
-        versionThread.setPriority(Thread.MIN_PRIORITY);
-        versionThread.start();
+//         Thread versionThread = new Thread() {
+//             public void run() {
+//                 checkLatestVersion();
+//             }
+//         };
+//         versionThread.setPriority(Thread.MIN_PRIORITY);
+//         versionThread.start();
        
     }
 
@@ -2638,14 +2647,16 @@ public class VUE
      */
     
    public static void checkLatestVersion() {
-       System.out.println("Checking for latest version of VUE");
+       Log.info("Checking for latest version of VUE");
         try {
             URL url = new URL(VueResources.getString("vue.release.url"));
             XPathFactory  factory=XPathFactory.newInstance();
             XPath xPath=factory.newXPath();
+            if (DEBUG.Enabled) Log.debug("opening " + url);
             InputSource inputSource =  new InputSource(url.openStream());
             XPathExpression  xSession= xPath.compile("/current_release/version/text()");
             String version = xSession.evaluate(inputSource);
+            if (DEBUG.Enabled) Log.debug("got current version id [" + version + "]");
             if(!version.trim().equalsIgnoreCase(VueResources.getString("vue.version").trim())) 
             {
             	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
