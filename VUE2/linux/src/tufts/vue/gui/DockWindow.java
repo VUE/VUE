@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.2 $ / $Date: 2008-04-30 01:31:59 $ / $Author: mike $
+ * @version $Revision: 1.3 $ / $Date: 2008-05-21 03:13:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -334,7 +334,7 @@ public class DockWindow extends javax.swing.JDialog
 
         mMinContentSize = c.getMinimumSize();
         if (DEBUG.DOCK) GUI.dumpSizes(c, this + ":setContent");
-        mContentPane.setWidget(c, Widget.wantsScroller(c),Widget.wantsScrollerAsNeeded(c));
+        mContentPane.setWidget(c, Widget.wantsScroller(c), Widget.wantsScrollerAlways(c));
 
         Component toListen = null;
         if (c instanceof JScrollPane)
