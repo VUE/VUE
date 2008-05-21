@@ -16,7 +16,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.21 $ / $Date: 2008-05-21 02:56:46 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2008-05-21 03:45:16 $ / $Author: sfraize $
  */
 
 package tufts.vue;
@@ -78,10 +78,12 @@ public class NotePanel extends JPanel
         return minSize("getPreferredSize");
     }
 
+    private static final int MinNoteHeight = 46;
+
     private Dimension minSize(String src) {
         Dimension d = super.getPreferredSize();
-        if (d.height < 30)
-            d.height = 30;
+        if (d.height < MinNoteHeight)
+            d.height = MinNoteHeight;
         //System.out.format("NotePanel %16s %s\n", src, tufts.Util.fmt(d));
     	return d;
     }
