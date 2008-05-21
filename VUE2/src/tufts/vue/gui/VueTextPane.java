@@ -28,7 +28,7 @@ import javax.swing.text.*;
  * and enters an undo entry.
  *
  * @author Scott Fraize
- * @version $Revision: 1.12 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.13 $ / $Date: 2008-05-21 03:03:10 $ / $Author: sfraize $
  */
 
 // todo: create an abstract class for handling property & undo code, and subclass this and VueTextField from it.
@@ -41,6 +41,8 @@ import javax.swing.text.*;
 public class VueTextPane extends JTextPane
     implements LWComponent.Listener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueTextPane.class);
+    
     private LWComponent lwc;
     private Object propertyKey;
     /** was a key pressed since we loaded the current text? */
@@ -52,7 +54,7 @@ public class VueTextPane extends JTextPane
     public VueTextPane(LWComponent c, Object propertyKey, String undoName)
     {
         addFocusListener(new FocusAdapter() {
-                public void focusLost(FocusEvent e) { saveText(); }
+                public void focusLost(FocusEvent e) { saveText(e); }
             });
 
         if (c != null && propertyKey != null)
@@ -81,6 +83,7 @@ public class VueTextPane extends JTextPane
      * This doesn't work for java 1.5 -- will have to override LookAndFeel.installProperty
      * for that.
      */
+    @Override
     public void setFocusTraversalKeys(int id, java.util.Set keystrokes) {
         if (DEBUG.FOCUS) System.out.println(this + " ignoring setFocusTraversalKeys " + id + " " + keystrokes);
     }
@@ -90,8 +93,9 @@ public class VueTextPane extends JTextPane
         super.setName(s);
     }
     
+    @Override
     protected void processKeyEvent(KeyEvent e) {
-        if (DEBUG.KEYS && e.getID() == KeyEvent.KEY_PRESSED) System.out.println(e);
+        if (DEBUG.KEYS && e.getID() == KeyEvent.KEY_PRESSED) Log.debug("processKeyEvent " + e.paramString() + "; " + this);
         // if any key activity, assume it may have changed
         // (to make sure we catch cut's and paste's as well newly input characters)
         keyWasPressed = true;
@@ -101,7 +105,7 @@ public class VueTextPane extends JTextPane
     public void attachProperty(LWComponent c, Object key) {
         if (c == null || key == null)
             throw new IllegalArgumentException("component=" + c + " propertyKey="+key + " neither can be null");
-        saveText();
+        saveText("attach");
         if (lwc == c && propertyKey == key)
             return;
         if (lwc != null)
@@ -114,7 +118,9 @@ public class VueTextPane extends JTextPane
     }
 
     public void detachProperty() {
+        saveText("detach");
         if (lwc != null) {
+            if (DEBUG.TEXT) Log.debug("detach from " + lwc);
             lwc.removeLWCListener(this);
             lwc = null;
         }
@@ -128,10 +134,15 @@ public class VueTextPane extends JTextPane
 
 
     // TODO: DROP OF TEXT (this is a paste, but with no keypress!)
-    protected void saveText() {
+    protected void saveText(Object src) {
         final String currentText = getText();
+        if (DEBUG.TEXT) Log.debug("saveText;"
+                                  + "\n\tsrc=" + tufts.Util.tags(src)
+                                  + "\n\t" + this
+                                  + "\n\tcurText=[" + currentText + "]"
+                                  );
         if (lwc != null && (keyWasPressed || !currentText.equals(loadedText))) {
-            if (DEBUG.KEYS||DEBUG.TEXT) System.out.println(this + " saveText [" + getText() + "]");
+            if (DEBUG.KEYS||DEBUG.TEXT) Log.debug("SAVING TEXT: " + this);
             /*
             Document doc = getDocument();
             String text = null;
@@ -261,7 +272,7 @@ public class VueTextPane extends JTextPane
 
     public String toString()
     {
-        return "VueTextPane[" + propertyKey + " " + lwc + "]";
+        return "VueTextPane[" + propertyKey + "; " + lwc + "; keyWasPressed=" + keyWasPressed + "]";
     }
 
 }
