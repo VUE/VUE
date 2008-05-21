@@ -54,10 +54,11 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.126 $ / $Date: 2008-04-22 11:39:54 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2008-05-21 03:01:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
+//public class DockWindow extends javax.swing.JFrame
 public class DockWindow extends javax.swing.JWindow
     implements MouseListener
                , MouseMotionListener
@@ -108,7 +109,7 @@ public class DockWindow extends javax.swing.JWindow
     private String mTitleName;
     private String mMenuName; // if non-null, will be used for name in menus
     private final String mBaseTitle;
-    private int mTitleWidth;
+    //private int mTitleWidth;
     private int mMinTitleWidth;
     private boolean showCloseBtn=true;
     
@@ -171,6 +172,8 @@ public class DockWindow extends javax.swing.JWindow
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar,boolean showCloseButton)
     {
         super(owner == null ? getHiddenFrame() : owner);
+        //setUndecorated(true);
+        
         /* Black ghosts on windows...
          * This is fixed in 1.6 as far as I can tell, but this has become an annoying
          * problem on 1.5 that multiple people on the team have complained about.  The
@@ -181,10 +184,16 @@ public class DockWindow extends javax.swing.JWindow
          * is light gray so its not as noticable.  
          */
         if (Util.isWindowsPlatform() && Util.getJavaVersion() < 1.6)
-        	setBackground(Color.lightGray);
+            setBackground(Color.lightGray);
         
         if (CollapsedHeight == 0)
             staticInit();
+
+//         if (Util.isMacLeopard()) {
+//             getRootPane().putClientProperty("Window.style", "small");
+//             setAlwaysOnTop(true);
+//             //setJMenuBar(new VueMenuBar());
+//         }
         
         /*
         if (getParent() == HiddenParentFrame) {
@@ -241,6 +250,8 @@ public class DockWindow extends javax.swing.JWindow
         isToolbar = asToolbar;
 
         mContentPane = new ContentPane(title, asToolbar);
+        //getRootPane().setDoubleBuffered(true);
+        //mContentPane.setDoubleBuffered(true);
 
         if (true)
             setContentPane(mContentPane);
@@ -253,8 +264,7 @@ public class DockWindow extends javax.swing.JWindow
 
         if (!isToolbar) {
             // set a default size
-   
-        		setSize(DefaultWidth,150);
+            setSize(DefaultWidth,150);
             //setMinimumSize(new Dimension(180,100)); // java 1.5 only
             //setPreferredSize(new Dimension(300,150)); // interferes with height
         }
@@ -331,7 +341,7 @@ public class DockWindow extends javax.swing.JWindow
 
         mMinContentSize = c.getMinimumSize();
         if (DEBUG.DOCK) GUI.dumpSizes(c, this + ":setContent");
-        mContentPane.setWidget(c, Widget.wantsScroller(c),Widget.wantsScrollerAsNeeded(c));
+        mContentPane.setWidget(c, Widget.wantsScroller(c), Widget.wantsScrollerAlways(c));
 
         Component toListen = null;
         if (c instanceof JScrollPane)
@@ -439,20 +449,21 @@ public class DockWindow extends javax.swing.JWindow
         } else if (key.equals("TITLE-INFO")) {
             
             String auxTitle = auxTitle = (String) e.getNewValue();
-            setAuxTitle(auxTitle);
+            setAuxTitle(" (" + auxTitle + ")");
+            
+        } else if (key.equals("TITLE-ITEM")) {
+            
+            String auxTitle = auxTitle = (String) e.getNewValue();
+            if (auxTitle != null && auxTitle.length() > 0)
+                setAuxTitle(": " + auxTitle);
+            else
+                setTitle(mBaseTitle, "");
             
         }
     }
 
     private void setAuxTitle(String suffix) {
-        String newTitle;
-        if (suffix == null) {
-            newTitle = mBaseTitle;
-        } else {
-            newTitle = mBaseTitle + " (" + suffix + ")";
-        }
-        setTitle(newTitle);
-        //if (DEBUG.Enabled) System.out.println("setAuxTitle(" + newTitle + ")");
+        setTitle(mBaseTitle, suffix);
     }
 
 
@@ -1291,15 +1302,22 @@ public class DockWindow extends javax.swing.JWindow
     }
 
     public void setTitle(String title) {
+        setTitle(title, null);
+    }
+    
+    private void setTitle(String title, String suffix) {
 
-        if (mTitleName != null && mTitleName.equals(title))
+        if (mTitleName != null && mTitleName.equals(title) && suffix == null)
             return;
 
         // TODO: don't update the root title if the aux title changes
         
         mTitleName = title;
-        mTitleWidth = GUI.stringLength(TitleFont, title);
-        mMinTitleWidth = mTitleWidth + 4;
+        //mTitleWidth = GUI.stringLength(TitleFont, title);
+        final int baseLen = GUI.stringLength(TitleFont, title);
+        final int suffixLen = (suffix == null ? 0 : GUI.stringLength(TitleFont, suffix));
+        //mMinTitleWidth = mTitleWidth + 4;
+        mMinTitleWidth = 6;
         setName(title);
 
         GUI.setRootPaneNames(this, title);
@@ -1313,10 +1331,23 @@ public class DockWindow extends javax.swing.JWindow
             }
         }
 
+        final String fullTitle;
+        if (suffix == null)
+            fullTitle = title;
+        else
+            fullTitle = title + suffix;
+
         if (mContentPane != null && mContentPane.mTitle != null) {
-            mContentPane.mTitle.setTitle(title);
+            mContentPane.mTitle.setTitle(fullTitle);
             // hackish to add this to existing title width, put produces sane numbers
+            if (DEBUG.DOCK) Log.debug(this + "; total title width "
+                                         + mContentPane.mTitle.getMinimumSize().width
+                                         //+ " for " + mContentPane.mTitle
+                                         );
             mMinTitleWidth += mContentPane.mTitle.getMinimumSize().width;
+            if (suffixLen > baseLen)
+                mMinTitleWidth -= suffixLen;
+                
         }
         repaint();
     }
@@ -2705,8 +2736,8 @@ public class DockWindow extends javax.swing.JWindow
         newWidth = minUnrolledWidth(newWidth);
         newHeight = minUnrolledHeight(newHeight);
             
+        mContentPane.getWidget().invalidate(); // in case is depending on size of DockWindow
         setSize(newWidth, newHeight);
-
     }
     
     private void dragMoveWindow(MouseEvent e)
@@ -3473,7 +3504,7 @@ public class DockWindow extends javax.swing.JWindow
             return s + " ->" + mChild.mTitleName + "]";
     }
 
-    private static class ScrollableWidthTracker extends JPanel implements Scrollable {
+    public static class ScrollableWidthTracker extends JPanel implements Scrollable {
         private JComponent tracked;
         
         ScrollableWidthTracker(JComponent wrapped, JComponent tracked) {
@@ -3485,6 +3516,7 @@ public class DockWindow extends javax.swing.JWindow
 
         public Dimension getPreferredScrollableViewportSize() {
             Dimension d = tracked.getSize(); // width is always same as tracked width
+            //Dimension d = tracked.getPreferredSize(); // causes recursive loop: stack overflow
             d.height = getHeight(); // height is always whatever we've been laid out to (preferred size)
             //Dimension d = getSize();
             //d.height = tracked.getHeight();
@@ -3502,13 +3534,19 @@ public class DockWindow extends javax.swing.JWindow
     
         public boolean getScrollableTracksViewportWidth() { return true; }
         public boolean getScrollableTracksViewportHeight() { return false; }
+
+        @Override
+        public String toString() {
+            return getClass().getSimpleName() + "[" + GUI.name(tracked) + "; psvs=" + Util.fmt(getPreferredScrollableViewportSize()) + "]";
+        }
     }
     
     /** The content-pane for the Window: has the window border, contains
         the title and the widget content panel (which holds the widget border) */
     private class ContentPane extends JPanel
     {
-        private JPanel mContent = new JPanel(true);
+        private final JPanel mContent = new JPanel(true);
+        private JComponent mWidget;
         private TitlePanel mTitle;
         private boolean isVertical = false;
 
@@ -3657,8 +3695,14 @@ public class DockWindow extends javax.swing.JWindow
             
         }
 
+        JComponent getWidget() {
+            return mWidget;
+        }
+
         void setWidget(JComponent widget, boolean scrolled, boolean scrollAlways) {
             mContent.removeAll();
+
+            if (DEBUG.Enabled) out("setWidget " + GUI.name(widget));
 
             //if (GUI.isMacBrushedMetal() && isToolbar)
             if (isToolbar) {
@@ -3666,11 +3710,14 @@ public class DockWindow extends javax.swing.JWindow
                 changeAll(widget);
             }
 
+            //widget.putClientProperty(DockWindow.class, DockWindow.this);
+
+            mWidget = widget;
             mContent.setBorder(getContentBorder(widget));
 
             if (scrolled && mScroller == null) {
                 mScroller = new JScrollPane(null,
-                                            scrollAlways ? JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED : JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                                            scrollAlways ? JScrollPane.VERTICAL_SCROLLBAR_ALWAYS : JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
                 mScroller.setOpaque(false);
                 mScroller.getViewport().setOpaque(false);
@@ -3681,8 +3728,16 @@ public class DockWindow extends javax.swing.JWindow
 
             if (mScroller != null) {
 
-                mScroller.setViewportView(new ScrollableWidthTracker(widget, mContent));
-                //mScroller.setViewportView(widget);
+                if (false) {
+                    // If the content wants to change width, we'd need this so it will reformat inside
+                    // the existing DockWindow width (e.g.,  growing taller instead of wider)
+                    Component view = new ScrollableWidthTracker(widget, mContent);
+                    mScroller.setViewportView(view);
+                    widget.putClientProperty("VUE.heightTracker", mContent); // no longer used
+                } else {
+                    widget.putClientProperty("VUE.sizeTrack", mScroller.getViewport());
+                    mScroller.setViewportView(widget);
+                }
                 
                 //JPanel p = new JPanel(new BorderLayout());
                 //p.add(widget);
@@ -3962,14 +4017,13 @@ public class DockWindow extends javax.swing.JWindow
 
              mCloseButton = new CloseButton(DockWindow.this);
 
-          /*   mOpenLabel = new GUI.IconicLabel(DownArrowChar,
-                                              16, // point-size
-                                              iconColor,
-                                              15, // fixed width
-                                              TitleHeight); // fixed height
-            */         
-             //if (isMacAqua)
-           //      mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
+//              mOpenLabel = new GUI.IconicLabel(DownArrowChar,
+//                                               16, // point-size
+//                                               iconColor,
+//                                               15, // fixed width
+//                                               TitleHeight); // fixed height
+//              if (isMacAqua)
+//                  mOpenLabel.setBorder(new EmptyBorder(0,0,1,0)); // t,l,b,r
              
              if (DEBUG.BOXES) {
                  mLabel.setBackground(Color.yellow);
@@ -3978,32 +4032,76 @@ public class DockWindow extends javax.swing.JWindow
              
              //JLabel helpButton = new JLabel(GUI.getIcon("btn_help_top.gif"));
              // todo for Melanie: new icons should be appearing in gui/icons
-             VueLabel helpButton = new VueLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
-             //helpButton.setToolTipText("Help Text");
+
+             final String helpText = VueResources.getString("dockWindow." + getName().replaceAll(" ","") + ".helpText");
              
-             String helpText = VueResources.getString("dockWindow." + getName().replaceAll(" ","") + ".helpText");
-             if (helpText != null)
+             JComponent helpButton = null;
+
+             if (helpText != null && helpText.length() > 0) {
+             
+                 if (false && Util.isMacLeopard()) {
+
+                     final JButton help = new JButton();
+
+                     //help.setBorder(BorderFactory.createLineBorder(Color.green));
+                     // FYI, changing the border in any way after putting the special
+                     // client properties. makes help button's not appear at all.
+                     help.setEnabled(false);
+                     //help.setVerticalAlignment(SwingConstants.TOP);
+                     //help.setMargin(new Insets(0,9,0,0));
+                     
+                     help.putClientProperty("JButton.buttonType", "help");
+                     help.putClientProperty("JComponent.sizeVariant", "mini");
+
+                     //final JComponent onePixelUp = Box.createVerticalBox();
+                     // seemingly no luck with Box / BoxLayout!  BorderLayout works, tho
+                     // leaves too much space at right.
+                     final JComponent onePixelUp = new JPanel();
+                     onePixelUp.setLayout(new BorderLayout());
+                     //onePixelUp.setLayout(null);
+                     //onePixelUp.setLayout(new BoxLayout(onePixelUp, BoxLayout.Y_AXIS));
+                     //onePixelUp.add(help);
+                     onePixelUp.add(help, BorderLayout.EAST);
+                     //help.setLocation(0,0);
+                     //onePixelUp.setSize(5,5);
+                     //onePixelUp.setMaximumSize(new Dimension(10,10));
+                     //onePixelUp.add(Box.createRigidArea(new Dimension(1,2)), BorderLayout.SOUTH);
+                     //onePixelUp.setOpaque(false);
+                     //onePixelUp.setBackground(Color.red);
+                     //onePixelUp.setBorder(BorderFactory.createLineBorder(Color.green));
+                     onePixelUp.setBorder(new EmptyBorder(0,0,2,0));
+                     //onePixelUp.setBorder(new MatteBorder(0,0,2,0, Color.green));
+
+                     helpButton = onePixelUp;
+                     
+                     
+                 } else {
+                     helpButton = new VueLabel(VueResources.getImageIconResource("/tufts/vue/images/btn_help_top.gif"));
+                 }
+                 
                  helpButton.setToolTipText(helpText);
+             }
+             
                           
              if (isMacAqua) {
                  // close button at left
                  add(Box.createHorizontalStrut(6));
                  add(mCloseButton);
                  add(Box.createHorizontalStrut(4));
-               //  add(mOpenLabel);
+                 //add(mOpenLabel);
                  add(mLabel);
                  add(Box.createGlue());
-                 if (helpText != null)
-                	 add(helpButton);
+                 if (helpButton != null)
+                     add(helpButton);
              } else {
                  // close button at right
                  add(Box.createHorizontalStrut(8));
-            //     add(mOpenLabel);
-              //   add(Box.createHorizontalStrut(2));
+                 //add(mOpenLabel);
+                 //add(Box.createHorizontalStrut(2));
                  add(mLabel);
                  add(Box.createGlue());
-                 if (helpText != null)
-                	 add(helpButton);
+                 if (helpButton != null)
+                     add(helpButton);
                  add(Box.createHorizontalStrut(3));
                  add(mCloseButton);
              }
