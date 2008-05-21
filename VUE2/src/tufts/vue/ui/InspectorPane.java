@@ -30,107 +30,150 @@ import javax.swing.table.*;
 import javax.swing.event.*;
 import javax.swing.border.*;
 
-import edu.tufts.vue.fsm.event.SearchEvent;
-import edu.tufts.vue.fsm.event.SearchListener;
 import edu.tufts.vue.metadata.ui.MetadataEditor;
 import edu.tufts.vue.metadata.ui.OntologicalMembershipPane;
+// import edu.tufts.vue.fsm.event.SearchEvent;
+// import edu.tufts.vue.fsm.event.SearchListener;
 
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.71 $ / $Date: 2008-04-22 15:55:01 $ / $Author: dan $
+ * @version $Revision: 1.72 $ / $Date: 2008-05-21 03:09:22 $ / $Author: sfraize $
  */
 
-public class InspectorPane extends JPanel
-    implements VueConstants, ResourceSelection.Listener, SearchListener, LWSelection.Listener
+public class InspectorPane extends WidgetStack
+    implements VueConstants, ResourceSelection.Listener, LWSelection.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(InspectorPane.class);
     
-    public static int OLD = 0;
-    public static int NEW = 1;
     public static final int META_VERSION = VueResources.getInt("metadata.version");
+    /** meta-data */ public static final int OLD = 0;
+    /** meta-data */ public static final int NEW = 1;
     
     private final Image NoImage = VueResources.getImage("NoImage");
 
     private final boolean isMacAqua = GUI.isMacAqua();
 
-    // Resource panes
-    private final SummaryPane mSummaryPane;
-    private final MetaDataPane mResourceMetaData;
-    private final ResourcePreview mPreview;
-    
+    //-------------------------------------------------------
     // Node panes
-    private final NotePanel mNotePanel = new NotePanel();
-    private final UserMetaData mUserMetaData = new UserMetaData();
+    //-------------------------------------------------------
+
+    private final LabelPane mSummaryPane = new LabelPane(); // old style; new SummaryPane()
+    private final NotePanel mNotes = new NotePanel();
+    private final NotePanel mPathwayNotes = new NotePanel(false);
+    private final UserMetaData mKeywords = new UserMetaData();
     private final OntologicalMembershipPane ontologicalMetadata = new OntologicalMembershipPane();
-    //private final NodeTree mNodeTree = new NodeTree();
+    
+    //-------------------------------------------------------
+    // Resource panes
+    //-------------------------------------------------------
+    private final MetaDataPane mResourceMetaData = new MetaDataPane(false);
+    private final ResourcePreview mPreview = new ResourcePreview();
     
     private Resource mResource; // the current resource
     private WidgetStack stack = null;
-    
+
+    private static class Pane {
+
+        final static Collection<Pane> AllPanes = new ArrayList();
+
+        final String name;
+        final JComponent widget;
+        final float size;
+        final int bits;
+
+        Pane(String s, JComponent c, float sz, int b) {
+            name = s;
+            widget = c;
+            size = sz;
+            bits = b;
+            AllPanes.add(this);
+        }
+    }
+
+    private static final int INFO = 1;
+    private static final int NOTES = 2;
+    private static final int KEYWORD = 4;
+    private static final int RESOURCE = 8;
+
     public InspectorPane()
     {
-        super(new BorderLayout());
-        setName("Info");
+        super("Info");
 
-        mSummaryPane = new SummaryPane();
-        //mResourceMetaData = new PropertiesEditor(false);
-        mResourceMetaData = new MetaDataPane(false);
+      //mSummaryPane = new SummaryPane();
+        //mSummaryPane = new LabelPane();
+      //mResourceMetaData = new PropertiesEditor(false);
+        //mResourceMetaData = new MetaDataPane(false);
         mResourceMetaData.setName("contentInfo");
-        mPreview = new ResourcePreview();
+        //mPreview = new ResourcePreview();
 
-         stack = new WidgetStack(getName());
-        Widget.setWantsScrollerAsNeeded(stack,true);
+        stack = this;
+        //stack = new WidgetStack("Info");
+        //stack = new WidgetStack(getName());
+        
         Widget.setWantsScroller(stack, true);
-        
-        stack.addPane("Information",            mSummaryPane,           0f);
-        stack.addPane("Content Preview",        mPreview,               0.3f);
-        stack.addPane("Content Info",           mResourceMetaData,      1f);
-        stack.addPane("Notes",                  mNotePanel,             1f);
-        if(META_VERSION == OLD)
-        {
-          stack.addPane("Keywords",               mUserMetaData,          0f);
-        }
-        else
-        {
-          stack.addPane("Keywords",               mUserMetaData,          1f);  
-        }
-        stack.addPane("Ontological Membership",   ontologicalMetadata,    1f);
-        //stack.addPane("Nested Nodes",           mNodeTree,              1f);
+        Widget.setWantsScrollerAlways(stack, true);
 
-        
-        Widget.setExpanded(mUserMetaData, false);
-        Widget.setExpanded(ontologicalMetadata, false);
-        //Widget.setExpanded(mResourceMetaData, false);
-        //Widget.setExpanded(mNodeTree, false);
-        
+        final float EXACT_SIZE = 0f;
+        final float EXPANDER = 1f;
+
+        new Pane("Label",                  mSummaryPane,           EXACT_SIZE,  INFO+NOTES+KEYWORD);
+        new Pane("Content Preview",        mPreview,               EXACT_SIZE,  RESOURCE);
+        new Pane("Content Info",           mResourceMetaData,      EXACT_SIZE,  RESOURCE);
+        new Pane("Notes",                  mNotes,                 EXPANDER,    INFO+NOTES);
+        new Pane("Pathway Notes",          mPathwayNotes,          EXPANDER,    INFO+NOTES);
+        new Pane("Keywords",               mKeywords,          EXACT_SIZE,  KEYWORD);
+        new Pane("Ontological Membership", ontologicalMetadata,    EXACT_SIZE,  0);
+
+        for (Pane p : Pane.AllPanes)
+            stack.addPane(p.name, p.widget, p.size);
+
+//       //stack.addPane("Information",            mSummaryPane,           EXACT_SIZE);
+//         stack.addPane("Label",                  mSummaryPane,           EXACT_SIZE);
+//         stack.addPane("Content Preview",        mPreview,               EXACT_SIZE);
+//         stack.addPane("Content Info",           mResourceMetaData,      EXACT_SIZE);
+//         stack.addPane("Notes",                  mNotes,                 AUTO_EXPANDER);
+//         stack.addPane("Pathway Notes",          mPathwayNotes,          AUTO_EXPANDER);
+//         stack.addPane("Keywords",               mKeywords,          EXACT_SIZE);
+//         stack.addPane("Ontological Membership", ontologicalMetadata,    EXACT_SIZE);
+
        // add(stack, BorderLayout.CENTER);
 
         VUE.getSelection().addListener(this);
         VUE.addActiveListener(LWComponent.class, this);
+        VUE.addActiveListener(LWPathway.Entry.class, this);
         VUE.getResourceSelection().addListener(this);
         
         Widget.setHelpAction(mSummaryPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));;
         Widget.setHelpAction(mPreview,VueResources.getString("dockWindow.Info.previewPane.helpText"));;
         Widget.setHelpAction(mResourceMetaData,VueResources.getString("dockWindow.Info.resourcePane.helpText"));;
-        Widget.setHelpAction(mNotePanel,VueResources.getString("dockWindow.Info.notesPane.helpText"));;
-        Widget.setHelpAction(mUserMetaData,VueResources.getString("dockWindow.Info.userPane.helpText"));;
+        Widget.setHelpAction(mNotes,VueResources.getString("dockWindow.Info.notesPane.helpText"));;
+        Widget.setHelpAction(mKeywords,VueResources.getString("dockWindow.Info.userPane.helpText"));;
         Widget.setHelpAction(ontologicalMetadata,VueResources.getString("dockWindow.Info.ontologicalMetadata.helpText"));
+
 
         //Set the default state of the inspector pane to completely empty as nothign 
         //is selected and its misleading to have the widgets on there.
-        loadResource(null);
-        this.setEnabled(false);
-        showNodePanes(false);
-        Widget.setHidden(mUserMetaData,true);
-        Widget.setHidden(ontologicalMetadata,true);
-        showResourcePanes(false);       
+        hideAll();
+        
+//         loadResource(null);
+//         //this.setEnabled(false);
+//         showNodePanes(false);
+//         Widget.setHidden(mKeywords,true);
+//         Widget.setHidden(ontologicalMetadata,true);
+//         Widget.setExpanded(mKeywords, false);
+//         Widget.setExpanded(ontologicalMetadata, false);
+//         //Widget.setExpanded(mResourceMetaData, false);
+//         //Widget.setExpanded(mNodeTree, false);
+//         showResourcePanes(false);
+
+        setMinimumSize(new Dimension(300,500)); // if WidgetStack overrides getMinimumSize w/out checking for a set, this won't work.
     }
 
-    public WidgetStack getWidgetStack()
-    {
+    public WidgetStack getWidgetStack() {
     	return stack;
     }
+
     public void resourceSelectionChanged(ResourceSelection.Event e)
     {    	
         if (e.selected == null)
@@ -139,21 +182,44 @@ public class InspectorPane extends JPanel
         showNodePanes(false);
         showResourcePanes(true);
         loadResource(e.selected);
+        setVisible(true);
     }
 
+    public void activeChanged(final tufts.vue.ActiveEvent e, final LWPathway.Entry entry)
+    {
+//         if (entry.pathway.isShowingSlides())
+//             return;
+
+        mPathwayNotes.attach(entry.getSlide());
+    }
+    
+    
     public void activeChanged(final tufts.vue.ActiveEvent e, final LWComponent c)
     {
-        showNodePanes(true);
+        //showNodePanes(true);
         if (c == null) {
-            loadResource(null);
-            this.setEnabled(false);
-           // this.getParent().setEnabled(false);
-            showNodePanes(false);
-            showResourcePanes(false);
-            stack.putClientProperty("TITLE-INFO", null);
+            
+            hideAll();
+            //loadResource(null);
+            
+//             //Widget.setHidden(ontologicalMetadata, true);
+//             loadResource(null);
+//             //this.setEnabled(false);
+//            // this.getParent().setEnabled(false);
+//             showNodePanes(false);
+//             showResourcePanes(false);
+//             stack.putClientProperty("TITLE-INFO", null);
+            
         } else {
-            this.setEnabled(true);
-            //this.getParent().setEnabled(true);
+             	
+//             if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
+//                 Widget.setHidden(mKeywords, true);
+//                 Widget.setHidden(ontologicalMetadata, true);
+//             } else
+//                 Widget.setHidden(ontologicalMetadata, false);
+
+            showNodePanes(true);
+             	
             if (c.hasResource()) {
                 loadResource(c.getResource());
                 showResourcePanes(true);
@@ -161,16 +227,55 @@ public class InspectorPane extends JPanel
                 showResourcePanes(false);
             }
             mSummaryPane.load(c);
-            mUserMetaData.load(c);
+            mKeywords.load(c);
+
+            setVisible(true);
+            
             
             //mNodeTree.load(c);
 
             //setTypeName(mNotePanel, c, "Notes");
         }
     }
-    
-     public void selectionChanged(LWSelection selection) {
+
+//     public void selectionChanged(LWSelection selection) {
          
+//         // also might need criteria for slides (remove slides from multiples
+//         // and don't active if only slide is selected.. SLIDE_STYLE in component?'
+//         // just use LWSlide -- though can this lead to phantom selections? have
+//         // to make sure SearchAction also doesn't include slides in result sets'
+         
+//         // todo: make the single selection work as before with showNodePanes
+//         // i.e. as Active drives it.
+         
+// //         if (selection.contents().size() == 1) {
+// //             if(selection.contents().get(0) instanceof LWSlide ||
+// //                selection.contents().get(0).hasAncestorOfType(LWSlide.class))
+// //             {
+// //                 Widget.setHidden(mKeywords,true);
+// //                 Widget.setHidden(ontologicalMetadata, true);
+// //                 return;
+// //             }
+// //             else {
+// //                 Widget.setHidden(ontologicalMetadata,false);
+// //             }
+// //         }
+// //         else if(selection.contents().size() > 0 || selection.isEmpty()) {
+// //             Widget.setHidden(ontologicalMetadata,true); 
+// //         }
+          
+         
+//         if (selection.size() > 1) {                     
+//             mKeywords.load(selection.get(0));
+//             Widget.setHidden(mKeywords, false);
+//             showResourcePanes(false);
+//         } else {
+//             Widget.setHidden(mKeywords, true);  
+//         }
+//     }
+
+     public void selectionChanged(LWSelection selection) {
+
            // also might need criteria for slides (remove slides from multiples
            // and don't active if only slide is selected.. SLIDE_STYLE in component?'
            // just use LWSlide -- though can this lead to phantom selections? have
@@ -183,7 +288,7 @@ public class InspectorPane extends JPanel
                if(selection.contents().get(0) instanceof LWSlide ||
                    selection.contents().get(0).hasAncestorOfType(LWSlide.class))
                {
-                   Widget.setHidden(mUserMetaData,true);
+                   Widget.setHidden(mKeywords,true);
                    Widget.setHidden(ontologicalMetadata, true);
                    return;
                }
@@ -200,38 +305,16 @@ public class InspectorPane extends JPanel
            if(!selection.contents().isEmpty())
            {
                     
-             mUserMetaData.load(selection.contents().get(0));
-             Widget.setHidden(mUserMetaData, false);
+             mKeywords.load(selection.contents().get(0));
+             Widget.setHidden(mKeywords, false);
              showResourcePanes(false);
            }
            else
            {
-             Widget.setHidden(mUserMetaData, true);  
+             Widget.setHidden(mKeywords, true);  
            }
-//         showNodePanes(true);
-//         if (selection.isEmpty() || selection.size() > 1) {        	
-//             loadResource(null);
-//             this.setEnabled(false);
-//             this.getParent().setEnabled(false);
-//             showNodePanes(false);
-//             showResourcePanes(false);
-//         } else {
-//         	this.setEnabled(true);
-//         	this.getParent().setEnabled(true);
-//             LWComponent c = selection.first();
-//             if (c.hasResource()) {
-//                 loadResource(c.getResource());
-//                 showResourcePanes(true);
-//             } else {
-//                 showResourcePanes(false);
-//             }
-//             mSummaryPane.load(c);
-//             mUserMetaData.load(c);
-//             //mNodeTree.load(c);
-
-//             //setTypeName(mNotePanel, c, "Notes");
-//         }
-    }
+     }
+    
 
     private void setTypeName(JComponent component, LWComponent c, String suffix)
     {
@@ -243,11 +326,8 @@ public class InspectorPane extends JPanel
             if (name == null)
                 title = type;
             else
-                title = type + ": " + name;
-
-//             if (title.length() > 30)
-//                 title = title.substring(0,20) + "...";
-            stack.putClientProperty("TITLE-INFO", title);
+                title = type + " (" + name + ")";
+            stack.putClientProperty("TITLE-ITEM", title);
         }// else
         //stack.putClientProperty("TITLE-INFO", null);
 
@@ -277,13 +357,44 @@ public class InspectorPane extends JPanel
         mSizeField.setText(ss);
         */
     }
+
+    private void hideAll()
+    {
+        setVisible(false);
+        
+        for (Pane p : Pane.AllPanes)
+            Widget.setHidden(p.widget, true);
+
+        stack.putClientProperty("TITLE-ITEM", null);
+    }
+        
+    private void expandCollapsePanes(int type) {
+
+        for (Pane p : Pane.AllPanes) {
+
+            if (Widget.isHidden(p.widget))
+                continue;
+            
+            if ((p.bits & type) != 0) {
+                if (!Widget.isExpanded(p.widget))
+                    Widget.setExpanded(p.widget, true);                    
+            } else {
+                if (Widget.isExpanded(p.widget))
+                    Widget.setExpanded(p.widget, false);                    
+            }
+        }
+    }
     
     private void showNodePanes(boolean visible) {
         Widget.setHidden(mSummaryPane, !visible);        
-        Widget.setHidden(mNotePanel, !visible);
+        Widget.setHidden(mNotes, !visible);
+
+        Widget.setHidden(mKeywords, !visible);
+        Widget.setHidden(ontologicalMetadata, !visible);
+        
         
         //user meta data now hides and shows in LWSelection listener:
-        //Widget.setHidden(mUserMetaData, !visible);
+        //Widget.setHidden(mKeywords, !visible);
         //Widget.setHidden(mNodeTree, !visible);
         //Widget.setHidden(ontologicalMetadata, !visible);
         
@@ -295,46 +406,52 @@ public class InspectorPane extends JPanel
     
     public void showKeywordView()
     {
-    	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))
-    		Widget.setExpanded(mSummaryPane, true);
-    	if (!Widget.isHidden(mUserMetaData) && !Widget.isExpanded(mUserMetaData))
-    		Widget.setExpanded(mUserMetaData, true);
-    	if (!Widget.isHidden(mNotePanel) && Widget.isExpanded(mNotePanel))
-    		Widget.setExpanded(mNotePanel, false);    	    	
-    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
-    		Widget.setExpanded(mResourceMetaData, false);    	
+        expandCollapsePanes(KEYWORD);
+        
+//     	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))
+//     		Widget.setExpanded(mSummaryPane, true);
+//     	if (!Widget.isHidden(mKeywords) && !Widget.isExpanded(mKeywords))
+//     		Widget.setExpanded(mKeywords, true);
+//     	if (!Widget.isHidden(mNotes) && Widget.isExpanded(mNotes))
+//     		Widget.setExpanded(mNotes, false);    	    	
+//     	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
+//     		Widget.setExpanded(mResourceMetaData, false);    	
     }
     
     public void showNotesView()
     {
-    	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))    		
-    		Widget.setExpanded(mSummaryPane, true);
-    	if (!Widget.isHidden(mNotePanel) && !Widget.isExpanded(mNotePanel))
-    		Widget.setExpanded(mNotePanel, true);
-    	if (!Widget.isHidden(mUserMetaData) && Widget.isExpanded(mUserMetaData))
-    		Widget.setExpanded(mUserMetaData, false);    	
-    	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
-    		Widget.setExpanded(mResourceMetaData, false);    
+        expandCollapsePanes(NOTES);
+        
+//     	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))    		
+//     		Widget.setExpanded(mSummaryPane, true);
+//     	if (!Widget.isHidden(mNotes) && !Widget.isExpanded(mNotes))
+//     		Widget.setExpanded(mNotes, true);
+//     	if (!Widget.isHidden(mKeywords) && Widget.isExpanded(mKeywords))
+//     		Widget.setExpanded(mKeywords, false);    	
+//     	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
+//     		Widget.setExpanded(mResourceMetaData, false);    
     	
     	SwingUtilities.invokeLater(new Runnable() { 
             public void run() { 
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-                mNotePanel.getTextPane().requestFocusInWindow();
+                mNotes.getTextPane().requestFocusInWindow();
             } 
     	} );
-        return;
+
     }
     
     public void showInfoView()
     {
-    	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))
-    		Widget.setExpanded(mSummaryPane, true);
-    	if (!Widget.isHidden(mNotePanel) && !Widget.isExpanded(mNotePanel))
-    		Widget.setExpanded(mNotePanel, true);
-    	if (!Widget.isHidden(mResourceMetaData) && !Widget.isExpanded(mResourceMetaData))
-    		Widget.setExpanded(mResourceMetaData, true);
-    	if (!Widget.isHidden(mPreview) && !Widget.isExpanded(mPreview))
-    		Widget.setExpanded(mPreview, true);    	    	
+        expandCollapsePanes(INFO);
+        
+//     	if (!Widget.isHidden(mSummaryPane) && !Widget.isExpanded(mSummaryPane))
+//     		Widget.setExpanded(mSummaryPane, true);
+//     	if (!Widget.isHidden(mNotes) && !Widget.isExpanded(mNotes))
+//     		Widget.setExpanded(mNotes, true);
+//     	if (!Widget.isHidden(mResourceMetaData) && !Widget.isExpanded(mResourceMetaData))
+//     		Widget.setExpanded(mResourceMetaData, true);
+//     	if (!Widget.isHidden(mPreview) && !Widget.isExpanded(mPreview))
+//     		Widget.setExpanded(mPreview, true);    	    	
     }
 
 
@@ -357,14 +474,12 @@ public class InspectorPane extends JPanel
             setToolTipText(title);
         }
         
-        public Dimension getMinimumSize()
-        {
-        	return new Dimension(200,128);    	
+        public Dimension getMinimumSize() {
+            return new Dimension(200,128);    	
         }
         
-        public Dimension getPreferredSize()
-        {
-        	return new Dimension(200,128);
+        public Dimension getPreferredSize() {
+            return new Dimension(200,128);
         }
     }
     private class InlineTitleResourcePreview extends tufts.vue.ui.PreviewPane
@@ -530,6 +645,15 @@ public class InspectorPane extends JPanel
               userMetadataEditor.listChanged();
             }
         }
+
+//         @Override
+//         public Dimension getMinimumSize() {
+//             //return new Dimension(200,150);
+//             Dimension s = getPreferredSize();
+//             s.height += 9;
+//             return s;
+//         }
+        
      
         void load(LWComponent c) {
             //setTypeName(this, c, "Keywords");
@@ -584,14 +708,50 @@ public class InspectorPane extends JPanel
     };
     */
 
+    public class LabelPane extends tufts.Util.JPanelAA
+    {
+        final VueTextPane labelValue = new VueTextPane();
+        
+        LabelPane() {
+            super(new BorderLayout());
+
+            final int si = 5; // size inner
+
+            if (Util.isMacPlatform()) {
+                final int so = 7; // size outer
+                // be sure to fetch and include the existing border, in case it's a special mac hilighting border
+                //labelValue.setBorder(new CompoundBorder(new EmptyBorder(so,so,so,so),
+                labelValue.setBorder(new CompoundBorder(new MatteBorder(so,so,so,so,SystemColor.control),
+                                                        new CompoundBorder(labelValue.getBorder(),
+                                                                           new EmptyBorder(si,si,si,si)
+                                                                           )));
+            } else {
+                final int so = 5; // size outer
+                setBorder(new EmptyBorder(so,so,so,so));
+                labelValue.setBorder(new CompoundBorder(new EtchedBorder(EtchedBorder.LOWERED),
+                                                        //new BevelBorder(BevelBorder.LOWERED),
+                                                        new EmptyBorder(si,si,si,si)));
+            }
+            setName("nodeLabel");
+            add(labelValue);
+        }
+
+        void load(LWComponent c) {
+            setTypeName(this, c, "Label");
+            if (c instanceof LWText)
+            	labelValue.setEditable(false);
+            else
+            	labelValue.setEditable(true);
+            labelValue.attachProperty(c, LWKey.Label);
+        }
+    }
     
     public class SummaryPane extends tufts.Util.JPanelAA
         implements Runnable
     {
-        //final JTextArea labelValue = new JTextArea();
         final VueTextPane labelValue = new VueTextPane();
         final JScrollBar labelScrollBar;
-        final VueTextField contentValue = new VueTextField();
+        //final VueTextField contentValue = new VueTextField();
         
         SummaryPane()
         {
@@ -600,15 +760,15 @@ public class InspectorPane extends JPanel
             setBorder(GUI.WidgetInsetBorder);
             setName("nodeSummary");
             
-            labelValue.setBorder(null);
             //If you're trying to debug lists, you'll want to see the HTML code somewhere,
             //and here is as good as any place right now.  It may be a TODO to put this label
             //on a tabbed pane with an editable version of the HTML code so you can tweak it
             //in case of an error.
           //  if (!DEBUG.LISTS)
           //  	labelValue.setContentType("text/html");
-            contentValue.setEditable(false);
-
+            //contentValue.setEditable(false);
+            
+            labelValue.setBorder(null);
             JScrollPane labelScroller = new JScrollPane(labelValue,
                                                         JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                                                         JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
@@ -616,7 +776,7 @@ public class InspectorPane extends JPanel
             int lineHeight = labelValue.getFontMetrics(labelValue.getFont()).getHeight(); 
             labelScroller.setMinimumSize(new Dimension(70, (lineHeight*3)+5));
             labelScrollBar = labelScroller.getVerticalScrollBar();
-            
+                
             addLabelTextPairs(new Object[] {
                     "Label", labelScroller,
                     //"Content", contentValue,
@@ -627,22 +787,28 @@ public class InspectorPane extends JPanel
             //setMinimumSize(new Dimension(200,90));
             //setMinimumSize(new Dimension(200,63));
             //setMaximumSize(new Dimension(Short.MAX_VALUE,63));
+
+            // Workaround: if we don't do this, sometimes the top-pixel of our Widget
+            // title gets clipped when the InspectorPane content grows large enough
+            // to activate the scroll-bar
+            setMinimumSize(new Dimension(200,80));
+            setPreferredSize(new Dimension(200,80));
+            
         }
 
+//         public Dimension getMinimumSize() {
+//             return new Dimension(200,80);    	
+//         }
+//         public Dimension getPreferredSize() {
+//             return new Dimension(200,80);
+//         }
+        
         public void run() {
             labelScrollBar.setValue(0);
             labelScrollBar.setValueIsAdjusting(false);
         }
 
-        public Dimension getMinimumSize()
-        {
-        	return new Dimension(200,80);    	
-        }
-        
-        public Dimension getPreferredSize()
-        {
-        	return new Dimension(200,80);
-        }
+
         void load(LWComponent c) {
             setTypeName(this, c, "Information");
             if (c instanceof LWText)
@@ -663,6 +829,7 @@ public class InspectorPane extends JPanel
             
             //out("ROWS " + labelValue.getRows() + " border=" + labelValue.getBorder());
         }
+        
     }
     
     
@@ -818,96 +985,96 @@ public class InspectorPane extends JPanel
     
     public static void displayTestPane(String rsrc)
     {
-        //MapResource r = new MapResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
-        if (rsrc == null)
-            rsrc = "file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif";
+//         //MapResource r = new MapResource("file:///System/Library/Frameworks/JavaVM.framework/Versions/1.4.2/Home");
+//         if (rsrc == null)
+//             rsrc = "file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif";
 
-        InspectorPane p = new InspectorPane();
-        LWComponent node = new LWNode("Test Node");
-        node.setNotes("I am a note.");
-        System.out.println("Loading resource[" + rsrc + "]");
-        Resource r = Resource.getFactory().get(rsrc);
-        System.out.println("Got resource " + r);
-        r.setTitle("A Very Long Long Resource Title Ya Say");
-        node.setResource(r);
-        for (int i = 1; i < 6; i++)
-            r.setProperty("field_" + i, "value_" + i);
+//         InspectorPane p = new InspectorPane();
+//         LWComponent node = new LWNode("Test Node");
+//         node.setNotes("I am a note.");
+//         System.out.println("Loading resource[" + rsrc + "]");
+//         Resource r = Resource.getFactory().get(rsrc);
+//         System.out.println("Got resource " + r);
+//         r.setTitle("A Very Long Long Resource Title Ya Say");
+//         node.setResource(r);
+//         for (int i = 1; i < 6; i++)
+//             r.setProperty("field_" + i, "value_" + i);
 
-        DockWindow w = null;
-        if (false) {
-            //ToolWindow w = VUE.createToolWindow("LWCInfoPanel", p);
-            JScrollPane sp = new JScrollPane(p,
-                                             JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                             //JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-                                             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
-                                             );
-            w = GUI.createDockWindow("Inspector", sp);
-        } else {
-            w = GUI.createDockWindow(p);
-            //w = GUI.createDockWindow("Resource Inspector", p.mSummaryPane);
-            //tufts.Util.displayComponent(p);
-        }
+//         DockWindow w = null;
+//         if (false) {
+//             //ToolWindow w = VUE.createToolWindow("LWCInfoPanel", p);
+//             javax.swing.JScrollPane sp = new javax.swing.JScrollPane(p,
+//                                              JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+//                                              //JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+//                                              JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+//                                              );
+//             w = GUI.createDockWindow("Inspector", sp);
+//         }
+//         else
+//         {
+//             w = GUI.createDockWindow(p);
+//             //w = GUI.createDockWindow("Resource Inspector", p.mSummaryPane);
+//             //tufts.Util.displayComponent(p);
+//         }
 
-        if (w != null) {
-            w.setUpperRightCorner(GUI.GScreenWidth, GUI.GInsets.top);
-            w.setVisible(true);
-        }
+//         if (w != null) {
+//             w.setUpperRightCorner(GUI.GScreenWidth, GUI.GInsets.top);
+//             w.setVisible(true);
+//         }
         
-        VUE.getSelection().setTo(node); // setLWComponent does diddly -- need this
+//         VUE.getSelection().setTo(node); // setLWComponent does diddly -- need this
 
     }
 
     
     public static void main(String args[]) {
 
-        VUE.init(args);
+//         VUE.init(args);
 
-        // Must have at least ONE active frame for our focus manager to work
-        //new Frame("An Active Frame").setVisible(true);
+//         // Must have at least ONE active frame for our focus manager to work
+//         //new Frame("An Active Frame").setVisible(true);
 
-        String rsrc = null;
-        if (args.length > 0 && args[0].charAt(0) != '-')
-            rsrc = args[0];
+//         String rsrc = null;
+//         if (args.length > 0 && args[0].charAt(0) != '-')
+//             rsrc = args[0];
 
-        Resource r = Resource.getFactory().get("file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif");
+//         Resource r = Resource.getFactory().get("file:///VUE/src/tufts/vue/images/splash_graphic_1.0.gif");
 
-        if (true) {
-            displayTestPane(rsrc);
-        } else {
-            InspectorPane ip = new InspectorPane();
-            VUE.getResourceSelection().setTo(r, "main::test");
-            Widget.setExpanded(ip.mResourceMetaData, true);
-            GUI.createDockWindow("Test Properties", ip).setVisible(true);
-        }
+//         if (true) {
+//             displayTestPane(rsrc);
+//         } else {
+//             InspectorPane ip = new InspectorPane();
+//             VUE.getResourceSelection().setTo(r, "main::test");
+//             Widget.setExpanded(ip.mResourceMetaData, true);
+//             GUI.createDockWindow("Test Properties", ip).setVisible(true);
+//         }
 
         
     }
 
-	public void searchPerformed(SearchEvent evt) {
-		if ((VUE.getSelection().size() > 0) && (VUE.getResourceSelection().get() == null))
-			return;
-		else
-		{
-			showNodePanes(false);
-			showResourcePanes(false);
-			LWSelection selection = VUE.getSelection();
+//     public void searchPerformed(SearchEvent evt) {
+//         if ((VUE.getSelection().size() > 0) && (VUE.getResourceSelection().get() == null))
+//             return;
+//         else
+//             {
+//                 showNodePanes(false);
+//                 showResourcePanes(false);
+//                 LWSelection selection = VUE.getSelection();
 			
-			LWComponent c = selection.first();
-			if (c != null)
-			{
-             if (c.hasResource()) {
-                loadResource(c.getResource());
-                showNodePanes(true);
-                showResourcePanes(true);                
-             }
-             else
-                showNodePanes(true);
+//                 LWComponent c = selection.first();
+//                 if (c != null)
+//                     {
+//                         if (c.hasResource()) {
+//                             loadResource(c.getResource());
+//                             showNodePanes(true);
+//                             showResourcePanes(true);                
+//                         }
+//                         else
+//                             showNodePanes(true);
            
-			}
-		}
-        
-        
-	}
+//                     }
+//             }
+//     }
 
     
     
