@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.79 $ / $Date: 2008-05-21 18:50:05 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2008-05-21 18:51:51 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -156,13 +156,15 @@ public class InspectorPane extends WidgetStack
         //is selected and its misleading to have the widgets on there.
         hideAll();
         
+        Widget.setExpanded(ontologicalMetadata, false);
+        Widget.setExpanded(mKeywords, false);
+        
 //         loadResource(null);
 //         //this.setEnabled(false);
 //         showNodePanes(false);
 //         Widget.setHidden(mKeywords,true);
 //         Widget.setHidden(ontologicalMetadata,true);
 //         Widget.setExpanded(mKeywords, false);
-//         Widget.setExpanded(ontologicalMetadata, false);
 //         //Widget.setExpanded(mResourceMetaData, false);
 //         //Widget.setExpanded(mNodeTree, false);
 //         showResourcePanes(false);
