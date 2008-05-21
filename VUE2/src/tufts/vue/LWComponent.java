@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.415 $ / $Date: 2008-04-30 19:01:44 $ / $Author: sfraize $
+ * @version $Revision: 1.416 $ / $Date: 2008-05-21 02:53:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -5135,8 +5135,8 @@ u                    getSlot(c).setFromString((String)value);
      * in DrawContext gc is expected to be transformed for drawing the top-level map
      * (minimally transformed).  If you are going to use the passed in DrawContext after
      * this call for other map drawing operations, be sure to pass in dc.create() from
-     * the caller, as this call will leaves it in a generally undefined state (probably
-     * rooted at the node).
+     * the caller, as this call will leave the DrwaContext it in a generally undefined state
+     * (e.g., probably rooted at the node).
      *
      */
     public void draw(DrawContext dc) {
