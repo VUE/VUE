@@ -41,13 +41,14 @@ public class LWMergeMap extends LWMap {
     
     public static final int THRESHOLD_DEFAULT = 20;
     
-    // recording source nodes code currently does not compile
+    // old method for recording source nodes code currently does not compile
     // (its commented out below) - needs adjustment to 
     // LWComponent from LWNode (for both LWImage and LWNode)
     // a relatively minor fix and probably
     // also needs to be stored in special metadata of a new type...
     // (since otherwise this info always appears in the notes and possibly
     // out of sight)
+    // **new system is to use VueMetadataElement.OTHER (see below)**
     public static final boolean RECORD_SOURCE_NODES = false;
     
     private static int numberOfMaps = 0;
@@ -403,6 +404,25 @@ public class LWMergeMap extends LWMap {
                 
                    edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
                    vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+                   
+                   //todo: looks like this may be needed in future -- may be an issue
+                   // of map list in merge maps panel -- or otherwise might require
+                   // more generic approach (certainly a seperate method either here or in 
+                   // merge maps panel or in VueMetadataElement is in order)
+                   /*String mapLabel = comp.getMap().getLabel();
+                   
+                   if(mapLabel != null)
+                   {
+                       if(mapLabel.contains(".vue"))
+                       {
+                           mapLabel = mapLabel.substring(0,mapLabel.indexOf(".vue"));
+                       }
+                   } 
+                   else
+                   {
+                       mapLabel = "";
+                   }*/
+                   
                    vme.setObject("source: " + comp.getMap().getLabel() + "," + sourceLabel);
                    node.getMetadataList().getMetadata().add(vme);
                    
@@ -616,15 +636,28 @@ public class LWMergeMap extends LWMap {
                             Util.getMergeProperty(node) +"," + Util.getMergeProperty(c) + ")");
                   }
                   
-                  String sourceLabel = node.getLabel();
+                  //String sourceLabel = node.getLabel();
                
-                  if(sourceLabel == null)
-                     sourceLabel = "";
+                  //if(sourceLabel == null)
+                  //   sourceLabel = "";
                   
-                  edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                  vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-                  vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
-                  c.getMetadataList().getMetadata().add(vme);
+                  //edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                  //vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+                  
+                  //if(DEBUG_LOCAL)
+                  //{
+                  //   System.out.println("LWMergeMap: about to set source for node -- label: " + node.getLabel());    
+                  //}
+                  
+                  //if(node.getMap() != null)
+                  //{    
+                  //  vme.setObject("source: " + node.getMap().getLabel() + "," + sourceLabel);
+                  //}
+                  //else
+                  //{
+                  //  vme.setObject("source: " + sourceLabel);  
+                  //}
+                  //c.getMetadataList().getMetadata().add(vme);
                   
                   return true;
                 }
