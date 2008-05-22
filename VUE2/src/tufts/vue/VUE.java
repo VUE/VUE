@@ -69,7 +69,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.549 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.550 $ / $Date: 2008-05-22 06:03:11 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1310,7 +1310,7 @@ public class VUE
         
         //-----------------------------------------------------------------------------
 
-        if (Util.isMacLeopard() && DockWindow.ManagedWindows) {
+        if (Util.isMacLeopard() && DockWindow.useManagedWindowHacks()) {
             // Workaround for DockWindow's going behind the VUE Window on Leopard bug, especially
             // when there's only one DockWindow open.  So we literally create a DockWindow
             // to always hang around, and just set it off screen.
