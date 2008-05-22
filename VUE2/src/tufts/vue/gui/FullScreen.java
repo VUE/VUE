@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.32 $ / $Date: 2008-05-22 03:48:05 $ / $Author: sfraize $
+ * @version $Revision: 1.33 $ / $Date: 2008-05-22 06:01:19 $ / $Author: sfraize $
  *
  */
 
@@ -101,7 +101,7 @@ public class FullScreen
                 Util.printStackTrace("creating FSWindow");
                 setOffScreen();
 
-                if (Util.isMacPlatform()) {
+                if (Util.isMacPlatform() && DockWindow.useManagedWindowHacks()) {
                     setVisibleImpl(true, true);
                     setVisibleImpl(false, true);
                 } else {
@@ -113,7 +113,7 @@ public class FullScreen
                 setOffScreen();
                 setBackground(Color.black);
                 
-                if (Util.isMacPlatform()) {
+                if (Util.isMacPlatform() && DockWindow.useManagedWindowHacks()) {
 
                     //=============================================================================
                     
@@ -636,7 +636,10 @@ public class FullScreen
         		
         }
 
-        if (!goNative && Util.isMacLeopard()) {
+        if (!goNative && (Util.isUnixPlatform() || (DockWindow.useManagedWindowHacks() && Util.isMacPlatform()))) {
+
+            // need this on Leopard for sure, and seems also to help on Linux
+            
             // Pretty sure this only needs to be done the first
             // time (yet another java / java mac impl bug), but
             // can't hurt to do it always.
