@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.128 $ / $Date: 2008-05-22 03:49:17 $ / $Author: sfraize $
+ * @version $Revision: 1.129 $ / $Date: 2008-05-22 04:24:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -228,7 +228,7 @@ public class DockWindow
         DialogPeer(String title, Frame owner) {
             super(owner, title);
             setUndecorated(true);
-            setAlwaysOnTop(false);
+            setAlwaysOnTop(true);
             setResizable(true);
 
             if (Util.isMacLeopard())
