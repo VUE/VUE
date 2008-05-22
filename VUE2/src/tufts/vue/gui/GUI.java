@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.107 $ / $Date: 2008-05-22 03:49:17 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2008-05-22 04:38:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -106,7 +106,7 @@ public class GUI
     private static javax.swing.plaf.metal.MetalTheme Theme;
 
     private static Color ToolbarColor = null;
-    static final Color VueColor = new ColorUIResource(VueResources.getColor("menubarColor"));
+    static final Color VueColor = new ColorUIResource(VueResources.getColor("menubarColor", Color.blue));
     // private static final Color VueColor = new ColorUIResource(new Color(128,0,0)); // test
 
     private static boolean SKIP_CUSTOM_LAF = false; // test: don't install our L&F customizations
