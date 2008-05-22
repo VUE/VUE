@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.542 $ / $Date: 2008-05-07 05:33:17 $ / $Author: sfraize $ 
+ * @version $Revision: 1.543 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4396,7 +4396,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             sMapPopup.add(new VueAction(VueResources.getString("mapViewer.mapMenu.info.label")) {
                     public void act() { /*GUI.makeVisibleOnScreen(this, MapInspectorPanel.class);*/
                     	VUE.getMapInfoDock().setVisible(true);
-                    	VUE.getMapInfoDock().toFront();
+                    	VUE.getMapInfoDock().raise();
                     }
                     //public void act() { VUE.MapInspector.setVisible(true); }
                 });

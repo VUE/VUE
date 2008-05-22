@@ -34,7 +34,7 @@ import java.util.Iterator;
  * @see LWPathwayList
  * @see LWPathway
  *
- * @version $Revision: 1.33 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.34 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 public class PathwayTool extends VueSimpleTool
@@ -75,7 +75,7 @@ public class PathwayTool extends VueSimpleTool
         super.actionPerformed(e);
         if (DEBUG.TOOL) System.out.println("PATHWAYTOOL " + e);
         GUI.makeVisibleOnScreen(this, PathwayPanel.class);
-        VUE.getPresentationDock().toFront();
+        VUE.getPresentationDock().raise();
         //if (VUE.MapInspector != null)
         //    VUE.MapInspector.showTab("Pathway");
     }

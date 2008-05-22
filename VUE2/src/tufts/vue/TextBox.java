@@ -98,7 +98,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.62 $ / $Date: 2008-05-21 02:56:58 $ / $Author: sfraize $
+ * @version $Revision: 1.63 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $
  *
  */
 
@@ -1142,7 +1142,7 @@ public class TextBox extends JTextPane
         DEBUG.BOXES = true;
         LWComponent node = new LWNode("Foo");
         TextBox box = new TextBox(node, "One Two Three Four Five Six Seven");
-        java.awt.Window w = GUI.createDockWindow("TextBox Resize Test", new TestPanel(box));
+        tufts.vue.gui.DockWindow w = GUI.createDockWindow("TextBox Resize Test", new TestPanel(box));
         w.setVisible(true);
         //tufts.Util.displayComponent(panel);
     }

@@ -69,7 +69,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.548 $ / $Date: 2008-05-21 02:58:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.549 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1251,21 +1251,21 @@ public class VUE
                     Actions.ZoomActual,
                     defSize = new VueAction("1/8 Screen") {
                             public void act() {
-                                GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
+                                GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock.window());
                                 Rectangle screen = gc.getBounds();
                                 slideDock.setContentSize(screen.width / 4, screen.height / 4);
                             }
                         },
                     new VueAction("1/4 Screen") {
                         public void act() {
-                            GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock);
+                            GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock.window());
                             Rectangle screen = gc.getBounds();
                             slideDock.setContentSize(screen.width / 2, screen.height / 2);
                         }
                     },
                     new VueAction("Maximize") {
                         public void act() {
-                            slideDock.setBounds(GUI.getMaximumWindowBounds(slideDock));
+                            slideDock.setBounds(GUI.getMaximumWindowBounds(slideDock.window()));
                         }
                     },
                 
@@ -1310,7 +1310,7 @@ public class VUE
         
         //-----------------------------------------------------------------------------
 
-        if (Util.isMacLeopard()) {
+        if (Util.isMacLeopard() && DockWindow.ManagedWindows) {
             // Workaround for DockWindow's going behind the VUE Window on Leopard bug, especially
             // when there's only one DockWindow open.  So we literally create a DockWindow
             // to always hang around, and just set it off screen.
@@ -1321,7 +1321,7 @@ public class VUE
             t.setEditable(false);
             DockWindow anchor = GUI.createDockWindow("VUE-leopard-anchor", t);
             if (!DEBUG.DOCK)
-                GUI.setOffScreen(anchor);
+                GUI.setOffScreen(anchor.window());
             anchor.pack();
             anchor.setVisible(true);
         }
@@ -1775,7 +1775,7 @@ public class VUE
             DockWindow dw = preShown[i];
             if (dw == null)
                 continue;
-            GUI.setOffScreen(dw);
+            GUI.setOffScreen(dw.window());
 
             dw.setDockTemporary(DockWindow.getTopDock());
             

@@ -96,7 +96,7 @@ import com.lightdev.app.shtm.SHTMLEditorKit;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.27 $ / $Date: 2008-04-16 05:42:43 $ / $Author: mike $
+ * @version $Revision: 1.28 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $
  *
  */
 
@@ -542,14 +542,12 @@ public class RichTextBox extends com.lightdev.app.shtm.SHTMLEditorPane
     		opposite.getClass() == ColorMenuButton.class)
     			return;
             else if (opposite.getClass() == FontEditorPanel.class ||
-                opposite.getClass() == DockWindow.class ||
-                // todo: something more generic than this getName check: set a property on the JComponent tagging it as a tool/editor?
-                opposite.getClass() == JComboBox.class ||
-                
-                
-                (opposite.getName() != null && opposite.getName().equals(tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME)) ||
-                //quaqua makes this a bit awkard, this is for quaqua's color chooser.
-                (opposite.getName() != null && opposite.getName().equals("dialog0")))
+                     DockWindow.isDockWindow(opposite) ||
+                     // todo: something more generic than this getName check: set a property on the JComponent tagging it as a tool/editor?
+                     opposite.getClass() == JComboBox.class ||
+                     (opposite.getName() != null && opposite.getName().equals(tufts.vue.gui.ColorMenuButton.COLOR_POPUP_NAME)) ||
+                     //quaqua makes this a bit awkard, this is for quaqua's color chooser.
+                     (opposite.getName() != null && opposite.getName().equals("dialog0")))
             {
             	//Earlier i was just returning here, but this creates a problem
             	//because the component has already lost the focus...and so it doesn't 

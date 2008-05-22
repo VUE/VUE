@@ -21,7 +21,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.10 $ / $Date: 2008-05-07 17:29:21 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -52,7 +52,7 @@ public class ShortcutsAction extends tufts.vue.VueAction
         }
         window.pack(); // fit to widest line
         window.setVisible(true);
-        window.toFront();
+        window.raise();
     }
 
     private static String keyCodeChar(int keyCode) {
