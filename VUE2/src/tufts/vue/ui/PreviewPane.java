@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.26 $ / $Date: 2008-05-22 23:28:08 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2008-05-22 23:32:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -132,7 +132,7 @@ public class PreviewPane extends JPanel
         // TODO: somehow, Component.isShowing starts lying to us(!!) if
         // we request too many image loads in quick succession
         // (try arrowing down a pathway list of items that all
-        // have thumbshots)
+        // have thumbshots)  This on Leopard Java 1.5 as of 2008-05-21.
         if (!LazyLoadOnPaint || isShowing()) { 
 
             if (DEBUG.IMAGE && !isShowing()) Log.debug("claims not visible on screen");
@@ -163,13 +163,13 @@ public class PreviewPane extends JPanel
         } else if (previewData == null) {
             displayImage(NoImage);
         } else if (previewData instanceof java.awt.Component) {
-            out("TODO: handle Component preview " + previewData);
+            Log.info("TODO: handle Component preview " + previewData);
             displayImage(NoImage);
         } else if (previewData != null) { // todo: check an Images.isImageableSource
-        	if (previewData instanceof Image)
-        		displayImage((Image)previewData);
-        	else
-        		loadImage(previewData);
+            if (previewData instanceof Image)
+                displayImage((Image)previewData);
+            else
+                loadImage(previewData);
         } else {
             displayImage(NoImage);
         }
@@ -277,14 +277,19 @@ public class PreviewPane extends JPanel
     {
         if (DEBUG.IMAGE) out("paint");
 
-        if (LazyLoadOnPaint && mImage == null) {
-            if (!isLoading && mPreviewData != null) {
-                // todo: fix this double-checked locking (not a safe idiom)
-                synchronized (this) {
-                    if (!isLoading && mPreviewData != null)
-                        VUE.invokeAfterAWT(PreviewPane.this); // load the preview
+        if (mImage == null) {
+            
+            if (LazyLoadOnPaint) {
+                if (!isLoading && mPreviewData != null) {
+                    // TODO: fix this double-checked locking (not a safe idiom)
+                    // don't even try LazyLoadOnPaint until this is fixed
+                    synchronized (this) {
+                        if (!isLoading && mPreviewData != null)
+                            VUE.invokeAfterAWT(PreviewPane.this); // load the preview
+                    }
                 }
             }
+            
             return;
         }
             
