@@ -161,7 +161,7 @@ import javax.swing.JTextField;  // for test harness
  * redispatch our own FocusEvents for transferring focus, which is the second
  * part of the magic that makes this work.
  *
- * @version $Revision: 1.22 $ / $Date: 2008-04-17 02:10:40 $ / $Author: sfraize $ 
+ * @version $Revision: 1.23 $ / $Date: 2008-05-22 03:49:17 $ / $Author: sfraize $ 
  */
 
 // todo: can also try calling the focus owner setters instead of lying -- that might work
@@ -242,10 +242,10 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
         //System.out.println("FocusManager constructed.");
     }
 
-    public interface MouseInterceptor {
-        /** return true if the event should be consumed and not passed on to children */
-        public boolean interceptMousePress(java.awt.event.MouseEvent e);
-    }
+//     public interface MouseInterceptor {
+//         /** return true if the event should be consumed and not passed on to children */
+//         public boolean interceptMousePress(java.awt.event.MouseEvent e);
+//     }
 
     /**
      * Here we see all the KeyEvents and MouseEvents, within the entire VM context,
@@ -327,10 +327,13 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
             mMousePressedTarget = c;
             
             Window parentWindow = getFocusCycleWindow(c);
-            if (parentWindow instanceof MouseInterceptor) {
-                if (DEBUG.FOCUS) out("AWTEvent intercepted by MouseInterceptor " + Util.tags(parentWindow));
+            //if (parentWindow instanceof MouseInterceptor) {
+            if (parentWindow instanceof DockWindow.Peer) {
+                //if (DEBUG.FOCUS) out("AWTEvent intercepted by MouseInterceptor " + Util.tags(parentWindow));
+                if (DEBUG.FOCUS) out("AWTEvent intercepted by: " + parentWindow);
                 try {
-                    if (((MouseInterceptor)parentWindow).interceptMousePress(me))
+                    //if (((MouseInterceptor)parentWindow).interceptMousePress(me))
+                    if (((DockWindow.Peer)parentWindow).getDock().interceptMousePress(me))
                         return true;
                 } catch (Throwable t) {
                     Log.error("MouseInterceptor failure: " + Util.tags(parentWindow) + "; " + me, t);
@@ -533,7 +536,7 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
                 final Object src = e.getSource();
                 
                 if (src instanceof tufts.vue.MapViewer ||
-                    src instanceof tufts.vue.gui.DockWindow ||
+                    src instanceof tufts.vue.gui.DockWindow.Peer ||
                     src instanceof tufts.vue.PathwayTable)
                 {
                     if (DEBUG.FOCUS || DEBUG.KEYS) out("relaying TAB to " + DockWindow.class);
@@ -1404,156 +1407,156 @@ public class FocusManager extends java.awt.DefaultKeyboardFocusManager
 
 
 
-    public static void main(String args[]) {
+//     public static void main(String args[]) {
 
-        VUE.init(args);
+//         VUE.init(args);
         
-        DEBUG.SELECTION=true; // for testing Command-A text-select pass up to VueMenuBar
+//         DEBUG.SELECTION=true; // for testing Command-A text-select pass up to VueMenuBar
 
-        /*
-        for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-trace")) { 
-                UseForcedFocus = false;
-            }
-        }
-        */
-
-        
-        if (true) { // MAYBE USEFUL
-
-            // You'd think we could at LEAST use chaining for full-screen mode?  The
-            // last in the chain could be the full screen window, which is normally not
-            // visible (tho that would prob hide it's children).  Maybe it could be
-            // small and off-screen...
-
-            // Okay this "works" -- a possibly useful possibility: could enable having a
-            // at least a, full-screen window, but no MDI interface, tho the FSW would
-            // have to be placed "out" so it wouldn't be seen on screen, or we might try
-            // and have it lie about it's visibility.
-
-            // I do notice we used a Frame, and not a Window, for our old
-            // full screen impl -- i hope that wasn't needed, otherwise this
-            // is also no good: a frame can't be a child of any other window/frame.
-            // Oh, crap: we needed it so there was a menu-bar...  but I don't
-            // think we need that anymore...
-
-            Frame doc1 = new javax.swing.JFrame("Document");
-            Window doc2 = new DockWindow("Full-Screen", doc1);
-
-            DockWindow tool = new DockWindow("Tool", doc2);
-            
-            doc1.setVisible(true);
-            doc2.setVisible(true);
-            tool.setVisible(true);
-        }
-
-        if (false) {  // SLIGHT CHANCE USEFUL
-
-            // chaining experiment (would need to pre-alloc a fixed max # of doc windows)
-
-            // Okay, on mac, a surprise: tool on top of both (some grand-parentage
-            // there), but of course, doc1 can never come to top over doc2 (which is
-            // also not iconifiable, since it's a dialog, tho we could maybe NSWindow
-            // force that back on)
-
-            // This only useful if document (map) windows were always tiled
-            // and never overlapped (cause a single order would always be
-            // enforced)
-
-            Frame doc1 = new javax.swing.JFrame("Document 1");
-            Window doc2 = new javax.swing.JDialog(doc1, "Document 2");
-
-            DockWindow tool = new DockWindow("Tool", doc2);
-            
-            doc1.setVisible(true);
-            doc2.setVisible(true);
-            tool.setVisible(true);
-        }
-        
-        if (false) {
-
-            // This is supposedly the vanilla case that we could
-            // try hacking later (everyone's a sibling), but
-            // we get a problem on the PC!
-            
-            // Okay, in this wierd case, on the PC, the tool can be over
-            // only the INACTIVE document, never the active one!
-            // On the Mac, it's just another sibling.
-            
-            Frame toolParent = new javax.swing.JFrame("Hidden Tool Parent");
-
-            Window doc1 = new javax.swing.JFrame("Document 1");
-            Window doc2 = new javax.swing.JFrame("Document 2");
-
-            DockWindow tool = new DockWindow("Tool", toolParent);
-            
-            toolParent.setVisible(true);
-            doc1.setVisible(true);
-            doc2.setVisible(true);
-            tool.setVisible(true);
-        }
-        
-        if (false) {
-        
-            // In this scenario, child stays on top of both parent &
-            // grandparent on PC, but only on top of parent on mac.
-            
-            Frame top = new Frame("Grand Parent");
-            Window parent = new DockWindow("Parent", top);
-            parent.add(new JTextField());
-            
-            top.setVisible(true);
-            parent.setVisible(true);
-            
-            DockWindow child = new DockWindow("Child", parent);
-            child.add(new JTextField());
-            
-            child.setVisible(true);
-        }
-        
-        if (false) {
-
-            // useless on mac (tool always bottom), and enforces parentage
-            // with flashing on the PC...
-            
-            Frame docParent = new Frame("Hidden Full Screener");
-
-            Window doc1 = new javax.swing.JDialog(docParent, "Document 1");
-            Window doc2 = new javax.swing.JDialog(docParent, "Document 2");
-
-            DockWindow tool = new DockWindow("Tool", doc1);
-            
-            docParent.setVisible(true);
-            doc1.setVisible(true);
-            doc2.setVisible(true);
-            tool.setVisible(true);
-        }
-        
-        if (false) {
-            
-            // Crap: even on PC, tool only stays on top of master
-
-            Frame top = new javax.swing.JFrame("Master");
-            Frame docParent = new javax.swing.JFrame("Documents");
-
-            Window doc1 = new javax.swing.JDialog(docParent, "Document 1");
-            Window doc2 = new javax.swing.JDialog(docParent, "Document 2");
-            //Window doc1 = new java.awt.Dialog(docParent, "Document 1");
-            //Window doc2 = new java.awt.Dialog(docParent, "Document 2");
-            
-            Window tool = new DockWindow("Tool", top);
-            //tool.add(new JTextField());
-            
-            top.setVisible(true);
-            docParent.setVisible(true);
-            doc1.setVisible(true);
-            doc2.setVisible(true);
-            tool.setVisible(true);
-        }
-        
+//         /*
+//         for (int i = 0; i < args.length; i++) {
+//             if (args[i].equals("-trace")) { 
+//                 UseForcedFocus = false;
+//             }
+//         }
+//         */
 
         
-    }
+//         if (true) { // MAYBE USEFUL
+
+//             // You'd think we could at LEAST use chaining for full-screen mode?  The
+//             // last in the chain could be the full screen window, which is normally not
+//             // visible (tho that would prob hide it's children).  Maybe it could be
+//             // small and off-screen...
+
+//             // Okay this "works" -- a possibly useful possibility: could enable having a
+//             // at least a, full-screen window, but no MDI interface, tho the FSW would
+//             // have to be placed "out" so it wouldn't be seen on screen, or we might try
+//             // and have it lie about it's visibility.
+
+//             // I do notice we used a Frame, and not a Window, for our old
+//             // full screen impl -- i hope that wasn't needed, otherwise this
+//             // is also no good: a frame can't be a child of any other window/frame.
+//             // Oh, crap: we needed it so there was a menu-bar...  but I don't
+//             // think we need that anymore...
+
+//             Frame doc1 = new javax.swing.JFrame("Document");
+//             Window doc2 = new DockWindow("Full-Screen", doc1);
+
+//             DockWindow tool = new DockWindow("Tool", doc2);
+            
+//             doc1.setVisible(true);
+//             doc2.setVisible(true);
+//             tool.setVisible(true);
+//         }
+
+//         if (false) {  // SLIGHT CHANCE USEFUL
+
+//             // chaining experiment (would need to pre-alloc a fixed max # of doc windows)
+
+//             // Okay, on mac, a surprise: tool on top of both (some grand-parentage
+//             // there), but of course, doc1 can never come to top over doc2 (which is
+//             // also not iconifiable, since it's a dialog, tho we could maybe NSWindow
+//             // force that back on)
+
+//             // This only useful if document (map) windows were always tiled
+//             // and never overlapped (cause a single order would always be
+//             // enforced)
+
+//             Frame doc1 = new javax.swing.JFrame("Document 1");
+//             Window doc2 = new javax.swing.JDialog(doc1, "Document 2");
+
+//             DockWindow tool = new DockWindow("Tool", doc2);
+            
+//             doc1.setVisible(true);
+//             doc2.setVisible(true);
+//             tool.setVisible(true);
+//         }
+        
+//         if (false) {
+
+//             // This is supposedly the vanilla case that we could
+//             // try hacking later (everyone's a sibling), but
+//             // we get a problem on the PC!
+            
+//             // Okay, in this wierd case, on the PC, the tool can be over
+//             // only the INACTIVE document, never the active one!
+//             // On the Mac, it's just another sibling.
+            
+//             Frame toolParent = new javax.swing.JFrame("Hidden Tool Parent");
+
+//             Window doc1 = new javax.swing.JFrame("Document 1");
+//             Window doc2 = new javax.swing.JFrame("Document 2");
+
+//             DockWindow tool = new DockWindow("Tool", toolParent);
+            
+//             toolParent.setVisible(true);
+//             doc1.setVisible(true);
+//             doc2.setVisible(true);
+//             tool.setVisible(true);
+//         }
+        
+//         if (false) {
+        
+//             // In this scenario, child stays on top of both parent &
+//             // grandparent on PC, but only on top of parent on mac.
+            
+//             Frame top = new Frame("Grand Parent");
+//             Window parent = new DockWindow("Parent", top);
+//             parent.add(new JTextField());
+            
+//             top.setVisible(true);
+//             parent.setVisible(true);
+            
+//             DockWindow child = new DockWindow("Child", parent);
+//             child.add(new JTextField());
+            
+//             child.setVisible(true);
+//         }
+        
+//         if (false) {
+
+//             // useless on mac (tool always bottom), and enforces parentage
+//             // with flashing on the PC...
+            
+//             Frame docParent = new Frame("Hidden Full Screener");
+
+//             Window doc1 = new javax.swing.JDialog(docParent, "Document 1");
+//             Window doc2 = new javax.swing.JDialog(docParent, "Document 2");
+
+//             DockWindow tool = new DockWindow("Tool", doc1);
+            
+//             docParent.setVisible(true);
+//             doc1.setVisible(true);
+//             doc2.setVisible(true);
+//             tool.setVisible(true);
+//         }
+        
+//         if (false) {
+            
+//             // Crap: even on PC, tool only stays on top of master
+
+//             Frame top = new javax.swing.JFrame("Master");
+//             Frame docParent = new javax.swing.JFrame("Documents");
+
+//             Window doc1 = new javax.swing.JDialog(docParent, "Document 1");
+//             Window doc2 = new javax.swing.JDialog(docParent, "Document 2");
+//             //Window doc1 = new java.awt.Dialog(docParent, "Document 1");
+//             //Window doc2 = new java.awt.Dialog(docParent, "Document 2");
+            
+//             Window tool = new DockWindow("Tool", top);
+//             //tool.add(new JTextField());
+            
+//             top.setVisible(true);
+//             docParent.setVisible(true);
+//             doc1.setVisible(true);
+//             doc2.setVisible(true);
+//             tool.setVisible(true);
+//         }
+        
+
+        
+//     }
 
     
 }

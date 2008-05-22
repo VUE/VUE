@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.106 $ / $Date: 2008-05-07 05:26:03 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2008-05-22 03:49:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -887,7 +887,7 @@ public class GUI
             DockWindow dockWindow
                 = new DockWindow(title, DockWindow.getHiddenFrame(), null, asToolbar,showCloseButton);
             dockWindow.setFocusableWindowState(false);
-            setAlwaysOnTop(dockWindow, true);
+            setAlwaysOnTop(dockWindow.window(), true);
             return dockWindow;
         } else {
             // TODO: create method in VUE for getting DockWindow parent for use elsewhere
@@ -1079,7 +1079,7 @@ public class GUI
             activateWaitCursor(VUE.getApplicationFrame());
             activateWaitCursor(getFullScreenWindow());
             for (DockWindow dw : DockWindow.AllWindows)
-                activateWaitCursor(dw);
+                activateWaitCursor(dw.window());
 
             WaitCursorActive = true;
         }
@@ -1128,7 +1128,7 @@ public class GUI
             clearWaitCursor(VUE.getApplicationFrame());
             clearWaitCursor(getFullScreenWindow());
             for (DockWindow dw : DockWindow.AllWindows)
-                clearWaitCursor(dw);
+                clearWaitCursor(dw.window());
             CursorMap.clear();
             WaitCursorActive = false;
         }

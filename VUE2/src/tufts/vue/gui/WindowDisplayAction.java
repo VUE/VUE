@@ -30,7 +30,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.6 $ / $Date: 2008-04-21 20:57:39 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2008-05-22 03:49:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction
@@ -39,14 +39,20 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
     
     private AbstractButton mLinkedButton;
     private Window mWindow;
+    private Object mObject;
     private String mTitle;
     private boolean firstDisplay = true;
     private static final boolean showActionLabel = false;
  
     public WindowDisplayAction(Object o)
     {
-        Window w = (Window) o;
-        init(extractTitle(w), w);        
+        mObject = o;
+        Window w;
+        if (o instanceof DockWindow)
+            w = ((DockWindow)o).window();
+        else
+            w = (Window) o;
+        init(extractTitle(o), w);
     }
         
     /*
@@ -78,7 +84,7 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
       }
     */
 
-    private static String extractTitle(Window w) {
+    private static String extractTitle(Object w) {
         if (w instanceof java.awt.Frame)
             return ((java.awt.Frame)w).getTitle();
         else if (w instanceof java.awt.Dialog)
@@ -128,8 +134,8 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
 
     private boolean isConsideredShown() {
 
-        if (mWindow instanceof DockWindow) {
-            DockWindow dockWindow = (DockWindow) mWindow;
+        if (mObject instanceof DockWindow) {
+            DockWindow dockWindow = (DockWindow) mObject;
 
             if (dockWindow.isDocked())
                 return !dockWindow.isRolledUp();
@@ -166,8 +172,8 @@ public class WindowDisplayAction extends javax.swing.AbstractAction
         final boolean doHideWindow = !doShowWindow;
 
 
-        if (mWindow instanceof DockWindow) {
-            DockWindow dockWindow = (DockWindow) mWindow;
+        if (mObject instanceof DockWindow) {
+            DockWindow dockWindow = (DockWindow) mObject;
             if (doHideWindow && dockWindow.isDocked() && !dockWindow.isRolledUp()) {
                 // "Hiding" a docked DockWindow that is unrolled really means roll it back up
                 // instead of hiding it.

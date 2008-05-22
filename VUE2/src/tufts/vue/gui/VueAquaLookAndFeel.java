@@ -39,7 +39,7 @@ import javax.swing.plaf.ColorUIResource;
  * Left.gif and Both.gif, which are needed for Aqua tabbed-pane's
  * when there isn't enough room to display all the tabs.
  *
- * @version $Revision: 1.7 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $ 
+ * @version $Revision: 1.8 $ / $Date: 2008-05-22 03:49:17 $ / $Author: sfraize $ 
  */
 // superclass of AquaJideLookAndFeel is apple.laf.AquaLookAndFeel
 //public class VueAquaLookAndFeel extends com.jidesoft.plaf.aqua.AquaJideLookAndFeel { // JIDE
@@ -210,36 +210,36 @@ public class VueAquaLookAndFeel extends apple.laf.AquaLookAndFeel
     */
 
         
-    public static class ToolBarUI extends javax.swing.plaf.basic.BasicToolBarUI {
+//     public static class ToolBarUI extends javax.swing.plaf.basic.BasicToolBarUI {
 
-        public static javax.swing.plaf.ComponentUI createUI( JComponent x ) {
-            System.out.println("\nCREATEUI\n");
-            javax.swing.plaf.ComponentUI o = new ToolBarUI();
-            if (true||DEBUG.INIT) System.out.println("Created " + o.getClass());
-            return o;
-        }
+//         public static javax.swing.plaf.ComponentUI createUI( JComponent x ) {
+//             System.out.println("\nCREATEUI\n");
+//             javax.swing.plaf.ComponentUI o = new ToolBarUI();
+//             if (true||DEBUG.INIT) System.out.println("Created " + o.getClass());
+//             return o;
+//         }
 
-        protected RootPaneContainer createFloatingWindow(JToolBar toolbar) {
-            System.err.print("\nCREATE FLOATING WINDOW = ");
-            //RootPaneContainer rpc = super.createFloatingWindow(toolbar);
-            RootPaneContainer rpc = GUI.createDockWindow("Test ToolBar");
-            //RootPaneContainer rpc = VUE.createToolPalette("Test ToolBar").getRootPaneContainer();
-            System.err.println(rpc);
-            return rpc;
-        }
+//         protected RootPaneContainer createFloatingWindow(JToolBar toolbar) {
+//             System.err.print("\nCREATE FLOATING WINDOW = ");
+//             //RootPaneContainer rpc = super.createFloatingWindow(toolbar);
+//             RootPaneContainer rpc = GUI.createDockWindow("Test ToolBar");
+//             //RootPaneContainer rpc = VUE.createToolPalette("Test ToolBar").getRootPaneContainer();
+//             System.err.println(rpc);
+//             return rpc;
+//         }
 
-        protected JFrame createFloatingFrame(JToolBar toolbar) {
-            System.err.print("\nCREATE FLOATING FRAME = ");
-            JFrame f = super.createFloatingFrame(toolbar);
-            System.err.println(f);
-            return f;
-        }
+//         protected JFrame createFloatingFrame(JToolBar toolbar) {
+//             System.err.print("\nCREATE FLOATING FRAME = ");
+//             JFrame f = super.createFloatingFrame(toolbar);
+//             System.err.println(f);
+//             return f;
+//         }
 
-        protected DragWindow createDragWindow(JToolBar toolbar) {
-            System.err.print("\nCREATE DRAG WINDOW = ");
-            DragWindow dw = super.createDragWindow(toolbar);
-            System.err.println(dw);
-            return dw;
-        }
-    }
+//         protected DragWindow createDragWindow(JToolBar toolbar) {
+//             System.err.print("\nCREATE DRAG WINDOW = ");
+//             DragWindow dw = super.createDragWindow(toolbar);
+//             System.err.println(dw);
+//             return dw;
+//         }
+//     }
 }
