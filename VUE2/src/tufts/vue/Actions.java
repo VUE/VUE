@@ -1502,7 +1502,7 @@ public class Actions implements VueConstants
         	//GUI.makeVisibleOnScreen(VUE.getInfoDock());
         	VUE.getInfoDock().setVisible(true);
         	VUE.getInfoDock().setRolledUp(false,true);
-        	VUE.getInfoDock().toFront();
+        	VUE.getInfoDock().raise();
         	VUE.getInspectorPane().showNotesView();
         	}
         //public void act() { VUE.ObjectInspector.setVisible(true); }
