@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.129 $ / $Date: 2008-05-22 04:24:05 $ / $Author: sfraize $
+ * @version $Revision: 1.130 $ / $Date: 2008-05-22 04:39:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -225,11 +225,10 @@ public class DockWindow
     }
     
     private final class DialogPeer extends JDialog implements Peer {
-        DialogPeer(String title, Frame owner) {
+        DialogPeer(String title, Frame owner, boolean alwaysOnTop) {
             super(owner, title);
             setUndecorated(true);
-            setAlwaysOnTop(true);
-            setResizable(true);
+            setAlwaysOnTop(alwaysOnTop);
 
             if (Util.isMacLeopard())
                 getRootPane().putClientProperty("Window.style", "small");
@@ -290,7 +289,7 @@ public class DockWindow
         public DockWindow getDock() { return DockWindow.this; }
     }
 
-    public static final boolean ManagedWindows = true;
+    public static final boolean ManagedWindows = false;
     
     /**
      * Create a new DockWindow.  You should use GUI.createDockWindow for creating
@@ -299,13 +298,13 @@ public class DockWindow
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar, boolean showCloseButton)
     {
         if (Util.isUnixPlatform()) {
-            _peer = new DialogPeer(title, VUE.getApplicationFrame());
+            _peer = new DialogPeer(title, VUE.getApplicationFrame(), false);
         } else if (ManagedWindows) {
             // Still required on the Mac (at least Leopard)
             // -- DockWindow's will still go behind the working full-screen window otherwise
             _peer = new WindowPeer(owner == null ? getHiddenFrame() : owner);
         } else
-            _peer = new DialogPeer(title, VUE.getApplicationFrame());
+            _peer = new DialogPeer(title, VUE.getApplicationFrame(), true);
             //_peer = new FramePeer(title);
         _win = (Window) _peer;
 
