@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.83 $ / $Date: 2008-05-22 06:02:50 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2008-05-22 06:22:02 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -712,7 +712,10 @@ public class InspectorPane extends WidgetStack
                 }
                 add(userMetadataEditor,BorderLayout.CENTER);
             }
-            mKeywords.setTitle("Keywords: " + c.getMetadataList().getCategoryListSize());
+            if (c.hasMetaData())
+                mKeywords.setTitle("Keywords (" + c.getMetadataList().getCategoryListSize() + ")");
+            else
+                mKeywords.setTitle("Keywords");
             
         }
 
