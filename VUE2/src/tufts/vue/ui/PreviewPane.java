@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.25 $ / $Date: 2008-04-25 22:43:39 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2008-05-22 23:28:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -64,6 +64,7 @@ public class PreviewPane extends JPanel
         //StatusLabel.setAlignmentY(0.5f);
         //StatusLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, Short.MAX_VALUE));
         //StatusLabel.setBorder(new LineBorder(Color.red));
+        StatusLabel.setForeground(Color.darkGray);
         StatusLabel.setVisible(false);
         add(StatusLabel);
 
@@ -90,8 +91,11 @@ public class PreviewPane extends JPanel
 
     }
 
-    private void showLoadingStatus() {
-        StatusLabel.setText("Loading...");
+    private void showLoadingStatus(Object data) {
+        if (DEBUG.Enabled)
+            StatusLabel.setText(""+data);
+        else
+            StatusLabel.setText("Loading...");
         StatusLabel.setVisible(true);
     }
     private void status(String msg) {
@@ -101,6 +105,8 @@ public class PreviewPane extends JPanel
     private void clearStatus() {
         StatusLabel.setVisible(false);
     }
+
+    private static final boolean LazyLoadOnPaint = false;
     
 
     synchronized void loadResource(Resource r) {
@@ -123,8 +129,13 @@ public class PreviewPane extends JPanel
 
         if (DEBUG.RESOURCE) out(" got preview: " + mPreviewData);
 
-        if (isShowing()) {
+        // TODO: somehow, Component.isShowing starts lying to us(!!) if
+        // we request too many image loads in quick succession
+        // (try arrowing down a pathway list of items that all
+        // have thumbshots)
+        if (!LazyLoadOnPaint || isShowing()) { 
 
+            if (DEBUG.IMAGE && !isShowing()) Log.debug("claims not visible on screen");
             loadPreview(mPreviewData);
             FirstPreview = false;
 
@@ -181,7 +192,7 @@ public class PreviewPane extends JPanel
         if (!Images.getImage(imageData, this)) {
             // will make callback to gotImage when we have it
             isLoading = true;
-            showLoadingStatus();
+            showLoadingStatus(imageData);
         } else {
             // gotImage has already been called
             isLoading = false;
@@ -210,22 +221,23 @@ public class PreviewPane extends JPanel
             if (DEBUG.Enabled) Log.info("skipping: image source != mPreviewData;\n\t"
                                         + Util.tags(imageSrc)
                                         + "\n\t" + Util.tags(mPreviewData));
-            return;
+        } else {
+            displayImage(image);
+            isLoading = false;
         }
-            
-        displayImage(image);
-        isLoading = false;
     }
+    
     /** @see Images.Listener */
     public synchronized void gotImageError(Object imageSrc, String msg) {
 
-        if (imageSrc != mPreviewData)
+        if (imageSrc != mPreviewData) {
             return;
-            
-        displayImage(NoImage);
-        if (msg != null)
-            status("Error: " + msg);
-        isLoading = false;
+        } else {
+            displayImage(NoImage);
+            if (msg != null)
+                status("Error: " + msg);
+            isLoading = false;
+        }
     }
 
     /*
@@ -260,12 +272,14 @@ public class PreviewPane extends JPanel
     private static final double MaxZoom = 1.0;
     
     /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
+    @Override
     public void paintComponent(Graphics g)
     {
         if (DEBUG.IMAGE) out("paint");
 
-        if (mImage == null) {
+        if (LazyLoadOnPaint && mImage == null) {
             if (!isLoading && mPreviewData != null) {
+                // todo: fix this double-checked locking (not a safe idiom)
                 synchronized (this) {
                     if (!isLoading && mPreviewData != null)
                         VUE.invokeAfterAWT(PreviewPane.this); // load the preview
