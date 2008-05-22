@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.41 $ / $Date: 2008-05-21 03:06:21 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2008-05-22 03:47:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -55,7 +55,7 @@ public class WidgetStack extends Widget
     private int mExpanderCount = 0;
     private int mExpandersOpen = 0;
 
-    private Dimension mMinSize = new Dimension();
+    //private Dimension mMinSize = new Dimension();
 
     public WidgetStack() {
         this("<>");
@@ -95,17 +95,26 @@ public class WidgetStack extends Widget
         if (DEBUG.BOXES) {
             mDefaultExpander.setOpaque(true);
             mDefaultExpander.setBackground(Color.darkGray);
-            JLabel l = new JLabel("WidgetStack: veritcal expander", JLabel.CENTER);
+            JLabel l = new JLabel("WidgetStack: default veritcal expander", JLabel.CENTER);
             l.setForeground(Color.white);
             mDefaultExpander.add(l);
         }
         mDefaultExpander.setVisible(false);
         add(mDefaultExpander, c);
 
-        mMinSize.width = 100;
+        //mMinSize.width = 100;
 
         // todo: need to set min size on whole stack (nitems * title height)
         // and have DockWindow respect this.
+    }
+
+    @Override
+    public void removeAll() {
+        super.removeAll();
+        mWidgets.clear();
+        mExpanderCount = 0;
+        mExpandersOpen = 0;
+        mLockedWidget = null;
     }
 
 
@@ -125,7 +134,7 @@ public class WidgetStack extends Widget
         
         WidgetTitle titleBar = new WidgetTitle(title, widget, isExpander);
         mWidgets.add(titleBar);
-        mMinSize.height = mWidgets.size() * (TitleHeight + 1);
+        //mMinSize.height = mWidgets.size() * (TitleHeight + 1);
         //setMinimumSize(mMinSize);
         
         if (DEBUG.WIDGET) {
@@ -270,67 +279,6 @@ public class WidgetStack extends Widget
     public boolean getScrollableTracksViewportHeight() { return false; }
     
 
-//     private Dimension maxSize(String src)
-//     {
-//         JComponent widthTracker = (JComponent) getClientProperty("VUE.widthTracker");
-//         if (widthTracker != null) {
-//             final Dimension ps = super.getPreferredSize();
-//             int trackWidth = widthTracker.getWidth();
-// //             final javax.swing.border.Border border = widthTracker.getBorder();
-// //             if (border != null) {
-// //                 Insets insets = border.getBorderInsets(widthTracker);
-// //                 Log.debug(src + "; INSETS: " + insets);
-// //                 trackHeight -= (insets.top + insets.bottom) * (DEBUG.BOXES ? 3 : 1);
-// //             }
-//             if (trackWidth != ps.width) {
-//                 Log.debug(src + "; OVERRIDE PREF WIDTH " + ps.width + " WITH TRACK WIDTH " + trackWidth);
-//                 //Util.printStackTrace();
-//                 ps.width = trackWidth-20;
-//             }
-//             return ps;
-//         } else {
-//             return super.getPreferredSize();
-//         }
-//     }
-    
-//     private Dimension minSize(String src) {
-
-// // //         if (getParent() instanceof Scrollable) {
-// // //             return ((Scrollable)getParent()).getPreferredScrollableViewportSize();
-// //         if (getParent() instanceof DockWindow.ScrollableWidthTracker) {
-// //             DockWindow.ScrollableWidthTracker swt = (DockWindow.ScrollableWidthTracker) getParent();
-// //             Dimension d = super.getPreferredSize();
-// //             if (swt.getHeight() > d.height)
-// //                 d.height = swt.getHeight() - 8;
-// //             //d.height = swt.getHeight() - 20;
-// //             return d;
-// // //             if (d.height < )
-// // //                 d.height = 50;
-// // //             return d;
-//         //DockWindow dw = (DockWindow) getClientProperty(DockWindow.class);
-//         JComponent heightTracker = (JComponent) getClientProperty("VUE.heightTracker");
-//         if (heightTracker != null) {
-//             // This works to allow expansion, but seems to completely break our containing scrollbar...
-//             final Dimension ps = super.getPreferredSize();
-//             final javax.swing.border.Border border = heightTracker.getBorder();
-//             int trackHeight = heightTracker.getHeight();
-//             if (border != null) {
-//                 Insets insets = border.getBorderInsets(heightTracker);
-//                 Log.debug(src + "; INSETS: " + insets);
-//                 trackHeight -= (insets.top + insets.bottom) * (DEBUG.BOXES ? 3 : 1);
-//             }
-//             if (trackHeight > ps.height) {
-//                 Log.debug(src + "; OVERRIDE PREF HEIGHT " + ps.height + " WITH TRACK HEIGHT " + trackHeight);
-//                 //Util.printStackTrace();
-//                 ps.height = trackHeight;
-//             }
-//             return ps;
-//         } else {
-//             return super.getPreferredSize();
-//         }
-//     }
-
-
     /**
 
      * The given widget *must* already have it's name set to be used as the title.
@@ -350,7 +298,7 @@ public class WidgetStack extends Widget
     
 
     public void addPane(String title, JComponent widget) {
-        addPane(title, widget, 1.0f);
+        addPane(title, widget, 0.0f);
     }
 
     public Widget addPane(String title) {
@@ -608,11 +556,20 @@ public class WidgetStack extends Widget
                     out("TITLE BOUNDS", Util.fmt(bounds) + "; height=" + titleHeight);
                     out("WIDGT HEIGHT", wh);
                 }
+
+                // Ideally, we'd add in both the widget height, and the another title
+                // height below, meaning we'd scroll to see the full widget, plus the
+                // next widget title bar below.  But there's some bug with
+                // scrollRectToVisible, presumably related to the scroll pane not
+                // adjusting in time, where we actually get better results right now if
+                // the region we request scrolling to is simply the widget title.
+                
                 //bounds.height += wh;
 
                 // Add the height if the title in again, so that in case there's another
                 // widget below us, we at least can see it's title.
                 // Technically, don't need to add if last one, but can't scroll off bottom.
+                
                 //bounds.height += titleHeight;
                 
                 if (DEBUG.WIDGET) out("TOTAL BOUNDS", Util.fmt(bounds));
@@ -1166,7 +1123,7 @@ public class WidgetStack extends Widget
             s.addPane(names[i], new JLabel(names[i], SwingConstants.CENTER), 1f);
         }
         //s.addPane("Fixed", new JLabel("fixed"), 0f);
-
+        
         GUI.createDockWindow("WidgetStack Test", s).setVisible(true);
     }
         
