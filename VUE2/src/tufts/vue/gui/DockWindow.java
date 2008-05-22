@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.131 $ / $Date: 2008-05-22 06:00:28 $ / $Author: sfraize $
+ * @version $Revision: 1.132 $ / $Date: 2008-05-22 07:25:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -182,9 +182,9 @@ public class DockWindow
     }
     
     private final class FramePeer extends JFrame implements Peer {
-        FramePeer(String title) {
+        FramePeer(String title, boolean alwaysOnTop, boolean decorated) {
             super(title);
-            //setUndecorated(true);
+            setUndecorated(!decorated);
             
             // Note that Frame's and Dialog's that are setAlwaysOnTop generally behave
             // differently than Window's that have it set: Frame's with it set will stay
@@ -192,7 +192,7 @@ public class DockWindow
             // set will also stay on top of all other applications window's opened by a
             // user anywhere.
             
-            setAlwaysOnTop(true);
+            setAlwaysOnTop(alwaysOnTop);
 
             // Frame's also, at least on Mac Leopard, have ideal alwaysOnTop behavior:
             // But only when they are decorated!  When decorated they stay on top of all
@@ -239,17 +239,20 @@ public class DockWindow
     }
     
     private final class DialogPeer extends JDialog implements Peer {
-        DialogPeer(Frame owner, boolean alwaysOnTop) {
-            super(owner);
-            setUndecorated(true);
+        DialogPeer(Frame owner, String title, boolean alwaysOnTop, boolean decorated) {
+            super(owner, title);
+            setUndecorated(!decorated);
             setAlwaysOnTop(alwaysOnTop);
 
             if (Util.isMacLeopard()) // will only have effect when decorated
                 getRootPane().putClientProperty("Window.style", "small");
 
-            // At least on Mac Leopard, Java 1.5, using JDialog's keeps
-            // the main menu bar active even when they have the focus.
-            // (As opposed to when using JFrame's)
+            // At least on Mac Leopard, Java 1.5, using JDialog's keeps the main menu
+            // bar active even when they have the focus.  (As opposed to when using
+            // JFrame's)  And when using them DECORATED + ON_TOP, they're almost perfect,
+            // except for the bizarre addition of hiding THE ENTIRE VUE APP when it
+            // loses focus -- even tho the main VueFrame is just a generic JFrame, not a
+            // DockWindow.
 
             // However, if they're alwaysOnTop, they stay on top
             // of all open applications, like JWindow's
@@ -318,10 +321,16 @@ public class DockWindow
         public DockWindow getDock() { return DockWindow.this; }
     }
 
+    //private static final boolean ManagedWindows = !Util.isMacLeopard();
     private static final boolean ManagedWindows = true;
+    private static final boolean ON_TOP = true;
+    private static final boolean DECORATED = true;
     
     public static  boolean useManagedWindowHacks() {
-        return ManagedWindows;
+        return ManagedWindows
+            //|| true
+            //&& false
+            ;
     }
 
 //     public static void lowerAll() {
@@ -338,14 +347,30 @@ public class DockWindow
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar, boolean showCloseButton)
     {
         if (Util.isUnixPlatform()) {
-            _peer = new DialogPeer(VUE.getApplicationFrame(), true);
+            
+            _peer = new DialogPeer(VUE.getApplicationFrame(), title, !ON_TOP, !DECORATED);
+            
         } else if (ManagedWindows) {
+            
             // Still required on the Mac (at least Leopard)
-            // -- DockWindow's will still go behind the working full-screen window otherwise
+            // DockWindow's will still go behind the working full-screen window otherwise,
+            // or create some other wierd unacceptable behaviour.
             _peer = new WindowPeer(owner == null ? getHiddenFrame() : owner);
-        } else
-            // _peer = new DialogPeer(VUE.getApplicationFrame(), true); // will stay on top of ALL apps
-            _peer = new FramePeer(title);
+            
+        } else {
+            
+            // DialogPeer: 
+            // If ON_TOP +   DECORATED: works well, except crazy bug of causing entire app to hide when losing focus
+            // If ON_TOP + UNDECORATED: will act like ON_TOP WindowPeer: stays on top of all open applications
+            _peer = new DialogPeer(VUE.getApplicationFrame(), title, ON_TOP, DECORATED);
+
+            // the format panel has a problem when ON_TOP: the color menu pop-up
+            // impl doesn't appear to be making itself a child of the format panel
+            // -- in any case, it goes behind the format panel (was this the linux problem?)
+
+            // Using frames NOT on-top is fairly useless tho
+            //_peer = new FramePeer(title, ON_TOP, DECORATED && !asToolbar);
+        }
         _win = (Window) _peer;
 
         /* Black ghosts on windows...
