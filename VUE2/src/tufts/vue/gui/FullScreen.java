@@ -36,7 +36,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.31 $ / $Date: 2008-04-22 07:46:09 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2008-05-22 03:48:05 $ / $Author: sfraize $
  *
  */
 
@@ -634,6 +634,13 @@ public class FullScreen
         //	else
         	//	ZoomTool.setZoomFitRegion(FullScreenViewer,activeViewer.getMap().getMapBounds(),activeViewer.getMap().getFocalMargin(),false);
         		
+        }
+
+        if (!goNative && Util.isMacLeopard()) {
+            // Pretty sure this only needs to be done the first
+            // time (yet another java / java mac impl bug), but
+            // can't hurt to do it always.
+            DockWindow.raiseAll();
         }
         
         FullScreenViewer.grabVueApplicationFocus("FullScreen.enter-1", null);
