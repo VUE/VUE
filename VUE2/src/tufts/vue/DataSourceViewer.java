@@ -1371,7 +1371,7 @@ public class DataSourceViewer extends JPanel
             //editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
            
             
-            editInfoStack.addPane("Content Description",metaDataPane);
+            editInfoStack.addPane("Content Description",metaDataPane,1f);
             
             editInfoDockWindow = GUI.createDockWindow(dockTitle);
        //     Widget.setWantsScroller(editInfoStack, true);
@@ -1415,7 +1415,7 @@ public class DataSourceViewer extends JPanel
             //descriptionPanel.add(metaDataPane,BorderLayout.CENTER);
             //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
             //Widget.setWantsScroller(editInfoStack, true);
-            editInfoStack.addPane("Content Description",metaDataPane);
+            editInfoStack.addPane("Content Description",metaDataPane,1f);
             
             editInfoDockWindow.setTitle(dockTitle);
        //     Widget.setWantsScroller(editInfoStack, true);
