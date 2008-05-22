@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.130 $ / $Date: 2008-05-22 04:39:21 $ / $Author: sfraize $
+ * @version $Revision: 1.131 $ / $Date: 2008-05-22 06:00:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -194,6 +194,20 @@ public class DockWindow
             
             setAlwaysOnTop(true);
 
+            // Frame's also, at least on Mac Leopard, have ideal alwaysOnTop behavior:
+            // But only when they are decorated!  When decorated they stay on top of all
+            // windows in the application, but NOT any other application, and in
+            // addition, when the application even loses focus, they automatically hide
+            // themseleves. So without having an owner, they have ideal behaviour.
+
+            // But when UN-decorated on Leopard, they behave like Window's when
+            // always on top: on top of everything.
+
+            // However, on Ubuntu 8.04, java version "1.6.0_06", they behave
+            // just like dialog peers -- no help -- they can go behind
+            // the full screen window, even when alwaysOnTop is set to true.
+
+
             if (Util.isMacLeopard())
                 getRootPane().putClientProperty("Window.style", "small");
             
@@ -225,16 +239,20 @@ public class DockWindow
     }
     
     private final class DialogPeer extends JDialog implements Peer {
-        DialogPeer(String title, Frame owner, boolean alwaysOnTop) {
-            super(owner, title);
+        DialogPeer(Frame owner, boolean alwaysOnTop) {
+            super(owner);
             setUndecorated(true);
             setAlwaysOnTop(alwaysOnTop);
 
-            if (Util.isMacLeopard())
+            if (Util.isMacLeopard()) // will only have effect when decorated
                 getRootPane().putClientProperty("Window.style", "small");
 
             // At least on Mac Leopard, Java 1.5, using JDialog's keeps
             // the main menu bar active even when they have the focus.
+            // (As opposed to when using JFrame's)
+
+            // However, if they're alwaysOnTop, they stay on top
+            // of all open applications, like JWindow's
         }
 
         @Override public void addNotify() { DockWindow.this.addNotify(); }
@@ -263,6 +281,18 @@ public class DockWindow
     private final class WindowPeer extends JWindow implements Peer {
         WindowPeer(Window owner) {
             super(owner);
+
+            // Note that Window's, in the Linux impl, are ALWAYS set to alwaysOnTop --
+            // there's no way to turn it off!  This is why on linux we're using
+            // the DialogPeer -- however, this means you can never see DockWindow's
+            // in working full-screen mode.
+
+            // The problem with any NON Window peer, is that Window's are the only
+            // Window subclass that can have an owner, and they always stay on top of
+            // their owner (which we make our full-screen window, so they always stay on
+            // top of that, and we make the owner of the full screen window the VUE
+            // application frame, so they also stay on top of that (the grandparent).
+            
         }
         
         @Override public void addNotify() { DockWindow.this.addNotify(); }
@@ -277,7 +307,6 @@ public class DockWindow
             else
                 DockWindow.this.setBounds(x, y, w, h);
         }
-
         
         public void peer_addNotify() { super.addNotify(); }
         public void peer_validate() { super.validate(); }
@@ -289,7 +318,18 @@ public class DockWindow
         public DockWindow getDock() { return DockWindow.this; }
     }
 
-    public static final boolean ManagedWindows = false;
+    private static final boolean ManagedWindows = true;
+    
+    public static  boolean useManagedWindowHacks() {
+        return ManagedWindows;
+    }
+
+//     public static void lowerAll() {
+//         if (DEBUG.DOCK||DEBUG.WORK) Log.debug("lowerAll");
+//         for (DockWindow dw : AllWindows)
+//             dw.window().setAlwaysOnTop(false);
+//     }
+    
     
     /**
      * Create a new DockWindow.  You should use GUI.createDockWindow for creating
@@ -298,14 +338,14 @@ public class DockWindow
     public DockWindow(String title, Window owner, JComponent content, boolean asToolbar, boolean showCloseButton)
     {
         if (Util.isUnixPlatform()) {
-            _peer = new DialogPeer(title, VUE.getApplicationFrame(), false);
+            _peer = new DialogPeer(VUE.getApplicationFrame(), true);
         } else if (ManagedWindows) {
             // Still required on the Mac (at least Leopard)
             // -- DockWindow's will still go behind the working full-screen window otherwise
             _peer = new WindowPeer(owner == null ? getHiddenFrame() : owner);
         } else
-            _peer = new DialogPeer(title, VUE.getApplicationFrame(), true);
-            //_peer = new FramePeer(title);
+            // _peer = new DialogPeer(VUE.getApplicationFrame(), true); // will stay on top of ALL apps
+            _peer = new FramePeer(title);
         _win = (Window) _peer;
 
         /* Black ghosts on windows...
@@ -1088,18 +1128,22 @@ public class DockWindow
     public static boolean AllWindowsHidden() {
         return !AllVisible;
     }
-
     public synchronized static void HideAllWindows() {
-        if (DEBUG.Enabled) Log.debug("hide all");
+        if (DEBUG.Enabled) Log.debug("hide all + activate viewer");
+        DeactivateAllWindows();
+        // TODO: when prophylactically hiding these for full-screen mode,
+        // this is overkill / could even be problematic.
+        ensureViewerHasFocus(); 
+    }
+
+    public synchronized static void DeactivateAllWindows() {
+        if (DEBUG.Enabled) Log.debug("deactivate all");
         AllVisible = false;
         for (DockWindow dw : AllWindows) {
             dw.mWasVisible = dw.isVisible();
             if (dw.mWasVisible)
                 dw.superSetVisible(false);
         }
-        // TODO: when prophylactically hiding these for full-screen mode,
-        // this is overkill / could even be problematic.
-        ensureViewerHasFocus(); 
     }
 
     public void raise() {

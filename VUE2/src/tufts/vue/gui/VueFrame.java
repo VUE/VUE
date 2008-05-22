@@ -25,8 +25,7 @@ import tufts.vue.DEBUG;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.WindowEvent;
-import java.awt.event.ComponentEvent;
+import java.awt.event.*;
 
 import javax.swing.SwingUtilities;
 
@@ -38,12 +37,11 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.17 $ / $Date: 2008-05-19 23:41:36 $ / $Author: sfraize $ 
+ * @version $Revision: 1.18 $ / $Date: 2008-05-22 05:59:07 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
-//public class VueFrame extends com.jidesoft.docking.DefaultDockableHolder
-//public class VueFrame extends com.jidesoft.action.DefaultDockableBarDockableHolder // JIDE ENABLE
-    implements ActiveListener<MapViewer>
+    implements ActiveListener<MapViewer>,
+               WindowListener, WindowStateListener, WindowFocusListener               
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueFrame.class);
     
@@ -92,57 +90,96 @@ public class VueFrame extends javax.swing.JFrame
             });
         
 
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                Log.warn(e);
-                tufts.vue.action.ExitAction.exitVue();
-
-                // If we get here, it means the exit was aborted by the user (something
-                // wasn't saved & they decided to cancel or there was an error during
-                // the save)
-
-                //frame.show(); (doesn't work)  How to cancel this windowClose?  According
-                // to WindowEvent.java & WindowAdapter.java, canceling this
-                // windowClosing is supposed to be possible, but they don't mention
-                // how. Anyway, we've overriden setVisible on VueFrame to make it
-                // impossible to hide it, and that works, so this event just becomes the
-                // they've pressed on the close button event.
-            }
-                
-            public void windowClosed(WindowEvent e) {
-                // I've never see us even get this event...
-                Log.fatal("Too late: window disposed: exiting. " + e);
-                System.exit(-1);
-            }
-            public void windowStateChanged(WindowEvent e) {
-                out(e.toString());
-                Log.debug(e);
-            }
-            public void windowActivated(WindowEvent e) {
-                if (LastOpenedResource != null) {
-                    try {
-                        if (DEBUG.Enabled) Log.debug("resource check: " + LastOpenedResource);
-                        tufts.vue.VUE.checkForAndHandleResourceUpdate(LastOpenedResource);
-                        
-                        // TODO: skip clearing to null to handle repeated editing
-                        // bad idea of now until this is threaded, as if happened to
-                        // be local network resource that went offline, we could
-                        // hang -- so at least this would only happen the first time.
-                        // Once this is in a thread, the check could just run entirely
-                        // at low priority in the background checking everything once
-                        // VUE gains focus again.
-                        LastOpenedResource = null; 
-
-                    } catch (Throwable t) {
-                        Log.error("resource check: " + LastOpenedResource, t);
-                        LastOpenedResource = null;
-                    }
-                }
-            }
-        });
-
+        addWindowListener(this);
+        addWindowStateListener(this);
+        addWindowFocusListener(this);
+        
         VUE.addActiveListener(MapViewer.class, this);
     }
+
+
+    public void windowOpened(WindowEvent e) {
+        Log.debug("opened; " + e);
+    }
+
+    public void windowClosing(WindowEvent e) {
+        Log.warn(e);
+        tufts.vue.action.ExitAction.exitVue();
+
+        // If we get here, it means the exit was aborted by the user (something
+        // wasn't saved & they decided to cancel or there was an error during
+        // the save)
+
+        //frame.show(); (doesn't work)  How to cancel this windowClose?  According
+        // to WindowEvent.java & WindowAdapter.java, canceling this
+        // windowClosing is supposed to be possible, but they don't mention
+        // how. Anyway, we've overriden setVisible on VueFrame to make it
+        // impossible to hide it, and that works, so this event just becomes the
+        // they've pressed on the close button event.
+    }
+                
+    public void windowClosed(WindowEvent e) {
+        // I've never see us even get this event...
+        Log.fatal("Too late: window disposed: exiting. " + e);
+        System.exit(-1);
+    }
+    
+    public void windowStateChanged(WindowEvent e) {
+        Log.debug("windowStateChanged: " + e);
+    }
+    
+    public void windowActivated(WindowEvent e) {
+        Log.debug("activated; " + e);
+        DockWindow.ShowPreviouslyHiddenWindows();
+        if (LastOpenedResource != null) {
+            try {
+                if (DEBUG.Enabled) Log.debug("resource check: " + LastOpenedResource);
+                tufts.vue.VUE.checkForAndHandleResourceUpdate(LastOpenedResource);
+                        
+                // TODO: skip clearing to null to handle repeated editing
+                // bad idea of now until this is threaded, as if happened to
+                // be local network resource that went offline, we could
+                // hang -- so at least this would only happen the first time.
+                // Once this is in a thread, the check could just run entirely
+                // at low priority in the background checking everything once
+                // VUE gains focus again.
+                LastOpenedResource = null; 
+
+            } catch (Throwable t) {
+                Log.error("resource check: " + LastOpenedResource, t);
+                LastOpenedResource = null;
+            }
+        }
+    }
+
+    public void windowGainedFocus(WindowEvent e) {
+        Log.debug("focus-gained; " + e);
+    }
+    public void windowLostFocus(WindowEvent e) {
+        Log.debug("focus-lost; " + e);
+    }
+    
+    public void windowDeactivated(WindowEvent e) {
+        Log.debug("deactivated; " + e);
+                
+//         if (!tufts.Util.isUnixPlatform()) {
+//             // this causes VueFrame de-activate/activate loop on Ubuntu 8.04 / JVM 1.6
+//             // Works nicely on Leopard & XP, but may not be what we want: a user
+//             // might want to drag text into notes panel, which would be impossible
+//             // if we do this.  Could make this a preference.
+//             DockWindow.DeactivateAllWindows();
+//         }
+
+    }
+
+
+    public void windowIconified(WindowEvent e) {
+        Log.debug("iconfied; " + e);
+    }
+    public void windowDeiconified(WindowEvent e) {
+        Log.debug("de-iconfied; " + e);
+    }
+    
 
     private static tufts.vue.Resource LastOpenedResource;
     
