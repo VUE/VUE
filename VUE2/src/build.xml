@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.159 $ / $Date: 2008-04-18 18:36:43 $ / $Author: anoop $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.159 2008-04-18 18:36:43 anoop Exp $ -->
+<!-- $Revision: 1.160 $ / $Date: 2008-05-22 06:17:46 $ / $Author: sfraize $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.160 2008-05-22 06:17:46 sfraize Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -485,6 +485,9 @@
 
 <!-- ==================== compile Task ================================ -->
   <target name="compile-linux" depends="compile,prepare,version">
+
+    <!--
+    
    <javac srcdir="${linux.src}"
    	  destdir="${linux.class}"
    	  debug="${compile.debug}"
@@ -498,6 +501,9 @@
    	  >
    	  <include name="tufts/vue/gui/*.java"/>
     </javac>
+
+   -->
+    
   </target>
   <target name="compile" depends="prepare,version"
     description="Compile Java sources using default javac">
@@ -824,12 +830,14 @@
          includes="osid.properties"/>
   </target>
   <target name="linux-jar" depends="compile-linux,jar">
+    <!--
     <echo message="Building linux jar..."/>
     <copy file="${vue.jar}" tofile="${vue-linux.jar}"/>
     <jar jarfile="${vue-linux.jar}"
     	 basedir="${linux.class}"
     	 update="true"
     	 />
+    -->
   </target>
   <target name="jar-narravision" depends="jar"
           description="Create NarraVision.jar - a single, distributable, runnable jar file containing NarraVision and all supporting libraries.">
