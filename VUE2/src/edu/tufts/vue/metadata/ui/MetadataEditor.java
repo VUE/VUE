@@ -522,22 +522,22 @@ public class MetadataEditor extends JPanel implements ActiveListener,
         
         validate();
     }
-    public Dimension getMinimumSize()
-    { 	   
- 	   int height = 120;
- 	   //int lines = 1;
- 	  int rowCount = metadataTable.getRowCount(); 	   	  
- 	  int rowHeight = metadataTable.getRowHeight();
- //	  System.out.println("rowHeight :"  + rowHeight);
- 	  
- 		   return new Dimension(300,(height+((rowCount-1) * rowHeight)));
- 	      	
-    }
     
-    public Dimension getPreferredSize()
-    { 	   
- 	   return getMinimumSize();
-    }
+//     @Override
+//     public Dimension getMinimumSize() { 	   
+//         int height = 120;
+//         //int lines = 1;
+//         int rowCount = metadataTable.getRowCount(); 	   	  
+//         int rowHeight = metadataTable.getRowHeight();
+//         //System.out.println("rowHeight :"  + rowHeight);
+//         return new Dimension(300,(height+((rowCount-1) * rowHeight)));
+//     }
+    
+//     @Override
+//     public Dimension getPreferredSize() { 	   
+//  	   return getMinimumSize();
+//     }
+    
     public void refresh()
     {
     	validate();
@@ -1493,7 +1493,7 @@ public class MetadataEditor extends JPanel implements ActiveListener,
                   
                   // note: fix for currentMultiples != null and focus lost off bottom of info window (not
                   // as likely in the multiple selection case?)
-                  if(fe.getOppositeComponent() instanceof tufts.vue.gui.DockWindow && currentMultiples == null)
+                  if(tufts.vue.gui.DockWindow.isDockWindow(fe.getOppositeComponent()) && currentMultiples == null)
                   {
                       model.setSaved(row,true);
                       TableCellEditor tce = metadataTable.getCellEditor();
