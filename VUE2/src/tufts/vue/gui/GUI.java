@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.108 $ / $Date: 2008-05-22 04:38:57 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2008-05-23 14:56:54 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1584,7 +1584,20 @@ public class GUI
     public static boolean isSingleRightClick(MouseEvent e) {
         return e.getClickCount() == 1 && isRightClick(e);
     }
+
+    public static final int ALL_MODIFIER_KEYS_MASK =
+        java.awt.event.InputEvent.SHIFT_MASK
+        | java.awt.event.InputEvent.CTRL_MASK
+        | java.awt.event.InputEvent.META_MASK
+        | java.awt.event.InputEvent.ALT_MASK;
+
+    public static  boolean anyModifierKeysDown(InputEvent e) {
+        return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) != 0;
+    }
     
+    public static boolean noModifierKeysDown(InputEvent e) {
+        return !anyModifierKeysDown(e);
+    }
     
     public static boolean isMenuPopup(ComponentEvent ce) {
         if (ce instanceof MouseEvent) {
@@ -2470,6 +2483,63 @@ public class GUI
         }
     
     }
+
+
+    public static class MouseWheelRelay implements MouseWheelListener {
+        private final MouseWheelListener head, tail;
+    
+        public MouseWheelRelay(MouseWheelListener head, MouseWheelListener tail) {
+            if (head == null || tail == null)
+                throw new NullPointerException("MouseWheelRelay: neither head or tail can be null");
+            this.head = head;
+            this.tail = tail;
+        }
+
+        /**
+           
+         * Intercept MouseWheel events going to the nearest JScrollPane ancestor of
+         * target (or just target if there is none) by sending them to intercept first.
+         * The intercept should consume the event for those it wishes to override.
+         *
+         * @return true if there was no intercept needed, and intercept was simply added as standard mouse wheel listener
+         */
+        public static boolean addListenerOrIntercept(final MouseWheelListener intercept, final java.awt.Component target) {
+
+            java.awt.Component override;
+            if (target instanceof JScrollPane) {
+                override = target;
+            } else {
+                override = SwingUtilities.getAncestorOfClass(JScrollPane.class, target);
+                if (override == null)
+                    override = target;
+            }
+    
+            final MouseWheelListener[] currentListeners = target.getMouseWheelListeners();
+            
+            if (DEBUG.MOUSE || DEBUG.INIT || DEBUG.FOCUS || currentListeners.length > 1)
+                out("MouseWheelRelay: " + GUI.name(override) + ": currentMouseWheelListeners: "
+                    + java.util.Arrays.asList(currentListeners)
+                    + "; intercept=" + GUI.name(intercept));
+            
+            if (currentListeners == null || currentListeners.length == 0 || currentListeners[0] == null) {
+                override.addMouseWheelListener(intercept);
+                return true;
+            } else {
+                override.removeMouseWheelListener(currentListeners[0]);
+                override.addMouseWheelListener(new MouseWheelRelay(intercept, currentListeners[0]));
+                return false;
+            }
+                
+        }
+
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            head.mouseWheelMoved(e);
+            if (!e.isConsumed())
+                tail.mouseWheelMoved(e);
+        }
+    }
+
+    
     
 
     private static class DefaultMetalTheme extends javax.swing.plaf.metal.DefaultMetalTheme
