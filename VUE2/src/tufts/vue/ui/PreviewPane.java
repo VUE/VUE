@@ -31,12 +31,13 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.27 $ / $Date: 2008-05-22 23:32:25 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2008-05-23 14:55:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 public class PreviewPane extends JPanel
-    implements Images.Listener, Runnable
+    implements Images.Listener, Runnable, MouseWheelListener
+
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PreviewPane.class);
     
@@ -52,11 +53,12 @@ public class PreviewPane extends JPanel
     private boolean isLoading = false;
 
     private final JLabel StatusLabel = new JLabel("(status)", JLabel.CENTER);
+
+    private final int MinHeight = 128;
+    private final int MaxHeight = 1024;
         
     PreviewPane() {
         super(new BorderLayout());
-        setMinimumSize(new Dimension(64,64));
-        setPreferredSize(new Dimension(256,128));
         setOpaque(false);
 
         //StatusLabel.setLineWrap(true);
@@ -67,6 +69,7 @@ public class PreviewPane extends JPanel
         StatusLabel.setForeground(Color.darkGray);
         StatusLabel.setVisible(false);
         add(StatusLabel);
+        setHeight(MinHeight);
 
         addMouseListener(new java.awt.event.MouseAdapter() {    
                 public void mouseClicked(MouseEvent me){
@@ -89,8 +92,64 @@ public class PreviewPane extends JPanel
                 }
             });
 
+        //super.enableEvents(MouseEvent.MOUSE_WHEEL);
     }
 
+    @Override
+    public void addNotify() {
+        
+        super.addNotify();
+        
+        GUI.MouseWheelRelay.addListenerOrIntercept(this, this);
+        
+//         if (DEBUG.Enabled)
+//             addMouseWheelListener(this);
+
+
+    }
+
+//     @Override
+//     public boolean postEvent(Event e) {
+//         Log.info("POST EVENT: " + e);
+//         return super.postEvent(e);
+//     }
+        
+//     @Override
+//     protected void processMouseWheelEvent(MouseWheelEvent e) {
+//         Util.printStackTrace(""+e);
+//         Log.info(e);
+//         super.processMouseWheelEvent(e);
+//     }
+    
+    protected void setHeight(int h) {
+        Dimension d = new Dimension(200,h);
+        setMinimumSize(d);
+        setPreferredSize(d);
+    }
+        
+    public void mouseWheelMoved(MouseWheelEvent e) {
+
+        if (GUI.noModifierKeysDown(e))
+            return;
+
+        e.consume();
+
+        int height = getPreferredSize().height;
+
+        int rotation = e.getWheelRotation();
+        if (rotation < 0)
+            height += MinHeight;
+        else if (rotation > 0)
+            height -= MinHeight;
+
+        if (height < MinHeight)
+            height = MinHeight;
+        else if (height > MaxHeight)
+            height = MaxHeight;
+
+        setHeight(height);
+    }
+    
     private void showLoadingStatus(Object data) {
         if (DEBUG.Enabled)
             StatusLabel.setText(""+data);
@@ -269,8 +328,6 @@ public class PreviewPane extends JPanel
     }
         
 
-    private static final double MaxZoom = 1.0;
-    
     /** draw the image into the current avilable space, scaling it down if needed (never scale up tho) */
     @Override
     public void paintComponent(Graphics g)
@@ -297,8 +354,10 @@ public class PreviewPane extends JPanel
         //g.fillRect(0,0, w,h);
 
         double zoomFit;
+        double netZoom;
         if (mImage == NoImage) {
             zoomFit = 1;
+            netZoom = 1;
         } else {
             java.awt.geom.Rectangle2D imageBounds
                 = new java.awt.geom.Rectangle2D.Float(0, 0, mImageWidth, mImageHeight);
@@ -307,13 +366,24 @@ public class PreviewPane extends JPanel
                                               imageBounds,
                                               null,
                                               false);
-            if (zoomFit > MaxZoom)
-                zoomFit = MaxZoom;
+
+            final double MaxZoom = getHeight() > MinHeight ? 2 : 1;
+            
+            if (zoomFit > 1 && zoomFit < 2)
+                netZoom = 1;
+//             if (zoomFit > 1 && zoomFit <= 1.25)
+//                 netZoom = 1;
+//             else if (zoomFit > 2 && zoomFit < 3)
+//                 netZoom = 2;
+            else if (zoomFit > MaxZoom)
+                netZoom = MaxZoom;
+            else
+                netZoom = zoomFit;
         }
             
 
-        final int drawW = (int) (mImageWidth * zoomFit);
-        final int drawH = (int) (mImageHeight * zoomFit);
+        final int drawW = (int) (mImageWidth * netZoom);
+        final int drawH = (int) (mImageHeight * netZoom);
                                                      
         final int w = getWidth();
         final int h = getHeight();
@@ -326,7 +396,9 @@ public class PreviewPane extends JPanel
         if (drawH != h)
             yoff = (h - drawH) / 2;
             
-        if (DEBUG.IMAGE) out("painting " + Util.tag(mImage) + "; into " + drawW + "x" + drawH);
+        //if (DEBUG.IMAGE) out("painting " + Util.tag(mImage) + "; into " + drawW + "x" + drawH);
+        if (DEBUG.IMAGE) out(String.format("painting %s into %dx%d; zoomFit=%.1f%%; netZoom=%.1f%%;",
+                                           Util.tags(mImage), drawW, drawH, zoomFit*100, netZoom*100));
         g.drawImage(mImage, xoff, yoff, drawW, drawH, null);
     }
 }
