@@ -68,7 +68,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.551 $ / $Date: 2008-05-23 15:05:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.552 $ / $Date: 2008-05-23 20:25:22 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -2656,7 +2656,7 @@ public class VUE
             XPathExpression  xSession= xPath.compile("/current_release/version/text()");
             String version = xSession.evaluate(inputSource);
             if (DEBUG.Enabled) Log.debug("got current version id [" + version + "]");
-            if(!version.trim().equalsIgnoreCase(VueResources.getString("vue.version").trim())) 
+            if(isHigherVersion(version.trim(),VueResources.getString("vue.version").trim()))  
             {
             	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
             	JPanel panel = new JPanel();
@@ -2696,6 +2696,18 @@ public class VUE
         }
    }
 
+   private static boolean isHigherVersion(String v1,String v2) {
+       
+       String[] v1Parts = v1.split("\\.");
+       String[] v2Parts = v2.split("\\.");
+       int size = v1Parts.length<v2Parts.length?v1Parts.length:v2Parts.length;
+       for(int i = 0;i <size;i++) {
+           int n1 = Integer.parseInt(v1Parts[i]);
+           int n2 = Integer.parseInt(v2Parts[i]);
+           if(n1 > n2) return true;
+       }
+       return false;
+   }
     public static String getName() {
         if (NAME == null)
             NAME = VueResources.getString("application.name");
