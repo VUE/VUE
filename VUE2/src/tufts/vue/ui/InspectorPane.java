@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.84 $ / $Date: 2008-05-22 06:22:02 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2008-05-23 14:56:15 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -68,7 +68,7 @@ public class InspectorPane extends WidgetStack
     // Resource panes
     //-------------------------------------------------------
     private final MetaDataPane mResourceMetaData = new MetaDataPane(false);
-    private final ResourcePreview mPreview = new ResourcePreview();
+    private final Preview mPreview = new Preview();
     
     private final WidgetStack stack;
     
@@ -510,11 +510,12 @@ public class InspectorPane extends WidgetStack
     }
 
 
-    private class ResourcePreview extends tufts.vue.ui.PreviewPane
+    private class Preview extends tufts.vue.ui.PreviewPane
     {
-        ResourcePreview() {
+        Preview() {
             setName("contentPreview");
         }
+
         void loadResource(Resource r) {
             super.loadResource(r);
             String title = r.getTitle();
@@ -528,14 +529,7 @@ public class InspectorPane extends WidgetStack
             Widget.setTitle(this, title);
             setToolTipText(title);
         }
-        
-        public Dimension getMinimumSize() {
-            return new Dimension(200,128);    	
-        }
-        
-        public Dimension getPreferredSize() {
-            return new Dimension(200,128);
-        }
+
     }
     private class InlineTitleResourcePreview extends tufts.vue.ui.PreviewPane
     {
