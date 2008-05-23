@@ -27,7 +27,7 @@ import javax.swing.BorderFactory;
 /**
  * Scroll pane for MapViewer / MapViewport with a focus indicator.
  *
- * @version $Revision: 1.7 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.8 $ / $Date: 2008-05-23 14:58:39 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -71,18 +71,13 @@ public class MapScrollPane extends javax.swing.JScrollPane
         //addFocusListener(viewer);
     }
 
+    @Override
     public void addNotify() {
         super.addNotify();
-        MouseWheelListener[] currentListeners = getMouseWheelListeners();
-        if (tufts.vue.DEBUG.MOUSE)
-            System.out.println("MapScrollPane: CurrentMouseWheelListeners: " + java.util.Arrays.asList(currentListeners));
-        if (currentListeners != null && currentListeners[0] != null) {
-            removeMouseWheelListener(currentListeners[0]);
-            addMouseWheelListener(new MouseWheelRelay(mViewer.getMouseWheelListener(), currentListeners[0]));
-        } else
-            addMouseWheelListener(mViewer.getMouseWheelListener());
+        GUI.MouseWheelRelay.addListenerOrIntercept(mViewer.getMouseWheelListener(), this);
     }
 
+    @Override
     protected javax.swing.JViewport createViewport() {
         return new tufts.vue.MapViewport();
     }
@@ -148,21 +143,4 @@ public class MapScrollPane extends javax.swing.JScrollPane
     }
     
     
-}
-
-
-class MouseWheelRelay implements MouseWheelListener {
-    private final MouseWheelListener head, tail;
-    public MouseWheelRelay(MouseWheelListener head, MouseWheelListener tail) {
-        if (head == null || tail == null)
-            throw new NullPointerException("MouseWheelRelay: neither head or tail can be null");
-        this.head = head;
-        this.tail = tail;
-    }
-    
-    public void mouseWheelMoved(MouseWheelEvent e) {
-        head.mouseWheelMoved(e);
-        if (!e.isConsumed())
-            tail.mouseWheelMoved(e);
-    }
 }

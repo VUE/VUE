@@ -74,7 +74,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.543 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.544 $ / $Date: 2008-05-23 14:58:05 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4410,15 +4410,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     
-    static final int RIGHT_BUTTON_MASK =
-          java.awt.event.InputEvent.BUTTON2_MASK
-        | java.awt.event.InputEvent.BUTTON3_MASK;
-    static final int ALL_MODIFIER_KEYS_MASK =
-          java.awt.event.InputEvent.SHIFT_MASK
-        | java.awt.event.InputEvent.CTRL_MASK
-        | java.awt.event.InputEvent.META_MASK
-        | java.awt.event.InputEvent.ALT_MASK;
-    
+//     static final int RIGHT_BUTTON_MASK =
+//           java.awt.event.InputEvent.BUTTON2_MASK
+//         | java.awt.event.InputEvent.BUTTON3_MASK;
     
     /** The key-code for a key being held down that is temporarily activating a tool while the key is held */
     private int tempToolKeyDown = 0;
@@ -4734,7 +4728,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // key while in presentation mode, so only allow if
                 // not already in full-screen mode.
                 //if (anyModifierKeysDown(e) || !DEBUG.Enabled || VUE.inFullScreen()) {
-                if (anyModifierKeysDown(e) || VUE.inFullScreen()) {
+                if (GUI.anyModifierKeysDown(e) || VUE.inFullScreen()) {
                     // do NOT fire this internal shortcut of '\' for fullscreen
                     // if the actual action (Command-\) was fired.
                     handled = false;
@@ -4828,7 +4822,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // If any modifier keys down, may be an action command.
                 // Is actually okay if a mouse is down while we do this tho.
 
-                if (keyChar != 0 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0 && (!sDragUnderway || isDraggingSelectorBox)) {
+                if (keyChar != 0 && GUI.noModifierKeysDown(e) && (!sDragUnderway || isDraggingSelectorBox)) {
                     for (VueTool tool : VueTool.getTools()) {
                         if (tool.getShortcutKey() == keyChar || tool.getBackwardCompatShortcutKey() == keyChar) {
                             VueToolbarController.getController().setSelectedTool(tool);
@@ -5356,7 +5350,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 
                 // SPECIAL CASE for dragging the entire selection
                 if (activeTool.supportsSelection()
-                    && (noModifierKeysDown(e) || isSystemDragStart(e))
+                    && (GUI.noModifierKeysDown(e) || isSystemDragStart(e))
                     //&& VueSelection.size() > 1
                     && VueSelection.contains(mapX, mapY))
                 {
@@ -6468,31 +6462,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             return false;
         }
 
-        private final boolean noModifierKeysDown(InputEvent e) {
-            return !anyModifierKeysDown(e);
-        }
-    
-        private final boolean anyModifierKeysDown(InputEvent e) {
-            return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) != 0;
-        }
-        
-        /*
-        // for initiating a Drag that can go off the map 
-        private static final int SYSTEM_DRAG_MODIFIER =
-        InputEvent.BUTTON1_DOWN_MASK
-        | (
-           VueUtil.isMacPlatform() ?
-           InputEvent.META_DOWN_MASK :
-           InputEvent.ALT_DOWN_MASK);
-        
-        private final boolean onlyModifierDown(MouseEvent e, int modifier) {
-            //out("RAW MODIFIER TEST [" + InputEvent.getModifiersExText(InputEvent.META_DOWN_MASK + InputEvent.BUTTON1_DOWN_MASK) + "]");
-            out("ONLY MODIFIER DOWN CHECKING AGAINST InputEvent [" + InputEvent.getModifiersExText(modifier) + "]");
-            out("ONLY MODIFIER DOWN CHECKING AGAINST MouseEVent [" + MouseEvent.getMouseModifiersText(modifier) + "]");
-            return (e.getModifiersEx() & modifier) == modifier;
-            //return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == modifier;
-        }
-        */
 
         private final int SYSTEM_DRAG_MODIFIER = VueUtil.isMacPlatform() ? InputEvent.META_MASK : (InputEvent.ALT_MASK + InputEvent.CTRL_MASK);
     
@@ -6506,20 +6475,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (VueSelection != null && VueSelection.size() == 1 && VueSelection.first().supportsCopyOnDrag())            
                 return true;            
             else
-                return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
+                return !e.isPopupTrigger() && e.getButton() <= 1 && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == SYSTEM_DRAG_MODIFIER;
         }
         
         private final boolean isDoubleClickEvent(MouseEvent e) {
             return !activeToolAteMousePress
                 && (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
-                && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+                && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == 0;
         }
         
         private final boolean isSingleClickEvent(MouseEvent e) {
             return e.getClickCount() == 1
                 && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0
-                && (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) == 0;
+                && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == 0;
         }
 
     private final boolean activeToolIsText() {
