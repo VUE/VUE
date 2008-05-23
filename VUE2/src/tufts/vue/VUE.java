@@ -59,7 +59,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.XMLConstants;
-import org.apache.xpath.NodeSet;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
@@ -69,7 +68,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.550 $ / $Date: 2008-05-22 06:03:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.551 $ / $Date: 2008-05-23 15:05:50 $ / $Author: sfraize $ 
  */
 
 public class VUE
