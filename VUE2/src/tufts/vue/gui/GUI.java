@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.109 $ / $Date: 2008-05-23 14:56:54 $ / $Author: sfraize $
+ * @version $Revision: 1.110 $ / $Date: 2008-05-23 15:08:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2516,7 +2516,7 @@ public class GUI
     
             final MouseWheelListener[] currentListeners = target.getMouseWheelListeners();
             
-            if (DEBUG.MOUSE || DEBUG.INIT || DEBUG.FOCUS || currentListeners.length > 1)
+            if (DEBUG.MOUSE || DEBUG.INIT || DEBUG.FOCUS || !VUE.isStartupUnderway() || currentListeners.length > 1)
                 out("MouseWheelRelay: " + GUI.name(override) + ": currentMouseWheelListeners: "
                     + java.util.Arrays.asList(currentListeners)
                     + "; intercept=" + GUI.name(intercept));

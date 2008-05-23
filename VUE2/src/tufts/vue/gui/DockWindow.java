@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.132 $ / $Date: 2008-05-22 07:25:34 $ / $Author: sfraize $
+ * @version $Revision: 1.133 $ / $Date: 2008-05-23 15:05:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -290,7 +290,7 @@ public class DockWindow
             // the DialogPeer -- however, this means you can never see DockWindow's
             // in working full-screen mode.
 
-            // The problem with any NON Window peer, is that Window's are the only
+            // The problem with any NON java.awt.Window peer, is that Window's are the only
             // Window subclass that can have an owner, and they always stay on top of
             // their owner (which we make our full-screen window, so they always stay on
             // top of that, and we make the owner of the full screen window the VUE
@@ -3987,6 +3987,7 @@ public class DockWindow
                 mScroller.setOpaque(false);
                 mScroller.getViewport().setOpaque(false);
                 mScroller.setBorder(null);
+                mScroller.setName(mBaseTitle);
                 mContent.add(mScroller, BorderLayout.CENTER);
                 if (DEBUG.BOXES) mScroller.setBorder(new LineBorder(Color.green, 4));
             }
