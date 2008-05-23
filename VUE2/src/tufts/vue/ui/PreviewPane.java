@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.28 $ / $Date: 2008-05-23 14:55:44 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2008-05-23 15:08:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -97,30 +97,10 @@ public class PreviewPane extends JPanel
 
     @Override
     public void addNotify() {
-        
         super.addNotify();
-        
         GUI.MouseWheelRelay.addListenerOrIntercept(this, this);
-        
-//         if (DEBUG.Enabled)
-//             addMouseWheelListener(this);
-
-
     }
 
-//     @Override
-//     public boolean postEvent(Event e) {
-//         Log.info("POST EVENT: " + e);
-//         return super.postEvent(e);
-//     }
-        
-//     @Override
-//     protected void processMouseWheelEvent(MouseWheelEvent e) {
-//         Util.printStackTrace(""+e);
-//         Log.info(e);
-//         super.processMouseWheelEvent(e);
-//     }
-    
     protected void setHeight(int h) {
         Dimension d = new Dimension(200,h);
         setMinimumSize(d);
