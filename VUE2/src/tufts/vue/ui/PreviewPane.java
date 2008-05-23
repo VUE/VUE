@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.29 $ / $Date: 2008-05-23 15:08:26 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2008-05-23 15:10:40 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -91,8 +91,6 @@ public class PreviewPane extends JPanel
                     }
                 }
             });
-
-        //super.enableEvents(MouseEvent.MOUSE_WHEEL);
     }
 
     @Override
@@ -114,7 +112,8 @@ public class PreviewPane extends JPanel
 
         e.consume();
 
-        int height = getPreferredSize().height;
+        //int height = getPreferredSize().height;
+        int height = getHeight();
 
         int rotation = e.getWheelRotation();
         if (rotation < 0)
