@@ -126,8 +126,27 @@ public class PresentationTool extends VueTool
     public static final String ResumeActionName = "Resume Presentation";
 
     public static void ResumePresentation() {
-        if (!VUE.inNativeFullScreen())
+        if (!VUE.inNativeFullScreen() && !VueUtil.isUnixPlatform())
             VUE.toggleFullScreen(true);
+        else if (!VUE.inNativeFullScreen() && VueUtil.isUnixPlatform())
+        {
+        	final PresentationTool presTool = PresentationTool.getTool();
+        	//tufts.vue.Actions.LaunchPresentation.act();
+        	presTool.handleFullScreen(true, true);
+            //VUE.toggleFullScreen(true);
+        	GUI.invokeAfterAWT(new Runnable() { public void run() {
+    			VUE.toggleFullScreen(true);
+    		}});
+    		GUI.invokeAfterAWT(new Runnable() { public void run() {
+    			//VueToolbarController.getController().setSelectedTool(presTool);
+    			VUE.setActive(VueTool.class, this, presTool);
+    		}});
+    		GUI.invokeAfterAWT(new Runnable() { public void run() {
+    			presTool.startPresentation();
+    		}});
+            //VUE.setActive(VueTool.class, , VueTool.getInstance(SelectionTool.class));
+        	
+        }
     }
         
     

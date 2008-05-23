@@ -27,7 +27,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.94 $ / $Date: 2008-04-09 00:53:44 $ / $Author: sfraize $
+ * @version $Revision: 1.95 $ / $Date: 2008-05-23 03:09:28 $ / $Author: mike $
  * @author Scott Fraize
  *
  */
@@ -57,9 +57,10 @@ public class VueUtil extends tufts.Util
         } else
             Log.debug("openURL[" + logURL + "]");
 
-        if (!isWindowsPlatform() && VUE.inNativeFullScreen())
+        if (isMacPlatform() && VUE.inNativeFullScreen())
             tufts.vue.gui.FullScreen.dropFromNativeToWorking();
-
+        else if (isUnixPlatform() && VUE.inNativeFullScreen())
+        		tufts.vue.gui.FullScreen.dropFromNativeToFrame();
         // todo: spawn this in another thread just in case it hangs
         
         if (!isMailto) {

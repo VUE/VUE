@@ -15,6 +15,7 @@
 package tufts.vue.gui;
 
 import tufts.Util;
+import tufts.vue.Actions;
 import tufts.vue.VUE;
 import tufts.vue.LWMap;
 import tufts.vue.DEBUG;
@@ -36,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.33 $ / $Date: 2008-05-22 06:01:19 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2008-05-23 03:09:28 $ / $Author: mike $
  *
  */
 
@@ -452,6 +453,10 @@ public class FullScreen
 //         }});
         
         
+    }
+    
+    public static void dropFromNativeToFrame() {
+        Actions.ToggleFullScreen.act();
     }
     
     public static synchronized void toggleFullScreen(boolean goNative)
