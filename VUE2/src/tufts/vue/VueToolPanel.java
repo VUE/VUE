@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.36 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $ 
+ * @version $Revision: 1.37 $ / $Date: 2008-05-23 04:31:01 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -240,6 +240,7 @@ public class VueToolPanel extends JPanel
         		
         		//PaletteButtonItem[] items = button.getPaletteButtonItems();
         		button.setPropertiesFromItem((PaletteButton) mToolButtons.get(pTool.getID()));
+        		
         		parentTool.setSelectedSubTool(pTool);
         		//button.setContext( pTool);
         		if( button != null) 
@@ -319,7 +320,7 @@ public class VueToolPanel extends JPanel
                     item.setPressedIcon( subTool.getDownIcon() );
                     item.setMenuItemIcon( subTool.getMenuItemIcon() );
                     item.setMenuItemSelectedIcon( subTool.getMenuItemSelectedIcon() );
-                    //item.setToolTipText( subTool.getToolTipText() );
+                    item.setToolTipText( subTool.getToolTipText() );
                     //item.setToolTipText( pTool.getToolTipText() );
                     item.addActionListener( subTool);
 					

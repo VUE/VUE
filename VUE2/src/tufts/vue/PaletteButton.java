@@ -32,7 +32,7 @@ import javax.swing.border.*;
  * It is used for the main tool bar tool
  *
  * @author csb
- * @version $Revision: 1.20 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.21 $ / $Date: 2008-05-23 04:31:01 $ / $Author: mike $
  **/
 public class PaletteButton extends JRadioButton
 {
@@ -378,7 +378,8 @@ public class PaletteButton extends JRadioButton
         this.setSelectedIcon( pItem.getSelectedIcon() );
         this.setRolloverIcon( pItem.getRolloverIcon() );
         this.setDisabledIcon( pItem.getDisabledIcon() );
-		
+        if (pItem.getToolTipText() != null)
+        	this.setToolTipText(pItem.getToolTipText());
         this.setRolloverEnabled( getRolloverIcon() != null);
     }
 	
