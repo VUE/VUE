@@ -501,7 +501,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     
         private TextRow mTextRow;
         private String extension;
-        private Rectangle2D.Float boxBounds;
+        private final Rectangle2D.Float boxBounds = new Rectangle2D.Float();
         
         Resource(LWComponent lwc) { super(lwc); }
         Resource(LWComponent lwc, Color c) {
@@ -743,19 +743,18 @@ public abstract class LWIcon extends Rectangle2D.Float
                 mTextRow = TextRow.instance(extension.toLowerCase(), FONT_ICON);
             }
             
-            if (boxBounds == null)
-                boxBounds = new Rectangle2D.Float();
-            
             // todo: should only have to do this once, but we need to fix init
             // so that this doesn't get called till Rectangle2D.this is fully positioned
             boxBounds.setRect(this);
-            final float insetW = 2;
-            final float insetH = 1;
-            boxBounds.x += insetW;
-            boxBounds.y += insetH;
-            boxBounds.width -= insetW * 2;
-            boxBounds.height -= insetH * 2;
-
+            if (mLWC instanceof LWNode) {
+                final float insetW = 2;
+                final float insetH = 1;
+                boxBounds.x += insetW;
+                boxBounds.y += insetH;
+                boxBounds.width -= insetW * 2;
+                boxBounds.height -= insetH * 2;
+            }
+            
 //             // Resource icon special case can override parent set width:
 //             super.width = mTextRow.width;
 //             if (super.width < super.mMinWidth)
@@ -797,12 +796,15 @@ public abstract class LWIcon extends Rectangle2D.Float
             }
 
             // TODO PERF: if BoxFill has alpha, pre-mix it with node.getRenderFillColor()
+            final Color fill = mLWC.getRenderFillColor(dc); // todo: getContrastColor(dc)
             
-            dc.g.setColor(BoxFill);
+//             if (mLWC instanceof LWLink)
+//                 dc.g.setColor(fill);
+//             else
+                dc.g.setColor(BoxFill);
             dc.g.fill(boxBounds);
             //dc.g.setColor(BoxBorder);
-            final Color c = mLWC.getRenderFillColor(dc); // todo: getContrastColor(dc)
-            dc.g.setColor(c == null ? Color.gray : c.darker());
+            dc.g.setColor(fill == null ? Color.gray : fill.darker());
             dc.g.setStroke(STROKE_HALF);
             dc.g.draw(boxBounds);
             dc.g.setColor(mColor);
