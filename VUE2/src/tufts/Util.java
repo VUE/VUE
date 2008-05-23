@@ -687,7 +687,7 @@ public class Util
             } catch (Throwable t) {
                 printStackTrace(t, cmd + " " + url);
             }
-        } if (getJavaVersion() >= 1.4f) {
+        } else if (getJavaVersion() >= 1.4f) {
             // Can't call this directly because wont compile on the PC
             //com.apple.eio.FileManager.openURL(url);
             
