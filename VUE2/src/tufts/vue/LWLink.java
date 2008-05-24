@@ -42,7 +42,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.186 $ / $Date: 2008-05-07 19:27:27 $ / $Author: sfraize $
+ * @version $Revision: 1.187 $ / $Date: 2008-05-24 20:33:45 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2909,7 +2909,7 @@ public class LWLink extends LWComponent
         float totalHeight = 0;
         float totalWidth = 0;
 
-        boolean putBelow = hasResource();
+        final boolean putBelow = hasResource();
         
         // Always call LWIcon.Block.layout first to have it compute size/determine if showing
         // before asking it if isShowing()
