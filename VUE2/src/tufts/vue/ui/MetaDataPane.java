@@ -60,7 +60,7 @@ import javax.swing.JButton;
 * be displayed (initally 20), but this number is doubled when exceeded.
 *
 */
-public class MetaDataPane extends JPanel
+public class MetaDataPane extends tufts.vue.gui.Widget
    implements PropertyMap.Listener, Runnable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MetaDataPane.class);
@@ -71,11 +71,13 @@ public class MetaDataPane extends JPanel
     private final boolean inOwnedScroll;
     private JScrollPane mScrollPane;
     private boolean inScroll;
+    
+    /** The current PropertyMap we're displaying and listening to updates from */
+    private PropertyMap mProperties;
    
     public MetaDataPane(boolean scroll) {
-        super(new BorderLayout());
+        super("contentInfo");
         inOwnedScroll = scroll;
-        //setName("contentInfo");
         ensureSlots(20);
        
         mLabels[0].setText("X"); // make sure label will know it's max height
@@ -280,67 +282,112 @@ public class MetaDataPane extends JPanel
         loadProperties(r.getProperties());
     }
    
-    private volatile PropertyMap mProperties;
-   
-    public /*synchronized*/ void propertyMapChanged(PropertyMap source) {
+    /** PropertyMap.Listener event delivery: do not synchronize this method,
+     * as the call is usually coming from an ImgLoader thread, and
+     * we must not synchronize or we risk deadlock */
+    
+    public void propertyMapChanged(final PropertyMap source) {
         
-        // CAN DEADLOCK HERE OBTAINING LOCK HELD BY AWT (if we synchronize this method)
+        // Note: we can deadlock here obtaining lock held by awt (if we synchronize this method)
         // This is normally called NOT from an AWT thread (e.g., from an ImageLoader)
+
+        // If we synchronize this method, this can happen:
+
+        // Thread-AWT is trying to load new properties (a ResourceSelection change has
+        // lead to MetaDataPane.loadProperties), and locks the singleton MetaDataPane to
+        // do so.  It has not yet attempted to obtain any PropertyMap locks.
+        
+        // Thread-ImageLoader updated PropertyMap-X (e.g., called releaseChanges()), and
+        // has locked PropertyMap-X to notify all it's listeners of the change (in this
+        // case, call MetaDataPane.propertyMapChanged).
+
+        // The call in Thread-ImageLoader to propertyMapChanged cannot complete until
+        // the AWT lock on MetaDataPane is released.
+
+        // The call in Thread-AWT, already locking AWT on MetaDataPane, now attempting to
+        // lock PropertyMap-X to remove us as a listener, cannot complete until Thread-ImageLoader
+        // releases the lock on PropertyMap-X, which is attempting to notify all it's listeners.
+
+        // Thus, we hava a classic deadlock.
+
+        // To handle this, we force this event to ultimately be delivered on the AWT thread.
         
         if (DEBUG.IMAGE) Log.info("propertyMapChanged entry " + Util.tag(source));
 
-        if (mProperties == source) {
+        // This update will most often be coming from an ImageLoader thread.
+        // updateDisplay, once it's holding the lock (it's synchronized), will check the
+        // current value of mProperties to see if it matches the current update source,
+        // and only perform the update if mProperties hasn't changed since we got this
+        // notification.
 
-            // Property map changes are low-priority updates (as opposed to loading
-            // new sets of properties)  E.g., if a new set of properties has been
-            // loaded by the time we get an update from a listener, don't bother
-            // to update.  Even tho we remove ourseleves from old PropertyMap
-            // listeners when we load a new PropertyMap, it's possible to
-            // get a call here before that's complete, and as we're not synchronized
-            // on this method (to prevent deadlocks), we need to double-check this.
-            // updateDisplay is synchronized, so the eventual changes are still
-            // thread-safe.
-
-            // This update will most often be coming from an ImageLoader thread.
-
-            final PropertyMap lowPriorityProperties = mProperties;
-
-            GUI.invokeAfterAWT(new Runnable() {
-                    public void run() {
-                        if (lowPriorityProperties == mProperties)
-                            updateDisplay(lowPriorityProperties);
-                    }
-                });
-        }
+        GUI.invokeAfterAWT(new Runnable() {
+                public void run() {
+                    updateDisplay(source);
+                }
+            });
         
         if (DEBUG.IMAGE) Log.info("propertyMapChanged exit  " + Util.tag(source));
     }
+
+    private static volatile int LoadCount = 0;
+    
+    public void loadProperties(final PropertyMap propertyMap) {
+
+        if (DEBUG.THREAD) Log.debug("loadProperties: " + Util.tag(propertyMap));
+                                    
+        if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+               
+            // If called from AWT, this would normally be the result of a ResourceSelection change,
+            // and we can proceed immediately.  This is the common case.
+            
+            _loadProperties(propertyMap);
+            
+        } else {
+
+            // If NOT called from AWT, force the event to happen on AWT or
+            // we risk a dead-lock.  This is not the normal case, but
+            // we handle it to ensure we can never dead-lock.
+
+            GUI.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        _loadProperties(propertyMap);
+                    }
+                });
+        }
+    }
    
-    // Note: if this method is called from a non-AWT thread, we could risk deadlock.
-    public synchronized void loadProperties(PropertyMap propertyMap)
+    private synchronized void _loadProperties(PropertyMap propertyMap)
     {
         if (DEBUG.THREAD || DEBUG.RESOURCE || DEBUG.IMAGE) out("loadProperties: " + propertyMap.size() + " key/value pairs");
        
         try {
+
+            // Note: if another thread has a lock on mProperties (e.g., PropertyMap it's in the middle
+            // of delivering an update to us about the same mProperties), we could dead-lock
+            // in propertyMapChanged above if it was synchronized.
            
             if (mProperties != propertyMap) {
                 if (mProperties != null)
-                    mProperties.removeListener(this); // *AWT* THREAD: CAN DEADLOCK IN PropertyMap.java line 175 (ImageLoader-26 contention)
+                    mProperties.removeListener(this); 
                 mProperties = propertyMap;
                 mProperties.addListener(this);
                 updateDisplay(mProperties);
             }
-            else
-                Log.info("already had properties: " + propertyMap);
            
         } catch (Throwable t) {
             Log.error("loadProperties", t);
         }
     }
 
+    // Note: if this method is called from a non-AWT thread, we could risk deadlock.
     private synchronized void updateDisplay(final PropertyMap properties)
     {
-        if (DEBUG.THREAD || DEBUG.RESOURCE) out("updateProperties: " + properties.size() + " key/value pairs");
+        if (mProperties != properties) {
+            if (DEBUG.Enabled) Log.debug("too late for update to " + properties);
+            return;
+        }
+        
+        if (DEBUG.THREAD || DEBUG.RESOURCE) out("updateDisplay: " + properties.size() + " key/value pairs");
        
         if (DEBUG.SCROLL)
             Log.debug("scroll model listeners: "
@@ -355,14 +402,14 @@ public class MetaDataPane extends JPanel
 
         try {
 
-            if (DEBUG.RESOURCE || DEBUG.THREAD) out("loadProperties: getTableModel() on " + tufts.Util.tag(properties));
+            if (DEBUG.RESOURCE || DEBUG.THREAD) out("updateDisplay: getTableModel() on " + tufts.Util.tag(properties));
            
-            if (mProperties != properties)
-                throw new IllegalStateException("thread collision; " + this);
-                   
+            // Note: PropertyMap.getTableModel() is synchronized, as is PropertyMap.addListener/removeListener,
+            // so if this (or they) are called while we already hold a lock on the PropertyMap
+            // from another thread, we'll deadlock.
             final TableModel model = properties.getTableModel();
 
-            if (DEBUG.RESOURCE) out("loadProperties: model=" + model
+            if (DEBUG.RESOURCE) out("updateDisplay: model=" + model
                                     + " modelSlots=" + model.getRowCount()
                                     + " slotsAvail=" + mLabels.length
                                     );
@@ -374,7 +421,7 @@ public class MetaDataPane extends JPanel
            
             loadAllRows(model);
            
-            GUI.invokeAfterAWT(this); // TODO: Do we still need this as an invoke if this.scroll == false ?
+            GUI.invokeAfterAWT(this);
 
         } catch (Throwable t) {
             mGridBag.setPaintDisabled(false);
