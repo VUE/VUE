@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.50 $ / $Date: 2008-04-15 06:45:48 $ / $Author: sfraize $
+ * @version $Revision: 1.51 $ / $Date: 2008-05-24 20:33:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -616,8 +616,8 @@ public class Images
          * @param resource - if this is tied to a resource to update with meta-data after loading
          */
         Loader(ImageSource imageSRC, Listener l) {
+            //super(String.format("IL-%02d %s", LoaderCount++, imageSRC));
             super(String.format("ImgLoader-%02d", LoaderCount++));
-            //super(String.format("VUE-ImgLoader-%02d", LoaderCount++));
             if (l == null)
                 Log.warn(this + "; nobody listening: image will be quietly cached: " + imageSRC);
             this.imageSRC = imageSRC;
@@ -1358,6 +1358,9 @@ public class Images
             imageSRC.resource.setProperty(Resource.IMAGE_FORMAT, reader.getFormatName());
             imageSRC.resource.setCached(true);
 
+            // Note: If MetaDataPane is not carefully coded, this call
+            // can lead to a DEADLOCK against the AWT thread (e.g.,
+            // entering PropertyMap.removeListener)
             imageSRC.resource.getProperties().releaseChanges();
         }
 
