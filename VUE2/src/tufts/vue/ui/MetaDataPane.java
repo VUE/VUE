@@ -68,50 +68,61 @@ public class MetaDataPane extends JPanel
     private JLabel[] mLabels;
     private JTextArea[] mValues;
     private final ScrollableGrid mGridBag;
-    private final JScrollPane mScrollPane = new JScrollPane();   
-    private boolean scroll= false;
+    private final boolean inOwnedScroll;
+    private JScrollPane mScrollPane;
+    private boolean inScroll;
    
-   public MetaDataPane(boolean scroll) {
-       super(new BorderLayout());
-       this.scroll = scroll;
-       //setName("contentInfo");
-       ensureSlots(20);
+    public MetaDataPane(boolean scroll) {
+        super(new BorderLayout());
+        inOwnedScroll = scroll;
+        //setName("contentInfo");
+        ensureSlots(20);
        
-       mLabels[0].setText("X"); // make sure label will know it's max height
-       final int scrollUnit = mLabels[0].getPreferredSize().height + 4;
-       mGridBag = new ScrollableGrid(this, scrollUnit);
+        mLabels[0].setText("X"); // make sure label will know it's max height
+        final int scrollUnit = mLabels[0].getPreferredSize().height + 4;
+        mGridBag = new ScrollableGrid(this, scrollUnit);
 
-       Insets insets = (Insets) GUI.WidgetInsets.clone();
-       insets.top = insets.bottom = 0;
-       insets.right = 1;
+        Insets insets = (Insets) GUI.WidgetInsets.clone();
+        insets.top = insets.bottom = 0;
+        insets.right = 1;
        
-       mGridBag.setBorder(new EmptyBorder(insets));
-       //mGridBag.setBorder(new LineBorder(Color.red));
+        mGridBag.setBorder(new EmptyBorder(insets));
+        //mGridBag.setBorder(new LineBorder(Color.red));
        
-       addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
+        addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
 
-       if (scroll) {
-           mScrollPane.setViewportView(mGridBag);
-           mScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-           mScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-           mScrollPane.setOpaque(false);
-           mScrollPane.getViewport().setOpaque(false);
-           //scrollPane.setBorder(null); // no focus border
-           //scrollPane.getViewport().setBorder(null); // no focus border
-           add(mScrollPane);
-       } else {
-           add(mGridBag);
-       }
+        if (scroll) {
+            mScrollPane = new JScrollPane();
+            mScrollPane.setViewportView(mGridBag);
+            mScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            mScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            mScrollPane.setOpaque(false);
+            mScrollPane.getViewport().setOpaque(false);
+            //scrollPane.setBorder(null); // no focus border
+            //scrollPane.getViewport().setBorder(null); // no focus border
+            add(mScrollPane);
+        } else {
+            add(mGridBag);
+        }
 
-      /* if (DEBUG.Enabled)
-           mScrollPane.getVerticalScrollBar().getModel().addChangeListener(new ChangeListener() {
-                   public void stateChanged(ChangeEvent e) {
-                       if (DEBUG.SCROLL) VUE.Log.debug("vertScrollChange " + e.getSource());
-                   }
-               });
-       */
+//         if (DEBUG.Enabled)
+//             mScrollPane.getVerticalScrollBar().getModel().addChangeListener(new ChangeListener() {
+//                     public void stateChanged(ChangeEvent e) {
+//                         if (DEBUG.SCROLL) VUE.Log.debug("vertScrollChange " + e.getSource());
+//                     }
+//                 });
 
-   }
+    }
+
+    @Override
+    public void addNotify() {
+        super.addNotify();
+
+        if (mScrollPane == null)
+            mScrollPane = (JScrollPane) javax.swing.SwingUtilities.getAncestorOfClass(JScrollPane.class, this);
+
+        inScroll = (mScrollPane != null);
+    }
 
     private JLabel createLabel() {
         final JLabel label;
@@ -269,206 +280,179 @@ public class MetaDataPane extends JPanel
         loadProperties(r.getProperties());
     }
    
-//     private Dimension size = new Dimension(200,100);
+    private volatile PropertyMap mProperties;
    
-//     @Override
-//     public Dimension getMinimumSize()
-//     {
-//         if (scroll)
-//             return super.getMinimumSize();
-	   
-//         int height = 5;
-//         int lines = 1;
-//         for (int i = 0; i < mValues.length; i++)
-//             {
-//                 lines = getWrappedLines(mValues[i]);
-//                 if (mValues[i].isVisible())
-//                     {
-//                         FontMetrics fm = mValues[i].getFontMetrics(mValues[i].getFont());
-//                         height +=((lines * fm.getHeight()) + TopPad + BotPad);
-//                     }
-//                 //I wasn't taking into account the space between values
-//                 height +=4;
-//             }
-           
-//         if (height > size.getHeight())
-//             return new Dimension(200,height);
-//         else
-//             return size;    	
-//     }
-   
-//     @Override
-//     public Dimension getPreferredSize()
-//     {
-//         if (scroll)
-//             return super.getMinimumSize();
-	   
-//         return getMinimumSize();
-//     }
-   
-    private PropertyMap mRsrcProps;
-   
-    public synchronized void propertyMapChanged(PropertyMap source) {
-        if (mRsrcProps == source)
-            loadProperties(source);
+    public /*synchronized*/ void propertyMapChanged(PropertyMap source) {
+        
+        // CAN DEADLOCK HERE OBTAINING LOCK HELD BY AWT (if we synchronize this method)
+        // This is normally called NOT from an AWT thread (e.g., from an ImageLoader)
+        
+        if (DEBUG.IMAGE) Log.info("propertyMapChanged entry " + Util.tag(source));
+
+        if (mProperties == source) {
+
+            // Property map changes are low-priority updates (as opposed to loading
+            // new sets of properties)  E.g., if a new set of properties has been
+            // loaded by the time we get an update from a listener, don't bother
+            // to update.  Even tho we remove ourseleves from old PropertyMap
+            // listeners when we load a new PropertyMap, it's possible to
+            // get a call here before that's complete, and as we're not synchronized
+            // on this method (to prevent deadlocks), we need to double-check this.
+            // updateDisplay is synchronized, so the eventual changes are still
+            // thread-safe.
+
+            // This update will most often be coming from an ImageLoader thread.
+
+            final PropertyMap lowPriorityProperties = mProperties;
+
+            GUI.invokeAfterAWT(new Runnable() {
+                    public void run() {
+                        if (lowPriorityProperties == mProperties)
+                            updateDisplay(lowPriorityProperties);
+                    }
+                });
+        }
+        
+        if (DEBUG.IMAGE) Log.info("propertyMapChanged exit  " + Util.tag(source));
     }
    
-    public void loadProperties(final PropertyMap resourceProperties) {
-
-           if (javax.swing.SwingUtilities.isEventDispatchThread()) {
-               
-               doLoadProperties(resourceProperties);
-
-           } else {
-               // 2008-04-12 SMF: if we're in an image loader thread when
-               // we get this callback, we risk deadlock -- this should fix it.
-               GUI.invokeAfterAWT(new Runnable() {
-                       public void run() {
-                           doLoadProperties(resourceProperties);
-                       }
-                   });
-           }
+    // Note: if this method is called from a non-AWT thread, we could risk deadlock.
+    public synchronized void loadProperties(PropertyMap propertyMap)
+    {
+        if (DEBUG.THREAD || DEBUG.RESOURCE || DEBUG.IMAGE) out("loadProperties: " + propertyMap.size() + " key/value pairs");
+       
+        try {
+           
+            if (mProperties != propertyMap) {
+                if (mProperties != null)
+                    mProperties.removeListener(this); // *AWT* THREAD: CAN DEADLOCK IN PropertyMap.java line 175 (ImageLoader-26 contention)
+                mProperties = propertyMap;
+                mProperties.addListener(this);
+                updateDisplay(mProperties);
+            }
+            else
+                Log.info("already had properties: " + propertyMap);
+           
+        } catch (Throwable t) {
+            Log.error("loadProperties", t);
+        }
     }
-   
-   private synchronized void doLoadProperties(PropertyMap rsrcProps)
-   {
-       // TODO: loops if we don't do this first: not safe!  we should be loading
-       // directly from the props themselves, and by synchronized on them...  tho is
-       // nice that only a single sorted list exists for each resource, tho of course,
-       // then we have tons of cached sorted lists laying about.
 
-       if (DEBUG.RESOURCE) out("loadProperties: " + rsrcProps.size() + " key/value pairs");
+    private synchronized void updateDisplay(final PropertyMap properties)
+    {
+        if (DEBUG.THREAD || DEBUG.RESOURCE) out("updateProperties: " + properties.size() + " key/value pairs");
        
-       if (DEBUG.SCROLL)
-           Log.debug("scroll model listeners: "
-                         + Arrays.asList(((DefaultBoundedRangeModel)
-                                          mScrollPane.getVerticalScrollBar().getModel())
-                                         .getListeners(ChangeListener.class)));
+        if (DEBUG.SCROLL)
+            Log.debug("scroll model listeners: "
+                      + Arrays.asList(((DefaultBoundedRangeModel)
+                                       mScrollPane.getVerticalScrollBar().getModel())
+                                      .getListeners(ChangeListener.class)));
 
-	if (scroll)
-       mScrollPane.getVerticalScrollBar().setValueIsAdjusting(true);
+	if (inScroll)
+            mScrollPane.getVerticalScrollBar().setValueIsAdjusting(true);
 
-       mGridBag.setPaintDisabled(true);
+        mGridBag.setPaintDisabled(true);
 
-       try {
-           // Description of a dead-lock that has been fixed by having
-           // PropertyMap.getTableModel() sync on it's own lock:
+        try {
+
+            if (DEBUG.RESOURCE || DEBUG.THREAD) out("loadProperties: getTableModel() on " + tufts.Util.tag(properties));
            
-           // Example: VUE-ImageLoader49 holds changes on the props, then goes to notify
-           // us here in the MetaData pane.  But The AWT thread had already put is in
-           // here, right below, trying to call getTableModel(), but before we can call
-           // it, the above notification needs to be released.  If the props had CHANGED
-           // to entirely different set, from another resource, this wouldn't have been
-           // a problem, because the update would have been skipped above in
-           // propertyMapChanged.
+            if (mProperties != properties)
+                throw new IllegalStateException("thread collision; " + this);
+                   
+            final TableModel model = properties.getTableModel();
 
-           // Put another way: the PropertyMap is trying to notify us, but is waiting
-           // for us to break out of this method for the lock to release, so
-           // propertyMapChanged can be called, but then we call getTableModel(), which
-           // is locked on that same PropertyMap that is waiting for us, and thus
-           // deadlock...
+            if (DEBUG.RESOURCE) out("loadProperties: model=" + model
+                                    + " modelSlots=" + model.getRowCount()
+                                    + " slotsAvail=" + mLabels.length
+                                    );
+           
+            if (ensureSlots(model.getRowCount())) {
+                mGridBag.removeAll();
+                addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
+            }
+           
+            loadAllRows(model);
+           
+            GUI.invokeAfterAWT(this); // TODO: Do we still need this as an invoke if this.scroll == false ?
 
-           if (DEBUG.RESOURCE || DEBUG.THREAD) out("loadProperties: getTableModel() on " + tufts.Util.tag(rsrcProps));
-           
-           TableModel model = rsrcProps.getTableModel();
+        } catch (Throwable t) {
+            mGridBag.setPaintDisabled(false);
+            Log.error("updateDisplay", t);
+        }
+    }
+    
 
-           if (DEBUG.RESOURCE) out("loadProperties: model=" + model
-                                   + " modelSlots=" + model.getRowCount()
-                                   + " slotsAvail=" + mLabels.length
-                                   );
+    public synchronized void run() {
+        try {
            
-           if (mRsrcProps != rsrcProps) {
-               if (mRsrcProps != null)
-                   mRsrcProps.removeListener(this);
-               mRsrcProps = rsrcProps;
-               mRsrcProps.addListener(this);
-           }
+            // Always put the scroll-bar back at the top, as it defaults to moving to the
+            // bottom.  E.g., when selecting through search results that all have tons of
+            // meta-data, we're left looking at just the meta-data, not the preview.
+            // Ideally, we could check the scroller position first to see if we were
+            // already at the top at the start and only do this if that was the case.
            
-           if (ensureSlots(model.getRowCount())) {
-               mGridBag.removeAll();
-               addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
-           }
-           
-           loadAllRows(model);
-           
-           GUI.invokeAfterAWT(this);
+//             VUE.getInfoDock().scrollToTop();
+//             if (inOwnedScroll)
+//                 mScrollPane.getVerticalScrollBar().setValue(0);
+//             // Now release all scroll-bar updates.
+//             if (inScroll) 
+//                 mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
 
-       } catch (Throwable t) {
-           mGridBag.setPaintDisabled(false);
-           tufts.Util.printStackTrace(t);
-       }
+            if (inScroll) {
+                mScrollPane.getVerticalScrollBar().setValue(0);
+                mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
+            }
            
-       
-       /*
-       // none of these sync's seem to making any difference
-       synchronized (mScrollPane.getTreeLock()) {
-       synchronized (mScrollPane.getViewport().getTreeLock()) {
-       synchronized (getTreeLock()) {
-       }}}
-       */
-       
-   }
+            // Now allow the grid to repaint.
+        } finally {
+            mGridBag.setPaintDisabled(false);
+            mGridBag.repaint();
+        }
+    }
 
-   public synchronized void run() {
-       try {
-           // Always put the scroll-bar back at the top, as it defaults
-           // to moving to the bottom.
-    	   VUE.getInfoDock().scrollToTop();
-           if (scroll)
-           mScrollPane.getVerticalScrollBar().setValue(0);
-           // Now release all scroll-bar updates.
-           if (scroll)
-           mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
-           // Now allow the grid to repaint.
-       } finally {
-           mGridBag.setPaintDisabled(false);
-           mGridBag.repaint();
-       }
-       //loadAllRows(mRsrcProps.getTableModel());
-   }
-
-   private void loadAllRows(TableModel model) {
-       int rows = model.getRowCount();
-       int row;
-   //    height=5;
-       for (row = 0; row < rows; row++) {
-           final Object label =  model.getValueAt(row, 0);
-           final String labelTxt = "" + label;
-           final Object value = model.getValueAt(row, 1);
-           final String valueTxt =  "" + value;
+    private void loadAllRows(TableModel model) {
+        int rows = model.getRowCount();
+        int row;
+        //    height=5;
+        for (row = 0; row < rows; row++) {
+            final Object label =  model.getValueAt(row, 0);
+            final String labelTxt = "" + label;
+            final Object value = model.getValueAt(row, 1);
+            final String valueTxt =  "" + value;
            
-           // loadRow(row++, label, value); // debug non-HTML display
-           // FYI, some kind of HTML bug for text strings with leading slashes
-           // -- they show up empty.  Right now, we're disable HTML for
-           // all synthetic keys, which covers URL.path, which was the problem.
-           //if (label.indexOf(".") < 0) 
-           //value = "<html>"+value;
+            // loadRow(row++, label, value); // debug non-HTML display
+            // FYI, some kind of HTML bug for text strings with leading slashes
+            // -- they show up empty.  Right now, we're disable HTML for
+            // all synthetic keys, which covers URL.path, which was the problem.
+            //if (label.indexOf(".") < 0) 
+            //value = "<html>"+value;
 
-           if (! DEBUG.Enabled) {
-               // If we're not in debug mode, make sure hidden properties stay hidden
+            if (! DEBUG.Enabled) {
+                // If we're not in debug mode, make sure hidden properties stay hidden
                
-               if (Resource.isHiddenPropertyKey(labelTxt)) {
-                   mLabels[row].setVisible(false);
-                   mValues[row].setVisible(false);
-                   continue;
-               }
-           }
+                if (Resource.isHiddenPropertyKey(labelTxt)) {
+                    mLabels[row].setVisible(false);
+                    mValues[row].setVisible(false);
+                    continue;
+                }
+            }
 
-           try {
-               loadRow(row, labelTxt, value, valueTxt);
-           } catch (Throwable t) {
-               Log.error("Failed to load row " + row + "; label= " + Util.tags(label) + "; value=" + Util.tags(value), new Throwable());
-           }
+            try {
+                loadRow(row, labelTxt, value, valueTxt);
+            } catch (Throwable t) {
+                Log.error("Failed to load row " + row + "; label= " + Util.tags(label) + "; value=" + Util.tags(value), new Throwable());
+            }
        
            
-       }
-       for (; row < mLabels.length; row++) {
-           //out(" clear row " + row);
-           mLabels[row].setVisible(false);
-           mValues[row].setVisible(false);
-       }
-       //mScrollPane.getViewport().setViewPosition(new Point(0,0));
-   }
+        }
+        for (; row < mLabels.length; row++) {
+            //out(" clear row " + row);
+            mLabels[row].setVisible(false);
+            mValues[row].setVisible(false);
+        }
+        //mScrollPane.getViewport().setViewPosition(new Point(0,0));
+    }
 
 
     private MouseListener CommonURLListener = new URLMouseListener();
@@ -720,5 +704,161 @@ public class MetaDataPane extends JPanel
 	   return linesOfText;
    	}
 
+
+//     public void loadProperties(final PropertyMap resourceProperties) {
+
+//         if (DEBUG.THREAD) Log.debug("loadProperties: " + Util.tag(resourceProperties));
+                                    
+//         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
+               
+//             // If called from AWT, this should normally be the result of a ResourceSelection change,
+//             // and that should get immediate priority
+//             doLoadProperties(resourceProperties);
+            
+//         } else {
+
+//             // If NOT called from AWT (e.g., an ImageLoder), this would normally be a LOW priority
+//             // update, which doesn't need to happen immediately.
+
+//             // Does this really make sense?  All we're checking is if the
+//             // current properties has changed at all.  If this was NOT a call
+//             // from propertyMapChanged, it makes no sense: TODO TODO TODO: MOVE THIS
+//             // CODE UP TO PROPERTY MAP CHANGED
+
+//             // TODO TODO: AND: CAN SPLIT OUT LOAD v.s. RELOAD-CODE: RELOAD-CODE
+//             // NEVER HAS TO CHECK FOR ADDING/REMOVING LISTENERS, OR SET mProperties!
+            
+//             final Object lowPriorityProperties = mProperties;
+            
+//             // 2008-04-12 SMF: if we're in an image loader thread when
+//             // we get this callback, we risk deadlock -- this should fix it.
+//             GUI.invokeAfterAWT(new Runnable() {
+//                     public void run() {
+//                         if (lowPriorityProperties == mProperties)
+//                             doLoadProperties(resourceProperties);
+//                     }
+//                 });
+//         }
+//     }
+   
+//    private synchronized void doLoadProperties(PropertyMap rsrcProps)
+//    {
+//        // TODO: loops if we don't do this first: not safe!  we should be loading
+//        // directly from the props themselves, and by synchronized on them...  tho is
+//        // nice that only a single sorted list exists for each resource, tho of course,
+//        // then we have tons of cached sorted lists laying about.
+
+//        if (DEBUG.THREAD || DEBUG.RESOURCE) out("loadProperties: " + rsrcProps.size() + " key/value pairs");
+       
+//        if (DEBUG.SCROLL)
+//            Log.debug("scroll model listeners: "
+//                          + Arrays.asList(((DefaultBoundedRangeModel)
+//                                           mScrollPane.getVerticalScrollBar().getModel())
+//                                          .getListeners(ChangeListener.class)));
+
+// 	if (scroll)
+//             mScrollPane.getVerticalScrollBar().setValueIsAdjusting(true);
+
+//        mGridBag.setPaintDisabled(true);
+
+//        try {
+//            // Description of a dead-lock that has been fixed by having
+//            // PropertyMap.getTableModel() sync on it's own lock:
+           
+//            // Example: VUE-ImageLoader49 holds changes on the props, then goes to notify
+//            // us here in the MetaData pane.  But The AWT thread had already put is in
+//            // here, right below, trying to call getTableModel(), but before we can call
+//            // it, the above notification needs to be released.  If the props had CHANGED
+//            // to entirely different set, from another resource, this wouldn't have been
+//            // a problem, because the update would have been skipped above in
+//            // propertyMapChanged.
+
+//            // Put another way: the PropertyMap is trying to notify us, but is waiting
+//            // for us to break out of this method for the lock to release, so
+//            // propertyMapChanged can be called, but then we call getTableModel(), which
+//            // is locked on that same PropertyMap that is waiting for us, and thus
+//            // deadlock...
+
+//            if (DEBUG.RESOURCE || DEBUG.THREAD) out("loadProperties: getTableModel() on " + tufts.Util.tag(rsrcProps));
+           
+//            TableModel model = rsrcProps.getTableModel();
+
+//            if (DEBUG.RESOURCE) out("loadProperties: model=" + model
+//                                    + " modelSlots=" + model.getRowCount()
+//                                    + " slotsAvail=" + mLabels.length
+//                                    );
+           
+//            if (mProperties != rsrcProps) {
+//                if (mProperties != null)
+//                    mProperties.removeListener(this); // *AWT* THREAD: CAN DEADLOCK IN PropertyMap.java line 175 (ImageLoader-26 contention)
+//                mProperties = rsrcProps;
+//                mProperties.addListener(this);
+//            }
+           
+//            if (ensureSlots(model.getRowCount())) {
+//                mGridBag.removeAll();
+//                addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
+//            }
+           
+//            loadAllRows(model);
+           
+//            GUI.invokeAfterAWT(this); // TODO: Do we still need this as an invoke if this.scroll == false ?
+
+//        } catch (Throwable t) {
+//            mGridBag.setPaintDisabled(false);
+//            tufts.Util.printStackTrace(t);
+//        }
+           
+       
+//        /*
+//        // none of these sync's seem to making any difference
+//        synchronized (mScrollPane.getTreeLock()) {
+//        synchronized (mScrollPane.getViewport().getTreeLock()) {
+//        synchronized (getTreeLock()) {
+//        }}}
+//        */
+       
+//    }
+
+
+//     private Dimension size = new Dimension(200,100);
+   
+//     @Override
+//     public Dimension getMinimumSize()
+//     {
+//         if (scroll)
+//             return super.getMinimumSize();
+	   
+//         int height = 5;
+//         int lines = 1;
+//         for (int i = 0; i < mValues.length; i++)
+//             {
+//                 lines = getWrappedLines(mValues[i]);
+//                 if (mValues[i].isVisible())
+//                     {
+//                         FontMetrics fm = mValues[i].getFontMetrics(mValues[i].getFont());
+//                         height +=((lines * fm.getHeight()) + TopPad + BotPad);
+//                     }
+//                 //I wasn't taking into account the space between values
+//                 height +=4;
+//             }
+           
+//         if (height > size.getHeight())
+//             return new Dimension(200,height);
+//         else
+//             return size;    	
+//     }
+   
+//     @Override
+//     public Dimension getPreferredSize()
+//     {
+//         if (scroll)
+//             return super.getMinimumSize();
+	   
+//         return getMinimumSize();
+//     }
+   
+    
+    
    
 }
