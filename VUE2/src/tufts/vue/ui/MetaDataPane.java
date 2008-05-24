@@ -312,7 +312,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
         // To handle this, we force this event to ultimately be delivered on the AWT thread.
         
-        if (DEBUG.IMAGE) Log.info("propertyMapChanged entry " + Util.tag(source));
+        // if (DEBUG.IMAGE) Log.info("propertyMapChanged entry " + Util.tag(source));
 
         // This update will most often be coming from an ImageLoader thread.
         // updateDisplay, once it's holding the lock (it's synchronized), will check the
@@ -326,7 +326,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                 }
             });
         
-        if (DEBUG.IMAGE) Log.info("propertyMapChanged exit  " + Util.tag(source));
+        // if (DEBUG.IMAGE) Log.info("propertyMapChanged exit  " + Util.tag(source));
     }
 
     private static volatile int LoadCount = 0;
