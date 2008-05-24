@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.22 $ / $Date: 2008-04-14 19:19:30 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2008-05-24 21:11:14 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap<String,Object>
@@ -172,20 +172,28 @@ public class PropertyMap extends java.util.HashMap<String,Object>
         listeners.add(l);
     }
     public synchronized void removeListener(Listener l) {
-        if (listeners != null)
+        if (listeners != null) // CAN DEADLOCK HERE in *AWT* OBTAINING THE METHOD ENTRY LOCK WHEN CALLED FROM MetaDataPane.doLoadProperties
             listeners.remove(l);
     }
 
     private static int notifyCount = 0;
-    public synchronized void notifyListeners() {
-        if (listeners != null) {
+    
+    public synchronized void notifyListeners()
+    {
+        if (listeners != null && listeners.size() > 0) {
             notifyCount++;
             if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifyListeners " + listeners.size() + " of " + super.toString());
             Iterator i = listeners.iterator();
             while (i.hasNext()) {
                 Listener l = (Listener) i.next();
                 if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifying: " + tufts.vue.gui.GUI.namex(l));
-                l.propertyMapChanged(this);
+                
+                // Note: we can DEADLOCK in MetaDataPane.propertyMapChanged (if it's
+                // synchronized) waiting against AWT which is already locking
+                // MetaDataPane, and waiting to lock this object (locked by an
+                // ImageLoader thread) to enter removeListener above.
+                
+                l.propertyMapChanged(this); 
             }
             if (DEBUG.RESOURCE || DEBUG.THREAD) out("notifyListeners completed " + listeners.size());
         }
@@ -310,7 +318,7 @@ public class PropertyMap extends java.util.HashMap<String,Object>
             final Entry entry = mEntries[row];
 
             if (entry == null) {
-                Log.warn(getClass().getName(), new Throwable("null entry at row " + row));
+                Log.warn(getClass().getName(), new Throwable("FYI: null entry at row " + row + "; col-request=" + col));
                 return null;
             } else if (col == 0)
                 return entry.key;
