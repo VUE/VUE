@@ -342,7 +342,7 @@ public class LWImage extends
         final float h = (float) newHeight;
         
         //if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + newWidth + "x" + newHeight);
-        if (DEBUG.IMAGE) out("setMaxSizeDimension newSize " + w + "x" + h);
+        if (DEBUG.IMAGE)  out("setMaxSizeDimension newSize " + w + "x" + h);
 
         setSize(w, h);
     }
@@ -934,11 +934,11 @@ public class LWImage extends
         
         if (isNodeIcon && dc.focal != this) {
 
-            if (!indicated)
+            if (!indicated && MaxRenderSize > 0)
                 drawImageBox(dc);
             
             // Forced border for node-icon's:
-            if ((mImage != null || indicated) && !getParent().isTransparent()) {
+            if ((mImage != null || indicated) && !getParent().isTransparent() && MaxRenderSize > 0) {
                 // this is somehow making itext PDF generation through a GC worse... (probably just a bad tickle)
                 dc.g.setStroke(STROKE_TWO);
                 //dc.g.setColor(IconBorderColor);
@@ -958,8 +958,8 @@ public class LWImage extends
                 }
             }
 
-
-            drawImageBox(dc);
+        
+            	drawImageBox(dc);
             
             if (getStrokeWidth() > 0) {
                 dc.g.setStroke(this.stroke);
