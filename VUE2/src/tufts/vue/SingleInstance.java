@@ -18,10 +18,12 @@ package tufts.vue;
 import java.net.*;
 import java.io.*;
 
+import tufts.vue.gui.VueFrame;
+
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.4 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $ 
+ * @version $Revision: 1.5 $ / $Date: 2008-05-27 15:08:21 $ / $Author: mike $ 
  */
 public class SingleInstance {
     
@@ -106,9 +108,16 @@ public class SingleInstance {
                             String message = input.readLine();
                             if (message==null) break;
                             tufts.vue.action.OpenAction.displayMap(new File(message));
+                          
                         }
                     //}
                     socket.close();
+                    if (VueUtil.isWindowsPlatform())
+                    {
+                    	VUE.getApplicationFrame().setVisible(true);
+                    	((VueFrame)VUE.getApplicationFrame()).setExtendedState(java.awt.Frame.NORMAL);
+                    	VUE.getApplicationFrame().toFront();
+                    }
                     System.out.println("Connection closed by client");
                     
                 }
