@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.72 $ / $Date: 2008-04-18 01:14:57 $ / $Author: sfraize $
+ * @version $Revision: 1.73 $ / $Date: 2008-05-27 23:47:54 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -550,7 +550,7 @@ public abstract class Resource implements Cloneable
         mExtension = null;
     }
     
-    public static final String NO_EXTENSION = "";
+    private static final String NO_EXTENSION = "<no-ext>";
     public static final String EXTENSION_DIR = "dir";
     public static final String EXTENSION_HTTP = "web";
     public static final String EXTENSION_UNKNOWN = "---";
@@ -560,21 +560,30 @@ public abstract class Resource implements Cloneable
      * Return a filename extension / file type of this resource (if any) suitable for identify it
      * it's "type" to the local file system shell environement (e.g., txt, html, jpg).
      */
-    // was getExtension
-    // TODO: cache / allow setting (e.g. special data sources might be able to indicate type that's otherwise unclear
-    // e.g., a URL query part that requests "type=jpeg")
-    public String getDataType() {
+    public final String getDataType() {
 
-        if (mExtension != null)
-            return mExtension;
+        if (mExtension == null) {
+
+            // This code is safe to run more than once / in multiple
+            // threads as the cached result should always be the same,
+            // so we don't need to synchronized this lazy-eval code.
+            
+            mExtension = determineDataType();
+            
+            if (DEBUG.RESOURCE) setDebugProperty("dataType", mExtension);
+        }
         
-
+        return mExtension;
+    }
+        
+    protected String determineDataType()
+    {
         String ext;
 
         if (getClientType() == DIRECTORY)
             ext = EXTENSION_DIR;
         else
-            ext = extractExtension(getSpec());            
+            ext = extractExtension();
             
         if (ext == null || ext == NO_EXTENSION || ext.length() == 0) {
             final String spec = getSpec();
@@ -582,15 +591,59 @@ public abstract class Resource implements Cloneable
                 ext = EXTENSION_UNKNOWN;
             else if (spec.startsWith("http:") || spec.startsWith("https:")) 
                 ext = EXTENSION_HTTP;
+            else if (getClientType() == Resource.FILE)
+                ext = "txt";
             else
                 ext = EXTENSION_DIR;
-            if (DEBUG.RESOURCE) out("set dataType=[" + ext + "]");
-            //if (DEBUG.RESOURCE) Log.warn("set extType=[" + ext + "]", new Throwable());
+        } else {
+            ext = ext.toLowerCase();
+            if ("asp".equals(ext))
+                ext = EXTENSION_HTTP;
+            else if ("readme".equals(ext) || "msg".equals(ext))
+                ext = "txt";
         }
 
-        if (DEBUG.RESOURCE) setDebugProperty("dataType", ext);
-        mExtension = ext;
         
+        return ext;
+    }
+
+    protected String extractExtension() {
+       return extractExtension(getSpec());            
+    }
+
+    /** @return the likely extension for the given string, or NO_EXTENSION if none found */
+    protected String extractExtension(final String s) {
+
+        String ext = NO_EXTENSION;
+        
+        final char lastChar;
+
+        if (s == null || s.length() == 0)
+            lastChar = 0;
+        else
+            lastChar = s.charAt(s.length()-1);
+        
+        if (lastChar == 0) {
+            // default NO_EXTENSION
+        } else if ( ! Character.isLetterOrDigit(lastChar)) {
+            // assume some kind of a path element (e.g., /, \): e.g.: no extension available
+        } else {
+            final int lastDotIdx = s.lastIndexOf('.');
+        
+            // must have at least one char's worth of file-name, and one two chars worth of data after the dot
+            if (lastDotIdx > 1 && (s.length() - lastDotIdx) > 2) {
+                String extTest = s.substring(lastDotIdx + 1);
+
+                // if first character of extension is not a letter or
+                // digit, assome we have NOT found a real extension
+                
+                if (Character.isLetterOrDigit(extTest.charAt(0)))
+                    ext = extTest;
+            } 
+        }
+
+        if (DEBUG.RESOURCE) Log.debug("extractExtension " + this + "; [" + s + "] = [" + ext + "]");
+
         return ext;
     }
 
@@ -629,35 +682,6 @@ public abstract class Resource implements Cloneable
 //         return ext;
 //     }
     
-
-    /** @return the likely extension for the given string, or NO_EXTENSION if none found */
-    private String extractExtension(final String s) {
-
-        final char lastChar = s.charAt(s.length()-1);
-        String ext = NO_EXTENSION;
-        
-        //if (lastChar == '/' || lastChar == '\\' || lastChar == File.separatorChar)
-        if (Character.isLetterOrDigit(lastChar) == false) {
-            // assume some kind of a path element or special file
-        } else {
-            final int lastDotIdx = s.lastIndexOf('.');
-        
-            // must have at least one char's worth of file-name, and one two chars worth of data after the dot
-            if (lastDotIdx > 1 && (s.length() - lastDotIdx) > 2) {
-                String extTest = s.substring(lastDotIdx + 1);
-                if (Character.isLetterOrDigit(extTest.charAt(0))) {
-                    ext = extTest;
-                } else {
-                    // failsafe check in case somehow a separator wound up at the end
-                    // ext = NO_EXTENSION;
-                }
-            } // else ext = NO_EXTENSION;
-        }
-
-
-        //if (DEBUG.RESOURCE && DEBUG.DATA) out("extract[" + s + "]; ext=[" + ext + "]");
-        return ext;
-    }
 
 
     private ImageIcon mTinyIcon;
