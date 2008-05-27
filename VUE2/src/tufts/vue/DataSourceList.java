@@ -44,7 +44,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.52 $ / $Date: 2008-04-18 01:19:34 $ / $Author: sfraize $
+ * @version $Revision: 1.53 $ / $Date: 2008-05-27 23:37:20 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -152,22 +152,29 @@ public class DataSourceList extends JList implements DropTargetListener
     
     public void drop(DropTargetDropEvent e) {
         setIndicated(null);
-        Object over = locationToValue(e.getLocation());
+        
+        final Object over = locationToValue(e.getLocation());
+        
         if (DEBUG.DND) out("DROP over " + over);
         if (over instanceof FavoritesDataSource) {
-            if (DEBUG.DND) out("drag ACCEPTED");
+            if (DEBUG.DND) out("drop ACCEPTED");
             e.acceptDrop(e.getDropAction());
         } else {
-            if (DEBUG.DND) out("drag rejected");
+            if (DEBUG.DND) out("drop rejected");
             e.rejectDrop();
             return;
         }
         
-        int current = this.getSelectedIndex();
-        setSelectedIndex(locationToIndex(e.getLocation()));
+        final int current = this.getSelectedIndex();
+        final int index = locationToIndex(e.getLocation());
+        try {
+            setSelectedIndex(index);
+        } catch (Throwable t) {
+            Log.error("drop; setSelectedIndex " + index + ":", t);
+        }
         DataSource ds = (DataSource)getSelectedValue();
         
-        if (DEBUG.DND) System.out.println("DROP ON DATA SOURCE: " + ds.getDisplayName());
+        if (DEBUG.DND) out("DROP ON DATA SOURCE: " + ds.getDisplayName());
         try {
             FavoritesWindow fw = (FavoritesWindow)ds.getResourceViewer();
             VueDandDTree favoritesTree = fw.getFavoritesTree();
@@ -180,7 +187,7 @@ public class DataSourceList extends JList implements DropTargetListener
             String resourceName = null;
             java.util.List fileList = null;
             java.util.List resourceList = null;
-            if (DEBUG.DND) System.out.println("RESOURCE TRANSFER FOUND: " + transfer);
+            if (DEBUG.DND) out("RESOURCE TRANSFER FOUND: " + transfer);
             try {
                 if (transfer.isDataFlavorSupported(Resource.DataFlavor)) {
                     final Object data = transfer.getTransferData(Resource.DataFlavor);
@@ -398,7 +405,7 @@ public class DataSourceList extends JList implements DropTargetListener
     }
     
     private void out(String s) {
-        System.out.println("DataSourceList: " + s);
+        Log.debug(s);
     }
     
 }
