@@ -457,7 +457,7 @@ public class LWMergeMap extends LWMap {
         
         HashMap<String,LWNode> nodes = new HashMap<String,LWNode>();
         
-        ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
+        ConnectivityMatrixList<ConnectivityMatrix> cms = new ConnectivityMatrixList<ConnectivityMatrix>();
         
         Iterator<LWMap> i = getMapList().iterator();
         Iterator<Boolean> ci = null; 
@@ -526,7 +526,9 @@ public class LWMergeMap extends LWMap {
                if(node2 != node1) {
                   boolean addLink = voteAggregate.isLinkVoteAboveThreshold(Util.getMergeProperty(node1),Util.getMergeProperty(node2));
                   if(addLink) {
-                     addLink(new LWLink(node1,node2));
+                     LWLink link = new LWLink(node1,node2);
+                     addLink(link);
+                     cms.addLinkSourceMapMetadata(Util.getMergeProperty(node1),Util.getMergeProperty(node2),link);
                   }
                }
            }
@@ -791,7 +793,7 @@ public class LWMergeMap extends LWMap {
     public void fillAsWeightMerge()
     {
     
-        ArrayList<ConnectivityMatrix> cms = new ArrayList<ConnectivityMatrix>();
+        ConnectivityMatrixList<ConnectivityMatrix> cms = new ConnectivityMatrixList<ConnectivityMatrix>();
         Iterator<LWMap> i = getMapList().iterator();
         Iterator<Boolean> ci = null; 
         if(getActiveFileList()!=null)
@@ -962,6 +964,13 @@ public class LWMergeMap extends LWMap {
                     //todo: applyCSS here
                     link.setStrokeColor(Style.hexToColor(currLinkStyle.getAttribute("background")));
                     addLink(link);
+                    
+                    cms.addLinkSourceMapMetadata(Util.getMergeProperty(node1),Util.getMergeProperty(node2),link);
+                    
+                   //edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                   //vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
+                   //vme.setObject("source: " + comp.getMap().getLabel() + "," + sourceLabel);
+                   //link.getMetadataList().getMetadata().add(vme);
                   }
                }
            }
@@ -981,5 +990,7 @@ public class LWMergeMap extends LWMap {
         }
         return true;
     }
+    
+
         
 }
