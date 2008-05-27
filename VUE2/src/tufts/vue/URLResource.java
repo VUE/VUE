@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.73 $ / $Date: 2008-05-21 02:57:07 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2008-05-27 23:49:07 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -491,6 +491,16 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         
     }
 
+    @Override
+    protected String extractExtension() {
+        if (mURL != null)
+            return super.extractExtension(mURL.getPath());
+        else
+            return super.extractExtension();
+
+    }
+
+
     //-----------------------------------------------------------------------------
     // Todo Someday: If possible, try and take into account lazy eval so we don't
     // actually have to create a File object, see if it fails to be a valid path, and
@@ -657,7 +667,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
 
 
-        if (DEBUG.RESOURCE) out(TERM_GREEN + "final---" + this + TERM_CLEAR);        
+        if (DEBUG.RESOURCE) {
+            out(TERM_GREEN + "final---" + this + TERM_CLEAR);
+            //new Throwable("FYI").printStackTrace();
+        }
 
     }
     
@@ -1643,17 +1656,14 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     
     @Override
-    public String getDataType() {
+    protected String determineDataType() {
 
         // TODO: clean this up / cache more of the result / can we eliminate this fedora hack
         // yet (it DRAMATICALLY slows down obtaining fedora search results)
 
-        final String superType = super.getDataType();
+        //final String superType = super.determineDataType();
         final String spec = getSpec();
 
-//         if (type == EXTENSION_UNKNOWN || type == EXTENSION_DIR)
-//             return type
-        
         if (spec.endsWith("=jpeg")) {
             // special case for MFA data source -- TODO: MFA OSID should handle this
             return "jpeg";
@@ -1661,37 +1671,59 @@ public class URLResource extends Resource implements XMLUnmarshalListener
             return mimeType;
         }
         else if (spec != SPEC_UNSET && spec.startsWith("http") && spec.contains("fedora")) { // fix for fedora url
-            try {
-                final URL url = (mURL != null ? mURL : new URL(getSpec()));
+
+            // special case for Fedora data source -- TODO: FEDORA OSID should handle this
+            
+            if (spec.endsWith("bdef:AssetDef/getFullView/")) {
+                // this dramatically speeds up obtaining fedora search results
+                //setProperty(CONTENT_TYPE, "text/html"); // tho don't set this unless actually verified
+                return "html";
+            }
+            else {
+            
+                try {
+                    final URL url = (mURL != null ? mURL : new URL(getSpec()));
                 
-                // TODO: checking spec, which defaults to the "browse" URL, will not get
-                // the real content-type in cases (such as fedora!) where the browse
-                // url is always an HTML page that includes the image with some descrition text.
-                //Log.info("opening URL " + url);
+                    // TODO: checking spec, which defaults to the "browse" URL, will not get
+                    // the real content-type in cases (such as fedora!) where the browse
+                    // url is always an HTML page that includes the image with some descrition text.
+                    //Log.info("opening URL " + url);
                 
-                //Util.printStackTrace("polling " + url);
+                    //Util.printStackTrace("polling " + url);
                 
-                final String type = url.openConnection().getHeaderField("Content-type");
-                if (DEBUG.Enabled) {
-                    out("got contentType " + url + " [" + type + "]");
-                    //Util.printStackTrace("GOT CONTENT TYPE");
+                    final String type = url.openConnection().getHeaderField("Content-type");
+                    if (DEBUG.Enabled) {
+                        out("got contentType " + url + " [" + type + "]");
+                        //Util.printStackTrace("GOT CONTENT TYPE");
+                    }
+                    if (type != null && type.length() > 0)
+                        setProperty(CONTENT_TYPE, type);
+                    
+                    if (type != null && type.contains("/")) {
+                        mimeType = type.split("/")[1]; // returning the second part of mime-type
+                        if (mimeType.indexOf(';') > 0) {
+                            // remove charset - e.g.: "text/html;charset=UTF-8"
+                            mimeType = mimeType.substring(0, mimeType.indexOf(';'));
+                        }
+                        //return "html".equals(mimeType) ? EXTENSION_HTTP : mimeType;
+                        return mimeType;
+                    } else {
+                        //return superType;
+                    }
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                    //return superType;
                 }
-                if (type != null && type.length() > 0)
-                    setProperty(CONTENT_TYPE, type);
-                if (type != null && type.contains("/")) {
-                    mimeType = type.split("/")[1]; // returning the second part of mime-type
-                    return mimeType;
-                } else {
-                    return superType;
-                }
-            } catch (Throwable t) {
-                t.printStackTrace();
-                return superType;
+                
             }
             
-        } else
-            return superType;
+        }
+//         else
+//             return superType;
+
+        return super.determineDataType();
     }
+
 
     private static boolean isHTML(final Resource r) {
         String s = r.getSpec().toLowerCase();
@@ -1762,10 +1794,11 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         else if (isImage())
             // returning "this" is a bit unclean: done so that Images.java can put meta-data back into us
             return this;
-        else if (isLocalFile()) {
+        else if (isLocalFile() || getClientType() == Resource.FILE || getClientType() == Resource.DIRECTORY) {
             return getFileIconImage();
         }
         else if (mURL != null && !isLocalFile()) 
+        //else if (getClientType() == Resource.URL && !isLocalFile()) 
         {
             //System.out.println("mURL : " + mURL);
         	
