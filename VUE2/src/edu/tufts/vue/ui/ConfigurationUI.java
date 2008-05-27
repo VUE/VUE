@@ -43,16 +43,16 @@ public class ConfigurationUI extends javax.swing.JPanel {
     private static final String TITLE_TAG = "title";
     private static final String UI_TAG = "ui";
     
-    private static final int SINGLE_LINE_CLEAR_TEXT_CONTROL = 0;
-    private static final int SINGLE_LINE_MASKED_TEXT_CONTROL = 1;
-    private static final int MULTI_LINE_TEXT_CONTROL = 2;
-    private static final int BOOLEAN_CONTROL = 3;
-    private static final int INTEGER_CONTROL = 4;
-    private static final int FLOAT_CONTROL = 5;
-    private static final int DATE_TIME_CONTROL = 6;
-    private static final int DURATION_CONTROL = 7;
-    private static final int FILECHOOSER_CONTROL = 8;
-    private static final int SINGLE_LINE_NONEDITABLE_TEXT_CONTROL = 9;
+    public static final int SINGLE_LINE_CLEAR_TEXT_CONTROL = 0;
+    public static final int SINGLE_LINE_MASKED_TEXT_CONTROL = 1;
+    public static final int MULTI_LINE_TEXT_CONTROL = 2;
+    public static final int BOOLEAN_CONTROL = 3;
+    public static final int INTEGER_CONTROL = 4;
+    public static final int FLOAT_CONTROL = 5;
+    public static final int DATE_TIME_CONTROL = 6;
+    public static final int DURATION_CONTROL = 7;
+    public static final int FILECHOOSER_CONTROL = 8;
+    public static final int SINGLE_LINE_NONEDITABLE_TEXT_CONTROL = 9;
     
     private java.util.Vector defaultValueVector = new java.util.Vector();
     private java.util.Vector descriptionVector = new java.util.Vector();
@@ -174,11 +174,12 @@ public class ConfigurationUI extends javax.swing.JPanel {
                     return;
                 }
                 
-                Integer numChars = new Integer(15);
+                //Integer numChars = new Integer(15);
+                Integer numChars = 0; // default 0 (no limit)
                 if (maxChars != null) {
                     try {
-                        numChars = (new Integer(maxChars));
-                        if (numChars.intValue() < 0) {
+                        numChars = Integer.valueOf(maxChars);
+                        if (numChars < 0) {
                             this.errorMessage = "Number of characters must be a positive integer";
                             return;
                         }
@@ -187,6 +188,15 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         return;
                     }
                 }
+
+//                 if (maxChars == null) {
+//                     // attept to provide some reasonable defaults
+//                     if ("username".equals(key) ||
+//                         "password".equals(key))
+//                         numChars = 16;
+//                     else if ("port".equals(key))
+//                         numChars = 8;
+//                 }
                 
                 Integer uiCode = new Integer(0);
                 try {
@@ -274,7 +284,8 @@ public class ConfigurationUI extends javax.swing.JPanel {
             // setup panel layout
             gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
             gbConstraints.insets = new java.awt.Insets(2,2,2,2);
-            gbConstraints.weighty = 1;
+            //gbConstraints.weighty = 1;
+            gbConstraints.weighty = 0;
             gbConstraints.ipadx = 0;
             gbConstraints.ipady = 0;
             setLayout(gbLayout);
@@ -290,14 +301,20 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 
                 
                 
-                String title = (String)titleVector.elementAt(i);
-                int numChars = ((Integer)maxCharsVector.elementAt(i)).intValue();
+                final String title = (String)titleVector.elementAt(i);
+                final int numChars = ((Integer)maxCharsVector.elementAt(i)).intValue();
+                // FYI: JTextField.setColumns doesn't actually limit the size
+                // of the text field: it just sets the preferred size, which
+                // may be ignored depending on the GridBag configuration.
+
+                final boolean limitWidth = numChars > 0;
                 
-                boolean isMandatory = ((Boolean)mandatoryVector.elementAt(i)).booleanValue();
+                final boolean isMandatory = ((Boolean)mandatoryVector.elementAt(i)).booleanValue();
                 //String prefix = (isMandatory) ? "*" : "";
-                javax.swing.JLabel prompt = new javax.swing.JLabel(title + ": ");
-                
-                //System.out.println("CONFIGURATION - Title:"+title+" prompt:"+prompt+" numChars:"+numChars+" uiCode:"+uiCode);
+                final javax.swing.JLabel prompt = new javax.swing.JLabel(title + ": ");
+
+                if (tufts.vue.DEBUG.DR)
+                    System.out.println("CONFIGURATION - Title:"+title+" prompt:"+prompt+" numChars:"+numChars+" uiCode:"+uiCode);
                 switch (uiCode) {
                     // create appropriate field
                     // add to panel
@@ -310,7 +327,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         if (defaultValue != null) {
                             textField0.setText(defaultValue);
                         }
-                        populateField(prompt,textField0);
+                        populateField(prompt,textField0, limitWidth);
                         break;
                     case SINGLE_LINE_MASKED_TEXT_CONTROL:
                         javax.swing.JPasswordField textField1 = new javax.swing.JPasswordField();
@@ -321,7 +338,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         if (defaultValue != null) {
                             textField1.setText(defaultValue);
                         }
-                        populateField(prompt,textField1);
+                        populateField(prompt,textField1, limitWidth);
                         break;
                     case SINGLE_LINE_NONEDITABLE_TEXT_CONTROL:
                         javax.swing.JTextField textField9 = new javax.swing.JTextField();
@@ -333,7 +350,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                             textField9.setText(defaultValue);
                         }
                         textField9.setEditable(false);
-                        populateField(prompt,textField9);
+                        populateField(prompt,textField9, limitWidth);
                         break;
                     case MULTI_LINE_TEXT_CONTROL:
                         javax.swing.JTextArea textField2 = new javax.swing.JTextArea(20,5);
@@ -342,7 +359,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         }
                         
                         //TODO: special layout??
-                        populateField(prompt,textField2);
+                        populateField(prompt,textField2, limitWidth);
                         break;
                     case BOOLEAN_CONTROL:
                         String[] items = new String[2];
@@ -360,7 +377,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                             items[1] = "false";
                         }
                         javax.swing.JComboBox box = new javax.swing.JComboBox(items);
-                        populateField(prompt,box);
+                        populateField(prompt,box, limitWidth);
                         break;
                     case INTEGER_CONTROL:
                         javax.swing.JFormattedTextField textField4 = null;
@@ -369,7 +386,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         } else {
                             textField4 = new javax.swing.JFormattedTextField(new Integer(0));
                         }
-                        populateField(prompt,textField4);
+                        populateField(prompt,textField4, limitWidth);
                         break;
                     case FLOAT_CONTROL:
                         javax.swing.JFormattedTextField textField5 = null;
@@ -378,7 +395,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         } else {
                             textField5 = new javax.swing.JFormattedTextField(new Float(0.0));
                         }
-                        populateField(prompt,textField5);
+                        populateField(prompt,textField5, limitWidth);
                         break;
                     case DATE_TIME_CONTROL:
                         javax.swing.JFormattedTextField textField6 = null;
@@ -387,7 +404,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         } else {
                             textField6 = new javax.swing.JFormattedTextField(new java.util.Date());
                         }
-                        populateField(prompt,textField6);
+                        populateField(prompt,textField6, limitWidth);
                         break;
                     case DURATION_CONTROL:
                         // TODO: maybe use a JFormattedTextField
@@ -398,7 +415,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
                         if (defaultValue != null) {
                             textField7.setText(defaultValue);
                         }
-                        populateField(prompt,textField7);
+                        populateField(prompt,textField7, limitWidth);
                         break;
                     case FILECHOOSER_CONTROL:
                         textField8 = new javax.swing.JTextField();
@@ -446,18 +463,33 @@ public class ConfigurationUI extends javax.swing.JPanel {
         
     }
     
-    private void populateField(javax.swing.JLabel prompt,
-            javax.swing.JComponent component) {
+    private void populateField(javax.swing.JLabel prompt, javax.swing.JComponent component, boolean limitWidth) {
+
+        //final java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+        // as we're re-using the same GBC object, must set every used field each time
+        
+        //gbConstraints.weighty = 0;
+        
         gbConstraints.gridx = 0;
         gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+        gbConstraints.gridwidth = 1;
         gbConstraints.weightx = 0;
-        add(prompt,gbConstraints);
+        add(prompt, gbConstraints);
         
         gbConstraints.gridx = 1;
-        gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gbConstraints.weightx = 1;
-        add(component,gbConstraints);
+        if (limitWidth) {
+            gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        } else {
+            gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+            gbConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+            gbConstraints.weightx = 1;
+        }
+        add(component, gbConstraints);
+        if (tufts.vue.DEBUG.BOXES)
+            component.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.blue));        
+        
         order.add(component);
+        
         gbConstraints.gridy++;
         
         fieldVector.addElement(component);
@@ -466,20 +498,30 @@ public class ConfigurationUI extends javax.swing.JPanel {
     private void populateField(javax.swing.JLabel prompt,
             javax.swing.JComponent component,
             javax.swing.JComponent component2) {
+
+        //final java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
+        // as we're re-using the same GBC object, must set every used field each time
+        
         gbConstraints.gridx = 0;
         gbConstraints.fill = java.awt.GridBagConstraints.NONE;
+        gbConstraints.gridwidth = 1;
         gbConstraints.weightx = 0;
         add(prompt,gbConstraints);
         
         gbConstraints.gridx = 1;
         gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gbConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
         gbConstraints.weightx = 1;
+        
         add(component,gbConstraints);
+        if (tufts.vue.DEBUG.BOXES)
+            component.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.orange));
         
         gbConstraints.gridx = 2;
         gbConstraints.fill = java.awt.GridBagConstraints.NONE;
-        gbConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gbConstraints.gridwidth = 1;
         gbConstraints.weightx = 0;
+        
         add(component2,gbConstraints);
         gbConstraints.gridy++;
         
