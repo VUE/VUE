@@ -74,7 +74,10 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     
     /** The current PropertyMap we're displaying and listening to updates from */
     private PropertyMap mProperties;
-   
+ 	  
+//     /** If the displayed properties were from a Resource, this will be set to it, otherwise null */
+//     private Resource mResource;
+    
     public MetaDataPane(boolean scroll) {
         super("contentInfo");
         inOwnedScroll = scroll;
@@ -169,6 +172,8 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             }
 
             LabelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
+            if (DEBUG.DR)
+                fontName = "Lucida Sans Typewriter";
             ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
         } else {
             LabelFace = GUI.LabelFace;
@@ -225,7 +230,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                mValues[i].setBorder(WindowsPlatformAdjustBorder);
 
            if (EasyReading) {
-               if (i % 2 == 0) {
+               if (i % 2 != 0) {
                    //mLabels[i].setBackground(alternatingColor);
                    mValues[i].setBackground(alternatingColor);
                    //mLabels[i].setOpaque(true);
@@ -288,7 +293,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     
     public void propertyMapChanged(final PropertyMap source) {
         
-        // Note: we can deadlock here obtaining lock held by awt (if we synchronize this method)
+        // Note: we can deadlock here obtaining lock held by AWT (if we synchronize this method)
         // This is normally called NOT from an AWT thread (e.g., from an ImageLoader)
 
         // If we synchronize this method, this can happen:
@@ -329,16 +334,14 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         // if (DEBUG.IMAGE) Log.info("propertyMapChanged exit  " + Util.tag(source));
     }
 
-    private static volatile int LoadCount = 0;
-    
     public void loadProperties(final PropertyMap propertyMap) {
 
         if (DEBUG.THREAD) Log.debug("loadProperties: " + Util.tag(propertyMap));
                                     
         if (javax.swing.SwingUtilities.isEventDispatchThread()) {
                
-            // If called from AWT, this would normally be the result of a ResourceSelection change,
-            // and we can proceed immediately.  This is the common case.
+            // If called from AWT, (e.g., normally as the result of a ResourceSelection change),
+            // we can proceed immediately.  This is the common case.
             
             _loadProperties(propertyMap);
             
@@ -374,6 +377,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                 updateDisplay(mProperties);
             }
            
+            
         } catch (Throwable t) {
             Log.error("loadProperties", t);
         }
@@ -420,7 +424,10 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             }
            
             loadAllRows(model);
-           
+
+            if (DEBUG.Enabled)
+                setTitle("Properties (" + properties.size() + ")");
+            
             GUI.invokeAfterAWT(this);
 
         } catch (Throwable t) {
@@ -459,10 +466,22 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     }
 
     private void loadAllRows(TableModel model) {
-        int rows = model.getRowCount();
-        int row;
-        //    height=5;
-        for (row = 0; row < rows; row++) {
+        final int rows = model.getRowCount();
+        final int maxRow;
+
+        if (Util.getJavaVersion() > 1.5) {
+            maxRow = rows;
+        } else {
+            // prior to java 1.6, GridBag has serious bug in that it completely fails
+            // if more than 512 items are loaded into it.
+            if (rows > 512)
+                maxRow = 512;
+            else
+                maxRow = rows;
+        }
+
+        int rowIdx = 0;
+        for (int row = 0; row < maxRow; row++) {
             final Object label =  model.getValueAt(row, 0);
             final String labelTxt = "" + label;
             final Object value = model.getValueAt(row, 1);
@@ -479,25 +498,47 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                 // If we're not in debug mode, make sure hidden properties stay hidden
                
                 if (Resource.isHiddenPropertyKey(labelTxt)) {
-                    mLabels[row].setVisible(false);
-                    mValues[row].setVisible(false);
+                    //mLabels[row].setVisible(false);
+                    //mValues[row].setVisible(false);
+                    // we skip loading the row completely -- keep alternating colors in order
                     continue;
                 }
             }
 
             try {
-                loadRow(row, labelTxt, value, valueTxt);
+                loadRow(rowIdx, labelTxt, value, valueTxt);
             } catch (Throwable t) {
                 Log.error("Failed to load row " + row + "; label= " + Util.tags(label) + "; value=" + Util.tags(value), new Throwable());
             }
-       
-           
+            rowIdx++;
         }
-        for (; row < mLabels.length; row++) {
+
+        for (; rowIdx < mLabels.length; rowIdx++) {
             //out(" clear row " + row);
-            mLabels[row].setVisible(false);
-            mValues[row].setVisible(false);
+            mLabels[rowIdx].setVisible(false);
+            mValues[rowIdx].setVisible(false);
         }
+
+        if (rows > maxRow) {
+            // prior to java 1.6, GridBag has serious bug in that it completely fails
+            // if more than 512 items are loaded into it.  This merges all rows
+            // > 512 into a single field.
+            StringBuffer mergeRow = new StringBuffer();
+            for (int r = maxRow - 1; r < rows; r++) {
+                final Object label = model.getValueAt(r, 0);
+                final Object value = model.getValueAt(r, 1);
+                
+                mergeRow.append(label);
+                mergeRow.append(": ");
+                mergeRow.append(""+value);
+                mergeRow.append('\n');
+            }
+            loadRow(511, "(Remaining)", "Overflow Rows > 512", mergeRow.toString());
+            mLabels[511].setVisible(true);
+            mValues[511].setVisible(true);
+        }
+        
+        
         //mScrollPane.getViewport().setViewPosition(new Point(0,0));
     }
 
