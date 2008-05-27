@@ -31,7 +31,7 @@ import java.awt.datatransfer.*;
 /**
  * Display a preview of the selected resource.  E.g., and image or an icon.
  *
- * @version $Revision: 1.30 $ / $Date: 2008-05-23 15:10:40 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2008-05-27 23:51:52 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -346,7 +346,14 @@ public class PreviewPane extends JPanel
                                               null,
                                               false);
 
-            final double MaxZoom = getHeight() > MinHeight ? 2 : 1;
+            final double maxZoom;
+
+            if (mImageWidth == 128 && mImageHeight == 128) 
+                maxZoom = 1; // if looks like an icon, don't scale
+            else if (getHeight() > MinHeight)
+                maxZoom = 2; // if preview has been expanded, allow to scale up
+            else
+                maxZoom = 1; // default: scale never greater than 100%
             
             if (zoomFit > 1 && zoomFit < 2)
                 netZoom = 1;
@@ -354,8 +361,8 @@ public class PreviewPane extends JPanel
 //                 netZoom = 1;
 //             else if (zoomFit > 2 && zoomFit < 3)
 //                 netZoom = 2;
-            else if (zoomFit > MaxZoom)
-                netZoom = MaxZoom;
+            else if (zoomFit > maxZoom)
+                netZoom = maxZoom;
             else
                 netZoom = zoomFit;
         }
