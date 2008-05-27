@@ -78,14 +78,14 @@ public class DataSourceViewer extends JPanel
     AbstractAction getLibraryInfoAction;
     MouseListener refreshDSMouseListener;
     
-    JButton optionButton = new VueButton("add");
-    JButton searchButton = new JButton("Search");
+//     JButton optionButton = new VueButton("add");
+//     JButton searchButton = new JButton("Search");
     
    // public static Vector  allDataSources = new Vector();
     public static DataSourceList dataSourceList;
     
-    DockWindow resultSetDockWindow;
-    DockWindow editInfoDockWindow;
+    private DockWindow resultSetDockWindow;
+    private static DockWindow editInfoDockWindow; // hack for now: need this set before DSV is created
     javax.swing.JScrollPane resultSetTreeJSP;
     JPanel previewPanel = null;
     
@@ -110,6 +110,11 @@ public class DataSourceViewer extends JPanel
     public DataSourceViewer(DRBrowser drBrowser) {
         //GUI.activateWaitCursor();
         
+        VUE.pushDiag("DSV");
+
+        if (editInfoDockWindow == null)
+            initUI();
+            
         setLayout(new BorderLayout());
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
@@ -119,7 +124,7 @@ public class DataSourceViewer extends JPanel
         try {
             // load old-style data sources
             Log.info("Loading old style data sources...");
-            loadDataSources();
+            loadOldStyleDataSources();
             Log.info("Loaded old style data sources.");
         } catch (Throwable t) {
             VueUtil.alert("Error loading old Resource","Error");
@@ -128,7 +133,9 @@ public class DataSourceViewer extends JPanel
             // load new data sources
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             Log.info("loading Installed data sources via Data Source Manager");
+
             edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
+
             dataSources = dataSourceManager.getDataSources();
             Log.info("finished loading data sources.");
             for (int i=0; i < dataSources.length; i++) {
@@ -145,7 +152,6 @@ public class DataSourceViewer extends JPanel
             //Util.printStackTrace(t, "DataSourceViewer construct");
             VueUtil.alert("Error loading Resource","Error");
         }
-        //org.apache.log4j.NDC.pop();
         
         federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
         sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
@@ -182,8 +188,19 @@ public class DataSourceViewer extends JPanel
         Widget.setHelpAction(DRB.browsePane,VueResources.getString("dockWindow.Content.browsePane.helpText"));;
         Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
         Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
+
+        VUE.popDiag();
+
+        editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+                                       DRB.dockWindow.getY());
+
+
+        NoConfig.setMinimumSize(new Dimension(100,50));
+        configMetaData.setName("Content Description");
+        
         GUI.clearWaitCursor();
     }
+    
     class MiscActionMouseListener extends MouseAdapter
     {
     	public void mouseClicked(MouseEvent e)
@@ -620,36 +637,73 @@ public class DataSourceViewer extends JPanel
         } else
             return true;
     }
+
+    private static final Collection<tufts.vue.DataSource> oldStyleDataSources = new ArrayList();
     
-    public void loadDataSources() {
+    private void loadOldStyleDataSources() {
+
+        VUE.pushDiag("old");
+        
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
         if (DEBUG.DR) Log.debug("Data source file: " + f.getAbsolutePath());
         if (!f.exists()) {
-            if(DEBUG.DR) System.out.println("Loading Default Datasource");
+            if (DEBUG.DR) System.out.println("Loading default DataSources (does not exist: " + f + ")");
             loadDefaultDataSources();
         } else {
             int type;
-            try{
-                if (DEBUG.DR) Log.debug("Loading Existing Datasource");
-                SaveDataSourceViewer rViewer = unMarshallMap(f);
-                Vector rsources = rViewer.getSaveDataSources();
-                while (!(rsources.isEmpty())){
-                    
-                    DataSource ds = (DataSource)rsources.remove(0);
-                    ds.setResourceViewer();
+            try {
+                if (DEBUG.DR) Log.debug("Loading saved DataSources from " + f + "; unmarshalling...");
+                VUE.pushDiag("XML");
+                final SaveDataSourceViewer dataSourceContainer = unMarshallMap(f);
+                VUE.popDiag();
+                if (DEBUG.DR) Log.debug("Unmarshalling completed from " + f);
+                final Vector dataSources = dataSourceContainer.getSaveDataSources();
+                synchronized (oldStyleDataSources) {
+                    oldStyleDataSources.clear();
+                    oldStyleDataSources.addAll(dataSources);
+                }
+                if (DEBUG.DR) Log.debug("Found " + dataSources.size() + " DataSources: " + dataSources);
+                int i = 0;
+                while (!(dataSources.isEmpty())){
+                    final DataSource ds = (DataSource) dataSources.remove(0);
+                    i++;
+                    if (DEBUG.DR) Log.debug("#" + i + ": loading " + Util.tags(ds));
+//                     VUE.pushDiag("#" + i);
+//                     ds.setResourceViewer();
+//                     VUE.popDiag();
                     try {
                         dataSourceList.addOrdered(ds);
                     } catch(Exception ex) {System.out.println("DataSourceViewer.loadDataSources"+ex);}
                 }
             } catch (Exception ex) {
-                Util.printStackTrace(ex, "Loading DataSources");
-                //System.out.println("Datasource loading problem = "+ex);
-                //ex.printStackTrace();
+                Log.error("Loading DataSources; loading defaults as fallback", ex);
                 loadDefaultDataSources();
             }
         }
+
+        VUE.popDiag();
     }
+
+    public static void cacheDataSourceViewers() {
+        VUE.pushDiag("DSV-CACHE");
+
+        final java.util.List<tufts.vue.DataSource> dataSources;
+        synchronized (oldStyleDataSources) {
+            dataSources = new ArrayList(oldStyleDataSources);
+        }
+        
+        for (DataSource ds : dataSources) {
+            Log.info("caching viewer for: " + Util.tags(ds));
+            try {
+                ds.getResourceViewer();
+            } catch (Throwable t) {
+                Log.error("caching viewer for " + ds, t);
+            }
+        }
+        VUE.popDiag();
+    }
+
     
     private void loadDefaultDataSources() {
         try {
@@ -670,26 +724,26 @@ public class DataSourceViewer extends JPanel
         
     }
     
-    private ImageIcon getThumbnail(org.osid.repository.Asset asset) {
-        try {
-            org.osid.repository.RecordIterator recordIterator = asset.getRecords();
-            while (recordIterator.hasNextRecord()) {
-                org.osid.repository.Record record = recordIterator.nextRecord();
-                org.osid.repository.PartIterator partIterator = record.getParts();
-                while (partIterator.hasNextPart()) {
-                    org.osid.repository.Part part = partIterator.nextPart();
-                    if (part.getPartStructure().getType().isEqual(thumbnailType)) {
-//						ImageIcon icon = new ImageIcon(Toolkit.getDefaultToolkit().getImage((String)part.getValue()));
-                        ImageIcon icon = new ImageIcon(new URL((String)part.getValue()));
-                        return icon;
-                    }
-                }
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        return noImageIcon;
-    }
+//     private ImageIcon getThumbnail(org.osid.repository.Asset asset) {
+//         try {
+//             org.osid.repository.RecordIterator recordIterator = asset.getRecords();
+//             while (recordIterator.hasNextRecord()) {
+//                 org.osid.repository.Record record = recordIterator.nextRecord();
+//                 org.osid.repository.PartIterator partIterator = record.getParts();
+//                 while (partIterator.hasNextPart()) {
+//                     org.osid.repository.Part part = partIterator.nextPart();
+//                     if (part.getPartStructure().getType().isEqual(thumbnailType)) {
+// //						ImageIcon icon = new ImageIcon(Toolkit.getDefaultToolkit().getImage((String)part.getValue()));
+//                         ImageIcon icon = new ImageIcon(new URL((String)part.getValue()));
+//                         return icon;
+//                     }
+//                 }
+//             }
+//         } catch (Throwable t) {
+//             t.printStackTrace();
+//         }
+//         return noImageIcon;
+//     }
 
     private synchronized void stopAllSearches() {
 //         if (UseFederatedSearchManager) {
@@ -1240,28 +1294,6 @@ public class DataSourceViewer extends JPanel
 //         }
 //     }
     
-    private void positionEditInfoWindow()
-    {
-    	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        if ((DRB.dockWindow.getX() + DRB.dockWindow.getWidth() + editInfoDockWindow.getWidth()) < screenSize.getWidth())
-        	editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
-        			DRB.dockWindow.getY());
-        else
-        	editInfoDockWindow.setLocation(DRB.dockWindow.getX() - editInfoDockWindow.getWidth(),
-        			DRB.dockWindow.getY());
-    }
-    private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {
-        refreshEditInfo(ds);
-        positionEditInfoWindow();
-        editInfoDockWindow.setVisible(true);
-    }
-    
-    private void displayEditOrInfo(DataSource ds) {
-        refreshEditInfo(ds);     
-        positionEditInfoWindow();
-        editInfoDockWindow.setVisible(true);
-    }
-    
     private PropertyMap buildPropertyMap(edu.tufts.vue.dsm.DataSource dataSource) {
         PropertyMap map = new PropertyMap();
         
@@ -1326,137 +1358,163 @@ public class DataSourceViewer extends JPanel
         
         return map;
     }
+
+    private static WidgetStack editInfoStack; // static hack: is needed before this class is constructed
+    private static final JLabel NoConfig = new JLabel("No Configuration", JLabel.CENTER);
     
-    private void refreshEditInfo(edu.tufts.vue.dsm.DataSource ds) {
-        String dockTitle = ds.getRepositoryDisplayName();
-        PropertyMap dsProps = buildPropertyMap(ds);
+    private final MetaDataPane configMetaData = new MetaDataPane(true);
+    private Object loadedDataSource;
+    
+    static void initUI() {
+        editInfoDockWindow = buildConfigWindow();
+    }
+    
+    private static DockWindow buildConfigWindow() {
+        try {
+            return _buildWindow();
+        } catch (Throwable t) {
+            Log.error("buildConfigWindow", t);
+        }
+        return null;
+    }
         
-       // final WidgetStack editInfoStack = new WidgetStack();
-        WidgetStack editInfoStack = null;
+    private void positionEditInfoWindow()
+    {
+    	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        if ((DRB.dockWindow.getX() + DRB.dockWindow.getWidth() + editInfoDockWindow.getWidth()) < screenSize.getWidth())
+            editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
+                                           DRB.dockWindow.getY());
+        else
+            editInfoDockWindow.setLocation(DRB.dockWindow.getX() - editInfoDockWindow.getWidth(),
+                                           DRB.dockWindow.getY());
+    }
+    
+    private void displayEditOrInfo(edu.tufts.vue.dsm.DataSource ds) {
+        if (DEBUG.DR) Log.debug("DISPLAY " + Util.tags(ds));
+        if (!editInfoDockWindow.isVisible())
+            positionEditInfoWindow();
+        refreshEditInfo(ds, true);
+        editInfoDockWindow.setVisible(true);
+        editInfoDockWindow.raise();
+    }
+    
+    private void displayEditOrInfo(DataSource ds) {
+        if (DEBUG.DR) Log.debug("DISPLAY " + Util.tags(ds));
+        if (!editInfoDockWindow.isVisible())
+            positionEditInfoWindow();
+        refreshEditInfo(ds, true);     
+        editInfoDockWindow.setVisible(true);
+        editInfoDockWindow.raise();
+    }
+    
+    // TODO: Dock title always "Resource: name", Configuration widget title
+    // always "Configuration: <type>", e.g., OSID, LocalFileDataSource, RSSDataSource, etc.
+
+
+    private static DockWindow _buildWindow() {
+
+        final DockWindow dw = GUI.createDockWindow("Resource");
+        
+        editInfoStack = new WidgetStack();
+        //editInfoStack.addPane("startup", new javax.swing.JLabel("config init"));
+        editInfoStack.setMinimumSize(new Dimension(300,300));
+        dw.setContent(editInfoStack);
+
+        if (DEBUG.Enabled) {
+            //editInfoStack.setMinimumSize(new Dimension(400,600));
+            dw.setSize(500,800);
+        } else {
+            dw.setWidth(300);
+            dw.setHeight(500);
+        }
 
         
-        	editInfoStack = new WidgetStack();
         
-        if (editInfoDockWindow == null) {
-            if (ds.hasConfiguration()) {
-                editInfoStack.addPane("Configuration",new EditLibraryPanel(this,ds));
-            } else {
-            	JPanel jc = new JPanel(){
-                	public Dimension getPreferredSize()
-                	{
-                		return new Dimension(300,100);
-                	}
-                	public Dimension getMinimumSize()
-                	{
-                		return new Dimension(300,100);
-                	}
-                };
-                jc.add(new JLabel("None"));
-                jc.setPreferredSize(new Dimension(200,20));
-                editInfoStack.addPane("Configuration",jc);
-                Widget.setExpanded(jc,false);
-            }
+        // We don't have DRB yet to set location.
+        return dw;
+    }
+
+    private void refreshEditInfo(edu.tufts.vue.dsm.DataSource ds) {
+        refreshEditInfo(ds, false);
+    }
+    private void refreshEditInfo(tufts.vue.DataSource ds) {
+        refreshEditInfo(ds, false);
+    }
+
+    private void doLoad(Object dataSource, String name) {
+        editInfoStack.setTitleItem(name);
+        //editInfoDockWindow.invalidate();
+        //editInfoDockWindow.repaint();
+        loadedDataSource = dataSource;
+    }
+
+    private void refreshEditInfo(edu.tufts.vue.dsm.DataSource ds, boolean force) {
+
+        if (ds == loadedDataSource)
+            return;
+
+        if (DEBUG.DR) Log.debug("REFRESH " + Util.tags(ds));
             
+        if (force || editInfoDockWindow.isVisible()) {
             
-            //JPanel descriptionPanel = new JPanel();
-       //     java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
-        //    java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-            //gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
-            //gbConstraints.insets = new java.awt.Insets(10,12,10,12);
-            //descriptionPanel.setLayout(gbLayout);
-            MetaDataPane metaDataPane = new MetaDataPane(true);
-            metaDataPane.loadProperties(dsProps);
-            //descriptionPanel.add(metaDataPane,gbConstraints);
-            //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
-            //editInfoStack.addPane("Description",new javax.swing.JScrollPane(descriptionPanel,JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,JScrollPane.HORIZONTAL_SCROLLBAR_NEVER));
-           
+            if (DEBUG.DR) Log.debug("LOADING " + Util.tags(ds));
             
-            editInfoStack.addPane("Content Description",metaDataPane,1f);
+            editInfoStack.removeAll();
             
-            editInfoDockWindow = GUI.createDockWindow(dockTitle);
-       //     Widget.setWantsScroller(editInfoStack, true);
-            editInfoDockWindow.setContent(editInfoStack);
-            
-           editInfoDockWindow.setWidth(300);
-            editInfoDockWindow.setHeight(300);
-            editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
-                    DRB.dockWindow.getY());
-            editInfoDockWindow.setTitle(dockTitle);
-        } else if (editInfoDockWindow.isVisible() || (!dockTitle.equals(editInfoDockWindow.getTitle()))) {
-        	editInfoStack.removeAll();
-       // 	editInfoDockWindow.setVisible(false);	
-            if (ds.hasConfiguration()) {
-                editInfoStack.addPane("Configuration", new EditLibraryPanel(this,ds));
-            } else {
-                JPanel jc = new JPanel(){
-                	public Dimension getPreferredSize()
-                	{
-                		return new Dimension(300,100);
-                	}
-                	public Dimension getMinimumSize()
-                	{
-                		return new Dimension(300,100);
-                	}
-                };
+            final String name;
+            if (DEBUG.Enabled)
+                //name = "Configuration: " + ds.getClass().getName(); // always edu.tufts.vue.dsm.impl.VueDataSource
+                name = "Configuration: " + ds.getRepository();
+            else
+                name = "Configuration";
                 
-                jc.add(new JLabel("None"));
-                editInfoStack.addPane("Configuration",jc);
-                Widget.setExpanded(jc,false);
+            if (ds.hasConfiguration()) {
+                editInfoStack.addPane(name, new EditLibraryPanel(this, ds));
+            } else {
+                editInfoStack.addPane(name, NoConfig);
+                if (DEBUG.Enabled) {
+                    ;
+                } else {
+                    Widget.setExpanded(NoConfig, false);
+                }
             }
-            //JPanel descriptionPanel = new JPanel();
-            //java.awt.GridBagLayout gbLayout = new java.awt.GridBagLayout();
-            //java.awt.GridBagConstraints gbConstraints = new java.awt.GridBagConstraints();
-            //gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
-            //gbConstraints.insets = new java.awt.Insets(10,12,10,12);
-            //descriptionPanel.setLayout(new BorderLayout());
-            MetaDataPane metaDataPane = new MetaDataPane(true);
-            metaDataPane.loadProperties(dsProps);
-       //     metaDataPane.setPreferredSize(new Dimension(editInfoDockWindow.getWidth(),metaDataPane.getHeight()));
-            //descriptionPanel.add(metaDataPane,BorderLayout.CENTER);
-            //descriptionPanel.add(new LibraryInfoPanel(ds),gbConstraints);
-            //Widget.setWantsScroller(editInfoStack, true);
-            editInfoStack.addPane("Content Description",metaDataPane,1f);
             
-            editInfoDockWindow.setTitle(dockTitle);
-       //     Widget.setWantsScroller(editInfoStack, true);
-            editInfoDockWindow.setContent(editInfoStack);
-       //     editInfoDockWindow.setVisible(true);	
+            final PropertyMap dsProps = buildPropertyMap(ds);
             
+            configMetaData.loadProperties(dsProps);
+            editInfoStack.addPane(configMetaData, 1f);
+            
+            doLoad(ds, ds.getRepositoryDisplayName());
         }
     }
     
-    private void refreshEditInfo(DataSource ds) {
-        String dockTitle = ds.getDisplayName();
+    private void refreshEditInfo(tufts.vue.DataSource ds, boolean force) {
+
+        if (ds == loadedDataSource)
+            return;
         
-        WidgetStack editInfoStack = null;
+        if (DEBUG.DR) Log.debug("REFRESH " + Util.tags(ds));
         
-        
-        	editInfoStack = new WidgetStack();
-      //  Widget.setWantsScroller(editInfoStack, true);
-        if (editInfoDockWindow == null) {
-            editInfoStack.addPane("Configuration",new EditLibraryPanel(this,ds));
-            editInfoDockWindow = GUI.createDockWindow(dockTitle);
-        //    Widget.setWantsScroller(editInfoStack, true);
-            editInfoDockWindow.setContent(editInfoStack);
+        if (force || editInfoDockWindow.isVisible()) {
+
+            if (DEBUG.DR) Log.debug("LOADING " + Util.tags(ds));
             
-            editInfoDockWindow.setWidth(300);
-            editInfoDockWindow.setHeight(300);
-            editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
-                    DRB.dockWindow.getY());
-            editInfoDockWindow.setTitle(dockTitle);
-        } else if (editInfoDockWindow.isVisible() || (!dockTitle.equals(editInfoDockWindow.getTitle()))) {
-     //   	editInfoDockWindow.setVisible(false);	
-            editInfoStack.addPane("Configuration",new EditLibraryPanel(this,ds));
-            editInfoDockWindow.setTitle(dockTitle);
-          //  editInfoDockWindow.setWidth(300);
-          //  editInfoDockWindow.setHeight(300);
-         //   Widget.setWantsScroller(editInfoStack, true);
-            editInfoDockWindow.setContent(editInfoStack);
-         //   editInfoDockWindow.setVisible(true);	
+            editInfoStack.removeAll();
+
+            final String name;
+            if (DEBUG.Enabled)
+                name = "Configuration: " + ds.getClass().getName();
+            else
+                name = "Configuration: " + ds.getTypeName();
+
+            editInfoStack.addPane(name, new EditLibraryPanel(this, ds), 1f);
+
+            doLoad(ds, ds.getDisplayName());
         }
     }
     
-    /*
+    
+    /**
      * static method that returns all the datasource where Maps can be published.
      * Only FEDORA @ Tufts is available at present
      */
@@ -1473,7 +1531,7 @@ public class DataSourceViewer extends JPanel
         return mDataSources;
         
     }
-    /*
+    /**
      * returns the default favorites resources.  This is will be used to add favorites and perform search
      */
     public static org.osid.repository.Repository getDefualtFavoritesRepository() {
