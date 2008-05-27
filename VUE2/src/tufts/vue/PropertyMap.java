@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.23 $ / $Date: 2008-05-24 21:11:14 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2008-05-27 23:46:07 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap<String,Object>
@@ -102,7 +102,7 @@ public class PropertyMap extends java.util.HashMap<String,Object>
         String key = desiredKey;
         int index = 1;
         while (containsKey(key))
-            key = String.format("%s.%02d", desiredKey, index++);
+            key = String.format("%s.%03d", desiredKey, index++);
         put(key, value);
         return key;
     }
@@ -172,7 +172,11 @@ public class PropertyMap extends java.util.HashMap<String,Object>
         listeners.add(l);
     }
     public synchronized void removeListener(Listener l) {
-        if (listeners != null) // CAN DEADLOCK HERE in *AWT* OBTAINING THE METHOD ENTRY LOCK WHEN CALLED FROM MetaDataPane.doLoadProperties
+            
+        // Note: we can DEADLOCK here in AWT obtaining the method entry lock if this
+        // PropertyMap instance is already locked by an ImageLoader thread.
+            
+        if (listeners != null)
             listeners.remove(l);
     }
 
