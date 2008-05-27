@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.42 $ / $Date: 2008-05-22 03:47:29 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2008-05-27 23:53:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -47,9 +47,9 @@ public class WidgetStack extends Widget
     private final GridBagConstraints _gbc = new GridBagConstraints();
     private final Insets ExpandedTitleBarInsets = GUI.EmptyInsets;
     private final Insets CollapsedTitleBarInsets = new Insets(0,0,1,0);
-    private final GridBagLayout mLayout;
     private final JComponent mDefaultExpander;
     private final Collection mWidgets = new ArrayList();
+    private final GridBagLayout mLayout;
 
     private WidgetTitle mLockedWidget = null;
     private int mExpanderCount = 0;
@@ -63,17 +63,12 @@ public class WidgetStack extends Widget
 
     public WidgetStack(String name) {
         super(name);
-        mLayout = new GridBagLayout();
         mGridBag = this;
+        mLayout = new GridBagLayout();
         setLayout(mLayout);
+        init();
 
         if (DEBUG.BOXES) setBorder(new javax.swing.border.LineBorder(Color.cyan, 4));
-
-        _gbc.gridwidth = GridBagConstraints.REMAINDER; // last in line as only one column
-        _gbc.anchor = GridBagConstraints.NORTH;
-        _gbc.weightx = 1;                              // always expand horizontally
-        _gbc.gridx = 0;
-        _gbc.gridy = 0;
 
         // We now add a component "guaranteed" to be at the bottom of the stack
         // (gridy=64), that starts invisible, but when all other vertical expanders
@@ -108,6 +103,15 @@ public class WidgetStack extends Widget
         // and have DockWindow respect this.
     }
 
+    private void init() {
+        _gbc.gridwidth = GridBagConstraints.REMAINDER; // last in line as only one column
+        _gbc.anchor = GridBagConstraints.NORTH;
+        _gbc.weightx = 1;                              // always expand horizontally
+        _gbc.gridx = 0;
+        _gbc.gridy = 0;
+
+    }
+
     @Override
     public void removeAll() {
         super.removeAll();
@@ -115,7 +119,13 @@ public class WidgetStack extends Widget
         mExpanderCount = 0;
         mExpandersOpen = 0;
         mLockedWidget = null;
+        init();
     }
+
+    public void setTitleItem(String s) {
+        putClientProperty("TITLE-ITEM", s);
+    }
+    
 
 
     /**
@@ -203,11 +213,12 @@ public class WidgetStack extends Widget
         updateDefaultExpander();
         super.addNotify();
         if (mExpanderCount == 0)
-            if (DEBUG.Enabled) out("no vertical expanders");
+            if (DEBUG.WIDGET) out("no vertical expanders");
             //tufts.Util.printStackTrace("warning: no vertical expanding panes; WidgetStack will not layout properly");
         setName("in " + GUI.name(getParent()));
 
-        Log.debug(this + "; PARENT=" + getParent());
+        //if (DEBUG.Enabled) Log.debug("addNotify: " + GUI.name(this) + "; PARENT=" + getParent());
+        if (DEBUG.DOCK || DEBUG.WIDGET) Log.debug("addNotify: " + GUI.name(this));
     }
     
 //     @Override
@@ -240,7 +251,16 @@ public class WidgetStack extends Widget
         final JComponent sizeTrack = (JComponent) getClientProperty("VUE.sizeTrack");
         if (sizeTrack != null) {
             if (DEBUG.WIDGET) out(src + "; TRACKING SIZE OF: " + GUI.name(sizeTrack));
-            final Dimension ps = super.getPreferredSize();
+            Dimension ps;
+            try {
+                ps = super.getPreferredSize();
+            } catch (Throwable t) {
+                // can get: Exception in thread "*AWT*" java.lang.ArrayIndexOutOfBoundsException: 512
+                // if too many items are loaded -- anything we can do about this?
+                Log.warn(String.format("%s; sizeTrack(%s); %s", getName(), src, t));
+                ps = new Dimension(200, 1024);
+            }
+                
             final int th = sizeTrack.getHeight();
             final int tw = sizeTrack.getWidth();
             if (th > ps.height) {
@@ -266,11 +286,13 @@ public class WidgetStack extends Widget
 
     /** interface Scrollable -- clicking on the up/down arrows of the scroll bar use this */
     public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+        //return 128;
         return 16;
     }
     /** interface Scrollable */
     public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
         return 32;
+        //return 128;
     }
     
     /** interface Scrollable */
@@ -700,9 +722,10 @@ public class WidgetStack extends Widget
             if (DEBUG.WIDGET) out("VISIBLE EXPANDER COUNT: " + mExpandersOpen);
             
             if (mExpandersOpen < 0 || mExpandersOpen > mExpanderCount)
-                throw new IllegalStateException("WidgetStack: expanders claimed open: "
-                                                + mExpandersOpen
-                                                + ", expander count=" + mExpanderCount);
+                Log.warn(this + "; handleWidgetDisplayChange=" + visible,
+                         new IllegalStateException("WidgetStack: expanders claimed open: "
+                                                   + mExpandersOpen
+                                                   + ", expander count=" + mExpanderCount));
 
             // Could do: if only one widget open, change constraints on THAT guy to
             // expand...  Or, as soon as all expanders close, set remaining ones to
