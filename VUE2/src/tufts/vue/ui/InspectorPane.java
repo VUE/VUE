@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.86 $ / $Date: 2008-05-24 22:59:46 $ / $Author: sfraize $
+ * @version $Revision: 1.87 $ / $Date: 2008-05-27 23:52:42 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -177,7 +177,7 @@ public class InspectorPane extends WidgetStack
         showResourcePanes(true);
         loadResource(e.selected);
         setVisible(true);
-        stack.putClientProperty("TITLE-ITEM", "Content");
+        stack.setTitleItem("Content");
     }
 
     private LWComponent activeEntrySelectionSync;
@@ -285,7 +285,10 @@ public class InspectorPane extends WidgetStack
         else
             mLabelPane.load(slideTitle, c);
         mKeywords.load(c);
-        stack.putClientProperty("TITLE-ITEM", c.getComponentTypeLabel());
+        if (DEBUG.Enabled)
+            stack.putClientProperty("TITLE-ITEM", c.getUniqueComponentTypeLabel());
+        else
+            stack.putClientProperty("TITLE-ITEM", c.getComponentTypeLabel());
     }
 
 //     public void selectionChanged(LWSelection selection) {

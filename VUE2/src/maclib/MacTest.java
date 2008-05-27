@@ -16,7 +16,7 @@ import java.net.*;
 
 /**
  * Mac OSX Test Code
- * @version $Revision: 1.5 $ / $Date: 2007-10-06 02:59:21 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-05-27 23:55:58 $ / $Author: sfraize $
  */
 public class MacTest extends MacOSX
 {
@@ -24,6 +24,7 @@ public class MacTest extends MacOSX
 
         MacOSX.DEBUG = true;
 
+        tufts.vue.gui.GUI.parseArgs(args);
         tufts.vue.gui.GUI.init();
 
         //test_fadeScreen();
