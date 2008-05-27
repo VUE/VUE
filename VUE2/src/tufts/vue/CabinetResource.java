@@ -37,7 +37,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.38 $ / $Date: 2008-04-18 01:20:54 $ / $Author: sfraize $
+ * @version $Revision: 1.39 $ / $Date: 2008-05-27 23:36:10 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -74,10 +74,20 @@ public class CabinetResource extends URLResource
     private CabinetResource(final osid.filing.CabinetEntry e) {
         this.entry = e;
 
-             if (e instanceof tufts.oki.remoteFiling.RemoteByteStore)    setSpec(((RemoteByteStore)e).getUrl());
-        else if (e instanceof tufts.oki.remoteFiling.RemoteCabinet)      setSpec(((RemoteCabinet)e).getUrl());
+             if (e instanceof tufts.oki.remoteFiling.RemoteCabinetEntry) initFrom((RemoteCabinetEntry) e);
         else if (e instanceof tufts.oki.localFiling.LocalByteStore)      setSpecByKnownFile(((LocalByteStore)e).getFile(), false);
         else if (e instanceof tufts.oki.localFiling.LocalCabinet)        setSpecByKnownFile(((LocalCabinet)e).getFile(), true);
+    }
+
+    private void initFrom(RemoteCabinetEntry e) {
+        setTitle(e.getDisplayName());
+        if (e instanceof tufts.oki.remoteFiling.RemoteByteStore) {
+            setClientType(Resource.FILE);
+            setSpec(((RemoteByteStore)e).getUrl());            
+        } else {
+            setClientType(Resource.DIRECTORY);
+            setSpec(((RemoteCabinet)e).getUrl());            
+        }
     }
 
     // todo: shouldn't be public -- eventually everything should go thru factory
