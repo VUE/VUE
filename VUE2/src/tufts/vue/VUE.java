@@ -41,7 +41,6 @@ import java.applet.AppletContext;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.NDC;
 import org.apache.log4j.Level;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.WriterAppender;
@@ -68,7 +67,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.552 $ / $Date: 2008-05-23 20:25:22 $ / $Author: anoop $ 
+ * @version $Revision: 1.553 $ / $Date: 2008-05-27 23:51:14 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -596,7 +595,7 @@ public class VUE
 
     }
 
-    private static final PatternLayout MasterLogPattern = new PatternLayout("VUE %d %5p [%t] %c{1}:%x %m%n");
+    private static final PatternLayout MasterLogPattern = new PatternLayout("VUE %d %5p [%t]%x %c{1}: %m%n");
     
     public static void debugInit(boolean heavy) {
         if (heavy) {
@@ -700,6 +699,21 @@ public class VUE
         //Preference initialzation for UI.
         MetadataSchemaPreference.getInstance();
     }
+
+    /** push a short diagnostic string onto the log output stack */
+    public static void pushDiag(String s) {
+        s = "[" + s + "]";
+        //s = "#" + s;
+        if (org.apache.log4j.NDC.getDepth() == 0)
+            org.apache.log4j.NDC.push(" " + s);
+        else
+            org.apache.log4j.NDC.push(s);
+    }
+
+    public static void popDiag() {
+        org.apache.log4j.NDC.pop();
+    }
+    
     
     public static void main(String[] args)
     {
@@ -743,7 +757,9 @@ public class VUE
         try {
 
             initUI();
+            pushDiag("init");
             initApplication();
+            popDiag();
             
 //             java.awt.EventQueue.invokeAndWait(new Runnable() {
 //                     public void run() {
@@ -791,14 +807,28 @@ public class VUE
             System.exit(0);
         }
 
+
+        //-------------------------------------------------------
+        // complete the rest of our tasks at min priority
+        //-------------------------------------------------------
+        
+        Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
+        
+        try {
+            DataSourceViewer.cacheDataSourceViewers();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+
         if (!SKIP_SPLASH) {
-            Thread versionThread = new Thread("VersionCheck") {
-                    public void run() {
-                        checkLatestVersion();
-                    }
-                };
-            versionThread.setPriority(Thread.MIN_PRIORITY);
-            versionThread.start();
+            checkLatestVersion();
+//             Thread versionThread = new Thread("VersionCheck") {
+//                     public void run() {
+//                         checkLatestVersion();
+//                     }
+//                 };
+//             versionThread.setPriority(Thread.MIN_PRIORITY);
+//             versionThread.start();
         }
 
         try {
@@ -808,9 +838,8 @@ public class VUE
         } catch (Throwable t) {
             Log.warn("font cache", t);
         }
-        
 
-        
+        Log.info("main complete");
     }
 
     static void initApplication()
@@ -850,7 +879,9 @@ public class VUE
         
         Log.debug("building interface...");
         
+        pushDiag("build");
         buildApplicationInterface();
+        popDiag();
 
         if (Util.isMacLeopard()) {
             // Critical for keeping DockWindow's on top.
@@ -1305,6 +1336,9 @@ public class VUE
             outlineScroller.setPreferredSize(new Dimension(500, 300));
             //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
             outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+
+            DataSourceViewer.initUI();
+            
         }
         
         //-----------------------------------------------------------------------------
@@ -2445,7 +2479,7 @@ public class VUE
      * Create a new viewer and display the given map in it.
      */
     public static MapViewer displayMap(LWMap pMap) {
-        NDC.push("[displayMap]");
+        pushDiag("displayMap");
         if (DEBUG.INIT) out(pMap.toString());
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
@@ -2498,7 +2532,7 @@ public class VUE
             mMapTabsRight.setSelectedComponent(rightViewer);
         }
 
-        NDC.pop();
+        popDiag();
         return leftViewer;
     }
 
