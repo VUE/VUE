@@ -1005,7 +1005,7 @@ public class Actions implements VueConstants
                 if (fileName.exists()) 
            		 	VueUtil.setCurrentDirectoryPath(chooser.getSelectedFile().getParent());
 
-                if (c instanceof LWNode)
+                if (c instanceof LWNode || c instanceof LWLink)
                 {
                 	//Resource r = c.getResource();
               
@@ -1040,6 +1040,7 @@ public class Actions implements VueConstants
                     VUE.setActive(LWComponent.class, this, c);
                 
                 }
+                
             //  }
             /*  else            	  
               {
@@ -1097,7 +1098,8 @@ public class Actions implements VueConstants
     		
     			
             JOptionPane optionPane= new JOptionPane("Enter the URL to add: ",JOptionPane.PLAIN_MESSAGE,JOptionPane.OK_CANCEL_OPTION,null,defaultButtons,"OK");
-            javax.swing.JDialog dialog = optionPane.createDialog((Component)VUE.getApplicationFrame(), "Add URL to Node");
+            String title = "Add URL to " + ((c instanceof LWNode ) ? "Node" : "Link");
+            javax.swing.JDialog dialog = optionPane.createDialog((Component)VUE.getApplicationFrame(), title);
             dialog.setModal(true);
             
             optionPane.setInitialSelectionValue(resourceString);
@@ -1140,7 +1142,7 @@ public class Actions implements VueConstants
                                                       JOptionPane.ERROR_MESSAGE);
                     } else
                     {
-                    	if (c instanceof LWNode)
+                    	if (c instanceof LWNode || c instanceof LWLink)
                     	{
                     		VUE.setActive(LWComponent.class, this, null);
                     		c.setResource(r);                        
