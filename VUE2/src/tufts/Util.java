@@ -1658,6 +1658,49 @@ public class Util
         else
             return "";
     }
+
+    /*
+    public static String displayName(Class clazz) {
+        if (clazz == null)
+            return "()";
+
+        final String name = clazz.getSimpleName();
+        final StringBuffer buf = new StringBuffer(name.length() + 6);
+
+//         if (true) {
+//             String[] segs = name.split("\\p{Lower}\\p{Upper}");
+//             for (int i = 0; i < segs.length; i++) {
+//                 buf.append(segs[i]);
+//                 buf.append(' ');
+//             }
+//             return buf.toString();
+//         }
+        
+
+        int i = 0;
+        while (i < name.length() && Character.isUpperCase(name.charAt(i)))
+            buf.append(name.charAt(i++));
+
+        if (i > 1)
+            buf.insert(i - 1, ' ');
+
+        int lastAdd = 0;
+        boolean inUpper = true;
+        for (; i < name.length(); i++) {
+            final char c = name.charAt(0);
+            if (inUpper && Character.isLowerCase(c)) {
+                buf.append(name, lastAdd, i - 2);
+                buf.append(' ');
+                buf.append(name.charAt(i - 1));
+                buf.append(c);
+                //inUpper = false;
+            } 
+        }
+
+        return name+"{"+buf.toString() +"}";
+        //return buf.toString();
+    }
+    */
     
     public static void test_OpenURL()
     {
