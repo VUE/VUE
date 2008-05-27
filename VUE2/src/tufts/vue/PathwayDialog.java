@@ -38,15 +38,30 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
     
     public PathwayDialog(Frame parentFrame, PathwayTableModel model, Point location)
     {
-        super(parentFrame, VueResources.getString("presentationDialog.title"), true);
+        super(parentFrame, VueResources.getString("presentationDialog.title"), false);
         this.tableModel = model;
         setSize(250, 100);
         this.setFocusable(true);
-        setLocation(location);
+        setLocation(location);    
         setAlwaysOnTop(true);
         setUpUI();
+      
     }
-
+    public void setVisible(boolean b)
+    {
+    	super.setVisible(b);
+    	SwingUtilities.invokeLater(new Runnable() {
+    	public void run()
+    	{
+    		textField.setFocusable(true);    		
+    	    textField.requestFocusInWindow();
+    	    textField.selectAll();
+    		return;	
+    	}}
+    	);
+    	
+    	
+    }
     private static int newcnt = 1;
     private void setUpUI()
     {
@@ -81,6 +96,7 @@ public class PathwayDialog extends JDialog implements ActionListener, KeyListene
 
         dialogContentPane.add(textPanel, BorderLayout.CENTER);
         dialogContentPane.add(buttons, BorderLayout.SOUTH);
+       
     }
 
     public void actionPerformed(java.awt.event.ActionEvent e) 
