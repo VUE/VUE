@@ -17,185 +17,241 @@ package tufts.vue;
 
 import javax.swing.*;
 import java.awt.event.*;
-import javax.swing.event.*;
 import java.awt.*;
+
+import static edu.tufts.vue.ui.ConfigurationUI.*;
 
 public class EditLibraryPanel extends JPanel implements ActionListener
 {
-	JButton updateButton = new JButton("Save");
-	JTextField fields[] = null;
-	edu.tufts.vue.dsm.DataSource dataSource = null;
-	DataSource oldDataSource = null;
-	String originalValue = null;
-	edu.tufts.vue.ui.ConfigurationUI cui = null;
-	DataSourceViewer dsv = null;
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EditLibraryPanel.class);
+    
+    private final JButton updateButton = new JButton("Save");
+    private final edu.tufts.vue.dsm.DataSource dataSource;
+    private final tufts.vue.DataSource oldStyleDataSource;
+    private final DataSourceViewer dsv;
+    private edu.tufts.vue.ui.ConfigurationUI cui;
 	
-	public EditLibraryPanel(DataSourceViewer dsv,
-							edu.tufts.vue.dsm.DataSource dataSource)
-	{
-		try {
-			this.dsv = dsv;
-			this.dataSource = dataSource;
-			
-			String xml = dataSource.getConfigurationUIHints();
-			
-			cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
-			cui.setProperties(dataSource.getConfiguration());
+    public EditLibraryPanel(DataSourceViewer dsv, edu.tufts.vue.dsm.DataSource dataSource)
+    {
+        this.dsv = dsv;
+        this.dataSource = dataSource;
+        this.oldStyleDataSource = null;
+            
+        try {
+            final String xml = dataSource.getConfigurationUIHints();
 
-			// layout container
-			GridBagLayout gridbag = new GridBagLayout();
-			GridBagConstraints gbConstraints = new GridBagConstraints();
-			gbConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-			gbConstraints.ipadx=110;
-			gbConstraints.fill = java.awt.GridBagConstraints.BOTH;
-			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
-			gbConstraints.gridx = 0;
-			gbConstraints.gridy = 0;
-			setLayout(gridbag);
-			//cui.setBorder(BorderFactory.createLineBorder(Color.black));
-		//	this.setBorder(BorderFactory.createLineBorder(Color.red));
-			add(cui,gbConstraints);
-			updateButton.addActionListener(this);
-			gbConstraints.ipadx=15;
-			gbConstraints.gridy = 1;
-			gbConstraints.anchor=GridBagConstraints.NORTHEAST;
-			gbConstraints.fill=GridBagConstraints.NONE;
-			add(updateButton,gbConstraints);
-			gbConstraints.ipadx=0;
-			gbConstraints.gridx=1;
-			gbConstraints.gridy=0;
-			gbConstraints.weightx=1;
-			gbConstraints.weighty=1;
-			gbConstraints.gridheight=2;
-			gbConstraints.fill=GridBagConstraints.HORIZONTAL;
-			add(new JPanel(),gbConstraints);
-			
-		} catch (Throwable t) {
-			
-		}
-	}
+            if (DEBUG.DR) Log.debug("OSID-XML: " + xml);
+                
+            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+            cui.setProperties(dataSource.getConfiguration());
+                
+            updateButton.addActionListener(this);
+                        
+            layoutConfig();
+                
+        } catch (Throwable t) {
+            Log.error("init", t);
+        }
+    }
+    
+    public EditLibraryPanel(DataSourceViewer dsv, tufts.vue.DataSource dataSource)
+    {
+        this.dsv = dsv;
+        this.dataSource = null;
+        this.oldStyleDataSource = dataSource;
+                        
+        try {
+            final String xml = getXMLforOldStyleDataSource(dataSource);
+            
+            if (DEBUG.DR) Log.debug("VUE-XML: " + xml);
+            
+            cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
+            
+            updateButton.addActionListener(this);
+
+            layoutConfig();
+                        
+        } catch (Throwable t) {
+            Log.error("init", t);
+        }
+    }
 	
-	public EditLibraryPanel(DataSourceViewer dsv,
-							DataSource dataSource)
-	{
-		try {
-			this.dsv = dsv;
-			this.oldDataSource = dataSource;
-			
-			// use canned configurations -- substitue current values for defaults
-			String xml = null;
-			if (dataSource instanceof LocalFileDataSource) {
-				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Starting path</title><description>The path to start from</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>512</maxChars><ui>8</ui></field></configuration>";
-				LocalFileDataSource ds = (LocalFileDataSource)dataSource;
-				String name = ds.getDisplayName();
-				String address = ds.getAddress();
-				xml = xml.replaceFirst("DEFAULT_NAME",name);
-				xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
-			} else if (dataSource instanceof FavoritesDataSource) {
-				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field></configuration>";
-				FavoritesDataSource ds = (FavoritesDataSource)dataSource;
-				String name = ds.getDisplayName();
-				xml = xml.replaceFirst("DEFAULT_NAME",name);
-			} else if (dataSource instanceof RemoteFileDataSource) {
-				xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars>0<ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>9</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
-				RemoteFileDataSource ds = (RemoteFileDataSource)dataSource;
-				String name = ds.getDisplayName();
-				if (name == null) name = "";
-				String address = ds.getAddress();
-				if (address == null) address = "";
-				String username = ds.getUserName();
-				if (username == null) username = RemoteFileDataSource.ANONYMOUS;
-				String password = ds.getPassword();
-				if (password == null) password = "";
-				xml = xml.replaceFirst("DEFAULT_NAME",name);
-				xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
-				xml = xml.replaceFirst("DEFAULT_USERNAME",username);
-				xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
-			} else if (dataSource instanceof edu.tufts.vue.rss.RSSDataSource) {
-                            edu.tufts.vue.rss.RSSDataSource ds =  (edu.tufts.vue.rss.RSSDataSource) dataSource;
-                            xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
-                            String name = ds.getDisplayName();
-                            if (name == null) name = "";
-                            String address = ds.getAddress();
-                            if (address == null) address = "";
-                            xml = xml.replaceFirst("DEFAULT_NAME",name);
-                            xml = xml.replaceFirst("DEFAULT_ADDRESS",address);	
-                        }
-			
-			cui = new edu.tufts.vue.ui.ConfigurationUI(new java.io.ByteArrayInputStream(xml.getBytes()));
-			
-			// layout container
-			GridBagLayout gridbag = new GridBagLayout();
-			GridBagConstraints gbConstraints = new GridBagConstraints();
-			gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
-			gbConstraints.insets = new java.awt.Insets(2,2,2,2);
-			gbConstraints.gridx = 0;
-			gbConstraints.ipadx=110;
-			gbConstraints.fill = java.awt.GridBagConstraints.BOTH;
-			gbConstraints.gridy = 0;
-			setLayout(gridbag);
-			//cui.setBorder(BorderFactory.createLineBorder(Color.green));
-			//this.setBorder(BorderFactory.createLineBorder(Color.red));
-			add(cui,gbConstraints);
-			updateButton.addActionListener(this);
-			gbConstraints.gridy = 1;
-			gbConstraints.ipadx=15;
-			gbConstraints.anchor=GridBagConstraints.NORTHEAST;
-			gbConstraints.fill=GridBagConstraints.NONE;
-			add(updateButton,gbConstraints);
-			gbConstraints.gridx=1;
-			gbConstraints.ipadx=0;
-			gbConstraints.gridy=0;
-			gbConstraints.weightx=1;
-			gbConstraints.weighty=1;
-			gbConstraints.gridheight=2;
-			gbConstraints.fill=GridBagConstraints.REMAINDER;
-			add(new JPanel(),gbConstraints);
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-	}
+
+    private String getXMLforOldStyleDataSource(tufts.vue.DataSource dataSource)
+    {
+        // use canned configurations
+
+        final StringBuffer b = new StringBuffer();
+        final String name = dataSource.getDisplayName();
+        //final String address = dataSource.getAddress();
+            
+        b.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        b.append("<configuration>\n");
+
+        addField(b, "name", "Display Name", "Name for this data source", name, SINGLE_LINE_CLEAR_TEXT_CONTROL, 0);
+                            
+        if (dataSource instanceof LocalFileDataSource) {
+
+            addField(b, "address",
+                     "Starting Path",
+                     "The path to start from",
+                     dataSource.getAddress(),
+                     FILECHOOSER_CONTROL,
+                     0);
+            
+        } else if (dataSource instanceof FavoritesDataSource) {
+
+            // nothing to add: just uses the name
+            
+        } else if (dataSource instanceof RemoteFileDataSource) {
+
+            final RemoteFileDataSource ds = (RemoteFileDataSource) dataSource;
+            
+            addField(b, "address", "Address", "FTP Address", ds.getAddress(), SINGLE_LINE_CLEAR_TEXT_CONTROL, 0);
+            addField(b, "username", "Username", "FTP site username", ds.getUserName(), SINGLE_LINE_CLEAR_TEXT_CONTROL, 16);
+            addField(b, "pasword", "Password", "FTP site password", ds.getPassword(), SINGLE_LINE_MASKED_TEXT_CONTROL, 16);
+            
+            
+        } else if (dataSource instanceof edu.tufts.vue.rss.RSSDataSource) {
+                            
+            //final edu.tufts.vue.rss.RSSDataSource ds = (edu.tufts.vue.rss.RSSDataSource) dataSource;
+            
+            addField(b, "address", "Address", "RSS Feed URL", dataSource.getAddress(), SINGLE_LINE_CLEAR_TEXT_CONTROL, 0);
+
+            if (DEBUG.Enabled)
+            addField(b,
+                     edu.tufts.vue.rss.RSSDataSource.AUTHENTICATION_COOKIE_KEY,
+                     "Authentication",
+                     "Any required authentication cookie",
+                     edu.tufts.vue.rss.RSSDataSource.DEFAULT_AUTHENTICATION_COOKIE,
+                     SINGLE_LINE_CLEAR_TEXT_CONTROL,
+                     0);
+                     
+            
+//             // Extra Fields
+//             b.append(ds.getConfigurationUI_XML_Fields());
+//             b.append('\n');
+
+
+        }
+
+        b.append("</configuration>");
+        
+        return b.toString();
+    }
+
+    private void addField(StringBuffer b, String key, String title, String description, String value, int uiControl, int max)
+    {
+        b.append("<field>");
+
+        b.append("<key>" + key + "</key>");
+        b.append("<title>" + title + "</title>");
+        b.append("<description>" + description + "</description>");
+
+        b.append("<default>");
+        if (value != null)
+            b.append(org.apache.commons.lang.StringEscapeUtils.escapeXml(value));
+        b.append("</default>");
+        
+        b.append("<mandatory>true</mandatory>"); // currently required as input, but ignored for effect by ConfigurationUI impl
+        
+        b.append("<maxChars>");
+        b.append(max);
+        b.append("</maxChars>");
+        
+        b.append("<ui>" + uiControl + "</ui>");
+        
+        b.append("</field>\n");
+    }
+
+    private void layoutConfig()
+    {
+        if (DEBUG.BOXES) {
+            cui.setBorder(BorderFactory.createLineBorder(Color.green));
+            this.setBorder(BorderFactory.createLineBorder(Color.red));
+        }
+
+        final GridBagConstraints gbc = new GridBagConstraints();
+        final GridBagLayout gridbag = new GridBagLayout();
+                            
+        setLayout(gridbag);
+                            
+        // Set up common GBC config:
+
+        gbc.insets = (Insets) tufts.vue.gui.GUI.WidgetInsets.clone();
+        gbc.insets.bottom = 0;
+        gbc.weightx = 1;
+        gbc.weighty = 0;
+                            
+        //-------------------------------------------------------
+        // Add ConfigurationUI
+        //-------------------------------------------------------
+        
+        gbc.anchor = GridBagConstraints.NORTH;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+        gbc.gridy = 0;
+
+        add(cui, gbc);
+                            
+        //-------------------------------------------------------
+        // Add Save button
+        //-------------------------------------------------------
+        
+        gbc.gridwidth = 1;
+        gbc.gridy = 1;
+        gbc.ipadx = 15; // this actually makes the button wider
+        gbc.anchor = GridBagConstraints.NORTHEAST;
+        gbc.fill = GridBagConstraints.NONE;
+                            
+        add(updateButton, gbc);
+
+        //-------------------------------------------------------
+        // Add a default vertical expander so above content
+        // will float to top.
+        //-------------------------------------------------------
+        
+        gbc.ipadx = 0;
+        gbc.gridy = 2;
+        gbc.weighty = 1; // this is the key for the expander to work (non-zero y-weight)
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.gridheight = GridBagConstraints.REMAINDER;
+        gbc.gridwidth = 0;
+        
+        final JComponent fill;
+
+        if (DEBUG.BOXES) {
+            fill = new JLabel("fill", JLabel.CENTER);
+            fill.setBackground(Color.gray);
+            fill.setOpaque(true);
+        } else {
+            fill = new JPanel();
+        }
+        
+        add(fill, gbc);
+    }
+                            
 	
-	public void actionPerformed(ActionEvent ae)
-	{
-		try {
-			if (ae.getSource() instanceof JButton) {
-				if (this.dataSource != null) {
-					this.dataSource.setConfiguration(cui.getProperties());
-					this.dsv.setActiveDataSource(this.dataSource); // refresh
-					edu.tufts.vue.dsm.DataSourceManager dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-					dsm.save();					
-				} else if (this.oldDataSource instanceof LocalFileDataSource) {
-					java.util.Properties p = cui.getProperties();
-					LocalFileDataSource ds = (LocalFileDataSource)this.oldDataSource;
-					ds.setDisplayName(p.getProperty("name"));
-					ds.setAddress(p.getProperty("address"));
-					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
-				} else if (this.oldDataSource instanceof FavoritesDataSource) {
-					java.util.Properties p = cui.getProperties();
-					FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
-					ds.setDisplayName(p.getProperty("name"));
-					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
-				} else if (this.oldDataSource instanceof RemoteFileDataSource) {
-					java.util.Properties p = cui.getProperties();
-					RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
-					ds.setDisplayName(p.getProperty("name"));
-					ds.setUserName(p.getProperty("username"));
-					ds.setAddress(p.getProperty("address")); // this must be set last
-                                        ds.setPassword(p.getProperty("password"));
-					this.dsv.setActiveDataSource(this.oldDataSource); // refresh
-				} else if (this.oldDataSource instanceof edu.tufts.vue.rss.RSSDataSource) {
-                                        java.util.Properties p = cui.getProperties();
-                                        edu.tufts.vue.rss.RSSDataSource ds = (edu.tufts.vue.rss.RSSDataSource)this.oldDataSource;
-                                        ds.setDisplayName(p.getProperty("name"));
-                                        ds.setAddress(p.getProperty("address"));
-                                        this.dsv.setActiveDataSource(this.oldDataSource);
-                                }
-			}
-                        DataSourceViewer.saveDataSourceViewer();
-		} catch (Throwable t) {
-			t.printStackTrace();
-			VueUtil.alert("Configuration error: "+ t.getMessage(),"Error");
-		}
-	}
+    public void actionPerformed(ActionEvent ae)
+    {
+        try {
+            if (ae.getSource() instanceof JButton) {
+                if (this.dataSource != null) {
+                    this.dataSource.setConfiguration(cui.getProperties());
+                    this.dsv.setActiveDataSource(this.dataSource); // refresh
+                    edu.tufts.vue.dsm.DataSourceManager dsm = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+                    dsm.save();					
+                } else if (this.oldStyleDataSource != null) {
+                    this.oldStyleDataSource.setConfiguration(cui.getProperties());
+                    this.dsv.setActiveDataSource(this.oldStyleDataSource); // refresh
+                }
+            }
+            DataSourceViewer.saveDataSourceViewer();
+        } catch (Throwable t) {
+            t.printStackTrace();
+            VueUtil.alert("Configuration error: "+ t.getMessage(),"Error");
+        }
+    }
 }
+
+
