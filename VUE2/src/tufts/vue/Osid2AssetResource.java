@@ -49,7 +49,6 @@ public class Osid2AssetResource extends URLResource
     private osid.OsidOwner owner = null;
     private org.osid.OsidContext context = null;
     private org.osid.repository.Asset asset = null;
-    private String icon = null;
 	
     // default constructor needed for Castor
     public Osid2AssetResource() {}
@@ -114,8 +113,17 @@ public class Osid2AssetResource extends URLResource
             return " \"" + s + "\"";
     }
 
-    private static String out(org.osid.shared.Type t) {
-        return t.getAuthority() + "/" + t.getDomain() + "/" + t.getKeyword() + quoteL(t.getDescription())
+    private static String name(String s) {
+        if (s == null || s.length() == 0)
+            return "()";
+        else
+            return "(" + s + ")";
+    }
+    
+
+    private static String fmt(org.osid.shared.Type t) {
+        //return t.getAuthority() + "/" + t.getDomain() + "/" + t.getKeyword() + quoteL(t.getDescription())
+        return t.getAuthority() + "/" + t.getDomain() + "/" + t.getKeyword()
             ;
     }
 
@@ -130,16 +138,19 @@ public class Osid2AssetResource extends URLResource
         setProperty("title", displayName);
         org.osid.repository.RecordIterator recordIterator = asset.getRecords();
         while (recordIterator.hasNextRecord()) {
-            org.osid.repository.Record record = recordIterator.nextRecord();
-            org.osid.repository.PartIterator partIterator = record.getParts();
+            final org.osid.repository.Record record = recordIterator.nextRecord();
+            final org.osid.repository.PartIterator partIterator = record.getParts();
             String recordDesc = null;
             if (DEBUG.DR) {
                 if (record == null)
                     recordDesc = "<NULL-RECORD>";
                 else
-                    recordDesc = record
-                        + "\nID= " + record.getId()
-                        + "\nRecordStruct=" + quoteF(record.getRecordStructure());
+                    recordDesc =
+                        record
+                        //+ "\nRepository=" + asset.getRepository().getDisplayName()
+                        + "\nID=" + record.getId()
+                        + "\nRecordStruct=" + quoteF(record.getRecordStructure())
+                        + "\n";
 //                     recordDesc = quoteF(record.getDisplayName()) + record
 //                         + "\nID= " + quoteF(record.getId().getIdString()) + record.getId()
 //                         + "\nRecordStruct=" + quoteF(record.getRecordStructure().getDisplayName())
@@ -149,98 +160,113 @@ public class Osid2AssetResource extends URLResource
             
             int partIndex = 0; // for debug
             while (partIterator.hasNextPart()) {
-                org.osid.repository.Part part = partIterator.nextPart();
-                org.osid.repository.PartStructure partStructure = part.getPartStructure();
-				if ( (part != null) && (partStructure != null) ) {
-					org.osid.shared.Type partStructureType = partStructure.getType();
-					java.io.Serializable value = part.getValue();
+                final org.osid.repository.Part part = partIterator.nextPart();
+                final org.osid.repository.PartStructure partStructure = part.getPartStructure();
+                if ( (part != null) && (partStructure != null) ) {
+                    org.osid.shared.Type partStructureType = partStructure.getType();
+                    java.io.Serializable value = part.getValue();
 					
-					final String description = partStructureType.getDescription();
+                    final String description = partStructureType.getDescription();
 					
-					if (DEBUG.DR) {
-						recordDesc += "\nPART" + partIndex++ + "="
-                        +  "pstype(" + out(partStructureType) +  ")   "
-                        + quoteF(part.getDisplayName()) + "  " + part
-                        + (DEBUG.META ? (" partStructure name/desc=" + quoteF(partStructure.getDisplayName()) + quoteF(partStructure.getDescription())) : "")
-                        ;
-					}
+                    if (DEBUG.DR) {
+                                            
+                        recordDesc +=
+                            String.format("\nPART%3d %-35s %-23s %-15s (%s)%s",
+                                          partIndex++,
+                                          fmt(partStructureType),
+                                          '"' + partStructureType.getDescription() + '"',
+                                          name(part.getDisplayName()),
+                                          part,
+                                          (DEBUG.META ?
+                                           (" partStructure name/desc="
+                                            + quoteF(partStructure.getDisplayName())
+                                            + quoteF(partStructure.getDescription()))
+                                           : "")
+                                          );
+                    }
 					
-					// metadata discovery, allow for Type descriptions
+                    // metadata discovery, allow for Type descriptions
 					
-					String key;
+                    String key;
 					
-					if (description != null && description.trim().length() > 0) {
-						key = description;
-						//if (DEBUG.DR) key += "|d";
-					} else {
-						key = partStructureType.getKeyword();
-						//if (DEBUG.DR) key += "|k";
-						/*
-						 if (DEBUG.DR) {
-							 String idName = record.getId().getIdString();
-							 if (idName == null || idName.trim().length() == 0 || idName.indexOf(':') >= 0)
-								 key += "|k";
-							 else
-								 key += "." + idName;
-						 }
-						 */
-					}                
+                    if (description != null && description.trim().length() > 0) {
+                        key = description;
+                        //if (DEBUG.DR) key += "|d";
+                    } else {
+                        key = partStructureType.getKeyword();
+                        //if (DEBUG.DR) key += "|k";
+                        /*
+                          if (DEBUG.DR) {
+                          String idName = record.getId().getIdString();
+                          if (idName == null || idName.trim().length() == 0 || idName.indexOf(':') >= 0)
+                          key += "|k";
+                          else
+                          key += "." + idName;
+                          }
+                        */
+                    }                
 					
-					if (key == null) {
-						Log.warn(this + " Asset Part [" + part + "] has null key.");
-						continue;
-					}
+                    if (key == null) {
+                        Log.warn(this + " Asset Part [" + part + "] has null key.");
+                        continue;
+                    }
 					
-					if (value == null) {
-						Log.warn(this + " Asset Part [" + key + "] has null value.");
-						continue;
-					}
+                    if (value == null) {
+                        Log.warn(this + " Asset Part [" + key + "] has null value.");
+                        continue;
+                    }
 					
-					if (value instanceof String) {
-						String s = ((String)value).trim();
+                    if (value instanceof String) {
+                        String s = ((String)value).trim();
 						
-						// Don't add field if it's empty
-						if (s.length() <= 0)
-							continue;
+                        // Don't add field if it's empty
+                        if (s.length() <= 0)
+                            continue;
 						
-						if (s.startsWith("<p>") && s.endsWith("</p>")) {
-							// Ignore empty HTML paragraphs
-							String body = s.substring(3, s.length()-4);
-							if (body.trim().length() == 0) {
-								if (DEBUG.DR)
-									value = "[empty <p></p> ignored]";
-								else
-									continue;
-							}
-						}
-					}
+                        if (s.startsWith("<p>") && s.endsWith("</p>")) {
+                            // Ignore empty HTML paragraphs
+                            String body = s.substring(3, s.length()-4);
+                            if (body.trim().length() == 0) {
+                                if (DEBUG.DR)
+                                    value = "[empty <p></p> ignored]";
+                                else
+                                    continue;
+                            }
+                        }
+                    }
 					
-					addProperty(key, value);
+                    addProperty(key, value);
 					
-					// TODO: Fedora OSID impl is a bit of a mess: most every part is a URL part type,
-					// and it's only by virtue of the fact that the last one
-					// we process HAPPENS to be the fullView, that this even works at all!
+                    // TODO: Fedora OSID impl is a bit of a mess: most every part is a URL part type,
+                    // and it's only by virtue of the fact that the last one
+                    // we process HAPPENS to be the fullView, that this even works at all!
+
+                    // TODO: MFA appears to be duplicating a sub-set of it's part-structure's
+                    // E.g., thumbnail/mediumImage/largeImage/URL all appear twice,
+                    // resulting in repeated meta-data.  We can't just remove all key repeats,
+                    // as some repeated keys are valid: e.g. there can be hundreds of "Subject"
+                    // keys.  SMF 2008-05-26
 					
-					if (BrowsePartType.isEqual(partStructureType)) {
-                                            setURL_Browse(value.toString());
-                                            //setSpec(s);
-					} else if (ThumbnailPartType.isEqual(partStructureType) || ThumbnailPartType2.isEqual(partStructureType)) {
-						setURL_Thumb(value.toString());
+                    if (BrowsePartType.isEqual(partStructureType)) {
+                        setURL_Browse(value.toString());
+                        //setSpec(s);
+                    } else if (ThumbnailPartType.isEqual(partStructureType) || ThumbnailPartType2.isEqual(partStructureType)) {
+                        setURL_Thumb(value.toString());
 						
-						/*
-						 if (value instanceof String) {
-							 //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
-							 this.icon = (String) value;
-						 } else {
-							 //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
-							 //this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
-						 }
-						 */
-					} else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType) || LargeImagePartType2.isEqual(partStructureType)) {
-						setURL_Image(value.toString());
-						// handle large image
-					}
-				}
+                        /*
+                          if (value instanceof String) {
+                          //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon(new java.net.URL((String)ser))));
+                          this.icon = (String) value;
+                          } else {
+                          //setPreview(new javax.swing.JLabel(new javax.swing.ImageIcon((java.awt.Image)ser)));
+                          //this.icon = new javax.swing.ImageIcon((java.awt.Image)ser);
+                          }
+                        */
+                    } else if (LargeImagePartType.isEqual(partStructureType) || FedoraImagePartType.isEqual(partStructureType) || LargeImagePartType2.isEqual(partStructureType)) {
+                        setURL_Image(value.toString());
+                        // handle large image
+                    }
+                }
             }
             
             if (DEBUG.DR) addProperty("~Record", recordDesc);
@@ -259,49 +285,10 @@ public class Osid2AssetResource extends URLResource
         }
     }
 
-//     private static final String UNSET = "<unset-mimeType>";
-//     private String mimeType = UNSET;
-
-//     @Override
-//     public String getContentType() {
-
-//         //String type = super.getContentType();
-
-// //         if (type == EXTENSION_UNKNOWN || type == EXTENSION_DIR)
-// //             return type
-        
-//         if (getSpec().endsWith("=jpeg")) {
-//             // special case for MFA data source -- TODO: MFA OSID should handle this
-//             return "jpeg";
-//         } else if (mimeType != UNSET) {
-//             return mimeType;
-//         } else if (getSpec().contains("fedora")) { // fix for fedora url
-//             try {
-//                 URL url = new URL(getSpec());
-//                 Log.info("opening URL " + url);
-//                 String type = url.openConnection().getHeaderField("Content-type");
-//                 if (type.contains("/")) {
-//                     mimeType = type.split("/")[1]; // returning the second part of mime-type
-//                     return mimeType;
-//                 } else {
-//                     return super.getContentType();
-//                 }
-//             } catch (Throwable t) {
-//                 t.printStackTrace();
-//                 return super.getContentType();
-//             }
-            
-//         } else
-//             return super.getContentType();
-//     }
     
     public org.osid.repository.Asset getAsset() 
     {
         return this.asset;
     }    
 	
-//     public String getImageIcon()
-//     {
-//         return this.icon;
-//     }	
 }
