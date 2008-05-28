@@ -359,7 +359,9 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         }
     }
    
-    private synchronized void loadPropertiesAWT(PropertyMap propertyMap)
+    // as we guarantee that we only ever run this in the AWT thread, this method
+    // doesn't need to be synchronized
+    private void loadPropertiesAWT(PropertyMap propertyMap)
     {
         if (DEBUG.THREAD || DEBUG.RESOURCE || DEBUG.IMAGE) out("loadPropertiesAWT: " + propertyMap.size() + " key/value pairs");
        

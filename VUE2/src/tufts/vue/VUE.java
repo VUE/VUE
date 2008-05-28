@@ -67,7 +67,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.556 $ / $Date: 2008-05-28 04:33:06 $ / $Author: sfraize $ 
+ * @version $Revision: 1.557 $ / $Date: 2008-05-28 21:39:59 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -325,13 +325,13 @@ public class VUE
                         return;
                     }
                 }
-                
+
                 final LWSelection s = VUE.getSelection();
-                if (!s.inNotify()) {
-                    synchronized (s) {
-                        if (!s.inNotify())
-                            s.setTo(e.active.getSelectable());
-                    }
+                synchronized (s) {
+                    // as long as we're not already here due to a selection notification,
+                    // auto-select the appropriate component for this entry
+                    if (!s.inNotify())
+                        s.setTo(e.active.getSelectable());
                 }
             }
         }
