@@ -54,7 +54,7 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.15 $ / $Date: 2007-11-26 22:57:49 $ / $Author: peter $
+ * @version $Revision: 1.16 $ / $Date: 2008-05-28 07:10:02 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
     implements DragGestureListener, tufts.vue.ResourceSelection.Listener, MouseListener,ActionListener
@@ -172,10 +172,19 @@ public class ResourceList extends JList
 
         selectionModel.addListSelectionListener(new ListSelectionListener() {
                 public void valueChanged(ListSelectionEvent e) {
-                    if (DEBUG.RESOURCE || DEBUG.SELECTION) {
+                    if (DEBUG.RESOURCE || DEBUG.SELECTION || DEBUG.FOCUS) {
                         System.out.println(ResourceList.this + " valueChanged: " + e
                                            + " index=" + getSelectedIndex()
                                            + " picked=" + getPicked());
+
+                        // TODO: Leopard java 1.5 2008-05-28 SMF: a tiny drag on a
+                        // resource leading to an aborted drag leaves us in a state such
+                        // that all the events coming in as a result of up/down arrow
+                        // key movement (which do move the selection), claim
+                        // valueIsAdjusting!  So the arrows break after doing this,
+                        // until the mouse click is used to change the resource
+                        // selection, which resets us.  This is looking like a java bug.
+                        
                         if (e.getValueIsAdjusting())
                             System.out.println(ResourceList.this + " isAdjusting: ignoring");
                     }
