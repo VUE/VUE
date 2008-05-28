@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.87 $ / $Date: 2008-05-27 23:52:42 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2008-05-28 00:21:48 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -203,7 +203,7 @@ public class InspectorPane extends WidgetStack
             else {
                 activeEntrySelectionSync = entry.node;
                 mPathwayNotes.attach(entry.getSlide());
-                mPathwayNotes.setTitle("Pathway Notes (" + entry.pathway.getLabel() + ": #" + index + ")");
+                mPathwayNotes.setTitle("Slide Notes (" + entry.pathway.getLabel() + ": #" + index + ")");
             }
             
             mPathwayNotes.setHidden(false);
