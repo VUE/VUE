@@ -327,7 +327,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
         GUI.invokeAfterAWT(new Runnable() {
                 public void run() {
-                    updateDisplay(source);
+                    updateDisplayAWT(source);
                 }
             });
         
@@ -377,7 +377,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                     mProperties.removeListener(this); 
                 mProperties = propertyMap;
                 mProperties.addListener(this);
-                updateDisplay(mProperties);
+                updateDisplayAWT(mProperties);
             }
            
             
@@ -386,8 +386,9 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         }
     }
 
-    // Note: if this method is called from a non-AWT thread, we could risk deadlock.
-    private synchronized void updateDisplay(final PropertyMap properties)
+    // Note: should only be called on AWT Event Dispatch Thread.
+    // If it were synchronized, and this method is was from a non-AWT thread, we could risk deadlock.
+    private void updateDisplayAWT(final PropertyMap properties)
     {
         if (mProperties != properties) {
             if (DEBUG.Enabled) Log.debug("too late for update to " + properties);
