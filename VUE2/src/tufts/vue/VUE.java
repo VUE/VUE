@@ -67,7 +67,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.555 $ / $Date: 2008-05-28 04:19:02 $ / $Author: sfraize $ 
+ * @version $Revision: 1.556 $ / $Date: 2008-05-28 04:33:06 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -781,7 +781,7 @@ public class VUE
             
             // this must now happen AFTER data-sources are loaded, as it's possible that
             // they will be providing authentication that will be required to get
-            // content on the maps that will be opened.
+            // content on the maps that will be opened [VUE-879]
             
             // todo: someday, resources can be tagged as requiring authentication (or
             // actually reference some kind of repository object that knows this, god
@@ -857,8 +857,9 @@ public class VUE
     }
 
     private static boolean didInitDR = false;
-    private static void initDataSources() {
+    private static synchronized void initDataSources() {
         if (didInitDR == false && SKIP_DR == false && DR_BROWSER != null) {
+            Log.debug("initDataSources: started");
             try {
                 DR_BROWSER.loadDataSourceViewer();
                 UrlAuthentication.getInstance(); // VUE-879
@@ -866,6 +867,7 @@ public class VUE
             } catch (Throwable t) {
                 Log.error("failed to init data sources", t);
             }
+            Log.debug("initDataSources: completed");
         }
     }
     
@@ -2400,6 +2402,12 @@ public class VUE
      */
     public static void displayMap(File file) {
         if (DEBUG.INIT || DEBUG.IO) Log.debug("displayMap " + Util.tags(file));
+
+        // Call initDataSources again just in case a user can make it to the file
+        // open-recent menu before the data sources finish loading on the remaining
+        // "main" thread.  If it's still running, we'll just block until it's done, as
+        // this method is synchronized.
+        initDataSources();
 
         if (file == null)
             return;
