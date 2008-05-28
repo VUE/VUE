@@ -278,6 +278,7 @@ public class ConfigurationUI extends javax.swing.JPanel {
             ex.printStackTrace();
         }
     }
+
     Vector<Component> order = null;
     private void populatePanel() {
         try {
@@ -298,8 +299,6 @@ public class ConfigurationUI extends javax.swing.JPanel {
                 String defaultValue = (String)defaultValueVector.elementAt(i);
                 
                 // if default value from Provider is null, check that there is not a value already set
-                
-                
                 
                 final String title = (String)titleVector.elementAt(i);
                 final int numChars = ((Integer)maxCharsVector.elementAt(i)).intValue();
@@ -470,21 +469,58 @@ public class ConfigurationUI extends javax.swing.JPanel {
         
         //gbConstraints.weighty = 0;
         
-        gbConstraints.gridx = 0;
+        gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gbConstraints.fill = java.awt.GridBagConstraints.NONE;
         gbConstraints.gridwidth = 1;
+        gbConstraints.gridx = 0;
         gbConstraints.weightx = 0;
+        
         add(prompt, gbConstraints);
         
         gbConstraints.gridx = 1;
+        
         if (limitWidth) {
-            gbConstraints.anchor = java.awt.GridBagConstraints.WEST;
+
+            // There appears to be no way to prevent a JTextField from collapsing to
+            // virtually zero width if the container width allows for any less than it's
+            // preferred size.  Adding it w/out settng gridwidth REMAINDER works great
+            // as long as there's extra space -- it only takes the length of it's
+            // preferred size.  But if any LESS space than that is available, it
+            // completely collapses.  We can "fix" this by setting it's minimum size, in
+            // which case it won't collapse, but then if maxChars wasn't config
+            // specificied as a small minimum, but instead meant as an upper limit
+            // maximum, then we could have a problem if the component minimum size is
+            // taken literally (it would go off the right and be clipped, or even worse,
+            // force it's parent container/window to expand to be that wide).
+            // Fortunately, the mimimum size only appears to be attended to by GridBag
+            // if it's actually less than preferred size, so this seems to work.
+            
+            //gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+            //gbConstraints.anchor = java.awt.GridBagConstraints.CENTER;
+            //gbConstraints.gridwidth = java.awt.GridBagConstraints.RELATIVE;
+            //gbConstraints.weightx = 1;
+            //gbConstraints.gridwidth = 1;
+            
+            component.setMinimumSize(component.getPreferredSize());
+            add(component, gbConstraints);
+            
+//             gbConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+//             gbConstraints.fill = java.awt.GridBagConstraints.BOTH;
+//             gbConstraints.weightx = 1;
+//             gbConstraints.gridx = 2;
+//             javax.swing.JComponent fill = new javax.swing.JPanel();
+//             fill.setBackground(java.awt.Color.darkGray);
+//             fill.setOpaque(true);
+//             add(fill, gbConstraints);
+//             //add(javax.swing.Box.createHorizontalGlue(), gbConstraints);
+            
         } else {
             gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
             gbConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
             gbConstraints.weightx = 1;
+            add(component, gbConstraints);
         }
-        add(component, gbConstraints);
+        
         if (tufts.vue.DEBUG.BOXES)
             component.setBorder(javax.swing.BorderFactory.createLineBorder(java.awt.Color.blue));        
         
