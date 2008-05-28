@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.92 $ / $Date: 2008-05-28 07:51:54 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2008-05-28 22:22:25 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -124,7 +124,7 @@ public class InspectorPane extends WidgetStack
             stack.addPane(p.name, p.widget, p.size);
 
         VUE.getSelection().addListener(this);
-      //VUE.addActiveListener(LWComponent.class, this);
+        VUE.addActiveListener(LWComponent.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
         VUE.getResourceSelection().addListener(this);
         
@@ -176,7 +176,11 @@ public class InspectorPane extends WidgetStack
         }
     }
     
+    /** interface Runnable */
     public void run() {
+        
+        // TODO: move this code up to a generic Widget capability,
+        // merging it with similar code in MetaDataPane Widget.
         
         // Always put the scroll-bar back at the top, as it defaults to moving to the
         // bottom.  E.g., when selecting through search results that all have tons of
@@ -229,10 +233,10 @@ public class InspectorPane extends WidgetStack
 
         loadedEntry = entry;
 
-      //final boolean slidesShowing = LWPathway.isShowingSlideIcons();
-        final boolean slidesShowing = entry.pathway.isShowingSlides();
+//         //final boolean slidesShowing = LWPathway.isShowingSlideIcons();
+//         final boolean slidesShowing = entry.pathway.isShowingSlides();
         
-        if (index < 1 || slidesShowing) {
+        if (index < 1 || entry.pathway.isShowingSlides()) {
             
             mPathwayNotes.setHidden(true);
             mPathwayNotes.detach();
@@ -245,17 +249,17 @@ public class InspectorPane extends WidgetStack
             // activeEntrySelectioSync here, and check for it later when are notified
             // that the selection has changed.
 
-            if (false && slidesShowing) {
-                // This adds the reverse case: display node notes when a slide is selected:
-                activeEntrySelectionSync = entry.getSlide();
-                mPathwayNotes.attach(entry.node);
-                mPathwayNotes.setTitle("Node Notes");
-            }
-            else {
+//             if (slidesShowing) {
+//                 // This adds the reverse case: display node notes when a slide is selected:
+//                 activeEntrySelectionSync = entry.getSlide();
+//                 mPathwayNotes.attach(entry.node);
+//                 mPathwayNotes.setTitle("Node Notes");
+//          } else {
                 activeEntrySelectionSync = entry.node;
                 mPathwayNotes.attach(entry.getSlide());
-                mPathwayNotes.setTitle("Slide Notes (" + entry.pathway.getLabel() + ": #" + index + ")");
-            }
+                mPathwayNotes.setTitle("Pathway Notes (" + entry.pathway.getLabel() + ": #" + index + ")");
+//          }
+
             
             mPathwayNotes.setHidden(false);
         }
@@ -263,9 +267,28 @@ public class InspectorPane extends WidgetStack
         displayRelease(); // can optimize out: should be able to rely on follow-on selectionChanged...
         
     }
+
+    private boolean selectionChanged;
+    
+    public void activeChanged(final tufts.vue.ActiveEvent e, final LWComponent c) {
+
+//         selectionChanged = false;
+
+//         GUI.invokeAfterAWT(new Runnable() {
+//                 public void run() {
+//                     if (!selectionChanged) {
+//                         Log.debug("ACTIVE COMPONENT CHANGE W/OUT SELECTION CHANGE: " + c);
+//                         loadSingleSelection(c);
+//                     }
+//                 }
+//             });
+        
+    }
     
     public void selectionChanged(final LWSelection s)
     {
+        selectionChanged = true;
+
         displayHold();
         
         if (s.size() == 0) {
