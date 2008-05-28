@@ -642,7 +642,7 @@ public class DataSourceViewer extends JPanel
     
     private void loadOldStyleDataSources() {
 
-        VUE.pushDiag("old");
+        VUE.pushDiag("vds"); // VueDataSource (oldStyle)
         
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
@@ -686,7 +686,7 @@ public class DataSourceViewer extends JPanel
     }
 
     public static void cacheDataSourceViewers() {
-        VUE.pushDiag("DSV-CACHE");
+        VUE.pushDiag("dsv-cache");
 
         final java.util.List<tufts.vue.DataSource> dataSources;
         synchronized (oldStyleDataSources) {
