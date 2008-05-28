@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.28 2008-05-28 00:00:52 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.29 2008-05-28 00:06:43 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -35,7 +35,7 @@ import tufts.Util;
 
 
 /**
- * @version $Revision: 1.28 $ / $Date: 2008-05-28 00:00:52 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2008-05-28 00:06:43 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
@@ -72,23 +72,8 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     
     @Override
     public String getTypeName() {
-        return "Local Files";
+        return "Local Directory";
     }
-    
-//     @Override
-//     public void setAddress(String address)
-//         throws DataSourceException
-//     {
-//         if (DEBUG.DR) out("setAddress " + Util.tag(address) + "; " + address);
-//         super.setAddress(address);
-//         this.setResourceViewer();
-//     }
-
-//     @Override
-//     public void setResourceViewer() {
-//         // do nothing -- lazy eval, as we may never need the UI components!
-//         //getResourceViewer();
-//     }
     
     @Override
     protected JComponent buildResourceViewer()
