@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.89 $ / $Date: 2008-05-28 05:51:34 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2008-05-28 06:59:57 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -140,7 +140,7 @@ public class InspectorPane extends WidgetStack
         // These two are present, but un-expanded by default:
         Widget.setExpanded(ontologicalMetadata, false);
         Widget.setExpanded(mKeywords, false);
-        
+
         setMinimumSize(new Dimension(300,500)); // if WidgetStack overrides getMinimumSize w/out checking for a set, this won't work.
     }
 
@@ -161,12 +161,18 @@ public class InspectorPane extends WidgetStack
     }
 
     private LWComponent activeEntrySelectionSync;
+    private LWPathway.Entry loadedEntry; // not needed at the moment
 
-    public void activeChanged(final tufts.vue.ActiveEvent e, final LWPathway.Entry entry)
+    public void activeChanged(final tufts.vue.ActiveEvent _e, final LWPathway.Entry entry)
     {
         final int index = (entry == null ? -9 : entry.index() + 1);
+
+        loadedEntry = entry;
+
+      //final boolean slidesShowing = LWPathway.isShowingSlideIcons();
+        final boolean slidesShowing = entry.pathway.isShowingSlides();
         
-        if (index < 1 || entry.pathway.isShowingSlides()) {
+        if (index < 1 || slidesShowing) {
             
             mPathwayNotes.setHidden(true);
             mPathwayNotes.detach();
@@ -179,7 +185,7 @@ public class InspectorPane extends WidgetStack
             // activeEntrySelectioSync here, and check for it later when are notified
             // that the selection has changed.
 
-            if (false && entry.pathway.isShowingSlides()) {
+            if (false && slidesShowing) {
                 // This adds the reverse case: display node notes when a slide is selected:
                 activeEntrySelectionSync = entry.getSlide();
                 mPathwayNotes.attach(entry.node);
@@ -223,8 +229,10 @@ public class InspectorPane extends WidgetStack
             Widget.setHidden(ontologicalMetadata, true);
         }
 
-        if (activeEntrySelectionSync != c)
+        if (activeEntrySelectionSync != c) {
             mPathwayNotes.setHidden(true);
+            loadedEntry = null;
+        } 
         activeEntrySelectionSync = null;
 
         loadData(c);
@@ -235,11 +243,12 @@ public class InspectorPane extends WidgetStack
         } else {
             showResourcePanes(false);
         }
-
+        
     }
 
     private void loadMultiSelection(final LWSelection s)
     {
+        loadedEntry = null;
         hideAllPanes();
         mKeywords.load(s.first());
       //Widget.setExpanded(mKeywords, true);

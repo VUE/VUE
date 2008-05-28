@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.130 $ / $Date: 2008-05-05 18:04:00 $ / $Author: mike $
+ * @version $Revision: 1.131 $ / $Date: 2008-05-28 06:59:56 $ / $Author: sfraize $
  */
 
 public class PathwayPanel extends JPanel
@@ -1159,9 +1159,11 @@ public class PathwayPanel extends JPanel
 
     void updateShowSlidesButton() {
         btnShowSlides.setSelected(LWPathway.isShowingSlideIcons());
+        ActiveInstance.getHandler(LWPathway.Entry.class).redeliver(this);
+        //btnShowSlides.firePropertyChange("showSlidesChange", true, false);
     }
 
-    static PathwayPanel getInstance() {
+    public static PathwayPanel getInstance() {
         return Singleton;
     }
 

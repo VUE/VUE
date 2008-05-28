@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.18 $ / $Date: 2008-04-21 20:52:03 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2008-05-28 06:59:56 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -100,9 +100,9 @@ public class ActiveInstance<T>
         getHandler(clazz).setActive(source, item);
     }
 
-    public static void get(Class clazz) {
-        getHandler(clazz).getActive();
-    }
+//     public static void get(Class clazz) {
+//         getHandler(clazz).getActive();
+//     }
 
 
     protected ActiveInstance(Class clazz) {
@@ -191,7 +191,6 @@ public class ActiveInstance<T>
         }
     }
 
-
     private synchronized void setActiveAndNotify(final Object source, final T oldActive)
     {
         if (DEBUG.EVENTS) {
@@ -222,6 +221,13 @@ public class ActiveInstance<T>
         this.lastEvent = e;
     }
 
+    public void redeliver(Object source) {
+        setActiveAndNotify(source, nowActive); // we want diagnostics
+//         final ActiveEvent e = new ActiveEvent(itemType, source, nowActive, nowActive);
+//         notifyListeners(e);
+//         onChange(e);
+//         lastEvent = e;
+    }
 
     private void markActive(Markable markableItem, boolean active) {
         try {
