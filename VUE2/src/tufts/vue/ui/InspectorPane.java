@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.91 $ / $Date: 2008-05-28 07:45:33 $ / $Author: sfraize $
+ * @version $Revision: 1.92 $ / $Date: 2008-05-28 07:51:54 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -172,8 +172,7 @@ public class InspectorPane extends WidgetStack
     private void displayRelease() {
         if (inScroll) {
             //out("DO-SCROLL");
-            //GUI.invokeAfterAWT(this);
-            run();
+            GUI.invokeAfterAWT(this);
         }
     }
     
@@ -188,6 +187,19 @@ public class InspectorPane extends WidgetStack
         //out("SCROLL-TO-TOP");
         mScrollPane.getVerticalScrollBar().setValue(0);
         mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
+
+        //VUE.getInfoDock().scrollToTop();
+
+        // No idea why we might need to do this twice right now...
+        
+        GUI.invokeAfterAWT(new Runnable() { 
+                public void run() { 
+                    mScrollPane.getVerticalScrollBar().setValue(0);
+                    mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
+                    //VUE.getInfoDock().scrollToTop();
+                } 
+            });
+        
            
     }
     
