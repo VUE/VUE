@@ -18,7 +18,7 @@ package tufts.vue;
  * @see tufts.vue.ActiveChangeSupport
  * @see tufts.vue.ActiveEvent
  * @author Scott Fraize
- * @version $Revision: 1.3 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.4 $ / $Date: 2008-05-28 18:21:11 $ / $Author: sfraize $
  */
 public class ActiveEvent<T> {
     public final Class<T> type;
@@ -49,6 +49,19 @@ public class ActiveEvent<T> {
             return ((ActiveEvent)source).hasSourceOfType(clazz);
         else
             return false;
+    }
+
+    /**
+
+     * @return true if this represents some kind of (unknown) change event *on the
+     * active item*, and thus listeners may want to refresh any state they determine
+     * from the state of the active instance itself.  In this case, that active instance
+     * has NOT changed. So this returns true if oldActive == active.
+     
+     */
+    public boolean isRefresh() {
+        // This may seem counterintuitive; see above method comment.
+        return active == oldActive;
     }
     
 
