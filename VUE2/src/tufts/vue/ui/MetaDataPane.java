@@ -343,7 +343,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             // If called from AWT, (e.g., normally as the result of a ResourceSelection change),
             // we can proceed immediately.  This is the common case.
             
-            _loadProperties(propertyMap);
+            loadPropertiesAWT(propertyMap);
             
         } else {
 
@@ -353,21 +353,22 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
             GUI.invokeAfterAWT(new Runnable() {
                     public void run() {
-                        _loadProperties(propertyMap);
+                        loadPropertiesAWT(propertyMap);
                     }
                 });
         }
     }
    
-    private synchronized void _loadProperties(PropertyMap propertyMap)
+    private synchronized void loadPropertiesAWT(PropertyMap propertyMap)
     {
-        if (DEBUG.THREAD || DEBUG.RESOURCE || DEBUG.IMAGE) out("loadProperties: " + propertyMap.size() + " key/value pairs");
+        if (DEBUG.THREAD || DEBUG.RESOURCE || DEBUG.IMAGE) out("loadPropertiesAWT: " + propertyMap.size() + " key/value pairs");
        
         try {
 
-            // Note: if another thread has a lock on mProperties (e.g., PropertyMap it's in the middle
-            // of delivering an update to us about the same mProperties), we could dead-lock
-            // in propertyMapChanged above if it was synchronized.
+            // Note: if another thread has a lock on mProperties (e.g., PropertyMap is
+            // in the middle of delivering an update to us about the same mProperties),
+            // we could dead-lock in propertyMapChanged above if it was a synchronized
+            // method (which is why it is not).
            
             if (mProperties != propertyMap) {
                 if (mProperties != null)
@@ -379,7 +380,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
            
             
         } catch (Throwable t) {
-            Log.error("loadProperties", t);
+            Log.error("loadPropertiesAWT: " + propertyMap, t);
         }
     }
 
@@ -439,8 +440,14 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
     public synchronized void run() {
 
-        //mGridBag.setPaintDisabled(false);
-        //mGridBag.repaint();
+        // TODO: move this code up to a generic Widget capability,
+        // merging it with similar code in InspectorPane Widget.
+        
+        // And does this still need to be synchronized?  This always
+        // runs in AWT, and now that updateDisplay always runs in AWT,
+        // our calls to JScrollBar.setValueIsAdjusting and
+        // mGridBag.setPaintDisabled (which are not threadsafe calls
+        // in of themseleves) should always be running synchronously.
         
         try {
            
