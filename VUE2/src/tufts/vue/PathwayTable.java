@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.102 $ / $Date: 2008-05-05 18:04:00 $ / $Author: mike $
+ * @version $Revision: 1.103 $ / $Date: 2008-05-28 17:45:25 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -71,7 +71,8 @@ public class PathwayTable extends JTable
                MouseListener,
                ActionListener
 {
-	
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(PathwayTable.class);
+    
 	private DropTarget dropTarget = null;
 	private DragSource dragSource = null;
 	private int dropIndex = -1;
@@ -1122,34 +1123,6 @@ public class PathwayTable extends JTable
 	//	System.out.println("dropactionchanged");
 	}
 	
-	  private final boolean isDoubleClickEvent(MouseEvent e) {
-          return (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
-              && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0;
-
-      }
-
-    
-    public void mouseClicked(MouseEvent e) {
-
-        if (isDoubleClickEvent(e)) {
-
-            Actions.LaunchPresentation.fire(this, e);
-            
-// 	    	final PresentationTool presTool = PresentationTool.getTool();
-//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                     VUE.toggleFullScreen(true);
-//                 }});
-//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                     //VueToolbarController.getController().setSelectedTool(presTool);
-//                     VUE.setActive(VueTool.class, this, presTool);
-//                 }});
-//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
-//                     presTool.startPresentation();
-//                 }});
-        }
-			
-        
-    }
     private void displayContextMenu(MouseEvent e) {
         getPopup(e).show(e.getComponent(), e.getX(), e.getY());
     }
@@ -1300,25 +1273,28 @@ public class PathwayTable extends JTable
 
 		return m;
 	}
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+    
+    public void mouseEntered(MouseEvent e) {}
+    public void mouseExited(MouseEvent e) {}
+    public void mouseReleased(MouseEvent e) {}
+
+    private boolean mouseWasConsumed;
+    
     public void mousePressed(MouseEvent e) {
+
+        mouseWasConsumed = false;
+
+        if (DEBUG.MOUSE) Log.debug(e);
 		
-      	
-		 if (GUI.isMenuPopup(e))
-		 {
-			 displayContextMenu(e);
-			 return;
-		 }
+        if (GUI.isMenuPopup(e)) {
+            displayContextMenu(e);
+            mouseWasConsumed = true;
+            return;
+        }
 	
     	if ((e.getModifiers() & MouseEvent.BUTTON3_MASK )!=0)
-    		return;
+            return;
+        
         int row = getSelectedRow();
         PathwayTableModel tableModel = getTableModel();
         lastSelectedRow = row;
@@ -1329,6 +1305,10 @@ public class PathwayTable extends JTable
 	                    
         final LWPathway.Entry entry = tableModel.getEntry(row);
         
+        // the below statement appears to be by definition false:
+        // a pathway entry asks it's pathway if it has no members,
+        // which should never be true, unless this is somehow
+        // do detect something that was just deleted?
         if (entry.pathway.getEntries().isEmpty())
             return;
         
@@ -1337,23 +1317,37 @@ public class PathwayTable extends JTable
                 col == PathwayTableModel.COL_OPEN ||
                 col == PathwayTableModel.COL_LOCKEDnMAPVIEW)
                 {
-                // setValue forces a value toggle in these cases
+                    // setValue forces a value toggle in these cases
                     setValueAt(entry.pathway, row, col);
-                    //        selectedEntry = false;
+                    mouseWasConsumed = true;
                 }
-            //pathway.setCurrentIndex(-1);
         } else if (col == PathwayTableModel.COL_LOCKEDnMAPVIEW && entry.hasVariableDisplayMode()) {
             setValueAt(entry.pathway, row,col);
             PathwayPanel.updateMapViewDependentActions();
-            //  selectedEntry = false;
+            mouseWasConsumed = true;
         }
-	    
     }
+
+    public void mouseClicked(MouseEvent e) {
+        
+        if (DEBUG.MOUSE) Log.debug(e);
+
+        if (!mouseWasConsumed && isDoubleClickEvent(e)) {
+            Actions.LaunchPresentation.fire(this, e);
+        }
+    }
+
+    private final boolean isDoubleClickEvent(MouseEvent e) {
+        return (e.getClickCount() > 1 && e.getClickCount() % 2 == 0) // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
+            && (e.getModifiers() & java.awt.event.InputEvent.BUTTON1_MASK) != 0;
+    }
+
+    
+    
+    
+    
 	
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+
     class LabelCellEditor extends DefaultCellEditor
     {
     	public LabelCellEditor(JTextField edit)
