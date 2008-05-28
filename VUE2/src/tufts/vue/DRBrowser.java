@@ -25,7 +25,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.64 $ / $Date: 2008-05-28 05:12:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.65 $ / $Date: 2008-05-28 06:58:25 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -172,9 +172,9 @@ public class DRBrowser extends JPanel
         
         if (delayedLoading) {
             
-//             if (false && Util.isMacLeopard()) {
+//             if (Util.isMacLeopard()) {
 //                 JProgressBar bar = new JProgressBar();
-//                 bar.setAlignmentX(Component.CENTER_ALIGNMENT); // no effect
+//                 bar.setAlignmentX(SwingConstants.CENTER); // no effect
 //                 bar.setIndeterminate(true);
 //                 bar.putClientProperty("JProgressBar.style", "circular");
 //                 bar.setString("Loading...");// no effect
