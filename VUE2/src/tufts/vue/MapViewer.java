@@ -41,6 +41,7 @@ import java.awt.geom.*;
 import java.util.*;
 
 import javax.swing.*;
+import javax.swing.UIDefaults.LazyInputMap;
 import javax.swing.border.*;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -74,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.545 $ / $Date: 2008-05-27 15:40:27 $ / $Author: mike $ 
+ * @version $Revision: 1.546 $ / $Date: 2008-05-28 01:40:18 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1498,11 +1499,44 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         return r;
     }
-    
+    /*
+    private LazyInputMap defaultInputMap =  new UIDefaults.LazyInputMap(new Object[] {
+	           "RIGHT", "unitScrollRight",
+		        "KP_RIGHT", "unitScrollRight",
+		            "DOWN", "unitScrollDown",
+		         "KP_DOWN", "unitScrollDown",
+		            "LEFT", "unitScrollLeft",
+		         "KP_LEFT", "unitScrollLeft",
+		              "UP", "unitScrollUp",
+		           "KP_UP", "unitScrollUp",
+		         "PAGE_UP", "scrollUp",
+		       "PAGE_DOWN", "scrollDown",
+		    "ctrl PAGE_UP", "scrollLeft",
+		  "ctrl PAGE_DOWN", "scrollRight",
+		       "ctrl HOME", "scrollHome",
+		        "ctrl END", "scrollEnd"});
+    */
     public void selectionChanged(LWSelection s) {
         //System.out.println("MapViewer: selectionChanged");
         activeTool.handleSelectionChange(s);
-
+        if (s.isEmpty() && inScrollPane)
+        {   
+        	InputMap im = mapScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "unitScrollUp");
+         	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "unitScrollLeft");
+         	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "unitScrollRight");
+         	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "unitScrollDown");
+            
+        }
+        else if (inScrollPane)
+        {
+        	InputMap im = mapScrollPane.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), "none");
+         	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), "none");
+         	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), "none");
+         	im.put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "none");
+        }
+        	
         if (VUE.getActiveMap() != mMap) {
             if (DEBUG.FOCUS) out("NULLING SELECTION");
             VueSelection = null; // insurance: nothing should be happening here if we're not active
