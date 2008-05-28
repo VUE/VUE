@@ -67,7 +67,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.553 $ / $Date: 2008-05-27 23:51:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.554 $ / $Date: 2008-05-28 03:50:05 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -814,21 +814,24 @@ public class VUE
         
         Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         
+        if (!SKIP_SPLASH) {
+            // start in another thread as may pop dialog
+            // that will block further progress on the
+            // run-out of main
+            Thread versionThread = new Thread("version-check") {
+                    public void run() {
+                        if (DEBUG.THREAD) Log.debug("version-check kicked off");
+                        checkLatestVersion();
+                    }
+                };
+            versionThread.setPriority(Thread.MIN_PRIORITY);
+            versionThread.start();
+        }
+
         try {
             DataSourceViewer.cacheDataSourceViewers();
         } catch (Throwable t) {
             t.printStackTrace();
-        }
-
-        if (!SKIP_SPLASH) {
-            checkLatestVersion();
-//             Thread versionThread = new Thread("VersionCheck") {
-//                     public void run() {
-//                         checkLatestVersion();
-//                     }
-//                 };
-//             versionThread.setPriority(Thread.MIN_PRIORITY);
-//             versionThread.start();
         }
 
         try {
@@ -1710,23 +1713,6 @@ public class VUE
         	//DR_BROWSER_DOCK.setVisible(true);
             
         }
-
-
-        /*
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            //pannerDock.setVisible(true);
-            if (DEBUG.Enabled) linkDock.setVisible(true);
-            if (DEBUG.Enabled) fontDock.setVisible(true);
-        }});
-        */
-//         Thread versionThread = new Thread() {
-//             public void run() {
-//                 checkLatestVersion();
-//             }
-//         };
-//         versionThread.setPriority(Thread.MIN_PRIORITY);
-//         versionThread.start();
-       
     }
 
     public static FormatPanel getFormattingPanel()
@@ -2690,11 +2676,15 @@ public class VUE
             XPathExpression  xSession= xPath.compile("/current_release/version/text()");
             String version = xSession.evaluate(inputSource);
             if (DEBUG.Enabled) Log.debug("got current version id [" + version + "]");
-            if(isHigherVersion(version.trim(),VueResources.getString("vue.version").trim()))  
+            final String currentVersion = VueResources.getString("vue.version").trim();
+            final String newVersion = version.trim();
+            if (isHigherVersion(newVersion, currentVersion))
             {
             	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
             	JPanel panel = new JPanel();
-            	JLabel vLabel = new  JLabel("<html>Newer version of VUE is available.  <font color = \"#20316A\"><u>Get the latest version</u></font></html");
+            	JLabel vLabel = new  JLabel("<html>A newer version of VUE is available ("
+                                            + newVersion
+                                            + ") &nbsp; <font color=\"#20316A\"><u>Get the latest version</u></font></html");
         	    panel.add(vLabel);
         	    sad.setContentPanel(panel);
                 
