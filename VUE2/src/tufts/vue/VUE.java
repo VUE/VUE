@@ -67,7 +67,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.554 $ / $Date: 2008-05-28 03:50:05 $ / $Author: sfraize $ 
+ * @version $Revision: 1.555 $ / $Date: 2008-05-28 04:19:02 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -761,12 +761,6 @@ public class VUE
             initApplication();
             popDiag();
             
-//             java.awt.EventQueue.invokeAndWait(new Runnable() {
-//                     public void run() {
-//                         initApplication();
-//                     }
-//                 });
-            
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
             VueUtil.alert("VUE init failed", t);
@@ -777,17 +771,33 @@ public class VUE
 
         Log.info("startup completed.");
         
+        //-------------------------------------------------------
+        // Load the OSID's and set up UrlAuthentication
+        //-------------------------------------------------------
+        
+        initDataSources();
+        
         try {
-            // this must now happen AFTER data-sources are loaded,
-            // as it's possible that they will be providing authentication
-            // that will be required to get content on the maps that
-            // will be opened.
+            
+            // this must now happen AFTER data-sources are loaded, as it's possible that
+            // they will be providing authentication that will be required to get
+            // content on the maps that will be opened.
+            
+            // todo: someday, resources can be tagged as requiring authentication (or
+            // actually reference some kind of repository object that knows this, god
+            // forbid), so we could wait for one of those to request content and then
+            // block on loading all the OSID's before continuing, and then we could
+            // again let all the OSID's load in the background right after startup
+            // (which would be the common case, as most require no dynamic authentication,
+            // only pre-config authentication used for searches, not HTTP content fetches)
+            
             handleOutstandingVueMapFileOpenRequests();
+            
         } catch (Throwable t) {
             Log.error("failed to handle file open at init: " + FilesToOpen, t);
         }
 
-        if (DEBUG.Enabled) {
+        if (DEBUG.KEYS) {
             GUI.invokeAfterAWT(new Runnable() { public void run() {
                 for (AbstractAction a : VueAction.getAllActions())  {
                     KeyStroke ks = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
@@ -797,21 +807,15 @@ public class VUE
             }});
         }
         
-//         GUI.invokeAfterAWT(new Runnable() { public void run() {
-//             Log.debug("loading fonts...");
-//             FontEditorPanel.getFontNames();
-//         }});
-
         if (exitAfterInit) {
             out("init completed: exiting");
             System.exit(0);
         }
 
-
         //-------------------------------------------------------
         // complete the rest of our tasks at min priority
         //-------------------------------------------------------
-        
+
         Thread.currentThread().setPriority(Thread.MIN_PRIORITY);
         
         if (!SKIP_SPLASH) {
@@ -829,6 +833,13 @@ public class VUE
         }
 
         try {
+            
+            // any immediate user UI requests (mouse-click) for a tufts.vue.DataSource
+            // viewer will happen in the higher priority AWT thread, and will be loaded
+            // immediately, no matter where we are in the caching process.  The cache /
+            // viewer construction code is fully synchronized, so if the desired viewer
+            // is already loading, AWT will just block until it's complete.
+            
             DataSourceViewer.cacheDataSourceViewers();
         } catch (Throwable t) {
             t.printStackTrace();
@@ -844,6 +855,20 @@ public class VUE
 
         Log.info("main complete");
     }
+
+    private static boolean didInitDR = false;
+    private static void initDataSources() {
+        if (didInitDR == false && SKIP_DR == false && DR_BROWSER != null) {
+            try {
+                DR_BROWSER.loadDataSourceViewer();
+                UrlAuthentication.getInstance(); // VUE-879
+                didInitDR = true;
+            } catch (Throwable t) {
+                Log.error("failed to init data sources", t);
+            }
+        }
+    }
+    
 
     static void initApplication()
     {
@@ -917,14 +942,12 @@ public class VUE
         // initialize enabled state of actions via a selection set:
         VUE.getSelection().clearAndNotify();
 
-        //---------------------------------------------
-        // Start the loading of the data source viewer
-        if (SKIP_DR == false && DR_BROWSER != null) {
-            DR_BROWSER.loadDataSourceViewer();
-            UrlAuthentication.getInstance(); // VUE-879
-        }
+//         //---------------------------------------------
+//         // Start the loading of the data source viewer
+//         if (SKIP_DR == false && DR_BROWSER != null && FilesToOpen.size() > 0)
+//             initDataSources();
             
-        //---------------------------------------------
+//         //---------------------------------------------
         
         //Preferences p = Preferences.userNodeForPackage(VUE.class);
         //p.put("DRBROWSER.RUN", "yes, it has");
@@ -976,6 +999,11 @@ public class VUE
 
         if (FilesToOpen.size() > 0) {
             Log.info("outstanding file open requests: " + FilesToOpen);
+            
+            // in case not already loaded, make absolutely sure all data
+            // sources are loaded (VUE-879)
+            initDataSources();
+            
             try {
                 Iterator i = FilesToOpen.iterator();
                 while (i.hasNext()) {
