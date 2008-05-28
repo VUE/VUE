@@ -42,19 +42,21 @@ import tufts.oki.shared.*;
  */
 
 
-public class RemoteFileDataSource extends VueDataSource{
+public class RemoteFileDataSource extends VueDataSource
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RemoteFileDataSource.class);
+    
     public static final String ANONYMOUS = "anonymous";
-    private JComponent resourceViewer  = new JPanel();
     
     private String UserName;
     private String password;
     
-    public RemoteFileDataSource(){
-		try {
-			this.setDisplayName("Unconfigured FTP");
-		} catch (Exception ex) {
-			
-		}
+    public RemoteFileDataSource() {
+        try {
+            setDisplayName("Unconfigured FTP");
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
  
     public RemoteFileDataSource(String DisplayName, String address, String username, String password) throws DataSourceException {
@@ -62,41 +64,46 @@ public class RemoteFileDataSource extends VueDataSource{
         this.setAddress(address);
         this.setUserName(username);
         this.setPassword(password);
- 
     }
     
-    
-    public void setAddress(String address) throws DataSourceException{
+    @Override
+    public void setConfiguration(java.util.Properties p) {
+
+        super.setConfiguration(p);
         
-        super.setAddress(address);
-       
-        
+        String val = null;
+        try {
+            if ((val = p.getProperty("username")) != null)
+                setUserName(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty("password")) != null)
+                setPassword(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
     }
     
     
     public void setUserName(String username){
-        
         this.UserName = username;
-        
     }
     public String getUserName(){
-        
         return this.UserName;
-        
     }
     
-    public void setPassword(String password) throws DataSourceException {
-        
+    public void setPassword(String password) {
         this.password = password;
-         this.setResourceViewer();
-        
     }
-    public String getPassword(){
-        
+    
+    public String getPassword() {
         return this.password;
-        
     }
-    public void  setResourceViewer() throws DataSourceException {
+    
+    @Override
+    protected JComponent buildResourceViewer() {
         
         Vector cabVector = new Vector();
         try{
@@ -110,24 +117,39 @@ public class RemoteFileDataSource extends VueDataSource{
                 cabVector.add(res);
                 
             }
-        }catch (Exception ex)  {
-            throw new DataSourceException("RemoteFileDataSource.setResourceViewer:"+ex.getMessage());
+        } catch (Exception ex)  {
+            ex.printStackTrace();
+            //throw new DataSourceException("RemoteFileDataSource: " + ex);
         }
-        VueDragTree fileTree = new VueDragTree(cabVector, this.getDisplayName());
-        JScrollPane rSP = new JScrollPane(fileTree);
-        JPanel localPanel = new JPanel();
-        localPanel.setMinimumSize(new Dimension(290,100));
-        localPanel.setLayout(new BorderLayout());
-        localPanel.add(rSP,BorderLayout.CENTER);
-        this.resourceViewer = localPanel;
-//        DataSourceViewer.refreshDataSourcePanel(this);
+
+        VueDragTree fileTree = new VueDragTree(cabVector, getDisplayName());
+        // do we really need to show then hide the root here?
+        fileTree.setRootVisible(true);
+        fileTree.setShowsRootHandles(true);
+        fileTree.expandRow(0);
+        fileTree.setRootVisible(false);
+
+        return fileTree;
+        
+//         VueDragTree fileTree = new VueDragTree(cabVector, this.getDisplayName());
+//         JScrollPane rSP = new JScrollPane(fileTree);
+//         JPanel localPanel = new JPanel();
+//         localPanel.setMinimumSize(new Dimension(290,100));
+//         localPanel.setLayout(new BorderLayout());
+//         localPanel.add(rSP,BorderLayout.CENTER);
+//         return localPanel;
+// //        DataSourceViewer.refreshDataSourcePanel(this);
     }
     
-    public JComponent getResourceViewer(){
+//     @Override
+//     public synchronized JComponent getResourceViewer() {
+
+//         if (resourceViewer == null)
+//             resourceViewer = buildResourceViewer();
         
-        return this.resourceViewer;
+//         return resourceViewer;
         
-    }
+//     }
     
     
     

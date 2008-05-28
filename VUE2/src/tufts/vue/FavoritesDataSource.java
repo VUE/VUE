@@ -25,29 +25,38 @@ import java.io.*;
 import edu.tufts.vue.util.*;
 
 /**
- *
+ * @version $Revision: 1.8 $ / $Date: 2008-05-28 00:00:52 $ / $Author: sfraize $   
  * @author  rsaigal
  */
 
-
-public class FavoritesDataSource extends VueDataSource{
+public class FavoritesDataSource extends VueDataSource {
     public static final String FOLDER= VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar;
-    private JComponent resourceViewer;
+    
     private String saveFile;
+
+    // persistance create: saveFile will be set
+    public FavoritesDataSource() {}
     
-    public FavoritesDataSource(){
-    }
-    
-    public FavoritesDataSource(String DisplayName) throws DataSourceException{
-        this.setDisplayName(DisplayName);
-        if(saveFile== null) {
+    // runtime create: create a new safe file
+    public FavoritesDataSource(String DisplayName) throws DataSourceException {
+        setDisplayName(DisplayName);
+        if (saveFile == null) {
+            // 
             saveFile = FOLDER+"f"+GUID.generate()+".xml";
-            //setSaveFile(FOLDER+"f"+GUID.generate()+".xml");
         }
-        this.setResourceViewer();
     }
     
-    public void setSaveFile(String saveFile ) {
+    @Override
+    public String getTypeName() {
+        return "Favorites";
+    }
+    
+    @Override
+    public JComponent buildResourceViewer() {
+        return new FavoritesWindow(getDisplayName(), getSaveFile());
+    }
+    
+    public void setSaveFile(String saveFile) {
         //tufts.Util.printStackTrace("setSaveFile " + saveFile);
         this.saveFile = saveFile;
     }
@@ -56,13 +65,7 @@ public class FavoritesDataSource extends VueDataSource{
         return this.saveFile;
     }
     
-    public void  setResourceViewer() throws DataSourceException{
-        this.resourceViewer = new FavoritesWindow(this.getDisplayName(),this.getSaveFile());
-    }
-    
-    public JComponent getResourceViewer(){
-        return this.resourceViewer;
-    }
+
 }
 
 

@@ -30,91 +30,127 @@ import javax.swing.JPanel;
 
 
 
-public class VueDataSource implements DataSource{
-  
+public abstract class VueDataSource implements DataSource
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
+
     public static final String RESOURCEVIEWER_ERROR = "No ResourceViewer Available";
-    protected String displayName;
-    protected String address;
-    protected String Id;
-    protected boolean isAutoConnect;
-	protected boolean isIncludedInSearch;
-    protected int publishMode;
-    protected JPanel resourceViewer; 
-    protected JPanel addDataSourcePanel;
-    protected JPanel editDataSourcePanel;
     
+    private String displayName;
+    private String address;
+    private String Id;
+    private boolean isAutoConnect;
+    private boolean isIncludedInSearch;
+    private int publishMode;
+    private JPanel addDataSourcePanel;
+    private JPanel editDataSourcePanel;
+
+    private JComponent _viewer; 
     
-    public VueDataSource(){
-        
-        
+    public VueDataSource() {}
+    
+    //public VueDataSource(String DisplayName) throws DataSourceException{
+    public VueDataSource(String DisplayName) {
+        this.displayName = DisplayName;   
+        //this.setResourceViewer();
+    }
+
+//     public boolean isLoaded() {
+//         return resourceViewer != null;
+//     }
+
+//     public void loadViewer() {
+//         getResourceViewer();
+//     }
+    
+//     /** @deprecated */
+//     public final void setResourceViewer() {
+//         new Throwable("DEPRECATED").printStackTrace();
+//     }
+
+    public final String getAddress() {
+        return this.address;
     }
     
-    public VueDataSource(String DisplayName) throws DataSourceException{
+    public final void setAddress(String address) {
+        out("setAddress[" + address + "]");
+        this.address = address;
+        // any time we change the address, rebuild the viewer
+        _viewer = null;
+    }
+
+    /**
+     * @return the JComponent that displays the content for this data source
+     */
+    public final synchronized JComponent getResourceViewer() {
+        if (_viewer == null)
+            _viewer = buildResourceViewer();
+        return _viewer;
+    }
+
+//     public synchronized JComponent getResourceViewer() {
+//         Log.debug("getResourceViewer; current=" + tufts.vue.gui.GUI.name(mViewer));
+
+//         if (mViewer == null)
+//             loadContentAndBuildViewer();
         
-     this.displayName = DisplayName;   
-     this.setResourceViewer();
+//         Log.debug("getResourceViewer;  return " + tufts.vue.gui.GUI.name(mViewer));
+//         return this.mViewer;
+//     }
+    
+    /**
+     * @return build a JComponent that displays the content for this data source
+     */
+    protected abstract JComponent buildResourceViewer();
+    
+
+    public void setConfiguration(java.util.Properties p) {
+        String val = null;
         
+        try {
+            if ((val = p.getProperty("name")) != null)
+                setDisplayName(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+        try {
+            if ((val = p.getProperty("address")) != null)
+                setAddress(val);
+        } catch (Throwable t) {
+            Log.error("val=" + val, t);
+        }
+    }
+
+    public String getTypeName() {
+        return getClass().getSimpleName();
     }
     
-    
-     public String getDisplayName(){
-         
-      return this.displayName;   
-     }
+    public String getDisplayName() {
+        return this.displayName;   
+    }
    
-    public void setDisplayName(String DisplayName)  throws DataSourceException{
-        
+    public void setDisplayName(String DisplayName) throws DataSourceException {
         this.displayName = DisplayName;  
-        
-      }
+    }
     
-    public void setisAutoConnect()
-    {
+    public void setisAutoConnect() {
         this.isAutoConnect = false;
-     
     }
      
-     public String getAddress(){
-         
-         return this.address;
-         
-         
-     }
-     public void setAddress(String address)  throws DataSourceException{
-         
-         this.address = address;
-         
-         
-     }
-    
-    
-    
-    /*
-       *Returns an id for the DataSource. 
-       *
-       */
-  
-    
-    
-    public String getId(){
-        
+    public String getId() {
         return this.Id; 
     }
    
     public void setId(String Id)  throws DataSourceException{
-      
         this.Id = Id;
-        
     }
-    public int getPublishMode(){
-        
+    
+    public int getPublishMode() {
         return this.publishMode;   
-        
     }
    
-    public boolean isAutoConnect(){
-         return this.isAutoConnect;   
-        
+    public boolean isAutoConnect() {
+        return this.isAutoConnect;   
     }
     
     public void setAutoConnect(boolean b)  throws DataSourceException
@@ -122,36 +158,15 @@ public class VueDataSource implements DataSource{
         this.isAutoConnect = b;
     }
     
-    public void  setResourceViewer() throws DataSourceException{
-        
-     this.resourceViewer = new JPanel();  
-     throw new DataSourceException(RESOURCEVIEWER_ERROR);
-        
-    }
-    /**
-     *Returns a JPanel that is the Viewer for the DataSource
-     *
-     */
-    public JComponent getResourceViewer(){
-           return this.resourceViewer;   
-        
-    }
-    
-    
    public void setAddDataSourcePanel(){
        this.addDataSourcePanel = new JPanel();
-       
-       
    }
    
  
        
    
    public void setEditDataSourcePanel(){
-       
-         this.editDataSourcePanel = new JPanel();
-       
-       
+       this.editDataSourcePanel = new JPanel();
    }
    
      /**
@@ -160,7 +175,6 @@ public class VueDataSource implements DataSource{
      */
    public  JComponent getAddDataSourcePanel(){
        return this.addDataSourcePanel;   
-       
    }
    
    
@@ -173,19 +187,25 @@ public class VueDataSource implements DataSource{
        
    }
    
-   public String toString() {
-       return getDisplayName();
-   }
-    
-	public boolean isIncludedInSearch()
-	{
-		return this.isIncludedInSearch;
-	}
+    public boolean isIncludedInSearch()
+    {
+        return this.isIncludedInSearch;
+    }
 	
-	public void setIncludedInSearch(boolean included)
-	{
-		this.isIncludedInSearch = included;
-	}
+    public void setIncludedInSearch(boolean included)
+    {
+        this.isIncludedInSearch = included;
+    }
+    
+    public String toString() {
+        return getDisplayName();
+    }
+    
+    private void out(String s) {
+        Log.debug(getClass().getSimpleName() + "[" + getDisplayName() + "] " + s);
+    }
+    
+        
     
 }
 

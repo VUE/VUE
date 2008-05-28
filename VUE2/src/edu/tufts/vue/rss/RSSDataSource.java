@@ -37,33 +37,86 @@ import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.FeedException;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
-public class RSSDataSource  extends VueDataSource{
+
+public class RSSDataSource extends VueDataSource
+{
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RSSDataSource.class);
+    private static final String JIRA_SFRAIZE_COOKIE = "seraph.os.cookie=LkPlQkOlJlHkHiEpGiOiGjJjFi";
     
-    private JComponent resourceViewer;
+    public static final String DEFAULT_AUTHENTICATION_COOKIE = JIRA_SFRAIZE_COOKIE;
+    public static final String AUTHENTICATION_COOKIE_KEY = "url_authentication_cookie";
+    
+    private String authenticationCookie = null;
     
     public RSSDataSource() {
-        System.out.println("Created empty RSS feed");
+        Log.debug("Created empty RSS feed");
     }
     
     public RSSDataSource(String displayName, String address) throws DataSourceException {
         this.setDisplayName(displayName);
         this.setAddress(address);
     }
-    
-    public void setAddress(String address)  throws DataSourceException{
-        try {
-            
-            System.out.println("Setting address for RSS feed: "+address);
-            super.setAddress(address);
-            this.setResourceViewer();
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-        
+
+    @Override
+    public String getTypeName() {
+        return "RSS Feed";
     }
     
+    @Override
+    public void setConfiguration(java.util.Properties p) {
+
+        super.setConfiguration(p);
+
+        String val;
+        
+        if ((val = p.getProperty(AUTHENTICATION_COOKIE_KEY)) != null)
+            setAuthenticationCookie(val);
+    }
+
+    private void setAuthenticationCookie(String s) {
+        authenticationCookie = s;
+    }
     
-    public void setResourceViewer() {
+//     public CharSequence getConfigurationUI_XML_Fields() {
+
+//         final StringBuffer b = new StringBuffer();       
+//         // all elements appear to be required or ConfigurationUI bombs
+//         b.append("<field>");
+//         b.append("<key>url_authentication_cookie</key>");
+//         b.append("<title>Authentication</title>");
+//         b.append("<description>Any required authentication cookie</description>");
+//         //b.append("<default></default>");
+//         b.append("<default>" + DEFAULT_AUTHENTICATION_COOKIE + "</default>");
+//         b.append("<mandatory>false</mandatory>");
+//         b.append("<maxChars>99</maxChars>");
+//         b.append("<ui>0</ui>");
+//         b.append("</field>");
+
+//         return b;
+//     }
+    
+    @Override
+    protected JComponent buildResourceViewer() {
+        return loadContentAndBuildViewer();
+    }
+    
+
+    private JComponent loadContentAndBuildViewer() {
+        
+        Log.debug("loadContentAndBuildViewer");
+        tufts.vue.VUE.pushDiag("RSSLoad");
+        JComponent viewer = null;
+        try {
+            viewer = _loadContentAndBuildViewer();
+        } catch (Throwable t) {
+            Log.error("loadContentAndBuildViewer", t);
+        }
+        tufts.vue.VUE.popDiag();
+        return viewer;
+    }
+    
+    private JComponent _loadContentAndBuildViewer()
+    {
         URL address = null;
         
         try {
@@ -74,13 +127,25 @@ public class RSSDataSource  extends VueDataSource{
         
         if(address == null) {
             System.out.println("Null URL for RSS Feed, aborting.. ");
-            return;
+            return null;
         }
         SyndFeedInput feedBuilder = new SyndFeedInput();
         SyndFeed rssFeed = null;
         try {
+            if (DEBUG.Enabled) Log.debug("opening " + address);
             URLConnection conn = address.openConnection(); 
             conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.8) Gecko/20071008 Firefox/2.0.0.8");
+            
+            if (authenticationCookie != null)
+                conn.setRequestProperty("Cookie", authenticationCookie);
+            else if (tufts.vue.DEBUG.Enabled)
+                conn.setRequestProperty("Cookie", DEFAULT_AUTHENTICATION_COOKIE);
+            
+            // TODO: "old-stye" build-in VueDataSource's don't appear to be able to persist
+            // extra properties, so above we're always sending a default cookie above
+            // just in case we're accessing VUE's JIRA site -- this for VUE3 test phase only
+            
+            if (DEBUG.Enabled) Log.debug("request-properties: " + conn.getRequestProperties());
             conn.connect(); 
             XmlReader reader = new XmlReader(conn);
             rssFeed = feedBuilder.build(reader);
@@ -94,9 +159,9 @@ public class RSSDataSource  extends VueDataSource{
             t.printStackTrace();
         }
         
-        if(rssFeed == null) {
+        if (rssFeed == null) {
             System.out.println("Null rssFeed, aborting... ");
-            return;
+            return null;
         }
         
         List<SyndEntry> itemList = rssFeed.getEntries();
@@ -105,7 +170,7 @@ public class RSSDataSource  extends VueDataSource{
         
         // getUri did not work for Reuters (and Atom feeds in general?),
         // switched to getLink() instead (see below)
-        System.out.println("itemList length: " + itemList.size());
+        Log.debug("itemList length: " + itemList.size());
         /*
         for(int j=0;j<itemList.size();j++)
         {
@@ -114,25 +179,29 @@ public class RSSDataSource  extends VueDataSource{
         }*/
         
         Iterator<SyndEntry> i = itemList.iterator();
-        while(i.hasNext()) {
+        while (i.hasNext()) {
             SyndEntry entry = i.next();
-            Resource res = null;
-            try {
-                //res = new URLResource(new URL(entry.getUri()));
-                //System.out.println("trying to create rss item resource entry is: " + entry);
-                String link = entry.getLink();
-                //System.out.println("trying to create rss resource - link:" + link);
-                URL url = new URL(link);
-                //System.out.println("trying to create rss resource - url:" + url);
-                /*link = *///java.net.URLDecoder.decode(link,"UTF-8");
-                //res = new URLResource(url);
-                res = Resource.getFactory().get(url);
-            }
-            catch(MalformedURLException mue) {
-                System.out.println("Malformed URL Exception while creating RSS feed resource: " + mue);
-            }
-            if(res == null) {
-                System.out.println("null resource created for rss feed, aborting... " + entry.getLink());
+
+            final Resource res = Resource.getFactory().get(entry.getLink());
+            
+//             Resource res = null;
+//             try {
+//                 //res = new URLResource(new URL(entry.getUri()));
+//                 //System.out.println("trying to create rss item resource entry is: " + entry);
+//                 String link = entry.getLink();
+//                 //System.out.println("trying to create rss resource - link:" + link);
+//                 URL url = new URL(link);
+//                 //System.out.println("trying to create rss resource - url:" + url);
+//                 /*link = *///java.net.URLDecoder.decode(link,"UTF-8");
+//                 //res = new URLResource(url);
+//                 res = Resource.getFactory().get(url);
+//             }
+//             catch(MalformedURLException mue) {
+//                 System.out.println("Malformed URL Exception while creating RSS feed resource: " + mue);
+//             }
+            
+            if (res == null) {
+                Log.warn("null resource created for rss feed, skipping: " + entry.getLink());
                 continue;
             }
             res.setTitle(entry.getTitle());
@@ -145,24 +214,22 @@ public class RSSDataSource  extends VueDataSource{
         fileTree.expandRow(0);
         fileTree.setRootVisible(false);
         
-        if (false) {
-            JPanel localPanel = new JPanel();
-            JScrollPane rSP = new JScrollPane(fileTree);
-            localPanel.setMinimumSize(new Dimension(290,100));
-            localPanel.setLayout(new BorderLayout());
-            localPanel.add(rSP,BorderLayout.CENTER);
-            this.resourceViewer = localPanel;
-        } else {
-            this.resourceViewer = fileTree;
-        }
+//         if (false) {
+//             JPanel localPanel = new JPanel();
+//             JScrollPane rSP = new JScrollPane(fileTree);
+//             localPanel.setMinimumSize(new Dimension(290,100));
+//             localPanel.setLayout(new BorderLayout());
+//             localPanel.add(rSP,BorderLayout.CENTER);
+//             this.mViewer = localPanel;
+//         } else {
+//             this.mViewer = fileTree;
+//         }
+
+        fileTree.setName(getClass().getSimpleName() + ": " + getAddress());
+
+        return fileTree;
         
       
-    }
-    
-    public JComponent getResourceViewer(){
-        
-        return this.resourceViewer;
-        
     }
     
 }

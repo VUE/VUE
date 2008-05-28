@@ -24,22 +24,16 @@ import tufts.vue.DataSourceException;
 
 public class DataSource extends tufts.vue.VueDataSource {
     
-    /** Creates a new instance of DataSource */
-    public DataSource() {
-    }
+    /** for use during persistant restore */
+    public DataSource() {}
     
     public DataSource(String displayName) throws tufts.vue.DataSourceException {
-        super.setDisplayName(displayName);
-        setResourceViewer();
+        setDisplayName(displayName);
     }
     
-    public void  setResourceViewer() throws DataSourceException{
-        
-        try{
-              this.resourceViewer = new tufts.artifact.ResourceViewer();
-        }catch (Exception ex){
-            throw new DataSourceException("FedoraDataSource.setResourceViewer "+ex);
-        }
+    @Override
+    public javax.swing.JComponent buildResourceViewer() {
+        return new tufts.artifact.ResourceViewer();
     }
     
 }

@@ -41,6 +41,10 @@ public interface DataSource{
      */
    
     public void setDisplayName(String DisplayName) throws DataSourceException;
+
+    /** Return a user-friendly name for the type of this data-source */
+    public String getTypeName();
+    
      /**
      * Return the address associated with the DataSource. It may be an IP address or any 
      * address that makes sense for the DataSource. It is a string 
@@ -63,14 +67,6 @@ public interface DataSource{
      */
     public boolean isAutoConnect();
    
-    /**
-     *Set the Resource Viewer Associated with the data source
-     *
-     *
-     */
-       
-    public void setResourceViewer() throws DataSourceException;
-    
      /**
      *Returns a JComponent that is the Viewer for the DataSource
      *
@@ -97,6 +93,8 @@ public interface DataSource{
      */
     
    public JComponent getEditDataSourcePanel();
+
+    public void setConfiguration(java.util.Properties map);
     
    
        

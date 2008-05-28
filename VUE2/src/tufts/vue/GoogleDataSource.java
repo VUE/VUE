@@ -29,12 +29,11 @@ import java.net.URL;
  */
 
 
-public class GoogleDataSource extends VueDataSource{
+public class GoogleDataSource extends VueDataSource {
     
     private String site;
     private String client;
     private String url;
-    private JComponent resourceViewer;
     
     public GoogleDataSource(){
         
@@ -42,7 +41,6 @@ public class GoogleDataSource extends VueDataSource{
     public GoogleDataSource(String DisplayName, String address) throws DataSourceException{ 
         this.setDisplayName(DisplayName);
         this.setAddress(address);
-        this.setResourceViewer();
     }
     
     public GoogleDataSource(String displayName,String url,String site,String client)  throws DataSourceException{
@@ -54,23 +52,9 @@ public class GoogleDataSource extends VueDataSource{
         
     }
     
-    
-    public void  setResourceViewer()throws DataSourceException{
-        
-        try{
-            this.resourceViewer = new TuftsGoogle(this.getDisplayName(),this.getAddress());
-//            DataSourceViewer.refreshDataSourcePanel(this);
-        }catch (Exception ex){
-            throw new DataSourceException("GoogleDataSource.setResourceViewer:"+ex.getMessage());
-        }
-    }
-    
-    public JComponent getResourceViewer(){
-        return this.resourceViewer;
-    }
-    public void setAddress(String address)  throws DataSourceException {
-        this.address = address;
-        setResourceViewer();
+    @Override
+    public javax.swing.JComponent buildResourceViewer() {
+        return new TuftsGoogle(getDisplayName(), getAddress());
     }
     
     public String getUrl() {

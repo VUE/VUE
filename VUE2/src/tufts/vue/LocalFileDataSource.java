@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.27 2008-04-18 01:17:52 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.28 2008-05-28 00:00:52 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -35,7 +35,7 @@ import tufts.Util;
 
 
 /**
- * @version $Revision: 1.27 $ / $Date: 2008-04-18 01:17:52 $ / $Author: sfraize $
+ * @version $Revision: 1.28 $ / $Date: 2008-05-28 00:00:52 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
@@ -43,8 +43,6 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalFileDataSource.class);    
     
-    private JComponent resourceViewer;
-
     private static final LocalFilingManager LocalFileManager = produceManager();
 
     private static LocalFilingManager produceManager() {
@@ -73,21 +71,27 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
     }
     
     @Override
-    public void setAddress(String address)
-        throws DataSourceException
-    {
-        if (DEBUG.DR) out("setAddress " + Util.tag(address) + "; " + address);
-        super.setAddress(address);
-        this.setResourceViewer();
-    }
-
-    @Override
-    public void setResourceViewer() {
-        // do nothing -- lazy eval, as we may never need the UI components!
-        //getResourceViewer();
+    public String getTypeName() {
+        return "Local Files";
     }
     
-    private JComponent buildResourceViewer()
+//     @Override
+//     public void setAddress(String address)
+//         throws DataSourceException
+//     {
+//         if (DEBUG.DR) out("setAddress " + Util.tag(address) + "; " + address);
+//         super.setAddress(address);
+//         this.setResourceViewer();
+//     }
+
+//     @Override
+//     public void setResourceViewer() {
+//         // do nothing -- lazy eval, as we may never need the UI components!
+//         //getResourceViewer();
+//     }
+    
+    @Override
+    protected JComponent buildResourceViewer()
     {
         if (DEBUG.Enabled) out("buildResourceViewer...");
         Vector cabVector = new Vector();
@@ -132,13 +136,13 @@ public class LocalFileDataSource extends VueDataSource implements Publishable{
         
     }
 
-    @Override
-    public synchronized JComponent getResourceViewer()
-    {
-        if (resourceViewer == null)
-            resourceViewer = buildResourceViewer();
-        return resourceViewer;
-    }
+//     @Override
+//     public synchronized JComponent getResourceViewer()
+//     {
+//         if (resourceViewer == null)
+//             resourceViewer = buildResourceViewer();
+//         return resourceViewer;
+//     }
     
     
     

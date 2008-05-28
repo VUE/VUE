@@ -36,7 +36,6 @@ public class  DataSource extends tufts.vue.VueDataSource{
     public DataSource(String displayName,String key) throws tufts.vue.DataSourceException {
         super.setDisplayName(displayName);
         this.key = key;
-        setResourceViewer();
     }
     
     public void setKey(String key) {
@@ -45,13 +44,10 @@ public class  DataSource extends tufts.vue.VueDataSource{
     public String getKey(){
         return key;
     }
-    public void  setResourceViewer() throws DataSourceException{
-        
-        try{
-            this.resourceViewer = new tufts.googleapi.ResourceViewer(this.key);
-        }catch (Exception ex){
-            throw new DataSourceException("Googleapi.setResourceViewer "+ex);
-        }
+    
+    @Override
+    public javax.swing.JComponent buildResourceViewer() {
+        return new tufts.googleapi.ResourceViewer(this.key);
     }
     
 }
