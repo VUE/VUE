@@ -38,11 +38,11 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.90 $ / $Date: 2008-05-28 06:59:57 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2008-05-28 07:45:33 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
-    implements VueConstants, ResourceSelection.Listener, LWSelection.Listener, SearchListener
+    implements VueConstants, ResourceSelection.Listener, LWSelection.Listener, SearchListener, Runnable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(InspectorPane.class);
     
@@ -74,6 +74,9 @@ public class InspectorPane extends WidgetStack
     
     private Resource mResource; // the current resource
 
+    private JScrollPane mScrollPane;
+    private boolean inScroll;
+    
     private static class Pane {
 
         final static Collection<Pane> AllPanes = new ArrayList();
@@ -148,16 +151,59 @@ public class InspectorPane extends WidgetStack
     	return stack;
     }
 
+    @Override
+    public void addNotify() {
+        super.addNotify();
+
+        if (mScrollPane == null) {
+            mScrollPane = (JScrollPane) javax.swing.SwingUtilities.getAncestorOfClass(JScrollPane.class, this);
+            if (DEBUG.Enabled) Log.debug("got scroller " + GUI.name(mScrollPane));
+        }
+
+        inScroll = (mScrollPane != null);
+    }
+    
+    private void displayHold() {
+        if (inScroll) {
+            mScrollPane.getVerticalScrollBar().setValueIsAdjusting(true);
+        }
+    }
+
+    private void displayRelease() {
+        if (inScroll) {
+            //out("DO-SCROLL");
+            //GUI.invokeAfterAWT(this);
+            run();
+        }
+    }
+    
+    public void run() {
+        
+        // Always put the scroll-bar back at the top, as it defaults to moving to the
+        // bottom.  E.g., when selecting through search results that all have tons of
+        // meta-data, we're left looking at just the meta-data, not the preview.
+        // Ideally, we could check the scroller position first to see if we were
+        // already at the top at the start and only do this if that was the case.
+        
+        //out("SCROLL-TO-TOP");
+        mScrollPane.getVerticalScrollBar().setValue(0);
+        mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
+           
+    }
+    
+
     public void resourceSelectionChanged(ResourceSelection.Event e)
     {    	
         if (e.selected == null)
             return;
+        displayHold();
         if (DEBUG.RESOURCE) out("resource selected: " + e.selected);
         showNodePanes(false);
         showResourcePanes(true);
         loadResource(e.selected);
         setVisible(true);
         stack.setTitleItem("Content");
+        displayRelease();
     }
 
     private LWComponent activeEntrySelectionSync;
@@ -165,6 +211,8 @@ public class InspectorPane extends WidgetStack
 
     public void activeChanged(final tufts.vue.ActiveEvent _e, final LWPathway.Entry entry)
     {
+        displayHold();
+        
         final int index = (entry == null ? -9 : entry.index() + 1);
 
         loadedEntry = entry;
@@ -199,10 +247,15 @@ public class InspectorPane extends WidgetStack
             
             mPathwayNotes.setHidden(false);
         }
+
+        displayRelease(); // can optimize out: should be able to rely on follow-on selectionChanged...
+        
     }
     
-    public void selectionChanged(final LWSelection s) {
-
+    public void selectionChanged(final LWSelection s)
+    {
+        displayHold();
+        
         if (s.size() == 0) {
             
             hideAll();
@@ -218,6 +271,8 @@ public class InspectorPane extends WidgetStack
             setVisible(true);
             
         }
+
+        displayRelease();
     }
     
     private void loadSingleSelection(LWComponent c)
@@ -250,7 +305,7 @@ public class InspectorPane extends WidgetStack
     {
         loadedEntry = null;
         hideAllPanes();
-        mKeywords.load(s.first());
+        mKeywords.loadKeywords(null);
       //Widget.setExpanded(mKeywords, true);
         Widget.setHidden(mKeywords, false);
     }
@@ -293,7 +348,7 @@ public class InspectorPane extends WidgetStack
             mLabelPane.load(c);
         else
             mLabelPane.load(slideTitle, c);
-        mKeywords.load(c);
+        mKeywords.loadKeywords(c);
         
         if (DEBUG.Enabled)
             setTitleItem(c.getUniqueComponentTypeLabel());
@@ -581,7 +636,7 @@ public class InspectorPane extends WidgetStack
                 userMetadataEditor.listChanged();
         }
 
-        void load(LWComponent c) {
+        void loadKeywords(LWComponent c) {
             if (userMetadataEditor == null) {
                 setOpaque(false);
                 userMetadataEditor = new MetadataEditor(c,true,true);
@@ -592,7 +647,7 @@ public class InspectorPane extends WidgetStack
                 }
                 add(userMetadataEditor,BorderLayout.CENTER);
             }
-            if (c.hasMetaData())
+            if (c != null && c.hasMetaData())
                 mKeywords.setTitle("Keywords (" + c.getMetadataList().getCategoryListSize() + ")");
             else
                 mKeywords.setTitle("Keywords");
