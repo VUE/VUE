@@ -87,6 +87,11 @@ public class RemoteFileDataSource extends VueDataSource
     }
     
     
+    @Override
+    public String getTypeName() {
+        return "Remote Directory";
+    }
+    
     public void setUserName(String username){
         this.UserName = username;
     }
