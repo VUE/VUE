@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.21 $ / $Date: 2008-05-09 21:01:15 $ / $Author: mike $ *
+ * @version $Revision: 1.22 $ / $Date: 2008-05-28 14:15:16 $ / $Author: mike $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -249,8 +249,8 @@ public class ImageMap extends VueAction {
         out+="	position:relative;\n";
         out+="	display:block;\n";
         out+="	width:350px;\n";
-        out+="	left:1px;\n";
-        out+="	top:1px;\n";
+        out+="	left:10px;\n";
+        out+="	top:15px;\n";
         out+="	border:1px solid #000;\n";
         out+="	background:#fff;\n";
         out+="	padding:5px;\n";
