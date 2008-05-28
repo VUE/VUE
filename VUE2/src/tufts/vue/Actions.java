@@ -1912,7 +1912,7 @@ public class Actions implements VueConstants
         }
 
         public static boolean enabledOn(LWSelection s) {
-            return s.size() > 0 && s.first().isMoveable();
+            return s.size() > 0 && s.first().isMoveable() && VUE.getActiveViewer().isFocusOwner();
         }
         
         boolean enabledFor(LWSelection s) {
