@@ -438,6 +438,10 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     
 
     public synchronized void run() {
+
+        //mGridBag.setPaintDisabled(false);
+        //mGridBag.repaint();
+        
         try {
            
             // Always put the scroll-bar back at the top, as it defaults to moving to the
@@ -454,6 +458,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 //                 mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
 
             if (inScroll) {
+                //out("SCROLL-TO-TOP");
                 mScrollPane.getVerticalScrollBar().setValue(0);
                 mScrollPane.getVerticalScrollBar().setValueIsAdjusting(false);
             }
