@@ -16,7 +16,7 @@
 /** 
  * Provides an editable note panel for an LWComponents notes.
  *
- * @version $Revision: 1.23 $ / $Date: 2008-05-21 18:10:05 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2008-05-28 21:37:16 $ / $Author: sfraize $
  */
 
 package tufts.vue;
@@ -95,8 +95,16 @@ public class NotePanel extends tufts.vue.gui.Widget
     public void activeChanged(ActiveEvent e, LWComponent c) {
         load(c);
     }
+    
     private static void setTypeName(JComponent component, LWComponent c, String suffix) {
-        component.setName(c.getComponentTypeLabel() + " " + suffix);
+        final String type;
+
+        if (c instanceof LWSlide && c.isPathwayOwned())
+            type = "Pathway";
+        else
+            type = c.getComponentTypeLabel();
+        
+        component.setName(type + " " + suffix);
     }
     
     public void attach(LWComponent c) {
