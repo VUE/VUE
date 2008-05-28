@@ -25,7 +25,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.63 $ / $Date: 2008-04-18 01:20:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.64 $ / $Date: 2008-05-28 05:12:50 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -171,10 +171,23 @@ public class DRBrowser extends JPanel
         buildWidgets();
         
         if (delayedLoading) {
+            
+//             if (false && Util.isMacLeopard()) {
+//                 JProgressBar bar = new JProgressBar();
+//                 bar.setAlignmentX(Component.CENTER_ALIGNMENT); // no effect
+//                 bar.setIndeterminate(true);
+//                 bar.putClientProperty("JProgressBar.style", "circular");
+//                 bar.setString("Loading...");// no effect
+//                 bar.setStringPainted(true); // no effect
+//                 add(bar);
+//             }
+
             loadingLabel = new JLabel(VueResources.getString("dockWindow.Resources.loading.label"), SwingConstants.CENTER);
             loadingLabel.setMinimumSize(new Dimension(150, 80));
             loadingLabel.setBorder(new EmptyBorder(8,0,8,0));
+            loadingLabel.setForeground(Color.darkGray);
             add(loadingLabel);
+            
         } else {
             loadDataSourceViewer();
         }
