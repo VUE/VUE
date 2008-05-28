@@ -38,7 +38,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.88 $ / $Date: 2008-05-28 00:21:48 $ / $Author: sfraize $
+ * @version $Revision: 1.89 $ / $Date: 2008-05-28 05:51:34 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -120,19 +120,8 @@ public class InspectorPane extends WidgetStack
         for (Pane p : Pane.AllPanes)
             stack.addPane(p.name, p.widget, p.size);
 
-//       //stack.addPane("Information",            mLabelPane,           EXACT_SIZE);
-//         stack.addPane("Label",                  mLabelPane,           EXACT_SIZE);
-//         stack.addPane("Content Preview",        mPreview,               EXACT_SIZE);
-//         stack.addPane("Content Info",           mResourceMetaData,      EXACT_SIZE);
-//         stack.addPane("Notes",                  mNotes,                 AUTO_EXPANDER);
-//         stack.addPane("Pathway Notes",          mPathwayNotes,          AUTO_EXPANDER);
-//         stack.addPane("Keywords",               mKeywords,          EXACT_SIZE);
-//         stack.addPane("Ontological Membership", ontologicalMetadata,    EXACT_SIZE);
-
-       // add(stack, BorderLayout.CENTER);
-
         VUE.getSelection().addListener(this);
-        VUE.addActiveListener(LWComponent.class, this);
+      //VUE.addActiveListener(LWComponent.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
         VUE.getResourceSelection().addListener(this);
         
@@ -148,19 +137,10 @@ public class InspectorPane extends WidgetStack
         //is selected and its misleading to have the widgets on there.
         hideAll();
         
+        // These two are present, but un-expanded by default:
         Widget.setExpanded(ontologicalMetadata, false);
         Widget.setExpanded(mKeywords, false);
         
-//         loadResource(null);
-//         //this.setEnabled(false);
-//         showNodePanes(false);
-//         Widget.setHidden(mKeywords,true);
-//         Widget.setHidden(ontologicalMetadata,true);
-//         Widget.setExpanded(mKeywords, false);
-//         //Widget.setExpanded(mResourceMetaData, false);
-//         //Widget.setExpanded(mNodeTree, false);
-//         showResourcePanes(false);
-
         setMinimumSize(new Dimension(300,500)); // if WidgetStack overrides getMinimumSize w/out checking for a set, this won't work.
     }
 
@@ -194,6 +174,11 @@ public class InspectorPane extends WidgetStack
 
         } else {
 
+            // We always get activeChanged events for the LWPathway.Entry BEFORE the
+            // resulting selection change on the map, so we can reliably set
+            // activeEntrySelectioSync here, and check for it later when are notified
+            // that the selection has changed.
+
             if (false && entry.pathway.isShowingSlides()) {
                 // This adds the reverse case: display node notes when a slide is selected:
                 activeEntrySelectionSync = entry.getSlide();
@@ -210,42 +195,57 @@ public class InspectorPane extends WidgetStack
         }
     }
     
-    
-    public void activeChanged(final tufts.vue.ActiveEvent e, final LWComponent c)
-    {
-        if (c == null) {
+    public void selectionChanged(final LWSelection s) {
+
+        if (s.size() == 0) {
             
             hideAll();
             
-        } else {
-             	
-            showNodePanes(true);
+        } else if (s.size() == 1) {
 
-            if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
-                mKeywords.setHidden(true);
-                Widget.setHidden(ontologicalMetadata, true);
-            } else {
-                // showNodePanes will have shown these:
-                //mKeywords.setHidden(false);
-                //Widget.setHidden(ontologicalMetadata, false);
-            }
-
-            if (activeEntrySelectionSync != c)
-                mPathwayNotes.setHidden(true);
-            activeEntrySelectionSync = null;
-
-            loadData(c);
-             	
-            if (c.hasResource()) {
-                loadResource(c.getResource());
-                showResourcePanes(true);
-            } else {
-                showResourcePanes(false);
-            }
-
+            loadSingleSelection(s.first());
             setVisible(true);
+            
+        } else {
+            
+            loadMultiSelection(s);
+            setVisible(true);
+            
         }
     }
+    
+    private void loadSingleSelection(LWComponent c)
+    {
+        showNodePanes(true);
+
+        if (c instanceof LWSlide || c.hasAncestorOfType(LWSlide.class)) {
+            mKeywords.setHidden(true);
+            Widget.setHidden(ontologicalMetadata, true);
+        }
+
+        if (activeEntrySelectionSync != c)
+            mPathwayNotes.setHidden(true);
+        activeEntrySelectionSync = null;
+
+        loadData(c);
+             	
+        if (c.hasResource()) {
+            loadResource(c.getResource());
+            showResourcePanes(true);
+        } else {
+            showResourcePanes(false);
+        }
+
+    }
+
+    private void loadMultiSelection(final LWSelection s)
+    {
+        hideAllPanes();
+        mKeywords.load(s.first());
+      //Widget.setExpanded(mKeywords, true);
+        Widget.setHidden(mKeywords, false);
+    }
+    
 
     private void loadData(LWComponent c) {
 
@@ -285,106 +285,18 @@ public class InspectorPane extends WidgetStack
         else
             mLabelPane.load(slideTitle, c);
         mKeywords.load(c);
+        
         if (DEBUG.Enabled)
-            stack.putClientProperty("TITLE-ITEM", c.getUniqueComponentTypeLabel());
+            setTitleItem(c.getUniqueComponentTypeLabel());
         else
-            stack.putClientProperty("TITLE-ITEM", c.getComponentTypeLabel());
+            setTitleItem(c.getComponentTypeLabel());
     }
 
-//     public void selectionChanged(LWSelection selection) {
-         
-//         // also might need criteria for slides (remove slides from multiples
-//         // and don't active if only slide is selected.. SLIDE_STYLE in component?'
-//         // just use LWSlide -- though can this lead to phantom selections? have
-//         // to make sure SearchAction also doesn't include slides in result sets'
-         
-//         // todo: make the single selection work as before with showNodePanes
-//         // i.e. as Active drives it.
-         
-// //         if (selection.contents().size() == 1) {
-// //             if(selection.contents().get(0) instanceof LWSlide ||
-// //                selection.contents().get(0).hasAncestorOfType(LWSlide.class))
-// //             {
-// //                 Widget.setHidden(mKeywords,true);
-// //                 Widget.setHidden(ontologicalMetadata, true);
-// //                 return;
-// //             }
-// //             else {
-// //                 Widget.setHidden(ontologicalMetadata,false);
-// //             }
-// //         }
-// //         else if(selection.contents().size() > 0 || selection.isEmpty()) {
-// //             Widget.setHidden(ontologicalMetadata,true); 
-// //         }
-          
-         
-//         if (selection.size() > 1) {                     
-//             mKeywords.load(selection.get(0));
-//             Widget.setHidden(mKeywords, false);
-//             showResourcePanes(false);
-//         } else {
-//             Widget.setHidden(mKeywords, true);  
-//         }
-//     }
-
-     public void selectionChanged(LWSelection selection) {
-
-           // also might need criteria for slides (remove slides from multiples
-           // and don't active if only slide is selected.. SLIDE_STYLE in component?'
-           // just use LWSlide -- though can this lead to phantom selections? have
-           // to make sure SearchAction also doesn't include slides in result sets'
-         
-           // todo: make the single selection work as before with showNodePanes
-           // i.e. as Active drives it.
-         
-           if(selection.contents().size() == 1)
-               if(selection.contents().get(0) instanceof LWSlide ||
-                   selection.contents().get(0).hasAncestorOfType(LWSlide.class))
-               {
-                   Widget.setHidden(mKeywords,true);
-                   Widget.setHidden(ontologicalMetadata, true);
-                   return;
-               }
-               else
-               {
-                   Widget.setHidden(ontologicalMetadata,false);
-               }
-           else if(selection.contents().size() > 0 || selection.isEmpty())
-           {
-              Widget.setHidden(ontologicalMetadata,true); 
-           }
-          
-         
-           if(!selection.contents().isEmpty())
-           {
-                    
-             mKeywords.load(selection.contents().get(0));
-             Widget.setHidden(mKeywords, false);
-             showResourcePanes(false);
-           }
-           else
-           {
-             Widget.setHidden(mKeywords, true);  
-           }
-     }
-    
 
     private void setTypeName(JComponent component, LWComponent c, String suffix)
     {
         final String type = c.getComponentTypeLabel();
         
-        //stack.putClientProperty("TITLE-ITEM", type);
-
-//         String name = c.getComponentTypeLabel();
-//         if (name == null)
-//             title = type;
-//         else
-//             title = type + " (" + name + ")";
-//         stack.putClientProperty("TITLE-ITEM", title);
-
-//         else
-//             stack.putClientProperty("TITLE-INFO", null);
-
         String title;
         if (suffix != null)
             title = type + " " + suffix;
@@ -404,25 +316,23 @@ public class InspectorPane extends WidgetStack
         mResource = r;
         mResourceMetaData.loadResource(r);
         mPreview.loadResource(r);
-        
-        /*
-        long size = r.getSize();
-        String ss = "";
-        if (size >= 0)
-            ss = VueUtil.abbrevBytes(size);
-        mSizeField.setText(ss);
-        */
+    }
+
+    private void hideAllPanes()
+    {
+        for (Pane p : Pane.AllPanes)
+            Widget.setHidden(p.widget, true);
     }
 
     private void hideAll()
     {
         setVisible(false);
         
-        for (Pane p : Pane.AllPanes)
-            Widget.setHidden(p.widget, true);
+        hideAllPanes();
 
-        stack.putClientProperty("TITLE-ITEM", null);
+        setTitleItem(null);
     }
+    
         
     private void expandCollapsePanes(int type) {
 
@@ -448,12 +358,6 @@ public class InspectorPane extends WidgetStack
         Widget.setHidden(mKeywords, !visible);
         Widget.setHidden(ontologicalMetadata, !visible);
         
-        
-        //user meta data now hides and shows in LWSelection listener:
-        //Widget.setHidden(mKeywords, !visible);
-        //Widget.setHidden(mNodeTree, !visible);
-        //Widget.setHidden(ontologicalMetadata, !visible);
-        
     }
     private void showResourcePanes(boolean visible) {
         Widget.setHidden(mResourceMetaData, !visible);
@@ -463,29 +367,11 @@ public class InspectorPane extends WidgetStack
     public void showKeywordView()
     {
         expandCollapsePanes(KEYWORD);
-        
-//     	if (!Widget.isHidden(mLabelPane) && !Widget.isExpanded(mLabelPane))
-//     		Widget.setExpanded(mLabelPane, true);
-//     	if (!Widget.isHidden(mKeywords) && !Widget.isExpanded(mKeywords))
-//     		Widget.setExpanded(mKeywords, true);
-//     	if (!Widget.isHidden(mNotes) && Widget.isExpanded(mNotes))
-//     		Widget.setExpanded(mNotes, false);    	    	
-//     	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
-//     		Widget.setExpanded(mResourceMetaData, false);    	
     }
     
     public void showNotesView()
     {
         expandCollapsePanes(NOTES);
-        
-//     	if (!Widget.isHidden(mLabelPane) && !Widget.isExpanded(mLabelPane))    		
-//     		Widget.setExpanded(mLabelPane, true);
-//     	if (!Widget.isHidden(mNotes) && !Widget.isExpanded(mNotes))
-//     		Widget.setExpanded(mNotes, true);
-//     	if (!Widget.isHidden(mKeywords) && Widget.isExpanded(mKeywords))
-//     		Widget.setExpanded(mKeywords, false);    	
-//     	if (!Widget.isHidden(mResourceMetaData) && Widget.isExpanded(mResourceMetaData))
-//     		Widget.setExpanded(mResourceMetaData, false);    
     	
     	SwingUtilities.invokeLater(new Runnable() { 
             public void run() { 
@@ -496,18 +382,8 @@ public class InspectorPane extends WidgetStack
 
     }
     
-    public void showInfoView()
-    {
+    public void showInfoView() {
         expandCollapsePanes(INFO);
-        
-//     	if (!Widget.isHidden(mLabelPane) && !Widget.isExpanded(mLabelPane))
-//     		Widget.setExpanded(mLabelPane, true);
-//     	if (!Widget.isHidden(mNotes) && !Widget.isExpanded(mNotes))
-//     		Widget.setExpanded(mNotes, true);
-//     	if (!Widget.isHidden(mResourceMetaData) && !Widget.isExpanded(mResourceMetaData))
-//     		Widget.setExpanded(mResourceMetaData, true);
-//     	if (!Widget.isHidden(mPreview) && !Widget.isExpanded(mPreview))
-//     		Widget.setExpanded(mPreview, true);    	    	
     }
 
 
