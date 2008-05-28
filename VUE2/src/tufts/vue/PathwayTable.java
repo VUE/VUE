@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.103 $ / $Date: 2008-05-28 17:45:25 $ / $Author: sfraize $
+ * @version $Revision: 1.104 $ / $Date: 2008-05-28 17:46:41 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -1308,7 +1308,7 @@ public class PathwayTable extends JTable
         // the below statement appears to be by definition false:
         // a pathway entry asks it's pathway if it has no members,
         // which should never be true, unless this is somehow
-        // do detect something that was just deleted?
+        // to detect something that was just deleted? -- SMF 2008-05-28
         if (entry.pathway.getEntries().isEmpty())
             return;
         
