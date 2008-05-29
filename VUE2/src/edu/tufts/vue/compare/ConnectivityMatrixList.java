@@ -25,10 +25,14 @@ package edu.tufts.vue.compare;
  */
 public class ConnectivityMatrixList<E> extends java.util.ArrayList<E> {
         
+    private static final boolean DEBUG_LOCAL = false;
+    
     public void addLinkSourceMapMetadata(String node1,String node2,tufts.vue.LWLink link)
     {
+        
            for(int i=0;i<size();i++)
            {
+               
                E cm = get(i);
                if(cm instanceof ConnectivityMatrix && ((ConnectivityMatrix)cm).getConnection(node1,node2) > 0)
                {
@@ -36,13 +40,97 @@ public class ConnectivityMatrixList<E> extends java.util.ArrayList<E> {
                    
                    edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
                    vme.setType(edu.tufts.vue.metadata.VueMetadataElement.OTHER);
-                   // todo: likely we are going to want to the find the label(s) associated with this link
-                   // will probably have to search map??
-                   //vme.setObject("source: " + comp.getMap().getLabel() + "," + sourceLabel);
-                   vme.setObject("source: " + sourceLabel);
-                   link.getMetadataList().getMetadata().add(vme);
+                   
+                   java.util.Iterator<tufts.vue.LWLink> le = ((ConnectivityMatrix)cm).getMap().getLinkIterator();
+                   
+                   while(le.hasNext())
+                   {
+                       tufts.vue.LWLink currLink = le.next();
+                       
+                       if(DEBUG_LOCAL)
+                       {
+                           System.out.println("CML: current link --> " + currLink);
+                           System.out.println("CML: current link label --> " + currLink.getLabel());
+                       }
+                       
+                       tufts.vue.LWComponent head = currLink.getHead(); 
+                       tufts.vue.LWComponent tail = currLink.getTail();
+                       
+                       if(DEBUG_LOCAL)
+                       {
+                           System.out.println("CML: found h " + head);
+                           System.out.println("CML: found t " + tail);
+                       }
+                       
+                       if(head == null || tail == null) // currently shouldn't be happening
+                                                        // connectivity matrix only counts links with both
+                                                        // but do nothing, just in case
+                       {
+                           
+                       }
+                       else
+                       {
+                          String headMP = Util.getMergeProperty(head);
+                          String tailMP = Util.getMergeProperty(tail);
+                          
+                          int arrowState = currLink.getArrowState();
+                          
+                          boolean matches = false;
+                          
+                          //switch(arrowState) 
+                          //{
+                          //    case tufts.vue.LWLink.ARROW_HEAD:
+                          //        matches = headMP.equals(node2) && tailMP.equals(node1);
+                          //        break;
+                          //    case tufts.vue.LWLink.ARROW_TAIL:
+                          //        matches = headMP.equals(node1) && tailMP.equals(node2);
+                          //        break;
+                          //    case tufts.vue.LWLink.ARROW_BOTH: case tufts.vue.LWLink.ARROW_NONE:
+                                  matches = (headMP.equals(node2) && tailMP.equals(node1)) ||
+                                            (headMP.equals(node1) && tailMP.equals(node2)) ;
+                          //        break;
+                          //    default:
+                          //        matches = false;
+
+                          //}
+                          
+                          if(DEBUG_LOCAL)
+                          {
+                              System.out.println("CML: matches " + matches);
+                          }
+                          
+                          if(matches)
+                          {
+                              String label = currLink.getLabel();
+                              
+                              //String label = currLink.getLabelBox().getText();
+                              
+                              if(DEBUG_LOCAL)
+                              {
+                                  System.out.println("CML -- there was a match -- label --> " + label);
+                              }
+                              
+                              if(label != null)
+                              {
+                                  sourceLabel += "," + label;
+                                  if(DEBUG_LOCAL)
+                                  {
+                                      System.out.println("CML: updating sourcelabel to: " + sourceLabel);
+                                  }
+                              }
+                           
+                       }
+                       
+                   }
+
                }
+                   
+               vme.setObject("source: " + sourceLabel);
+               link.getMetadataList().getMetadata().add(vme);
            }
+               
+       }
+
     }    
     
 }

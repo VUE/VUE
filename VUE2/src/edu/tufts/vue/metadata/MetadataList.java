@@ -454,7 +454,7 @@ public class MetadataList {
                      int dotLocation = value.lastIndexOf(".");
                      if(dotLocation != -1)
                      {
-                         int commaLocation = value.lastIndexOf(",");
+                         int commaLocation = value.indexOf(",");
                          
                          String endPart = "";
                          
