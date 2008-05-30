@@ -22,88 +22,53 @@
 package tufts.vue;
 
 /**
+ * Abstract class for all "browse" based VUE data sources, sometimes called
+ * "old style", before VUE had OSID integration for accessing data-sources via search.
  *
+ * This class is for data-sources where all the content want's to be seen, based
+ * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
+ * site, an RSS feed, etc.
+ * 
+ * @version $Revision: 1.12 $ / $Date: 2008-05-30 19:36:15 $ / $Author: sfraize $
  * @author  rsaigal
+ * @author  sfraize
  */
+
+import tufts.vue.DEBUG;
+
 import javax.swing.JComponent;
-import javax.swing.JPanel;
-
-
 
 public abstract class VueDataSource implements DataSource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
 
-    public static final String RESOURCEVIEWER_ERROR = "No ResourceViewer Available";
-    
     private String displayName;
     private String address;
     private String Id;
     private boolean isAutoConnect;
     private boolean isIncludedInSearch;
     private int publishMode;
-    private JPanel addDataSourcePanel;
-    private JPanel editDataSourcePanel;
 
-    private JComponent _viewer; 
+    private volatile JComponent _viewer; // volatile should be overkill, but just in case
+    private boolean isAvailable;
+    private String hostName;
     
     public VueDataSource() {}
     
-    //public VueDataSource(String DisplayName) throws DataSourceException{
-    public VueDataSource(String DisplayName) {
-        this.displayName = DisplayName;   
-        //this.setResourceViewer();
+    public VueDataSource(String name) {
+        setDisplayName(name);
     }
 
-//     public boolean isLoaded() {
-//         return resourceViewer != null;
-//     }
-
-//     public void loadViewer() {
-//         getResourceViewer();
-//     }
-    
-//     /** @deprecated */
-//     public final void setResourceViewer() {
-//         new Throwable("DEPRECATED").printStackTrace();
-//     }
-
-    public final String getAddress() {
-        return this.address;
-    }
-    
-    public final void setAddress(String address) {
-        out("setAddress[" + address + "]");
-        this.address = address;
-        // any time we change the address, rebuild the viewer
-        _viewer = null;
-    }
+    // todo: to persist extra properties (e.g., authentication keys) add a getPropertyList for
+    // castor that returns PropertyEntry's to persist extra key/values.  Could use PropertyMap and
+    // add a convert to list (URLResource just does this manually when requested for persistance by
+    // castor) or add a util function. (or, could just hack it into RSS data source)
 
     /**
-     * @return the JComponent that displays the content for this data source
+     * This handles the default properties "name" and "address" -- implementors should override
+     * to add additional properties of their own.  This is used by EditLibraryPanel to
+     * pass the result of user property edits back into the VueDataSource.
      */
-    public final synchronized JComponent getResourceViewer() {
-        if (_viewer == null)
-            _viewer = buildResourceViewer();
-        return _viewer;
-    }
-
-//     public synchronized JComponent getResourceViewer() {
-//         Log.debug("getResourceViewer; current=" + tufts.vue.gui.GUI.name(mViewer));
-
-//         if (mViewer == null)
-//             loadContentAndBuildViewer();
-        
-//         Log.debug("getResourceViewer;  return " + tufts.vue.gui.GUI.name(mViewer));
-//         return this.mViewer;
-//     }
-    
-    /**
-     * @return build a JComponent that displays the content for this data source
-     */
-    protected abstract JComponent buildResourceViewer();
-    
-
     public void setConfiguration(java.util.Properties p) {
         String val = null;
         
@@ -125,14 +90,115 @@ public abstract class VueDataSource implements DataSource
         return getClass().getSimpleName();
     }
     
+    public final void setAddress(String newAddress) {
+        out("setAddress[" + newAddress + "]");
+        if (newAddress != null && !newAddress.equals(address)) {
+            this.address = newAddress;
+            // any time we change the address, rebuild the viewer
+            unloadViewer();
+
+            java.net.URI uri;
+            try {
+                uri = new java.net.URI(newAddress);
+                hostName = uri.getHost();
+            } catch (Throwable t) {
+                hostName = null;
+            }
+            
+        }
+    }
+
+    public final String getAddress() {
+        return this.address;
+    }
+
+    /** @return a host name if one can be found in the address, otherwise returns the address */
+    public String getAddressName() {
+        if (hostName != null)
+            return hostName;
+        else
+            return getAddress();
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
     public String getDisplayName() {
         return this.displayName;   
     }
    
-    public void setDisplayName(String DisplayName) throws DataSourceException {
-        this.displayName = DisplayName;  
+    public void setDisplayName(String name) {
+        this.displayName = name;
     }
     
+    /**
+     * @return the JComponent that is current set to displays the content for this data source
+     * Will return null until set.
+     */
+    public final JComponent getResourceViewer() {
+        return _viewer;
+    }
+    
+    /** set the viewer that's been loaded */
+    // call from AWT only
+    void setViewer(JComponent v) {
+        if (DEBUG.Enabled && _viewer != v) out("setViewer " + tufts.vue.gui.GUI.name(v));
+        _viewer = v;
+    }
+
+    // call from AWT only
+    protected void unloadViewer() {
+        if (DEBUG.DR) out("unloadViewer");
+        if (mLoadThread != null) {
+            if (DEBUG.Enabled) out("INTERRUPTING: " + mLoadThread);
+            mLoadThread.interrupt();
+            mLoadThread = null;
+        }
+        if (_viewer != null)
+            setViewer(null);
+    }
+
+
+    private Thread mLoadThread;
+    
+    // call from AWT only
+    void setLoadThread(Thread t) {
+        if (DEBUG.Enabled) out("setLoadThread: " + t);
+        if (mLoadThread != null && mLoadThread.isAlive()) {
+            if (DEBUG.Enabled) Log.warn(this + "; setLoadThread: FALLBACK-INTERRUPT " + mLoadThread);
+            mLoadThread.interrupt();
+        }
+        mLoadThread = t;
+    }
+    // call from AWT only
+    Thread getLoadThread() {
+        return mLoadThread;
+    }
+    
+    // call from AWT only
+    boolean isLoading() {
+        return mLoadThread != null;
+    }
+
+    boolean isAvailable() {
+        return isAvailable;
+    }
+
+    void setAvailable(boolean t) {
+        isAvailable = t;
+    }
+    
+    
+    
+    /**
+     * @return build a JComponent that displays the content for this data source
+     * This will most likely NOT be called on the AWT thread, so it should
+     * only build the component, and not add anything into any live on-screen
+     * AWT component hierarchies.
+     */
+    protected abstract JComponent buildResourceViewer();
+
     public void setisAutoConnect() {
         this.isAutoConnect = false;
     }
@@ -141,7 +207,7 @@ public abstract class VueDataSource implements DataSource
         return this.Id; 
     }
    
-    public void setId(String Id)  throws DataSourceException{
+    public void setId(String Id) {
         this.Id = Id;
     }
     
@@ -153,57 +219,45 @@ public abstract class VueDataSource implements DataSource
         return this.isAutoConnect;   
     }
     
-    public void setAutoConnect(boolean b)  throws DataSourceException
-    {
+    public void setAutoConnect(boolean b) {
         this.isAutoConnect = b;
     }
     
-   public void setAddDataSourcePanel(){
-       this.addDataSourcePanel = new JPanel();
-   }
-   
- 
-       
-   
-   public void setEditDataSourcePanel(){
-       this.editDataSourcePanel = new JPanel();
-   }
-   
-     /**
-     *Returns a JComponent that is the panel to add the datasource
-     *
-     */
-   public  JComponent getAddDataSourcePanel(){
-       return this.addDataSourcePanel;   
-   }
-   
-   
-    
-   public JComponent getEditDataSourcePanel(){
-       
-         return this.editDataSourcePanel;  
-       
-       
-       
-   }
-   
-    public boolean isIncludedInSearch()
-    {
+    public boolean isIncludedInSearch() {
         return this.isIncludedInSearch;
     }
 	
-    public void setIncludedInSearch(boolean included)
-    {
+    public void setIncludedInSearch(boolean included) {
         this.isIncludedInSearch = included;
     }
     
-    public String toString() {
-        return getDisplayName();
+    @Override
+    public final String toString() {
+        return getClass().getSimpleName() + "[" + getDisplayName() + "; " + getAddress() + "]";
     }
     
     private void out(String s) {
         Log.debug(getClass().getSimpleName() + "[" + getDisplayName() + "] " + s);
     }
+
+
+    //private JPanel addDataSourcePanel;
+    //private JPanel editDataSourcePanel;
+//    public void setAddDataSourcePanel() {
+//        this.addDataSourcePanel = new JPanel();
+//    }
+//    public  JComponent getAddDataSourcePanel(){
+//        return this.addDataSourcePanel;   
+//    }
+       
+//    public void setEditDataSourcePanel(){
+//        this.editDataSourcePanel = new JPanel();
+//    }
+//    public JComponent getEditDataSourcePanel(){
+//        return this.editDataSourcePanel;  
+//    }
+   
+    
     
         
     
