@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.199 $ / $Date: 2008-05-20 22:02:05 $ / $Author: sfraize $
+ * @version $Revision: 1.200 $ / $Date: 2008-05-30 19:30:47 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -868,7 +868,7 @@ public class LWMap extends LWContainer
 
     class ResourceFactory extends Resource.DefaultFactory {
 
-        private final Map<String,Resource> resourceMap = new HashMap();
+        private final Map<String,Resource> resourceMap = new java.util.concurrent.ConcurrentHashMap();
 
         void loadResources(Collection<Resource> resourceBag) {
             for (Resource r : resourceBag)
