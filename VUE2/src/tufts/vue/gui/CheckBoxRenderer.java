@@ -21,25 +21,25 @@ import javax.swing.JCheckBox;
 
 public class CheckBoxRenderer extends JCheckBox {
 
-    boolean invisible;
+    boolean visible;
 
     public CheckBoxRenderer() {
         setBorderPainted(false);            
     }
 
     public void paint(Graphics g) {
-        if (!invisible)
+        if (visible)
             super.paint(g);
     }
     
     public boolean getVisibility()
     {
-    	return invisible;
+    	return visible;
     }
     
     public void setVisibility(boolean vis)
     {
-    	invisible = vis;
+    	visible = vis;
     }
     
     public boolean isOpaque() { return false; }
