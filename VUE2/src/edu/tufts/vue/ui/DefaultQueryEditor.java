@@ -44,9 +44,9 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 	
 	private javax.swing.JButton searchButton1 = new javax.swing.JButton(SearchLabel);
 	private javax.swing.JButton searchButton2 = new javax.swing.JButton(SearchLabel);
-	private static final String SELECT_A_LIBRARY = "    Please select a searchable resource.";
+	private static final String SELECT_A_LIBRARY = "Please select a searchable resource.";
 	private static final String NO_MESSAGE = "";
-	private javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY);
+        private final javax.swing.JLabel selectMessage = new javax.swing.JLabel(SELECT_A_LIBRARY, javax.swing.JLabel.CENTER);
 	
 	private javax.swing.JButton moreOptionsButton = new tufts.vue.gui.VueButton("advancedSearchMore");
 	private static final String MORE_OPTIONS = "";
@@ -226,7 +226,14 @@ implements edu.tufts.vue.fsm.QueryEditor, java.awt.event.ActionListener
 		gbConstraints.weightx = 1;
 */
 		gbConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		//gbConstraints.fill = java.awt.GridBagConstraints.BOTH;
 		gbConstraints.weightx = 1;
+                //gbConstraints.weighty = 0;
+                //selectMessage.setMinimumSize(new java.awt.Dimension(50,30));
+                //selectMessage.setBorder(new javax.swing.border.EmptyBorder(26,0,26,0)); // mac
+                //selectMessage.setBorder(new javax.swing.border.EmptyBorder(16,0,17,0)); // pc, but exact size fails to update??
+                selectMessage.setBorder(new javax.swing.border.EmptyBorder(15,0,15,0)); 
+                selectMessage.setForeground(java.awt.Color.darkGray);
 		add(selectMessage,gbConstraints);
 	}
 	
