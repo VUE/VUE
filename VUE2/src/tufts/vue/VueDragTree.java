@@ -47,7 +47,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.74 $ / $Date: 2008-05-30 19:28:07 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2008-05-30 22:40:11 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  Scott Fraize
  */
@@ -67,6 +67,7 @@ public class VueDragTree extends JTree
 
     //private static final boolean FullStartup = VueUtil.isMacPlatform() && !DEBUG.Enabled;
     private static final boolean FullStartup = true;
+    //private static final boolean SlowStartup = false;
     
 //     protected static final ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
 //     protected static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
@@ -81,7 +82,7 @@ public class VueDragTree extends JTree
         if (FullStartup) {
             this.expandRow(0);
             this.expandRow(1);
-            this.setRootVisible(false);
+            //this.setRootVisible(false);
         }
         implementDrag(this);
         createPopupMenu();
@@ -214,7 +215,8 @@ public class VueDragTree extends JTree
         
         if (iterable != null) {
             Iterator i = iterable.iterator();
-            while (i.hasNext()){
+            boolean didFirst = false;
+            while (i.hasNext()) {
                 Object resource = i.next();
                 if (DEBUG.RESOURCE || DEBUG.DR) Log.debug("\tchild: " + resource);
 
@@ -226,8 +228,12 @@ public class VueDragTree extends JTree
                         cabNode = new CabinetNode(cabRes, CabinetNode.REMOTE);
                     else
                         cabNode = new CabinetNode(cabRes, CabinetNode.LOCAL);
+                    
+                    //-------------------------------------------------------
                     root.add(cabNode);
-                    if (FullStartup) {
+                    //-------------------------------------------------------
+
+                    if (FullStartup && !didFirst) {
                         // Do NOT DO THIS AUTOMATICALLY -- it can dramaticaly slow startup times.
                         // by tens of seconds (!) -- SMF 2007-10-10
                         if ((new File(cabRes.getSpec())).isDirectory())
@@ -235,11 +241,14 @@ public class VueDragTree extends JTree
                         else if (cabNode.getCabinet() != null)
                             cabNode.explore();
                     }
-
                 } else {
                     ResourceNode node = new ResourceNode((Resource)resource);
+                    
+                    //-------------------------------------------------------
                     root.add(node);
+                    //-------------------------------------------------------
                 }
+                didFirst = true;
             }
         }
         return new DefaultTreeModel(root);
@@ -578,12 +587,15 @@ class CabinetNode extends ResourceNode {
             return;
 
         if (getCabinet() != null) {
+
+            final String name = Util.tags(entry);
+            
             try {
-                if (DEBUG.Enabled) Log.debug("explore...");
+                if (DEBUG.Enabled) Log.debug(name + ": explore...");
                 loadEntries();
-                if (DEBUG.Enabled) Log.debug("explored.");
+                if (DEBUG.Enabled) Log.debug(name + ": explored.");
             } catch (FilingException e) {
-                e.printStackTrace();
+                Log.warn("explore: " + name + ";", e);
             }
         } 
         
