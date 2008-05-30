@@ -28,16 +28,19 @@ package tufts.vue;
  *
  * A class to handle exceptions generated during creating and handling of DataSources
  */
-public class DataSourceException extends Exception {
+public class DataSourceException extends RuntimeException {
     public static final String CREATE_MSG = "Can't create DataSource";
     
-    /** Creates a new instance of DataSourceException */
     public DataSourceException() {
         super();
     }
     
     public DataSourceException(String msg) {
         super(msg);
+    }
+    
+    public DataSourceException(String msg, Throwable cause) {
+        super(msg, cause);
     }
     
 }
