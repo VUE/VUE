@@ -44,12 +44,13 @@ public class RSSDataSource extends VueDataSource
     private static final String JIRA_SFRAIZE_COOKIE = "seraph.os.cookie=LkPlQkOlJlHkHiEpGiOiGjJjFi";
     
     public static final String DEFAULT_AUTHENTICATION_COOKIE = JIRA_SFRAIZE_COOKIE;
+    //public static final String DEFAULT_AUTHENTICATION_COOKIE = DEBUG.Enabled ? JIRA_SFRAIZE_COOKIE : "";
     public static final String AUTHENTICATION_COOKIE_KEY = "url_authentication_cookie";
     
-    private String authenticationCookie = null;
+    private String authenticationCookie = DEFAULT_AUTHENTICATION_COOKIE;
     
     public RSSDataSource() {
-        Log.debug("Created empty RSS feed");
+        //Log.debug("created empty RSS feed");
     }
     
     public RSSDataSource(String displayName, String address) throws DataSourceException {
@@ -74,11 +75,12 @@ public class RSSDataSource extends VueDataSource
     }
 
     private void setAuthenticationCookie(String s) {
+        Log.debug("setAuthenticationCookie[" + s + "]");
         authenticationCookie = s;
+        unloadViewer();
     }
     
 //     public CharSequence getConfigurationUI_XML_Fields() {
-
 //         final StringBuffer b = new StringBuffer();       
 //         // all elements appear to be required or ConfigurationUI bombs
 //         b.append("<field>");
@@ -91,46 +93,48 @@ public class RSSDataSource extends VueDataSource
 //         b.append("<maxChars>99</maxChars>");
 //         b.append("<ui>0</ui>");
 //         b.append("</field>");
-
 //         return b;
 //     }
     
     @Override
     protected JComponent buildResourceViewer() {
-        return loadContentAndBuildViewer();
+        return loadViewer();
     }
     
 
-    private JComponent loadContentAndBuildViewer() {
+    private JComponent loadViewer() {
         
-        Log.debug("loadContentAndBuildViewer");
+        Log.debug("loadContentAndBuildViewer...");
         tufts.vue.VUE.pushDiag("RSSLoad");
         JComponent viewer = null;
         try {
-            viewer = _loadContentAndBuildViewer();
-        } catch (Throwable t) {
-            Log.error("loadContentAndBuildViewer", t);
+            viewer = loadContentAndBuildViewer();
+        } finally {
+            tufts.vue.VUE.popDiag();
         }
-        tufts.vue.VUE.popDiag();
         return viewer;
     }
     
-    private JComponent _loadContentAndBuildViewer()
+    private JComponent loadContentAndBuildViewer()
     {
+        Log.debug("loadContentAndBuildViewer...");
+        
+        String addressText = getAddress();
+
+        if (addressText.toLowerCase().startsWith("feed:"))
+            addressText = "http:" + addressText.substring(5);
+        
         URL address = null;
         
         try {
-            address = new URL(getAddress());
-        } catch(MalformedURLException mue) {
-            System.out.println("Malformed URL Exception while opening RSS Feed: " + mue);
+            address = new URL(addressText);
+        } catch (Throwable t) {
+            throw new DataSourceException("Bad RSS feed address", t);
         }
         
-        if(address == null) {
-            System.out.println("Null URL for RSS Feed, aborting.. ");
-            return null;
-        }
         SyndFeedInput feedBuilder = new SyndFeedInput();
         SyndFeed rssFeed = null;
+        
         try {
             if (DEBUG.Enabled) Log.debug("opening " + address);
             URLConnection conn = address.openConnection(); 
@@ -138,51 +142,74 @@ public class RSSDataSource extends VueDataSource
             
             if (authenticationCookie != null)
                 conn.setRequestProperty("Cookie", authenticationCookie);
-            else if (tufts.vue.DEBUG.Enabled)
-                conn.setRequestProperty("Cookie", DEFAULT_AUTHENTICATION_COOKIE);
+//             else if (tufts.vue.DEBUG.Enabled)
+//                 conn.setRequestProperty("Cookie", DEFAULT_AUTHENTICATION_COOKIE);
             
             // TODO: "old-stye" build-in VueDataSource's don't appear to be able to persist
             // extra properties, so above we're always sending a default cookie above
             // just in case we're accessing VUE's JIRA site -- this for VUE3 test phase only
             
             if (DEBUG.Enabled) Log.debug("request-properties: " + conn.getRequestProperties());
-            conn.connect(); 
+            
+            conn.connect();
+
+            if (DEBUG.Enabled) {
+
+                Log.debug("connected; fetching headers [" + conn + "]");
+                
+                final StringBuffer buf = new StringBuffer(512);
+                
+                buf.append("headers [" + conn + "];\n");
+                
+                final Map<String,List<String>> headers = conn.getHeaderFields();
+                
+                List<String> response = headers.get(null);
+                if (response != null)
+                    buf.append(String.format("%20s: %s\n", "HTTP-RESPONSE", response));
+                
+                for (Map.Entry<String,List<String>> e : headers.entrySet()) {
+                    if (e.getKey() != null)
+                        buf.append(String.format("%20s: %s\n", e.getKey(), e.getValue()));
+                }
+                
+                Log.debug(buf);
+                
+            }
+            
+            
             XmlReader reader = new XmlReader(conn);
             rssFeed = feedBuilder.build(reader);
-         } catch(FeedException fe) {
-            System.out.println("FeedException while building RSS feed: " + fe);
-            fe.printStackTrace();
-        } catch(java.io.IOException io) {
-            System.out.println("IOException while building RSS feed: " + io);
-            io.printStackTrace();
-        } catch(Throwable t) {
-            t.printStackTrace();
+
+        } catch (FeedException fe) {
+            throw new DataSourceException(null, fe);
+        } catch (java.io.IOException io) {
+            throw new DataSourceException(null, io);
         }
+//         } catch (Throwable t) {
+//             //Log.error("opening feed " + address, t);
+//             throw new DataSourceException("RSS feed error", t);
+//         }
         
-        if (rssFeed == null) {
-            System.out.println("Null rssFeed, aborting... ");
-            return null;
-        }
-        
-        List<SyndEntry> itemList = rssFeed.getEntries();
-        
-        List<Resource> resourceList = new ArrayList<Resource>();
+        final List<SyndEntry> itemList = rssFeed.getEntries();
+        final List<Resource> resourceList = new ArrayList<Resource>();
         
         // getUri did not work for Reuters (and Atom feeds in general?),
         // switched to getLink() instead (see below)
         Log.debug("itemList length: " + itemList.size());
-        /*
-        for(int j=0;j<itemList.size();j++)
-        {
-            SyndEntry entry = itemList.get(j);
-            System.out.println(j + ":" + entry.getUri());
-        }*/
+
+//         for(int j=0;j<itemList.size();j++) {
+//             SyndEntry entry = itemList.get(j);
+//             System.out.println(j + ":" + entry.getUri());
+//         }
+
+        if (itemList.size() == 0)
+            throw new DataSourceException("[Empty RSS feed]");
         
         Iterator<SyndEntry> i = itemList.iterator();
         while (i.hasNext()) {
             SyndEntry entry = i.next();
 
-            final Resource res = Resource.getFactory().get(entry.getLink());
+            final Resource res = Resource.instance(entry.getLink());
             
 //             Resource res = null;
 //             try {
@@ -213,18 +240,6 @@ public class RSSDataSource extends VueDataSource
         fileTree.setShowsRootHandles(true);
         fileTree.expandRow(0);
         fileTree.setRootVisible(false);
-        
-//         if (false) {
-//             JPanel localPanel = new JPanel();
-//             JScrollPane rSP = new JScrollPane(fileTree);
-//             localPanel.setMinimumSize(new Dimension(290,100));
-//             localPanel.setLayout(new BorderLayout());
-//             localPanel.add(rSP,BorderLayout.CENTER);
-//             this.mViewer = localPanel;
-//         } else {
-//             this.mViewer = fileTree;
-//         }
-
         fileTree.setName(getClass().getSimpleName() + ": " + getAddress());
 
         return fileTree;
