@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.41 $ / $Date: 2008-05-30 19:33:33 $ / $Author: sfraize $
+ * @version $Revision: 1.42 $ / $Date: 2008-05-30 22:39:31 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -73,6 +73,23 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
         this. getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         VueDandDTreeCellRenderer renderer = new VueDandDTreeCellRenderer(this);
         this.setCellRenderer(renderer);
+
+        // TODO: THE DROP CODE HERE IS COMPLETELY BROKEN. Drops don't work at all.  I
+        // can't tell if they ever did, but it doesn't look like it.  And the handle
+        // drop code is a wreck, and a duplicate of the code in DataSourceList, which at
+        // least takes drops, tho the processing is similarly broken.  It will create
+        // directories out of plain files, etc, and it needless, painfully, uses the
+        // OSID V2 Filing OSID.  OSID V3 promises to be much saner, tho even any V3
+        // Filing OSID impl is very unlikely to do anything to help us interface with
+        // the local operating system and filing system (it just makes it harder), and
+        // that's all we need to do here. 
+
+        // Factor out the common code from MapDropTarget into a VueAbstractDropTarget
+        // for identifying transfer items and creating resources from them, leaving just
+        // the node code and map adding code in MapDropTarget.
+
+        // No point in doing this, but we're leaving it in just in case for now:
+        
         new DropTarget(this, // component
                 ACCEPTABLE_DROP_TYPES, // actions
                 this);
