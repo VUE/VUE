@@ -47,7 +47,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.73 $ / $Date: 2008-04-18 01:24:05 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2008-05-30 19:28:07 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  Scott Fraize
  */
@@ -65,8 +65,8 @@ public class VueDragTree extends JTree
     
     private static final int DOUBLE_CLICK = 2;
 
-    private static final boolean SlowStartup = VueUtil.isMacPlatform() && !DEBUG.Enabled;
-    //private static final boolean SlowStartup = false;
+    //private static final boolean FullStartup = VueUtil.isMacPlatform() && !DEBUG.Enabled;
+    private static final boolean FullStartup = true;
     
 //     protected static final ImageIcon nleafIcon = VueResources.getImageIcon("favorites.leafIcon") ;
 //     protected static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
@@ -78,7 +78,7 @@ public class VueDragTree extends JTree
         setModel(createTreeModel(iterable, treeName));
         setName(treeName);
         setRootVisible(true);
-        if (SlowStartup) {
+        if (FullStartup) {
             this.expandRow(0);
             this.expandRow(1);
             this.setRootVisible(false);
@@ -216,7 +216,7 @@ public class VueDragTree extends JTree
             Iterator i = iterable.iterator();
             while (i.hasNext()){
                 Object resource = i.next();
-                if (DEBUG.Enabled || DEBUG.RESOURCE || DEBUG.DR) Log.debug("\tchild: " + resource);
+                if (DEBUG.RESOURCE || DEBUG.DR) Log.debug("\tchild: " + resource);
 
                 if (resource instanceof CabinetResource) {
                     CabinetResource cabRes = (CabinetResource) resource;
@@ -227,7 +227,7 @@ public class VueDragTree extends JTree
                     else
                         cabNode = new CabinetNode(cabRes, CabinetNode.LOCAL);
                     root.add(cabNode);
-                    if (SlowStartup) {
+                    if (FullStartup) {
                         // Do NOT DO THIS AUTOMATICALLY -- it can dramaticaly slow startup times.
                         // by tens of seconds (!) -- SMF 2007-10-10
                         if ((new File(cabRes.getSpec())).isDirectory())
