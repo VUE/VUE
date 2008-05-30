@@ -45,9 +45,11 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
     
     private Border DividerBorder = new DashBorder(Color.LIGHT_GRAY,false,true,false,false);
     
-    private Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
+    private final Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
 
-    private Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
+    private final Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
+    private final Color IndicationColor = new Color(128,255,128);
+
 
     public DataSourceListCellRenderer()
     {
@@ -56,13 +58,16 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         
         mLabel.setMinimumSize(new Dimension(10, mLabel.getHeight()));
         mLabel.setPreferredSize(new Dimension(Short.MAX_VALUE, mLabel.getHeight()));
+        mLabel.setOpaque(false);
+
+        mIconLabel.setOpaque(false);
 
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
         mRow.add(mCheckBox);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.left));
         mRow.add(mLabel);
-        mRow.add(mIconLabel);
         mRow.add(Box.createHorizontalStrut(GUI.WidgetInsets.right));
+        mRow.add(mIconLabel);
     }
     
 
@@ -86,65 +91,72 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         }
         mRow.setBackground(bg);
         mCheckBox.setBackground(bg);        
-        mLabel.setBackground(bg);
-        mIconLabel.setBackground(bg);
+
         //-------------------------------------------------------
         // Set the checkbox, label & icon
         //-------------------------------------------------------
 
-        mCheckBox.setVisibility(true);
-        
-        String displayName = null;
+        boolean isLoading = false;
+
         if (value instanceof edu.tufts.vue.dsm.DataSource) {
             edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
-            displayName = datasource.getRepositoryDisplayName();
-            mCheckBox.setVisibility(false);
+            mLabel.setText(datasource.getRepositoryDisplayName());
+            mLabel.setForeground(Color.black);
+            mCheckBox.setEnabled(true);
+            mCheckBox.setVisibility(true);
             mCheckBox.setSelected(datasource.isIncludedInSearch());
 			
-			// TODO: cache or maybe return a path in place of an image for getIcon16x16
-			if (datasource.getIcon16x16() != null) {
-				Icon dsIcon = new javax.swing.ImageIcon(datasource.getIcon16x16());
-				mIconLabel.setIcon(dsIcon);
-			} else {
-				mIconLabel.setIcon(remoteIcon);
-			}
-			
-            /*if (datasource.isOnline())
-                namePanel.add(onlineLabel, BorderLayout.EAST);
+            // TODO: cache or maybe return a path in place of an image for getIcon16x16
+            if (datasource.getIcon16x16() != null) {
+                Icon dsIcon = new javax.swing.ImageIcon(datasource.getIcon16x16());
+                mIconLabel.setIcon(dsIcon);
             } else {
-                namePanel.add(offlineLabel, BorderLayout.EAST);
-            }*/
-            mRow.setBorder(EmptyDividerBorder);
-        } else if (value instanceof LocalFileDataSource){
-            mRow.setBorder(DividerBorder);
-            displayName = ((DataSource)value).getDisplayName();            
-            mIconLabel.setIcon(myComputerIcon);
-        } else  if (value instanceof FavoritesDataSource) {
-            mRow.setBorder(DividerBorder);
-            displayName = ((DataSource)value).getDisplayName();            
-            //displayName = "My Saved Content";
-            mIconLabel.setIcon(savedResourcesIcon);
-        } else  if (value instanceof RemoteFileDataSource) {
-            mRow.setBorder(DividerBorder);
-            displayName = ((DataSource)value).getDisplayName();            
-            mIconLabel.setIcon(remoteIcon);
-        } else if ( value instanceof edu.tufts.vue.rss.RSSDataSource) { 
-            mRow.setBorder(DividerBorder);
-            displayName = ((DataSource)value).getDisplayName();            
-            mIconLabel.setIcon(rssIcon);
-        }else
-            mRow.setBorder(DividerBorder);
-            
-        if (value == DataSourceList.IndicatedDragOverValue)
-            mLabel.setForeground(Color.red);
-        else if (selected)
-        	mLabel.setForeground(Color.black);
-            //mLabel.setForeground(SystemColor.textHighlightText);
-        else
-            mLabel.setForeground(Color.black);
+                mIconLabel.setIcon(remoteIcon);
+            }
+			
+//             if (datasource.isOnline())
+//                 namePanel.add(onlineLabel, BorderLayout.EAST);
+//             } else {
+//                 namePanel.add(offlineLabel, BorderLayout.EAST);
+//             }
         
-        mLabel.setText(displayName);
+            mRow.setBorder(EmptyDividerBorder);
+        }
+        else if (value instanceof tufts.vue.VueDataSource) {
 
+            final tufts.vue.VueDataSource ds = (tufts.vue.VueDataSource) value;
+
+            mRow.setBorder(DividerBorder);
+            if (ds.isAvailable()) {
+                mLabel.setForeground(Color.black);
+            } else {
+                isLoading = true;
+                mLabel.setForeground(Color.gray);
+            }
+            mLabel.setText(ds.getDisplayName());
+
+            mCheckBox.setVisibility(false);
+        
+            if (value instanceof LocalFileDataSource)
+                mIconLabel.setIcon(myComputerIcon);
+            else if (value instanceof FavoritesDataSource)
+                mIconLabel.setIcon(savedResourcesIcon);
+            else if (value instanceof RemoteFileDataSource)
+                mIconLabel.setIcon(remoteIcon);
+            else if (value instanceof edu.tufts.vue.rss.RSSDataSource)
+                mIconLabel.setIcon(rssIcon);
+        }
+        else {
+            System.out.println("DataSourceList: unhandled data source: " + tufts.Util.tags(value));
+            mRow.setBorder(DividerBorder);
+            mCheckBox.setVisibility(false);
+            mIconLabel.setIcon(null);
+            mLabel.setText(value.toString());
+        }
+            
+        if (!isLoading && value == DataSourceList.IndicatedDragOverValue)
+            mRow.setBackground(IndicationColor);
+        
         return mRow;
 
         
