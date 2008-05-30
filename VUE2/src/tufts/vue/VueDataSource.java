@@ -29,7 +29,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.12 $ / $Date: 2008-05-30 19:36:15 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2008-05-30 22:46:25 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -150,11 +150,8 @@ public abstract class VueDataSource implements DataSource
     // call from AWT only
     protected void unloadViewer() {
         if (DEBUG.DR) out("unloadViewer");
-        if (mLoadThread != null) {
-            if (DEBUG.Enabled) out("INTERRUPTING: " + mLoadThread);
-            mLoadThread.interrupt();
-            mLoadThread = null;
-        }
+        if (mLoadThread != null)
+            setLoadThread(null);
         if (_viewer != null)
             setViewer(null);
     }
@@ -166,7 +163,8 @@ public abstract class VueDataSource implements DataSource
     void setLoadThread(Thread t) {
         if (DEBUG.Enabled) out("setLoadThread: " + t);
         if (mLoadThread != null && mLoadThread.isAlive()) {
-            if (DEBUG.Enabled) Log.warn(this + "; setLoadThread: FALLBACK-INTERRUPT " + mLoadThread);
+            if (DEBUG.Enabled) Log.debug(this + "; setLoadThread: INTERRUPT " + mLoadThread);
+            //if (DEBUG.Enabled) Log.warn(this + "; setLoadThread: FALLBACK-INTERRUPT " + mLoadThread);
             mLoadThread.interrupt();
         }
         mLoadThread = t;
