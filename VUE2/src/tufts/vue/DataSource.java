@@ -30,7 +30,10 @@ package tufts.vue;
 
 import javax.swing.JComponent;
 
-public interface DataSource{
+public interface DataSource {
+
+    public void setConfiguration(java.util.Properties map);
+    
     /*  
      *  Return the title or display name associated with the DataSource.
      *  (any length restrictions?)
@@ -45,15 +48,15 @@ public interface DataSource{
     /** Return a user-friendly name for the type of this data-source */
     public String getTypeName();
     
-     /**
+    /**
      * Return the address associated with the DataSource. It may be an IP address or any 
      * address that makes sense for the DataSource. It is a string 
      */
     public String getAddress();
-     /**
-       *Returns an id for the DataSource. 
-       *
-       */
+    /**
+     *Returns an id for the DataSource. 
+     *
+     */
     public String getId();
     /**
      *Return a integer defining the  PublishMode
@@ -67,7 +70,7 @@ public interface DataSource{
      */
     public boolean isAutoConnect();
    
-     /**
+    /**
      *Returns a JComponent that is the Viewer for the DataSource
      *
      */
@@ -80,21 +83,20 @@ public interface DataSource{
      *
      */
 	
-	public boolean isIncludedInSearch();
+    public boolean isIncludedInSearch();
 	
-	public void setIncludedInSearch(boolean included);
+    public void setIncludedInSearch(boolean included);
 
  
-   public JComponent getAddDataSourcePanel();
+    //    public JComponent getAddDataSourcePanel();
    
-    /**
-     *Returns a JComponent that is the panel to add the datasource
-     *
-     */
+    //     /**
+    //      *Returns a JComponent that is the panel to add the datasource
+    //      *
+    //      */
     
-   public JComponent getEditDataSourcePanel();
+    //    public JComponent getEditDataSourcePanel();
 
-    public void setConfiguration(java.util.Properties map);
     
    
        
