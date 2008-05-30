@@ -111,20 +111,22 @@ public class RemoteFileDataSource extends VueDataSource
     protected JComponent buildResourceViewer() {
         
         Vector cabVector = new Vector();
-        try{
+        
+        try {
+            
             RemoteFilingManager manager = new RemoteFilingManager();   // get a filing manager
             manager.createClient(this.getAddress(),this.getUserName(),this.getPassword());       // make a connection to the ftp site
             RemoteCabinetEntryIterator rootCabs = (RemoteCabinetEntryIterator) manager.listRoots();
             osid.shared.Agent agent = null; //  This may cause problems later.
-            while(rootCabs.hasNext()){
+
+            while (rootCabs.hasNext()) {
                 RemoteCabinetEntry rootNode = (RemoteCabinetEntry)rootCabs.next();
                 CabinetResource res = CabinetResource.create(rootNode);
                 cabVector.add(res);
-                
             }
-        } catch (Exception ex)  {
-            ex.printStackTrace();
-            //throw new DataSourceException("RemoteFileDataSource: " + ex);
+            
+        } catch (osid.filing.FilingException e) {
+            throw new DataSourceException(null, e);
         }
 
         VueDragTree fileTree = new VueDragTree(cabVector, getDisplayName());
