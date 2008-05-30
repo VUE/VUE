@@ -44,7 +44,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.53 $ / $Date: 2008-05-27 23:37:20 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2008-05-30 22:47:49 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -56,6 +56,7 @@ public class DataSourceList extends JList implements DropTargetListener
     
     private static final boolean debug = true;
     
+    private final DataSourceViewer dsViewer;
     private static final int ACCEPTABLE_DROP_TYPES = 0
             | DnDConstants.ACTION_COPY
             | DnDConstants.ACTION_LINK
@@ -64,7 +65,7 @@ public class DataSourceList extends JList implements DropTargetListener
     
     public DataSourceList(DataSourceViewer dsViewer) {
         super(new DefaultListModel());
-        //this.dsViewer = dsViewer;
+        this.dsViewer = dsViewer;
         this.setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION);
         this.setFixedCellHeight(-1);
         
@@ -165,14 +166,16 @@ public class DataSourceList extends JList implements DropTargetListener
             return;
         }
         
-        final int current = this.getSelectedIndex();
-        final int index = locationToIndex(e.getLocation());
-        try {
-            setSelectedIndex(index);
-        } catch (Throwable t) {
-            Log.error("drop; setSelectedIndex " + index + ":", t);
-        }
-        DataSource ds = (DataSource)getSelectedValue();
+//         final int current = this.getSelectedIndex();
+//         final int index = locationToIndex(e.getLocation());
+//         try {
+//             setSelectedIndex(index);
+//         } catch (Throwable t) {
+//             Log.error("drop; setSelectedIndex " + index + ":", t);
+//         }
+//         DataSource ds = (DataSource)getSelectedValue();
+
+        DataSource ds = (DataSource) over;
         
         if (DEBUG.DND) out("DROP ON DATA SOURCE: " + ds.getDisplayName());
         try {
@@ -331,10 +334,16 @@ public class DataSourceList extends JList implements DropTargetListener
             favoritesTree.setRootVisible(true);
             favoritesTree.expandRow(0);
             favoritesTree.setRootVisible(false);
-            this.setSelectedIndex(current);
+
+            if (dsViewer.getBrowsedDataSource() == null)
+                dsViewer.setActiveDataSource(ds);
+            else if (dsViewer.getBrowsedDataSource() == ds)
+                dsViewer.expandBrowse();
+            
+            //this.setSelectedIndex(current);
         } catch (Exception ex) {
             if (DEBUG.DND) tufts.Util.printStackTrace(ex);
-            this.setSelectedIndex(current);
+            //this.setSelectedIndex(current);
             VueUtil.alert(null, "You can only add resources to a Favorites Datasource","Resource Not Added");
         }
     }
