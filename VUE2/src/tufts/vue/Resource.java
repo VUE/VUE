@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.73 $ / $Date: 2008-05-27 23:47:54 $ / $Author: sfraize $
+ * @version $Revision: 1.74 $ / $Date: 2008-05-30 19:31:42 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -828,8 +828,12 @@ public abstract class Resource implements Cloneable
         return "";
     }
 
+    private static final String _fmt0 = "%s@%07x[%s; %s%s]";
+    private static final String _fmt1 = "%s@%08x[%s; %s%s]";
+    private static final String _debugFmt = Util.getJavaVersion() > 1.5 ? _fmt1 : _fmt0;
+
     public String asDebug() {
-        return String.format("%s@%07x[%s; %s%s]",
+        return String.format(_debugFmt,
                              getClass().getSimpleName(),
                              System.identityHashCode(this),
                              TYPE_NAMES[getClientType()],
