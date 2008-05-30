@@ -67,7 +67,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.558 $ / $Date: 2008-05-30 19:33:11 $ / $Author: sfraize $ 
+ * @version $Revision: 1.559 $ / $Date: 2008-05-30 22:41:24 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -812,6 +812,14 @@ public class VUE
             System.exit(0);
         }
 
+        // Kick-off tufts.vue.VueDataSource viewer build threads: must
+        // be done in AWT to be threadsafe, as involves
+        // non-syncronized code in tufts.vue.VueDataSource while
+        // setting up the threads
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            DataSourceViewer.cacheDataSourceViewers();
+        }});
+                
         //-------------------------------------------------------
         // complete the rest of our tasks at min priority
         //-------------------------------------------------------
@@ -829,6 +837,7 @@ public class VUE
                     }
                 };
             versionThread.setPriority(Thread.MIN_PRIORITY);
+            versionThread.setDaemon(true);
             versionThread.start();
         }
 
@@ -843,14 +852,6 @@ public class VUE
 //             t.printStackTrace();
 //         }
 
-        // Kick-off tufts.vue.VueDataSource viewer build threads: must
-        // be done in AWT to be threadsafe, as involves
-        // non-syncronized code in tufts.vue.VueDataSource while
-        // setting up the threads
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            DataSourceViewer.cacheDataSourceViewers();
-        }});
-                
         try {
             Log.debug("loading fonts...");
             // let this run in the remainder of the main thread
