@@ -23,6 +23,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.SystemColor;
 import java.awt.event.MouseListener;
 import java.util.Arrays;
 import java.util.StringTokenizer;
@@ -154,27 +155,28 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
         if (EasyReading) {
 
-            String fontName;
+            String labelFont;
+            String dataFont;
             int fontSize;
     
             if (GUI.isMacAqua()) {
-                fontName = "Lucida Grande";
+                labelFont = "Lucida Grande";
+                dataFont = labelFont;
                 fontSize = 11;
             } else {
-                //fontName = "SansSerif";
+                labelFont = "SansSerif";
                 fontSize = 12;
                 // looks better for values, maybe not so much for bold labels tho
                 // note: this is a smaller font than SansSerif, and switching
                 // it in has revealed that our spacing code isn't entirely
                 // font determined -- some of the constants (e.g., in MetaDataPane),
                 // are manually tuned, for SansSerif.
-                fontName = "Lucida Sans Unicode";
+                dataFont = "Lucida Sans Unicode";
             }
 
-            LabelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
-            if (DEBUG.DR)
-                fontName = "Lucida Sans Typewriter";
-            ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
+            LabelFace = new GUI.Face(labelFont, Font.BOLD, fontSize, Color.gray);
+            if (DEBUG.DR) dataFont = "Lucida Sans Typewriter";
+            ValueFace = new GUI.Face(dataFont, Font.PLAIN, fontSize, Color.black);
         } else {
             LabelFace = GUI.LabelFace;
             ValueFace = GUI.ValueFace;
@@ -208,7 +210,12 @@ public class MetaDataPane extends tufts.vue.gui.Widget
        mLabels = new JLabel[maxSlots];
        mValues = new JTextArea[maxSlots];
 
-       final Color alternatingColor = Color.white;
+       final Color alternatingColor;
+
+       if (Util.isMacPlatform())
+           alternatingColor = Color.white;
+       else
+           alternatingColor = new Color(250,250,250);
        final Border fillBorder = new EmptyBorder(TopPad,4,BotPad,0);
        final Border macAdjustBorder = new EmptyBorder(0,4,0,0);
        final Border winAdjustBorder = new EmptyBorder(0,4,0,0);
