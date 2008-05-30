@@ -76,10 +76,6 @@ public class DataSourceViewer extends JPanel
     AbstractAction editLibraryAction;
     AbstractAction removeLibraryAction;
     AbstractAction getLibraryInfoAction;
-    MouseListener refreshDSMouseListener;
-    
-//     JButton optionButton = new VueButton("add");
-//     JButton searchButton = new JButton("Search");
     
    // public static Vector  allDataSources = new Vector();
     public static DataSourceList dataSourceList;
@@ -106,6 +102,8 @@ public class DataSourceViewer extends JPanel
     //org.osid.registry.Provider checked[];
     
     private final java.util.List<SearchThread> mSearchThreads = java.util.Collections.synchronizedList(new java.util.LinkedList<SearchThread>());
+
+    private static DataSourceViewer singleton;
     
     public DataSourceViewer(DRBrowser drBrowser) {
         //GUI.activateWaitCursor();
@@ -134,10 +132,13 @@ public class DataSourceViewer extends JPanel
             dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
             Log.info("loading Installed data sources via Data Source Manager");
 
+            VUE.pushDiag("LD");
             edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
-
+            VUE.popDiag();
+            
             dataSources = dataSourceManager.getDataSources();
             Log.info("finished loading data sources.");
+            VUE.pushDiag("UI");
             for (int i=0; i < dataSources.length; i++) {
                 Log.info("adding to the UI: " + dataSources[i]);
                 try {
@@ -148,6 +149,8 @@ public class DataSourceViewer extends JPanel
                     //VueUtil.alert("Error loading Resource " + dataSources[i], "Error");
                 }
             }
+            VUE.popDiag();
+            
         } catch (Throwable t) {
             //Util.printStackTrace(t, "DataSourceViewer construct");
             VueUtil.alert("Error loading Resource","Error");
@@ -189,6 +192,12 @@ public class DataSourceViewer extends JPanel
         Widget.setHelpAction(DRB.resultsPane,VueResources.getString("dockWindow.Content.resultsPane.helpText"));;
         Widget.setHelpAction(DRB.searchPane,VueResources.getString("dockWindow.Content.searchPane.helpText"));;
 
+        Widget.setRefreshAction(DRB.browsePane, new MouseAdapter() {
+                public void mousePressed(MouseEvent e) {
+                    refreshBrowser();
+                }
+            });
+
         VUE.popDiag();
 
         editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
@@ -199,6 +208,8 @@ public class DataSourceViewer extends JPanel
         configMetaData.setName("Content Description");
         
         GUI.clearWaitCursor();
+
+        singleton = this;
     }
     
     class MiscActionMouseListener extends MouseAdapter
@@ -348,44 +359,333 @@ public class DataSourceViewer extends JPanel
         });
         
     }
-    public static Object getActiveDataSource() {
-        return activeDataSource;
-    }
     
-    public void setActiveDataSource(DataSource ds){
-        if (DEBUG.DR) Log.debug("Set active data source: " + ds);
-        this.activeDataSource = ds;
-        dataSourceList.setSelectedValue(ds,true);
-        Widget.setExpanded(DRB.searchPane, false);
-        Widget.setExpanded(DRB.browsePane, true);
-        Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
-        DRB.browsePane.removeAll();
-        DRB.browsePane.add(ds.getResourceViewer());
-        
-        if (ds instanceof LocalFileDataSource) {
-            Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
-        } else {
-            Widget.setRefreshAction(DRB.browsePane,null);
-        }
-        
-        DRB.browsePane.revalidate();
-        DRB.browsePane.repaint();
-    }
-    
-    public void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
+    void setActiveDataSource(edu.tufts.vue.dsm.DataSource ds) {
         this.activeDataSource = ds;
         dataSourceList.setSelectedValue(ds,true);
         Widget.setExpanded(DRB.browsePane, false);
         Widget.setExpanded(DRB.searchPane, true);
         queryEditor.refresh();
+    }
+    
+    public static Object getActiveDataSource() {
+        return activeDataSource;
+    }
+    
+    private tufts.vue.VueDataSource browserDS;
+    
+    private void refreshBrowser()
+    {
+        if (browserDS == null || browserDS.isLoading())
+            return;
+
+        browserDS.unloadViewer();
+        dataSourceList.repaint(); // so change in loaded status will be visible
+
+        displayInBrowsePane(produceViewer(browserDS), false);
+    }
+
+    
+    private void displayInBrowsePane(JComponent viewer, boolean priority)
+    {
+        if (DEBUG.Enabled) Log.debug("displayInBrowsePane: " + browserDS + "; " + GUI.name(viewer));
+
+        Widget.setTitle(DRB.browsePane, "Browse: " + browserDS.getDisplayName());
+        if (priority)
+            Widget.setExpanded(DRB.searchPane, false);
+        Widget.setExpanded(DRB.browsePane, true);
         
-        if (ds instanceof LocalFileDataSource) {
-            Widget.setRefreshAction(DRB.browsePane,(MouseListener)refreshDSMouseListener);
+        DRB.browsePane.removeAll();
+        DRB.browsePane.add(viewer);
+        DRB.browsePane.revalidate();
+        DRB.browsePane.repaint();
+    }
+    
+    void setActiveDataSource(final tufts.vue.DataSource ds)
+    {
+        if (DEBUG.Enabled) Log.debug("setActiveDataSource: " + ds);
+        
+        this.activeDataSource = ds;
+        
+        this.dataSourceList.setSelectedValue(ds, true);
+
+        this.browserDS = (tufts.vue.VueDataSource) ds;
+        
+        displayInBrowsePane(produceViewer(browserDS), true);
+
+    }
+
+    private static final JLabel StatusLabel = new JLabel("Loading...", JLabel.CENTER);
+    private static final JComponent Status;
+    
+    static {
+        GUI.apply(GUI.StatusFace, StatusLabel);
+        StatusLabel.setAlignmentX(0.5f);
+
+        JProgressBar bar = new JProgressBar();
+        bar.setIndeterminate(true);
+            
+        if (false && Util.isMacLeopard()) {
+            bar.putClientProperty("JProgressBar.style", "circular");
+            bar.setBorder(BorderFactory.createLineBorder(Color.darkGray));
+            //bar.putClientProperty("JComponent.sizeVariant", "small"); // no effect
+            //bar.setString("Loading...");// no effect on mac
+            //bar.setStringPainted(true); // no effect on mac
         } else {
-            Widget.setRefreshAction(DRB.browsePane,null);
+            if (DEBUG.BOXES) bar.setBorder(BorderFactory.createLineBorder(Color.green));
+            bar.setBackground(Color.red);
+            bar.setEnabled(false); // don't make so garish (mostly for mac)
+        }
+            
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        if (DEBUG.BOXES) StatusLabel.setBorder(BorderFactory.createLineBorder(Color.blue, 1));
+        
+        panel.add(StatusLabel);
+        panel.add(Box.createVerticalStrut(5));
+        panel.add(bar);
+        panel.setBorder(GUI.WidgetInsetBorder3);
+        Status = panel;
+
+    }
+
+    private static int vCount = 0;
+    
+    private JComponent produceViewer(final tufts.vue.VueDataSource ds) {
+        return produceViewer(ds, false);
+    }
+
+    private static String statusName(tufts.vue.VueDataSource ds) {
+        String s = ds.getAddressName();
+        if (s == null)
+            s = ds.getDisplayName();
+        if (s == null)
+            s = ds.getTypeName();
+        return s;
+    }
+    
+    private JComponent produceViewer(final tufts.vue.VueDataSource ds, boolean caching) {
+
+        if (!SwingUtilities.isEventDispatchThread())
+            throw new Error("not threadsafe except for AWT");
+
+        if (DEBUG.Enabled) Log.debug("produceViewer: " + ds);
+
+        final JComponent viewer = ds.getResourceViewer();
+
+        if (viewer != null)
+            return viewer;
+        
+        StatusLabel.setText(statusName(ds));
+
+        if (ds.isLoading()) {
+            // could up priority any time we come back through
+            //ds.getLoadThread().setPriority(Thread.MAX_PRIORITY);
+            //ds.getLoadThread().setPriority(Thread.NORM_PRIORITY);
+            return Status;
+        }
+
+        String s = ds.getClass().getSimpleName() + "[" + ds.getDisplayName();
+        if (ds.getAddressName() != null)
+            s += "; " + ds.getAddressName();
+        final String name = s + "]";
+
+        final Thread buildViewerThread =
+            new Thread(String.format("VBLD-%02d %s", vCount++, name)) {
+            @Override
+            public void run() {
+
+                Log.debug("kicked off");
+
+                final JComponent newViewer = buildViewer(ds);
+
+                if (isInterrupted()) {
+                    if (newViewer != null)
+                        Log.debug("produced; but not needed: aborting");
+                    return;
+                }
+                
+                Log.info("produced " + GUI.name(newViewer));
+                
+                GUI.invokeAfterAWT(new AWTAcceptViewerTask(ds, this, newViewer, name));
+            }
+            };
+
+        ds.setLoadThread(buildViewerThread);
+        //if (caching)
+        //    buildViewerThread.setPriority(Thread.NORM_PRIORITY-1);
+        //else
+        //    buildViewerThread.setPriority(Thread.NORM_PRIORITY);
+        buildViewerThread.setPriority(Thread.NORM_PRIORITY);
+        buildViewerThread.start();
+
+        return Status;
+    }
+
+    private class AWTAcceptViewerTask implements Runnable {
+        final tufts.vue.VueDataSource ds;
+        final Thread serviceThread;
+        final JComponent newViewer;
+        final String name;
+        
+        AWTAcceptViewerTask(VueDataSource ds, Thread serviceThread, JComponent viewer, String name) {
+            this.ds = ds;
+            this.serviceThread = serviceThread;
+            this.newViewer = viewer;
+            this.name = name;
+        }
+    
+        public void run() {
+                    
+            if (serviceThread.isInterrupted()) {
+                // never possible?  we're now synchronous in AWT
+                Log.warn(name + "; in AWT; but viewer no longer needed: aborting result for " + serviceThread, new Throwable("FYI"));
+                return;
+            }
+
+            VUE.pushDiag(name);
+                    
+            Log.debug("accepting viewer & setting into VueDataSource");
+                    
+            ds.setViewer(newViewer); // important to do this in AWT; it's why we have this task
+
+            // The viewer we've just set may actually be just a text pane
+            // describing an error condition: now set the actual availablity
+            // of the content:
+
+            ds.setAvailable(newViewer instanceof ErrorText == false);
+            
+            dataSourceList.repaint(); // so change in loaded status will be visible
+            
+            if (DataSourceViewer.this.browserDS == ds) { // important to check this in AWT;
+                Log.debug("currently displayed data-source wants this viewer; displaying");
+                displayInBrowsePane(newViewer, false); // important to do this in AWT;
+            }
+            else
+                Log.debug("display: skipping; user looking at something else");
+
+            // this would always fallback-interrupt our own serviceThread but by now it
+            // has already exited is waiting to die, as the last thing it does is add
+            // this task to the AWT event queue.  There should be no code in the run
+            // after the invoke.   We check for isAlive in setLoadThread just in case,
+            // before we fallback-interrupt.
+
+            // important to do both the get/set in AWT:
+            if (ds.getLoadThread() == serviceThread)
+                ds.setLoadThread(null); 
+
+            VUE.popDiag();
+                    
         }
     }
     
+    private static final class ErrorText extends JTextArea {
+        ErrorText(String txt) {
+            super(txt);
+            setEditable(false);
+            setLineWrap(true);
+            setWrapStyleWord(true);
+            setBorder(GUI.WidgetInsetBorder3);
+            GUI.apply(GUI.StatusFace, this);
+            //GUI.apply(GUI.ErrorFace, this);
+        }
+
+    }
+        
+    /**
+     *
+     * @return either the successfully created viewer, or an as informative as possible
+     * error report panel should we encounter any exceptions.  The idea is that this
+     * method is guaranteed not to return null: always something meaninful to display.
+     * With one exception: if the thread this is running on has it's interrupted status
+     * set, it may return null.
+     *
+     */
+    private JComponent buildViewer(final tufts.vue.VueDataSource ds)
+    {
+        
+        final String address = ds.getAddress();
+        
+        JComponent viewer = null;
+        Throwable exception = null;
+
+        try {
+            
+            viewer = ds.buildResourceViewer();
+
+        } catch (Throwable t) {
+            exception = t;
+        }
+
+        if (Thread.currentThread().isInterrupted()) {
+            Log.debug("built; but not needed: aborting");
+            return null;
+        }
+
+        if (exception == null && viewer == null)
+            exception = new Exception("no viewer available");
+
+        if (exception != null) {
+
+            final Throwable t = exception;
+            
+            Log.error(ds + "; getResourceViewer:", t);
+
+            String txt;
+
+            txt = ds.getTypeName() + " unavailable:";
+            
+            if (t instanceof DataSourceException) {
+                if (t.getMessage() != null)
+                    txt += " " + t.getMessage();
+            } else
+                txt += "\n\nError: " + prettyException(t);
+
+
+            if (t.getCause() != null) {
+                Throwable c = t.getCause();
+                Log.error("FULL CAUSE:", c);
+                txt += "\n\nCause: " + prettyException(c);
+            }
+
+            String a = address;
+            if (a != null) {
+                //if (a.length() == 0 || Character.isWhitespace(a.charAt(0)) || Character.isWhitespace(a.charAt(a.length()-1)))
+                a = '[' + a + ']';
+            }
+            txt += "\n\nConfiguration address: " + a;
+            
+            if (DEBUG.Enabled)
+                txt += "\n\nDataSource: " + ds.getClass().getName();
+            
+            txt += "\n\nThis could be a problem with the configuration for this "
+                + ds.getTypeName()
+                + ", with the local network connection, or with a remote server.";
+
+            if (DEBUG.Enabled)
+                txt += "\n\n" + Thread.currentThread();
+            
+            viewer = new ErrorText(txt); 	
+        }
+
+        return viewer;
+    }
+    
+    private String prettyException(Throwable t) {
+        String txt;
+        if (t.getClass().getName().startsWith("java"))
+            txt = t.getClass().getSimpleName();
+        else
+            txt = t.getClass().getName();
+        
+        if (t.getMessage() != null)
+            txt += ": " + t.getMessage();
+
+        return txt;
+    }
+
+
     public static void refreshDataSourcePanel(edu.tufts.vue.dsm.DataSource ds) {
         queryEditor.refresh();
         //TODO: actually replace the whole editor if need be
@@ -458,12 +758,6 @@ public class DataSourceViewer extends JPanel
             }
         };
         
-        refreshDSMouseListener = new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                refreshDataSourceList();
-                
-            }
-        };
         removeLibraryAction = new AbstractAction("Delete Resource") {
             public void actionPerformed(ActionEvent e) {
                 Object o = dataSourceList.getSelectedValue();
@@ -545,44 +839,6 @@ public class DataSourceViewer extends JPanel
         };
         
         refreshMenuActions();
-    }
-    
-    public void refreshDataSourceList(){
-        
-        GUI.activateWaitCursor();
-        
-        DataSource ds = null;
-        DataSource oldDataSource = null;
-        try {
-            oldDataSource = (DataSource) activeDataSource;
-        } catch(ClassCastException cce) {
-            return;
-        } finally {
-            GUI.clearWaitCursor();
-        }
-        
-        if (oldDataSource instanceof LocalFileDataSource) {
-            String address = ((LocalFileDataSource)oldDataSource).getAddress();
-            String displayName = ((LocalFileDataSource)oldDataSource).getDisplayName();
-            try {
-                ds = new LocalFileDataSource(displayName,address);
-            } catch(DataSourceException dse) {
-                System.out.println("Error refreshing datasource");
-                ds = oldDataSource;
-            }
-            
-        }
-        dataSourceList.setSelectedValue(ds,true);
-        Widget.setExpanded(DRB.searchPane, false);
-        Widget.setExpanded(DRB.browsePane, true);
-        Widget.setTitle(DRB.browsePane, "Browse: " + ds.getDisplayName());
-        
-        DRB.browsePane.removeAll();
-        DRB.browsePane.add(ds.getResourceViewer());
-        DRB.browsePane.revalidate();
-        DRB.browsePane.repaint();
-        
-        GUI.clearWaitCursor();
     }
     
     private void refreshMenuActions() {
@@ -686,6 +942,13 @@ public class DataSourceViewer extends JPanel
     }
 
     public static void cacheDataSourceViewers() {
+        if (singleton != null)
+            singleton.cacheViewers();
+    }
+
+    
+    private void cacheViewers() {
+
         VUE.pushDiag("dsv-cache");
 
         final java.util.List<tufts.vue.DataSource> dataSources;
@@ -694,11 +957,11 @@ public class DataSourceViewer extends JPanel
         }
         
         for (DataSource ds : dataSources) {
-            Log.info("caching viewer for: " + Util.tags(ds));
+            Log.info("requesting viewer for: " + Util.tags(ds));
             try {
-                ds.getResourceViewer();
+                produceViewer((tufts.vue.VueDataSource)ds, true);
             } catch (Throwable t) {
-                Log.error("caching viewer for " + ds, t);
+                Log.error("exception caching viewer for " + Util.tags(ds), t);
             }
         }
         VUE.popDiag();
@@ -965,6 +1228,7 @@ public class DataSourceViewer extends JPanel
                 textArea.setLineWrap(true);
                 textArea.setWrapStyleWord(true);
                 textArea.setEditable(false);
+                GUI.apply(GUI.ErrorFace, textArea);
                 textArea.setOpaque(false);
                 	
                 GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -1453,11 +1717,11 @@ public class DataSourceViewer extends JPanel
         if (ds == loadedDataSource)
             return;
 
-        if (DEBUG.DR) Log.debug("REFRESH " + Util.tags(ds));
+        if (DEBUG.DR && DEBUG.META) Log.debug("refresh " + Util.tags(ds));
             
         if (force || editInfoDockWindow.isVisible()) {
             
-            if (DEBUG.DR) Log.debug("LOADING " + Util.tags(ds));
+            if (DEBUG.DR) Log.debug("REFRESH " + Util.tags(ds));
             
             editInfoStack.removeAll();
             
@@ -1493,11 +1757,11 @@ public class DataSourceViewer extends JPanel
         if (ds == loadedDataSource)
             return;
         
-        if (DEBUG.DR) Log.debug("REFRESH " + Util.tags(ds));
+        if (DEBUG.DR && DEBUG.META) Log.debug("refresh " + Util.tags(ds));
         
         if (force || editInfoDockWindow.isVisible()) {
 
-            if (DEBUG.DR) Log.debug("LOADING " + Util.tags(ds));
+            if (DEBUG.DR) Log.debug("REFRESH " + Util.tags(ds));
             
             editInfoStack.removeAll();
 
@@ -1638,15 +1902,4 @@ public class DataSourceViewer extends JPanel
     
     public void keyTyped(KeyEvent e) {
     }
-    
-//     private static void out(Object o) {
-
-//         Log.debug(o);
-        
-// //         System.err.println("DSV "
-// //                 + new Long(System.currentTimeMillis()).toString().substring(8)
-// //                 + " [" + Thread.currentThread().getName() + "] "
-// //                 + (o==null?"null":o.toString()));
-//     }
-    
 }
