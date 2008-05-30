@@ -67,7 +67,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.557 $ / $Date: 2008-05-28 21:39:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.558 $ / $Date: 2008-05-30 19:33:11 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -832,19 +832,25 @@ public class VUE
             versionThread.start();
         }
 
-        try {
-            
-            // any immediate user UI requests (mouse-click) for a tufts.vue.DataSource
-            // viewer will happen in the higher priority AWT thread, and will be loaded
-            // immediately, no matter where we are in the caching process.  The cache /
-            // viewer construction code is fully synchronized, so if the desired viewer
-            // is already loading, AWT will just block until it's complete.
-            
-            DataSourceViewer.cacheDataSourceViewers();
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
+//         try {
+//             // any immediate user UI requests (mouse-click) for a tufts.vue.DataSource
+//             // viewer will happen in the higher priority AWT thread, and will be loaded
+//             // immediately, no matter where we are in the caching process.  The cache /
+//             // viewer construction code is fully synchronized, so if the desired viewer
+//             // is already loading, AWT will just block until it's complete.
+//             DataSourceViewer.cacheDataSourceViewers();
+//         } catch (Throwable t) {
+//             t.printStackTrace();
+//         }
 
+        // Kick-off tufts.vue.VueDataSource viewer build threads: must
+        // be done in AWT to be threadsafe, as involves
+        // non-syncronized code in tufts.vue.VueDataSource while
+        // setting up the threads
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            DataSourceViewer.cacheDataSourceViewers();
+        }});
+                
         try {
             Log.debug("loading fonts...");
             // let this run in the remainder of the main thread
