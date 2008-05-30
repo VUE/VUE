@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.110 $ / $Date: 2008-05-23 15:08:59 $ / $Author: sfraize $
+ * @version $Revision: 1.111 $ / $Date: 2008-05-30 19:27:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -61,13 +61,25 @@ public class GUI
     public static Font LabelFace; 
     public static Font ValueFace;
     public static Font TitleFace;
+    public static Font FixedFace;
+    public static Font ErrorFace;
+    public static Font StatusFace;
+    public static Font DataFace;
     public static final Color LabelColor = new Color(61,61,61);
     public static final int LabelGapRight = 6;
     public static final int FieldGapRight = 6;
     public static final Insets WidgetInsets = new Insets(8,6,8,6);
+    public static final Insets WidgetInsets2 = new Insets(16,12,16,12);
+    public static final Insets WidgetInsets3 = new Insets(20,20,20,20);
     public static final Border WidgetInsetBorder = DEBUG.BOXES
         ? new MatteBorder(WidgetInsets, Color.yellow)
         : new EmptyBorder(WidgetInsets);
+    public static final Border WidgetInsetBorder2 = DEBUG.BOXES
+        ? new MatteBorder(WidgetInsets2, Color.yellow)
+        : new EmptyBorder(WidgetInsets2);
+    public static final Border WidgetInsetBorder3 = DEBUG.BOXES
+        ? new MatteBorder(WidgetInsets3, Color.yellow)
+        : new EmptyBorder(WidgetInsets3);
     //public static final Border WidgetBorder = new MatteBorder(WidgetInsets, Color.orange);
     
     /** the special name AWT/Swing gives to pop-up Windows (menu's, rollovers, etc) */
@@ -267,27 +279,42 @@ public class GUI
         } else {
             fontName = "SansSerif";
             fontSize = 11;
-            if (DEBUG.Enabled) {
-                // looks better for values, maybe not so much for bold labels tho
-                // note: this is a smaller font than SansSerif, and switching
-                // it in has revealed that our spacing code isn't entirely
-                // font determined -- some of the constants (e.g., in MetaDataPane),
-                // are manually tuned, for SansSerif.
-                fontName = "Lucida Sans Unicode";
-            }
+//             if (DEBUG.Enabled) {
+//                 // looks better for values, maybe not so much for bold labels tho
+//                 // note: this is a smaller font than SansSerif, and switching
+//                 // it in has revealed that our spacing code isn't entirely
+//                 // font determined -- some of the constants (e.g., in MetaDataPane),
+//                 // are manually tuned, for SansSerif.
+//                 fontName = "Lucida Sans Unicode";
+//             }
         }
 
-        if (DEBUG.Enabled) {
-            if (!Util.isMacPlatform()) fontSize = 12;
-            LabelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
-        } else {
-            LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
-        }
+//         if (DEBUG.Enabled) {
+//             if (!Util.isMacPlatform()) fontSize = 12;
+//             LabelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
+//         } else {
+//             LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
+//         }
+
+        final String fixedFont = "Lucida Sans Typewriter";
+        //final String fixedFont = "Courier New";
+        //final String fixedFont = "Courier";
+
+        // Verdana is not fully a fixed font, but it's still much easier to read
+        // than any of the truly fixed fonts, and it's not nearly as scary
+        // for users to look at.
+        final String errorFont = "Verdana";
+        
+        LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
         ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
         TitleFace = new GUI.Face(fontName, Font.BOLD, fontSize, GUI.LabelColor);
-        
+        FixedFace = new GUI.Face(fixedFont, Font.PLAIN, fontSize, GUI.LabelColor);
+        ErrorFace = new GUI.Face(errorFont, Font.PLAIN, fontSize+1, Color.darkGray, SystemColor.control);
+        //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray, SystemColor.control);
+        StatusFace = new GUI.Face(null, 0, 0, Color.darkGray);
+        DataFace = new GUI.Face("Verdana", Font.PLAIN, fontSize, null);
 
-         FocusManager.install();
+        FocusManager.install();
         //tufts.Util.executeIfFound("tufts.vue.gui.WindowManager", "install", null);
 
         org.apache.log4j.Level level = org.apache.log4j.Level.DEBUG;
@@ -710,7 +737,7 @@ public class GUI
     
     public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
-        if (DEBUG.IO) Log.debug("icon fetch: " + ext + "@" + sizeRequest);
+        if (DEBUG.IO && DEBUG.META) Log.debug("icon request: " + ext + "@" + sizeRequest);
 
         if (ext == null)
             return null;
@@ -733,11 +760,15 @@ public class GUI
             ext = "htm";
 
         if (Util.isMacPlatform()) {
-            
-            if (tufts.macosx.MacOSX.supported())
-                return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
-            else
-                return null;
+
+            if (false && Util.isMacLeopard() && Util.getJavaVersion() > 1.5) {
+                ; // ShellFolder/FileSystemView method still doesn't work
+            } else {
+                if (tufts.macosx.MacOSX.supported())
+                    return tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
+                else
+                    return null;
+            }
             
 //             Image image = tufts.macosx.MacOSX.getIconForExtension(ext, sizeRequest);
 //             // May need an unknown type for each likely sizeRequest
@@ -764,14 +795,18 @@ public class GUI
 
         // proceed the SLOW way, but all we can do until we have jdic/jdesktop and they actually handle this for us:
 
+        File file = null;
+        
         try {
-
-            final File file;
 
             if ("dir".equals(ext)) {
                 file = new File(TmpIconDir); // a guaranteed vanilla directory we should be able to find
+                if (DEBUG.IO) Log.debug(" trying " + file);
             } else {
                 file = new File(TmpIconDir + File.separator + "vueIcon." + ext);
+
+                if (DEBUG.IO) Log.debug(" trying " + file);
+
                 if (file.createNewFile()) 
                     if (DEBUG.Enabled) Log.debug("created " + file);
                 // we deliberately leave the above files behind, so that hopefully
@@ -799,7 +834,7 @@ public class GUI
                 small = shellFolder;  // can be fetched later
                 large = image;
             }
-            
+
             // We assume here that on Windows platforms, small is always 16x16, and large is always 32x32
             // See IconCache code that also depends on this.
 
@@ -813,6 +848,7 @@ public class GUI
                                   + "image size doesn't match request size for key [" + ext + "." + sizeRequest + "]: "
                                   + Util.tags(image)
                                   + Util.TERM_CLEAR);
+                    if (DEBUG.IO) Log.debug("caching: " + ext + "@" + sizeRequest + ": " + Util.tags(image));
                     IconCache.put(ext, sizeRequest, image);
                 }
             } else {
@@ -821,7 +857,16 @@ public class GUI
             
         } catch (Throwable t) {
             //Log.warn("could not get Icon for filetype: " + ext + "." + sizeRequest + "; ", t);
-            Log.warn("could not get Icon for filetype: " + ext + "." + sizeRequest + "; " + t);
+            
+            Icon fsIcon = null;
+            try {
+                // debug: does this return us anything interesting?  java 1.5 default impl delegates to ShellFolder,
+                // so result should presumably be the same
+                fsIcon = javax.swing.filechooser.FileSystemView.getFileSystemView().getSystemIcon(file);
+            } catch (Throwable _) {}
+            
+            Log.warn("could not get Icon for filetype: " + ext + "." + sizeRequest + "; " + t + "; fsIcon=" + fsIcon);
+            
             IconCache.put(ext, sizeRequest, null);
         }
 
@@ -2028,9 +2073,11 @@ public class GUI
     // add a color to a Font
     public static class Face extends Font {
         public final Color color;
+        public final Color bgColor;
         public Face(Font f, Color c) {
             super(f.getName(), f.getStyle(), f.getSize());
             color = c;
+            bgColor = null;
         }
         public Face(Font f) {
             this(f, Color.black);
@@ -2038,10 +2085,17 @@ public class GUI
         public Face(String name, int size, Color c) {
             super(name, Font.PLAIN, size);
             color = c;
+            bgColor = null;
         }
         public Face(String name, int style, int size, Color c) {
             super(name, style, size);
             color = c;
+            bgColor = null;
+        }
+        public Face(String name, int style, int size, Color c, Color bg) {
+            super(name, style, size);
+            color = c;
+            bgColor = bg;
         }
     }
 
@@ -2088,10 +2142,18 @@ public class GUI
     }
 
 
-    public static void apply(Font f, Component c) {
-        c.setFont(f);
-        if (f instanceof Face)
-            c.setForeground(((Face)f).color);
+    public static void apply(Font f, JComponent c) {
+        if (f.getSize() > 0)
+            c.setFont(f);
+        if (f instanceof Face) {
+            Face face = (Face) f;
+            if (face.color != null)
+                c.setForeground(face.color);
+            if (face.bgColor != null) {
+                c.setBackground(face.bgColor);
+                c.setOpaque(true);
+            }
+        }
     }
     
     
