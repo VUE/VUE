@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.111 $ / $Date: 2008-05-30 19:27:37 $ / $Author: sfraize $
+ * @version $Revision: 1.112 $ / $Date: 2008-05-30 22:51:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -273,12 +273,15 @@ public class GUI
 
         String fontName;
         int fontSize;
+        int fontSize2;
         if (isMacAqua) {
             fontName = "Lucida Grande";
             fontSize = 11;
+            fontSize2 = fontSize + 2;
         } else {
             fontName = "SansSerif";
             fontSize = 11;
+            fontSize2 = 11;
 //             if (DEBUG.Enabled) {
 //                 // looks better for values, maybe not so much for bold labels tho
 //                 // note: this is a smaller font than SansSerif, and switching
@@ -311,7 +314,9 @@ public class GUI
         FixedFace = new GUI.Face(fixedFont, Font.PLAIN, fontSize, GUI.LabelColor);
         ErrorFace = new GUI.Face(errorFont, Font.PLAIN, fontSize+1, Color.darkGray, SystemColor.control);
         //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray, SystemColor.control);
-        StatusFace = new GUI.Face(null, 0, 0, Color.darkGray);
+        //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray);
+          StatusFace = new GUI.Face(fontName, Font.PLAIN, fontSize2, Color.darkGray);
+        //StatusFace = new GUI.Face(fontName, Font.PLAIN, fontSize2, Color.darkGray, SystemColor.control);
         DataFace = new GUI.Face("Verdana", Font.PLAIN, fontSize, null);
 
         FocusManager.install();
@@ -2143,17 +2148,27 @@ public class GUI
 
 
     public static void apply(Font f, JComponent c) {
-        if (f.getSize() > 0)
+        if (f instanceof Face)
+            apply((Face)f, c);
+        else if (f.getSize() > 0)
             c.setFont(f);
-        if (f instanceof Face) {
-            Face face = (Face) f;
-            if (face.color != null)
-                c.setForeground(face.color);
-            if (face.bgColor != null) {
-                c.setBackground(face.bgColor);
-                c.setOpaque(true);
-            }
+    }
+    
+    public static void apply(Face face, JComponent c) {
+        
+        if (face.getSize() > 0)
+            c.setFont(face);
+
+        if (face.color != null)
+            c.setForeground(face.color);
+        
+        if (face.bgColor != null) {
+            c.setBackground(face.bgColor);
+            c.setOpaque(true);
+        } else {
+            c.setOpaque(false);
         }
+            
     }
     
     
