@@ -23,7 +23,7 @@ import tufts.vue.gui.VueFrame;
 /**
  *
  * @author  akumar03
- * @version $Revision: 1.5 $ / $Date: 2008-05-27 15:08:21 $ / $Author: mike $ 
+ * @version $Revision: 1.6 $ / $Date: 2008-05-30 19:31:51 $ / $Author: anoop $ 
  */
 public class SingleInstance {
     
@@ -115,7 +115,8 @@ public class SingleInstance {
                     if (VueUtil.isWindowsPlatform())
                     {
                     	VUE.getApplicationFrame().setVisible(true);
-                    	((VueFrame)VUE.getApplicationFrame()).setExtendedState(java.awt.Frame.NORMAL);
+                    	((VueFrame)VUE.getApplicationFrame()).setExtendedState(java.awt.Frame.ICONIFIED);
+                        ((VueFrame)VUE.getApplicationFrame()).setExtendedState(java.awt.Frame.NORMAL);
                     	VUE.getApplicationFrame().toFront();
                     }
                     System.out.println("Connection closed by client");
