@@ -25,7 +25,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.66 $ / $Date: 2008-05-30 19:28:39 $ / $Author: sfraize $ 
+ * @version $Revision: 1.67 $ / $Date: 2008-05-30 22:48:30 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -188,7 +188,7 @@ public class DRBrowser extends JPanel
             loadingLabel = new JLabel(VueResources.getString("dockWindow.Resources.loading.label"), SwingConstants.CENTER);
             loadingLabel.setMinimumSize(new Dimension(150, 80));
             loadingLabel.setBorder(new EmptyBorder(8,0,8,0));
-            loadingLabel.setForeground(Color.darkGray);
+            GUI.apply(GUI.StatusFace, loadingLabel);
             add(loadingLabel);
             
         } else {
@@ -298,6 +298,7 @@ public class DRBrowser extends JPanel
         
         try {
             browsePane.setBackground(Color.white);
+            browsePane.setExpanded(false);
             browsePane.setLayout(new BorderLayout());
             //startSize = new Dimension(tufts.vue.gui.GUI.isSmallScreen() ? 250 : 400, 300);
             //startSize.height = GUI.GScreenHeight / 5;
