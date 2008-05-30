@@ -209,6 +209,8 @@ public class DataSourceViewer extends JPanel
         
         GUI.clearWaitCursor();
 
+        Widget.setExpanded(DRB.browsePane, false);
+        
         singleton = this;
     }
     
@@ -373,6 +375,14 @@ public class DataSourceViewer extends JPanel
     }
     
     private tufts.vue.VueDataSource browserDS;
+
+    tufts.vue.DataSource getBrowsedDataSource() {
+        return browserDS;
+    }
+
+    void expandBrowse() {
+        Widget.setExpanded(DRB.browsePane, true);
+    }
     
     private void refreshBrowser()
     {
@@ -393,16 +403,19 @@ public class DataSourceViewer extends JPanel
         Widget.setTitle(DRB.browsePane, "Browse: " + browserDS.getDisplayName());
         if (priority)
             Widget.setExpanded(DRB.searchPane, false);
-        Widget.setExpanded(DRB.browsePane, true);
         
         DRB.browsePane.removeAll();
         DRB.browsePane.add(viewer);
         DRB.browsePane.revalidate();
         DRB.browsePane.repaint();
+
+        Widget.setExpanded(DRB.browsePane, true);
+        
     }
     
     void setActiveDataSource(final tufts.vue.DataSource ds)
     {
+        //if (DEBUG.Enabled) Log.debug("setActiveDataSource: " + ds, new Throwable("FYI"));
         if (DEBUG.Enabled) Log.debug("setActiveDataSource: " + ds);
         
         this.activeDataSource = ds;
@@ -465,12 +478,12 @@ public class DataSourceViewer extends JPanel
         return s;
     }
     
-    private JComponent produceViewer(final tufts.vue.VueDataSource ds, boolean caching) {
+    private JComponent produceViewer(final tufts.vue.VueDataSource ds, final boolean caching) {
 
         if (!SwingUtilities.isEventDispatchThread())
             throw new Error("not threadsafe except for AWT");
 
-        if (DEBUG.Enabled) Log.debug("produceViewer: " + ds);
+        if (DEBUG.DR) Log.debug("produceViewer: " + ds);
 
         final JComponent viewer = ds.getResourceViewer();
 
@@ -493,31 +506,33 @@ public class DataSourceViewer extends JPanel
 
         final Thread buildViewerThread =
             new Thread(String.format("VBLD-%02d %s", vCount++, name)) {
-            @Override
-            public void run() {
-
-                Log.debug("kicked off");
-
-                final JComponent newViewer = buildViewer(ds);
-
-                if (isInterrupted()) {
-                    if (newViewer != null)
-                        Log.debug("produced; but not needed: aborting");
-                    return;
+                {
+                    setDaemon(true);
+                    if (caching)
+                        setPriority(Thread.currentThread().getPriority() - 1);
                 }
-                
-                Log.info("produced " + GUI.name(newViewer));
-                
-                GUI.invokeAfterAWT(new AWTAcceptViewerTask(ds, this, newViewer, name));
-            }
-            };
 
+                @Override
+                public void run() {
+
+                    if (DEBUG.DR) Log.debug("kicked off");
+                    
+                    final JComponent newViewer = buildViewer(ds);
+                    
+                    if (isInterrupted()) {
+                        if (DEBUG.DR && newViewer != null)
+                            Log.debug("produced; but not needed: aborting");
+                        return;
+                    }
+                    
+                    Log.info("produced " + GUI.name(newViewer));
+                    
+                    GUI.invokeAfterAWT(new AWTAcceptViewerTask(ds, this, newViewer, name));
+                }
+            };
+        
         ds.setLoadThread(buildViewerThread);
-        //if (caching)
-        //    buildViewerThread.setPriority(Thread.NORM_PRIORITY-1);
-        //else
-        //    buildViewerThread.setPriority(Thread.NORM_PRIORITY);
-        buildViewerThread.setPriority(Thread.NORM_PRIORITY);
+        
         buildViewerThread.start();
 
         return Status;
@@ -546,7 +561,7 @@ public class DataSourceViewer extends JPanel
 
             VUE.pushDiag(name);
                     
-            Log.debug("accepting viewer & setting into VueDataSource");
+            if (DEBUG.Enabled) Log.debug("accepting viewer & setting into VueDataSource");
                     
             ds.setViewer(newViewer); // important to do this in AWT; it's why we have this task
 
@@ -559,11 +574,11 @@ public class DataSourceViewer extends JPanel
             dataSourceList.repaint(); // so change in loaded status will be visible
             
             if (DataSourceViewer.this.browserDS == ds) { // important to check this in AWT;
-                Log.debug("currently displayed data-source wants this viewer; displaying");
+                if (DEBUG.Enabled) Log.debug("currently displayed data-source wants this viewer; displaying");
                 displayInBrowsePane(newViewer, false); // important to do this in AWT;
             }
             else
-                Log.debug("display: skipping; user looking at something else");
+                if (DEBUG.DR) Log.debug("display: skipping; user looking at something else");
 
             // this would always fallback-interrupt our own serviceThread but by now it
             // has already exited is waiting to die, as the last thing it does is add
@@ -588,6 +603,7 @@ public class DataSourceViewer extends JPanel
             setWrapStyleWord(true);
             setBorder(GUI.WidgetInsetBorder3);
             GUI.apply(GUI.StatusFace, this);
+            //setOpaque(false);            
             //GUI.apply(GUI.ErrorFace, this);
         }
 
@@ -619,7 +635,7 @@ public class DataSourceViewer extends JPanel
         }
 
         if (Thread.currentThread().isInterrupted()) {
-            Log.debug("built; but not needed: aborting");
+            if (DEBUG.DR) Log.debug("built; but not needed: aborting");
             return null;
         }
 
