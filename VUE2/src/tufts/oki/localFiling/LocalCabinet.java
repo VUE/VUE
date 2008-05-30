@@ -311,7 +311,7 @@ public class LocalCabinet extends LocalCabinetEntry implements osid.filing.Cabin
         //System.out.println ("Open Directory: " + this.cwd.getDisplayName());
         files = dir.list();
         if (files == null)
-            throw new osid.filing.FilingException (osid.filing.FilingException.NOT_A_CABINET);
+            throw new osid.filing.FilingException(osid.filing.FilingException.NOT_A_CABINET + ": no files");
         debug("listed, n=%d", files.length);
 
         String rootBase = getRootBase();
