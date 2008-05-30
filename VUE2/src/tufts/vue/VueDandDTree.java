@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.40 $ / $Date: 2008-04-18 01:38:39 $ / $Author: sfraize $
+ * @version $Revision: 1.41 $ / $Date: 2008-05-30 19:33:33 $ / $Author: sfraize $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -334,18 +334,25 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
             final Resource r = node.getResource();
             final int level = node.getLevel();
 
-            if (level == 1 && r != null) {
+            if (level <= 1 && r != null) {
+
+//                 if (leaf && r.isImage() /* &&!r.isLocalFile()*/ ) {
+//                     // This will allow image content to show an icon that shows the image itself
+//                     icon = r.getContentIcon(tree);
+//               //} else if (DEBUG.Enabled && !leaf) {
+//                 } else if (!leaf) {
+//                     // This will make folder items appear at 32x32 instead of the default tiny 16x16
+//                     icon = r.getLargeIcon();
+//                 }
+
                 // Items at the top level are treated differently
+                
                 Icon icon = null;
                 
-                if (leaf && r.isImage() /* &&!r.isLocalFile()*/ ) {
-                    
+                if (r.isImage()) {
                     // This will allow image content to show an icon that shows the image itself
                     icon = r.getContentIcon(tree);
-
-              //} else if (DEBUG.Enabled && !leaf) {
-                } else if (!leaf) {
-                    
+                } else {
                     // This will make folder items appear at 32x32 instead of the default tiny 16x16
                     icon = r.getLargeIcon();
                 }
@@ -364,7 +371,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
 
             hasImageIcon = false;
 
-            if (level != 1 || row == 0) {
+            if (level > 1 || row == 0) {
                 setBorder(null);
             } else {
                 setBorder(leftInsetBorder);
