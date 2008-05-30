@@ -25,7 +25,7 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.65 $ / $Date: 2008-05-28 06:58:25 $ / $Author: sfraize $ 
+ * @version $Revision: 1.66 $ / $Date: 2008-05-30 19:28:39 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -149,6 +149,9 @@ public class DRBrowser extends JPanel
     final DockWindow resourceDock;
     
     private JLabel loadingLabel;
+
+    private DataSourceViewer DSV;
+    
     
     public DRBrowser(boolean delayedLoading, DockWindow resourceDock, DockWindow searchDock)
     {
@@ -285,7 +288,9 @@ public class DRBrowser extends JPanel
         //-----------------------------------------------------------------------------
         
         searchPane.setBackground(Color.white);
-        searchPane.add(new JLabel("    Please select a searchable resource."), SEARCH_EDITOR);
+        JLabel please = new JLabel("Please select a searchable resource", JLabel.CENTER);
+        GUI.apply(GUI.StatusFace, please);
+        searchPane.add(please, SEARCH_EDITOR);
 		
         //-----------------------------------------------------------------------------
         // Local File Data Source and Favorites
@@ -326,8 +331,8 @@ public class DRBrowser extends JPanel
         Log.debug("loading the DataSourceViewer...");
             
         try {
-            DataSourceViewer dsv = new DataSourceViewer(this);
-            dsv.setName("Data Source Viewer");
+            DSV = new DataSourceViewer(this);
+            DSV.setName("Data Source Viewer");
             /*
             if (dsViewer == null) {
                 // set the statics to the first initialized DRBrowser only
@@ -338,7 +343,7 @@ public class DRBrowser extends JPanel
             if (loadingLabel != null)
                 librariesPanel.remove(loadingLabel);
 
-            librariesPanel.add(dsv);
+            librariesPanel.add(DSV);
 
             revalidate();
             // must do this to get re-laid out: apparently, the hierarchy
@@ -370,30 +375,29 @@ public class DRBrowser extends JPanel
 
     public static void main(String args[])
     {
-        DEBUG.Enabled = true;
-        
         VUE.init(args);
         
-        //DEBUG.DR = true;
-
-        Frame owner = new Frame("parentWindow");
-        owner.setVisible(true);
+//         Frame owner = new Frame("parentWindow");
+//         owner.setVisible(true);
+//         //owner.setFocusable(true);
+//         //owner.setFocusableWindowState(true);
 
         Log.debug("loading disk cache...");
         Images.loadDiskCache();
         Log.debug("loading disk cache: done");
 
-        //DockWindow drDock = GUI.createDockWindow("Content");
-        DockWindow drDock = new DockWindow("Content", owner);
-        DRBrowser drBrowser = new DRBrowser(true, drDock, null);
+        DockWindow drDock = GUI.createDockWindow("Content");
+        //DockWindow drDock = new DockWindow("Content", owner);
 		
-        //DockWindow inspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
+        DRBrowser drBrowser = new DRBrowser(true, drDock, null);
+        
         tufts.vue.ui.InspectorPane inspectorPane = new tufts.vue.ui.InspectorPane();
         //ObjectInspector = GUI.createDockWindow("Info");
         //ObjectInspector.setContent(inspectorPane.getWidgetStack());
 
         
-        DockWindow inspector = new DockWindow("Info", owner, inspectorPane.getWidgetStack(), false);
+        DockWindow inspector = GUI.createDockWindow("Info", new tufts.vue.ui.InspectorPane());
+        //DockWindow inspector = new DockWindow("Info", owner, inspectorPane.getWidgetStack(), false);
         inspector.setMenuName("Info / Preview");
         VUE._setInfoDock(inspector);
 
@@ -406,10 +410,12 @@ public class DRBrowser extends JPanel
         inspector.setSize(inspectorWidth, maxHeight);
         inspector.setUpperRightCorner(GUI.GScreenWidth, GUI.GInsets.top);
         inspector.setVisible(true);
+        inspector.setFocusableWindowState(true);
         
         drDock.setSize(300, (int) (GUI.GScreenHeight * 0.75));
         drDock.setUpperRightCorner(GUI.GScreenWidth - inspector.getWidth(), GUI.GInsets.top);
         drDock.setVisible(true);
+        drDock.setFocusableWindowState(true);
 
         drBrowser.loadDataSourceViewer();
 
