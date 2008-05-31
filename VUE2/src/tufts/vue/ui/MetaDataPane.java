@@ -36,7 +36,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableModel;
@@ -92,7 +91,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         insets.top = insets.bottom = 0;
         insets.right = 1;
        
-        mGridBag.setBorder(new EmptyBorder(insets));
+        mGridBag.setBorder(GUI.makeSpace(insets));
         //mGridBag.setBorder(new LineBorder(Color.red));
        
         addLabelTextRows(0, mLabels, mValues, mGridBag, null, null);
@@ -143,17 +142,20 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         return label;
     }
 
-    private final Border WindowsPlatformAdjustBorder = new EmptyBorder(0,0,2,0);
     private boolean wasDebug = DEBUG.Enabled;
 
     private static final Font LabelFace;
     private static final Font ValueFace;
 
-    private static final boolean EasyReading = true;
+    private static final boolean EasyReading1 = false;
+    private static final boolean EasyReading2 = false;
 
     static {
 
-        if (EasyReading) {
+        GUI.Face nameFace = null;
+        GUI.Face dataFace = null;
+
+        if (true) {
 
             String labelFont;
             String dataFont;
@@ -163,26 +165,44 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                 labelFont = "Lucida Grande";
                 dataFont = labelFont;
                 fontSize = 11;
+
+                if (DEBUG.DR) dataFont = "Lucida Sans Typewriter";
             } else {
                 labelFont = "SansSerif";
                 fontSize = 12;
-                // looks better for values, maybe not so much for bold labels tho
-                // note: this is a smaller font than SansSerif, and switching
-                // it in has revealed that our spacing code isn't entirely
-                // font determined -- some of the constants (e.g., in MetaDataPane),
-                // are manually tuned, for SansSerif.
+                
+                // On XP, Lucida Sans Unicode looks better for values not so much for
+                // bold labels tho) Note: this is a smaller font than SansSerif, and our
+                // layout code is primarily tuned to the pixel for SanSerif, so
+                // adjustments are need to use this, or we need to write the code to
+                // compute the layout using actual font metrics.
+
                 dataFont = "Lucida Sans Unicode";
+                
+                if (DEBUG.DR) {
+                    dataFont = "Lucida Console";
+                    fontSize = 11;
+                }
             }
 
-            LabelFace = new GUI.Face(labelFont, Font.BOLD, fontSize, Color.gray);
-            if (DEBUG.DR) dataFont = "Lucida Sans Typewriter";
-            ValueFace = new GUI.Face(dataFont, Font.PLAIN, fontSize, Color.black);
+            //nameFace = new GUI.Face(labelFont, Font.BOLD, fontSize, Color.gray);
+            //dataFace = new GUI.Face(dataFont, Font.PLAIN, fontSize, Color.black);
+            nameFace = new GUI.Face(labelFont, Font.BOLD, fontSize, null);
+            dataFace = new GUI.Face(dataFont, Font.PLAIN, fontSize, null);
+        }
+
+        if (EasyReading1) {
+            LabelFace = nameFace;
+            ValueFace = dataFace;
         } else {
             LabelFace = GUI.LabelFace;
-            ValueFace = GUI.ValueFace;
+            if (DEBUG.DR)
+                ValueFace = dataFace;
+            else
+                ValueFace = GUI.ValueFace;
         }
     }
-    
+
    /**
     * Make sure at least this minimum number of slots is available.
     * @return true if # of slots is expanded
@@ -216,10 +236,18 @@ public class MetaDataPane extends tufts.vue.gui.Widget
            alternatingColor = Color.white;
        else
            alternatingColor = new Color(250,250,250);
-       final Border fillBorder = new EmptyBorder(TopPad,4,BotPad,0);
-       final Border macAdjustBorder = new EmptyBorder(0,4,0,0);
-       final Border winAdjustBorder = new EmptyBorder(0,4,0,0);
+
+       final Border fillBorder = GUI.makeSpace(TopPad,4,BotPad,0);
+       final Border macAdjustBorder = GUI.makeSpace(0,4,0,0);
+       final Border winAdjustBorder = GUI.makeSpace(0,4,0,0);
+       final Border winAdjustBorder1 = GUI.makeSpace(1,0,0,0);
+
+//        if (EasyReading2)
+//            winAdjustBorder = GUI.makeSpace(0,4,0,0);
+//        else
+//            winAdjustBorder = GUI.makeSpace(0,4,1,0);
        
+       final Border WindowsPlatformAdjustBorder = GUI.makeSpace(0,0,2,0);
        
        for (int i = 0; i < mLabels.length; i++) {
            mLabels[i] = createLabel();
@@ -236,7 +264,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
            if (Util.isWindowsPlatform())
                mValues[i].setBorder(WindowsPlatformAdjustBorder);
 
-           if (EasyReading) {
+           if (EasyReading2) {
                if (i % 2 != 0) {
                    //mLabels[i].setBackground(alternatingColor);
                    mValues[i].setBackground(alternatingColor);
@@ -250,8 +278,22 @@ public class MetaDataPane extends tufts.vue.gui.Widget
                    else
                        mValues[i].setBorder(winAdjustBorder);
                }
+           } else if (EasyReading1) {
+               // todo: compute all this based on font metrics
+               if (Util.isWindowsPlatform()) {
+                   mLabels[i].setBorder(winAdjustBorder1);
+               }
+           } else if (DEBUG.BOXES) {
+               if (i % 2 == 0) {
+                   //mLabels[i].setBackground(new Color(255,255,255,128));
+                   //mValues[i].setBackground(new Color(255,255,255,128));
+                   mLabels[i].setBackground(Color.white);
+                   mValues[i].setBackground(Color.white);
+                   mLabels[i].setOpaque(true);
+                   mValues[i].setOpaque(true);
+               }
+                   
            }
-           
            
            mValues[i].addMouseListener(CommonURLListener);
            
@@ -575,7 +617,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         JLabel label = mLabels[row];
         JTextArea field = mValues[row];       
 
-        if (EasyReading) {
+        if (EasyReading2) {
             label.setText(labelText);
         } else {
             StringBuffer labelBuf = new StringBuffer(labelText.length() + 1);
@@ -588,10 +630,10 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             //field.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
             field.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             field.putClientProperty(CAN_OPEN, Boolean.TRUE);
-            if (EasyReading) field.setForeground(Color.blue);
+            if (DEBUG.DR || EasyReading1) field.setForeground(Color.blue);
         } else {
             field.putClientProperty(CAN_OPEN, Boolean.FALSE);
-            if (EasyReading) field.setForeground(Color.black);
+            if (DEBUG.DR || EasyReading1) field.setForeground(Color.black);
             //label.removeMouseListener(CommonURLListener);
             field.setCursor(Cursor.getDefaultCursor());
             //GUI.apply(GUI.ValueFace, mValues[i]);
@@ -656,6 +698,8 @@ public class MetaDataPane extends tufts.vue.gui.Widget
     private final int BotPad = Util.isMacPlatform() ? 2 : 0;
     private final Insets labelInsets = new Insets(TopPad, 0, BotPad, GUI.LabelGapRight);
     private final Insets fieldInsets = new Insets(TopPad, 0, BotPad, GUI.FieldGapRight);
+//     private final Insets labelInsets = new Insets(0,0,0,0);
+//     private final Insets fieldInsets = new Insets(0,0,0,0);
    
    /** labels & values must be of same length */
    private void addLabelTextRows(int starty,
