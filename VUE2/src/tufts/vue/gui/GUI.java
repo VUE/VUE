@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.112 $ / $Date: 2008-05-30 22:51:59 $ / $Author: sfraize $
+ * @version $Revision: 1.113 $ / $Date: 2008-05-31 00:55:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -282,22 +282,7 @@ public class GUI
             fontName = "SansSerif";
             fontSize = 11;
             fontSize2 = 11;
-//             if (DEBUG.Enabled) {
-//                 // looks better for values, maybe not so much for bold labels tho
-//                 // note: this is a smaller font than SansSerif, and switching
-//                 // it in has revealed that our spacing code isn't entirely
-//                 // font determined -- some of the constants (e.g., in MetaDataPane),
-//                 // are manually tuned, for SansSerif.
-//                 fontName = "Lucida Sans Unicode";
-//             }
         }
-
-//         if (DEBUG.Enabled) {
-//             if (!Util.isMacPlatform()) fontSize = 12;
-//             LabelFace = new GUI.Face(fontName, Font.BOLD, fontSize, Color.gray);
-//         } else {
-//             LabelFace = new GUI.Face(fontName, Font.PLAIN, fontSize, GUI.LabelColor);
-//         }
 
         final String fixedFont = "Lucida Sans Typewriter";
         //final String fixedFont = "Courier New";
@@ -312,11 +297,15 @@ public class GUI
         ValueFace = new GUI.Face(fontName, Font.PLAIN, fontSize, Color.black);
         TitleFace = new GUI.Face(fontName, Font.BOLD, fontSize, GUI.LabelColor);
         FixedFace = new GUI.Face(fixedFont, Font.PLAIN, fontSize, GUI.LabelColor);
-        ErrorFace = new GUI.Face(errorFont, Font.PLAIN, fontSize+1, Color.darkGray, SystemColor.control);
+        
         //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray, SystemColor.control);
         //StatusFace = new GUI.Face(null, 0, 0, Color.darkGray);
           StatusFace = new GUI.Face(fontName, Font.PLAIN, fontSize2, Color.darkGray);
         //StatusFace = new GUI.Face(fontName, Font.PLAIN, fontSize2, Color.darkGray, SystemColor.control);
+
+          ErrorFace = StatusFace;
+        //ErrorFace = new GUI.Face(errorFont, Font.PLAIN, fontSize+1, Color.darkGray, SystemColor.control);
+          
         DataFace = new GUI.Face("Verdana", Font.PLAIN, fontSize, null);
 
         FocusManager.install();
@@ -2105,6 +2094,12 @@ public class GUI
     }
 
 
+    public static Border makeSpace(int t, int l, int b, int r) {
+        if (DEBUG.BOXES)
+            return new MatteBorder(t,l,b,r, Color.orange);
+        else
+            return new EmptyBorder(t,l,b,r);
+    }
     
     public static void installBorder(javax.swing.text.JTextComponent c) {
         if (isMacAqua) {
