@@ -171,14 +171,14 @@ public class Osid2AssetResource extends URLResource
                     if (DEBUG.DR) {
                                             
                         recordDesc +=
-                            String.format("\nPART%3d %-35s %-23s %-15s (%s)%s",
+                            String.format("\nPART%3d %-37s %-23s %-17s %s@%07x %s",
                                           partIndex++,
                                           fmt(partStructureType),
                                           '"' + partStructureType.getDescription() + '"',
                                           name(part.getDisplayName()),
-                                          part,
+                                          part.getClass().getSimpleName(), System.identityHashCode(part),
                                           (DEBUG.META ?
-                                           (" partStructure name/desc="
+                                           ("partStructure name/desc="
                                             + quoteF(partStructure.getDisplayName())
                                             + quoteF(partStructure.getDescription()))
                                            : "")
