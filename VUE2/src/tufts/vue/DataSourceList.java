@@ -44,7 +44,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.55 $ / $Date: 2008-05-31 00:51:32 $ / $Author: sfraize $
+ * @version $Revision: 1.56 $ / $Date: 2008-05-31 01:39:16 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -187,7 +187,7 @@ public class DataSourceList extends JList implements DropTargetListener
             boolean success = true;
             Transferable transfer = e.getTransferable();
             DataFlavor[] dataFlavors = transfer.getTransferDataFlavors();
-            String resourceName = null;
+            //String resourceName = null; // never set elsewhere!
             java.util.List fileList = null;
             java.util.List resourceList = null;
             if (DEBUG.DND) out("RESOURCE TRANSFER FOUND: " + transfer);
@@ -240,7 +240,7 @@ public class DataSourceList extends JList implements DropTargetListener
                                 if (file.getPath().toLowerCase().endsWith(".url")) {
                                     String url = convertWindowsURLShortCutToURL(file);
                                     if (url != null) {
-                                        res.setSpec("file://" + url);
+                                        res.setSpec(url);
                                         String resName;
                                         if (file.getName().length() > 4)
                                             resName = file.getName().substring(0, file.getName().length() - 4);
@@ -297,13 +297,13 @@ public class DataSourceList extends JList implements DropTargetListener
                                     String url = convertWindowsURLShortCutToURL(file);
                                     if (url != null) {
                                         //resourceSpec = url;
-                                        res.setSpec("file://" + url);
+                                        res.setSpec(url);
                                         String resName;
                                         if (file.getName().length() > 4)
                                             resName = file.getName().substring(0, file.getName().length() - 4);
                                         else
                                             resName = file.getName();
-                                        res.setTitle(resourceName);
+                                        //res.setTitle(resourceName); // was always set to null!!!
                                     }
                                 }
                                 CabinetNode cabNode = null;
