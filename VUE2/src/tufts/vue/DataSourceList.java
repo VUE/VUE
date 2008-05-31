@@ -44,7 +44,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.54 $ / $Date: 2008-05-30 22:47:49 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2008-05-31 00:51:32 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -337,8 +337,10 @@ public class DataSourceList extends JList implements DropTargetListener
 
             if (dsViewer.getBrowsedDataSource() == null)
                 dsViewer.setActiveDataSource(ds);
-            else if (dsViewer.getBrowsedDataSource() == ds)
-                dsViewer.expandBrowse();
+            
+// Very annoying if you want to drag items from search results into My Favorites:
+//             else if (dsViewer.getBrowsedDataSource() == ds)
+//                 dsViewer.expandBrowse();
             
             //this.setSelectedIndex(current);
         } catch (Exception ex) {
