@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.43 $ / $Date: 2008-05-27 23:53:27 $ / $Author: sfraize $
+ * @version $Revision: 1.44 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -840,13 +840,14 @@ public class WidgetStack extends Widget
         //System.err.println(GUI.name(this) + " " + (o==null?"null":o.toString()));
     }
 
-    static class MenuButton extends JButton {
-        private static final Color defaultColor = GUI.isMacAqua() ? Color.white : Color.black;
-        private static final Color activeColor = GUI.isMacAqua() ? TopGradient.brighter() : Color.white;
+    private static final Color defaultColor = GUI.isMacAqua() ? Color.white : Color.black;
+    private static final Color activeColor = GUI.isMacAqua() ? TopGradient.brighter() : Color.white;
+    class MenuButton extends JButton {
 
         MenuButton(Action[] actions) {
             //super(iconChar, 18, defaultColor, TitleHeight, TitleHeight);
         	super();
+                setName(WidgetStack.this.getName());
         	setIcon(VueResources.getImageIcon("dockWindow.menuIcon.raw"));
         	setRolloverEnabled(true);
         	setRolloverIcon(VueResources.getImageIcon("dockWindow.menuIcon.hover"));
@@ -866,6 +867,8 @@ public class WidgetStack extends Widget
 
         void setMenuActions(Action[] actions) {
             clearMenuActions();
+
+            //if (DEBUG.Enabled) setName(WidgetStack.this.getName() + " " + Arrays.asList(actions));
 
             if (actions == null) {
                 setVisible(false);

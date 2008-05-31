@@ -22,6 +22,8 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
 import java.awt.Frame;
+import javax.swing.JComponent;
+import javax.swing.JMenu;
 
 /**
  *
@@ -49,7 +51,7 @@ import java.awt.Frame;
  *
  * Does not currently traverse into children of popup menus.
  *
- * @version $Revision: 1.13 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.14 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -57,19 +59,29 @@ public abstract class EventRaiser<T>
 {
     private int depth = 0;
 
+    public static boolean INCLUDE_MENUS = true;
+
     public final Class targetClass;
     public final Object source;
+    private final boolean includeMenus;
     
-    public EventRaiser(Object source, Class clazz)
+    public EventRaiser(Object source, Class clazz, boolean includeMenus)
     {
         this.source = source;
         this.targetClass = clazz;
+        this.includeMenus = includeMenus;
+    }
+    
+    public EventRaiser(Object source, Class clazz)
+    {
+        this(source, clazz, false);
     }
 
     public EventRaiser(Object source)
     {
         this.source = source;
         this.targetClass = getTargetClass();
+        this.includeMenus = false;
     }
 
     public Object getSource() {
@@ -145,7 +157,11 @@ public abstract class EventRaiser<T>
 
     protected void dispatchSafely(Component target)
     {
-        if (DEBUG.EVENTS && DEBUG.VIEWER) out("DISPATCHING " + this + " to " + target);
+        if (DEBUG.EVENTS) out("DISPATCHING "
+                              + this
+                              + " to " + tufts.vue.gui.GUI.name(target)
+                              //+ " " + (target instanceof JComponent ? ((JComponent)target).getUIClassID() : "")
+                              );
         try {
             dispatch((T) target);
         } catch (Completion e) {
@@ -184,7 +200,13 @@ public abstract class EventRaiser<T>
                 traverseChildren(owned);
             }
         }
+        else if (parent instanceof javax.swing.JMenu) {
+
+            traverseChildren( ((javax.swing.JMenu)parent).getMenuComponents() );
+
+        }
     }
+    
 
     protected void traverseChildren(Component[] children)
     {

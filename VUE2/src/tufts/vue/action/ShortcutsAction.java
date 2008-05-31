@@ -14,6 +14,7 @@ import tufts.vue.gui.DockWindow;
 import java.awt.Event;
 import java.awt.event.*;
 import javax.swing.Action;
+import javax.swing.AbstractButton;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.JScrollPane;
@@ -21,7 +22,7 @@ import javax.swing.JScrollPane;
 /**
  * Produce a shortcuts window.
  *
- * @version $Revision: 1.11 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class ShortcutsAction extends tufts.vue.VueAction
@@ -343,94 +344,61 @@ public class ShortcutsAction extends tufts.vue.VueAction
                 
         }
 
-        // get action short-cuts
+        //=============================================================================
+        // Find all short-cuts
+        //=============================================================================
 
-        row = 0;
-        for (VueAction a : getAllActions()) {
-                
-            KeyStroke k = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
-            if (k == null && !(DEBUG.Enabled && DEBUG.WORK))
-                continue;
-                
-            String modNames = "";
+        
+        if (DEBUG.Enabled) {
+        
+            //------------------------------------------------------------------
+            //
+            // Find all javax.swing.AbstractButton's in the AWT hierarchy (which
+            // includes allJMenuItem's), and record any accelerator found on their
+            // action.
+            //
+            // todo: don't just check action: check the actual accelerator keys on the
+            // JMenuItems (could someday even check all input maps?)
+            //
+            //------------------------------------------------------------------
 
-            if (k != null) {
-                modNames = KeyEvent.getKeyModifiersText(k.getModifiers());
-                //if (modNames != null && modNames.length() > 0)
-                //modNames += " ";
-            }
-
-            if (DEBUG.Enabled) {
-                if (tufts.vue.VueAction.isDupeStrokeAction(a))
-                    addRow(row++, true);
-                else
-                    addRow(row++, false);
-            } else {
-                addRow(row++);
-            }
-                    
-            final int mods = k == null ? 0 : k.getModifiers();
-            int goRight = hasOnlyOne(mods) ? RIGHT : 0;
-
-            if (goRight != 0 && (mods & Actions.COMMAND) != 0) // not for the platform primary
-                goRight = 0;
-                    
-            if (DEBUG.Enabled) {
-
-                //-----------------------------------------------------------------------------
-                // DEBUG ACTIONS
-                //-----------------------------------------------------------------------------
-                    
-                add(RIGHT, row);
-                if (k == null) {
-                    add("");
-                    add("");
-                    if (Util.isMacPlatform()) add("");
-                    add("");                        
-                } else {
-                    add(RIGHT+BOLD, Integer.toBinaryString(mods));
-
-                    if (Util.isMacLeopard()) {
-                        add(BOLD+goRight, get_MacOSX_Leopard_Modifier_Names(mods));
-                        add(BOLD+goRight+(DEBUG.Enabled?0:CENTER), KeyEvent.getKeyModifiersText(mods));
-                    } else {
-                        add(BOLD+goRight, KeyEvent.getKeyModifiersText(mods)); 
+            new tufts.vue.EventRaiser<AbstractButton>
+                (ShortcutsAction.class,
+                 AbstractButton.class,
+                 tufts.vue.EventRaiser.INCLUDE_MENUS)
+                {
+                    int row = 0;
+                    public void dispatch(AbstractButton b) {
+                        if (reportKeyStroke(b.getAction(), row))
+                            row++;
                     }
-                    add(BOLD+CENTER, keyCodeChar(k.getKeyCode()));
                 }
-                    
-                add(BOLD, a.getPermanentActionName());
-                add(k == null ? "" : k);
-                add(a.getClass().getName());
+            .raiseStartingAt(VUE.getRootWindow());
+            
 
-            } else {
+            addRow(0, true);
 
-                //=============================================================================
-                // Production ACTIONS
-                //=============================================================================
-                    
-                if (Util.isMacLeopard())
-                    add(NO_GAP, "");
-                
-                add(a.getPermanentActionName());
-                
-                if (Util.isMacLeopard()) {
-                    add(NO_GAP + goRight, get_MacOSX_Leopard_Modifier_Glyphs(mods));
-                    add(NO_GAP, keyCodeChar(k.getKeyCode()));
-                } else {
-                    add(goRight, KeyEvent.getKeyModifiersText(mods));
-                    add(NO_WEST_GAP, keyCodeChar(k.getKeyCode()));
-                }
-
-                if (row == 1 && Util.isMacLeopard()) 
-                    add(NO_GAP, BIG_NBSP); // for colspan 3 in header
-                
-                //=============================================================================
-
-            }
+            // todo: keep map of all found here, and below, if NOT found in
+            // that hash map, debug-mode report the "dangling" vue-action
+            // (not found in the UI)
 
         }
             
+        //------------------------------------------------------------------
+        // Find accelerator keys set in any instaniated VueActions
+        // This is the meat of everything we do here.
+        //------------------------------------------------------------------
+        
+        row = 0;
+        for (VueAction a : VueAction.getAllActions())
+            if (reportKeyStroke(a, row))
+                row++;
+
+            
+        //=============================================================================
+        // Load up the produced HTML text
+        //=============================================================================
+        
         final javax.swing.JLabel t = new javax.swing.JLabel();
             
         if (DEBUG.Enabled)
@@ -449,6 +417,109 @@ public class ShortcutsAction extends tufts.vue.VueAction
                                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                                );
     }
+
+
+    /** if a keystroke is found on the action, add another HTML table-data line for it */
+    private static boolean reportKeyStroke(Action a, int row)
+    {
+        if (a == null)
+            return false;
+        
+        KeyStroke k = (KeyStroke) a.getValue(Action.ACCELERATOR_KEY);
+        if (k == null && !(DEBUG.Enabled && DEBUG.WORK))
+            return false;
+                
+        String modNames = "";
+
+        if (k != null) {
+            modNames = KeyEvent.getKeyModifiersText(k.getModifiers());
+            //if (modNames != null && modNames.length() > 0)
+            //modNames += " ";
+        }
+
+        if (DEBUG.Enabled) {
+            if (tufts.vue.VueAction.isDupeStrokeAction(a))
+                addRow(row, true);
+            else
+                addRow(row, false);
+        } else {
+            addRow(row);
+        }
+
+        row++;
+                    
+        final int mods = k == null ? 0 : k.getModifiers();
+        int goRight = hasOnlyOne(mods) ? RIGHT : 0;
+
+        if (goRight != 0 && (mods & Actions.COMMAND) != 0) // not for the platform primary
+            goRight = 0;
+                    
+        if (DEBUG.Enabled) {
+
+            //-----------------------------------------------------------------------------
+            // DEBUG ACTIONS
+            //-----------------------------------------------------------------------------
+                    
+            add(RIGHT, row);
+            if (k == null) {
+                add("");
+                add("");
+                if (Util.isMacPlatform()) add("");
+                add("");                        
+            } else {
+                add(RIGHT+BOLD, Integer.toBinaryString(mods));
+
+                if (Util.isMacLeopard()) {
+                    add(BOLD+goRight, get_MacOSX_Leopard_Modifier_Names(mods));
+                    add(BOLD+goRight+(DEBUG.Enabled?0:CENTER), KeyEvent.getKeyModifiersText(mods));
+                } else {
+                    add(BOLD+goRight, KeyEvent.getKeyModifiersText(mods)); 
+                }
+                add(BOLD+CENTER, keyCodeChar(k.getKeyCode()));
+            }
+
+            if (a instanceof VueAction)
+                add(BOLD, ((VueAction)a).getPermanentActionName());
+            else
+                add(BOLD+ITAL, (String) a.getValue(Action.NAME));
+                
+            add(k == null ? "" : k);
+            add(a.getClass().getName());
+
+        } else {
+
+            //=============================================================================
+            // Production ACTIONS
+            //=============================================================================
+                    
+            if (Util.isMacLeopard())
+                add(NO_GAP, "");
+                
+            if (a instanceof VueAction)
+                add(((VueAction)a).getPermanentActionName());
+            else
+                add(ITAL, (String) a.getValue(Action.NAME));
+                
+            if (Util.isMacLeopard()) {
+                add(NO_GAP + goRight, get_MacOSX_Leopard_Modifier_Glyphs(mods));
+                add(NO_GAP, keyCodeChar(k.getKeyCode()));
+            } else {
+                add(goRight, KeyEvent.getKeyModifiersText(mods));
+                add(NO_WEST_GAP, keyCodeChar(k.getKeyCode()));
+            }
+
+            if (row == 1 && Util.isMacLeopard()) 
+                add(NO_GAP, BIG_NBSP); // for colspan 3 in header
+                
+            //=============================================================================
+
+        }
+
+        return true;
+
+    }
+
+    
 
     /** @return a standard, short and unqiue description of the given KeyStroke */
     public static String getDescription(KeyStroke k) {

@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.106 $ / $Date: 2008-05-06 18:21:09 $ / $Author: mike $
+ * @version $Revision: 1.107 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -84,6 +84,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
                        
         }
 
+        @Override
         public void addNotify() {
             if (unadjusted) {
                 GUI.adjustMenuIcons(this);
@@ -91,6 +92,42 @@ public class VueMenuBar extends javax.swing.JMenuBar
             }
             super.addNotify();
         }
+
+//         @Override
+//         protected JMenuItem createActionComponent(Action a) {
+
+//             JMenuItem mi;
+
+//             if (false && a == Actions.ToggleAutoZoom) {
+//                 mi = new JCheckBoxMenuItem((String)a.getValue(Action.NAME), (Icon)a.getValue(Action.SMALL_ICON));
+//             } else {
+//                 //mi = new JMenuItem((String)a.getValue(Action.NAME), (Icon)a.getValue(Action.SMALL_ICON));
+//                 mi = new JMenuItem(a);
+                
+// //                     protected PropertyChangeListener createActionPropertyChangeListener(Action a) {
+// //                         PropertyChangeListener pcl = createActionChangeListener(this);
+// //                         if (pcl == null) {
+// //                             pcl = super.createActionPropertyChangeListener(a);
+// //                         }
+// //                         return pcl;
+// //                     }
+// //                 };
+//             }
+//             mi.setHorizontalTextPosition(JButton.TRAILING);
+//             mi.setVerticalTextPosition(JButton.CENTER);
+//             mi.setEnabled(a.isEnabled());   
+//             return mi;
+//         }
+        
+    }
+
+    private static JMenu makeMenu(String name) {
+        return new VueMenu(name);
+        
+//         if (Util.isMacPlatform())
+//             return new JMenu(name);
+//         else
+//             return new VueMenu(name);
     }
 
 
@@ -109,6 +146,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
     private static JCheckBoxMenuItem makeCheckBox(VueAction a) {
         final JCheckBoxMenuItem item = new JCheckBoxMenuItem(a);
+        //final JCheckBoxMenuItem item = new JCheckBoxMenuItem(a.getPermanentActionName());
+        item.setAccelerator(a.getKeyStroke());
+        return item;
+    }
+    private static JCheckBoxMenuItem makeLinkedCheckBox(VueAction a) {
+        final JCheckBoxMenuItem item = makeCheckBox(a);
         a.trackToggler(item);
         return item;
     }
@@ -124,23 +167,21 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Initialize Top Level Menus
         ////////////////////////////////////////////////////////////////////////////////////
 
-        final JMenu fileMenu = new VueMenu("File");
-        final JMenu recentlyOpenedMenu = new VueMenu("Open recent");
-        final JMenu editMenu = new VueMenu("Edit");
-        final JMenu viewMenu = new VueMenu("View");
-        final JMenu formatMenu = new VueMenu("Format");
-        final JMenu transformMenu = new VueMenu("Font");
-        final JMenu arrangeMenu = new VueMenu("Arrange");
-        final JMenu contentMenu = new VueMenu("Content");
-        final JMenu presentationMenu = new VueMenu(VueResources.getString("menu.pathway.label"));
-        final JMenu analysisMenu = new VueMenu("Analysis");
-        final JMenu windowMenu = new VueMenu("Windows");
-        final JMenu alignMenu = new VueMenu("Align");
-        final JMenu extendMenu = new VueMenu("Extend");
-        final JMenu linkMenu = new VueMenu("Link");
-        final JMenu helpMenu = add(new VueMenu("Help"));
-        
-        
+        final JMenu fileMenu = makeMenu("File");
+        final JMenu recentlyOpenedMenu = makeMenu("Open recent");
+        final JMenu editMenu = makeMenu("Edit");
+        final JMenu viewMenu = makeMenu("View");
+        final JMenu formatMenu = makeMenu("Format");
+        final JMenu transformMenu = makeMenu("Font");
+        final JMenu arrangeMenu = makeMenu("Arrange");
+        final JMenu contentMenu = makeMenu("Content");
+        final JMenu presentationMenu = makeMenu(VueResources.getString("menu.pathway.label"));
+        final JMenu analysisMenu = makeMenu("Analysis");
+        final JMenu windowMenu = makeMenu("Windows");
+        final JMenu alignMenu = makeMenu("Align");
+        final JMenu extendMenu = makeMenu("Extend");
+        final JMenu linkMenu = makeMenu("Link");
+        final JMenu helpMenu = add(makeMenu("Help"));
         
       //  final JMenu slidePreviewMenu = new JMenu("Slide preview");
         final JMenu notesMenu = new JMenu("Handouts and Notes");
@@ -150,8 +191,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
 
         final JMenuItem splitScreenItem = new JCheckBoxMenuItem(Actions.ToggleSplitScreen);
-        final JMenuItem toggleSlideIconsItem = makeCheckBox(Actions.ToggleSlideIcons);
+        final JMenuItem toggleSlideIconsItem = makeLinkedCheckBox(Actions.ToggleSlideIcons);
         final JMenuItem togglePruningItem = new JCheckBoxMenuItem(Actions.TogglePruning);
+
+        final JMenuItem toggleAutoZoomItem = makeCheckBox(Actions.ToggleAutoZoom);
+        toggleAutoZoomItem.setSelected(Actions.ToggleAutoZoom.getToggleState());
 
         ////////////////////////////////////////////////////////////////////////////////////
         // Initialize Actions
@@ -162,7 +206,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //final SaveAction exportAction = new SaveAction("Export ...",true,true);
         final OpenAction openAction = new OpenAction("Open...");
         final ExitAction exitAction = new ExitAction("Quit");
-        final JMenu publishMenu = new VueMenu("Publish");
+        final JMenu publishMenu = makeMenu("Publish");
         //final JMenu publishAction =  Publish.getPublishMenu();
         final RDFOpenAction rdfOpen = new RDFOpenAction();
         
@@ -270,7 +314,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         /*
         if (false && DEBUG.Enabled) {
             // THIS CODE IS TRIGGERING THE TIGER ARRAY BOUNDS BUG (see above)
-            JMenu exportMenu = add(new VueMenu("Export"));
+            JMenu exportMenu = add(makeMenu("Export"));
             exportMenu.add(htmlAction);
            // exportMenu.add(pdfAction);
             exportMenu.add(imageAction);
@@ -420,6 +464,17 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.add(toggleSlideIconsItem);
         viewMenu.addSeparator();
         viewMenu.add(togglePruningItem);
+        
+        // JAVA BUG: ADDING A JMenuItem (maybe just JCheckBoxMenuItem)
+        // already constructe, instead of letting the menu code do it
+        // itself, breaks the display of accelerators in the item:
+        // anything other than APPLE (ctrl/alt) display as the APPLE
+        // glpyh.  This is true on Tiger java 1.5, Leopard java 1.5
+        // and 1.6 -- SMF 2008-05-31
+        
+        viewMenu.add(toggleAutoZoomItem);
+        if (DEBUG.Enabled)
+            viewMenu.add(Actions.ToggleAutoZoom);
         
 
 //         GUI.getFullScreenWindow().addWindowFocusListener(new WindowFocusListener()
@@ -1033,7 +1088,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
 
     public static JMenu buildMenu(String name, Action[] actions) {
-        return buildMenu(new VueMenu(name), actions);
+        return buildMenu(makeMenu(name), actions);
     }
     public static JMenu buildMenu(JMenu menu, Action[] actions) {
         for (int i = 0; i < actions.length; i++) {

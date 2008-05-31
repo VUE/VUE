@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.38 $ / $Date: 2008-04-22 07:46:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.39 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -80,9 +80,9 @@ public class VueAction extends javax.swing.AbstractAction
     /** for debug only */
     private static java.util.Map<KeyStroke,VueAction> AllStrokes;
     /** for debug only */
-    private static java.util.Set<VueAction> DupeStrokeActions;
+    private static java.util.Set<Action> DupeStrokeActions;
     /** for debug only */
-    public static boolean isDupeStrokeAction(VueAction a) {
+    public static boolean isDupeStrokeAction(Action a) {
         if (DupeStrokeActions != null)
             return DupeStrokeActions.contains(a);
         else

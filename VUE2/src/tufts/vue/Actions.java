@@ -860,7 +860,7 @@ public class Actions implements VueConstants
     
 
     public static final LWCAction CopyStyle =
-    new LWCAction("Copy Style", keyStroke(KeyEvent.VK_C, CTRL+LEFT_OF_SPACE)) {
+        new LWCAction("Copy Style", keyStroke(KeyEvent.VK_C, CTRL+LEFT_OF_SPACE)) {
         boolean enabledFor(LWSelection s) { return s.size() == 1; }
         void act(LWComponent c) {
             try {
@@ -2248,7 +2248,7 @@ public class Actions implements VueConstants
             public boolean overrideIgnoreAllActions() { return true; }
     };
     
-    public static final Action TogglePruning =
+    public static final VueAction TogglePruning =
         new VueAction("Pruning") {
         public void act() {
             boolean enabled = LWLink.isPruningEnabled();
@@ -2262,6 +2262,48 @@ public class Actions implements VueConstants
             LWLink.setPruningEnabled(!enabled);
         }
     };
+
+    public static final VueAction ToggleAutoZoom =
+        
+        // 'E' chosen for temporary mac shortcut until we find a workaround for not
+        // being able to use Alt-Z because it's on the left of the keyboard, and it's
+        // not 'W', which if the user accidently hits COMMAND-W, the map will close
+        // (todo: see about just changing the Close shortcut entirely or getting rid of
+        // it)
+
+        new VueAction("Auto Zoom",
+                      (!Util.isMacPlatform() || DEBUG.Enabled)
+                      ? keyStroke(KeyEvent.VK_Z, ALT)
+                      : keyStroke(KeyEvent.VK_E, COMMAND+SHIFT) // can only get away witl COMMAND root modifier for now
+                      )
+        {
+            
+            boolean state = edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().isTrue();
+            { updateName(); }
+            @Override
+            public void act() {
+                state = !state;
+                updateName();
+                edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().setValue(Boolean.valueOf(state));
+            }
+            void updateName() {
+                if (DEBUG.Enabled && Util.isMacPlatform()) {
+                    // workaroud for mac java bug with accelerator glpyhs in JCheckBoxMenuItem's
+                    if (state)
+                        putValue(NAME, getPermanentActionName() + " (ON)");
+                    else
+                        putValue(NAME, getPermanentActionName() + " (off)");
+                }
+            }
+            
+            @Override
+            public Boolean getToggleState() {
+                return state;
+            }    
+            
+            public boolean overrideIgnoreAllActions() { return true; }
+    };
+    
     public static final LWCAction NewSlide = new LWCAction(VueResources.getString("actions.newSlide.label")) {        
                 public void act(Iterator i) {
                     VUE.getActivePathway().add(i);

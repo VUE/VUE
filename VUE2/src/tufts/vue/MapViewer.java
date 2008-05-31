@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.546 $ / $Date: 2008-05-28 01:40:18 $ / $Author: mike $ 
+ * @version $Revision: 1.547 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -104,7 +104,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //static int RolloverAutoZoomDelay = 1;
     //static final int RolloverMinZoomDeltaTrigger_int = VueResources.getInt("mapViewer.rolloverMinZoomDeltaTrigger", 10);
     //static final float RolloverMinZoomDeltaTrigger = RolloverMinZoomDeltaTrigger_int > 0 ? RolloverMinZoomDeltaTrigger_int / 100f : 0f;
-    private static boolean autoZoomEnabled = PreferencesManager.getBooleanPrefValue(edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance());
 
     /** automatically zoom-fit to map contents on new map load */
     private static final boolean AutoZoomToMapOnLoad = true;
@@ -257,6 +256,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
 
+    private boolean AutoZoomEnabled;
+    private boolean AutoZoomEnabledInPresentations;
+
+    private boolean isAutoZoomEnabled()
+    {
+        if (AutoZoomEnabled) {
+            if (activeTool == ToolPresentation)
+                return AutoZoomEnabledInPresentations;
+            else
+                return true;
+        } else
+            return false;
+    }
+
     private void addListeners() {
         VUE.ModelSelection.addListener(this);
         VUE.addActiveListener(VueTool.class, this);
@@ -266,13 +279,24 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         addMouseListener(inputHandler);
         addMouseMotionListener(inputHandler);
         addFocusListener(this);
+
+        // todo: we really only need to do these once statically, but there aren't
+        // that many viewer objects around, so not a big deal
         
         edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().addVuePrefListener
-            (new VuePrefListener(){
-                    public void preferenceChanged(VuePrefEvent prefEvent) {
-                        autoZoomEnabled = ((Boolean)prefEvent.getNewValue()).booleanValue();    			
+            (new VuePrefListener() {
+                    public void preferenceChanged(VuePrefEvent pe) {
+                        AutoZoomEnabled = ((Boolean)pe.getNewValue()).booleanValue();
                     }
-                });
+                }, true);
+
+        PresentationTool.AutoZoomPreference.addVuePrefListener
+            (new VuePrefListener() {
+                    public void preferenceChanged(VuePrefEvent pe) {
+                        AutoZoomEnabledInPresentations = ((Boolean)pe.getNewValue()).booleanValue();    			
+                    }
+                }, true);
+        
         
     }
 
@@ -5750,9 +5774,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //    mouseDragged(e);
             //}
             
-            //if (VUE.Prefs.doRolloverZoom() && RolloverAutoZoomDelay >= 0) {
-
-            if (getAutoZoomEnabled() && RolloverAutoZoomDelay > 0) {
+            if (isAutoZoomEnabled() && RolloverAutoZoomDelay > 0) {
                 if (DEBUG_TIMER_ROLLOVER && !sDragUnderway && !hasActiveTextEdit()) {
                     if (RolloverAutoZoomDelay > 10 && mRollover == null) {
                         if (rolloverTask != null)
@@ -7271,17 +7293,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
     
-    public boolean getAutoZoomEnabled()
-    {
-    	return autoZoomEnabled && (activeTool instanceof PresentationTool) == false;
-    }
-
-    public static void setAutoZoomEnabled(boolean enabled)
-    {
-    	autoZoomEnabled = enabled;
-    }
-
-
     protected void drawViewerDebug(DrawContext dc)
     {
         dc.setRawDrawing();

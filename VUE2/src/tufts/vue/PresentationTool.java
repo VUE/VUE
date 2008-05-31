@@ -65,18 +65,29 @@ public class PresentationTool extends VueTool
     private static final boolean RECORD_BACKUP = true;
     private static final boolean BACKING_UP = false;
 
-    private final static BooleanPreference ChooseNodesOverSlidesPref = BooleanPreference.create(
-			edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
-			"slideNodeView", 
-			"Slide/Node View",
-                        
-			"When turning off slide thumbnails in presentation mode with the keyboard shortcut "
-                        + Actions.ToggleSlideIcons.getKeyStrokeDescription()
-                        + ", clicking on the node in map view will zoom in on the node as a default",
-                        
-			"Show the slide for the active pathway instead of node.",
-			Boolean.FALSE,
-			true);
+    private static final BooleanPreference ChooseNodesOverSlides = BooleanPreference.create
+        (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
+         "slideNodeView", 
+         "Slide/Node View",
+         
+         "When turning off slide thumbnails in presentation mode with the keyboard shortcut "
+         + Actions.ToggleSlideIcons.getKeyStrokeDescription()
+         + ", clicking on the node in map view will zoom in on the node as a default",
+         
+         "Show the slide for the active pathway instead of node.",
+         Boolean.FALSE,
+         true);
+
+
+    public static final BooleanPreference AutoZoomPreference = BooleanPreference.create
+        (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
+         "autoZoom", 
+         "Auto Zoom",
+         "Allows auto-zoom to work when rolling over a node during presentations, not just when in regular map mode",
+         "allow auto-zoom in presentations",
+         Boolean.FALSE,
+         true);
+    
     
     private final ImageButton ZoomButton = new ImageButton("zoomOut", VueResources.getImageIcon("pathwayTool.zoomOutImageIcon")){
         void doAction() {
@@ -295,7 +306,7 @@ public class PresentationTool extends VueTool
                 
                 if (// mPathway != null // if we have a current pathway
                        !LWPathway.isShowingSlideIcons() // and slide icons are turned off
-                    && Boolean.FALSE.equals(ChooseNodesOverSlidesPref.getValue())  // todo: can GenericBooleanPref getValue return a Boolean?
+                    && ChooseNodesOverSlides.isFalse()
                     && c instanceof LWNode // and this is a node
                     && c.hasEntries()) // and it has slide views available (is on any pathway)
                 {
