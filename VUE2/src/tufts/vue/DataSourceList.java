@@ -44,7 +44,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.56 $ / $Date: 2008-05-31 01:39:16 $ / $Author: sfraize $
+ * @version $Revision: 1.57 $ / $Date: 2008-05-31 01:41:08 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -304,6 +304,7 @@ public class DataSourceList extends JList implements DropTargetListener
                                         else
                                             resName = file.getName();
                                         //res.setTitle(resourceName); // was always set to null!!!
+                                        res.setTitle(resName);
                                     }
                                 }
                                 CabinetNode cabNode = null;
