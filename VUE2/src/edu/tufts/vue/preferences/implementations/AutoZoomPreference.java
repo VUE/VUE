@@ -60,7 +60,7 @@ public class AutoZoomPreference extends GenericBooleanPreference {
 	}
 	public String getTitle()
 	{
-		return new String("Auto-Zoom");
+            return "Auto Zoom";
 	}
 	
 	public String getDescription()

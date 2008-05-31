@@ -52,6 +52,7 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
 		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
 		getCheckBox().setSelected(p.getBoolean(prefName,((Boolean)defaultVal).booleanValue()));				
 	}
+
 	
 	public Object getPreviousValue()
 	{
@@ -139,21 +140,26 @@ public abstract class GenericBooleanPreference extends BasePref implements ItemL
 	}
 	
 
+    public final boolean isTrue() {
+        return getValue() == Boolean.TRUE;
+    }
+    public final boolean isFalse() {
+        return getValue() == Boolean.FALSE;
+    }
 
-	public Object getValue(){
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(), ((Boolean)getDefaultValue()).booleanValue()));
-		return b;
+    /** interface VuePreference */
+    public Boolean getValue() {
+        Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+        Boolean b = Boolean.valueOf(p.getBoolean(getPrefName(), ((Boolean)getDefaultValue()).booleanValue()));
+        return b;
+    }
 	
-	}
-	
-	
-	public void setValue(Object b)
-	{
-		previousValue = Boolean.valueOf(value.isSelected()); 
-		Preferences p = Preferences.userNodeForPackage(getPrefRoot());
-		p.putBoolean(getPrefName(), ((Boolean)b).booleanValue());
-		_fireVuePrefEvent();
-	}
+    /** interface VuePreference */
+    public void setValue(Object b) {
+        previousValue = Boolean.valueOf(value.isSelected()); 
+        Preferences p = Preferences.userNodeForPackage(getPrefRoot());
+        p.putBoolean(getPrefName(), ((Boolean)b).booleanValue());
+        _fireVuePrefEvent();
+    }
 	
 }
