@@ -38,7 +38,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.222 $ / $Date: 2008-05-07 02:08:26 $ / $Author: sfraize $
+ * @version $Revision: 1.223 $ / $Date: 2008-05-31 19:32:22 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -650,7 +650,8 @@ public class LWNode extends LWContainer
 
     @Override
     public boolean isExternalResourceLinkForPresentations() {
-        return hasResource() && !hasChildren();
+        return hasResource() && !hasChildren() && !iconShowing() && getStyle() != null;
+        // may even need to check if this has the LINK slide style in particular
     }
     
     
