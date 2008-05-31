@@ -48,7 +48,7 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
     private final Border EmptyDividerBorder = new EmptyBorder(1,0,0,0);
 
     private final Color AlternateRowColor = VueResources.getColor("gui.dataSourceList.alternateRowColor", 237,243,253);
-    private final Color IndicationColor = new Color(128,255,128);
+    private final Color IndicationColor = new Color(144,255,144);
 
 
     public DataSourceListCellRenderer()
