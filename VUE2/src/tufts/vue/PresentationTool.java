@@ -967,6 +967,14 @@ public class PresentationTool extends VueTool
     }
     
     public void activeChanged(ActiveEvent e, LWPathway.Entry entry) {
+
+        if (e.isRefresh()) {
+            // this fixes bug of auto-jumping into presentation (first slide)
+            // from map-overview mode (popped focal to top) when toggling
+            // slide icons on and off
+            return;
+        }
+        
         if (entry == null) {
             // Last pathway was deleted:
             loadPathway(null);
