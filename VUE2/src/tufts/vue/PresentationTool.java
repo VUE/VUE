@@ -74,7 +74,7 @@ public class PresentationTool extends VueTool
          + Actions.ToggleSlideIcons.getKeyStrokeDescription()
          + ", clicking on the node in map view will zoom in on the node as a default",
          
-         "Show the slide for the active pathway instead of node.",
+         "Show the slide for the active pathway instead of node",
          Boolean.FALSE,
          true);
 
@@ -83,8 +83,8 @@ public class PresentationTool extends VueTool
         (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
          "autoZoom", 
          "Auto Zoom",
-         "Allows auto-zoom to work when rolling over a node during presentations, not just when in regular map mode",
-         "allow auto-zoom in presentations",
+         "Allows auto-zoom to work when rolling over a node during presentations, not just when in regular map mode.",
+         "Allow auto-zoom in presentations",
          Boolean.FALSE,
          true);
     
