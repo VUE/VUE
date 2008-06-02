@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.550 $ / $Date: 2008-06-02 07:14:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.551 $ / $Date: 2008-06-02 07:27:40 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -256,8 +256,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
 
-    private boolean AutoZoomEnabled;
-    private boolean AutoZoomEnabledInPresentations;
+    private static boolean AutoZoomEnabled;
+    private static boolean AutoZoomEnabledInPresentations;
 
     private boolean isAutoZoomEnabled()
     {
@@ -2088,10 +2088,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final double halfWidth = c.getWidth() / 2;
         final double halfHeight = c.getHeight() / 2;
-        
         final double localScale = c.getScale();
-        //final double mapScale = c.getMapScale();
-        //final double mapScale = localScale;
 
         // Zoom on-center.
                     
@@ -2101,7 +2098,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // done often, so no point in over optimizing.
 
         final AffineTransform nodeTX = new AffineTransform();
-        AffineTransform testTX = new AffineTransform();
+        final AffineTransform testTX = new AffineTransform();
 
         // Translate to local center:
         nodeTX.translate(c.getX() + halfWidth * localScale,
@@ -2183,7 +2180,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (netZoom > 6)
                     netZoom = 8;
             }
-        } else if (mapZoom > 2.0) {
+        } else if (mapZoom > 2.5) {
             if (DEBUG.Enabled) out("**SET ROLLOVER: skipped -- overzoom");
             return 0;
         } else {
