@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.552 $ / $Date: 2008-06-02 18:55:44 $ / $Author: sfraize $ 
+ * @version $Revision: 1.553 $ / $Date: 2008-06-02 20:19:01 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2014,10 +2014,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     private static LWComponent mRollover;   // current rollover (mouse rollover hilite)
 
-    private  boolean allowsZoomedRollover(LWComponent c) {
-        //if (c == null || c instanceof LWLink || c instanceof LWPortal || c instanceof LWSlide)
+    private boolean allowsZoomedRollover(LWComponent c) {
         if (c == null || c == getFocal() || c instanceof LWLink || c instanceof LWPortal)
             return false;
+        else if (mRollover != null && c.hasAncestor(mRollover)) {
+            if (DEBUG.PICK) out("ignoring descendent of current zoom-rollover");
+            // not currently supportable given single component required for picking code,
+            // as well as drawing code in MapViewer
+            return false;
+        }
         else
             return true;
     }
@@ -2027,18 +2032,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (mRollover == c || !allowsZoomedRollover(c))
             return;
         
-        if (DEBUG.Enabled) out("**SET ROLLOVER " + c);
+        if (DEBUG.PICK) out("**SET ROLLOVER " + c);
 
-        if (mRollover != null) {
-            if (c.hasAncestor(mRollover)) {
-                if (DEBUG.Enabled) out("IS ANCESTOR ROLLOVER");
-                //c.setZoomedFocus(true); // test hack for cascading zoomed-focus...
-                // currnetly impossible given single comonent required for picking code,
-                // as well as drawing code in MapViewer...
-                return;
-            }
+        if (mRollover != null)
             clearRollover();
-        }
 
         try {
             setZoomedFocus(c);
@@ -2051,7 +2048,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private void setZoomedFocus(LWComponent c) {
 
-        if (DEBUG.Enabled) out("setZoomedFocus " + c);
+        if (DEBUG.PICK) out("setZoomedFocus " + c);
         
         if (c == null) {
             if (mRollover != null) {
@@ -2079,7 +2076,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     {
         final double netZoom = computeZoomFocusFactor(c);
         
-        if (DEBUG.Enabled) out("**SET ROLLOVER NET ZOOM: " + netZoom);
+        if (DEBUG.Enabled) out("computeZoomFocusFactor: " + netZoom);
 
         if (netZoom <= 0)
             return null;
@@ -2181,7 +2178,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     netZoom = 8;
             }
         } else if (mapZoom > 2.5) {
-            if (DEBUG.Enabled) out("**SET ROLLOVER: skipped -- overzoom");
+            if (DEBUG.Enabled) out("computeZoomFocusFactor: skipped -- overzoom at map zoom " + mapZoom);
             return 0;
         } else {
             if (c instanceof LWSlide)
@@ -3014,6 +3011,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             dc.pop();
 //         }
 
+        if (mRollover != null) {
+            if (dc.skipDraw != null)
+                Log.warn(this + "; TOSSING EXISTING SKIP-DRAW FOR ZOOMED FOCUS: " + dc.skipDraw);
+            dc.skipDraw = mRollover;
+        }
+
         // normally draw the map / focal
         mFocal.draw(dc);
 
@@ -3097,7 +3100,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //dc.g.fill(dc.g.getClipBounds());
         
         zoomed.transformZero(dc.g);
-        if (zoomed.hasChildren() && zoomed.isTransparent()) {
+        if (zoomed.hasChildren() && zoomed.isTransparent() && !(zoomed instanceof LWSlide)) {
 
             // If it's transparent and has children, provide
             // a fill so we can see the children contrasted
@@ -3112,7 +3115,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // default fallback: use map fill
                 fill = getMap().getFillColor();
             }
-            dc.g.setColor(fill);
+            if (DEBUG.BOXES)
+                dc.g.setColor(Color.red);
+            else
+                dc.g.setColor(fill);
             dc.g.fill(zoomed.getZeroShape());
         }
         zoomed.drawZeroDecorated(dc, true);

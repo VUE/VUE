@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.417 $ / $Date: 2008-06-02 05:31:03 $ / $Author: sfraize $
+ * @version $Revision: 1.418 $ / $Date: 2008-06-02 20:19:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2850,7 +2850,7 @@ u                    getSlot(c).setFromString((String)value);
         
         public LWSlide next() {
             if (nextSlide == null) {
-                if (DEBUG.Enabled) Util.printStackTrace(this + " next at end of SlideIter; entries= + mEntries");
+                if (DEBUG.Enabled) Util.printStackTrace(this + "; next at end of SlideIconIter; entries=" + mEntries);
                 return null;
             }
             final LWSlide s = nextSlide;
@@ -5439,8 +5439,10 @@ u                    getSlot(c).setFromString((String)value);
 
         dc.setBackgroundFill(null); // always make sure the slide icons fill
         for (LWSlide slide : seenSlideIcons(dc)) {
-            drawSlideIcon(dc.push(), slide);
-            dc.pop();
+            if (dc.skipDraw != slide) {
+                drawSlideIcon(dc.push(), slide);
+                dc.pop();
+            }
         }
 
     }

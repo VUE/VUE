@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.106 $ / $Date: 2008-05-22 02:21:43 $ / $Author: sfraize $
+ * @version $Revision: 1.107 $ / $Date: 2008-06-02 20:19:01 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -508,10 +508,10 @@ public class LWSlide extends LWContainer
     protected void drawImpl(DrawContext dc)
     {
         boolean drewBorder = false;
-        boolean onMapSlideIcon = false;
         
-        if (isSlideIcon() && dc.drawPathways() && (dc.focal != this || dc.focused == this)) {
-            onMapSlideIcon = true;
+        final boolean onMapSlideIcon = isSlideIcon() && (dc.focal != this || dc.focused == this);
+            
+        if (onMapSlideIcon && dc.drawPathways()) {
             // we have an entry: draw a pathway hilite
             if (dc.isPresenting() || getEntry() == VUE.getActiveEntry()) {
                 dc.g.setColor(getEntry().pathway.getColor());
@@ -534,8 +534,22 @@ public class LWSlide extends LWContainer
 
         if (fillColor == null) {
             if (DEBUG.Enabled) Util.printStackTrace("null fill " + this);
-        } else
+        }
+        else if (!dc.isClipOptimized()) {
+
+            // if we're doing a zoomed-rollover of a slide, and the slide fill happens
+            // to be the same as the map fill, (e.g., white), this will have no effect,
+            // and the zoomed slide will zoom up with no fill (see-through).  This is a
+            // bit of a hack in that we're depending on knowing that the zoomed rollover
+            // is drawn with clip optimization off.
+            
+            dc.g.setColor(fillColor);
+            dc.g.fill(getZeroShape());
+            
+        }
+        else {
             dc.fillArea(getZeroShape(), fillColor);
+        }
         
         if (master != null) {
             // As the master slide isn't in the model, sit's children can't succesfully know
