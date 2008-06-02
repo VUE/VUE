@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.549 $ / $Date: 2008-06-02 06:56:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.550 $ / $Date: 2008-06-02 07:14:04 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2088,7 +2088,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         final double halfWidth = c.getWidth() / 2;
         final double halfHeight = c.getHeight() / 2;
-        final double ourScale = c.getScale();
+        
+        final double localScale = c.getScale();
+        //final double mapScale = c.getMapScale();
+        //final double mapScale = localScale;
 
         // Zoom on-center.
                     
@@ -2098,16 +2101,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // done often, so no point in over optimizing.
 
         final AffineTransform nodeTX = new AffineTransform();
-        final AffineTransform testTX = new AffineTransform();
+        AffineTransform testTX = new AffineTransform();
 
         // Translate to local center:
-        nodeTX.translate(c.getX() + halfWidth * ourScale,
-                         c.getY() + halfHeight * ourScale);
+        nodeTX.translate(c.getX() + halfWidth * localScale,
+                         c.getY() + halfHeight * localScale);
 
         // we need this if this node is not an immediate child of LWMap
         // it's redundant if it is
-        testTX.translate(c.getMapX() + halfWidth * ourScale,
-                         c.getMapY() + halfHeight * ourScale);
+        testTX.translate(c.getMapX() + halfWidth * localScale,
+                         c.getMapY() + halfHeight * localScale);
 
         // zoom at center
         nodeTX.scale(netZoom, netZoom);
@@ -2128,6 +2131,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final double nodeY = testTX.getTranslateY();
         final double nodeRight = nodeX + c.getWidth() * netZoom;
         final double nodeBottom = nodeY + c.getHeight() * netZoom;
+        
         final double visibleRight = visible.getX() + visible.getWidth();
         final double visibleBottom = visible.getY() + visible.getHeight();
         
@@ -2193,10 +2197,23 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         visibleMapSize.width *= mZoomInverse;
         visibleMapSize.height *= mZoomInverse; 
 
-        //double scale = c.getScale();
+        // The trick with slides (or anything with scale value), is that we're checking
+        // their map-bounds here, which computes the map bounds using their tiny scale,
+        // so we find out how many of the tiny scaled down slides icons would fit, not
+        // the actual slide at full 1.0 size scale. As we completely REPLACE the
+        // transform in LWComponent when doing zoomed focus -- it's old scale gets
+        // tossed out, so we have to factor that back in here, by make sure we test the
+        // map bounds at 1.0 scale when computing the maximum zoom fit.
+
+        final double saveScale = c.getScale();
+
+        c.takeScale(1.0);
+        final Rectangle2D mapBounds = c.getMapBounds();
+        c.takeScale(saveScale);
         
-        final double maxZoom = ZoomTool.computeZoomFit(visibleMapSize, 0, c.getMapBounds(), null);
-        if (DEBUG.Enabled) out("**SET ROLLOVER; maxZoom " + maxZoom + "; for map bounds: " + Util.fmt(c.getMapBounds()));
+        final double maxZoom = ZoomTool.computeZoomFit(visibleMapSize, 0, mapBounds, null);
+        
+        if (DEBUG.Enabled) out("**SET ROLLOVER; maxZoom " + maxZoom + "; for map bounds: " + Util.fmt(mapBounds));
 
         if (netZoom > maxZoom) {
             if (DEBUG.Enabled) out("**SET ROLLOVER; maxZoom exceeded with default of " + netZoom);
