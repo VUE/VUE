@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.548 $ / $Date: 2008-06-02 05:31:03 $ / $Author: sfraize $ 
+ * @version $Revision: 1.549 $ / $Date: 2008-06-02 06:56:48 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2077,43 +2077,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private AffineTransform computeZoomFocusTransform(LWComponent c)
     {
-        final double mapZoom = getZoomFactor();
-        double netZoom;
-
-        if (mapZoom <= 1.0) {
-            final double normalZoom = 1 / getZoomFactor(); // zoom needed to get to 100%
-            if (c instanceof LWSlide)
-                netZoom = normalZoom / 2;
-            else
-                netZoom = normalZoom * 2;
-            if (netZoom > 4) {
-                netZoom = normalZoom;
-                if (netZoom > 6)
-                    netZoom = 8;
-            }
-        } else if (mapZoom > 2.0) {
-            if (DEBUG.Enabled) out("**SET ROLLOVER: skipped -- overzoom");
-            return null;
-        } else {
-            if (c instanceof LWSlide)
-                netZoom = 0.5;
-            else
-                netZoom = 2;
-        }
-
-        Dimension visibleMapSize = getVisibleSize();// todo: method for this result!
-        visibleMapSize.width *= mZoomInverse;
-        visibleMapSize.height *= mZoomInverse; 
-
-        final double maxZoom = ZoomTool.computeZoomFit(visibleMapSize, 0, c.getMapBounds(), null);
-
-        if (netZoom > maxZoom) {
-            if (DEBUG.Enabled) out("**SET ROLLOVER; maxZoom exceeded with default of " + netZoom);
-            netZoom = maxZoom;
-        }
-
+        final double netZoom = computeZoomFocusFactor(c);
+        
         if (DEBUG.Enabled) out("**SET ROLLOVER NET ZOOM: " + netZoom);
 
+        if (netZoom <= 0)
+            return null;
 
         //-----------------------------------------------------------------------------
 
@@ -2128,63 +2097,64 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // the new zoomed scale, then translate back out by our raw width.  This isn't
         // done often, so no point in over optimizing.
 
-        final AffineTransform a = new AffineTransform();
+        final AffineTransform nodeTX = new AffineTransform();
+        final AffineTransform testTX = new AffineTransform();
 
         // Translate to local center:
-        a.translate(c.getX() + halfWidth * ourScale,
-                    c.getY() + halfHeight * ourScale);
+        nodeTX.translate(c.getX() + halfWidth * ourScale,
+                         c.getY() + halfHeight * ourScale);
+
+        // we need this if this node is not an immediate child of LWMap
+        // it's redundant if it is
+        testTX.translate(c.getMapX() + halfWidth * ourScale,
+                         c.getMapY() + halfHeight * ourScale);
 
         // zoom at center
-        a.scale(netZoom, netZoom);
+        nodeTX.scale(netZoom, netZoom);
+        testTX.scale(netZoom, netZoom);
         
         // translate back half way (and since we're translating at the new zoom, the
         // same absolute transform values will work)
-        a.translate(-halfWidth, -halfHeight);
+        nodeTX.translate(-halfWidth, -halfHeight);
+        testTX.translate(-halfWidth, -halfHeight);
 
         //-----------------------------------------------------------------------------
         // Now keep us within the visible area
         //-----------------------------------------------------------------------------
 
-        // this code currently only works for top-level map objects (we're fetching translateX
-        // right out of the transform), which is not where we need to be mainly because slides
-        // are left out
-        
-        if (c.getParent() instanceof LWMap == false)
-            return a;
-
         final Rectangle2D visible = getVisibleMapBounds();
 
+        final double nodeX = testTX.getTranslateX();
+        final double nodeY = testTX.getTranslateY();
+        final double nodeRight = nodeX + c.getWidth() * netZoom;
+        final double nodeBottom = nodeY + c.getHeight() * netZoom;
+        final double visibleRight = visible.getX() + visible.getWidth();
+        final double visibleBottom = visible.getY() + visible.getHeight();
+        
+        final AffineTransform working = (AffineTransform) nodeTX.clone();
+
+        working.scale(1/netZoom, 1/netZoom); // we need to apply the adjustment back at original scale
+            
         // as we've already limited the max zoom to something that will fit the object entirely
         // in the visible display area, we now know we'll only need to move it one of either
         // left/right, and one of either up/down.
 
-        final AffineTransform working = (AffineTransform) a.clone();
-
-        working.scale(1/netZoom, 1/netZoom); // we need to apply the adjustment back at original scale
-            
-        if (a.getTranslateX() < visible.getX()) {
-            
+        if (nodeX < visible.getX()) {
             // move right to keep from going off left edge of screen:
-            working.translate(visible.getX() - a.getTranslateX(), 0);
-            
+            working.translate(visible.getX() - nodeX, 0);
         }
-        else if (a.getTranslateX() + c.getWidth() * netZoom > visible.getX() + visible.getWidth()) {
-            
+        else if (nodeRight > visibleRight) {
             // move left to keep from going off right edge of screen:
-            working.translate(- ((a.getTranslateX() + c.getWidth() * netZoom) - (visible.getX() + visible.getWidth())), 0);
+            working.translate(- (nodeRight - visibleRight), 0);
         }
-
-        if (a.getTranslateY() < visible.getY()) {
-            
+        
+        if (nodeY < visible.getY()) {
             // move down to keep from going up off top edge of screen
-            working.translate(0, visible.getY() - a.getTranslateY());
-            
+            working.translate(0, visible.getY() - nodeY);
         }
-        else if (a.getTranslateY() + c.getHeight() * netZoom > visible.getY() + visible.getHeight()) {
-
+        else if (nodeBottom > visibleBottom) {
             // move up to keep from going up off bottom edge of screen
-            working.translate(0, - ((a.getTranslateY() + c.getHeight() * netZoom) - (visible.getY() + visible.getHeight())));
-            
+            working.translate(0, - (nodeBottom - visibleBottom));
         }
         
         working.scale(netZoom, netZoom); // restore scale
@@ -2219,7 +2189,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 netZoom = 2;
         }
 
-        if (DEBUG.Enabled) out("**SET ROLLOVER NET ZOOM: " + netZoom);
+        Dimension visibleMapSize = getVisibleSize();// todo: method for this result w/mZoomInverse pre-computed
+        visibleMapSize.width *= mZoomInverse;
+        visibleMapSize.height *= mZoomInverse; 
+
+        //double scale = c.getScale();
+        
+        final double maxZoom = ZoomTool.computeZoomFit(visibleMapSize, 0, c.getMapBounds(), null);
+        if (DEBUG.Enabled) out("**SET ROLLOVER; maxZoom " + maxZoom + "; for map bounds: " + Util.fmt(c.getMapBounds()));
+
+        if (netZoom > maxZoom) {
+            if (DEBUG.Enabled) out("**SET ROLLOVER; maxZoom exceeded with default of " + netZoom);
+            netZoom = maxZoom;
+        }
 
         return netZoom;
     }
@@ -3091,8 +3073,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     {
         dc.setClipOptimized(false);
         dc.setDrawPathways(false);
+        
         //dc.setAlpha(0.8f); // Not what we want here (for image generation only?)
-        //dc.g.setComposite(ZoomTransparency);
+        if (DEBUG.VIEWER)
+            dc.g.setComposite(ZoomTransparency);
+        
+        // darken everything else:
+        //dc.g.setColor(new Color(0,0,0,128));
+        //dc.g.fill(dc.g.getClipBounds());
+        
         zoomed.transformZero(dc.g);
         if (zoomed.hasChildren() && zoomed.isTransparent()) {
 
