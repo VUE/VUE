@@ -1198,7 +1198,10 @@ public class PresentationTool extends VueTool
             
         case KeyEvent.VK_SPACE:
 
-            doDefaultForwardAction();
+            if (e.isShiftDown())
+                goBackward(false);
+            else
+                doDefaultForwardAction();
             break;            
 
         case KeyEvent.VK_DOWN:
