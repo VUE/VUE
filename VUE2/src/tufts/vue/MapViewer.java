@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.547 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $ 
+ * @version $Revision: 1.548 $ / $Date: 2008-06-02 05:31:03 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -287,6 +287,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             (new VuePrefListener() {
                     public void preferenceChanged(VuePrefEvent pe) {
                         AutoZoomEnabled = ((Boolean)pe.getNewValue()).booleanValue();
+                        if (VUE.getActiveViewer() == MapViewer.this) {
+                            if (AutoZoomEnabled) {
+                                runRolloverTask();
+                            } else {
+                                clearRollover();
+                            }
+                        }
                     }
                 }, true);
 
@@ -1988,7 +1995,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         pc.isZoomRollover = true;
         final LWComponent hit = LWTraversal.PointPick.pick(pc);
         
-        if (DEBUG.ROLLOVER) System.out.println("RolloverTask: hit=" + hit);
+        if (DEBUG.ROLLOVER || DEBUG.PICK) out("runRolloverRask: hit=" + hit);
         //if (hit != null && VueSelection.size() <= 1)
         if (hit != null)
             setRollover(hit); // todo: try checking allowsRollover and triggering the clear & see if helps with the flashing cases
@@ -1999,15 +2006,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     class RolloverTask extends TimerTask {
+        @Override
         public void run() {
             runRolloverTask();
         }
     }
     
     private static LWComponent mRollover;   // current rollover (mouse rollover hilite)
-    //private double mRolloverOldScale;
-    //private double mZoomoverOldScale;
-    //private Point2D mZoomoverOldLoc = null;
 
     private  boolean allowsZoomedRollover(LWComponent c) {
         //if (c == null || c instanceof LWLink || c instanceof LWPortal || c instanceof LWSlide)
@@ -2035,6 +2040,43 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             clearRollover();
         }
 
+        try {
+            setZoomedFocus(c);
+        } catch (Throwable t) {
+            Log.error("setZoomedFocus for " + c, t);
+        }
+
+        repaint();
+    }
+
+    private void setZoomedFocus(LWComponent c) {
+
+        if (DEBUG.Enabled) out("setZoomedFocus " + c);
+        
+        if (c == null) {
+            if (mRollover != null) {
+                mRollover.setZoomedFocus(null);
+                mRollover = null;
+            }
+        } else {
+
+            final AffineTransform zt = computeZoomFocusTransform(c);
+
+            if (zt != null) {
+                if (mRollover != null) {
+                    if (DEBUG.Enabled) Log.warn("fallback clear of zoomed-focus on " + mRollover);
+                    mRollover.setZoomedFocus(null);
+                }
+                mRollover = c;
+                mRollover.setZoomedFocus(zt);
+            }
+
+        }
+    }
+
+
+    private AffineTransform computeZoomFocusTransform(LWComponent c)
+    {
         final double mapZoom = getZoomFactor();
         double netZoom;
 
@@ -2051,7 +2093,125 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             }
         } else if (mapZoom > 2.0) {
             if (DEBUG.Enabled) out("**SET ROLLOVER: skipped -- overzoom");
-            return;
+            return null;
+        } else {
+            if (c instanceof LWSlide)
+                netZoom = 0.5;
+            else
+                netZoom = 2;
+        }
+
+        Dimension visibleMapSize = getVisibleSize();// todo: method for this result!
+        visibleMapSize.width *= mZoomInverse;
+        visibleMapSize.height *= mZoomInverse; 
+
+        final double maxZoom = ZoomTool.computeZoomFit(visibleMapSize, 0, c.getMapBounds(), null);
+
+        if (netZoom > maxZoom) {
+            if (DEBUG.Enabled) out("**SET ROLLOVER; maxZoom exceeded with default of " + netZoom);
+            netZoom = maxZoom;
+        }
+
+        if (DEBUG.Enabled) out("**SET ROLLOVER NET ZOOM: " + netZoom);
+
+
+        //-----------------------------------------------------------------------------
+
+        final double halfWidth = c.getWidth() / 2;
+        final double halfHeight = c.getHeight() / 2;
+        final double ourScale = c.getScale();
+
+        // Zoom on-center.
+                    
+        // To make this simple, we first translate to the local center (our center
+        // location in parent coords, compensating for any of our own scale), then apply
+        // the new zoomed scale, then translate back out by our raw width.  This isn't
+        // done often, so no point in over optimizing.
+
+        final AffineTransform a = new AffineTransform();
+
+        // Translate to local center:
+        a.translate(c.getX() + halfWidth * ourScale,
+                    c.getY() + halfHeight * ourScale);
+
+        // zoom at center
+        a.scale(netZoom, netZoom);
+        
+        // translate back half way (and since we're translating at the new zoom, the
+        // same absolute transform values will work)
+        a.translate(-halfWidth, -halfHeight);
+
+        //-----------------------------------------------------------------------------
+        // Now keep us within the visible area
+        //-----------------------------------------------------------------------------
+
+        // this code currently only works for top-level map objects (we're fetching translateX
+        // right out of the transform), which is not where we need to be mainly because slides
+        // are left out
+        
+        if (c.getParent() instanceof LWMap == false)
+            return a;
+
+        final Rectangle2D visible = getVisibleMapBounds();
+
+        // as we've already limited the max zoom to something that will fit the object entirely
+        // in the visible display area, we now know we'll only need to move it one of either
+        // left/right, and one of either up/down.
+
+        final AffineTransform working = (AffineTransform) a.clone();
+
+        working.scale(1/netZoom, 1/netZoom); // we need to apply the adjustment back at original scale
+            
+        if (a.getTranslateX() < visible.getX()) {
+            
+            // move right to keep from going off left edge of screen:
+            working.translate(visible.getX() - a.getTranslateX(), 0);
+            
+        }
+        else if (a.getTranslateX() + c.getWidth() * netZoom > visible.getX() + visible.getWidth()) {
+            
+            // move left to keep from going off right edge of screen:
+            working.translate(- ((a.getTranslateX() + c.getWidth() * netZoom) - (visible.getX() + visible.getWidth())), 0);
+        }
+
+        if (a.getTranslateY() < visible.getY()) {
+            
+            // move down to keep from going up off top edge of screen
+            working.translate(0, visible.getY() - a.getTranslateY());
+            
+        }
+        else if (a.getTranslateY() + c.getHeight() * netZoom > visible.getY() + visible.getHeight()) {
+
+            // move up to keep from going up off bottom edge of screen
+            working.translate(0, - ((a.getTranslateY() + c.getHeight() * netZoom) - (visible.getY() + visible.getHeight())));
+            
+        }
+        
+        working.scale(netZoom, netZoom); // restore scale
+        
+        return working;
+    }
+    
+
+    private double computeZoomFocusFactor(LWComponent c)
+    {
+        final double mapZoom = getZoomFactor();
+        double netZoom;
+
+        if (mapZoom <= 1.0) {
+            final double normalZoom = 1 / getZoomFactor(); // zoom needed to get to 100%
+            if (c instanceof LWSlide)
+                netZoom = normalZoom / 2;
+            else
+                netZoom = normalZoom * 2;
+            if (netZoom > 4) {
+                netZoom = normalZoom;
+                if (netZoom > 6)
+                    netZoom = 8;
+            }
+        } else if (mapZoom > 2.0) {
+            if (DEBUG.Enabled) out("**SET ROLLOVER: skipped -- overzoom");
+            return 0;
         } else {
             if (c instanceof LWSlide)
                 netZoom = 0.5;
@@ -2060,59 +2220,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
 
         if (DEBUG.Enabled) out("**SET ROLLOVER NET ZOOM: " + netZoom);
-        LWComponent.ZoomRolloverScale = netZoom;
-            
-        mRollover = c;
-        //mRolloverOldScale = c.getScale();
-        mRollover.setZoomedFocus(true);
 
-        repaint();
-
-        //final double curMapScale = mRollover.getMapScale();
-
-        //mRollover.setScale(1.0 / curMapZoom);
-        //mRollover.setScale(2.0);
-        
-//         double newMapScale = mRollover.getMapScale();
-
-
-//         //if (rollover != c && (c instanceof LWNode || c instanceof LWLink)) {
-//         // link labels need more work to be zoomable
-//         if (rollover != c && (c instanceof LWNode)) {
-//             clearRollover();
-//             // for moment rollover is really setTemporaryZoom
-//             //rollover = c;
-//             //c.setRollover(true);
-//             mZoomoverOldScale = c.getScale();
-            
-//             double curZoom = getZoomFactor();
-            
-//             //double newScale = mZoomoverOldScale / curZoom;
-//             double newScale = 1.0 / curZoom;
-            
-//             //if (newScale < 1.0) newScale = 1.0;
-            
-//             //if (true||mZoomoverOldScale != 1f) {
-//             if (newScale > mZoomoverOldScale &&
-//             newScale - mZoomoverOldScale > RolloverMinZoomDeltaTrigger) {
-//                 //c.setScale(1f);
-//                 rollover = c;
-//                 if (DEBUG.ROLLOVER) System.out.println("setRollover: " + c);
-//                 c.setRollover(true);
-//                 c.setZoomedFocus(true);
-//                 if (false&&c instanceof LWNode) {
-//                     // center the zoomed node on it's original center
-//                     mZoomoverOldLoc = c.getLocation();
-//                     Point2D oldCenter = c.getCenterPoint();
-//                     c.setScale(newScale);
-//                     c.setCenterAtQuietly(oldCenter);
-//                 } else
-//                     c.setScale(newScale);
-                
-//                 repaintMapRegion(rollover.getBounds());
-//             }
-//         }
+        return netZoom;
     }
+            
+    
+    
     void clearRollover() {
 
         if (mRollover == null)
@@ -2120,10 +2233,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (DEBUG.Enabled) out("clear rollover " + mRollover);
 
-        //mRollover.setScale(mRolloverOldScale);
-        mRollover.setZoomedFocus(false);
-        mRollover = null;
-
+        setZoomedFocus(null);
+        
         repaint();
         
 //         if (rollover != null) {

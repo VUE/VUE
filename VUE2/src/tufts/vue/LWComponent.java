@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.416 $ / $Date: 2008-05-21 02:53:53 $ / $Author: sfraize $
+ * @version $Revision: 1.417 $ / $Date: 2008-06-02 05:31:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -190,17 +190,14 @@ public class LWComponent
     protected float height = NEEDS_DEFAULT;
 
     /** cached affine transform for use by getZeroTransform() */
-    private final AffineTransform _zeroTransform = new AffineTransform();
+    private transient final AffineTransform _zeroTransform = new AffineTransform();
+    private transient double scale = 1.0;
+    private transient AffineTransform mTemporaryTransform;
 
-
-    /*
-     * Runtime only information
-     */
     protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
     protected transient boolean selected = false;
-    //protected transient boolean rollover = false;
-    protected transient boolean isZoomedFocus = false;
+
     protected int mHideBits = 0x0; // any bit set means we're hidden
     protected int mFlags = 0x0;
 
@@ -223,13 +220,14 @@ public class LWComponent
     
     private transient long mSupportedPropertyKeys;
 
-    private transient double scale = 1.0;
-
     protected transient final LWChangeSupport mChangeSupport = new LWChangeSupport(this);
 
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
     
     protected transient BufferedImage mCachedImage;
+
+    
+    
 
     public static final Comparator XSorter = new Comparator<LWComponent>() {
             public int compare(LWComponent c1, LWComponent c2) {
@@ -3900,7 +3898,7 @@ u                    getSlot(c).setFromString((String)value);
                 point.y = getY() + getZeroCenterY();
             }
 
-        } else if (true || ROTATE_TEST) {
+        } else if (true /*|| ROTATE_TEST*/) {
 
             // can we construct a relativing x-hierarchy transformer in one pass?
             // e.g., a combination of transformDown's then I guess transformUp's (would need that),
@@ -4297,6 +4295,23 @@ u                    getSlot(c).setFromString((String)value);
             return transformDownA(parent.getRelativeTransform(ancestor));
     }
 
+    final boolean isZoomedFocus() {
+        return mTemporaryTransform != null;
+    }
+
+    /**
+     * Called by model clients (e.g., MapViewer) for temporarily applying a special transform to the
+     * drawing and picking of a component without touching the underlying data model (no persistent
+     * changes to the component are made).  The transform must be set to null to be cleared.
+     * This is what zoom-rollover uses to temporarily zoom-up a node.
+     */
+    void setZoomedFocus(AffineTransform tx) {
+
+         mTemporaryTransform = tx;
+
+        //linkNotificationDisabled = isZoomedFocus;
+    }
+    
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
     //
@@ -4307,176 +4322,219 @@ u                    getSlot(c).setFromString((String)value);
     //
     //-----------------------------------------------------------------------------
     //-----------------------------------------------------------------------------
-
-    private final static boolean ROTATE_TEST = false;
-
-    private static final int RotSteps = 180;
-    private static final double RotStep = Math.PI * 2 / RotSteps;
-    private static int RotCount = 0;
     
-    /** set by model clients (e.g., MapViewer) for the zoomed rollover component */
-    protected static double ZoomRolloverScale;
-
     /**
      * Transform the given AffineTransform down from our parent to us, the child.
      */
     protected AffineTransform transformDownA(final AffineTransform a)
     {
-        if (ROTATE_TEST && parent instanceof LWMap) {
-            
-            // rotate around center (relative to map-bounds)
-            
-            final double hw = getWidth() / 2;
-            final double hh = getHeight() / 2;
-            a.translate(getX() + hw, getY() + hh);
-            a.scale(scale, scale);
-            a.rotate(Math.PI / 8);
-            a.translate(-hw, -hh);
-            
+        if (mTemporaryTransform != null) {
+            a.concatenate(mTemporaryTransform);
         } else {
-
-            if (isZoomedFocus) {
-                if (false && this instanceof LWSlide) {
-                    final double scale = SlideIconScale * 2;
-                    a.scale(scale, scale);
-                } else {
-
-                    // Zoom on-center.
-                    
-                    // To make this simple, we first translate to the local center (our
-                    // center location in parent coords, compensating for any of our own
-                    // scale), then apply the new zoomed scale, then translate back out
-                    // by our raw width.  This isn't done often, so no point in over
-                    // optimizing.
-
-                    final double halfWidth = getWidth() / 2;
-                    final double halfHeight = getHeight() / 2;
-                    final double ourScale = getScale();
-
-                    // Translate to local center:
-                    a.translate(getX() + halfWidth * ourScale,
-                                getY() + halfHeight * ourScale);
-
-                    if (DEBUG.VIEWER) {
-                        // note that due to nature of this testing uber-hack, the more
-                        // children something has, the faster it rotates.
-                        a.rotate(RotStep * RotCount);
-                        if (++RotCount >= RotSteps)
-                            RotCount = 0;
-                    }
-                    
-                    // Set the super-zoom scale:
-                    a.scale(ZoomRolloverScale, ZoomRolloverScale);
-                    a.translate(-halfWidth, -halfHeight);
-                }
-            } else {
-                
-                //-------------------------------------------------------
-                // This is the default, standard case:
-                //-------------------------------------------------------
-                
-                a.translate(this.x, this.y);
-                if (this.scale != 1)
-                    a.scale(this.scale, this.scale);
-            }
-            
+            a.translate(this.x, this.y);
+            if (this.scale != 1)
+                a.scale(this.scale, this.scale);
         }
+        
         return a;
     }
-
-//     // When working on transformDownA, comment this code in, and comment out transformDownG
-//     /** Must include overrides of all AffineTransform methods used in transformDownA */
-//     private static final class GCAffineProxy extends AffineTransform {
-//         private Graphics2D g;
-//         @Override
-//         public final void translate(double x, double y) { g.translate(x, y); }
-//         @Override
-//         public final void scale(double xs, double ys) { g.scale(xs, ys); }
-//         @Override
-//         public final void rotate(double t) { g.rotate(t); }
-//     }
-
-//     private static final GCAffineProxy GCAP = new GCAffineProxy();
-
-//     /** transform relative to the child after already being transformed relative to the parent */
-//     protected void transformDownG(final Graphics2D g) {
-//         GCAP.g = g; // not exactly thread-safe -- this temporary while we work on this code (cut/paste duplicate when done)
-//         transformDownA(GCAP);
-//     }
     
-
-
     /** transform relative to the child after already being transformed relative to the parent */
     protected void transformDownG(final Graphics2D a)
     {
-        //-----------------------------------------------------------------------------
-        // NOTE THAT THE CODE IN THIS METHOD IS A PURE DUPLICATE OF transformDownA
-        // That is, it is literally a cut & paste of the body of transformDownA.
-        // The only difference is that our argument is of type Graphics2D, instead
-        // of AffineTransform -- we only call methods common to both classes.
-        // (and we don't return the passed in argument in this method)
-        //-----------------------------------------------------------------------------
-        
-        if (ROTATE_TEST && parent instanceof LWMap) {
-            
-            // rotate around center (relative to map-bounds)
-            
-            final double hw = getWidth() / 2;
-            final double hh = getHeight() / 2;
-            a.translate(getX() + hw, getY() + hh);
-            a.scale(scale, scale);
-            a.rotate(Math.PI / 8);
-            a.translate(-hw, -hh);
-            
+        if (mTemporaryTransform != null) {
+            a.transform(mTemporaryTransform);
         } else {
-
-            if (isZoomedFocus) {
-                if (false && this instanceof LWSlide) {
-                    final double scale = SlideIconScale * 2;
-                    a.scale(scale, scale);
-                } else {
-
-                    // Zoom on-center.
-                    
-                    // To make this simple, we first translate to the local center (our
-                    // center location in parent coords, compensating for any of our own
-                    // scale), then apply the new zoomed scale, then translate back out
-                    // by our raw width.  This isn't done often, so no point in over
-                    // optimizing.
-
-                    final double halfWidth = getWidth() / 2;
-                    final double halfHeight = getHeight() / 2;
-                    final double ourScale = getScale();
-
-                    // Translate to local center:
-                    a.translate(getX() + halfWidth * ourScale,
-                                getY() + halfHeight * ourScale);
-
-                    if (DEBUG.VIEWER) {
-                        // note that due to nature of this testing uber-hack, the more
-                        // children something has, the faster it rotates.
-                        a.rotate(RotStep * RotCount);
-                        if (++RotCount >= RotSteps)
-                            RotCount = 0;
-                    }
-                    
-                    // Set the super-zoom scale:
-                    a.scale(ZoomRolloverScale, ZoomRolloverScale);
-                    a.translate(-halfWidth, -halfHeight);
-                }
-            } else {
-                
-                //-------------------------------------------------------
-                // This is the default, standard case:
-                //-------------------------------------------------------
-                
-                a.translate(this.x, this.y);
-                if (this.scale != 1)
-                    a.scale(this.scale, this.scale);
-            }
-            
+            a.translate(this.x, this.y);
+            if (this.scale != 1)
+                a.scale(this.scale, this.scale);
         }
     }
+
+//     /** set by model clients (e.g., MapViewer) for the zoomed rollover component */
+//     private static double ZoomRolloverScale;
+//     void setZoomedFocus(double zoomFactor) {
+//         if (zoomFactor > 0) {
+//             isZoomedFocus = true;
+//             ZoomRolloverScale = zoomFactor;
+//         } else {
+//             isZoomedFocus = false;
+//         }
+//         //linkNotificationDisabled = isZoomedFocus;
+//     }
+
+//     private final static boolean ROTATE_TEST = false;
+//     private static final int RotSteps = 180;
+//     private static final double RotStep = Math.PI * 2 / RotSteps;
+//     private static int RotCount = 0;
+    
+//     /**
+//      * Transform the given AffineTransform down from our parent to us, the child.
+//      */
+//     protected AffineTransform transformDownA(final AffineTransform a)
+//     {
+//         if (ROTATE_TEST && parent instanceof LWMap) {
+            
+//             // rotate around center (relative to map-bounds)
+            
+//             final double hw = getWidth() / 2;
+//             final double hh = getHeight() / 2;
+//             a.translate(getX() + hw, getY() + hh);
+//             a.scale(scale, scale);
+//             a.rotate(Math.PI / 8);
+//             a.translate(-hw, -hh);
+            
+//         } else {
+
+//             if (isZoomedFocus) {
+//                 if (false && this instanceof LWSlide) {
+//                     final double scale = SlideIconScale * 2;
+//                     a.scale(scale, scale);
+
+//                 } else if (true) {
+
+//                     a.concatenate(ZoomRolloverTransform);
+
+//                 } else {
+
+//                     // Zoom on-center.
+                    
+//                     // To make this simple, we first translate to the local center (our
+//                     // center location in parent coords, compensating for any of our own
+//                     // scale), then apply the new zoomed scale, then translate back out
+//                     // by our raw width.  This isn't done often, so no point in over
+//                     // optimizing.
+
+//                     final double halfWidth = getWidth() / 2;
+//                     final double halfHeight = getHeight() / 2;
+//                     final double ourScale = getScale();
+
+//                     // Translate to local center:
+//                     a.translate(getX() + halfWidth * ourScale,
+//                                 getY() + halfHeight * ourScale);
+
+//                     if (DEBUG.VIEWER) {
+//                         // note that due to nature of this testing uber-hack, the more
+//                         // children something has, the faster it rotates.
+//                         a.rotate(RotStep * RotCount);
+//                         if (++RotCount >= RotSteps)
+//                             RotCount = 0;
+//                     }
+                    
+//                     // Set the super-zoom scale:
+//                     //a.scale(ZoomRolloverScale, ZoomRolloverScale);
+//                     a.translate(-halfWidth, -halfHeight);
+//                 }
+//             } else {
+                
+//                 //-------------------------------------------------------
+//                 // This is the default, standard case:
+//                 //-------------------------------------------------------
+                
+//                 a.translate(this.x, this.y);
+//                 if (this.scale != 1)
+//                     a.scale(this.scale, this.scale);
+//             }
+            
+//         }
+//         return a;
+//     }
+
+// //     // When working on transformDownA, comment this code in, and comment out transformDownG
+// //     /** Must include overrides of all AffineTransform methods used in transformDownA */
+// //     private static final class GCAffineProxy extends AffineTransform {
+// //         private Graphics2D g;
+// //         @Override
+// //         public void translate(double x, double y) { g.translate(x, y); }
+// //         @Override
+// //         public void scale(double xs, double ys) { g.scale(xs, ys); }
+// //         @Override
+// //         public void rotate(double t) { g.rotate(t); }
+// //         @Override
+// //         public void concatenate(AffineTransform tx) { g.transform(tx); }
+// //     }
+
+// //     private static final GCAffineProxy GCAP = new GCAffineProxy();
+
+// //     /** transform relative to the child after already being transformed relative to the parent */
+// //     protected void transformDownG(final Graphics2D g) {
+// //         GCAP.g = g; // not exactly thread-safe -- this temporary while we work on this code (cut/paste duplicate when done)
+// //         transformDownA(GCAP);
+// //     }
+    
+
+
+//     /** transform relative to the child after already being transformed relative to the parent */
+//     protected void transformDownG(final Graphics2D a)
+//     {
+//         //-----------------------------------------------------------------------------
+//         // NOTE THAT THE CODE IN THIS METHOD IS A PURE DUPLICATE OF transformDownA
+//         // That is, it is literally a cut & paste of the body of transformDownA.
+//         // The only difference is that our argument is of type Graphics2D, instead
+//         // of AffineTransform -- we only call methods common to both classes.
+//         // (and we don't return the passed in argument in this method)
+//         //-----------------------------------------------------------------------------
+        
+//         if (ROTATE_TEST && parent instanceof LWMap) {
+            
+//             // rotate around center (relative to map-bounds)
+            
+//             final double hw = getWidth() / 2;
+//             final double hh = getHeight() / 2;
+//             a.translate(getX() + hw, getY() + hh);
+//             a.scale(scale, scale);
+//             a.rotate(Math.PI / 8);
+//             a.translate(-hw, -hh);
+            
+//         } else {
+
+//             if (false && isZoomedFocus) {
+//                 if (false && this instanceof LWSlide) {
+//                     final double scale = SlideIconScale * 2;
+//                     a.scale(scale, scale);
+//                 } else {
+
+//                     // Zoom on-center.
+                    
+//                     // To make this simple, we first translate to the local center (our
+//                     // center location in parent coords, compensating for any of our own
+//                     // scale), then apply the new zoomed scale, then translate back out
+//                     // by our raw width.  This isn't done often, so no point in over
+//                     // optimizing.
+
+//                     final double halfWidth = getWidth() / 2;
+//                     final double halfHeight = getHeight() / 2;
+//                     final double ourScale = getScale();
+
+//                     // Translate to local center:
+//                     a.translate(getX() + halfWidth * ourScale,
+//                                 getY() + halfHeight * ourScale);
+
+//                     if (DEBUG.VIEWER) {
+//                         // note that due to nature of this testing uber-hack, the more
+//                         // children something has, the faster it rotates.
+//                         a.rotate(RotStep * RotCount);
+//                         if (++RotCount >= RotSteps)
+//                             RotCount = 0;
+//                     }
+                    
+//                     // Set the super-zoom scale:
+//                     //a.scale(ZoomRolloverScale, ZoomRolloverScale);
+//                     a.translate(-halfWidth, -halfHeight);
+//                 }
+//             } else {
+                
+//                 //-------------------------------------------------------
+//                 // This is the default, standard case:
+//                 //-------------------------------------------------------
+                
+//                 a.translate(this.x, this.y);
+//                 if (this.scale != 1)
+//                     a.scale(this.scale, this.scale);
+//             }
+            
+//         }
+//     }
 
 
     /** Will transform all the way from the the map down to the component, wherever nested/scaled.
@@ -5918,28 +5976,8 @@ u                    getSlot(c).setFromString((String)value);
         return isVisible() && !isFiltered();
     }
     
-//     public void setRollover(boolean tv)
-//     {
-//         if (this.rollover != tv) {
-//             this.rollover = tv;
-//         }
-//     }
-//     public boolean isRollover() {
-//         return this.rollover;
-//     }
-
-
-    public void setZoomedFocus(boolean zoomedFocus) {
-        isZoomedFocus = zoomedFocus;
-//        linkNotificationDisabled = zoomedFocus;
-    }
-
-    public final boolean isZoomedFocus() {
-        return isZoomedFocus;
-    }
-
     protected boolean updatingLinks() {
-        return !isZoomedFocus || DEBUG.VIEWER;
+        return !isZoomedFocus() || DEBUG.VIEWER;
     }
     
     
