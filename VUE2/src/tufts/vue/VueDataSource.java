@@ -29,7 +29,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.13 $ / $Date: 2008-05-30 22:46:25 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2008-06-02 06:06:27 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -154,6 +154,7 @@ public abstract class VueDataSource implements DataSource
             setLoadThread(null);
         if (_viewer != null)
             setViewer(null);
+        setAvailable(false);
     }
 
 
