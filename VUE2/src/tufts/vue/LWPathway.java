@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.218 $ / $Date: 2008-06-04 16:43:22 $ / $Author: sfraize $
+ * @version $Revision: 1.219 $ / $Date: 2008-06-04 16:46:11 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -121,10 +121,6 @@ public class LWPathway extends LWContainer
         private Entry(LWPathway pathway, LWComponent node) {
             this.pathway = pathway;
             this.node = node;
-
-            if (AutoNodeToSlideNotesPref.isTrue())
-                setNotes(node.getNotes());
-            
             syncNodeEntryRef();
         }
         
@@ -984,6 +980,9 @@ public class LWPathway extends LWContainer
 //             }
             
             final Entry e = new Entry(this, c);
+
+            if (AutoNodeToSlideNotesPref.isTrue())
+                e.setNotes(c.getNotes());
 
             // these either require map view, or are likely to want to start that way
             e.setMapView(c.isTranslucent() ||
