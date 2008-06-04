@@ -376,7 +376,11 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
         GUI.invokeAfterAWT(new Runnable() {
                 public void run() {
-                    updateDisplayAWT(source);
+                    try {
+                        updateDisplayAWT(source);
+                    } catch (Throwable t) {
+                        Log.error("udpateDisplayAWT: " + Util.tags(source) + ";", t);
+                    }
                 }
             });
         
@@ -485,7 +489,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
 
         } catch (Throwable t) {
             mGridBag.setPaintDisabled(false);
-            Log.error("updateDisplay", t);
+            Log.error("updateDisplayAWT: " + Util.tags(properties) + ";", t);
         }
     }
     
