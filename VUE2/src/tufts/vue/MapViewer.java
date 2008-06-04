@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.553 $ / $Date: 2008-06-02 20:19:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.554 $ / $Date: 2008-06-04 16:40:59 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -256,8 +256,19 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (DEBUG.INIT||DEBUG.FOCUS) out("CONSTRUCTED.");
     }
 
-    private static boolean AutoZoomEnabled;
-    private static boolean AutoZoomEnabledInPresentations;
+    private static boolean AutoZoomEnabled = edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().isTrue();
+    private static boolean AutoZoomEnabledInPresentations = PresentationTool.AutoZoomPreference.isTrue();
+
+    static {
+
+        PresentationTool.AutoZoomPreference.addVuePrefListener
+            (new VuePrefListener() {
+                    public void preferenceChanged(VuePrefEvent pe) {
+                        AutoZoomEnabledInPresentations = ((Boolean)pe.getNewValue()).booleanValue();    			
+                    }
+                });
+
+    }
 
     private boolean isAutoZoomEnabled()
     {
@@ -280,13 +291,17 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         addMouseMotionListener(inputHandler);
         addFocusListener(this);
 
-        // todo: we really only need to do these once statically, but there aren't
-        // that many viewer objects around, so not a big deal
-        
         edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().addVuePrefListener
             (new VuePrefListener() {
                     public void preferenceChanged(VuePrefEvent pe) {
+
+                        // Having this static flag set again by every open viewer when this
+                        // preference changes is overkill, but harmless.
+
                         AutoZoomEnabled = ((Boolean)pe.getNewValue()).booleanValue();
+
+                        // If we're over a node in the active viewer, immediately zoom-up or zoom-off.
+                        
                         if (VUE.getActiveViewer() == MapViewer.this) {
                             if (AutoZoomEnabled) {
                                 runRolloverTask();
@@ -295,14 +310,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                             }
                         }
                     }
-                }, true);
+                });
 
-        PresentationTool.AutoZoomPreference.addVuePrefListener
-            (new VuePrefListener() {
-                    public void preferenceChanged(VuePrefEvent pe) {
-                        AutoZoomEnabledInPresentations = ((Boolean)pe.getNewValue()).booleanValue();    			
-                    }
-                }, true);
         
         
     }
@@ -4111,9 +4120,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sMultiPopup.add(Actions.DeselectAll);
         sMultiPopup.add(Actions.Delete);
 
+        if (DEBUG.Enabled) sMultiPopup.add(Actions.ImageToNaturalSize);
+        
         GUI.adjustMenuIcons(sMultiPopup);
         
         sMultiPopup.setLightWeightPopupEnabled(false);
+        
         return sMultiPopup;
     }
     
@@ -4321,8 +4333,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
          sSinglePopup.add(Actions.Paste);    
          sSinglePopup.add(Actions.Delete);
 
-        if (DEBUG.Enabled)
-            sSinglePopup.add(Actions.ImageToNaturalSize);
+        if (DEBUG.Enabled) sSinglePopup.add(Actions.ImageToNaturalSize);
     }
     private JMenu syncMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.syncMenu.label"));
     private JMenu arrangeMenu = new JMenu(VueResources.getString("mapViewer.componentMenu.arrangeMenu.label"));
