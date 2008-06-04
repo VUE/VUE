@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.133 $ / $Date: 2008-05-23 15:05:12 $ / $Author: sfraize $
+ * @version $Revision: 1.134 $ / $Date: 2008-06-04 16:39:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -135,7 +135,8 @@ public class DockWindow
     private boolean isResizeEnabled;
     private boolean isRolledUp;
     private boolean isStackOwner;
-    private Rectangle mSavedShape;
+    private Rectangle mUnrolledShape;
+    private Rectangle mNormalShape; // non-maximized shape
     /** set to false as soon as we begin to go invisible */
     private boolean mShowing;
     private boolean mWasVisible;
@@ -159,7 +160,7 @@ public class DockWindow
     // This override trick only works on MacOSX Java 1.5
     private static final boolean OverrideMacAquaBrushedMetal = false;
 
-    private static boolean SidewaysRollup = false; // experimental
+    private static final boolean SidewaysRollup = false; // experimental
 
     private static JFrame HiddenParentFrame;
 
@@ -634,8 +635,12 @@ public class DockWindow
         throw new Error("can't add component's directly to the DockWindow");
     }
 
-    private JPanel getContentPanel() {
+    public JPanel getContentPanel() {
         return mContentPane.mContent;
+    }
+    
+    public JPanel getContentFull() {
+        return mContentPane;
     }
 
     /** Set the size of DockWindow such that content will ultimately have the given size.
@@ -737,7 +742,7 @@ public class DockWindow
             isMacAquaMetal = false;
         
         if (isMacAquaMetal) {
-            SidewaysRollup = false; // can't work in 1.4 brushed metal due to mac java bug
+            //SidewaysRollup = false; // can't work in 1.4 brushed metal due to mac java bug [no 1.4 VUE anymore]
             CollapsedHeight = MacAquaMetalMinHeight;
         } else {
             CollapsedHeight = TitleHeight;
@@ -1283,6 +1288,29 @@ public class DockWindow
         if (keepOnScreen(r))
             setSize(r.width, r.height);
     }
+
+    private boolean isMaximized = false;
+    private void setMaximizeVertical(boolean expandUpAsWellAsDown) {
+
+        out("maximzeVertical; isMax=" + isMaximized);
+        
+        if (isMaximized) {
+            setBounds(mNormalShape);
+            isMaximized = false;
+        } else {
+            isMaximized = true;
+            mNormalShape = getBounds();
+
+            Rectangle max = GUI.getMaximumWindowBounds();
+            if (expandUpAsWellAsDown) {
+                setBounds(getX(), max.y, getWidth(), max.height);
+            } else {
+                int maxBottom = GUI.GScreenHeight - GUI.GInsets.bottom;                
+                setHeight(maxBottom - getY());
+            }
+        }
+    }
+    
             
     /** @return true of bounds were modified */
     private boolean keepOnScreen(Rectangle r) {
@@ -1300,10 +1328,10 @@ public class DockWindow
         /*
           Rectangle max = GUI.GMaxWindowBounds;
           if (DEBUG.Enabled) out("maxwinbounds: " + max);
-          if (mSavedShape.width > max.width)
-          mSavedShape.width = max.width;
-          if (mSavedShape.height > max.height)
-          mSavedShape.height = max.height;
+          if (mUnrolledShape.width > max.width)
+          mUnrolledShape.width = max.width;
+          if (mUnrolledShape.height > max.height)
+          mUnrolledShape.height = max.height;
         */
     }
 
@@ -1384,13 +1412,13 @@ public class DockWindow
         if (show) {
             if (autoUnrollOnShow && isRolledUp())
                 setRolledUp(false);
-            else if (false && mSavedShape != null)
+            else if (false && mUnrolledShape != null)
                 // need to show before we do this!  Will need to tweak us so that's okay to do.
-                setShapeAnimated(getX(), getY(), mSavedShape.width, mSavedShape.height);
+                setShapeAnimated(getX(), getY(), mUnrolledShape.width, mUnrolledShape.height);
             
         } else if (false) {
             if (!isRolledUp())
-                mSavedShape = getBounds();
+                mUnrolledShape = getBounds();
             setShapeAnimated(getX(), getY(), getWidth(), 0);
         }
             
@@ -1464,7 +1492,7 @@ public class DockWindow
      	Dimension size = null;
      	
      	if (isRolledUp)
-     		size = new Dimension((int)mSavedShape.getWidth(),(int)mSavedShape.getHeight());
+     		size = new Dimension((int)mUnrolledShape.getWidth(),(int)mUnrolledShape.getHeight());
      	else
      		size = getSize();
      	Point p;
@@ -1492,7 +1520,7 @@ public class DockWindow
     		
                 if (wpp.isRolledUp())
                     {
-                        mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+                        mUnrolledShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
                         showRolledUp();
                     }
                 else
@@ -1507,7 +1535,7 @@ public class DockWindow
 
                             if (wpp.isRolledUp())
                                 {        			
-                                    mSavedShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
+                                    mUnrolledShape = new Rectangle((int)p.getX(),(int)p.getY(),(int)size.getWidth(),(int)size.getHeight());
                                     showRolledUp();
                                 }
                             else
@@ -1806,8 +1834,8 @@ public class DockWindow
     /** return width in stack: the smaller of current rolled width or unrolled width */
     private int getStackedWidth() {
         final int curWidth = getWidth();
-        if (mSavedShape != null)
-            return mSavedShape.width < curWidth ? mSavedShape.width : curWidth;
+        if (mUnrolledShape != null)
+            return mUnrolledShape.width < curWidth ? mUnrolledShape.width : curWidth;
         else
             return curWidth;
     }
@@ -1902,8 +1930,8 @@ public class DockWindow
 
             // make us rolled up
 
-            mSavedShape = getBounds();
-            //out("shape " + mSavedShape);
+            mUnrolledShape = getBounds();
+            //out("shape " + mUnrolledShape);
 
             // Okay, two cases: one where we're getting our "future" rolled up width
             // now, adjusting for future adjustments in parent & children, who may only
@@ -1960,18 +1988,18 @@ public class DockWindow
             
             mStickingRight = false;
 
-            Rectangle newShape = new Rectangle(mSavedShape);
+            Rectangle newShape = new Rectangle(mUnrolledShape);
             
             if (atScreenBottom() && mParent == null
                 //|| (isDocked() && mDockRegion.mGravity == DockRegion.BOTTOM)
                 ) {
 
                 newShape.x = getX();
-                newShape.y = getY() + getHeight() - mSavedShape.height;
+                newShape.y = getY() + getHeight() - mUnrolledShape.height;
                 
             } else if (atScreenRight()) {
 
-                newShape.x = GUI.GScreenWidth - mSavedShape.width;
+                newShape.x = GUI.GScreenWidth - mUnrolledShape.width;
                 newShape.y = getY();
                 mStickingRight = true;
 
@@ -1986,7 +2014,7 @@ public class DockWindow
             setShapeAnimated(newShape.x, newShape.y, newShape.width, newShape.height);
                 
             getContentPanel().setVisible(true);
-            mSavedShape = null;
+            mUnrolledShape = null;
 
             // pretend like we've been shown so that VueMenuBar.WindowDisplayAction
             // will know we're visible again.
@@ -3003,6 +3031,8 @@ public class DockWindow
             
         mContentPane.getWidget().invalidate(); // in case is depending on size of DockWindow
         setSize(newWidth, newHeight);
+
+        isMaximized = false;
     }
     
     private void dragMoveWindow(MouseEvent e)
@@ -3116,22 +3146,42 @@ public class DockWindow
     }
     
     private void handleMouseClicked(MouseEvent e) {
-        if (DEBUG.MOUSE && DEBUG.META) out(e);
+        if (DEBUG.MOUSE) out("handleMouseClicked: " + GUI.name(e));
         
         if (e.getSource().getClass() == ResizeCorner.class)
             return;
          
         //On windows the click count kept growing if i I didn't move the mouse slightly between clicks so I put
         //an extra test in here for clicks > 2 % 2 to test for additional double clicks seems to work
-        //well on windows i'll double check with mac.
-        if (/*e.getClickCount() != 0 &*/ (e.getClickCount() == 2 || (e.getClickCount() > 2 && (e.getClickCount() % 2 ==0))) && titleBarHit(e)) {
-            // clickCount != 0 prevents action with long mouse down
-            // clickCount != 2 allows double-click not undo what just happened on single click,
-            // but rapid clicking for testing (clickCount keeps climbing) is allowed.
-        	
-            setRolledUp(!isRolledUp());
+        //well on windows i'll double check with mac. [now handled in GUI.isDoubleClick]
+        
+        if (GUI.isDoubleClick(e) && titleBarHit(e)) {
+            
+            if (DEBUG.Enabled) {
+
+                // TODO: handle all the smarts in setRolledUp(false)
+                // when transitioning from rolled-up directly to maximized
+                
+                if (GUI.noModifierKeysDown(e)) {
+                    setRolledUp(!isRolledUp());
+                } else
+                    setMaximizeVertical(e.isShiftDown());
+                
+            } else {
+
+                if (isRolledUp()) {
+                    setRolledUp(false);
+                }
+                else if (GUI.noModifierKeysDown(e)) {
+                    setRolledUp(true);
+                }
+                else
+                    setMaximizeVertical(e.isShiftDown());
+            }
+            
 
         } else {
+            
             // if we click on the bottom pixels when we're at the screen bottom,
             // treat it as a roll-up request
 
