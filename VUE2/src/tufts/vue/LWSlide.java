@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.107 $ / $Date: 2008-06-02 20:19:01 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2008-06-04 16:41:51 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -535,20 +535,30 @@ public class LWSlide extends LWContainer
         if (fillColor == null) {
             if (DEBUG.Enabled) Util.printStackTrace("null fill " + this);
         }
-        else if (!dc.isClipOptimized()) {
+//         else if (!dc.isClipOptimized()) {
 
-            // if we're doing a zoomed-rollover of a slide, and the slide fill happens
-            // to be the same as the map fill, (e.g., white), this will have no effect,
-            // and the zoomed slide will zoom up with no fill (see-through).  This is a
-            // bit of a hack in that we're depending on knowing that the zoomed rollover
-            // is drawn with clip optimization off.
+//             // if we're doing a zoomed-rollover of a slide, and the slide fill happens
+//             // to be the same as the map fill, (e.g., white), this will have no effect,
+//             // and the zoomed slide will zoom up with no fill (see-through).  This is a
+//             // bit of a hack in that we're depending on knowing that the zoomed rollover
+//             // is drawn with clip optimization off.
             
-            dc.g.setColor(fillColor);
-            dc.g.fill(getZeroShape());
+//             dc.g.setColor(fillColor);
+//             dc.g.fill(getZeroShape());
             
-        }
+//         }
         else {
-            dc.fillArea(getZeroShape(), fillColor);
+
+            // This should be an even safer test...  tho why are white text slide
+            // titles on black slides *sometimes* dissapearing when auto-zoomed?
+            // Could this have anything to do with our hack to auto-patch-up
+            // text colors on matching backgrounds?
+            if (fillColor.equals(dc.getBackgroundFill())) {
+                dc.g.setColor(fillColor);
+                dc.g.fill(getZeroShape());
+            } else {
+                dc.fillArea(getZeroShape(), fillColor);
+            }
         }
         
         if (master != null) {
