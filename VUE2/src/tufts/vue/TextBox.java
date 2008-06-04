@@ -98,7 +98,7 @@ import javax.swing.text.*;
  *
  *
  * @author Scott Fraize
- * @version $Revision: 1.63 $ / $Date: 2008-05-22 03:58:51 $ / $Author: sfraize $
+ * @version $Revision: 1.64 $ / $Date: 2008-06-04 16:39:55 $ / $Author: sfraize $
  *
  */
 
@@ -998,10 +998,11 @@ public class TextBox extends JTextPane
             // the text color to white or black so it can be seen.
             if (lwc.mTextColor.equals(dc.getBackgroundFill())) {
                 restoreTextColor = true;
-                if (lwc.mTextColor.brightness() > 0.5)
-                    setDocumentColor(Color.black);
-                else
-                    setDocumentColor(Color.white);
+                if (lwc.mTextColor.brightness() > 0.5) {
+                    setDocumentColor(DEBUG.Enabled ? Color.blue  : Color.black);
+                } else {
+                    setDocumentColor(DEBUG.Enabled ? Color.green : Color.white);
+                }
             }
         }
         
