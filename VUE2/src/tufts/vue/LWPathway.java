@@ -19,6 +19,8 @@ import tufts.Util;
 import tufts.vue.DEBUG;
 import tufts.vue.NodeTool.NodeModeTool;
 
+import edu.tufts.vue.preferences.implementations.BooleanPreference;
+
 import java.io.IOException;
 
 import java.util.*;
@@ -44,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.217 $ / $Date: 2008-04-26 00:04:02 $ / $Author: sfraize $
+ * @version $Revision: 1.218 $ / $Date: 2008-06-04 16:43:22 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -68,6 +70,22 @@ public class LWPathway extends LWContainer
     private transient java.util.List<String> mOldStyleMemberIDList = new java.util.ArrayList();
     /** for backward compat with old style saved pathways (pre Feb/March 2006) */
     private ArrayList<LWPathwayElementProperty> mOldStyleProperties = new ArrayList();
+
+    // todo: encapsulating the preference with the code that needs it is nice, but it's
+    // actually a very bad idea, as this means the order of the preferences in the
+    // preference pane will be determined by how we load classes, which could even
+    // theoretically change from one startup to the next.  Not to mention, if we declare
+    // one in a class that isn't loaded at all during startup, the preference will be
+    // missing until it's loaded.  Create a tufts.vue.Prefs.java to put these in.
+    
+    private static final BooleanPreference AutoNodeToSlideNotesPref = BooleanPreference.create
+        (edu.tufts.vue.preferences.PreferenceConstants.PRESENTATION_CATEGORY,
+         "autoCopyNotes", 
+         "Notes",
+         "When adding a node to a pathway, automatically copy \"node notes\" to the pathway entry (slide) notes.",
+         "Create new slides with a copy of the node notes",
+         Boolean.TRUE,
+         true);
 
     /**
      * This encapsulates the data for each pathway entry.  A node can be repeated in a
@@ -103,6 +121,10 @@ public class LWPathway extends LWContainer
         private Entry(LWPathway pathway, LWComponent node) {
             this.pathway = pathway;
             this.node = node;
+
+            if (AutoNodeToSlideNotesPref.isTrue())
+                setNotes(node.getNotes());
+            
             syncNodeEntryRef();
         }
         
@@ -438,7 +460,7 @@ public class LWPathway extends LWContainer
         }
         
         public void setNotes(String s) {
-            if (notes == s || notes.equals(s))
+            if (notes == s || (notes != null && notes.equals(s)))
                 return;
             final String oldNotes = notes;
             notes = s;
