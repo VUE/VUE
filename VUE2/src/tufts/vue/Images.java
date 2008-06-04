@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.53 $ / $Date: 2008-05-30 20:09:14 $ / $Author: sfraize $
+ * @version $Revision: 1.54 $ / $Date: 2008-06-04 16:37:09 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -1313,7 +1313,7 @@ public class Images
         if (inputStream == null)
             throw new ImageException("Can't Access [" + imageSRC.readable + "]"); // e,g., local file permission denied
 
-        ImageReader reader = getDecoder(inputStream);
+        ImageReader reader = getDecoder(inputStream, imageSRC);
 
         if (reader == null) {
             badStream: {
@@ -1326,7 +1326,7 @@ public class Images
                     // getting us tiny amount of bytes the first time...
                     if (DEBUG.Enabled) tufts.Util.printStackTrace("first failure: " + imageSRC);
                     ImageIO.scanForPlugins();
-                    reader = getDecoder(inputStream);
+                    reader = getDecoder(inputStream, imageSRC);
                     if (reader != null)
                         break badStream;
                 }
@@ -1335,7 +1335,7 @@ public class Images
             }
         }
 
-        if (DEBUG.IMAGE) out("Chosen ImageReader for stream " + reader + " formatName=" + reader.getFormatName());
+        if (DEBUG.IMAGE) out("Chosen ImageReader for stream: " + reader + "; format=" + reader.getFormatName());
         
         //reader.addIIOReadProgressListener(new ReadListener());
         //out("added progress listener");
@@ -1346,6 +1346,9 @@ public class Images
         int w = reader.getWidth(0);
         int h = reader.getHeight(0);
         if (DEBUG.IMAGE) out("ImageReader got size " + w + "x" + h);
+
+        if (w == 0 || h == 0)
+            throw new ImageException("invalid size: width=" + w + "; height=" + h);
 
 
         if (imageSRC.resource != null) {
@@ -1385,7 +1388,12 @@ public class Images
         //-----------------------------------------------------------------------------
 
         if (DEBUG.IMAGE) out("Reading " + reader);
-        BufferedImage image = reader.read(0);
+        BufferedImage image = null;
+        try {
+            image = reader.read(0);
+        } catch (Throwable t) {
+            throw new ImageException("read failed: " + t.toString());
+        }
         if (DEBUG.IMAGE) out("ImageReader.read(0) got " + image);
 
         if (listener != null)
@@ -1396,7 +1404,7 @@ public class Images
          if (urlStream != null)
              urlStream.close();
 
-        if (DEBUG.Enabled) {
+        if (DEBUG.Enabled && image != null) {
             String[] tryProps = new String[] { "name", "title", "description", "comment" };
             for (int i = 0; i < tryProps.length; i++) {
                 Object p = image.getProperty(tryProps[i], null);
@@ -1409,23 +1417,50 @@ public class Images
         return image;
     }
 
-    private static ImageReader getDecoder(ImageInputStream istream)
+    private static ImageReader getDecoder(ImageInputStream istream, ImageSource imageSRC)
     {
         java.util.Iterator iri = ImageIO.getImageReaders(istream);
 
         ImageReader reader = null;
         int idx = 0;
         while (iri.hasNext()) {
-            ImageReader ir = (ImageReader) iri.next();
-            if (reader == null)
+            final ImageReader ir = (ImageReader) iri.next();
+
+            String formatName;
+            try {
+                formatName = ir.getFormatName();
+            } catch (Throwable t) {
+                formatName = "[" + t + "]";
+            }
+            
+            if (reader == null) {
                 reader = ir;
-            if (DEBUG.IMAGE) out("\tfound ImageReader #" + idx + " " + ir);
+            }
+//             else if ("ico".equalsIgnoreCase(formatName)) {
+//                 try {
+//                     if (imageSRC.key.toString().toLowerCase().endsWith(".ico")) {
+//                         if (DEBUG.IMAGE) out("CHOOSING ICO READER FOR .ICO");
+//                         reader = ir;
+//                     }
+//                 } catch (Throwable t) {
+//                     Log.error("getDecoder: " + imageSRC + " " + t);
+//                 }
+//             }
+            
+
+            if (DEBUG.IMAGE) {
+                out("\t found ImageReader #" + idx + ": " + Util.tags(ir)
+                    + "; format=" + formatName
+                    + "; provider=" + Util.tags(ir.getOriginatingProvider()));
+            }
             idx++;
         }
 
         return reader;
     }
-
+    
+    // nl.ikarus.nxt.priv.imageio.icoreader.lib.ICOReaderSpi.registerIcoReader(); // not needed: is self registering or SPI providing
+    // nl.ikarus.nxt.priv.imageio.icoreader.lib.ICOReader [this reader, from ICOReader-1.04.jar, appears to mostly work]
 
     /* Apparently, not all decoders actually report to the listeners, (e.g., TIFF), so we're not using this for now */
     private static class ReadListener implements IIOReadProgressListener {
