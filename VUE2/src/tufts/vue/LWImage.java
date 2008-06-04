@@ -71,8 +71,8 @@ public class LWImage extends
     //static int MaxRenderSize = PrefImageSize.getValue();
     //static int MaxRenderSize = 64;
     
-    private final static int MinWidth = 32;
-    private final static int MinHeight = 32;
+    private final static int MinWidth = 16;
+    private final static int MinHeight = 16;
 
     enum Status { UNLOADED, LOADING, LOADED, ERROR, EMPTY };
 
@@ -1055,7 +1055,7 @@ public class LWImage extends
         super.XML_completed(context);
 
         if (super.width < MinWidth || super.height < MinHeight) {
-            Log.debug("bad size: " + this);
+            Log.info(String.format("bad size: adjusting to minimum %dx%d: %s", MinWidth, MinHeight, this));
             super.width = MinWidth;
             super.height = MinHeight;
         }
