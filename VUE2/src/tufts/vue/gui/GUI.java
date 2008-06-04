@@ -48,7 +48,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.114 $ / $Date: 2008-05-31 00:56:51 $ / $Author: sfraize $
+ * @version $Revision: 1.115 $ / $Date: 2008-06-04 16:38:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1583,54 +1583,126 @@ public class GUI
     }
     
     public static String eventName(AWTEvent e) {
-        return ""
-            + VueUtil.pad(37, name(e.getSource()))
-            //+ " " + VueUtil.pad(25, baseClassName(e.getClass().getName() + "@" + Integer.toHexString(e.hashCode())))
-            + " " + VueUtil.pad(20, baseClassName(e.getClass().getName()))
-            + eventParamString(e)
-            ;
+        return String.format("%-40s %-20s %s",
+                             name(e.getSource()),
+                             e.getClass().getSimpleName(),
+                             eventParamString(e)
+                             );
+//         return ""
+//             + VueUtil.pad(37, name(e.getSource()))
+//             //+ " " + VueUtil.pad(25, baseClassName(e.getClass().getName() + "@" + Integer.toHexString(e.hashCode())))
+//             + " " + VueUtil.pad(20, baseClassName(e.getClass().getName()))
+//             + eventParamString(e)
+//             ;
+        
     }
 
     public static String eventParamString(AWTEvent e) 
     {
         String s = "[" + e.paramString();
-        if (e instanceof MouseEvent && ((MouseEvent)e).isPopupTrigger())
-            s += ",IS-POPUP-TRIGGER";
+        if (e instanceof InputEvent) {
+            if (e instanceof MouseEvent) {
+                if (((MouseEvent)e).isPopupTrigger())
+                    s += ",POPUP-TRIGGER";
+                if (Util.isMacPlatform() && ((InputEvent)e).isControlDown())
+                    s += ",MAC-POPUP";
+            }
+            s += "," + Integer.toBinaryString(((InputEvent)e).getModifiers());
+            s += "," + Integer.toBinaryString(((InputEvent)e).getModifiersEx());
+        }
         return s + "]";
     }
     
 
-    protected static String baseClassName(String className) {
-        return className.substring(className.lastIndexOf('.') + 1);
+    private static String baseClassName(Class clazz) {
+        return clazz.getSimpleName();
+        //return baseClassName(clazz.getName());
     }
-    protected static String baseClassName(Class clazz) {
-        return baseClassName(clazz.getName());
+    private static String baseObjectName(Object o) {
+        return o == null ? "null" : baseClassName(o.getClass());
+        //return o == null ? "null" : baseClassName(o.getClass().getName());
     }
-    protected static String baseObjectName(Object o) {
-        return o == null ? "null" : baseClassName(o.getClass().getName());
-    }
-    
-    
-    /** 1 click, button 2 or 3 pressed, button 1 not already down & ctrl not down */
-    public static boolean isRightClick(MouseEvent e) {
-        return (e.getButton() == java.awt.event.MouseEvent.BUTTON3 ||
-                e.getButton() == java.awt.event.MouseEvent.BUTTON2)
-            && (e.getModifiersEx() & java.awt.event.InputEvent.BUTTON1_DOWN_MASK) == 0
-            && !e.isControlDown();
-    }
+//     protected static String baseClassName(String className) {
+//         return className.substring(className.lastIndexOf('.') + 1);
+//     }
 
-    /** single click count and isRightClick is true */
-    public static boolean isSingleRightClick(MouseEvent e) {
-        return e.getClickCount() == 1 && isRightClick(e);
-    }
-
+    //-----------------------------------------------------------------------------
+    // Event testers
+    //-----------------------------------------------------------------------------
+    
     public static final int ALL_MODIFIER_KEYS_MASK =
-        java.awt.event.InputEvent.SHIFT_MASK
+          java.awt.event.InputEvent.SHIFT_MASK
         | java.awt.event.InputEvent.CTRL_MASK
         | java.awt.event.InputEvent.META_MASK
-        | java.awt.event.InputEvent.ALT_MASK;
+        | java.awt.event.InputEvent.ALT_MASK
+        ;
 
-    public static  boolean anyModifierKeysDown(InputEvent e) {
+    private static boolean isPopupTrigger(MouseEvent e) {
+        
+        if (Util.isMacPlatform()) {
+            
+            // will detect mac pop-up trigger in any MouseEvent (not just MOUSE_PRESSED)
+
+            return e.isPopupTrigger() // does NOT detect in MOUSE_RELEASED
+                || e.isControlDown(); // will detect mac pop-up trigger in any MouseEvent
+            
+        } else {
+            
+            return e.isPopupTrigger();
+            
+        }
+    }
+
+    public static boolean isDoubleClick(MouseEvent e) {
+        
+        // % 2 detects cascading double clicks (reported as a 4 click, 6 click, etc)
+
+        // clickCount > 0 prevents action with long mouse down (reports as 0 click)
+
+        // we also make sure that BUTTON1_MASK is set -- it's a left click
+        
+        return e.getClickCount() > 1
+            && e.getClickCount() % 2 == 0
+            && (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0
+          //&& (e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0 // will not detect in MOUSE_RELEASED
+            && !isPopupTrigger(e) 
+            ;
+    }
+    
+//     public static boolean isUnmodifiedDoubleClick(MouseEvent e) {
+//         return isDoubleClick(e)
+//             && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == 0
+//     }
+//     public static boolean isModifiedDoubleClick(MouseEvent e) {
+//         return isDoubleClick(e)
+//             && (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) != 0
+//     }
+    
+    
+    public static boolean isSingleClick(MouseEvent e) {
+        return e.getClickCount() == 1
+            && (e.getModifiers() & InputEvent.BUTTON1_MASK) != 0
+          //&& (e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) != 0 // will not detect in MOUSE_RELEASED
+        ////&& (e.getModifiers() & GUI.ALL_MODIFIER_KEYS_MASK) == 0
+            ;
+    }
+    
+    /** @return true if 1 click, button 2 or 3 pressed, button 1 not already down & ctrl not down */
+    public static boolean isRightClick(MouseEvent e) {
+        return e.getClickCount() == 1
+            && (e.getButton() == MouseEvent.BUTTON3 ||
+                e.getButton() == MouseEvent.BUTTON2)
+            && (e.getModifiersEx() & InputEvent.BUTTON1_DOWN_MASK) == 0
+            && !e.isControlDown() // is used for context-menu pop-up on Mac OS X
+            ;
+    }
+
+//     /** single click count and isRightClick is true */
+//     public static boolean isSingleRightClick(MouseEvent e) {
+//         return e.getClickCount() == 1 && isRightClick(e);
+//     }
+
+    public static boolean anyModifierKeysDown(InputEvent e) {
         return (e.getModifiers() & ALL_MODIFIER_KEYS_MASK) != 0;
     }
     
@@ -1641,11 +1713,13 @@ public class GUI
     public static boolean isMenuPopup(ComponentEvent ce) {
         if (ce instanceof MouseEvent) {
             MouseEvent e = (MouseEvent) ce;
-            return e.isPopupTrigger() || isSingleRightClick(e);
+            return e.isPopupTrigger() || isRightClick(e);
         } else
             return false;
     }
  
+    //-----------------------------------------------------------------------------
+    
     private static class LocalData extends DataFlavor {
         private Class clazz;
         LocalData(Class clazz) throws ClassNotFoundException {
@@ -2591,7 +2665,7 @@ public class GUI
     
             final MouseWheelListener[] currentListeners = target.getMouseWheelListeners();
             
-            if (DEBUG.MOUSE || DEBUG.INIT || DEBUG.FOCUS || !VUE.isStartupUnderway() || currentListeners.length > 1)
+            if (DEBUG.MOUSE || DEBUG.INIT || DEBUG.FOCUS || currentListeners.length > 1)
                 out("MouseWheelRelay: " + GUI.name(override) + ": currentMouseWheelListeners: "
                     + java.util.Arrays.asList(currentListeners)
                     + "; intercept=" + GUI.name(intercept));
