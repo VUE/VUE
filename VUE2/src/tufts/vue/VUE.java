@@ -51,7 +51,6 @@ import edu.tufts.vue.preferences.implementations.MetadataSchemaPreference;
 import edu.tufts.vue.preferences.implementations.ShowAgainDialog;
 import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
 
-
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathExpression;
@@ -67,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.559 $ / $Date: 2008-05-30 22:41:24 $ / $Author: sfraize $ 
+ * @version $Revision: 1.560 $ / $Date: 2008-06-04 16:47:14 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1457,6 +1456,10 @@ public class VUE
             ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);
         else
             ApplicationFrame.addComp(mMapTabsLeft, BorderLayout.CENTER);
+        
+//         JPanel resources = DR_BROWSER_DOCK.getContentPanel();
+//         resources.setMinimumSize(new Dimension(500,500));
+//         ApplicationFrame.addComp(resources, BorderLayout.EAST);
         
         try {
             ApplicationFrame.pack();
