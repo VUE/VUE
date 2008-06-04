@@ -88,6 +88,13 @@ public class TypeList extends JList implements MouseListener,ActionListener {
     private java.util.HashMap typeCache = new java.util.HashMap();
     private java.util.HashMap typeNoLabelCache = new java.util.HashMap();
     
+    private String cssURL;
+    
+    public void setCSSURL(String cssURL)
+    {
+        this.cssURL = cssURL;
+    }
+    
     public TypeList() {
         
         setCellRenderer(new TypeCellRenderer());
@@ -195,11 +202,57 @@ public class TypeList extends JList implements MouseListener,ActionListener {
               //System.out.println("TypeList createLWComponent - node with ontology id: "  + ontType.getId());
               //System.out.println("TypeList createLWComponent - node with ontology url: "  + ontType.getOntology().getURL() +"#" + ontType.getLabel() );
                 
+              boolean relative = false;  
+                
               String image = style.getAttribute("background-image");
               
-              if(image != null)
+              if(DEBUG_LOCAL)
               {
-                 System.out.println("TypeList: image not null");
+                  System.out.println("TypeList background-image: "  + image);
+              }
+              
+              if(image == null)
+              {
+                  image = style.getAttribute("background-image-relative");
+                  
+                  if(DEBUG_LOCAL)
+                  {
+                    System.out.println("TypeList background-image-relative: "  + image + " cssURL " + cssURL );
+                  }
+                  
+                  relative = true;
+              }
+              
+              cssURL = ontology.getCssFileName();
+              
+              if(image != null && (relative == false || cssURL != null))
+              {
+                 //if(DEBUG_LOCAL)
+                 //{    
+                   //System.out.println("TypeList: image not null");
+                 //}
+                  
+                 if(relative && cssURL!=null)
+                 {
+                     
+                     int ps = cssURL.indexOf(":");
+                     
+                     if(ps != -1)
+                     {
+                         cssURL = cssURL.substring(ps+1);
+                     }
+                     
+                     int fs = cssURL.lastIndexOf(System.getProperty("file.separator"));
+                     
+                     if(fs!=-1)
+                         image = cssURL.substring(0,fs) + System.getProperty("file.separator") + image;
+                     
+                     if(DEBUG_LOCAL)
+                     {
+                         System.out.println("TypeList relative url: " + image);
+                     }
+                 }
+                  
                  java.net.URL imageURL = null;
                  Resource resource = null;
                  java.io.File file = null;
@@ -405,6 +458,26 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                 if(s!=null)
                 {
                   String icon = s.getAttribute("background-image");
+                  
+                  if(DEBUG_LOCAL)
+                  {
+                      System.out.println("TypeList -- icon -- " + icon);
+                  }
+                  
+                  cssURL = ontology.getCssFileName();
+                  
+                  if(icon == null && cssURL != null && !(s.getAttribute("background-image-relative") == null))
+                  {
+                      icon = cssURL.substring(0,cssURL.lastIndexOf(System.getProperty("file.separator")));
+                      icon = icon.substring(icon.indexOf(":")+1,icon.length());
+                      icon = icon + System.getProperty("file.separator") + s.getAttribute("background-image-relative");
+                                    
+                      if(DEBUG_LOCAL)
+                      {
+                         System.out.println("TypeList -- relative icon -- " + icon);
+                      }
+                  
+                  }
                   //System.out.println("icon " + icon);
                   if(icon != null)
                   {

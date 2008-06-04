@@ -227,6 +227,7 @@ public class OntologyBrowser extends JPanel {
                   URL url = new URL(ont.getBase());
                   TypeList tlist = (TypeList)widgetMap.get(new OntologyBrowserKey(
                                         edu.tufts.vue.ontology.Ontology.getLabelFromUrl(ont.getBase()),url)).getComponent(0);
+                  tlist.setCSSURL(cssURL.toString());
                   tlist.getOntology().applyStyle(cssURL);
                   tlist.styleApplied();
                 }
