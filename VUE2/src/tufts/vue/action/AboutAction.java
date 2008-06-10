@@ -36,6 +36,11 @@ import javax.swing.border.*;
 /**
  * Display an About Box for VUE.
  */
+/*
+ * From what i've learned today the version # in the about dialog gets inserted by
+ * the shell script on releases.atech.tufts.edu not from the vueresources.properties
+ * like you may think if you were reading the code.
+ */
 public class AboutAction extends tufts.vue.VueAction
 {
     private static Window AboutWindow;
