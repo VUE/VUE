@@ -52,7 +52,8 @@ public class VueFileChooser extends JFileChooser{
 		
 		
 		//an elaborate fix to avoid scrolling in the combobox drop downs in the filechooser
-		iterateContainerAndFixComboBoxes((Container)this);
+		
+		//iterateContainerAndFixComboBoxes((Container)this);
 	
 		
 		 
