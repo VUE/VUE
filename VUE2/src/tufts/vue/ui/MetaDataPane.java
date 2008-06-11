@@ -533,6 +533,18 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         }
     }
 
+    private String valueToText(final Object value) {
+        if (value == null)
+            return "(empty)";
+        else if (value instanceof java.awt.Component)
+            return GUI.name(value);
+        else if (value instanceof java.lang.ref.Reference)
+            return "[" + value.getClass().getSimpleName() + "] "
+                + valueToText(((java.lang.ref.Reference)value).get()); // note recursion
+        else
+            return value.toString();
+    }
+
     private void loadAllRows(TableModel model) {
         final int rows = model.getRowCount();
         final int maxRow;
@@ -551,10 +563,10 @@ public class MetaDataPane extends tufts.vue.gui.Widget
         int rowIdx = 0;
         for (int row = 0; row < maxRow; row++) {
             final Object label =  model.getValueAt(row, 0);
-            final String labelTxt = "" + label;
+            final String labelText = "" + label;
             final Object value = model.getValueAt(row, 1);
-            final String valueTxt =  "" + value;
-           
+            final String valueText = valueToText(value);
+
             // loadRow(row++, label, value); // debug non-HTML display
             // FYI, some kind of HTML bug for text strings with leading slashes
             // -- they show up empty.  Right now, we're disable HTML for
@@ -565,7 +577,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             if (! DEBUG.Enabled) {
                 // If we're not in debug mode, make sure hidden properties stay hidden
                
-                if (Resource.isHiddenPropertyKey(labelTxt)) {
+                if (Resource.isHiddenPropertyKey(labelText)) {
                     //mLabels[row].setVisible(false);
                     //mValues[row].setVisible(false);
                     // we skip loading the row completely -- keep alternating colors in order
@@ -574,7 +586,7 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             }
 
             try {
-                loadRow(rowIdx, labelTxt, value, valueTxt);
+                loadRow(rowIdx, labelText, value, valueText);
             } catch (Throwable t) {
                 Log.error("Failed to load row " + row + "; label= " + Util.tags(label) + "; value=" + Util.tags(value), new Throwable());
             }
@@ -634,10 +646,10 @@ public class MetaDataPane extends tufts.vue.gui.Widget
             //field.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
             field.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             field.putClientProperty(CAN_OPEN, Boolean.TRUE);
-            if (DEBUG.DR || EasyReading1) field.setForeground(Color.blue);
+            if (DEBUG.Enabled || EasyReading1) field.setForeground(Color.blue);
         } else {
             field.putClientProperty(CAN_OPEN, Boolean.FALSE);
-            if (DEBUG.DR || EasyReading1) field.setForeground(Color.black);
+            if (DEBUG.Enabled || EasyReading1) field.setForeground(Color.black);
             //label.removeMouseListener(CommonURLListener);
             field.setCursor(Cursor.getDefaultCursor());
             //GUI.apply(GUI.ValueFace, mValues[i]);

@@ -76,8 +76,8 @@ public class UrlAuthentication
             dataSources = se.getSakaiDataSources();
 			
             for (int i = 0; i < dataSources.length; i++) {
-                Log.info("adding data source to sakai data source list: " + dataSources[i]);
                 if (dataSources[i].hasConfiguration()) {
+                    Log.info("asking sakai data source for any needed credentials: " + dataSources[i]);
                     Properties configuration = dataSources[i].getConfiguration();
                     loadHostMap(configuration);
                     //VUE.Log .info("Sakai session id = " + _sessionId);

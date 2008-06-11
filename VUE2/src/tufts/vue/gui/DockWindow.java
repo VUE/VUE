@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.134 $ / $Date: 2008-06-04 16:39:28 $ / $Author: sfraize $
+ * @version $Revision: 1.135 $ / $Date: 2008-06-11 17:36:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1078,6 +1078,8 @@ public class DockWindow
 
     public void addNotify()
     {
+        if (DEBUG.DOCK) out("addNotify");
+        
         if (OverrideMacAquaBrushedMetal && GUI.isMacBrushedMetal()) {
 
             // This trick only works on MacOSX Java 1.5:
@@ -4037,7 +4039,8 @@ public class DockWindow
                 mScroller.setOpaque(false);
                 mScroller.getViewport().setOpaque(false);
                 mScroller.setBorder(null);
-                mScroller.setName(mBaseTitle);
+                mScroller.setName(mBaseTitle + ".dockScroll");
+                mScroller.setWheelScrollingEnabled(true);
                 mContent.add(mScroller, BorderLayout.CENTER);
                 if (DEBUG.BOXES) mScroller.setBorder(new LineBorder(Color.green, 4));
             }
