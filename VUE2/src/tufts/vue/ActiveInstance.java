@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.19 $ / $Date: 2008-05-28 06:59:56 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2008-06-11 17:24:48 $ / $Author: sfraize $
  */
 
 // ResourceSelection could be re-implemented using this, as long
@@ -320,8 +320,8 @@ public class ActiveInstance<T>
             if (DEBUG.EVENTS) Log.debug(String.format(TERM_YELLOW + "%-50s added listener %s" + TERM_CLEAR, itemTypeName, listener));
         } else {
             Log.warn(this + "; add: is already listening: " + listener);
-            if (DEBUG.Enabled)
-                Util.printStackTrace(this + "; already listening: " + listener);
+            if (DEBUG.EVENTS)
+                Util.printStackTrace(this + "; FYI: already listening: " + listener);
         }
     }
 
