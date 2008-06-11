@@ -43,12 +43,18 @@ import javax.swing.plaf.FontUIResource;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.MutableAttributeSet;
+
 import sun.awt.shell.ShellFolder;
 
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.115 $ / $Date: 2008-06-04 16:38:19 $ / $Author: sfraize $
+ * @version $Revision: 1.116 $ / $Date: 2008-06-11 17:36:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -65,6 +71,8 @@ public class GUI
     public static Font ErrorFace;
     public static Font StatusFace;
     public static Font DataFace;
+    public static Font ContentFace;
+    
     public static final Color LabelColor = new Color(61,61,61);
     public static final int LabelGapRight = 6;
     public static final int FieldGapRight = 6;
@@ -307,6 +315,8 @@ public class GUI
         //ErrorFace = new GUI.Face(errorFont, Font.PLAIN, fontSize+1, Color.darkGray, SystemColor.control);
           
         DataFace = new GUI.Face("Verdana", Font.PLAIN, fontSize, null);
+        
+        ContentFace = new GUI.Face("Arial", Font.PLAIN, 14, null);
 
         FocusManager.install();
         //tufts.Util.executeIfFound("tufts.vue.gui.WindowManager", "install", null);
@@ -2225,7 +2235,7 @@ public class GUI
         else if (f.getSize() > 0)
             c.setFont(f);
     }
-    
+
     public static void apply(Face face, JComponent c) {
         
         if (face.getSize() > 0)
@@ -2243,6 +2253,31 @@ public class GUI
             
     }
     
+    public static void setDocumentFont(javax.swing.JTextPane tp, Font f)
+    {
+        SimpleAttributeSet a = new SimpleAttributeSet();
+        setFontAttributes(a, f);
+        StyledDocument doc = tp.getStyledDocument();
+        doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), a, false);
+    }
+
+    private static void setFontAttributes(javax.swing.text.MutableAttributeSet a, Font f)
+    {
+        StyleConstants.setFontFamily(a, f.getFamily());
+        StyleConstants.setFontSize(a, f.getSize());
+        StyleConstants.setItalic(a, f.isItalic());
+        StyleConstants.setBold(a, f.isBold());
+    }
+    
+    
+//     private void setDocumentColor(Color c)
+//     {
+//         StyleConstants.setForeground(mAttributeSet, c);
+//         javax.swing.text.StyledDocument doc = getStyledDocument();
+//         doc.setParagraphAttributes(0, doc.getEndPosition().getOffset(), mAttributeSet, true);
+//     }
+
+
     
     public static void setRootPaneNames(RootPaneContainer r, String name) {
         r.getRootPane().setName(name + ".root");
@@ -2646,24 +2681,25 @@ public class GUI
 
         /**
            
-         * Intercept MouseWheel events going to the nearest JScrollPane ancestor of
-         * target (or just target if there is none) by sending them to intercept first.
-         * The intercept should consume the event for those it wishes to override.
+         * Intercept MouseWheelEvents going to the nearest JScrollPane ancestor of
+         * override (or just override if there is none) by sending them to intercept first.
+         * The intercept should consume the event for those it wishes to override,
+         * otherwise the event will be passed on to override.
          *
          * @return true if there was no intercept needed, and intercept was simply added as standard mouse wheel listener
          */
-        public static boolean addListenerOrIntercept(final MouseWheelListener intercept, final java.awt.Component target) {
 
-            java.awt.Component override;
-            if (target instanceof JScrollPane) {
-                override = target;
+        public static boolean addListenerOrIntercept(final MouseWheelListener intercept, java.awt.Component override)
+        {
+            if (override instanceof JScrollPane) {
+                ; // override is already fully discovered
             } else {
-                override = SwingUtilities.getAncestorOfClass(JScrollPane.class, target);
-                if (override == null)
-                    override = target;
+                Component nearestScrollPane = SwingUtilities.getAncestorOfClass(JScrollPane.class, override);
+                if (nearestScrollPane != null)
+                    override = nearestScrollPane;
             }
     
-            final MouseWheelListener[] currentListeners = target.getMouseWheelListeners();
+            final MouseWheelListener[] currentListeners = override.getMouseWheelListeners();
             
             if (DEBUG.MOUSE || DEBUG.INIT || DEBUG.FOCUS || currentListeners.length > 1)
                 out("MouseWheelRelay: " + GUI.name(override) + ": currentMouseWheelListeners: "
@@ -2682,7 +2718,11 @@ public class GUI
         }
 
         public void mouseWheelMoved(MouseWheelEvent e) {
+
+            // first, send to the intercept to see if it wants it
             head.mouseWheelMoved(e);
+
+            // if unconsumed by the intercept, send on to the original override (usually, a JScrollPane)
             if (!e.isConsumed())
                 tail.mouseWheelMoved(e);
         }
