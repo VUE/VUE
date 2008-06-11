@@ -223,19 +223,18 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
     public void load() {
         File f  = new File(saveFile);
         if(f.exists()) {
-            try {
-                SaveVueJTree restorefavtree = unMarshallFavorites(f);
-                fileOpen = true;
-                favoritesTree =restorefavtree.restoreTree();
-                favoritesTree.setRootVisible(true);
-                favoritesTree.expandRow(0);
-                favoritesTree.setRootVisible(false);
-                this.setFavoritesTree(favoritesTree);
-            }catch (Exception ex){
-                System.out.println("FavoritesWindow.load " + ex);
-                ex.printStackTrace();
-                fileOpen = false;
-            }
+            //try {
+            SaveVueJTree restorefavtree = unMarshallFavorites(f);
+            fileOpen = true;
+            favoritesTree =restorefavtree.restoreTree();
+            favoritesTree.setRootVisible(true);
+            favoritesTree.expandRow(0);
+            favoritesTree.setRootVisible(false);
+            this.setFavoritesTree(favoritesTree);
+//             } catch (Exception t) {
+//                 Log.error("load " + this, t);
+//                 fileOpen = false;
+//             }
         } else {
             System.out.println("Favorites file not found: "+ f);
         }
@@ -249,6 +248,7 @@ public class FavoritesWindow extends JPanel implements ActionListener, ItemListe
             marshaller = new Marshaller(writer);
             if (DEBUG.IO) Log.debug("got marshaller " + marshaller);
             marshaller.setValidation(false); // SMF: added 2008-04-13 -- was getting exceptions
+            marshaller.setEncoding("US-ASCII");
             marshaller.setMarshalListener(new tufts.vue.action.ActionUtil.VueMarshalListener());
             marshaller.setMapping(ActionUtil.getDefaultMapping());
             if (DEBUG.IO) Log.debug("marshalling " + favoritesTree + "...");
