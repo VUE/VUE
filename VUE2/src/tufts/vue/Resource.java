@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.75 $ / $Date: 2008-05-30 22:41:34 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2008-06-11 18:06:48 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -310,9 +310,15 @@ public abstract class Resource implements Cloneable
         if (DEBUG.DATA) dumpKV("addProperty", desiredKey, value);
         return mProperties.addProperty(desiredKey, value);
     }
+
+    public String addPropertyIfContent(String desiredKey, Object value) {
+        if (DEBUG.DATA) dumpKV("addPropertyIf", desiredKey, value);
+        return mProperties.addIfContent(desiredKey, value);
+    }
     
-    protected Object getPropertyObject(String key) {
-        final Object value = mProperties.get(key);
+    
+    public Object getPropertyValue(String key) {
+        final Object value = mProperties.getValue(key);
         if (DEBUG.DATA && value != null) dumpKV("getProperty", key, value);
         return value;
     }
@@ -323,7 +329,7 @@ public abstract class Resource implements Cloneable
      * @return Object the value
      **/
     public String getProperty(String key) {
-        final Object value = getPropertyObject(key);
+        final Object value = getPropertyValue(key);
         return value == null ? null : value.toString();
     }
 
