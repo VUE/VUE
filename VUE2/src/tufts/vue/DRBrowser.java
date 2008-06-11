@@ -25,7 +25,41 @@ import javax.swing.border.*;
 /**
  * Digital Repository Browser
  *
- * @version $Revision: 1.67 $ / $Date: 2008-05-30 22:48:30 $ / $Author: sfraize $ 
+ * This single panel abstracts the collective handling of a list of
+ * selectable data sources, a search pane to be automatically
+ * displayed and updated when searchable data sources are selected,
+ * and a browse pane to be automatically populated and displayed when
+ * browseable data sources are selected.
+ *
+ * The impl provideds for either splitting these up as separate
+ * DockWindow's, or having them be combined into one panel as separate
+ * Widget's.  This is probably overkill -- at this point -- we're
+ * unlikely to split these back up into separate windows. That version
+ * of the code is long untestest and probably out of date, and most
+ * everything is now actually handled by the DataSourceViewer,
+ * including the production and display of search-result panes when a
+ * search is run.
+ *
+ * This code, along with DataSourceViewer, DataSourceList, and
+ * DataSourceListCellRenderer, are due for collective refactoring.  It
+ * would be best to do away with the JList / renderer impl, which adds
+ * much complexity, and doesn't get us much: we're unlikely to ever
+ * have so many data sources that the GUI performance gain of not
+ * having full-time swing components present for each data source line
+ * is worth it, and without having to go through a ListCellRenderer,
+ * we'd have much more flexibility in layout out, drawing and
+ * repainting the data sources (e.g., we could add spinners to loading
+ * data sources -- that's wouldn't possible now without adding a
+ * special timer thread to repaint the entire least each time the
+ * spinner wanted to draw the next image.)
+ *
+ * Also, it would be very handy to have a single interface or class
+ * that abstracts BOTH types of data-sources: OSID's (edu.tufts.vue.dsm.DataSource),
+ * and browseable VUE ("old-style") data sources (tufts.vue.DataSource).
+ * We'd probably need a delegating impl tho to handle that.
+ *
+ *
+ * @version $Revision: 1.68 $ / $Date: 2008-06-11 17:25:00 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
