@@ -178,15 +178,22 @@ public class ConnectivityMatrix {
         Iterator iterator = labels.iterator();
         while(iterator.hasNext()){
             String label = (String)iterator.next();
-            
-            int endIndex = Math.min(TRUNCATE_LENGTH,label.length());
-            if(endIndex != 0)
+
+            if(label == null)
             {
-              output += label.substring(0,endIndex)+"\t";
+                output += "\t";
             }
             else
             {
-              output += "\t";
+              int endIndex = Math.min(TRUNCATE_LENGTH,label.length());
+              if(endIndex != 0)
+              {
+                output += label.substring(0,endIndex)+"\t";
+              }
+              else
+              {
+                output += "\t";
+              }
             }
         }
         output += System.getProperty("line.separator");
