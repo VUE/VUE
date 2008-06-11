@@ -32,6 +32,8 @@ import java.io.*;
  */
 public class SaveVueJTree {
     public static final  org.osid.shared.Type favoritesType = new edu.tufts.vue.util.Type("edu.tufts","favorites","Asset");
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(SaveVueJTree.class);    
     
     private SaveNode saveTreeRoot;
     public SaveVueJTree() {
@@ -63,7 +65,7 @@ public class SaveVueJTree {
         return vueTree;
     }
     
-    public void restoreModel(DefaultTreeModel model, ResourceNode rootNode, SaveNode rootSNode){
+    private void restoreModel(DefaultTreeModel model, ResourceNode rootNode, SaveNode rootSNode){
         int FAVORITES = Resource.FAVORITES;
         Vector v = rootSNode.getChildren();
         if (v != null){
@@ -107,13 +109,15 @@ public class SaveVueJTree {
                 }
                 
                 try {
+                    // todo: do we still need this?  What does this code do?
+                    // We create an asset, but do nothing with it -- is there a side effect here?
                     if(DataSourceViewer.getDefualtFavoritesRepository() != null){
                         System.out.println("Restoring JTree, Default Favorites: "+DataSourceViewer.getDefualtFavoritesRepository().getDisplayName());
                         org.osid.repository.Repository repository = DataSourceViewer.getDefualtFavoritesRepository();
                         org.osid.repository.Asset asset = repository.createAsset(nextSNode.getResource().getTitle(),nextSNode.getResource().getToolTipText(),favoritesType);
                     }
                 }catch(Throwable t) {
-                    t.printStackTrace();
+                    Log.error("restoreModel", t);
                 }
             }
         }
