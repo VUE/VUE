@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.74 $ / $Date: 2008-05-27 23:49:07 $ / $Author: sfraize $
+ * @version $Revision: 1.75 $ / $Date: 2008-06-11 17:41:11 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -251,8 +251,13 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 // Files that are the root of a filesystem, such "C:\" will have an empty name
                 // (Presumably also true for "/")
                 setTitle(file.toString()); 
-            } else
-                setTitle(name); 
+            } else {
+                if (Util.isMacPlatform()) {
+                    // colons in file names on Mac OS X display as '/' in the Finder
+                    name = name.replace(':', '/');
+                }
+                setTitle(name);
+            }
         }
         
         if (type == FILE_DIRECTORY) {
@@ -525,7 +530,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         if (isPackaged()) {
             
-            setDataFile((File) getPropertyObject(PACKAGE_FILE), FILE_UNKNOWN);
+            setDataFile((File) getPropertyValue(PACKAGE_FILE), FILE_UNKNOWN);
             if (mFile != null)
                 Log.warn("mFile != null" + this, new IllegalStateException(toString()));
             
@@ -1101,7 +1106,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         File archive = null;
 
         try {
-            archive = (File) getPropertyObject(PACKAGE_ARCHIVE);
+            archive = (File) getPropertyValue(PACKAGE_ARCHIVE);
         } catch (Throwable t) {
             Log.warn(this, t);
         }
@@ -1288,7 +1293,8 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
         
         //if (DEBUG.DATA || (DEBUG.RESOURCE && DEBUG.META)) dumpField("setTitle", title);
-        mTitle = title;
+        mTitle = org.apache.commons.lang.StringEscapeUtils.unescapeHtml(title);
+        
         if (DEBUG.RESOURCE) {
             dumpField("setTitle", title);
             //if ("A:\\".equals(title)) Util.printStackTrace(this.toString());
@@ -1661,7 +1667,6 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         // TODO: clean this up / cache more of the result / can we eliminate this fedora hack
         // yet (it DRAMATICALLY slows down obtaining fedora search results)
 
-        //final String superType = super.determineDataType();
         final String spec = getSpec();
 
         if (spec.endsWith("=jpeg")) {
@@ -1680,46 +1685,48 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 return "html";
             }
             else {
+
+                // if previously determined (e.g., was persisted), don't bother to look-up again
+                String type = getProperty(CONTENT_TYPE); 
             
-                try {
-                    final URL url = (mURL != null ? mURL : new URL(getSpec()));
-                
-                    // TODO: checking spec, which defaults to the "browse" URL, will not get
-                    // the real content-type in cases (such as fedora!) where the browse
-                    // url is always an HTML page that includes the image with some descrition text.
-                    //Log.info("opening URL " + url);
-                
-                    //Util.printStackTrace("polling " + url);
-                
-                    final String type = url.openConnection().getHeaderField("Content-type");
-                    if (DEBUG.Enabled) {
-                        out("got contentType " + url + " [" + type + "]");
-                        //Util.printStackTrace("GOT CONTENT TYPE");
-                    }
-                    if (type != null && type.length() > 0)
-                        setProperty(CONTENT_TYPE, type);
-                    
-                    if (type != null && type.contains("/")) {
-                        mimeType = type.split("/")[1]; // returning the second part of mime-type
-                        if (mimeType.indexOf(';') > 0) {
-                            // remove charset - e.g.: "text/html;charset=UTF-8"
-                            mimeType = mimeType.substring(0, mimeType.indexOf(';'));
+                if (type == null || type.length() < 1) {
+
+                    try {
+                        final URL url = (mURL != null ? mURL : new URL(getSpec()));
+                        
+                        // TODO: checking spec, which defaults to the "browse" URL, will not get
+                        // the real content-type in cases (such as fedora!) where the browse
+                        // url is always an HTML page that includes the image with some descrition text.
+                        //Log.info("opening URL " + url);
+                        
+                        if (DEBUG.Enabled) out("polling actual HTTP server for content-type: " + url);
+                        
+                        type = url.openConnection().getHeaderField("Content-type");
+                        if (DEBUG.Enabled) {
+                            out("got contentType " + url + " [" + type + "]");
+                            //Util.printStackTrace("GOT CONTENT TYPE");
                         }
-                        //return "html".equals(mimeType) ? EXTENSION_HTTP : mimeType;
-                        return mimeType;
-                    } else {
-                        //return superType;
+                        if (type != null && type.length() > 0)
+                            setProperty(CONTENT_TYPE, type);
+                        
+                    } catch (Throwable t) {
+                        Log.error("content-type-fetch: " + this, t);
                     }
-                } catch (Throwable t) {
-                    t.printStackTrace();
-                    //return superType;
+                }
+                
+                if (type != null && type.contains("/")) {
+                    mimeType = type.split("/")[1]; // returning the second part of mime-type
+                    if (mimeType.indexOf(';') > 0) {
+                        // remove charset - e.g.: "text/html;charset=UTF-8"
+                        mimeType = mimeType.substring(0, mimeType.indexOf(';'));
+                    }
+                    //return "html".equals(mimeType) ? EXTENSION_HTTP : mimeType;
+                    return mimeType;
                 }
                 
             }
             
         }
-//         else
-//             return superType;
 
         return super.determineDataType();
     }
