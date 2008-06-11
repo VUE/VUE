@@ -42,7 +42,7 @@ import javax.swing.JComponent;
  * PropertyChangeEvents (e.g., expand/collapse, hide/show).
  
  *
- * @version $Revision: 1.18 $ / $Date: 2008-05-21 03:03:59 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2008-06-11 18:10:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Widget extends javax.swing.JPanel
@@ -193,12 +193,20 @@ public class Widget extends javax.swing.JPanel
   
     // instance methods for when used as a subclassed wrapper of JPanel:
     
-    /** Create a new empty Widget JPanel, with a default layout of BorderLayout */
-    public Widget(String title) {
+    /** Create a new empty Widget JPanel, with a default layout of BorderLayout, with the given content in center */
+    public Widget(String title, JComponent content) {
         super(new java.awt.BorderLayout());
         setName(title);
+        if (content != null)
+            add(content);
         if (DEBUG.BOXES) setBorder(new javax.swing.border.LineBorder(java.awt.Color.blue, 4));
+    }
+
+    /** Create a new empty Widget JPanel, with a default layout of BorderLayout */
+    public Widget(String title) {
+        this(title, null);
     }        
+    
     
     public Widget(String title, javax.swing.JButton blah) {
         super(new java.awt.BorderLayout());
