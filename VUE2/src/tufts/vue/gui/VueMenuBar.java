@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.107 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $
+ * @version $Revision: 1.108 $ / $Date: 2008-06-11 18:10:12 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -236,6 +236,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
             public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
+                if (DEBUG.Enabled) Log.debug("DataSourceListener: data sources changed");
            
                 int count = 0;
                 publishMenu.removeAll();
