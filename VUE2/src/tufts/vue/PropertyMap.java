@@ -17,11 +17,12 @@
 package tufts.vue;
 
 import java.util.*;
+import java.lang.ref.*;
 
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.24 $ / $Date: 2008-05-27 23:46:07 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2008-06-11 18:05:48 $ / $Author: sfraize $
  */
 
 public class PropertyMap extends java.util.HashMap<String,Object>
@@ -45,9 +46,12 @@ public class PropertyMap extends java.util.HashMap<String,Object>
     @Override
     public synchronized Object put(String k, Object v) {
 
-        // TODO: we want to *preserve* case for display, but not differentiate based on it...
-        //if (k instanceof String) k = ((String)k).toLowerCase();
+            // TODO: we want to *preserve* case for display, but not differentiate based on it...
+            //if (k instanceof String) k = ((String)k).toLowerCase();
 
+            //            if (v instanceof String)
+            //v = org.apache.commons.lang.StringEscapeUtils.unescapeHtml((String)v);
+            
             final Object prior = super.put(k, v == null ? NULL_MASK : v);
 
         // todo: this a bit overkill: could have a higher level
@@ -63,6 +67,24 @@ public class PropertyMap extends java.util.HashMap<String,Object>
         return prior;
 
     }
+
+    private static boolean hasContent(Object v) {
+
+        if (v == null)
+            return false;
+        else if (v.getClass() == String.class && v.toString().length() == 0)
+            return false;
+        else if (v instanceof Collection && ((Collection)v).size() == 0)
+            return false;
+        else
+            return true;
+
+    }
+
+    private Object putIfContent(String k, Object v) {
+        return hasContent(v) ? put(k, v) : null;
+    }
+    
 
     @Override
     public synchronized Object remove(Object key) {
@@ -80,8 +102,23 @@ public class PropertyMap extends java.util.HashMap<String,Object>
     }
     
     public synchronized Object get(Object k) {
-        return super.get(k);
+            return super.get(k);
+        }
+    
+    /** @return the property value for the given key, dereferened if an instanceof java.lang.ref.Reference is found */
+    public Object getValue(Object k) {
+
+        Object o = get(k);
+            
+        if (o instanceof Reference) {
+            o = ((Reference)o).get();
+            if (DEBUG.Enabled && o == null)
+                Log.debug("value was GC'd for key: " + k);
+        }
+        
+        return o;
     }
+
 
     public String getProperty(Object key) {
         Object v = get(key);
@@ -106,6 +143,15 @@ public class PropertyMap extends java.util.HashMap<String,Object>
         put(key, value);
         return key;
     }
+
+    public synchronized String addIfContent(final String desiredKey, Object value) {
+
+            if (hasContent(value))
+                return addProperty(desiredKey, value);
+            else
+                return null;
+    }
+
     
 
     /** No listeners will be updated until releaseChanges is called.  Multiple
