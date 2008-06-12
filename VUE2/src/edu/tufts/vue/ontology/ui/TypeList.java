@@ -242,10 +242,10 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                          cssURL = cssURL.substring(ps+1);
                      }
                      
-                     int fs = cssURL.lastIndexOf(System.getProperty("file.separator"));
+                     int fs = cssURL.lastIndexOf("/");
                      
                      if(fs!=-1)
-                         image = cssURL.substring(0,fs) + System.getProperty("file.separator") + image;
+                         image = cssURL.substring(0,fs) + "/" + image;
                      
                      if(DEBUG_LOCAL)
                      {
@@ -468,7 +468,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                   
                   if(icon == null && cssURL != null && !(s.getAttribute("background-image-relative") == null))
                   {
-                      icon = cssURL.substring(0,cssURL.lastIndexOf(System.getProperty("file.separator")));
+                      icon = cssURL.substring(0,cssURL.lastIndexOf("/"));
                       icon = icon.substring(icon.indexOf(":")+1,icon.length());
                       icon = icon + System.getProperty("file.separator") + s.getAttribute("background-image-relative");
                                     
