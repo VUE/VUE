@@ -73,8 +73,7 @@ public class TypeList extends JList implements MouseListener,ActionListener {
     public static int count = 0;
     
     public static final boolean DEBUG_LOCAL = false;
-    
-    //private static Ontology fedoraOntology;
+   
     
     //private DefaultListModel mDataModel;
     private ListModel mDataModel;
