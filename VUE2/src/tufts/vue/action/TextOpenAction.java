@@ -35,8 +35,10 @@ import tufts.vue.*;
  
 public class TextOpenAction  extends VueAction {
     
+    private static boolean DEBUG_LOCAL = false;
+    
     //todo: add constants for row length, starting position, y gaps and x gaps
-    //also make these all be read from properties file for ease of modification
+    //also make these all be read from VueResources.properties file for ease of modification
     //after compilation
     public static final int NODE_LABEL_TRUNCATE_LENGTH = 8;
     public static final int CIRCLE_LAYOUT = 0;
@@ -46,6 +48,9 @@ public class TextOpenAction  extends VueAction {
     public static int layout = STAGGERED_LAYOUT;
     public static final int MAP_SIZE = 500;
     public static final int MAX_SIZE =5000;
+    
+    public static final boolean ZOTERO_PROTOTYPE = false;
+    
     public TextOpenAction(String label) {
         super(label, null, ":general/Open");
     }
@@ -97,7 +102,7 @@ public class TextOpenAction  extends VueAction {
         if(mapName.lastIndexOf(".")>0)
             mapName = mapName.substring(0,mapName.lastIndexOf("."));
         if(mapName.length() == 0)
-            mapName = "RDF Import";
+            mapName = "Text Import";
         LWMap map = new LWMap(mapName);
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
@@ -110,11 +115,44 @@ public class TextOpenAction  extends VueAction {
         int toggle = 0;
         
         while((line=reader.readLine()) != null && count <MAX_SIZE) {
-            System.out.println(line+" words: "+line.split(",").length);
+            
+            
+            
+            if(DEBUG_LOCAL)
+            {    
+              System.out.println(line+" words: "+line.split(",").length);
+            }
+            
+            if(ZOTERO_PROTOTYPE)
+            {
+              String[] parts = line.split("\"");
+              //todo: sanity check on number of parts
+              line = parts[0];
+            }    
+            
             String[] words = line.split(",");
             LWNode node1;
-            LWNode node2;
+            LWNode node2 = null;
             
+            if(ZOTERO_PROTOTYPE)
+            {   
+                node1 = new LWNode(words[1]);
+                try
+                { 
+                  // todo: can throw its own stack trace
+                  // so, avoid for non standard (rdf, zotero notes etc.) uri;
+                  Resource resource = map.getResourceFactory().get(words[2]);
+                  node1.setResource(resource);
+                }
+                catch(Exception e)
+                {
+                  System.out.println("Exception setting resource: " + e);
+                }
+                nodeMap.put(words[0],node1);
+                repeatMap.put(words[0], new Integer(1));
+                map.add(node1);
+            }
+            else
             if(words.length == 4) {
                 if(!nodeMap.containsKey(words[0])) {
                     node1 = new LWNode(words[0]);
@@ -179,16 +217,25 @@ public class TextOpenAction  extends VueAction {
             }
             
             
-            
-            System.out.println("COUNT: "+count+" Node1 :"+ node1.getLabel()+" Node2 : "+node2.getLabel());
-            
-            String linkKey = node1.getLabel()+node2.getLabel();
-            if(!linkMap.containsKey(linkKey)) {
+            if(ZOTERO_PROTOTYPE)
+            {
                 
-                LWLink link = new LWLink(node1,node2);
-                linkMap.put(linkKey,link);
+            }
+            else
+            {
                 
-                map.add(link);
+                
+              System.out.println("COUNT: "+count+" Node1 :"+ node1.getLabel()+" Node2 : "+
+                      (node2.getLabel()));
+            
+              String linkKey = node1.getLabel()+node2.getLabel();
+              if(!linkMap.containsKey(linkKey)) {
+                
+                  LWLink link = new LWLink(node1,node2);
+                  linkMap.put(linkKey,link);
+                
+                  map.add(link);
+              }
             }
             
             if(layout == STAGGERED_LAYOUT)
@@ -215,7 +262,8 @@ public class TextOpenAction  extends VueAction {
                 }
                 
                 node1.setLocation(x,y);
-                node2.setLocation(x+150,y);
+                if(node2 != null)
+                  node2.setLocation(x+150,y);
             }
             if(layout == CIRCLE_LAYOUT ) {
                 double angle = Math.random()*Math.PI*4;
