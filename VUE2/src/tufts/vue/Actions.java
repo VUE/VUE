@@ -1397,10 +1397,16 @@ public class Actions implements VueConstants
             		//System.out.println("2temp #s : " +originOffset + " " + tempZoom);
             		VUE.getActiveViewer().loadFocal(slide);
             		
-            		 // update inspectors (optional -- may not actually want to do this, but
-                    // currently required if you want up/down arrows to subsequently navigate
-                    // the pathway)
-            		VUE.setActive(LWSlide.class, this, slide);
+                        // 2008-06-17 SMF: there is currently no "active slide" that is
+                        // attended to, so this has never done anything.  Up/down arrows
+                        // appear to work fine right now, so just leaving this out for now.
+                        // If we find a problem, what we'd need to play with is setting
+                        // the active LWComponent.class, not LWSlide.class
+
+                        // update inspectors (optional -- may not actually want to do this, but
+                        // currently required if you want up/down arrows to subsequently navigate
+                        // the pathway)
+            		//VUE.setActive(LWSlide.class, this, slide);
             	}
                 
             
