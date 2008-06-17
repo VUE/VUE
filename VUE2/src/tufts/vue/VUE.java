@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.561 $ / $Date: 2008-06-17 19:18:13 $ / $Author: sfraize $ 
+ * @version $Revision: 1.562 $ / $Date: 2008-06-17 19:29:50 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -747,7 +747,7 @@ public class VUE
             try {
                 installMacOSXApplicationEventHandlers();
             } catch (Throwable t) {
-                Log.error("unable to install handler for Finder double-click to open .vue files", t);
+                Log.error("unable to install handler for Finder double-click to open .vue files; /System/Library/Java may be missing or not in the CLASSPATH", t);
             }
         }
             
