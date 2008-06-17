@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.554 $ / $Date: 2008-06-04 16:40:59 $ / $Author: sfraize $ 
+ * @version $Revision: 1.555 $ / $Date: 2008-06-17 17:35:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1556,7 +1556,32 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 		       "ctrl HOME", "scrollHome",
 		        "ctrl END", "scrollEnd"});
     */
+
+    // moved to GUI
+    public static void dumpActionMap(JComponent c) {
+        if (c == null)
+            return;
+        ActionMap am = c.getActionMap();
+        Object[] amk = am.allKeys();
+        if (amk == null)
+            return;
+        for (Object k : amk) {
+            Log.debug(String.format("%s action map key: %-17s -> %s", GUI.name(c), Util.tags(k), Util.tags(am.get(k))));
+        }
+        
+    }
+    
     public void selectionChanged(LWSelection s) {
+
+        // todo: is overkill to do this for every open viewer (there are two for each map
+        // opened) every time the selection changes
+
+        if (DEBUG.Enabled && VUE.getActiveViewer() == this) {
+            dumpActionMap(mapScrollPane);
+            dumpActionMap(this);
+            dumpActionMap(tufts.vue.gui.VueMenuBar.RootMenuBar);
+        }
+
         //System.out.println("MapViewer: selectionChanged");
         activeTool.handleSelectionChange(s);
         if (s.isEmpty() && inScrollPane)
@@ -6162,8 +6187,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 draggedSelectorBox = null;
                 lastPaintedSelectorBox = null;
             }
-            
-            
+
             
             Rectangle2D.Float repaintRegion = new Rectangle2D.Float();
             
@@ -6177,7 +6201,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 scrollToMouse(e);
                 
             } else if (dragComponent != null) {
-                
+
+                final int dx = dragStart.x - e.getX();
+                final int dy = dragStart.y - e.getY();
+
+                if (Math.abs(dx) < 3 && Math.abs(dy) < 3) {
+                    if (DEBUG.MOUSE) out("delaying drag start with dx="+dx + " dy="+dy);
+                    return;
+                }
+            
                 // todo opt: do all this in dragStart
                 //-------------------------------------------------------
                 // Compute repaint region based on what's being dragged
