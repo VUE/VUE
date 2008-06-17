@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.555 $ / $Date: 2008-06-17 17:35:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.556 $ / $Date: 2008-06-17 18:31:39 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1358,6 +1358,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         if (fitToFocal) {
             fitToFocal(animate);
         }
+
+        if (VueSelection != null)
+            VueSelection.setSelectionSourceFocal(focal);
         
         if (focal == null)
             repaint();
@@ -1576,7 +1579,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // todo: is overkill to do this for every open viewer (there are two for each map
         // opened) every time the selection changes
 
-        if (DEBUG.Enabled && VUE.getActiveViewer() == this) {
+        if (DEBUG.WORK && VUE.getActiveViewer() == this) {
             dumpActionMap(mapScrollPane);
             dumpActionMap(this);
             dumpActionMap(tufts.vue.gui.VueMenuBar.RootMenuBar);
@@ -2832,12 +2835,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final LWSelection s = VueSelection;
 
         if (s == null || s.isEmpty() || !activeTool.supportsResizeControls() || isAnimating) {
+            if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL on SELECTION; sel=" + s);
             resizeControl.active = false;
         } else {
-            final LWComponent remoteFocal = s.getFocal();
+            final LWComponent remoteFocal = s.getSelectionSourceFocal();
             if (remoteFocal == null) {
-                if (DEBUG.Enabled) out("null selection focal (claims not to be tied to this viewer)");
+                if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL; null selection focal (claims not to be tied to this viewer)");
             } else if (getFocal() != remoteFocal && remoteFocal.isMapVirtual()) {
+                if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL; MAP VIRTUAL REMOVE FOCAL;"
+                                       + "\n\tselection focal: " + remoteFocal
+                                       + "\n\t   viewer focal: " + getFocal());
                 resizeControl.active = false;
             } else {
                 drawSelection(dc, s);
@@ -3962,42 +3969,42 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     protected void selectionAdd(LWComponent c) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.add(c);
     }
     protected void selectionAdd(java.util.Iterator i) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.add(i);
     }
     protected void selectionRemove(LWComponent c) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.remove(c);
     }
     protected void selectionSet(LWComponent c) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.setTo(c);
     }
     protected void selectionSet(java.util.Collection bag) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.setTo(bag);
     }
     protected void selectionSet(java.util.Iterator i) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.setTo(i);
     }
     protected void selectionClear() {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.clear();
     }
     protected void selectionToggle(LWComponent c) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         if (c.isSelected())
             selectionRemove(c);
         else
@@ -4006,7 +4013,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     //protected void selectionToggle(java.util.Iterator i) {
     protected void selectionToggle(Iterable<LWComponent> i) {
         VueSelection.setSource(this);
-        VueSelection.setFocal(getFocal());
+        VueSelection.setSelectionSourceFocal(getFocal());
         VueSelection.toggle(i);
     }
     

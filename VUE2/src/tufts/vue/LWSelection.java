@@ -28,7 +28,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.84 $ / $Date: 2008-04-21 08:19:29 $ / $Author: sfraize $
+ * @version $Revision: 1.85 $ / $Date: 2008-06-17 18:31:39 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -70,10 +70,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public void setSource(Object src) {
         this.source = src;
     }
-    public void setFocal(LWComponent focal) {
+    public void setSelectionSourceFocal(LWComponent focal) {
         this.focal = focal;
     }
-    public LWComponent getFocal() {
+    public LWComponent getSelectionSourceFocal() {
         return focal;
     }
 
@@ -266,8 +266,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return;
         clearSilent();
         add(c);
-        if (VUE.getResourceSelection().get() != c.getResource())
-            VUE.getResourceSelection().setTo(null, this);
+        if (true) { // this code on the way out w/new ActiveInstance of Resource.class
+            if (VUE.getResourceSelection().get() != c.getResource())
+                VUE.getResourceSelection().setTo(null, this);
+        }
     }
     
     public void setTo(Collection bag)
