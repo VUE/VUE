@@ -106,6 +106,7 @@ public class TextOpenAction  extends VueAction {
         LWMap map = new LWMap(mapName);
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
+        String links = null; // for Zotero prototype
         reader.readLine(); // skip the first line
         int count = 0;
         
@@ -113,6 +114,8 @@ public class TextOpenAction  extends VueAction {
         float y = 20;
         float x = 0;
         int toggle = 0;
+        
+        List<String[]> linksList = new ArrayList<String[]>(); // also for Zotero Prototype
         
         while((line=reader.readLine()) != null && count <MAX_SIZE) {
             
@@ -128,6 +131,17 @@ public class TextOpenAction  extends VueAction {
               String[] parts = line.split("\"");
               //todo: sanity check on number of parts
               line = parts[0];
+              
+              if(parts.length > 1)
+                links = parts[1];
+              
+              if(DEBUG_LOCAL)
+              {    
+                if(links!=null)
+                {    
+                  System.out.println("links -- " + links);
+                }
+              }
             }    
             
             String[] words = line.split(",");
@@ -148,8 +162,44 @@ public class TextOpenAction  extends VueAction {
                 {
                   System.out.println("Exception setting resource: " + e);
                 }
+                
+                String id = words[0];
+                
+                if(links != null)
+                {
+                  String[] linksTo = links.split(",");
+                
+                  String[] arr = new String[linksTo.length+1];
+                
+                  arr[0] = id;
+                
+                  System.arraycopy(linksTo,0,arr,1,linksTo.length);
+              
+                  linksList.add(arr);
+                }
+                
+                // this makes the id editable.. 
+                // have to be careful about maintaining id for updates
+                // todo: put in content info instead.
+                edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                vme.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+                String[] obj = {"http://vue.tufts.edu/custom.rdfs#z_id",id};   
+                vme.setObject(obj);
+                node1.getMetadataList().getMetadata().add(vme);
+                
+                
+                // just for debug purposes -- many more references than I expected
+                // and they are not bidirectional.. this seems to not just be
+                // the "related" relation from zotero, which is probably what we want?
+                //edu.tufts.vue.metadata.VueMetadataElement vme2 = new edu.tufts.vue.metadata.VueMetadataElement();
+                //vme2.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+                //String[] obj2 = {"http://vue.tufts.edu/custom.rdfs#z_links",links};   
+                //vme2.setObject(obj2);
+                //if(links!=null)
+                //node1.getMetadataList().getMetadata().add(vme2);
+                
                 nodeMap.put(words[0],node1);
-                repeatMap.put(words[0], new Integer(1));
+                //repeatMap.put(words[0], new Integer(1));
                 map.add(node1);
             }
             else
@@ -219,7 +269,9 @@ public class TextOpenAction  extends VueAction {
             
             if(ZOTERO_PROTOTYPE)
             {
-                
+                // actually just avoiding else clause code
+                // zotero links are calculated after loop
+                // using linkslist and nodemap
             }
             else
             {
@@ -288,6 +340,31 @@ public class TextOpenAction  extends VueAction {
             
             count++;
         }
+        
+        if(ZOTERO_PROTOTYPE)
+        {
+            Iterator<String[]> nodes = linksList.iterator();
+            
+            while(nodes.hasNext())
+            {
+                String[] arr = nodes.next();
+                LWNode node = nodeMap.get(arr[0]);
+                
+                for(int i=1;i<arr.length;i++)
+                {
+                  String linkKey = arr[0] + "|" +  arr[i];
+                  if(!linkMap.containsKey(linkKey)) 
+                  {
+                    LWNode node2 = nodeMap.get(arr[i]);
+                    LWLink link = new LWLink(node,node2);
+                    linkMap.put(linkKey,link);
+                
+                    map.add(link);
+                  }
+                }
+            }
+        }
+        
         return map;
     }
      
