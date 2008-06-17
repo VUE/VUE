@@ -364,14 +364,14 @@ public class NodeTool extends VueTool
         
 
                 
-        /** @return a new node with the given label initialized to internal VUE defaults -- ignore tool states */
-        public static LWNode createNode(String label)
-        {
-            return createDefaultNode(label);
-        }
+//         /** @return a new node with the given label initialized to internal VUE defaults -- ignore tool states */
+//         public static LWNode createNode(String label)
+//         {
+//             return createDefaultNode(label);
+//         }
         
         /** @return a new node initialized to internal VUE defaults -- ignore tool states */
-        private static LWNode createDefaultNode(String label) {
+        public static LWNode createDefaultNode(String label) {
             return new LWNode(label);
         }
            
