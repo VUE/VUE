@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.560 $ / $Date: 2008-06-04 16:47:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.561 $ / $Date: 2008-06-17 19:18:13 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -743,8 +743,13 @@ public class VUE
         if (host == null) host = System.getenv("USERDOMAIN");
         Log.info("User/host: " + getSystemProperty("user.name") + "@" + host);
         
-        if (VueUtil.isMacPlatform())
-            installMacOSXApplicationEventHandlers();
+        if (VueUtil.isMacPlatform()) {
+            try {
+                installMacOSXApplicationEventHandlers();
+            } catch (Throwable t) {
+                Log.error("unable to install handler for Finder double-click to open .vue files", t);
+            }
+        }
             
         for (int i = 0; i < args.length; i++) {
             if (args[i] == null || args[i].length() < 1 || args[i].charAt(0) == '-')
@@ -1081,6 +1086,13 @@ public class VUE
 
         VUE.Log.debug("INSTALLING MAC OSX APPLICATION HANDLER");
 
+        File test = new File("/System/Library/Java/com/apple/cocoa/application/NSWindow.class");
+
+        if (test.exists()) 
+            Log.debug("cocoa-java bridge appears present; found " + test);
+        else
+            Log.error("cocoa-java bridge appears to be missing; couldn't find " + test);
+        
         tufts.macosx.MacOSX.registerApplicationListener(new tufts.macosx.MacOSX.ApplicationListener() {
                 public boolean handleOpenFile(String filename) {
                     VUE.Log.info("OSX OPEN FILE " + filename);
