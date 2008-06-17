@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.76 $ / $Date: 2008-06-11 18:06:48 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2008-06-17 17:44:56 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -604,6 +604,8 @@ public abstract class Resource implements Cloneable
         } else {
             ext = ext.toLowerCase();
             if ("asp".equals(ext))
+                ext = EXTENSION_HTTP;
+            else if ("php".equals(ext))
                 ext = EXTENSION_HTTP;
             else if ("readme".equals(ext) || "msg".equals(ext))
                 ext = "txt";
