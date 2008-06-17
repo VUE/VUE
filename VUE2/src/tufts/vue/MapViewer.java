@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.556 $ / $Date: 2008-06-17 18:31:39 $ / $Author: sfraize $ 
+ * @version $Revision: 1.557 $ / $Date: 2008-06-17 18:34:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2842,7 +2842,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (remoteFocal == null) {
                 if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL; null selection focal (claims not to be tied to this viewer)");
             } else if (getFocal() != remoteFocal && remoteFocal.isMapVirtual()) {
-                if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL; MAP VIRTUAL REMOVE FOCAL;"
+                if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL; SELECTION & VIEWER REPORT DIFFERENT FOCALS w/MapVirtual selection focal;"
                                        + "\n\tselection focal: " + remoteFocal
                                        + "\n\t   viewer focal: " + getFocal());
                 resizeControl.active = false;
