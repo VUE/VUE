@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.97 $ / $Date: 2008-05-20 21:16:42 $ / $Author: sfraize $  
+ * @version $Revision: 1.98 $ / $Date: 2008-06-17 17:43:29 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -867,6 +867,8 @@ class MapDropTarget
             }
         }
 
+        // TODO: foundURL may need to be decoded once to see query (e.g., 2008 Yahoo image search lightbox)
+
         if (foundURL != null && foundURL.getQuery() != null && !drop.isLinkAction) {
             // if this URL is from a common search engine, we can find
             // the original source for the image instead of the search
@@ -1081,7 +1083,7 @@ class MapDropTarget
         if (DEBUG.DND) out("createNodeAndResource " + resourceSpec + " " + properties + " where=" + where);
 
         LWComponent c = createNode(drop, resource, properties, where, true);
-        EditorManager.targetAndApplyCurrentProperties(c);
+        //EditorManager.targetAndApplyCurrentProperties(c);
         // TODO: get this so that one call is triggering the async stuff for both
         // meta-data and image loading.  Maybe the resource can will load the image...,
         // yeah, probably.  Tho we also need activate separate animation threads that
@@ -1190,7 +1192,7 @@ class MapDropTarget
                 // don't wrap image if we're about to drop it into something else
                 node = lwImage;
             } else {
-                node = NodeModeTool.createNode(shortName);
+                node = NodeModeTool.createNewNode(shortName);
                 if (lwImage != null)
                     ((LWNode)node).addChild(lwImage);
                 node.setResource(resource);
@@ -1397,7 +1399,7 @@ class MapDropTarget
             ) {
 
 
-            imageURL = VueUtil.decodeURL(imageURL);
+            imageURL = Util.decodeURL(imageURL);
 
             //if (imageURL.indexOf('%') >= 0)
             //VueUtil.decodeURL(imageURL); // double-encoded (Ask Jeeves) -- need get query data AGAIN and get "imgsrc"
