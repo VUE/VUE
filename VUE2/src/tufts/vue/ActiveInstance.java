@@ -41,11 +41,9 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.20 $ / $Date: 2008-06-11 17:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2008-06-18 02:39:13 $ / $Author: sfraize $
  */
 
-// ResourceSelection could be re-implemented using this, as long
-// as we stay with only a singly selected resource object at a time.
 public class ActiveInstance<T>
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(ActiveInstance.class);
@@ -100,6 +98,19 @@ public class ActiveInstance<T>
         getHandler(clazz).setActive(source, item);
     }
 
+    public static ActiveInstance getHandler(Class type) {
+        ActiveInstance handler = null;
+        lock(null, "getHandler");
+        synchronized (AllActiveHandlers) {
+            handler = AllActiveHandlers.get(type);
+            if (handler == null)
+                handler = new ActiveInstance(type);
+        }
+        unlock(null, "getHandler");
+        return handler;
+    }
+
+
 //     public static void get(Class clazz) {
 //         getHandler(clazz).getActive();
 //     }
@@ -128,18 +139,6 @@ public class ActiveInstance<T>
         }
         unlock(clazz, "INIT");
         if (DEBUG.INIT || DEBUG.EVENTS) Log.debug("created " + this);
-    }
-
-    public static ActiveInstance getHandler(Class type) {
-        ActiveInstance handler = null;
-        lock(null, "getHandler");
-        synchronized (AllActiveHandlers) {
-            handler = AllActiveHandlers.get(type);
-            if (handler == null)
-                handler = new ActiveInstance(type);
-        }
-        unlock(null, "getHandler");
-        return handler;
     }
 
     public synchronized void refreshListeners() {
@@ -365,8 +364,7 @@ public class ActiveInstance<T>
     }
     
     private static void outf(String fmt, Object... args) {
-        for (int x = 0; x < depth; x++) System.err.print("    ");
-        //for (int x = 0; x < depth; x++) System.err.print("----");
+        for (int x = 0; x < depth; x++) System.out.print("    ");
         System.out.format(fmt, args);
         //Log.debug(String.format(fmt, args));
     }

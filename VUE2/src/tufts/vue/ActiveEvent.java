@@ -18,7 +18,7 @@ package tufts.vue;
  * @see tufts.vue.ActiveChangeSupport
  * @see tufts.vue.ActiveEvent
  * @author Scott Fraize
- * @version $Revision: 1.4 $ / $Date: 2008-05-28 18:21:11 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-06-18 02:38:04 $ / $Author: sfraize $
  */
 public class ActiveEvent<T> {
     public final Class<T> type;
@@ -33,23 +33,23 @@ public class ActiveEvent<T> {
         this.active = newActive;
     }
 
-    public boolean hasSource(Object o) {
-        if (source == o)
-            return true;
-        else if (source instanceof ActiveEvent)
-            return ((ActiveEvent)source).hasSource(o);
-        else
-            return false;
-    }
+//     public boolean hasSource(Object o) {
+//         if (source == o)
+//             return true;
+//         else if (source instanceof ActiveEvent)
+//             return ((ActiveEvent)source).hasSource(o);
+//         else
+//             return false;
+//     }
 
-    public boolean hasSourceOfType(Class clazz) {
-        if (clazz.isInstance(source))
-            return true;
-        else if (source instanceof ActiveEvent)
-            return ((ActiveEvent)source).hasSourceOfType(clazz);
-        else
-            return false;
-    }
+//     public boolean hasSourceOfType(Class clazz) {
+//         if (clazz.isInstance(source))
+//             return true;
+//         else if (source instanceof ActiveEvent)
+//             return ((ActiveEvent)source).hasSourceOfType(clazz);
+//         else
+//             return false;
+//     }
 
     /**
 
