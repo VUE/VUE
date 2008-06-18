@@ -412,7 +412,7 @@ public class MapViewport extends JViewport
         
         setCanvasPosition(location, allowGrowth);
         revalidate();
-        viewer.fireViewerEvent(MapViewerEvent.PAN);
+        viewer.fireViewerEvent(MapViewer.Event.PAN);
     }
     
     
