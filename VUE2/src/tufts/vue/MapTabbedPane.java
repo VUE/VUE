@@ -30,7 +30,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.47 $ / $Date: 2008-04-28 04:05:56 $ / $Author: sfraize $ 
+ * @version $Revision: 1.48 $ / $Date: 2008-06-18 02:32:58 $ / $Author: sfraize $ 
  */
 
 // todo: need to figure out how to have the active map grab
@@ -64,6 +64,8 @@ public class MapTabbedPane extends JTabbedPane
         //setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT); // appears to have no effect in Aqua on Mac
         setPreferredSize(new Dimension(300,400));
         //VUE.addActiveListener(LWMap.class, this);
+
+        EventHandler.addListener(MapViewer.Event.class, this);        
 
         /*//getModel().
         addChangeListener(new javax.swing.event.ChangeListener() {
@@ -252,18 +254,19 @@ public class MapTabbedPane extends JTabbedPane
     }
     
     static final int TitleChangeMask =
-        MapViewerEvent.DISPLAYED |
-        MapViewerEvent.FOCUSED |
-        MapViewerEvent.ZOOM;        // title includes zoom
+        MapViewer.Event.DISPLAYED |
+        MapViewer.Event.FOCUSED |
+        MapViewer.Event.ZOOM;        // title includes zoom
 
     private static MapTabbedPane lastFocusPane;
     private static int lastFocusIndex = -1;
-    public void mapViewerEventRaised(MapViewerEvent e) {
-        if ((e.getID() & TitleChangeMask) != 0) {
-            int i = indexOfComponent(e.getMapViewer());
+
+    public void eventRaised(MapViewer.Event e) {
+        if ((e.id & TitleChangeMask) != 0) {
+            int i = indexOfComponent(e.viewer);
             if (i >= 0) {
                 updateTitleTextAt(i);
-                if (e.getID() == MapViewerEvent.FOCUSED) {
+                if (e.id == MapViewer.Event.FOCUSED) {
                     if (lastFocusPane != null) {
                         //lastFocusPane.setIconAt(lastFocusIndex, null);
                         lastFocusPane = null;

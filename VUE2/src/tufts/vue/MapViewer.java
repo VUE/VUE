@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.557 $ / $Date: 2008-06-17 18:34:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.558 $ / $Date: 2008-06-18 02:33:36 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -111,10 +111,41 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     private Rectangle2D.Float RepaintRegion = null; // could handle in DrawContext
     private Rectangle paintedSelectionBounds = null;
     
-    public interface Listener extends java.util.EventListener {
-        public void mapViewerEventRaised(MapViewerEvent e);
-    }
+    public static class Event
+    {
+        public static final int DISPLAYED = 1;
+        public static final int HIDDEN = 2;
+        public static final int PAN = 4;
+        public static final int ZOOM = 8;
+        public static final int FOCUSED = 16;
+    
+        public final int id;
+        public final MapViewer viewer;
 
+        public Event(MapViewer viewer, int id) {
+            this.viewer = viewer;
+            this.id = id;
+        }
+
+        public boolean isActivationEvent() {
+            return (id & (DISPLAYED|FOCUSED)) != 0;
+        }
+
+        @Override
+        public String toString()
+        {
+            String name = null;
+            if (id == DISPLAYED)    name = "DISPLAYED";
+            else if (id == HIDDEN)  name = " HIDDEN  ";
+            else if (id == PAN)     name = " PAN     ";
+            else if (id == ZOOM)    name = " ZOOM    ";
+            else if (id == FOCUSED) name = " FOCUSED ";
+            return "MapViewer$Event[" + name + " " + viewer.getDiagName() + "]";
+        }
+
+    }
+    public interface Listener extends EventHandler.Listener<Event> {}
+    
     /** The component we're currently displaying: usually an instanceof LWMap, unless presenting */
     protected LWComponent mFocal;
     /** The top-level map that owns the focal (usually the same as the focal) */
@@ -477,13 +508,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     public double getZoomFactor() {
         return mZoomFactor;
     }
+
+    private static final EventHandler<Event> ViewerEventHandler = EventHandler.getHandler(Event.class);
     
     public void fireViewerEvent(int id) {
-        // TODO: REALLY need to change this from using EventRaiser -- esp given
-        // how often this has to fire during animations!
-        if (/*!sDragUnderway &&*/ (id == MapViewerEvent.HIDDEN || VUE.getActiveViewer() == this)
-            || (id == MapViewerEvent.ZOOM && VUE.multipleMapsVisible())) // todo: good enough for presentation mode viewer
-            new MapViewerEvent(this, id).raise();
+        if (VUE.getActiveViewer() == this)
+            ; // always raise the event if we're the active viewer
+        else if (id == Event.HIDDEN)
+            ; // always raise hidden, no matter who's raising it
+        else if (id == Event.ZOOM && VUE.multipleMapsVisible())
+            ; // everyone raises ZOOM if multiple maps open (so each map tabbed pane can update it's title)
+        else
+            return; // don't raise the event
+        
+        ViewerEventHandler.raise(this, new Event(this, id));
     }
     
     void resetScrollRegion() {
@@ -608,7 +646,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         repaint();
-        fireViewerEvent(MapViewerEvent.ZOOM);
+        fireViewerEvent(Event.ZOOM);
     }
     
 
@@ -676,7 +714,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (!inScrollPane && update) {
                 repaint();
                 if (mMap == mFocal)
-                    fireViewerEvent(MapViewerEvent.PAN);
+                    fireViewerEvent(Event.PAN);
             }
         }
     }
@@ -1359,7 +1397,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             fitToFocal(animate);
         }
 
-        if (VueSelection != null)
+        if (VueSelection != null && VUE.getActiveViewer() == this)
             VueSelection.setSelectionSourceFocal(focal);
         
         if (focal == null)
@@ -2835,7 +2873,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         final LWSelection s = VueSelection;
 
         if (s == null || s.isEmpty() || !activeTool.supportsResizeControls() || isAnimating) {
-            if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL on SELECTION; sel=" + s);
+            //if (DEBUG.Enabled) out("SKIPPING RESIZE CONTROL on SELECTION; sel=" + s);
             resizeControl.active = false;
         } else {
             final LWComponent remoteFocal = s.getSelectionSourceFocal();
@@ -7087,7 +7125,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         setMapCursor(activeTool.getCursor());
         repaintFocusIndicator();
         grabVueApplicationFocus("focusGained", e);
-        fireViewerEvent(MapViewerEvent.FOCUSED);
+        fireViewerEvent(Event.FOCUSED);
     }
     
     public void focusLost(FocusEvent e) {
@@ -7140,6 +7178,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             mFocusIndicator.repaint();
     }
     
+    @Override
     public void setVisible(boolean doShow) {
         if (DEBUG.FOCUS) out("setVisible " + doShow);
         //if (!getParent().isVisible()) {
@@ -7166,12 +7205,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //zoomTool.setZoomFitContent(this);//todo: go thru the action
             setFocusable(true);
             grabVueApplicationFocus("setVisible", null);//requestFocus();
-            fireViewerEvent(MapViewerEvent.DISPLAYED);
+            fireViewerEvent(Event.DISPLAYED);
             // only need to do this if this viewer displaying a different MAP
             repaint();
         } else {
             setFocusable(false);
-            fireViewerEvent(MapViewerEvent.HIDDEN);
+            fireViewerEvent(Event.HIDDEN);
         }
     }
     
@@ -7316,9 +7355,15 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         map.addNode(end);
     }
     
+    private String getDiagName() {
+        return "<" + instanceName + ">[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
+    }
+    
+    @Override
     public String toString() {
-        return "MapViewer<" + instanceName + ">"
-            + "[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
+        return getClass().getSimpleName() + getDiagName();
+//         return "MapViewer<" + instanceName + ">"
+//             + "[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
         //+ "\'" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "\'";
     }
     

@@ -25,7 +25,7 @@ import java.awt.geom.Rectangle2D;
  * the currently visible viewport, and moving (panning) the currently
  * visible viewport.
  *
- * @version $Revision: 1.65 $ / $Date: 2008-05-20 21:46:37 $ / $Author: sfraize $
+ * @version $Revision: 1.66 $ / $Date: 2008-06-18 02:32:47 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -82,6 +82,7 @@ public class MapPanner extends javax.swing.JPanel
         setMinimumSize(new Dimension(200,125));
 
         VUE.addActiveListener(MapViewer.class, this);
+        EventHandler.addListener(MapViewer.Event.class, this);
     }
 
     public void addNotify()
@@ -92,27 +93,31 @@ public class MapPanner extends javax.swing.JPanel
     }
 
     
+    public void activeChanged(ActiveEvent e, MapViewer viewer) {
+        setViewer(viewer);
+    }
+    
     /**
-     * All instances of MapViewer raise MapViewer events
-     * as they act, and the MapPanner hears all of them
+     * Instances of MapViewer raise MapViewer.Event's
+     * as they act, and the MapPanner hears them all
      * here.
      */
-    public void mapViewerEventRaised(MapViewerEvent e)
-    {
+    public void eventRaised(MapViewer.Event e) {
         if (VUE.inNativeFullScreen())
             return;
         
         if (e.isActivationEvent() && mapViewer == null) {
-            setViewer(e.getMapViewer());
-        } else if (e.getSource() == this.mapViewer
-            && (e.getID() == MapViewerEvent.PAN ||
-                e.getID() == MapViewerEvent.ZOOM)) {
+            setViewer(e.viewer);
+        } else if (e.viewer == this.mapViewer
+            && (e.id == MapViewer.Event.PAN ||
+                e.id == MapViewer.Event.ZOOM)) {
             repaint();
-            if (e.getID() == MapViewerEvent.ZOOM)
+            if (e.id == MapViewer.Event.ZOOM)
                 updateZoomTitle();
         }
+        
     }
-
+    
     private void updateZoomTitle() {
         String titleInfo = null;
         if (this.mapViewer != null)
@@ -120,10 +125,6 @@ public class MapPanner extends javax.swing.JPanel
         putClientProperty("TITLE-INFO", titleInfo);
     }
 
-    public void activeChanged(ActiveEvent e, MapViewer viewer) {
-        setViewer(viewer);
-    }
-    
     private void setViewer(MapViewer mapViewer)
     {
         if (VUE.inNativeFullScreen())
