@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.559 $ / $Date: 2008-06-18 23:38:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.560 $ / $Date: 2008-06-18 23:39:50 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -511,7 +511,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
     private static final EventHandler<Event> ViewerEventHandler = EventHandler.getHandler(MapViewer.Event.class);
     
-    void fireViewerEvent(int id, String cause) {
+    protected void fireViewerEvent(int id, String cause) {
         if (VUE.getActiveViewer() == this)
             ; // always raise the event if we're the active viewer
         else if (id == Event.HIDDEN)

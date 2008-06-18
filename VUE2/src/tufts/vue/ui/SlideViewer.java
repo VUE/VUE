@@ -512,7 +512,7 @@ if (true) return;
     }
 
     @Override
-    public void fireViewerEvent(int id) {
+    public void fireViewerEvent(int id, String cause) {
         if (DEBUG.PRESENT) out("fireViewerEvent <" + id + "> skipped");
     }
 
