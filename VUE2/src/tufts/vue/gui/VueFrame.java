@@ -18,7 +18,6 @@ import tufts.vue.VUE;
 import tufts.vue.MapViewer;
 import tufts.vue.ActiveListener;
 import tufts.vue.ActiveEvent;
-import tufts.vue.MapViewerEvent;
 import tufts.vue.VueResources;
 import tufts.vue.DEBUG;
 
@@ -37,11 +36,10 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.18 $ / $Date: 2008-05-22 05:59:07 $ / $Author: sfraize $ 
+ * @version $Revision: 1.19 $ / $Date: 2008-06-18 02:36:14 $ / $Author: sfraize $ 
  */
 public class VueFrame extends javax.swing.JFrame
-    implements ActiveListener<MapViewer>,
-               WindowListener, WindowStateListener, WindowFocusListener               
+    implements ActiveListener<MapViewer>, WindowListener, WindowStateListener, WindowFocusListener               
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueFrame.class);
     
