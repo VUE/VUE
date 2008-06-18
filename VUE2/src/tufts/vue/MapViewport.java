@@ -43,6 +43,8 @@ import javax.swing.JViewport;
 public class MapViewport extends JViewport
     implements VueConstants
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(MapViewport.class);
+    
     private MapViewer viewer;
 
     private Rectangle2D lastMapBounds = new Rectangle2D.Float();
@@ -122,13 +124,21 @@ public class MapViewport extends JViewport
         //viewer.setSize(d);
     }
 
-    /** override of JViewport */
+    @Override
     public Dimension getViewSize() {
         return getCanvasSize();
     }
-    /** override of JViewport */
+
+    private Point lastPosition;
+    
+    @Override
     public void setViewPosition(Point p) {
         if (DEBUG.SCROLL) out("setViewPosition " + out(p));
+        if (!p.equals(lastPosition)) {
+            // for when scroll-bars are dragged
+            viewer.fireViewerEvent(MapViewer.Event.PAN, "MapViewport::setViewPosition");
+        }
+        lastPosition = p;
         super.setViewPosition(p);
     }
 
@@ -343,19 +353,24 @@ public class MapViewport extends JViewport
         }
     }
 
+    @Override
     public void reshape(int x, int y, int w, int h) {
-        boolean ignore =
-            getX() == x &&
-            getY() == y &&
-            getWidth() == w &&
-            getHeight() == h;
-        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS)
-            System.out.println("reshape: "
-                               + (ignore?"(no change) ":"")
-                               + w + " x " + h
-                               + " "
-                               + x + "," + y
-                               + " " + this);
+        
+        if (DEBUG.SCROLL||DEBUG.PAINT||DEBUG.EVENTS||DEBUG.FOCUS) {
+            
+            boolean ignore =
+                getX() == x &&
+                getY() == y &&
+                getWidth() == w &&
+                getHeight() == h;
+            
+            Log.debug("reshape: "
+                      + (ignore?"(no change) ":"")
+                      + w + " x " + h
+                      + " "
+                      + x + "," + y
+                      + " " + this);
+        }
                                
 
         super.reshape(x, y, w, h);
@@ -412,7 +427,7 @@ public class MapViewport extends JViewport
         
         setCanvasPosition(location, allowGrowth);
         revalidate();
-        viewer.fireViewerEvent(MapViewer.Event.PAN);
+        //viewer.fireViewerEvent(MapViewer.Event.PAN, "MapViewport::pan");
     }
     
     
@@ -597,7 +612,8 @@ public class MapViewport extends JViewport
     }
 
     private void out(Object o) {
-        System.out.println(this + " " + (o==null?"null":o.toString()));
+        Log.debug(viewer.getDiagName() + " " + (o==null?"null":o.toString()));
+        //System.out.println(this + " " + (o==null?"null":o.toString()));
     }
 
     private String out(Point2D p) { return (float)p.getX() + ", " + (float)p.getY(); }

@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.558 $ / $Date: 2008-06-18 02:33:36 $ / $Author: sfraize $ 
+ * @version $Revision: 1.559 $ / $Date: 2008-06-18 23:38:07 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -140,7 +140,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             else if (id == PAN)     name = " PAN     ";
             else if (id == ZOOM)    name = " ZOOM    ";
             else if (id == FOCUSED) name = " FOCUSED ";
-            return "MapViewer$Event[" + name + " " + viewer.getDiagName() + "]";
+            return String.format("MapViewer$Event@%06x[%s %s]", hashCode(), name, viewer.getDiagName());
         }
 
     }
@@ -509,9 +509,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return mZoomFactor;
     }
 
-    private static final EventHandler<Event> ViewerEventHandler = EventHandler.getHandler(Event.class);
+    private static final EventHandler<Event> ViewerEventHandler = EventHandler.getHandler(MapViewer.Event.class);
     
-    public void fireViewerEvent(int id) {
+    void fireViewerEvent(int id, String cause) {
         if (VUE.getActiveViewer() == this)
             ; // always raise the event if we're the active viewer
         else if (id == Event.HIDDEN)
@@ -521,7 +521,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         else
             return; // don't raise the event
         
-        ViewerEventHandler.raise(this, new Event(this, id));
+        // using cause as source for now: these events called more often than
+        // needed in many cases and that could use optimization as extra repaints
+        // of the entire map / entire map panner can be quite slow, tho hopefully
+        // the AWT repaint manager is coalescing the repaints.  MapViewer
+        // doesn't listen for it's own events, so there's no risk of an
+        // event loop that would be avoided by knowing the proper source.
+        ViewerEventHandler.raise(cause, new MapViewer.Event(this, id));
     }
     
     void resetScrollRegion() {
@@ -585,9 +591,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (mapAnchor == null && !pReset) {
             mapAnchor = screenToMapPoint2D(getVisibleCenter());
-            if (DEBUG.SCROLL) out("ZOOM MAP CENTER: " + out(mapAnchor));
+            if (DEBUG.SCROLL) out("ZOOM MAP CENTER: " + fmt(mapAnchor));
         } else {
-            if (DEBUG.SCROLL) out("ZOOM MAP ANCHOR: " + out(mapAnchor));
+            if (DEBUG.SCROLL) out("ZOOM MAP ANCHOR: " + fmt(mapAnchor));
         }
         
         Point2D.Float offset = null; // offset for non-scrol-region zoom
@@ -646,8 +652,29 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         repaint();
-        fireViewerEvent(Event.ZOOM);
+        fireViewerEvent(Event.ZOOM, "setZoomFactor");
     }
+    
+    @Override
+    public void setPreferredSize(Dimension d) {
+        if (DEBUG.SCROLL) out("setPreferred", fmt(d));
+        super.setPreferredSize(d);
+    }
+    /*
+    public Dimension getPreferredSize() {
+        Dimension d = super.getPreferredSize();
+        if (DEBUG.SCROLL) out("getPreferred: " + out(d));
+        return d;
+    }
+    */
+
+    @Override
+    public void setSize(Dimension d) {
+        if (DEBUG.SCROLL) out("setSize", fmt(d));
+        // new Throwable("SETSIZE " + out(d)).printStackTrace();
+        super.setSize(d);
+    }
+    
     
 
     void panScrollRegion(int dx, int dy) {
@@ -661,29 +688,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void panScrollRegionImpl(int dx, int dy, boolean allowGrowth) {
         if (inScrollPane) {
             mViewport.pan(dx, dy, allowGrowth);
+            fireViewerEvent(Event.PAN, "panScrollRegion");
         } else {
             setMapOriginOffset(mOffset.x + dx, mOffset.y + dy);
         }
     }
-    
-    public void setPreferredSize(Dimension d) {
-        if (DEBUG.SCROLL) out("setPreferred: " + out(d));
-        super.setPreferredSize(d);
-    }
-    /*
-    public Dimension getPreferredSize() {
-        Dimension d = super.getPreferredSize();
-        if (DEBUG.SCROLL) out("getPreferred: " + out(d));
-        return d;
-    }
-    */
-
-    public void setSize(Dimension d) {
-        if (DEBUG.SCROLL) out("     setSize: " + out(d));
-        // new Throwable("SETSIZE " + out(d)).printStackTrace();
-        super.setSize(d);
-    }
-    
     
     /**
      * The given PIXEL offset is the pixel location that the
@@ -700,7 +709,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     
     protected void setMapOriginOffsetImpl(float panelX, float panelY, boolean update) {
-        if (DEBUG.SCROLL) out("setMapOriginOffset old:" + out(mOffset));
+        if (DEBUG.SCROLL) out("setMapOriginOffset old:" + fmt(mOffset));
         if (DEBUG.SCROLL) out("setMapOriginOffset new:" + panelX + ", " + panelY);
         mOffset.x = panelX;
         mOffset.y = panelY;
@@ -714,7 +723,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (!inScrollPane && update) {
                 repaint();
                 if (mMap == mFocal)
-                    fireViewerEvent(Event.PAN);
+                    fireViewerEvent(Event.PAN, "setMapOriginOffset");
             }
         }
     }
@@ -876,7 +885,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
     public Dimension getVisibleSize() {
         Dimension d = new Dimension(getVisibleWidth(), getVisibleHeight());
-        if (DEBUG.SCROLL) out("visible size: " + out(d));
+        if (DEBUG.SCROLL) out("visible size: " + fmt(d));
         return d;
     }
     
@@ -1045,6 +1054,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return activeTextEdit != null || activeRichTextEdit != null;
     }
     
+    @Override
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =
             getX() == x &&
@@ -1086,7 +1096,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             } else {
                 reshapeUnderway = true;
                 try {
-                    //fireViewerEvent(MapViewerEvent.PAN); // fire AFTER reshapeImpl, and better, IN reshapeImpl
+                    // This event fires needlessly often, but in the case of
+                    // of the user dragging a scroll-bar, this is currently the
+                    // only MapViewer entry-point we have to track that (reshape)
+                    //fireViewerEvent(Event.PAN, "reshape"); // fire AFTER reshapeImpl, and better, IN reshapeImpl
                     reshapeImpl(x,y,w,h);
                 } finally {
                     reshapeUnderway = false;
@@ -5683,8 +5696,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         private Point lastDrag = new Point();
         private void dragRepositionViewport(Point mouse) {
             if (DEBUG.MOUSE) {
-                System.out.println(" lastDragLoc " + out(lastDrag));
-                System.out.println(" newMouseLoc " + out(mouse));
+                System.out.println(" lastDragLoc " + fmt(lastDrag));
+                System.out.println(" newMouseLoc " + fmt(mouse));
             }
             if (inScrollPane) {
                 int dx = lastDrag.x - mouse.x;
@@ -6068,7 +6081,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         private void scrollToMouse(MouseEvent e) {
-            if (DEBUG.SCROLL) out("scrollToMouse " + out(e.getPoint()));
+            if (DEBUG.SCROLL) out("scrollToMouse " + fmt(e.getPoint()));
             scrollRectToVisible(new Rectangle(e.getX(), e.getY(), 1,1));
         }
         
@@ -6166,7 +6179,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 
                 mouseWasDragged = true;
                 lastDrag.setLocation(dragStart);
-                if (DEBUG.MOUSE) System.out.println(" lastDragSet " + out(lastDrag));
+                if (DEBUG.MOUSE) System.out.println(" lastDragSet " + fmt(lastDrag));
                 // if we pan, our canvas location might change, offsetting mouse coord each time
                 if (inScrollPane)
                     lastDrag = SwingUtilities.convertPoint(MapViewer.this, lastDrag, getParent());
@@ -7125,7 +7138,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         setMapCursor(activeTool.getCursor());
         repaintFocusIndicator();
         grabVueApplicationFocus("focusGained", e);
-        fireViewerEvent(Event.FOCUSED);
+        fireViewerEvent(Event.FOCUSED, "focusGained");
     }
     
     public void focusLost(FocusEvent e) {
@@ -7205,12 +7218,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //zoomTool.setZoomFitContent(this);//todo: go thru the action
             setFocusable(true);
             grabVueApplicationFocus("setVisible", null);//requestFocus();
-            fireViewerEvent(Event.DISPLAYED);
+            fireViewerEvent(Event.DISPLAYED, "setVisible");
             // only need to do this if this viewer displaying a different MAP
             repaint();
         } else {
             setFocusable(false);
-            fireViewerEvent(Event.HIDDEN);
+            fireViewerEvent(Event.HIDDEN, "setVisible");
         }
     }
     
@@ -7355,7 +7368,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         map.addNode(end);
     }
     
-    private String getDiagName() {
+    String getDiagName() {
         return "<" + instanceName + ">[" + (mFocal==null?"nil":mFocal.getDiagnosticLabel()) + "]";
     }
     
@@ -7369,7 +7382,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     
     protected void out(Object o) {
-        Log.debug(String.format("<%s>[%s] %s",
+        // indent 2 spaces align w/MapViewport diags
+        Log.debug(String.format("  <%s>[%s] %s",
                                 instanceName,
                                 mFocal == null ? "<NULL-FOCAL>" : mFocal.getDiagnosticLabel(),
                                 o));
@@ -7379,7 +7393,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void out(String method, Object msg) {
         if (method.charAt(0) == '@')
             tufts.Util.printStackTrace(method);
-        Log.debug(String.format("<%s>[%s] %12s: %s",
+        Log.debug(String.format("  <%s>[%s] %12s: %s",
                                 instanceName,
                                 mFocal == null ? "<NULL-FOCAL>" : mFocal.getDiagnosticLabel(),
                                 method,
@@ -7388,14 +7402,20 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     //private String out(Point2D p) { return p==null?"<null Point2D>":(float)p.getX() + ", " + (float)p.getY(); }
-    private String out(Point2D p) { return Util.fmt(p); }
-    private String out(Rectangle2D r) { return ""
+    private String fmt(Point2D p) { return Util.fmt(p); }
+    private String fmt(Rectangle2D r) { return ""
             + (float)r.getX() + ", " + (float)r.getY()
             + "  "
             + (float)r.getWidth() + " x " + (float)r.getHeight()
             ;
     }
-    private String out(Dimension d) { return d.width + " x " + d.height; }
+    private String fmt(Dimension d) { return d.width + " x " + d.height; }
+
+    // poor choice of name: backward compat for now
+    private String out(Dimension d) { return fmt(d); }
+    private String out(Point2D p) { return fmt(p); }
+    private String out(Rectangle2D r) { return fmt(r); }
+    
     
     private boolean DEBUG_MOUSE_MOTION = VueResources.getBool("mapViewer.debug.mouse_motion");//todo: make command line -D override these
     
