@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.115 $ / $Date: 2008-06-19 01:42:15 $ / $Author: sfraize $
+ * @version $Revision: 1.116 $ / $Date: 2008-06-19 01:51:05 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -552,7 +552,19 @@ public class ActionUtil
         Log.info("marshalling " + map + " to: " + file);
         
         Marshaller marshaller = null;
-        writer.write("<!-- Tufts VUE " + VueResources.getString("vue.version") + " concept-map " + file.getName() + " -->\n");
+        String name = "";
+        if (file != null)
+            name = file.getName();
+        else
+            name = map.getLabel();
+        if (name == null)
+            name = "";
+
+        String headerText = "Tufts VUE " + VueResources.getString("vue.version") + " concept-map " + name;
+        
+        headerText = org.apache.commons.lang.StringEscapeUtils.escapeXml(headerText);
+        
+        writer.write("<!-- " + headerText + " -->\n");
         writer.write(VUE_COMMENT_START
                      + " VUE mapping "
                      + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
