@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.116 $ / $Date: 2008-06-19 01:51:05 $ / $Author: sfraize $
+ * @version $Revision: 1.117 $ / $Date: 2008-06-19 02:13:01 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -560,7 +560,11 @@ public class ActionUtil
         if (name == null)
             name = "";
 
-        String headerText = "Tufts VUE " + VueResources.getString("vue.version") + " concept-map " + name;
+        final java.util.Date date = new java.util.Date();
+        final String today = new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
+
+        String headerText =
+            "Tufts VUE " + VueResources.getString("vue.version") + " concept-map (" + name + ") " + today;
         
         headerText = org.apache.commons.lang.StringEscapeUtils.escapeXml(headerText);
         
@@ -571,7 +575,7 @@ public class ActionUtil
                      + " " + XML_MAPPING_DEFAULT
                      + " -->\n");
         writer.write(VUE_COMMENT_START
-                     + " Saved date " + new java.util.Date()
+                     + " Saved date " + date
                      + " by " + VUE.getSystemProperty("user.name")
                      + " on platform " + VUE.getSystemProperty("os.name")
                      + " " + VUE.getSystemProperty("os.version")
