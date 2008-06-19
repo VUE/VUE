@@ -22,32 +22,46 @@ import static tufts.Util.*;
 /**
  * This provides for generic global event delivery / change support.
  *
- * The event object may be any object.  One handler is intended to be created
+ * <p>The event object may be any object.  One handler is intended to be created
  * for each event type in the runtime.  Any source can post an event,
  * and all listeners will get the event.
  *
- * The listener must be a subclass of EventHandler.Listener.
+ * <p>The listener must be a subclass of EventHandler.Listener.
  * This is designed so that the listener can be created
  * as an empty subclass, providing only type information.
  *
- * E.g.: <code>interface MyListener extends EventHandler.Listener&lt;MyEvent&gt; {}</code>
+ * <p>E.g.: <code>interface <i>MyListener</i> extends EventHandler.Listener&lt;<i>MyEvent</i>&gt;{}</code>
  *
- * Or when the listener and event are static inner classes to the class providing
- * the real event, a standard pattern can literally be used:
+ * <p>Or when the listener and event are static inner classes to an implementation class defining
+ * the event, a standard pattern can be used:
  *
- * E.g.: <code>interface Listener extends EventHandler.Listener&lt;Event&gt; {}</code>
+ * <blockquote><code>
+ * public static class Event { ... }
+ * <br><br>
+ * public interface Listener extends EventHandler.Listener&lt;Event&gt;{}
+ * </code></blockquote>
  *
- * The above defines MyClass.Listener, and all that remains is to define MyClass.Event.
+ * Using inner classes, this standard pattern defines <i>MyClass</i>.Listener, and
+ * all that remains is to define <i>MyClass</i>.Event.
  *
- * Instances of this can be created on the fly by calling the static
- * method getHandler for a given class type, which will automatically
- * create a new handler for the given event type if one doesn't exist.
+ * <p>Note that bothering to define the Listener class is uneeded in some cases:
+ * implementing classes can implement EventHandler.Listener&lt;<i>type</i>&gt;, although if done
+ * this way, due to type-erasure, a single class may only declare itself as implementing
+ * a single EventHandler.Listener of any kind.  If a class is declared as implementing
+ * multiple EventHandler.Listener's, even with multiple <i>types</i>, once the type information is
+ * thrown away, it will look like a class being declared as implementing the same
+ * interface multiple times.
+ *
+ * <p>Instances of handlers for any new event type can be obtained or created on the fly
+ * by calling the static method getHandler for a given class/type, which will
+ * automatically create a new handler for the given event type if one doesn't exist.
  *
  * @author Scott Fraize 2008-06-17
- * @version $Revision: 1.1 $ / $Date: 2008-06-18 02:31:34 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-06-19 03:48:39 $ / $Author: sfraize $
  */
 
 // todo: see if we can subclass ActiveInstance from this to share code
+// also: may want to rename something like EventDispatch or EventSource
 public class EventHandler<E>
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(EventHandler.class);
@@ -124,13 +138,18 @@ public class EventHandler<E>
     public synchronized void raise(final Object source, final E newEvent)
     {
         if (DEBUG.EVENTS) {
-            Log.debug(TERM_GREEN + _itemTypeName);
-            System.out.println(    "\t_lastEvent: " + _lastEvent
-                               + "\n\t newEvent: " + newEvent
-                               + "\n\t   source: " + sourceName(source)
-                               + "\n\tlisteners: " + mListeners.size() + " in " + Thread.currentThread().getName()
-                               + TERM_CLEAR
-                               );
+            
+            final String debug =
+                _itemTypeName
+                //+ "\n\tlastEvent: " + _lastEvent
+                + TERM_GREEN
+                + "\n\t    event: " + newEvent
+                + "\n\t   source: " + sourceName(source)
+                + "\n\tlisteners: " + mListeners.size() + " in " + Thread.currentThread().getName()
+                ;
+
+            Log.debug(TERM_YELLOW + debug + TERM_CLEAR);
+
         }
 
         notifyListeners(source, newEvent);
