@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.562 $ / $Date: 2008-06-17 19:29:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.563 $ / $Date: 2008-06-20 14:56:44 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -2736,7 +2736,7 @@ public class VUE
             if (DEBUG.Enabled) Log.debug("got current version id [" + version + "]");
             final String currentVersion = VueResources.getString("vue.version").trim();
             final String newVersion = version.trim();
-            if (isHigherVersion(newVersion, currentVersion))
+            if (!isHigherVersion(currentVersion, newVersion))
             {
             	final ShowAgainDialog sad = new ShowAgainDialog(VUE.getApplicationFrame(),"checkForNewVersion2","New Release Available","Remind me later",(String)null);
             	JPanel panel = new JPanel();
@@ -2779,13 +2779,17 @@ public class VUE
    }
 
    private static boolean isHigherVersion(String v1,String v2) {
-       
+       if(v1.equalsIgnoreCase(v2)) {
+           return true;
+       }
        String[] v1Parts = v1.split("\\.");
        String[] v2Parts = v2.split("\\.");
        int size = v1Parts.length<v2Parts.length?v1Parts.length:v2Parts.length;
        for(int i = 0;i <size;i++) {
            int n1 = Integer.parseInt(v1Parts[i]);
            int n2 = Integer.parseInt(v2Parts[i]);
+           System.out.println(i+"\t"+v1Parts[i]+"\t"+v2Parts[i]+"\t"+(n1>n2));
+          
            if(n1 > n2) return true;
        }
        return false;
