@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.77 $ / $Date: 2008-06-17 17:44:56 $ / $Author: sfraize $
+ * @version $Revision: 1.78 $ / $Date: 2008-06-20 15:10:56 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -510,7 +510,7 @@ public abstract class Resource implements Cloneable
     /** TODO:  need to remove this -- if we keep any type at all, it should at least be inferred
      * -- probably replace with a setClientType(Object) -- a general marker that clients / UI components can use
      */
-    protected void setClientType(int type) {
+    public void setClientType(int type) {
         mType = type;
         if (DEBUG.RESOURCE){
             if (DEBUG.META) dumpField("setClientType", TYPE_NAMES[type] + " (" + type + ")");
@@ -528,32 +528,14 @@ public abstract class Resource implements Cloneable
      */
     public abstract void displayContent();
 
-//     public String getTypeIconText() {
-//         final String r = getSpec();
-//         String ext = "xxx";
-
-//         if (r.startsWith("http"))
-//             ext = "web";
-//         else if (r.startsWith("file"))
-//             ext = "file";
-//         else {
-//             ext = r.substring(0, Math.min(r.length(), 3));
-//             if (!r.endsWith("/")) {
-//                 int i = r.lastIndexOf('.');
-//                 if (i > 0 && i < r.length()-1)
-//                     ext = r.substring(i+1);
-//             }            
-//         }
-//         if (ext.length() > 4)
-//             ext = ext.substring(0,4);
-        
-//         return ext;
-//     }
-
     protected String mExtension = null;
 
-    protected void reset() {
+    public void reset() {
         mExtension = null;
+    }
+
+    public void setDataType(String s) {
+        mExtension = s;
     }
     
     private static final String NO_EXTENSION = "<no-ext>";
@@ -603,12 +585,17 @@ public abstract class Resource implements Cloneable
                 ext = EXTENSION_DIR;
         } else {
             ext = ext.toLowerCase();
-            if ("asp".equals(ext))
-                ext = EXTENSION_HTTP;
-            else if ("php".equals(ext))
-                ext = EXTENSION_HTTP;
-            else if ("readme".equals(ext) || "msg".equals(ext))
+            
+            if ("readme".equals(ext) || "msg".equals(ext)) {
                 ext = "txt";
+            } else if (getClientType() == URL || getClientType() >= ASSET_OKIDR) {
+                if ("asp".equals(ext) || // microsoft web page
+                    "php".equals(ext) ||
+                    "pl".equals(ext) // commonly: a perl script
+                    ) {
+                    ext = EXTENSION_HTTP;
+                }
+            }
         }
 
         
@@ -999,7 +986,10 @@ public abstract class Resource implements Cloneable
         
         File file = null;
 
-        if (urlOrPath.startsWith("file:")) {
+        if (urlOrPath.startsWith("#")) { 
+            return null; // RDF code sometimes hands us these
+        }
+        else if (urlOrPath.startsWith("file:")) {
             
             file = new File(urlOrPath.substring(5));
             
@@ -1248,9 +1238,16 @@ public abstract class Resource implements Cloneable
                 //decoded = replaceAll("+", 
                 url = new URL(decoded);
             } catch (Throwable t) {
-               Log.info("couldn't make URL from decoded " + (decoded == null ? Util.tags(uri) : decoded), t);
-               // URI.toURL leaves the URL in encoded form: local file paths need decoding to be useful to java.io.File
-               url = uri.toURL();
+                String msg = "couldn't make URL from decoded URI: " + Util.tags(decoded == null ? uri : decoded);
+                if (DEBUG.Enabled)
+                    Log.info(msg, t);
+                else
+                    Log.info(msg + "; " + t);
+
+                //if (decoded != null && !decoded.equals(uri.toString())
+                
+                // URI.toURL leaves the URL in encoded form: local file paths need decoding to be useful to java.io.File
+                url = uri.toURL();
            }
 
             //final URL url = uri.toURL(); 
@@ -1262,7 +1259,7 @@ public abstract class Resource implements Cloneable
             return url;
             
         } catch (Throwable t) {
-            Log.warn("Failed to make URL from: " + s + "; " + t);
+            Log.warn("couldn't make URL from: " + Util.tags(s) + "; " + t);
             return null;
         }
     }
@@ -1278,7 +1275,16 @@ public abstract class Resource implements Cloneable
 
         try {
 
-            if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
+            if (c0 == '#') {
+                
+                // Our current RDF code sometimes tries to make Resources from random
+                // non string fragments, which will always fail to create a URI unless
+                // both a URI scheme and a URI scheme-specific-part are also specified.
+                
+                uri = new java.net.URI("rdf", "fragment", s.substring(1));
+                Log.warn("makeURI: guessed at creating " + Util.tags(uri) + " from " + Util.tags(s));
+            }
+            else if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
 
                 // the above conditions test:
                 //  first case: MacOSX / Linux / Unix path
@@ -1307,7 +1313,7 @@ public abstract class Resource implements Cloneable
 
 
         } catch (Throwable t) {
-            Util.printStackTrace(t, "makeURI: " + s);
+            Util.printStackTrace(t, "makeURI: " + Util.tags(s));
         }
 
         
