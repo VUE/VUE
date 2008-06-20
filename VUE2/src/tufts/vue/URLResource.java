@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.75 $ / $Date: 2008-06-11 17:41:11 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2008-06-20 15:11:40 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -365,7 +365,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
 
     
     @Override
-    protected void reset() {
+    public void reset() {
         super.reset();
         invalidateToolTip();
     }
@@ -546,7 +546,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 // create a file:RandomString URL (e.g. "file:My Computer"), so only set
                 // URL here if it's a non-file:
                 
-                if (!"file".equals(url.getProtocol()))
+                if (url != null && !"file".equals(url.getProtocol()))
                     setURL(url);
             }
             
