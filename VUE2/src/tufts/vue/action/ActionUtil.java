@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.117 $ / $Date: 2008-06-19 02:13:01 $ / $Author: sfraize $
+ * @version $Revision: 1.118 $ / $Date: 2008-06-20 04:36:58 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -563,12 +563,14 @@ public class ActionUtil
         final java.util.Date date = new java.util.Date();
         final String today = new java.text.SimpleDateFormat("yyyy-MM-dd").format(date);
 
-        String headerText =
-            "Tufts VUE " + VueResources.getString("vue.version") + " concept-map (" + name + ") " + today;
+        String headerText = VueResources.getString("vue.version") + " concept-map (" + name + ") " + today;
         
         headerText = org.apache.commons.lang.StringEscapeUtils.escapeXml(headerText);
         
-        writer.write("<!-- " + headerText + " -->\n");
+        writer.write("<!-- Tufts VUE " + headerText + " -->\n");
+        
+        writer.write("<!-- Tufts VUE: http://vue.tufts.edu/ -->\n");
+        
         writer.write(VUE_COMMENT_START
                      + " VUE mapping "
                      + "@version(" + XML_MAPPING_CURRENT_VERSION_ID + ")"
