@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.34 $ / $Date: 2008-05-23 03:09:28 $ / $Author: mike $
+ * @version $Revision: 1.35 $ / $Date: 2008-06-20 04:49:07 $ / $Author: sfraize $
  *
  */
 
@@ -230,8 +230,26 @@ public class FullScreen
         }
         
         public void activeChanged(tufts.vue.ActiveEvent e, tufts.vue.LWMap map) {
-            if (fullScreenWorking)
-                FullScreenViewer.loadFocal(map);
+            if (fullScreenWorking) {
+                if (VUE.multipleMapsVisible()) {
+                    
+                    // todo:
+                    // bug when multiple maps visible: if right viewer ever becomes
+                    // the active viewer, then it sets it's map to the active map,
+                    // and then we thing the map has changed here, and we
+                    // open up the full screen viewer with the wrong map!
+                    
+                    // This is a convenience feature anyway: the only
+                    // time this can be used (in production) is if
+                    // the recently opened files menu is used while in working
+                    // full screen.
+
+                    // Ideally, we would be best to completely ignore these events
+                    // while we're entering/exiting full-screen mode.
+                } else {
+                    FullScreenViewer.loadFocal(map);
+                }
+            }
         }
 
         @Override
@@ -687,12 +705,11 @@ public class FullScreen
         final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         final GraphicsDevice device = ge.getDefaultScreenDevice();
         final boolean wasNative = inNativeFullScreen();
-        Dimension d = VUE.getApplicationFrame().getSize();
-        final tufts.vue.LWComponent focal = FullScreenViewer.getFocal();
-        final Rectangle2D rect2d = FullScreenViewer.getVisibleMapBounds();
-        //double x = rect2d.getX();
-        //double y = rect2d.getY();
-        //final Rectangle2D rect2d2 = new Rectangle2D.Double(x,y,d.getWidth(),d.getHeight());
+        final tufts.vue.LWComponent fullScreenFocal = FullScreenViewer.getFocal();
+        final tufts.vue.LWMap fullScreenMap = FullScreenViewer.getMap();
+        final Rectangle2D fullScreenVisibleMapBounds = FullScreenViewer.getVisibleMapBounds();
+        //final Rectangle2D fullScreenMapBounds = fullScreenMap.getBounds();
+
         Log.debug("Exiting full screen mode; inNative=" + wasNative);
 
         final boolean fadeBack = wasNative && Util.isMacPlatform();
@@ -758,23 +775,45 @@ public class FullScreen
         }});
 
 
-
+        final MapViewer returnViewer = FullScreenLastActiveViewer;
+        
         GUI.invokeAfterAWT(new Runnable() { public void run() {
             
-            //set zoom to what it was in the fullscreen
-            if (!wasNative)
-            {
-                final MapViewer viewer = VUE.getActiveViewer();
-                
-            	if (focal != viewer.getFocal())
-                    viewer.loadFocal(focal);	         
-            		
-            	//ZoomTool.setZoomFitRegion(VUE.getActiveViewer(),rect2d);
+            // Do NOT now ask for the currently active viewer: use the reference to the
+            // one that was active when we entered full-screen mode: the java focus
+            // system can be very unpredicable -- we can't be sure who is getting the
+            // focus back.
+            
+            if (!wasNative && returnViewer != null && fullScreenMap == returnViewer.getMap()) {
+                    
+                // If the focal has changed while in full screen mode, and it's still a
+                // focal from the same map that's in the viewer we're returning back to,
+                // swap load the same focal into the returning viewer.  (e.g., a slide
+                // was being edited in full screen mode: make the same slide visible in
+                // the regular viewer when we return to it).
 
-            	if (viewer.getWidth() != viewer.getVisibleWidth() || viewer.getHeight() != viewer.getVisibleHeight())
-                    ZoomTool.setZoomFitRegion(viewer, viewer.getVisibleMapBounds());
-            	else
-                    ZoomTool.setZoomFitRegion(viewer, viewer.getMap().getMapBounds(), viewer.getMap().getFocalMargin(), false);
+                if (returnViewer.getFocal() != fullScreenFocal)
+                    returnViewer.loadFocal(fullScreenFocal);
+            		
+                // have the returning viewer zoom to the same region
+                // that is visible in the full-screen viewer
+                // problem: the region keeps shrinking!
+                // ZoomTool.setZoomFitRegion(returnViewer, fullScreenVisibleMapBounds, 0, false, false);
+
+                // Existing logic: not sure what the result is supposed to be:
+
+            	if (returnViewer.getWidth() != returnViewer.getVisibleWidth() ||
+                    returnViewer.getHeight() != returnViewer.getVisibleHeight()) {
+                    if (DEBUG.Enabled) Log.debug("size mismatch (viewer probably scroll-enabled) re-zoom");
+                    ZoomTool.setZoomFitRegion(returnViewer,
+                                              returnViewer.getVisibleMapBounds());
+            	} else {
+                    if (DEBUG.Enabled) Log.debug("default re-zoom");
+                    ZoomTool.setZoomFitRegion(returnViewer,
+                                              returnViewer.getMap().getMapBounds(),
+                                              returnViewer.getMap().getFocalMargin(),
+                                              false);
+                }
 
             }
 
