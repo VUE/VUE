@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.563 $ / $Date: 2008-06-20 14:56:44 $ / $Author: anoop $ 
+ * @version $Revision: 1.564 $ / $Date: 2008-06-20 16:07:02 $ / $Author: anoop $ 
  */
 
 public class VUE
@@ -2779,6 +2779,7 @@ public class VUE
    }
 
    private static boolean isHigherVersion(String v1,String v2) {
+       // if current version is same as latest version
        if(v1.equalsIgnoreCase(v2)) {
            return true;
        }
@@ -2788,8 +2789,7 @@ public class VUE
        for(int i = 0;i <size;i++) {
            int n1 = Integer.parseInt(v1Parts[i]);
            int n2 = Integer.parseInt(v2Parts[i]);
-           System.out.println(i+"\t"+v1Parts[i]+"\t"+v2Parts[i]+"\t"+(n1>n2));
-          
+//           System.out.println(i+"\t"+v1Parts[i]+"\t"+v2Parts[i]+"\t"+(n1>n2));      
            if(n1 > n2) return true;
        }
        return false;
