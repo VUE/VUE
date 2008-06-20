@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.35 $ / $Date: 2008-06-20 04:49:07 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2008-06-20 05:17:44 $ / $Author: sfraize $
  *
  */
 
@@ -233,7 +233,7 @@ public class FullScreen
             if (fullScreenWorking) {
                 if (VUE.multipleMapsVisible()) {
                     
-                    // todo:
+                    // TODO:
                     // bug when multiple maps visible: if right viewer ever becomes
                     // the active viewer, then it sets it's map to the active map,
                     // and then we thing the map has changed here, and we
@@ -764,6 +764,9 @@ public class FullScreen
 
         if (FullScreenLastActiveViewer != FullScreenViewer) {
             GUI.invokeAfterAWT(new Runnable() { public void run() {
+                // todo: we do NOT want to do this if the active map has changed while in
+                // full-screen mode: we want to activate the viewer for the map currently
+                // displayed
                 FullScreenLastActiveViewer.grabVueApplicationFocus("FullScreen.exit", null);
             }});
         }
@@ -775,49 +778,70 @@ public class FullScreen
         }});
 
 
-        final MapViewer returnViewer = FullScreenLastActiveViewer;
-        
         GUI.invokeAfterAWT(new Runnable() { public void run() {
+
+            // Do not now ask for the currently active viewer: use the reference to the one that
+            // was active when we entered full-screen mode: the java focus system can be very
+            // unpredicable -- we can't be sure who is getting the focus back.  E.g., the active
+            // viewer at this point may even still be the full-screen viewer, with a null
+            // map, as it's been unloaded at this point.
+
+            // Todo: if the active map has changed while in full screen mode, we should actually
+            // return to the open viewer that has the same map.  Checking the ActiveViewer almost
+            // works for this, but the corner cases need handling.  Easiest approach may be to have
+            // FullScreenLastActiveViewer actually repoint to the standard viewer for the active
+            // map if the active map changes.
             
-            // Do NOT now ask for the currently active viewer: use the reference to the
-            // one that was active when we entered full-screen mode: the java focus
-            // system can be very unpredicable -- we can't be sure who is getting the
-            // focus back.
-            
-            if (!wasNative && returnViewer != null && fullScreenMap == returnViewer.getMap()) {
+            final MapViewer returnViewer = FullScreenLastActiveViewer;
+            //final MapViewer returnViewer = VUE.getActiveViewer();
+
+            if (DEBUG.Enabled) Log.debug("exit FS cleanup;"
+                                         + "\n\tlastActiveViewer: " + FullScreenLastActiveViewer
+                                         + "\n\t nowActiveViewer: " + VUE.getActiveViewer()
+                                         + "\n\t    returnViewer: " + returnViewer
+                                         + "\n\t fullScreenFocal: " + fullScreenFocal
+                                         );
+
+            try {
+                if (!wasNative && returnViewer != null) {
                     
-                // If the focal has changed while in full screen mode, and it's still a
-                // focal from the same map that's in the viewer we're returning back to,
-                // swap load the same focal into the returning viewer.  (e.g., a slide
-                // was being edited in full screen mode: make the same slide visible in
-                // the regular viewer when we return to it).
+                    // If the focal has changed while in full screen mode, and it's still a
+                    // focal from the same map that's in the viewer we're returning back to,
+                    // swap load the same focal into the returning viewer.  (e.g., a slide
+                    // was being edited in full screen mode: make the same slide visible in
+                    // the regular viewer when we return to it).
 
-                if (returnViewer.getFocal() != fullScreenFocal)
-                    returnViewer.loadFocal(fullScreenFocal);
+                    if (fullScreenMap == returnViewer.getMap()) {
+                        if (returnViewer.getFocal() != fullScreenFocal)
+                            returnViewer.loadFocal(fullScreenFocal);
+                    }
             		
-                // have the returning viewer zoom to the same region
-                // that is visible in the full-screen viewer
-                // problem: the region keeps shrinking!
-                // ZoomTool.setZoomFitRegion(returnViewer, fullScreenVisibleMapBounds, 0, false, false);
+                    // have the returning viewer zoom to the same region
+                    // that is visible in the full-screen viewer
+                    // problem with this method: the region keeps shrinking on repeated in/out of working FS mode
+                    // ZoomTool.setZoomFitRegion(returnViewer, fullScreenVisibleMapBounds, 0, false, false);
 
-                // Existing logic: not sure what the result is supposed to be:
+                    // Current logic: this seems to keep the same region visible if the region is
+                    // "zoomed in" -- there are parts of the map visible off screen, or just force
+                    // a zoom-fit otherwise.
 
-            	if (returnViewer.getWidth() != returnViewer.getVisibleWidth() ||
-                    returnViewer.getHeight() != returnViewer.getVisibleHeight()) {
-                    if (DEBUG.Enabled) Log.debug("size mismatch (viewer probably scroll-enabled) re-zoom");
-                    ZoomTool.setZoomFitRegion(returnViewer,
-                                              returnViewer.getVisibleMapBounds());
-            	} else {
-                    if (DEBUG.Enabled) Log.debug("default re-zoom");
-                    ZoomTool.setZoomFitRegion(returnViewer,
-                                              returnViewer.getMap().getMapBounds(),
-                                              returnViewer.getMap().getFocalMargin(),
-                                              false);
+                    if (returnViewer.getWidth() != returnViewer.getVisibleWidth() ||
+                        returnViewer.getHeight() != returnViewer.getVisibleHeight()) {
+                        if (DEBUG.Enabled) Log.debug("size mismatch (viewer probably scroll-enabled) re-zoom");
+                        ZoomTool.setZoomFitRegion(returnViewer,
+                                                  returnViewer.getVisibleMapBounds());
+                    } else {
+                        if (DEBUG.Enabled) Log.debug("default re-zoom");
+                        ZoomTool.setZoomFitRegion(returnViewer,
+                                                  returnViewer.getMap().getMapBounds(),
+                                                  returnViewer.getMap().getFocalMargin(),
+                                                  false);
+                    }
+
                 }
-
+            } finally {
+                if (!fadeBack) NDC.pop();
             }
-
-            if (!fadeBack) NDC.pop();
             
         }});
 
