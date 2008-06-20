@@ -26,12 +26,13 @@ import javax.swing.*;
  * Display the VUE splash screen.  Show the VUE splash graphic with current version
  * text drawn on top of it,
  *
- * @version $Revision: 1.14 $ / $Date: 2008-05-06 18:03:22 $ / $Author: sfraize $ 
+ * @version $Revision: 1.15 $ / $Date: 2008-06-20 16:25:57 $ / $Author: mike $ 
  * @author  akumar03
  */
 
 public class SplashScreen extends Frame
 {
+	private final Color charcoal = new Color(36,36,36);
     public SplashScreen() {
         setName(tufts.vue.gui.GUI.OVERRIDE_REDIRECT); // ignore textured background if we can
         setUndecorated(true);
@@ -54,7 +55,8 @@ public class SplashScreen extends Frame
             // This will give it a transparent "look"
             // if no other window's are open on the
             // users desktop.
-            setBackground(SystemColor.desktop);
+          //  setBackground(SystemColor.desktop);
+        	setBackground(charcoal);
         }
         
         setVisible(true);
@@ -68,14 +70,14 @@ public class SplashScreen extends Frame
           public void paintIcon(Component c, Graphics g, int x, int y) {
               Calendar calendar = new GregorianCalendar();
               super.paintIcon(c,g,x,y);
-              g.setColor(Color.WHITE);
+              g.setColor(charcoal);
               g.setFont(new Font("Verdana", Font.PLAIN, 11));
-              g.drawString("VISUAL UNDERSTANDING ENVIRONMENT",172,225);
-              g.drawString("Developed by Academic Technology",202,245);
-              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,265);
-              g.drawString("Version "+VueResources.getString("vue.version"),25,275);
+              g.drawString("VISUAL UNDERSTANDING ENVIRONMENT",172,165);
+              g.drawString("Developed by Academic Technology",202,185);
+              g.drawString((char)169+" "+VueResources.getString("vue.build.date")+" Tufts University", 240,205);
+              g.drawString("Version "+VueResources.getString("vue.version"),95,215);
               
-          }  
+          } 
         };
         final int width = icon.getIconWidth();
         final int height = icon.getIconHeight();
