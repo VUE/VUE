@@ -34,6 +34,8 @@ import tufts.vue.*;
 import com.hp.hpl.jena.rdf.model.*;
 
 public class RDFOpenAction extends VueAction {
+
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RDFOpenAction.class);    
     
     //todo: add constants for row length, starting position, y gaps and x gaps
     //also make these all be read from properties file for ease of modification
@@ -173,20 +175,35 @@ public class RDFOpenAction extends VueAction {
     private static LWNode createNodeFromResource(com.hp.hpl.jena.rdf.model.Resource r) {
 
         tufts.vue.Resource resource = null;
+        String uri = null;
         try
         {
-            resource = tufts.vue.Resource.getFactory().get(r.getURI());
-            //resource = new MapResource(r.getURI());
+            uri = r.getURI();
+            
+// Resource's aren't currently intended to support being created from arbitrary strings.
+// Do we need them to?  If so, we'd probably want to require that the abritraty string
+// is at least a valid URI.  We might want something like this:
+//             if (uri != null && uri.length() > 0) {
+//                 if (uri.charAt(0) == '#')
+//                     uri = "rdf:" + uri.substring(1);
+//                 else if (uri.indexOf(':') < 0)
+//                     uri = "rdf:" + uri;
+//             }
+            
+            if (uri != null)
+                resource = tufts.vue.Resource.getFactory().get(uri);
+            else
+                Log.warn("null URI: " + tufts.Util.tags(r));
         }
-        catch(Error err)
-        {
-          System.out.println("Error in creation of Map Resource: " + err);
+        catch (Throwable t) {
+          Log.warn("failed to create Resource from " + tufts.Util.tags(uri), t);
         }
         
         LWNode node = new LWNode("Empty");
         if(resource == null)
         {
-          node = new LWNode("Resource Error");
+            if (uri != null)
+                node = new LWNode("Resource Error; URI [" + uri + "]");
         }
         else
         {
