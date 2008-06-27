@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.118 $ / $Date: 2008-06-20 04:36:58 $ / $Author: sfraize $
+ * @version $Revision: 1.119 $ / $Date: 2008-06-27 21:16:46 $ / $Author: anoop $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -746,8 +746,10 @@ public class ActionUtil
             
                 if (allowRedirects) {
                     final URL redirectURL = tufts.vue.UrlAuthentication.getRedirectedUrl(url, 10); // number of redirects to follow
-                    file = new File(redirectURL.getFile()); // SMF: Anoop's semantics as of 2008-03-12
-
+                    url = redirectURL;
+                     file = new File(url.getFile());
+                    // AK: Thanks for leaving the comments. 
+                    // we need to open the redirect url
                     // SMF 2008-04-08: Anoop's semantics as of 2008-03-12: we do NOT
                     // open the redirect url for reading, we open the original.  Not
                     // sure if this was intended.
@@ -761,8 +763,7 @@ public class ActionUtil
                 else
                     reader = new InputStreamReader(UrlAuthentication.getAuthenticatedStream(url)); // could default to UTF-8
 
-                if (file != null)
-                    file = new File(url.getFile()); // SMF: Anoop's semantics as of 2008-03-12
+ 
             }
         
         } catch (Throwable t) {
