@@ -20,6 +20,7 @@
 package tufts.vue;
 
 
+import java.security.interfaces.DSAKey;
 import java.util.*;
 import java.net.*;
 import java.io.*;
@@ -87,10 +88,25 @@ public class FedoraPublisher {
     public FedoraPublisher() {
     }
     
-    public static void uploadMap(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception {
-        addObjectToRepository(ds,VUE_CM,map.getFile(),map,map);
+    public static void uploadMap(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception {    
+        addObjectToRepository(ds,VUE_CM,map.getFile(),map,map); 
     }
     
+    public static void uploadArchive(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception {
+        System.out.println("Saving archive to repository: "+map.getFile());
+        //check if the file ends with vpk extension
+        String  mapName = map.getFile().getName();
+        if(mapName.endsWith(VueUtil.VueArchiveExtension)){
+            addObjectToRepository(ds,VUE_CM,map.getFile(),map,map);
+        } else {
+            String archiveFilePath = map.getFile().getAbsolutePath();
+            archiveFilePath = archiveFilePath.substring(0,archiveFilePath.length()-4)+VueUtil.VueArchiveExtension;
+            File archiveFile = new File(archiveFilePath);
+            tufts.vue.action.Archive.writeArchive(map,archiveFile);
+            System.out.println("Writing Archival Object:"+archiveFile);
+            addObjectToRepository(ds,VUE_CM,archiveFile,map,map);
+        }
+    }
     public static void uploadMapAll(edu.tufts.vue.dsm.DataSource ds, LWMap map) throws Exception{
         Properties properties = ds.getConfiguration();
         String mapLabel = map.getLabel();
@@ -112,14 +128,14 @@ public class FedoraPublisher {
                     File localFile = new File(resource.getSpec().replace(FILE_PREFIX,""));
                     addObjectToRepository(ds,OTHER_CM, localFile,  component, cloneMap);
                     String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
-                   component.setResource(URLResource.create(ingestUrl));
+                    component.setResource(URLResource.create(ingestUrl));
                 } else if(!(resource instanceof Osid2AssetResource)) {
                     addObjectToRepository(ds,REMOTE_CM,null,component,cloneMap);
                     String ingestUrl = HTTP+"://"+properties.getProperty("fedora22Address")+":"+properties.getProperty("fedora22Port")+FEDORA_URL_PATH+"get/"+pid+"/"+RESOURCE_DS;
                     component.setResource(URLResource.create(ingestUrl));
                 }
-          //        System.out.println("Replacing resource: "+resource+ " with "+ingestUrl+" resource is "+resource.getClass());
-                   
+                //        System.out.println("Replacing resource: "+resource+ " with "+ingestUrl+" resource is "+resource.getClass());
+                
                 
             }
         }
@@ -154,10 +170,10 @@ public class FedoraPublisher {
     
     private static void addObject(FedoraClient fc,Properties p, String cModel,File file,LWComponent comp,LWMap map) throws Exception{
         String ingestFoxml =  getDigitalObjectXML(p,comp,map,cModel,file);
-//        BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
-//        writer.write(ingestFoxml);
-//        writer.close();
-//        System.out.println("INGEST XML:\n"+ingestFoxml);
+       BufferedWriter writer = new BufferedWriter(new FileWriter("C:\\temp\\IngestTest.xml"));
+        writer.write(ingestFoxml);
+        writer.close();
+        System.out.println("INGEST XML:\n"+ingestFoxml);
         StringBufferInputStream s = new StringBufferInputStream(ingestFoxml);
         AutoIngestor.ingestAndCommit(fc.getAPIA(), fc.getAPIM(), s,FORMAT, COMMENT);
     }
@@ -226,22 +242,22 @@ public class FedoraPublisher {
             dsName = file.getName();
             mimeType =VUE_MIME_TYPE;
             r += getDSXML("R",MAP_DS,dateString,comp.getLabel(),"http://local.fedora.server/fedora/get/"+pid+"/"+dsName,"URL",mimeType);
-        } 
+        }
         if(!cModel.equals(REMOTE_CM)){
             //dsName = URLEncoder.encode(file.getName(), ENCODING);
             dsName = file.getName();
             //Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), edu.tufts.vue.util.Encryption.decrypt(p.getProperty("fedora22Password")));
             Uploader uploader = new Uploader(HTTPS, p.getProperty("fedora22Address"),Integer.parseInt(p.getProperty("fedora22SecurePort")),p.getProperty("fedora22UserName"), p.getProperty("fedora22Password"));
-            uploadId = uploader.upload(file);   
+            uploadId = uploader.upload(file);
             r+= getDSXML("R",RESOURCE_DS,dateString,comp.getLabel(), "http://local.fedora.server/fedora/get/"+pid+"/"+dsName,"URL",mimeType);
         } else {
             controlGroup = "E";
             contentLocationType = "URL";
             uploadId = comp.getResource().getSpec();
-          
+            
         }
         
-       return r+ getDSXML(controlGroup,dsName,dateString,comp.getLabel(), uploadId,contentLocationType,mimeType);
+        return r+ getDSXML(controlGroup,dsName,dateString,comp.getLabel(), uploadId,contentLocationType,mimeType);
     }
     
     public static String getDSXML(String controlGroup,String dsName,String dateString,String label, String uploadId,String contentLocationType, String mimeType) {
@@ -255,7 +271,7 @@ public class FedoraPublisher {
         return xml.toString();
     }
     
- 
+    
     
     private static String getDCXML(LWComponent comp) {
         String dateString = getDateString();
