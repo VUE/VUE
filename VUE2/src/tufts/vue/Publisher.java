@@ -41,7 +41,7 @@ import java.util.*;
 
 /**
  * @author  akumar03
- * @version $Revision: 1.93 $ / $Date: 2008-05-07 16:18:33 $ / $Author: anoop $
+ * @version $Revision: 1.94 $ / $Date: 2008-06-27 19:26:18 $ / $Author: anoop $
  */
 public class Publisher extends JDialog implements ActionListener,tufts.vue.DublinCoreConstants   {
     
@@ -260,7 +260,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         publishMapRButton.setSelected(true);
         publishMapAllRButton = new JRadioButton(MODE_LABELS[1]);
         publishZipRButton = new JRadioButton(MODE_LABELS[2]);
-        publishZipRButton.setEnabled(false);
+   //     publishZipRButton.setEnabled(false);
         
         modeButtons.add(publishMapRButton);
         modeButtons.add(publishMapAllRButton);
@@ -272,6 +272,7 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         optionPanel.add(publishZipRButton);
         
         publishMapRButton.addActionListener(this);
+        publishZipRButton.addActionListener(this);
         publishMapAllRButton.addActionListener(this);
         
         //   modeButtons.setSelected(radioButtons.get(0).getModel(),true);
@@ -424,6 +425,9 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
         if(e.getActionCommand().equals(MODE_LABELS[1])){
             modeInfo.setText(PUBLISH_INFORMATION[3]);
         }
+        if(e.getActionCommand().equals(MODE_LABELS[2])){
+            modeInfo.setText(PUBLISH_INFORMATION[2]);
+        }
         
     }
     
@@ -438,6 +442,8 @@ public class Publisher extends JDialog implements ActionListener,tufts.vue.Dubli
                     FedoraPublisher.uploadMap(ds,VUE.getActiveMap());
                 else if(publishMapAllRButton.isSelected())
                     FedoraPublisher.uploadMapAll(ds,VUE.getActiveMap());
+                else if(publishZipRButton.isSelected())
+                    FedoraPublisher.uploadArchive(ds,VUE.getActiveMap());
                 else
                     alert(VUE.getDialogParent(), "Publish mode is not yet supported", "Mode Not Suported");
             } else if(ds.getRepository().getType().isEqual(edu.tufts.vue.dsm.DataSourceTypes.SAKAI_REPOSITORY_TYPE)) {
