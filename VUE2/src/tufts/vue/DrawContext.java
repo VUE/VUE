@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -34,7 +34,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.58 $ / $Date: 2008-04-28 05:21:58 $ / $Author: sfraize $
+ * @version $Revision: 1.59 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
  * @author Scott Fraize
  *
  */

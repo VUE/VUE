@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.21 $ / $Date: 2008-06-18 02:39:13 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  */
 
 public class ActiveInstance<T>

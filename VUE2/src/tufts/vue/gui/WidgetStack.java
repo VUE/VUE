@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.44 $ / $Date: 2008-05-31 19:12:51 $ / $Author: sfraize $
+ * @version $Revision: 1.45 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget

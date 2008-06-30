@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.76 $ / $Date: 2008-06-20 15:11:40 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener

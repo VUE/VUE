@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.564 $ / $Date: 2008-06-20 16:07:02 $ / $Author: anoop $ 
+ * @version $Revision: 1.565 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
  */
 
 public class VUE

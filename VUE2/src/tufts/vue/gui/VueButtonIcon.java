@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -39,7 +39,7 @@ import javax.swing.border.*;
  * transparency, etc, based on button state.  Can also handle a null raw icon for just drawing borders.
  * Can install, via installGenerated, a set of icons into any AbstractButton using our default VUE GUI scheme.
  *
- * @version $Revision: 1.13 $ / $Date: 2008-04-30 07:09:48 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
  * @author Scott Fraize
  */
 

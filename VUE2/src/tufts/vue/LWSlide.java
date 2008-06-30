@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.108 $ / $Date: 2008-06-04 16:41:51 $ / $Author: sfraize $
+ * @version $Revision: 1.109 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  */
 public class LWSlide extends LWContainer
 {

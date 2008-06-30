@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -44,7 +44,7 @@ import com.lightdev.app.shtm.Util;
 /**
  * This creates a font editor panel for editing fonts in the UI
  *
- * @version $Revision: 1.80 $ / $Date: 2008-04-16 05:42:43 $ / $Author: mike $
+ * @version $Revision: 1.81 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  *
  */
 public class FontEditorPanel extends JPanel

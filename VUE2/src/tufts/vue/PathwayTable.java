@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.104 $ / $Date: 2008-05-28 17:46:41 $ / $Author: sfraize $
+ * @version $Revision: 1.105 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  */
 
 public class PathwayTable extends JTable

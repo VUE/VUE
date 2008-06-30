@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -37,7 +37,7 @@ import org.apache.log4j.NDC;
 /**
  * Code for providing, entering and exiting VUE full screen modes.
  *
- * @version $Revision: 1.36 $ / $Date: 2008-06-20 05:17:44 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
  *
  */
 

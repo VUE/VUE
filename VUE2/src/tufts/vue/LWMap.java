@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.200 $ / $Date: 2008-05-30 19:30:47 $ / $Author: sfraize $
+ * @version $Revision: 1.201 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
  */
 
 public class LWMap extends LWContainer

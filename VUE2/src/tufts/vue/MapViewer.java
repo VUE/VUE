@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.560 $ / $Date: 2008-06-18 23:39:50 $ / $Author: sfraize $ 
+ * @version $Revision: 1.561 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete

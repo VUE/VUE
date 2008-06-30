@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -29,7 +29,7 @@ import java.awt.Color;
  * (A pathway entry usually pairs a node with a slide, although they don't require a slide).
  *
  * @author Scott Fraize
- * @version $Revision: 1.9 $ / $Date: 2007-11-28 16:08:01 $ / $Author: peter $
+ * @version $Revision: 1.10 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  */
 class Slides {
 

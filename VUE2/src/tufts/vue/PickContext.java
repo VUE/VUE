@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -20,7 +20,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.11 $ / $Date: 2007-11-28 16:08:02 $ / $Author: peter $
+ * @version $Revision: 1.12 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  * @author Scott Fraize
  *
  */

@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -45,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.43 $ / $Date: 2008-06-30 20:04:03 $ / $Author: anoop $
+ * @version $Revision: 1.44 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {

@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.78 $ / $Date: 2008-06-20 15:10:56 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  */
 
 public abstract class Resource implements Cloneable

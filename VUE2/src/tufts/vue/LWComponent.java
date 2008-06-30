@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.418 $ / $Date: 2008-06-02 20:19:01 $ / $Author: sfraize $
+ * @version $Revision: 1.419 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
  * @author Scott Fraize
  */
 

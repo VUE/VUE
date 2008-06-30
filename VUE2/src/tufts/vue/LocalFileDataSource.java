@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.29 2008-05-28 00:06:43 sfraize Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.30 2008-06-30 20:52:54 mike Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -35,7 +35,7 @@ import tufts.Util;
 
 
 /**
- * @version $Revision: 1.29 $ / $Date: 2008-05-28 00:06:43 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
  * @author  rsaigal
  */
 

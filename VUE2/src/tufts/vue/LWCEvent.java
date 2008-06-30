@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * event to the GUI, although these are stop-gap cases that ultimately
  * would be better handled as a recognized property change.
 
- * @version $Revision: 1.35 $ / $Date: 2008-04-22 06:57:07 $ / $Author: sfraize $  
+ * @version $Revision: 1.36 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $  
  
  */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -29,7 +29,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.14 $ / $Date: 2008-06-02 06:06:27 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  * @author  rsaigal
  * @author  sfraize
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -30,7 +30,7 @@ import javax.swing.AbstractButton;
  * An action for displaying a Window and tracking it's displayed state,
  * keeping in synchronized with a somebody's button (such a checkbox in a menu).
  *
- * @version $Revision: 1.7 $ / $Date: 2008-05-22 03:49:17 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class WindowDisplayAction extends javax.swing.AbstractAction

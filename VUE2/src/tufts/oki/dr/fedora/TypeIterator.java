@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -15,7 +15,7 @@
 package tufts.oki.dr.fedora;
 
     /**
-    TypeIterator returns a set, one at a time.  The purpose of all Iterators is to to offer a way for SID methods to return multiple values of a common type and not use an array.  Returning an array may not be appropriate if the number of values returned is large or is fetched remotely.  Iterators do not allow access to values by index, rather you must access values in sequence. Similarly, there is no way to go backwards through the sequence unless you place the values in a data structure, such as an array, that allows for access by index. <p>Licensed under the {@link osid.SidLicense MIT O.K.I SID Definition License}.<p>@version $Revision: 1.6 $ / $Date: 2007-11-28 16:03:04 $
+    TypeIterator returns a set, one at a time.  The purpose of all Iterators is to to offer a way for SID methods to return multiple values of a common type and not use an array.  Returning an array may not be appropriate if the number of values returned is large or is fetched remotely.  Iterators do not allow access to values by index, rather you must access values in sequence. Similarly, there is no way to go backwards through the sequence unless you place the values in a data structure, such as an array, that allows for access by index. <p>Licensed under the {@link osid.SidLicense MIT O.K.I SID Definition License}.<p>@version $Revision: 1.7 $ / $Date: 2008-06-30 20:53:01 $
     */
 public class TypeIterator
 implements osid.shared.TypeIterator

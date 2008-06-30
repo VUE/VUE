@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.49 $ / $Date: 2008-03-25 17:08:44 $ / $Author: mike $
+ * @version $Revision: 1.50 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  */
 

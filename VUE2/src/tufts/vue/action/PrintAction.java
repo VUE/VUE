@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -36,7 +36,7 @@ import java.awt.event.ActionEvent;
  * means that VUE can't repaint itself while the print dialogs are
  * active (not true on Mac OS X, but true at least on W2K/JVM1.4.2).
  * 
- * @version $Revision: 1.43 $ / $Date: 2007-11-26 23:11:24 $ / $Author: peter $
+ * @version $Revision: 1.44 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
  * @author Scott Fraize
  */
 

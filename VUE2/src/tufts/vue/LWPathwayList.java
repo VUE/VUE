@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -24,7 +24,7 @@ import java.util.*;
  * their contents, and rebroadcasting them to interested parties, such
  * as the PathwayTableModel.
  *
- * @version $Revision: 1.35 $ / $Date: 2008-03-31 20:42:21 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  * @author Scott Fraize
  *
  */

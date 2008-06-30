@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.139 $ / $Date: 2008-04-14 19:28:08 $ / $Author: sfraize $
+ * @version $Revision: 1.140 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent

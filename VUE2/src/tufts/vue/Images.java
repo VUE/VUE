@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.54 $ / $Date: 2008-06-04 16:37:09 $ / $Author: sfraize $
+ * @version $Revision: 1.55 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class Images

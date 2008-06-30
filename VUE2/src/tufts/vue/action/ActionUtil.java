@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.120 $ / $Date: 2008-06-30 20:40:31 $ / $Author: mike $
+ * @version $Revision: 1.121 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */

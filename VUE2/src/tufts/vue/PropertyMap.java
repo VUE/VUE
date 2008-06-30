@@ -1,5 +1,5 @@
   /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -22,7 +22,7 @@ import java.lang.ref.*;
 /**
  * A general HashMap for storing property values: e.g., meta-data.
  *
- * @version $Revision: 1.25 $ / $Date: 2008-06-11 18:05:48 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  */
 
 public class PropertyMap extends java.util.HashMap<String,Object>

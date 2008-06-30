@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.53 $ / $Date: 2008-02-26 15:50:41 $ / $Author: mike $
+ * @version $Revision: 1.54 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
  *
  */
 public class VueResources

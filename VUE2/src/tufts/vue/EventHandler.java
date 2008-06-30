@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * automatically create a new handler for the given event type if one doesn't exist.
  *
  * @author Scott Fraize 2008-06-17
- * @version $Revision: 1.2 $ / $Date: 2008-06-19 03:48:39 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
  */
 
 // todo: see if we can subclass ActiveInstance from this to share code

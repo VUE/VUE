@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -36,7 +36,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  *
  * Set's the icon-image for the vue application and set's the window title.
  *
- * @version $Revision: 1.19 $ / $Date: 2008-06-18 02:36:14 $ / $Author: sfraize $ 
+ * @version $Revision: 1.20 $ / $Date: 2008-06-30 20:53:05 $ / $Author: mike $ 
  */
 public class VueFrame extends javax.swing.JFrame
     implements ActiveListener<MapViewer>, WindowListener, WindowStateListener, WindowFocusListener               

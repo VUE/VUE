@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -31,7 +31,7 @@ import javax.swing.*;
  * TODO: merge common code with PreviewPane, and perhaps put in a 3rd class
  * so can have multiple icons referencing the same underlying image.
  *
- * @version $Revision: 1.14 $ / $Date: 2007-11-26 22:57:49 $ / $Author: peter $
+ * @version $Revision: 1.15 $ / $Date: 2008-06-30 20:53:00 $ / $Author: mike $
  * @author Scott Fraize
  */
 

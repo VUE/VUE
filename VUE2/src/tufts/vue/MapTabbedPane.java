@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -30,7 +30,7 @@ import java.util.ArrayList;
  * Code for handling a tabbed pane of MapViewer's: adding, removing,
  * keeping tab labels current & custom appearance tweaks.
  *
- * @version $Revision: 1.48 $ / $Date: 2008-06-18 02:32:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.49 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
  */
 
 // todo: need to figure out how to have the active map grab

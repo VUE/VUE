@@ -1,5 +1,5 @@
  /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -32,7 +32,7 @@ import javax.swing.border.*;
  * It is used for the main tool bar tool
  *
  * @author csb
- * @version $Revision: 1.21 $ / $Date: 2008-05-23 04:31:01 $ / $Author: mike $
+ * @version $Revision: 1.22 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
  **/
 public class PaletteButton extends JRadioButton
 {

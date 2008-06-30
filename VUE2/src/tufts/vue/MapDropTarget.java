@@ -1,5 +1,5 @@
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.99 $ / $Date: 2008-06-17 18:41:09 $ / $Author: sfraize $  
+ * @version $Revision: 1.100 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
