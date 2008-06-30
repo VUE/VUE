@@ -82,9 +82,9 @@ public class RemoteFilingTest {
         System.out.print ("Enter password: ");
         password = readline();
          */
-        server = "nolaria.org";
-        username = "markn";
-        password = "norton6972";
+        server = "ftp.org";
+        username = "ftpUser";
+        password = "password";
         
         //  Create a filing manager and make an FTP client.
 
