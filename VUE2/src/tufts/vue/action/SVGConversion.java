@@ -63,23 +63,30 @@ public class SVGConversion extends AbstractAction {
         
         //sets up the document object model
         DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
-        Document document = domImpl.createDocument(null, "svg", null);//new DocumentImpl();
-        SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
-       
+        String svgNS = "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd";
+        Document document = domImpl.createDocument(svgNS, "svg", null);//new DocumentImpl();
+        //SVGGraphics2D svgGenerator = new SVGGraphics2D(document);
+        SVGGeneratorContext ctx = SVGGeneratorContext.createDefault(document);
+        ctx.setEmbeddedFontsOn(true);
+        
+       // ctx.set
+        SVGGraphics2D svgGenerator = new SVGGraphics2D(ctx, true);
+    //    svgGenerator.setUnsupportedAttributes(arg0)
         //Rectangle2D bounds = map.getAllComponentBounds();
         //int xLocation = (int)bounds.getX() + 5, yLocation = (int)bounds.getY() + 5;
         //Dimension size = new Dimension((int)bounds.getWidth() + xLocation, (int)bounds.getHeight() + yLocation);
         
         Rectangle2D bounds = currentMap.getBounds();
-        Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
+   //     Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
         
         //draws the background and the border of the image
-        svgGenerator.setColor(Color.white);
+   /*     svgGenerator.setColor(Color.white);
         svgGenerator.fillRect(0, 0, size.width, size.height);
         svgGenerator.setColor(Color.black);
         svgGenerator.drawRect(0, 0, size.width-1, size.height-1);        
         //translate and set the clip for the map content
-        svgGenerator.translate(-(int)bounds.getX(), -(int)bounds.getY());
+        svgGenerator.translate(-(int)bounds.getX(), -(int)bounds.getY());    
+     */
         svgGenerator.setClip(bounds);   
         
         //renders the map image into the SVGGraphics object
@@ -90,7 +97,7 @@ public class SVGConversion extends AbstractAction {
         dc.setPrioritizeQuality(false);
         dc.setAntiAlias(false);
         
-        dc.setClipOptimized(true);	
+        dc.setClipOptimized(false);	
         dc.setDraftQuality(true);
       //  dc.setRawDrawing();
         //dc.setClipOptimized(false);
@@ -110,7 +117,7 @@ public class SVGConversion extends AbstractAction {
         //    FileWriter out = new FileWriter(location);
         	
         	Writer out = new OutputStreamWriter(new FileOutputStream(location),"UTF-8");
-            svgGenerator.stream(out, false);
+            svgGenerator.stream(out, true);
             out.flush();
             out.close();
         }
