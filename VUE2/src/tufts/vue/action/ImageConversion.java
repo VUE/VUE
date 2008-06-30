@@ -24,7 +24,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2008-05-05 20:28:00 $ / $Author: mike $ *
+ * @version $Revision: 1.25 $ / $Date: 2008-06-30 20:44:59 $ / $Author: sfraize $ *
  * @author  Daisuke Fujiwara
  */
 
@@ -48,7 +48,8 @@ public class ImageConversion extends VueAction {
         try
         {
             if (DEBUG.IO || DEBUG.IMAGE)
-                System.out.println("ImageIO.write " + image + " fmt=" + format + " to " + location);        
+                System.out.println("ImageIO.write " + image + " fmt=" + format + " to " + location);
+
             ImageIO.write(image, format, location);
         }
         catch (Exception e)
@@ -60,6 +61,8 @@ public class ImageConversion extends VueAction {
     /**A method which sets up for converting the active viewer to a Jpeg file*/
     public static void createActiveMapJpeg(File location, double zoomFactor)
     {
+        // todo: jpeg output quality is poor; see:
+        // http://www.universalwebservices.net/web-programming-resources/java/adjust-jpeg-image-compression-quality-when-saving-images-in-java
         convert(VUE.getActiveMap().getAsImage(zoomFactor), location, "jpeg");
     }
     
