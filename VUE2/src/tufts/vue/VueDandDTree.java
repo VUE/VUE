@@ -21,7 +21,6 @@
  */
 
 package tufts.vue;
-import tufts.google.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.*;
@@ -46,7 +45,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.42 $ / $Date: 2008-05-30 22:39:31 $ / $Author: sfraize $
+ * @version $Revision: 1.43 $ / $Date: 2008-06-30 20:04:03 $ / $Author: anoop $
  * @author  rsaigal
  */
 public class VueDandDTree extends VueDragTree implements DropTargetListener {
@@ -209,7 +208,7 @@ public class VueDandDTree extends VueDragTree implements DropTargetListener {
                 while(iter.hasNext()) {
                     File file = (File)iter.next();
                     System.out.println("File Drop: " +file);
-                    try{
+                   try{
                         final LocalFilingManager manager = LocalFileDataSource.getLocalFilingManager();
                         osid.shared.Agent agent = null;
                         LocalCabinet cab = LocalCabinet.instance(file.getAbsolutePath(),agent,null);

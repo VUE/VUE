@@ -24,7 +24,6 @@ package tufts.vue;
 
 import tufts.Util;
 import tufts.vue.gui.GUI;
-import tufts.google.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -47,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.75 $ / $Date: 2008-05-30 22:40:11 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2008-06-30 20:04:03 $ / $Author: anoop $
  * @author  rsaigal
  * @author  Scott Fraize
  */
