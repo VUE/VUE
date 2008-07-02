@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.162 $ / $Date: 2008-05-22 09:41:03 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.162 2008-05-22 09:41:03 sfraize Exp $ -->
+<!-- $Revision: 1.163 $ / $Date: 2008-07-02 20:15:09 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.163 2008-07-02 20:15:09 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -750,6 +750,7 @@
 
 
 
+
 		 update="true"
          includes="edu/tufts/osidimpl/authentication/sakai/*.class"/>
   </target>
@@ -1208,6 +1209,11 @@ VUE_src.zip - ${srcMD5}
                 IAProjectFile="/home/vue/Macrovision/projects/VUEia2008Linux/VUEia2008Linux.iap_xml"
                 BuildWindowsWithVM="true"
             />
+             <buildinstaller
+                IAlocation="/home/vue/Macrovision/InstallAnywhere_2008_Standard"
+                IAProjectFile="/home/vue/Macrovision/projects/VUEia2008vm16/VUEia2008vm16.iap_xml"
+                BuildWindowsWithVM="true"
+            />
          <!-- copying and zipping windows installer -->   
           <delete dir="${basedir}/installer/Vue_Installer.zip"/>
           <copy file="/home/vue/Macrovision/projects/VUEia2008/VUEia2008_Build_Output/Web_Installers/InstData/Windows/VM/VUE.exe" todir="${basedir}/installer"/>
@@ -1221,17 +1227,25 @@ VUE_src.zip - ${srcMD5}
          <zip destfile="${basedir}/installer/VUE_Linux_Installer.zip">
             <zipfileset dir="${basedir}/installer/" includes="VUE.bin" filemode="755" />
          </zip>
-            
+        
+         <!-- copying and zipping vista installer -->
+           <delete dir="${basedir}/installer/VUE_Vista.zip" />
+           <copy file="/home/vue/Macrovision/projects/VUEia2008vm16/VUEia2008vm16_Build_Output/Web_Installers/InstData/Windows/VM/VUE.exe" todir="${basedir}/installer"/>
+         <zip destfile="${basedir}/installer/VUE_Vista.zip">
+            <zipfileset dir="${basedir}/installer/" includes="VUE.exe" filemode="755" />
+         </zip>
          <checksum file="${release.home}/VUE.zip" property="genericMD5"/>
          <checksum file="${release.home}/VUE.app.zip" property="macMD5"/>
          <checksum file="${release.home}/VUE_src.zip" property="srcMD5"/>
          <checksum file="${basedir}/installer/VUE_Installer.zip" property="installerMD5"/>
+            <checksum file="${basedir}/installer/VUE_Vista.zip" property="vistaInstallerMD5"/>
          <checksum file="${basedir}/installer/VUE_Linux_Installer.zip" property="linuxInstallerMD5" />
              <echo file="${release.home}/checksum.txt" >
 VUE.zip - ${genericMD5}
 VUE.app.zip- ${macMD5}
 VUE_src.zip - ${srcMD5}     
 VUE_Installer.zip - ${installerMD5}
+VUE_Vista.zip - ${vistaInstallerMD5}
 VUELinux_Installer.zip - ${linuxInstallerMD5}
         </echo>
          
