@@ -441,7 +441,12 @@ public class TypeList extends JList implements MouseListener,ActionListener {
                     }
                 }
               }
-              g.setColor(fillColor);  
+              
+              
+              //VUE-923
+              //g.setColor(fillColor);  
+              g.setColor(tufts.vue.VueResources.getColor("node.fillColor"));
+
               //g.fillRoundRect(10,15,30,25,5,5);
               g.fillRoundRect(10,8,30,20,5,5);
               g.setColor(old);
