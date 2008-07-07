@@ -20,8 +20,10 @@ import tufts.vue.*;
 import tufts.vue.gui.*;
 import tufts.vue.NotePanel;
 import tufts.vue.filter.NodeFilterEditor;
+import tufts.vue.ActiveEvent;
 
 import java.util.*;
+import java.io.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -38,11 +40,11 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.94 $ / $Date: 2008-06-30 20:53:00 $ / $Author: mike $
+ * @version $Revision: 1.95 $ / $Date: 2008-07-07 21:10:01 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
-    implements VueConstants, ResourceSelection.Listener, LWSelection.Listener, SearchListener, Runnable
+    implements VueConstants, /*ResourceSelection.Listener,*/ LWSelection.Listener, SearchListener, Runnable
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(InspectorPane.class);
     
@@ -53,6 +55,8 @@ public class InspectorPane extends WidgetStack
     private final Image NoImage = VueResources.getImage("NoImage");
 
     private final boolean isMacAqua = GUI.isMacAqua();
+
+    private static final boolean EASY_READING_DESCRIPTION = VUE.VUE3;
 
     //-------------------------------------------------------
     // Node panes
@@ -68,6 +72,7 @@ public class InspectorPane extends WidgetStack
     // Resource panes
     //-------------------------------------------------------
     private final MetaDataPane mResourceMetaData = new MetaDataPane(false);
+    private final Widget mDescription = new Widget("contentInfo"); // for GUI.init property applicaton (use same as meta-data pane)
     private final Preview mPreview = new Preview();
     
     private final WidgetStack stack;
@@ -112,8 +117,16 @@ public class InspectorPane extends WidgetStack
         final float EXACT_SIZE = 0f;
         final float EXPANDER = 1f;
 
+        if (EASY_READING_DESCRIPTION) {
+            mDescription.setBorder(GUI.WidgetInsetBorder);
+            mDescription.setOpaque(true);
+            mDescription.setBackground(Color.white);
+        }
+
         new Pane("Label",                  mLabelPane,          EXACT_SIZE,  INFO+NOTES+KEYWORD);
         new Pane("Content Preview",        mPreview,            EXACT_SIZE,  RESOURCE);
+        if (EASY_READING_DESCRIPTION)
+        new Pane("Content Summary",        mDescription,        0.5f,        RESOURCE);
         new Pane("Content Info",           mResourceMetaData,   EXACT_SIZE,  RESOURCE);
         new Pane("Notes",                  mNotes,              EXPANDER,    INFO+NOTES);
         new Pane("Pathway Notes",          mPathwayNotes,       EXPANDER,    INFO+NOTES);
@@ -125,8 +138,9 @@ public class InspectorPane extends WidgetStack
 
         VUE.getSelection().addListener(this);
         VUE.addActiveListener(LWComponent.class, this);
+        VUE.addActiveListener(Resource.class, this);
         VUE.addActiveListener(LWPathway.Entry.class, this);
-        VUE.getResourceSelection().addListener(this);
+        //VUE.getResourceSelection().addListener(this);
         
         Widget.setHelpAction(mLabelPane,VueResources.getString("dockWindow.Info.summaryPane.helpText"));;
         Widget.setHelpAction(mPreview,VueResources.getString("dockWindow.Info.previewPane.helpText"));;
@@ -153,6 +167,7 @@ public class InspectorPane extends WidgetStack
 
     @Override
     public void addNotify() {
+
         super.addNotify();
 
         if (mScrollPane == null) {
@@ -208,15 +223,23 @@ public class InspectorPane extends WidgetStack
     }
     
 
-    public void resourceSelectionChanged(ResourceSelection.Event e)
+    //public void resourceSelectionChanged(ResourceSelection.Event e)
+    public void activeChanged(final tufts.vue.ActiveEvent e, final Resource resource)
     {    	
-        if (e.selected == null)
+        if (resource == null)
             return;
+
+        if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWComponent.class) {
+            // if this resource change was due to the component change, ignore: is being
+            // handled all at once via our selectionChanged listener
+            return;
+        }
+        
         displayHold();
-        if (DEBUG.RESOURCE) out("resource selected: " + e.selected);
+        //if (DEBUG.RESOURCE) out("resource selected: " + e.selected);
         showNodePanes(false);
         showResourcePanes(true);
-        loadResource(e.selected);
+        loadResource(resource);
         setVisible(true);
         stack.setTitleItem("Content");
         displayRelease();
@@ -405,6 +428,8 @@ public class InspectorPane extends WidgetStack
         component.setName(title);
     }
 
+    private static String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "inspector-content";
+
     private void loadResource(final Resource r) {
         
         if (DEBUG.RESOURCE) out("loadResource: " + r);
@@ -415,7 +440,327 @@ public class InspectorPane extends WidgetStack
         mResource = r;
         mResourceMetaData.loadResource(r);
         mPreview.loadResource(r);
+        
+        if (EASY_READING_DESCRIPTION) {
+
+            JComponent descriptionView = (JComponent) r.getPropertyValue(DESCRIPTION_VIEWER_KEY);
+            
+            if (descriptionView == null) {
+
+                // TODO: MAKE CASE INDEPENDENT
+                String desc = r.getProperty("description");
+                if (desc == null)
+                    desc = r.getProperty("Description");
+                
+                // desc may still be null at this point,
+                // in which case one will be constructed
+                // from the Resource
+
+                boolean gotView = false;
+
+                try {
+                    descriptionView = buildDescription(r, desc);
+                    gotView = true;
+                } catch (Throwable t) {
+                    Log.error("loadResource " + r, t);
+                    // html will enable text-wrap
+                    descriptionView = new JLabel("<html>"+ r + "<p>" + t.toString()); 
+                }
+                
+                // todo: the below should ideally be auto-cleared when any change to the
+                // resource is made and/or any change to it's component properties.
+                // (would need to separate "real" meta-data properties from runtime
+                // client properties such as this one in that case).  It would be nice
+                // if resource properties could individually be specified as having
+                // these special attributes themselves.  (e.g., "soft" or
+                // "auto-clear-on-change")
+
+                if (gotView)
+                    r.setProperty(DESCRIPTION_VIEWER_KEY, new java.lang.ref.SoftReference(descriptionView));
+            }
+
+            mDescription.removeAll();
+            mDescription.add(descriptionView);
+            mDescription.repaint();
+        }
+
+
     }
+
+    private static final HyperlinkListener DefaultHyperlinkListener =
+        new HyperlinkListener() {
+            public void hyperlinkUpdate(HyperlinkEvent e) {
+                //Log.debug(e);
+                if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                    java.net.URL url = null;
+                    try {
+                        url = e.getURL();
+                        if (url == null) {
+                            Log.warn("no URL in " + e);
+                        } else {
+                            tufts.vue.VueUtil.openURL(url.toString());
+                        }
+                    } catch (Throwable t) {
+                        Log.warn("hyperlinkUpdate; url=" + url + "; " + e, t);
+                    }
+                }
+            }
+        };
+
+    private JComponent buildDescription(final Resource r, String desc)
+    {
+        //Thread loader = null;
+
+        final JTextPane htmlText = new JTextPane();
+        htmlText.setEditable(false);
+        htmlText.setContentType("text/html");
+        htmlText.setName("description:" + r);
+        htmlText.addHyperlinkListener(DefaultHyperlinkListener);
+            
+        if (desc != null) {
+            StringBuffer buf = new StringBuffer(desc.length() + 128);
+
+            //int si = desc.indexOf("</style>");
+            //                if (si > 0) {
+            //                    buf.append(desc, 0, si);
+            //                    desc = desc.substring(si);
+            //                }
+
+            // text pane doesn't handle (e.g. <br/> is very common)
+            desc = desc.replaceAll("/>", ">");
+                
+            // remote some initial space + breaks
+            desc = desc.replaceAll("^\\s*<br>\\s*", "");
+            desc = desc.replaceAll("^\\s*<br>\\s*", "");
+            desc = desc.replaceAll("^\\s*<br>\\s*", "");
+
+            // remote some trailing space + breaks
+            desc = desc.replaceAll("\\s*<br>\\s*$", "");
+            desc = desc.replaceAll("\\s*<br>\\s*$", "");
+            desc = desc.replaceAll("\\s*<br>\\s*$", "");
+                
+                
+            final String title = r.getTitle();
+                
+            if (desc.indexOf("<style") < 0) {
+                // only add a title of now style sheet present ("complex content" e.g., jackrabbit jira)
+
+                buf.append("<b>");
+                buf.append(title);
+                buf.append("</b>\n<p>");
+
+                // first, handle white-space around breaks so as not to overbreak later handling newlines
+                desc = desc.replaceAll("<br>\\s*<br>\\s*", "<p>");
+                    
+                // now handle common paragraph breaks
+                desc = desc.replaceAll("\n\n", "<p>");
+
+            }
+
+            final boolean willDoNetworkIO;
+
+            if (DEBUG.Enabled)
+                willDoNetworkIO = desc.indexOf("<img") >= 0;
+            else
+                willDoNetworkIO = false;
+                
+            if (!desc.equals(title)) {
+                // some OSID's create with spec same as title (!?) e.g., NCBI
+                // (URL property is set, but the spec is not)
+
+                if (DEBUG.IO) {
+                    // some images don't seem to appear:
+                    desc = desc.replaceAll("<img", "<i>[IO:IMAGE]</i><img");
+                    // actually, those appear to be embedded invisible refs
+                    // so content providers know when their content is displayed
+                } else {
+                    // display the image tag and let it display for debugging:
+                    //desc = desc.replaceAll("<img ", "");
+                }
+
+                // not all HTML entities are handled by JTextPane, for example: &mdash; &euro;
+                buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(desc));
+            }
+
+            if (r.hasProperty("Published")) {
+                buf.append("<p>");
+                //buf.append("<font size=-1 color=808080>");
+                buf.append("<font color=B0B0B0><b>");
+                buf.append(r.getProperty("Published"));
+                //buf.append("Published " + r.getProperty("Published"));
+            }
+
+            final String reformatted = buf.toString();
+                
+            htmlText.setText(reformatted);
+                
+//             if (! willDoNetworkIO) {
+                    
+//                 htmlText.setText(reformatted);
+                    
+//             } else {
+
+//                 // TODO: this can hang if the network is down while the new
+//                 // StyledDocument is being created.  Trying to set the new document
+//                 // in another thread is of no help, in that AWT still then just
+//                 // hangs when it attempts to paint the component.
+                    
+//                 //mDescription.setText("Loading...");
+//                 loader =
+//                     new Thread("loadHTML " + r) {
+//                         @Override
+//                         public void run() {
+//                             Log.debug("SET-TEXT...");
+//                             try {
+//                                 Document doc = mDescription.getDocument();
+//                                 doc.remove(0, doc.getLength());
+//                                 Reader r = new StringReader(reformatted);
+//                                 EditorKit kit = mDescription.getEditorKit();
+//                                 kit.read(r, doc, 0); // no help: just hangs here
+//                                 GUI.setDocumentFont(mDescription, GUI.ContentFace);
+//                             } catch (Throwable t) {
+//                                 Log.error(t);
+//                             }
+//                             Log.debug("SET-TEXT COMPLETED.");
+                                
+//                             //mDescription.setText(reformatted);
+//                         }
+//                     };
+//             }
+
+            //mDescription.setToolTipText(reformatted);
+            if (DEBUG.Enabled) r.setProperty("~reformatted", reformatted);
+        } else {
+            final StringBuffer b = new StringBuffer(128);
+            final String title = r.getTitle();
+            if (title != null) {
+                b.append("<b>");
+                // note that the title should already have been HTML UNescaped when set:
+                // now we're escaping it again in case it's natural state actually
+                // contains anything that looks like an HTML tag.  (technically, we
+                // should really only need to escape '<', '>' and '&' at this point)
+                b.append(org.apache.commons.lang.StringEscapeUtils.escapeHtml(title));
+                b.append("</b>");
+                b.append("<p>");
+            }
+                
+            String spec = r.getSpec();
+
+            //-----------------------------------------------------------------------------
+
+            // We escape HTML here because at least on Mac OS X, valid HTML tags could
+            // appear in a file name.  Note that doing this also effects behaviour of
+            // our line-breaking tweaks below.  We also want to do this before before we
+            // insert any special unicode characters.  E.g., otherwise, inserting
+            // zero-width unicode space character \u200B would result in
+            // inserting HTML entity &#8203;, which does still appear to work as a break,
+            // but is waste to encode.  
+            
+            // In case of muti-encoded URL's (contains embedded URL's / queries),
+            // decode multiple times for a more readable display.
+            //spec = Util.decodeURL(spec);
+
+            // todo: start by looking for any top-level query: if none found, decodeURL once, then start
+            // over looking for a top level query. Then process each key/value, indenting if embedded queries found,
+            // and always applying an extry decodeURL to each value in "&key=value"
+            // also: don't make entire thing a multi-line href -- all the whitespace will be accidentally
+            // clickable to launch, and also we'll want to inspect each value for an http: value
+            // (or any key name ending in "url") and make THAT a link, so it can be explored separately.
+            spec = Util.decodeURL(spec);
+            spec = org.apache.commons.lang.StringEscapeUtils.escapeHtml(spec);
+            //-----------------------------------------------------------------------------
+            
+            // will allow text pane to line-break the url (plus makes easier to read queries)
+            
+            // \u200B is Unicode zero-width space: JTextPane will break on these. We add
+            // as desired to break URL's / file paths as painlessly as possible.  Note
+            // that apparently including any special unicode character, or perhaps and
+            // break-related unicode character into the JTextPane, appears to
+            // automatically turn on breaking at basic punctuation: e.g. '.', '-' and '?'.
+            // But it does NOT slash or ampersand which we really need, nor '=', or underscore.
+            
+            // BTW, \uFEFF is the Unicode zero-width NO-BREAK space, which JTextPane,
+            // treats properly as non-breaking.
+
+            //-----------------------------------------------------------------------------
+            // break after these (the special char should end the previous line)
+            //-----------------------------------------------------------------------------
+            
+            spec = spec.replaceAll("/", "/\u200B");
+            spec = spec.replaceAll("=", "=\u200B");
+            
+            //-----------------------------------------------------------------------------
+            // break before these (the special char should start the new line):
+            //-----------------------------------------------------------------------------
+
+            // note that breaking AFTER '&' will probably not work, as now we're
+            // inserting breaks into a string that has been HTML escaped, so
+            // at this point, we're actually inserting a break before any HTML entity,
+            // (e.g., &amp; &quot', etc)  not just '&'
+            if (false) {
+                spec = spec.replaceAll("&", "\u200B&");
+            } else {
+                //spec = spec.replaceAll("&amp;", "<br>&amp;");
+                //spec = spec.replaceAll("&amp;", "<li>");
+                spec = spec.replaceAll("&amp;", "<br>& ");
+                spec = spec.replaceFirst("\\?", "<br>?");
+                spec = spec.replaceFirst("\\*\\*", "<br>**"); // yahoo image URL's use this
+            }
+            
+            spec = spec.replaceAll("_", "\u200B_");
+            spec = spec.replaceAll("@", "\u200B@");
+            // spec = spec.replaceAll(":", "\u200B:"); // todo: for generic descriptions which might contain big URN's (e.g., tufts DL)
+            
+            spec = spec.replaceAll("\\+", "\u200B+");
+            spec = spec.replaceAll("\\?", "\u200B?");
+
+            // todo: ideally, also put break before lower-case to upper-case char transitions
+            //-----------------------------------------------------------------------------
+            
+            b.append("<font size=-1>");
+            b.append("<a href=");
+
+            try {
+                if (r.isLocalFile()) {
+                    if (r.getSpec().startsWith("file:"))
+                        b.append(r.getSpec());
+                    else
+                        b.append("file://" + r.getSpec());
+                } else
+                    b.append(r.getSpec());
+                //b.append(r.getActiveDataFile().toURL());
+            } catch (Throwable t) {
+                Log.warn(r, t);
+                b.append(r.getSpec());
+            }
+            
+            b.append(">");
+            b.append(spec);
+            b.append("</a>");
+            htmlText.setText(b.toString());
+
+            if (DEBUG.Enabled) r.setProperty("~reformatted", b.toString());
+            
+        }
+
+        // This must be done last.  Why this doesn't work up front I don't know: there
+        // must be some other way...
+        
+        GUI.setDocumentFont(htmlText, GUI.ContentFace);
+
+        return htmlText;
+       
+ //         if (loader != null) {
+//             // this not actually helping, other than we get to see "Loading..." before it hangs.
+//             final Thread _loader = loader;
+//             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                 _loader.start();
+//             }});
+//         }
+                    
+            
+    }
+    
 
     private void hideAllPanes()
     {
@@ -449,6 +794,15 @@ public class InspectorPane extends WidgetStack
             }
         }
     }
+
+    private void setPanesVisible(int type, boolean visible) {
+
+        for (Pane p : Pane.AllPanes) {
+            if ((p.bits & type) != 0)
+                Widget.setHidden(p.widget, !visible);
+        }
+    }
+    
     
     private void showNodePanes(boolean visible) {
         Widget.setHidden(mLabelPane, !visible);        
@@ -459,8 +813,7 @@ public class InspectorPane extends WidgetStack
         
     }
     private void showResourcePanes(boolean visible) {
-        Widget.setHidden(mResourceMetaData, !visible);
-        Widget.setHidden(mPreview, !visible);
+        setPanesVisible(RESOURCE, visible);
     }
     
     public void showKeywordView()
@@ -1101,7 +1454,11 @@ public class InspectorPane extends WidgetStack
     }
 
     public void searchPerformed(SearchEvent evt) {
-        if ((VUE.getSelection().size() > 0) && (VUE.getResourceSelection().get() == null))
+        
+//         if ((VUE.getSelection().size() > 0) && (VUE.getResourceSelection().get() == null))
+//             return;
+        
+        if (VUE.getSelection().size() > 0 && VUE.getActiveResource() == null)
             return;
 
         showNodePanes(false);
