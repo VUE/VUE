@@ -302,7 +302,9 @@ public class SaveAction extends VueAction
             if (e != t)
                 Log.error("Exception attempting to save file " + file + ": " + e);
         } finally {
-            GUI.clearWaitCursor();
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                GUI.clearWaitCursor();
+            }});
         }
 
         return false;
