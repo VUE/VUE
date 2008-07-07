@@ -28,7 +28,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.86 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.87 $ / $Date: 2008-07-07 21:03:51 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -266,10 +266,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return;
         clearSilent();
         add(c);
-        if (true) { // this code on the way out w/new ActiveInstance of Resource.class
-            if (VUE.getResourceSelection().get() != c.getResource())
-                VUE.getResourceSelection().setTo(null, this);
-        }
     }
     
     public void setTo(Collection bag)
