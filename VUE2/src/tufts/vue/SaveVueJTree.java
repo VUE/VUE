@@ -108,13 +108,18 @@ public class SaveVueJTree {
                     restoreModel(model, nextNode, nextSNode);
                 }
                 
+                if (VUE.BLOCKING_OSID_LOAD)
                 try {
                     // todo: do we still need this?  What does this code do?
                     // We create an asset, but do nothing with it -- is there a side effect here?
+                    // Commented out because this bombs out sometimes.
+                    // Ask Anoop about this code.  SMF 2008-07-07 
                     if(DataSourceViewer.getDefualtFavoritesRepository() != null){
                         System.out.println("Restoring JTree, Default Favorites: "+DataSourceViewer.getDefualtFavoritesRepository().getDisplayName());
                         org.osid.repository.Repository repository = DataSourceViewer.getDefualtFavoritesRepository();
-                        org.osid.repository.Asset asset = repository.createAsset(nextSNode.getResource().getTitle(),nextSNode.getResource().getToolTipText(),favoritesType);
+                        org.osid.repository.Asset asset = repository.createAsset(nextSNode.getResource().getTitle(),
+                                                                                 nextSNode.getResource().getToolTipText(),
+                                                                                 favoritesType);
                     }
                 }catch(Throwable t) {
                     Log.error("restoreModel", t);
