@@ -99,16 +99,25 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         boolean isLoading = false;
 
         if (value instanceof edu.tufts.vue.dsm.DataSource) {
-            edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
-            mLabel.setText(datasource.getRepositoryDisplayName());
-            mLabel.setForeground(Color.black);
-            mCheckBox.setEnabled(true);
+            //edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)value;
+            edu.tufts.vue.dsm.impl.VueDataSource ds = (edu.tufts.vue.dsm.impl.VueDataSource) value;
+            mLabel.setText(ds.getRepositoryDisplayName());
+
+            if (ds.isOnline()) {
+                mLabel.setForeground(Color.black);
+                mCheckBox.setEnabled(true);
+            } else {
+                isLoading = true;
+                mLabel.setForeground(Color.gray);
+                mCheckBox.setEnabled(false);
+            }
+            
             mCheckBox.setVisibility(true);
-            mCheckBox.setSelected(datasource.isIncludedInSearch());
+            mCheckBox.setSelected(ds.isIncludedInSearch());
 			
             // TODO: cache or maybe return a path in place of an image for getIcon16x16
-            if (datasource.getIcon16x16() != null) {
-                Icon dsIcon = new javax.swing.ImageIcon(datasource.getIcon16x16());
+            if (ds.getIcon16x16() != null) {
+                Icon dsIcon = new javax.swing.ImageIcon(ds.getIcon16x16());
                 mIconLabel.setIcon(dsIcon);
             } else {
                 mIconLabel.setIcon(remoteIcon);
@@ -122,17 +131,19 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
         
             mRow.setBorder(EmptyDividerBorder);
         }
-        else if (value instanceof tufts.vue.VueDataSource) {
+        else if (value instanceof tufts.vue.BrowseDataSource) {
 
-            final tufts.vue.VueDataSource ds = (tufts.vue.VueDataSource) value;
+            final tufts.vue.BrowseDataSource ds = (tufts.vue.BrowseDataSource) value;
 
             mRow.setBorder(DividerBorder);
+            
             if (ds.isAvailable()) {
                 mLabel.setForeground(Color.black);
             } else {
                 isLoading = true;
                 mLabel.setForeground(Color.gray);
             }
+            
             mLabel.setText(ds.getDisplayName());
 
             mCheckBox.setVisibility(false);
