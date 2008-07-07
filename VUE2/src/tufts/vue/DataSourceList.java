@@ -44,7 +44,7 @@ import tufts.oki.localFiling.*;
  * A List that is droppable for the datasources. Only My favorites will
  * take a drop.
  *
- * @version $Revision: 1.58 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.59 $ / $Date: 2008-07-07 19:49:30 $ / $Author: sfraize $
  * @author Ranjani Saigal
  */
 
@@ -75,10 +75,22 @@ public class DataSourceList extends JList implements DropTargetListener
         
         new DropTarget(this,  ACCEPTABLE_DROP_TYPES, this);
         this.setCellRenderer(new DataSourceListCellRenderer());
+
+        if (!VUE.BLOCKING_OSID_LOAD) {
+            edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener
+                (new edu.tufts.vue.dsm.DataSourceListener() {
+                        public void changed(edu.tufts.vue.dsm.DataSource[] dataSource) {
+                            if (DEBUG.Enabled) Log.debug("data sources changed: repaint");
+                            repaint();
+                        }
+                    });
+        }
     }
     
-    private Object locationToValue(Point p) { int index =
-            locationToIndex(p); return getModel().getElementAt(index); }
+    private Object locationToValue(Point p) {
+        int index = locationToIndex(p);
+        return getModel().getElementAt(index);
+    }
     
         /*
          We are going to add some cleverness to the way data sources are ordered.  There are four types of data sources:
@@ -95,7 +107,10 @@ public class DataSourceList extends JList implements DropTargetListener
         DefaultListModel model = (DefaultListModel)getModel();
         int size = model.size();
         if (o instanceof edu.tufts.vue.dsm.DataSource) {
-            if ( ((edu.tufts.vue.dsm.DataSource)o).getRepositoryDisplayName().trim().length() == 0 ) return;
+            if ( ((edu.tufts.vue.dsm.DataSource)o).getRepositoryDisplayName().trim().length() == 0 ) {
+                Log.debug("ignoring repository with empty display name: " + Util.tags(o));
+                return;
+            }
             for (int i=0; i < size; i++) {
                 Object obj = model.elementAt(i);
                 if (!(obj instanceof edu.tufts.vue.dsm.DataSource)) {
@@ -137,20 +152,24 @@ public class DataSourceList extends JList implements DropTargetListener
             repaint();
         }
     }
+
+    private static final boolean ALLOW_FEED_DROPS = false;
     
     public void dragOver(DropTargetDragEvent e) {
         Object over = locationToValue(e.getLocation());
         if (DEBUG.DND) out("dragOver: " + over);
         if (over instanceof FavoritesDataSource) {
-            //e.acceptDrag(ACCEPTABLE_DROP_TYPES);
             e.acceptDrag(e.getDropAction());
             setIndicated(over);
         } else {
             setIndicated(null);
-            e.rejectDrag();
+            if (ALLOW_FEED_DROPS)
+                e.acceptDrag(DnDConstants.ACTION_LINK);
+            else
+                e.rejectDrag();
         }
     }
-    
+
     public void drop(DropTargetDropEvent e) {
         setIndicated(null);
         
@@ -161,10 +180,44 @@ public class DataSourceList extends JList implements DropTargetListener
             if (DEBUG.DND) out("drop ACCEPTED");
             e.acceptDrop(e.getDropAction());
         } else {
+            
+            if (ALLOW_FEED_DROPS) {
+                
+                // This will allow auto-creating RSS Feed data-sources on the drop of a
+                // "feed:" string
+
+                // TODO: for this to fully work, we need the refractoring of MapDropTarget
+                // so that processTransferable will not try to add the resource automatically
+                // to the map!
+
+                // TODO: we should also really put add the feed to the VueDataSourceManager,
+                // (where it could auto-persist it), then either handle an event from
+                // the VDSM to trigger the addOrdered, or to it manually here.
+                
+                e.acceptDrop(e.getDropAction());
+                final Transferable transfer = e.getTransferable();
+                if (DEBUG.DND) try { new MapDropTarget(null).processTransferable(transfer, null); } catch (Throwable t) {}
+                if (transfer.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+                    String txt = MapDropTarget.extractData(transfer, DataFlavor.stringFlavor, String.class);
+                    if (txt.startsWith("feed:")) {
+                        BrowseDataSource feed = new edu.tufts.vue.rss.RSSDataSource(txt, txt);
+                        addOrdered(feed);
+                        DataSourceViewer.saveDataSourceViewer();
+                        DataSourceViewer.cacheDataSourceViewers(); // start it loading
+                        return;
+                    }
+                }
+            }
+            
             if (DEBUG.DND) out("drop rejected");
             e.rejectDrop();
             return;
         }
+
+        // TODO: after merging drop handling with global VUE transfer
+        // handler, check to see if dropped resource is a "feed"
+        // resource, and if so, auto-add an RSSDataSource if dropped
+        // anywhere other than on a FavoritesDataSource.
         
 //         final int current = this.getSelectedIndex();
 //         final int index = locationToIndex(e.getLocation());
