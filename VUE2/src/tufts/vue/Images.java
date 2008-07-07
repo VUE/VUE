@@ -41,7 +41,7 @@ import javax.imageio.stream.*;
  * and caching (memory and disk) with a URI key, using a HashMap with SoftReference's
  * for the BufferedImage's so if we run low on memory they just drop out of the cache.
  *
- * @version $Revision: 1.55 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.56 $ / $Date: 2008-07-07 18:28:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class Images
@@ -663,7 +663,7 @@ public class Images
 
         //Log.debug("fetching image source " + imageSRC + " for " + tag(listener));
         //if (DEBUG.Enabled) Log.debug("fetching " + imageSRC + " for listener " + Util.tag(listener));
-        if (DEBUG.Enabled) Log.debug("fetching for listener " + Util.tag(listener) + " " + imageSRC);
+        if (DEBUG.IMAGE) Log.debug("fetching for listener " + Util.tag(listener) + " " + imageSRC);
 
 
         Object fetchResult;
