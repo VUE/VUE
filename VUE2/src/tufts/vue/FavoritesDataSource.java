@@ -25,11 +25,11 @@ import java.io.*;
 import edu.tufts.vue.util.*;
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $   
+ * @version $Revision: 1.10 $ / $Date: 2008-07-07 21:04:03 $ / $Author: sfraize $   
  * @author  rsaigal
  */
 
-public class FavoritesDataSource extends VueDataSource {
+public class FavoritesDataSource extends BrowseDataSource {
     public static final String FOLDER= VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar;
     
     private String saveFile;
