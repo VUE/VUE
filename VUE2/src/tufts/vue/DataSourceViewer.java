@@ -34,6 +34,8 @@ import java.io.*;
 import java.util.*;
 import java.net.URL;
 
+import edu.tufts.vue.dsm.impl.VueDataSource;
+
 import org.osid.repository.Repository;
 import org.osid.repository.RepositoryException;
 
@@ -106,9 +108,7 @@ public class DataSourceViewer extends JPanel
     private static DataSourceViewer singleton;
     
     public DataSourceViewer(DRBrowser drBrowser) {
-        //GUI.activateWaitCursor();
-        
-        VUE.pushDiag("DSV");
+        VUE.diagPush("DSV");
 
         if (editInfoDockWindow == null)
             initUI();
@@ -116,75 +116,18 @@ public class DataSourceViewer extends JPanel
         setLayout(new BorderLayout());
         this.DRB = drBrowser;
         dataSourceList = new DataSourceList(this);
-        Widget.setExpanded(DRB.browsePane, false);
-        edu.tufts.vue.dsm.DataSource dataSources[] = null;
-        //org.apache.log4j.NDC.push(getClass().getSimpleName() + ";");
-        try {
-            // load old-style data sources
-            Log.info("Loading old style data sources...");
-            loadOldStyleDataSources();
-            Log.info("Loaded old style data sources.");
-        } catch (Throwable t) {
-            VueUtil.alert("Error loading old Resource","Error");
-        }
-        try {
-            // load new data sources
-            dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-            Log.info("loading Installed data sources via Data Source Manager");
+        
+        Widget.setExpanded(DRB.browsePane, false); // working: why expanded sometimes?
 
-            VUE.pushDiag("LD");
-            edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
-            VUE.popDiag();
-            
-            dataSources = dataSourceManager.getDataSources();
-            Log.info("finished loading data sources.");
-            VUE.pushDiag("UI");
-            for (int i=0; i < dataSources.length; i++) {
-                Log.info("adding to the UI: " + dataSources[i]);
-                try {
-                    dataSourceList.addOrdered(dataSources[i]);
-                } catch (Throwable t) {
-                    Log.error("adding to UI: " + dataSources[i], t);
-                    VueUtil.alert("Error loading Resource #" + (i+1), "Error");
-                    //VueUtil.alert("Error loading Resource " + dataSources[i], "Error");
-                }
-            }
-            VUE.popDiag();
-            
-        } catch (Throwable t) {
-            //Util.printStackTrace(t, "DataSourceViewer construct");
-            VueUtil.alert("Error loading Resource","Error");
-        }
+        loadOSIDDataSources();
+
+        loadBrowseableDataSources();
         
-        federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
-        sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
-        if (DEBUG.Enabled) Log.debug("sourcesAndTypesManager: " + Util.tags(sourcesAndTypesManager));
-        queryEditor = federatedSearchManager.getQueryEditorForType(searchType);
-        queryEditor.addSearchListener(this);
-        
-        // select the first new data source, if any
-        if ((dataSources != null) && (dataSources.length > 0)) {
-            setActiveDataSource(dataSources[0]);
-        }
-        DRB.searchPane.removeAll();
-        DRB.searchPane.add((JPanel) queryEditor, DRBrowser.SEARCH_EDITOR);
-        DRB.searchPane.revalidate();
-        DRB.searchPane.repaint();
-        // WORKING: stop using this preview panel?
-        queryEditor.addSearchListener(VUE.getInspectorPane());
-        //this.previewPanel = previewDockWindow.getWidgetPanel();
-        //resultSetDockWindow = DRB.searchDock;
         setPopup();
         addListeners();
         
-        if (false) {
-            JScrollPane dataJSP = new JScrollPane(dataSourceList);
-            dataJSP.setMinimumSize(new Dimension(100,100));
-            add(dataJSP);
-        } else {
-            add(dataSourceList);
-        }
-        
+        add(dataSourceList);
+            
         Widget.setHelpAction(DRB.librariesPanel,VueResources.getString("dockWindow.Content.libraryPane.helpText"));;
         Widget.setRefreshAction(new JButton("B"),new MouseAdapter());
         Widget.setMiscAction(DRB.librariesPanel, new MiscActionMouseListener(), "dockWindow.addButton");
@@ -198,7 +141,7 @@ public class DataSourceViewer extends JPanel
                 }
             });
 
-        VUE.popDiag();
+        VUE.diagPop(); // DSV 
 
         editInfoDockWindow.setLocation(DRB.dockWindow.getX() + DRB.dockWindow.getWidth(),
                                        DRB.dockWindow.getY());
@@ -207,12 +150,128 @@ public class DataSourceViewer extends JPanel
         NoConfig.setMinimumSize(new Dimension(100,50));
         configMetaData.setName("Content Description");
         
-        GUI.clearWaitCursor();
-
-        Widget.setExpanded(DRB.browsePane, false);
+        Widget.setExpanded(DRB.browsePane, false); // working: why expanded sometimes?
         
         singleton = this;
     }
+
+//     private static boolean OSIDsLoaded;
+//     static void loadOSIDs() {
+//         if (singleton != null && !OSIDsLoaded)
+//             singleton.loadOSIDDataSources();
+//     }
+
+    static void configureOSIDs() {
+        Log.info("configuring data sources");
+        
+        VUE.diagPush("config");
+
+        final edu.tufts.vue.dsm.DataSource dataSources[] =
+            edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().getDataSources();
+            
+        for (final edu.tufts.vue.dsm.DataSource ds : dataSources) {
+            if (ds instanceof VueDataSource) {
+                Log.info("configure: " + ds);
+                new Thread("CONFIG: " + ds) {
+                    @Override
+                    public void run() {
+                        try {
+                            ((VueDataSource)ds).assignRepositoryConfiguration();
+                        } catch (Throwable t) {
+                            Log.error("configuring;", t);
+                            //Log.error("configuring: " + ds + ";", t);
+                        }
+                        singleton.repaint();
+                    }
+                }.start();
+            } else {
+                Log.info("unknown DataSource, cannot configure: " + Util.tags(ds));
+            }
+        }
+        //UrlAuthentication.getInstance(); // VUE-879
+
+        VUE.diagPop();
+        
+    }
+    
+
+    private void loadBrowseableDataSources()
+    {
+        //org.apache.log4j.NDC.push(getClass().getSimpleName() + ";");
+        try {
+            // load old-style data sources
+            Log.info("Loading old style data sources...");
+            loadOldStyleDataSources();
+            Log.info("Loaded old style data sources.");
+        } catch (Throwable t) {
+            VueUtil.alert("Error loading old Resource","Error");
+        }
+    }
+
+    private void loadOSIDDataSources()
+    {
+        //OSIDsLoaded = true;
+        edu.tufts.vue.dsm.DataSource dataSources[] = null;
+        
+        try {
+            // load new data sources
+            dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
+            Log.info("loading Installed data sources via Data Source Manager");
+
+            VUE.diagPush("LD");
+            edu.tufts.vue.dsm.impl.VueDataSourceManager.load();
+            VUE.diagPop();
+            
+            dataSources = dataSourceManager.getDataSources();
+            Log.info("finished loading data sources.");
+            VUE.diagPush("UI");
+            
+            for (int i = 0; i < dataSources.length; i++) {
+                final int index = i;
+                final edu.tufts.vue.dsm.DataSource ds = dataSources[i];
+                Log.info("adding to the UI: " + ds);
+                dataSourceList.addOrdered(ds);
+//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                     try {
+//                         dataSourceList.addOrdered(ds);
+//                     } catch (Throwable t) {
+//                         Log.error("adding to UI: " + ds, t);
+//                         VueUtil.alert("Error loading Resource #" + (index+1), "Error");
+//                     }
+//                 }});
+            }
+            
+            VUE.diagPop();
+            
+        } catch (Throwable t) {
+            //Util.printStackTrace(t, "DataSourceViewer construct");
+            VueUtil.alert("Error loading Resource","Error");
+        }
+        
+        federatedSearchManager = edu.tufts.vue.fsm.impl.VueFederatedSearchManager.getInstance();
+        sourcesAndTypesManager = edu.tufts.vue.fsm.impl.VueSourcesAndTypesManager.getInstance();
+        if (DEBUG.Enabled) Log.debug("sourcesAndTypesManager: " + Util.tags(sourcesAndTypesManager));
+        queryEditor = federatedSearchManager.getQueryEditorForType(searchType);
+        queryEditor.addSearchListener(this);
+
+        DRB.searchPane.removeAll();
+        DRB.searchPane.add((JPanel) queryEditor, DRBrowser.SEARCH_EDITOR);
+        DRB.searchPane.revalidate();
+        DRB.searchPane.repaint();
+
+        // WORKING: stop using this preview panel?
+        queryEditor.addSearchListener(VUE.getInspectorPane());
+        //this.previewPanel = previewDockWindow.getWidgetPanel();
+        //resultSetDockWindow = DRB.searchDock;
+        
+        // select the first new data source, if any
+        if (activeDataSource == null && dataSources != null && dataSources.length > 0)
+            setActiveDataSource(dataSources[0]);
+
+        
+    }
+    
+    
     
     class MiscActionMouseListener extends MouseAdapter
     {
@@ -282,11 +341,12 @@ public class DataSourceViewer extends JPanel
 
 
     private void addListeners() {
-        dataSourceList.addKeyListener(this);
+        //dataSourceList.addKeyListener(this); // not currently used
         // WORKING: commented out
         //librariesDockWindow.setVisible(true); // try to make menu appear
         dataSourceList.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
+                if (DEBUG.KEYS || DEBUG.EVENTS) Log.debug("valueChanged: " + e);
                 Object o = ((JList)e.getSource()).getSelectedValue();
                 if (o !=null) {
                     // for the moment, we are doing double work to keep old data sources
@@ -336,9 +396,10 @@ public class DataSourceViewer extends JPanel
                         if (DEBUG.DR) Log.debug("DataSource " + ds + " [" + ds.getProviderDisplayName() + "] inclusion: " + included);
                         ds.setIncludedInSearch(included);
                         dataSourceList.repaint();
-                        queryEditor.refresh();
+                        //queryEditor.refresh();
                         
                         GUI.invokeAfterAWT(new Runnable() { public void run() {
+                            queryEditor.refresh();
                             try {
                                 synchronized (dataSourceManager) {
                                     if (DEBUG.DR) Log.debug("DataSourceManager saving...");
@@ -374,7 +435,7 @@ public class DataSourceViewer extends JPanel
         return activeDataSource;
     }
     
-    private tufts.vue.VueDataSource browserDS;
+    private tufts.vue.BrowseDataSource browserDS;
 
     tufts.vue.DataSource getBrowsedDataSource() {
         return browserDS;
@@ -400,7 +461,11 @@ public class DataSourceViewer extends JPanel
     {
         if (DEBUG.Enabled) Log.debug("displayInBrowsePane: " + browserDS + "; " + GUI.name(viewer));
 
-        Widget.setTitle(DRB.browsePane, "Browse: " + browserDS.getDisplayName());
+        String title = "Browse: " + browserDS.getDisplayName();
+        if (browserDS.getCount() > 0)
+            title += " (" + browserDS.getCount() + ")";
+        Widget.setTitle(DRB.browsePane, title);
+        
         if (priority)
             Widget.setExpanded(DRB.searchPane, false);
         
@@ -422,7 +487,7 @@ public class DataSourceViewer extends JPanel
         
         this.dataSourceList.setSelectedValue(ds, true);
 
-        this.browserDS = (tufts.vue.VueDataSource) ds;
+        this.browserDS = (tufts.vue.BrowseDataSource) ds;
         
         displayInBrowsePane(produceViewer(browserDS), true);
 
@@ -465,11 +530,11 @@ public class DataSourceViewer extends JPanel
 
     private static int vCount = 0;
     
-    private JComponent produceViewer(final tufts.vue.VueDataSource ds) {
+    private JComponent produceViewer(final tufts.vue.BrowseDataSource ds) {
         return produceViewer(ds, false);
     }
 
-    private static String statusName(tufts.vue.VueDataSource ds) {
+    private static String statusName(tufts.vue.BrowseDataSource ds) {
         String s = ds.getAddressName();
         if (s == null)
             s = ds.getDisplayName();
@@ -478,7 +543,7 @@ public class DataSourceViewer extends JPanel
         return s;
     }
     
-    private JComponent produceViewer(final tufts.vue.VueDataSource ds, final boolean caching) {
+    private JComponent produceViewer(final tufts.vue.BrowseDataSource ds, final boolean caching) {
 
         if (!SwingUtilities.isEventDispatchThread())
             throw new Error("not threadsafe except for AWT");
@@ -539,12 +604,12 @@ public class DataSourceViewer extends JPanel
     }
 
     private class AWTAcceptViewerTask implements Runnable {
-        final tufts.vue.VueDataSource ds;
+        final tufts.vue.BrowseDataSource ds;
         final Thread serviceThread;
         final JComponent newViewer;
         final String name;
         
-        AWTAcceptViewerTask(VueDataSource ds, Thread serviceThread, JComponent viewer, String name) {
+        AWTAcceptViewerTask(BrowseDataSource ds, Thread serviceThread, JComponent viewer, String name) {
             this.ds = ds;
             this.serviceThread = serviceThread;
             this.newViewer = viewer;
@@ -559,7 +624,7 @@ public class DataSourceViewer extends JPanel
                 return;
             }
 
-            VUE.pushDiag(name);
+            VUE.diagPush(name);
                     
             if (DEBUG.Enabled) Log.debug("accepting viewer & setting into VueDataSource");
                     
@@ -590,7 +655,7 @@ public class DataSourceViewer extends JPanel
             if (ds.getLoadThread() == serviceThread)
                 ds.setLoadThread(null); 
 
-            VUE.popDiag();
+            VUE.diagPop();
                     
         }
     }
@@ -618,7 +683,7 @@ public class DataSourceViewer extends JPanel
      * set, it may return null.
      *
      */
-    private JComponent buildViewer(final tufts.vue.VueDataSource ds)
+    private JComponent buildViewer(final tufts.vue.BrowseDataSource ds)
     {
         
         final String address = ds.getAddress();
@@ -914,7 +979,7 @@ public class DataSourceViewer extends JPanel
     
     private void loadOldStyleDataSources() {
 
-        VUE.pushDiag("vds"); // VueDataSource (oldStyle)
+        VUE.diagPush("BDS"); // BrowseDataSource (oldStyle)
         
         boolean init = true;
         File f  = new File(VueUtil.getDefaultUserFolder().getAbsolutePath()+File.separatorChar+VueResources.getString("save.datasources"));
@@ -926,9 +991,9 @@ public class DataSourceViewer extends JPanel
             int type;
             try {
                 if (DEBUG.DR) Log.debug("Loading saved DataSources from " + f + "; unmarshalling...");
-                VUE.pushDiag("XML");
+                VUE.diagPush("XML");
                 final SaveDataSourceViewer dataSourceContainer = unMarshallMap(f);
-                VUE.popDiag();
+                VUE.diagPop();
                 if (DEBUG.DR) Log.debug("Unmarshalling completed from " + f);
                 final Vector dataSources = dataSourceContainer.getSaveDataSources();
                 synchronized (oldStyleDataSources) {
@@ -940,10 +1005,10 @@ public class DataSourceViewer extends JPanel
                 while (!(dataSources.isEmpty())){
                     final DataSource ds = (DataSource) dataSources.remove(0);
                     i++;
-                    if (DEBUG.DR) Log.debug("#" + i + ": loading " + Util.tags(ds));
-//                     VUE.pushDiag("#" + i);
+                    if (DEBUG.DR) Log.debug(String.format("#%02d: loading %s ", i, Util.tags(ds)));
+//                     VUE.diagPush("#" + i);
 //                     ds.setResourceViewer();
-//                     VUE.popDiag();
+//                     VUE.diagPop();
                     try {
                         dataSourceList.addOrdered(ds);
                     } catch(Exception ex) {System.out.println("DataSourceViewer.loadDataSources"+ex);}
@@ -954,7 +1019,7 @@ public class DataSourceViewer extends JPanel
             }
         }
 
-        VUE.popDiag();
+        VUE.diagPop();
     }
 
     public static void cacheDataSourceViewers() {
@@ -965,7 +1030,7 @@ public class DataSourceViewer extends JPanel
     
     private void cacheViewers() {
 
-        VUE.pushDiag("dsv-cache");
+        VUE.diagPush("dsv-cache");
 
         final java.util.List<tufts.vue.DataSource> dataSources;
         synchronized (oldStyleDataSources) {
@@ -975,12 +1040,12 @@ public class DataSourceViewer extends JPanel
         for (DataSource ds : dataSources) {
             Log.info("requesting viewer for: " + Util.tags(ds));
             try {
-                produceViewer((tufts.vue.VueDataSource)ds, true);
+                produceViewer((tufts.vue.BrowseDataSource)ds, true);
             } catch (Throwable t) {
                 Log.error("exception caching viewer for " + Util.tags(ds), t);
             }
         }
-        VUE.popDiag();
+        VUE.diagPop();
     }
 
     
@@ -1823,13 +1888,15 @@ public class DataSourceViewer extends JPanel
                 if(o instanceof edu.tufts.vue.dsm.DataSource){
                     edu.tufts.vue.dsm.DataSource datasource = (edu.tufts.vue.dsm.DataSource)o;
                     org.osid.repository.Repository repository = datasource.getRepository();
-                    if(repository.getType().isEqual(favoritesRepositoryType)) {
+                    if (repository == null) {
+                        Log.warn("looking for default favorites: repository unavailable in: " + Util.tags(o));
+                    } else if (repository.getType().isEqual(favoritesRepositoryType)) {
                         return repository;
                     }
                 }
             }
         } catch(Throwable t) {
-            t.printStackTrace();
+            Log.error("searching " + model, t);
         }
         return null;
     }
@@ -1911,11 +1978,43 @@ public class DataSourceViewer extends JPanel
     }
     
     public void keyPressed(KeyEvent e) {
+        if (DEBUG.KEYS) Log.debug(e);
+        
+//         if (e.isShiftDown() && activeDataSource != null) {
+
+//             final int dir;
+//             if (e.getKeyCode() == KeyEvent.VK_UP)
+//                 dir = -1;
+//             else if (e.getKeyCode() == KeyEvent.VK_DOWN)
+//                 dir = 1;
+//             else
+//                 return;
+                
+//             // todo: not very useful!  Need to change the model in the VueDataSourceManager,
+//             // so this change is persistent.  Handle as part of eventually doing away
+//             // with DataSourceList (using a JList), and just using JComponents.
+//             final DefaultListModel model = (DefaultListModel) dataSourceList.getModel();
+//             final int index = model.indexOf(activeDataSource);
+            
+//             Log.debug("RELOCATING " + activeDataSource + " " + dir);
+
+//             final int newIndex = index + dir;
+            
+//             if (newIndex > 0 && newIndex < model.getSize()) {
+//                 model.removeElementAt(index);
+//                 model.insertElementAt(activeDataSource, newIndex);
+//                 if (dir > 0)
+//                     dataSourceList.setSelectedIndex(index);
+//             }
+
+//         }
     }
     
     public void keyReleased(KeyEvent e) {
+        if (DEBUG.KEYS) Log.debug(e);
     }
     
     public void keyTyped(KeyEvent e) {
+        if (DEBUG.KEYS) Log.debug(e);
     }
 }
