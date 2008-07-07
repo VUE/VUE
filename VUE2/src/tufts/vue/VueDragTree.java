@@ -1,6 +1,6 @@
 
 /*
- * Copyright 2003-2007 Tufts University  Licensed under the
+ * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
@@ -46,13 +46,12 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.78 $ / $Date: 2008-07-07 21:05:24 $ / $Author: sfraize $
+ * @version $Revision: 1.79 $ / $Date: 2008-07-07 21:20:10 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  Scott Fraize
  */
 public class VueDragTree extends JTree
-    implements //ResourceSelection.Listener,
-               DragGestureListener,
+    implements DragGestureListener,
                DragSourceListener,
                TreeSelectionListener,
                ActionListener
@@ -60,7 +59,6 @@ public class VueDragTree extends JTree
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDragTree.class);
     
     public static ResourceNode oldnode;
-    //private ResourceSelection resourceSelection = null;
     
     private static final int DOUBLE_CLICK = 2;
 
