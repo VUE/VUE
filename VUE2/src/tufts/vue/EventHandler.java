@@ -57,7 +57,7 @@ import static tufts.Util.*;
  * automatically create a new handler for the given event type if one doesn't exist.
  *
  * @author Scott Fraize 2008-06-17
- * @version $Revision: 1.3 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.4 $ / $Date: 2008-07-07 18:35:36 $ / $Author: sfraize $
  */
 
 // todo: see if we can subclass ActiveInstance from this to share code
@@ -93,7 +93,7 @@ public class EventHandler<E>
     }
 
 
-    protected static int _depth = -1; // event delivery depth
+    //protected static int ActiveInstance.depth = -1; // event delivery depth
 
     //=============================================================================
     
@@ -165,13 +165,13 @@ public class EventHandler<E>
         
         _inNotify = true;
         try {
-            _depth++;
+            ActiveInstance.depth++;
             if (mListeners.size() > 0)
                 notifyListenerList(source, event, mListeners);
 //             if (ListenersForAllEvents.size() > 0)
 //                 notifyListenerList(this, source, event, ListenersForAllEvents);
         } finally {
-            _depth--;
+            ActiveInstance.depth--;
             _inNotify = false;
         }
         
@@ -253,7 +253,7 @@ public class EventHandler<E>
     }
     
     protected static void outf(String fmt, Object... args) {
-        for (int x = 0; x < _depth; x++) System.out.print("    ");
+        for (int x = 0; x < ActiveInstance.depth; x++) System.out.print("    ");
         System.out.format(fmt, args);
         //Log.debug(String.format(fmt, args));
     }
