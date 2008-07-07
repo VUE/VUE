@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.45 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.46 $ / $Date: 2008-07-07 18:32:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -256,8 +256,19 @@ public class WidgetStack extends Widget
                 ps = super.getPreferredSize();
             } catch (Throwable t) {
                 // can get: Exception in thread "*AWT*" java.lang.ArrayIndexOutOfBoundsException: 512
-                // if too many items are loaded -- anything we can do about this?
-                Log.warn(String.format("%s; sizeTrack(%s); %s", getName(), src, t));
+                // if too many items (>=512) are loaded into a GridBag in Java prior 1.6.
+                
+                // TODO:
+                // Also, have seen java.lang.ArrayIndexOutOfBoundsException: 3
+                //
+                // Seen scrolling to bottom of search results
+                //
+                //  Stack dump showed: at javax.swing.text.CompositeView.getView(CompositeView.java:143)
+                // Thread dump showed: at sun.font.AppleNativeStrike.getNativeGlyphImageBounds(Native Method)
+
+                //Log.warn(String.format("%s; sizeTrack(%s); %s", getName(), src, t));
+
+                Log.warn(String.format("%s; sizeTrack(%s);", getName(), src), t);
                 ps = new Dimension(200, 1024);
             }
                 
