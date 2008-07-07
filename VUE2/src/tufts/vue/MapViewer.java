@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.561 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
+ * @version $Revision: 1.562 $ / $Date: 2008-07-07 18:38:42 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -509,7 +509,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return mZoomFactor;
     }
 
-    private static final EventHandler<Event> ViewerEventHandler = EventHandler.getHandler(MapViewer.Event.class);
+    private static final EventHandler<Event> ViewerEventSource = EventHandler.getHandler(MapViewer.Event.class);
     
     protected void fireViewerEvent(int id, String cause) {
         if (VUE.getActiveViewer() == this)
@@ -527,7 +527,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         // the AWT repaint manager is coalescing the repaints.  MapViewer
         // doesn't listen for it's own events, so there's no risk of an
         // event loop that would be avoided by knowing the proper source.
-        ViewerEventHandler.raise(cause, new MapViewer.Event(this, id));
+        ViewerEventSource.raise(cause, new MapViewer.Event(this, id));
     }
     
     void resetScrollRegion() {
