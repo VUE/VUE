@@ -14,14 +14,17 @@
  */
 package edu.tufts.vue.dsm.impl;
 
+import tufts.vue.PropertyEntry;
 import java.util.*;
 
 public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 {
+    public static final boolean BLOCKING_OSID_LOAD = true;
+    
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
     
     private edu.tufts.vue.dsm.OsidFactory factory = null;
-    private Vector _propertyList = null;
+    private Vector<PropertyEntry> _propertyList = null;
     private org.osid.shared.Id providerId = null;
     private org.osid.shared.Id dataSourceId = null;
     private String osidLoadKey = null;
@@ -56,7 +59,7 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     private org.osid.shared.TypeIterator repositorySearchTypes = null;
     
     // Data Source Manager
-    private edu.tufts.vue.dsm.DataSourceManager dataSourceManager = null;
+    //private edu.tufts.vue.dsm.DataSourceManager dataSourceManager = null;
     private boolean includedState = false;
     
     // constructer required by castor
@@ -339,18 +342,26 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
             return this.repositoryDisplayName;
     }
     
-    public String getRepositoryDescription() {
-        return this.repositoryDescription;
+    public boolean isOnline() {
+
+        if (repositoryDisplayName == null || repositoryDisplayName.trim().length() < 1) {
+            return false;
+        } else {
+            return true;
+        }
+
+//         try {
+//             this.repository.getDisplayName();
+//             return true;
+//         } catch (Throwable t) {
+//             // ignore since we are going to return false for any failure
+//         }
+//        return false;
+        
     }
     
-    public boolean isOnline() {
-        try {
-            this.repository.getDisplayName();
-            return true;
-        } catch (Throwable t) {
-            // ignore since we are going to return false for any failure
-        }
-        return false;
+    public String getRepositoryDescription() {
+        return this.repositoryDescription;
     }
     
     public boolean isIncludedInSearch() {
@@ -467,20 +478,26 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     }
     
     public Properties getConfiguration() {
+        return getPropertyConfiguration(_propertyList);
+    }
+
+    private static Properties getPropertyConfiguration(Vector<PropertyEntry> propertyList) {
         Properties properties = new Properties();
-        Iterator i = _propertyList.iterator();
-        while (i.hasNext()) {
-            tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) i.next();
-            final String k = (String) pe.getEntryKey();
-            final String v = (String) pe.getEntryValue();
-            properties.setProperty(k,v);
-            //System.out.println("k/v: "+k+"/"+ v);
+
+        if (propertyList == null)
+            return properties;
+        
+        for (PropertyEntry pe : propertyList) {
+            properties.put(pe.getEntryKey(),
+                           pe.getEntryValue());
         }
+
         return properties;
     }
     
     
-    public java.util.Vector getPropertyList() {
+    
+    public java.util.Vector<PropertyEntry> getPropertyList() {
         return this._propertyList;
     }
     
@@ -492,40 +509,41 @@ public class VueDataSource implements edu.tufts.vue.dsm.DataSource
     public boolean getDone() {
         return this.done;
     }
+    
+    /** called only by castor persistance: when this final value is "set", we know
+     * the XML deserialize is "done" */
     public void setDone(boolean done) {
-        Properties p = new Properties();
-		try {
-			Iterator i = _propertyList.iterator();
-			while (i.hasNext()) {
-				tufts.vue.PropertyEntry pe = (tufts.vue.PropertyEntry) i.next();
-				final String k = (String) pe.getEntryKey();
-				final String v = (String) pe.getEntryValue();
-				p.put(k,v);
-				//System.out.println("Setting k/v: "+k+"/"+ v);
-			}
-		} catch (Exception ex) {
-			// ok, so there are no properties
-		}
-        if (this.dataSourceManager == null) {
-            dataSourceManager = edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance();
-            dataSourceManager.add(this);
-        }
-        try{
-            //System.out.println("properties " + p);
-            //System.out.println("manager " + this.repositoryManager);
-            //System.out.println("data source " + this);
-
-            if (this.repositoryManager == null) {
-                Log.error("setDone: null repositoryManager unmarshalling " + this + "; skipping assignConfiguration.");
-            } else {
-                this.repositoryManager.assignConfiguration(p);
+        edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().add(this);
+        if (BLOCKING_OSID_LOAD) {
+            try {
+                assignRepositoryConfiguration();
+            } catch (Throwable t) {
+                Log.error("setDone; " + this, t);
             }
-            setRelatedValues();
-        } catch (Throwable t) {
-            edu.tufts.vue.util.Logger.log(t);
-			//t.printStackTrace();
         }
     }
+    
+    public void assignRepositoryConfiguration()
+        throws org.osid.OsidException
+    {
+        final Properties properties = getPropertyConfiguration(_propertyList);
+        
+//         Log.debug(" data-source: " + this);
+//         Log.debug("     manager: " + this.repositoryManager);
+//         if (properties.size() > 0)
+//             Log.debug("  properties: " + properties);
+        
+        if (this.repositoryManager == null) {
+            Log.error("setDone: null repositoryManager unmarshalling " + this + "; skipping assignConfiguration.");
+        } else {
+            // This may try network access / hang:
+            this.repositoryManager.assignConfiguration(properties);
+        }
+        setRelatedValues();
+        //Log.debug("  CONFIGURED: " + this);
+    }
+    
+    @Override
     public String toString() {
         try {
             return String.format("%s@%07x[%38s; %-30s; %s]",
