@@ -35,10 +35,14 @@ public class SakaiExport
 		
 		edu.tufts.vue.dsm.DataSource dataSources[] = _dsm.getDataSources();
 		for (int i=0; i < dataSources.length; i++) {
-                    if (DEBUG.DR) Log.debug("Examining data source: " + dataSources[i]);
+                    
                     final org.osid.repository.Repository repository = dataSources[i].getRepository();
-                    final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
-                    if (DEBUG.DR) Log.debug(" Which has repository: " + repository + "; name=" + name);
+                    final String rname = (repository == null ? "<null!>" : repository.getDisplayName());
+                    if (DEBUG.DR) Log.debug("Examining data source: " + dataSources[i] + "; repository=" + rname);
+                    
+//                     final String name = (repository == null ? "<null-repository>" : repository.getDisplayName());
+//                     if (DEBUG.DR) Log.debug(" Which has repository: " + repository + "; name=" + name);
+                    
                     if (dataSources[i].supportsUpdate() && repository != null) {
                         if (DEBUG.DR) Log.info("Supports Update, Now Checking Type");
                         if (DEBUG.DR) Log.info("checking type " + repository.getType().getAuthority() );
