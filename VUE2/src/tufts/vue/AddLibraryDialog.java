@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.74 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.75 $ / $Date: 2008-07-07 21:09:10 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -375,7 +375,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
                     this.oldDataSource = ds;
                 } else if (s.equals(RSS)) {
-                    RSSDataSource ds = new RSSDataSource();
+                    RSSDataSource ds = new RSSDataSource("", null);
                     xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Namee for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
                     String name = ds.getDisplayName();
                     if (name == null) name = "";
