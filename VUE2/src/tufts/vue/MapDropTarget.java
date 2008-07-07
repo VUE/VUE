@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.100 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $  
+ * @version $Revision: 1.101 $ / $Date: 2008-07-07 18:37:35 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -313,7 +313,7 @@ class MapDropTarget
 
         
         
-    private static class DropContext {
+    public static class DropContext {
         final Transferable transfer;
         final Point2D.Float location;   // map location of the drop
         final MapViewer viewer;          // we dropped into this component
@@ -361,8 +361,10 @@ class MapDropTarget
 
             this.isLinkAction = isLinkAction;
 
-            nextX = mapLocation.x;
-            nextY = mapLocation.y;
+            if (mapLocation != null) {
+                nextX = mapLocation.x;
+                nextY = mapLocation.y;
+            }
 
             if (DEBUG.DND) System.out.println(  "DropContext: loc: " + Util.fmt(mapLocation)
                                               + "\n             hit: " + hit
@@ -396,7 +398,7 @@ class MapDropTarget
     /** Extract data and auto-cast to the desired type.  If a type-mistmatch, reporting a warning and return null. */
     // Altho tho the class information is normally stored in the flavor via it's represenation,
     // we can't make use of generics to auto-cast and auto-report any errors w/out the 3rd explicit class object (type) argument.
-    private static <A> A extractData(Transferable transfer, DataFlavor flavor, Class<A> clazz) {
+    public static <A> A extractData(Transferable transfer, DataFlavor flavor, Class<A> clazz) {
         final Object data = extractData(transfer, flavor);
         if (clazz.isInstance(data)) {
            return clazz.cast(data);
@@ -406,7 +408,7 @@ class MapDropTarget
         }
     }
         
-    private static Object extractData(Transferable transfer, DataFlavor flavor)
+    public static Object extractData(Transferable transfer, DataFlavor flavor)
     {
         Object data = DATA_FAILURE;
         try {
@@ -555,8 +557,10 @@ class MapDropTarget
         } else {
             // if no drop location (e.g., we did a "Paste") then assume where
             // they last clicked.
-            dropLocation = mViewer.getLastMousePressPoint();
-            mapLocation = dropToFocalLocation(dropLocation);
+            if (mViewer != null) {
+                dropLocation = mViewer.getLastMousePressPoint();
+                mapLocation = dropToFocalLocation(dropLocation);
+            }
         }
 
         if (hitLocation == null)
@@ -657,7 +661,12 @@ class MapDropTarget
         try {
 
             if (URLFlavor != null && found_HTTP_URL == null) {
-                final URL url = extractData(transfer, URLFlavor, URL.class);
+                URL url = null;
+                try {
+                    url = extractData(transfer, URLFlavor, URL.class);
+                } catch (Throwable t) {
+                    Log.warn("failure extracting " + URLFlavor, t);
+                }
                 if (url != null) {
                     if ("http".equals(url.getProtocol())) {
                         // we especially don't want file: URL's, as then we might
@@ -842,7 +851,7 @@ class MapDropTarget
     }
 
 
-    private boolean processDroppedText(DropContext drop)
+    protected boolean processDroppedText(DropContext drop)
     {
         if (DEBUG.DND) out("processDroppedText");
         
@@ -1635,13 +1644,13 @@ class MapDropTarget
         String value = null;
         try {
             reader = flavor.getReaderForText(transfer);
-            if (DEBUG.DND && DEBUG.META) System.out.println("\treader=" + reader);
+            //if (DEBUG.DND && DEBUG.META) System.out.println("\treader=" + reader);
             char buf[] = new char[512];
             int got = reader.read(buf);
             value = new String(buf, 0, got);
-            if (DEBUG.DND && DEBUG.META) System.out.println("\t[" + value + "]");
+            if (DEBUG.DND && DEBUG.META) System.out.println("\t" + Util.tags(value));
             if (reader.read() != -1)
-                System.out.println("there was more data in the reader");
+                System.out.println("[there was more data in the reader]");
         } catch (Exception e) {
             System.err.println("readTextFlavor: " + e);
         }
