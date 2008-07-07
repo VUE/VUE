@@ -42,7 +42,7 @@ import tufts.oki.shared.*;
  */
 
 
-public class RemoteFileDataSource extends VueDataSource
+public class RemoteFileDataSource extends BrowseDataSource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RemoteFileDataSource.class);
     

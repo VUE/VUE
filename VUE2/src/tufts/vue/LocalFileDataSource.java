@@ -14,7 +14,7 @@
  */
 package tufts.vue;
  
-// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.30 2008-06-30 20:52:54 mike Exp $
+// $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/tufts/vue/LocalFileDataSource.java,v 1.31 2008-07-07 21:06:31 sfraize Exp $
 
 import javax.swing.*;
 import java.util.Vector;
@@ -35,11 +35,11 @@ import tufts.Util;
 
 
 /**
- * @version $Revision: 1.30 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.31 $ / $Date: 2008-07-07 21:06:31 $ / $Author: sfraize $
  * @author  rsaigal
  */
 
-public class LocalFileDataSource extends VueDataSource implements Publishable{
+public class LocalFileDataSource extends BrowseDataSource implements Publishable{
 
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LocalFileDataSource.class);    
     
