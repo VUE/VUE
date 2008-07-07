@@ -54,10 +54,10 @@ import javax.swing.border.*;
  * until a synthetic model item at the end of this shortened list is selected, at which
  * time the rest of the items are "unmaksed" and displayed.
  *
- * @version $Revision: 1.17 $ / $Date: 2008-06-30 20:53:00 $ / $Author: mike $
+ * @version $Revision: 1.18 $ / $Date: 2008-07-07 20:58:51 $ / $Author: sfraize $
  */
 public class ResourceList extends JList
-    implements DragGestureListener, tufts.vue.ResourceSelection.Listener, MouseListener,ActionListener
+    implements DragGestureListener, /*tufts.vue.ResourceSelection.Listener,*/ MouseListener,ActionListener
 {
     public static final Color DividerColor = VueResources.getColor("ui.resourceList.dividerColor", 204,204,204);
     
@@ -213,7 +213,8 @@ public class ResourceList extends JList
                         }
                     }
                     if (getPicked() != null)
-                        tufts.vue.VUE.getResourceSelection().setTo(getPicked(), ResourceList.this);
+                        tufts.vue.VUE.setActive(Resource.class, ResourceList.this, getPicked());
+                    //tufts.vue.VUE.getResourceSelection().setTo(getPicked(), ResourceList.this);
                 }
             });
 
@@ -252,7 +253,8 @@ public class ResourceList extends JList
                 }
             });
         
-        tufts.vue.VUE.getResourceSelection().addListener(this);
+        tufts.vue.VUE.addActiveListener(Resource.class, this);
+        //tufts.vue.VUE.getResourceSelection().addListener(this);
 
         // Set up the drag handler
 
@@ -267,16 +269,15 @@ public class ResourceList extends JList
         */
     }
 
+    @Override
     public void removeNotify() {
         //tufts.Util.printStackTrace("removeNotify " + this);
-        tufts.vue.VUE.getResourceSelection().removeListener(this);
+        tufts.vue.VUE.removeActiveListener(Resource.class, this);
+        //tufts.vue.VUE.getResourceSelection().removeListener(this);
     }
 
-    /** ResourceSelection.Listener */
-    public void resourceSelectionChanged(tufts.vue.ResourceSelection.Event e) {
-        if (e.source == this)
-            return;
-        if (getPicked() == e.selected) {
+    public void activeChanged(final tufts.vue.ActiveEvent e, final tufts.vue.Resource resource) {
+        if (getPicked() == resource) {
             ; // do nothing; already selected
         } else {
             // TODO: if list contains selected item, select it!
@@ -284,7 +285,7 @@ public class ResourceList extends JList
         }
             
     }
-
+    
     private Resource getPicked() {
         Object o = getSelectedValue();
         if (o instanceof Resource)
