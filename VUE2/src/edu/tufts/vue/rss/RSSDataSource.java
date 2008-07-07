@@ -14,14 +14,15 @@
  */
 
 /**
- *
  * @author akumar03
  * @author Daniel J. Heller
+ * @author Scott Fraize
  */
 
 package edu.tufts.vue.rss;
 
 import tufts.vue.*;
+import tufts.Util;
 
 import java.util.*;
 import java.io.*;
@@ -32,13 +33,12 @@ import java.util.Iterator;
 import java.util.List;
 import javax.swing.*;
 
-import com.sun.syndication.feed.synd.SyndEntry;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.io.FeedException;
-import com.sun.syndication.io.SyndFeedInput;
-import com.sun.syndication.io.XmlReader;
+import com.sun.syndication.io.*;
+import com.sun.syndication.feed.*;
+import com.sun.syndication.feed.synd.*;
 
-public class RSSDataSource extends VueDataSource
+
+public class RSSDataSource extends BrowseDataSource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RSSDataSource.class);
     private static final String JIRA_SFRAIZE_COOKIE = "seraph.os.cookie=LkPlQkOlJlHkHiEpGiOiGjJjFi";
@@ -46,8 +46,12 @@ public class RSSDataSource extends VueDataSource
     //public static final String DEFAULT_AUTHENTICATION_COOKIE = JIRA_SFRAIZE_COOKIE;
     public static final String DEFAULT_AUTHENTICATION_COOKIE = DEBUG.Enabled ? JIRA_SFRAIZE_COOKIE : "";
     public static final String AUTHENTICATION_COOKIE_KEY = "url_authentication_cookie";
+    // todo: THIS IS REALLY AN AUTHORIZATION KEY, NOT AN AUTHENTICATION KEY
     
     private String authenticationCookie = DEFAULT_AUTHENTICATION_COOKIE;
+
+    private List<SyndEntry> mItems;
+    
     
     public RSSDataSource() {
         //Log.debug("created empty RSS feed");
@@ -62,6 +66,12 @@ public class RSSDataSource extends VueDataSource
     public String getTypeName() {
         return "RSS Feed";
     }
+
+    @Override
+    public int getCount() {
+        return mItems == null ? -1 : mItems.size();
+    }
+    
     
     @Override
     public void setConfiguration(java.util.Properties p) {
@@ -76,8 +86,12 @@ public class RSSDataSource extends VueDataSource
 
     private void setAuthenticationCookie(String s) {
         Log.debug("setAuthenticationCookie[" + s + "]");
-        authenticationCookie = s;
-        unloadViewer();
+        if (s == authenticationCookie || (s != null && s.equals(authenticationCookie))) {
+            return;
+        } else {
+            authenticationCookie = s;
+            unloadViewer();
+        }
     }
     
 //     public CharSequence getConfigurationUI_XML_Fields() {
@@ -105,12 +119,12 @@ public class RSSDataSource extends VueDataSource
     private JComponent loadViewer() {
         
         Log.debug("loadContentAndBuildViewer...");
-        tufts.vue.VUE.pushDiag("RSSLoad");
+        tufts.vue.VUE.diagPush("RSSLoad");
         JComponent viewer = null;
         try {
             viewer = loadContentAndBuildViewer();
         } finally {
-            tufts.vue.VUE.popDiag();
+            tufts.vue.VUE.diagPop();
         }
         return viewer;
     }
@@ -132,8 +146,10 @@ public class RSSDataSource extends VueDataSource
             throw new DataSourceException("Bad RSS feed address", t);
         }
         
-        SyndFeedInput feedBuilder = new SyndFeedInput();
-        SyndFeed rssFeed = null;
+        final SyndFeedInput feedBuilder = new SyndFeedInput();
+        final SyndFeed _feed;
+
+        Map<String,List<String>> headers = null;
         
         try {
             if (DEBUG.Enabled) Log.debug("opening " + address);
@@ -161,7 +177,7 @@ public class RSSDataSource extends VueDataSource
                 
                 buf.append("headers [" + conn + "];\n");
                 
-                final Map<String,List<String>> headers = conn.getHeaderFields();
+                headers = conn.getHeaderFields();
                 
                 List<String> response = headers.get(null);
                 if (response != null)
@@ -177,39 +193,232 @@ public class RSSDataSource extends VueDataSource
             }
             
             
-            XmlReader reader = new XmlReader(conn);
-            rssFeed = feedBuilder.build(reader);
+            //feed = feedBuilder.build(new InputStreamReader(conn.getInputStream()));
+            
+            // XmlReader does magic to try and best handle the input charset-encoding:
+            XmlReader charsetEncodingReader = new XmlReader(conn);
+            _feed = feedBuilder.build(charsetEncodingReader);
 
         } catch (FeedException fe) {
             throw new DataSourceException(null, fe);
         } catch (java.io.IOException io) {
             throw new DataSourceException(null, io);
         }
+// Let other exceptions pass up undisturbed:
 //         } catch (Throwable t) {
 //             //Log.error("opening feed " + address, t);
 //             throw new DataSourceException("RSS feed error", t);
 //         }
         
-        final List<SyndEntry> itemList = rssFeed.getEntries();
-        final List<Resource> resourceList = new ArrayList<Resource>();
+        //final WireFeedInput feedBuilder = new WireFeedInput();
         
-        // getUri did not work for Reuters (and Atom feeds in general?),
-        // switched to getLink() instead (see below)
-        Log.debug("itemList length: " + itemList.size());
+        final SyndFeed feed = _feed;
 
-//         for(int j=0;j<itemList.size();j++) {
-//             SyndEntry entry = itemList.get(j);
-//             System.out.println(j + ":" + entry.getUri());
-//         }
+        if (TEST_DEBUG) {
+            dumpFeed(feed);
+            return null;
+        }
 
-        if (itemList.size() == 0)
+        feed.setFeedType("atom_1.0");
+        final WireFeed wireFeed = _feed.createWireFeed();
+
+        this.mItems = feed.getEntries();
+
+        Log.debug("WIRE FEED: " + tufts.Util.tag(wireFeed));
+
+        final List<Resource> resources = new ArrayList<Resource>();
+        
+        Log.debug("item count: " + mItems.size());
+
+        if (mItems.size() == 0)
             throw new DataSourceException("[Empty RSS feed]");
-        
-        Iterator<SyndEntry> i = itemList.iterator();
-        while (i.hasNext()) {
-            SyndEntry entry = i.next();
 
-            final Resource res = Resource.instance(entry.getLink());
+        final Resource fr = Resource.instance(feed.getLink());
+
+        fr.reset();
+        //fr.setClientType(Resource.DIRECTORY);
+        fr.setClientType(3);
+        //fr.setDataType("rss");
+        fr.setTitle(feed.getTitle());
+        
+        if (DEBUG.Enabled) {
+        
+            if (DEBUG.WORK) {
+                fr.setProperty("~WIREMARK", wireFeed.getForeignMarkup());
+                fr.setProperty("~WIREMOD", wireFeed.getModules());
+                fr.setProperty("zFEED", feed);
+
+                fr.addPropertyIfContent("feed-supported-types", feed.getSupportedFeedTypes());
+            }
+            
+            fr.addPropertyIfContent("feed-uri", feed.getUri());
+            fr.addPropertyIfContent("feed-image", feed.getImage());
+            fr.addPropertyIfContent("feed-type", feed.getEncoding());
+            fr.addPropertyIfContent("feed-language", feed.getLanguage());
+            fr.addPropertyIfContent("feed-encoding", feed.getEncoding());
+
+            for (Map.Entry<String,List<String>> e : headers.entrySet()) {
+                Object value = e.getValue();
+                if (value instanceof Collection && ((Collection)value).size() == 1)
+                    value = ((Collection)value).toArray()[0];
+                if (e.getKey() == null)
+                    fr.setProperty("HTTP-response", value);
+                else
+                    fr.setProperty("HTTP:" + e.getKey(), value);
+            }
+            
+            
+        }
+                       
+        fr.addPropertyIfContent("Title", feed.getTitle());
+        fr.addPropertyIfContent("Copyright", feed.getCopyright());
+        fr.addPropertyIfContent("Author", feed.getAuthor());
+
+        final String desc = feed.getDescription().trim();
+        if ("This file is an XML representation of some issues".equalsIgnoreCase(desc))
+            // ignore JIRA standard meaningless comment
+            ((URLResource)fr).setSpec(getAddress());
+        else
+            fr.addPropertyIfContent("Description", desc);
+                                
+
+        //r.addPropertyIfContent("Copyright", feed.getTitle());
+
+        resources.add(fr);
+            
+        for (SyndEntry item : mItems) {
+
+            Resource r = null;
+            try {
+                r = createRSSResource(item);
+            } catch (Throwable t) {
+                Log.error("creating resource from: " + item + " in feed " + feed, t);
+            }
+
+            if (r == null) {
+                Log.warn("failed to create resource from rss feed item, skipping; link=" + item.getLink());
+                continue;
+            }
+                
+            resources.add(r);
+                
+        }
+        
+        VueDragTree fileTree = new VueDragTree(resources, this.getDisplayName());
+        fileTree.setRootVisible(true);
+        fileTree.setShowsRootHandles(true);
+        fileTree.expandRow(0);
+        fileTree.setRootVisible(false);
+        fileTree.setName(getClass().getSimpleName() + ": " + getAddress());
+
+        return fileTree;
+    }
+
+    private Resource createRSSResource(final SyndEntry item)
+    {
+        // DH: getUri did not work for Reuters (and Atom feeds in general?),
+        // switched to getLink() instead (see below)
+        final Resource r = Resource.instance(item.getLink());
+
+        r.setTitle(item.getTitle());
+            
+        r.addPropertyIfContent("Title", item.getTitle());
+        r.addPropertyIfContent("Author", item.getAuthor());
+        r.addPropertyIfContent("Published", item.getPublishedDate());
+        r.addPropertyIfContent("Updated", item.getUpdatedDate());
+        r.addPropertyIfContent("URI", item.getUri());
+
+        final SyndContent content = item.getDescription();
+        
+        if (!DEBUG.Enabled)
+            return r;
+            
+        r.addPropertyIfContent("Description", content.getValue());
+            
+        r.addPropertyIfContent("~0rss-content-type", content.getType());
+        r.addPropertyIfContent("~0rss-content-mode", content.getMode());
+        
+        r.addPropertyIfContent("~Authors", item.getAuthors());
+        r.addPropertyIfContent("~Contributors", item.getContributors());
+
+        Object fm = item.getForeignMarkup();
+        if (fm instanceof Collection) {
+            String fmt = tufts.Util.tag(fm);
+            for (Object o : ((Collection)fm)) {
+                fmt += '\n';
+                fmt += tufts.Util.tags(o);
+            }
+            fm = fmt;
+        }
+        r.addPropertyIfContent("~ForeignMarkup", fm);
+        
+        r.addPropertyIfContent("~Categories", item.getCategories());
+        r.addPropertyIfContent("~Contents", item.getContents());
+        r.addPropertyIfContent("~Enclosures", item.getEnclosures());
+        r.addPropertyIfContent("~Modules", item.getModules());
+        r.addPropertyIfContent("~Description", content);
+        
+        return r;
+
+    }
+
+    private static void dumpFeed(SyndFeed _feed)
+    {
+        Log.info("supported-types: " + _feed.getSupportedFeedTypes());
+
+        if (true) {
+            WireFeed feed = _feed.createWireFeed();
+            //feed.setFeedType("atom_1.0");
+            Log.info("WIRE-OUT  types: " + WireFeedOutput.getSupportedFeedTypes());
+            
+            Log.info("FEED: " + Util.tags(feed));
+            
+            WireFeedOutput feedOut = new WireFeedOutput();
+            try {
+                feedOut.output(feed, new PrintWriter(System.out));
+                //Log.info("AS-STRING:" + feedOut.outputString(feed));
+            } catch (Throwable t) {
+                Log.error(t, t);
+            }
+        } else {
+            SyndFeed feed = _feed;
+            
+            feed.setFeedType("atom_1.0");
+            //feed.setFeedType("rss_2.0");
+            //feed.setFeedType("rss_1.0");
+
+            SyndFeedOutput feedOut = new SyndFeedOutput();
+            try {
+                feedOut.output(feed, new PrintWriter(System.out));
+            } catch (Throwable t) {
+                Log.error(t, t);
+            }
+        }        
+    }
+
+    private static boolean TEST_DEBUG = false;
+
+    
+    public static void main(String[] args)
+    {
+        TEST_DEBUG = true;
+        
+        DEBUG.Enabled = true;
+        DEBUG.DR = true;
+        DEBUG.RESOURCE = true;
+        DEBUG.DATA = true;
+
+        tufts.vue.VUE.init(args);
+        
+        RSSDataSource ds = new RSSDataSource("test", args[0]);
+
+        ds.loadContentAndBuildViewer();
+
+    }
+    
+}
+
+
             
 //             Resource res = null;
 //             try {
@@ -226,25 +435,3 @@ public class RSSDataSource extends VueDataSource
 //             catch(MalformedURLException mue) {
 //                 System.out.println("Malformed URL Exception while creating RSS feed resource: " + mue);
 //             }
-            
-            if (res == null) {
-                Log.warn("null resource created for rss feed, skipping: " + entry.getLink());
-                continue;
-            }
-            res.setTitle(entry.getTitle());
-            resourceList.add(res);
-        }
-        
-        VueDragTree fileTree = new VueDragTree(resourceList, this.getDisplayName());
-        fileTree.setRootVisible(true);
-        fileTree.setShowsRootHandles(true);
-        fileTree.expandRow(0);
-        fileTree.setRootVisible(false);
-        fileTree.setName(getClass().getSimpleName() + ": " + getAddress());
-
-        return fileTree;
-        
-      
-    }
-    
-}
