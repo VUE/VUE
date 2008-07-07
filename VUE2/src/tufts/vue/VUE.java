@@ -66,12 +66,18 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.565 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
+ * @version $Revision: 1.566 $ / $Date: 2008-07-07 20:56:32 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
+    public static boolean VUE3 = false;
+    
+    // We would like to move to non-blocking (threaded) loading -- when blocking (current impl), a hang in
+    // any OSID init or server access will hang VUE during startup.
+    public static boolean BLOCKING_OSID_LOAD = edu.tufts.vue.dsm.impl.VueDataSource.BLOCKING_OSID_LOAD;
+    
     /** This is the root logger for all classes named tufts.* */
     private static final Logger TuftsLog = Logger.getLogger("tufts");
     /** This is the root logger for all classes named edu.tufts.* */
@@ -89,9 +95,6 @@ public class VUE
     // todo: wanted package private: should be totally private.
     public static Object[] ToolWindows; // VueMenuBar currently needs this
 
-    /** teh global resource selection static model **/
-    private static ResourceSelection sResourceSelection;
-    
     //private static com.jidesoft.docking.DefaultDockableHolder frame;
     private static VueFrame ApplicationFrame;
     
@@ -162,54 +165,78 @@ public class VUE
         {
             final LWComponent node = e.active;
             
-            if (node == null)
-                return;
-
-            if (node instanceof LWSlide && ((LWSlide)node).getEntry() != null) {
+            if (node == null) {
+                // nothing to do
+            }
+            else if (node instanceof LWSlide && ((LWSlide)node).getEntry() != null) {
                 ActivePathwayEntryHandler.setActive(e, ((LWSlide)node).getEntry());
-                
-            } else if (node instanceof LWPortal && node.hasEntries()) {
+            }
+            else if (node instanceof LWPortal && node.hasEntries()) {
                 final LWPathway knownUnique = node.getExclusiveVisiblePathway();
                 if (knownUnique != null)
                     ActivePathwayEntryHandler.setActive(e, knownUnique.getFirstEntry(node));
                 else if (node.inPathway(VUE.getActivePathway()))
                     ActivePathwayEntryHandler.setActive(e, VUE.getActivePathway().getFirstEntry(node));
                 
-            } else if (node.hasResource()) {
-
-                checkForAndHandleResourceUpdate(node.getResource());
-
-//                 if (node instanceof LWImage && ((LWImage)node).getStatus() == LWImage.Status.ERROR) {
-//                     ((LWImage)node).reloadImage();
-//                 }
-                         
-            } else if (false) {
-
-                // This code will auto-select the first pathway entry for a selected node.
-                
-                // There is a problem if we do this tho, in that changing the active
-                // entry also changes the active pathway, and doing that means
-                // that once a node is added to a given pathway, it makes it
-                // impossible to add it to any other pathways, because as soon
-                // as it's selected, it then makes active the pathway it's on!
-                // (and adding a node to a pathway always adds it to the active pathway).
-
-                LWPathway.Entry newActiveEntry = null;
-
-                if (node.numEntries() == 1) {
-                    newActiveEntry = node.mEntries.get(0);
-                } else {
-                    final LWPathway activePathway = ActivePathwayHandler.getActive();
-                    if (activePathway != null && node.inPathway(activePathway))
-                        newActiveEntry = activePathway.getEntry(activePathway.firstIndexOf(node));
-                }
-                        
-                if (newActiveEntry != null)
-                    ActivePathwayEntryHandler.setActive(e, newActiveEntry);
-                    
             }
+
+//             else if (node.hasResource()) {
+
+//                 checkForAndHandleResourceUpdate(node.getResource());
+
+// //                 if (node instanceof LWImage && ((LWImage)node).getStatus() == LWImage.Status.ERROR) {
+// //                     ((LWImage)node).reloadImage();
+// //                 }
+                         
+//             }
+
+            //-------------------------------------------------------
+            // now set the active Resource
+            //-------------------------------------------------------
+
+            if (node == null) {
+                ActiveResourceHandler.setActive(e, null);
+            } else {
+                ActiveResourceHandler.setActive(e, node.getResource());
+            }
+            
+            
+//             else if (false) {
+//                 // This code will auto-select the first pathway entry for a selected node.
+//                 // There is a problem if we do this tho, in that changing the active
+//                 // entry also changes the active pathway, and doing that means
+//                 // that once a node is added to a given pathway, it makes it
+//                 // impossible to add it to any other pathways, because as soon
+//                 // as it's selected, it then makes active the pathway it's on!
+//                 // (and adding a node to a pathway always adds it to the active pathway).
+//                 LWPathway.Entry newActiveEntry = null;
+//                 if (node.numEntries() == 1) {
+//                     newActiveEntry = node.mEntries.get(0);
+//                 } else {
+//                     final LWPathway activePathway = ActivePathwayHandler.getActive();
+//                     if (activePathway != null && node.inPathway(activePathway))
+//                         newActiveEntry = activePathway.getEntry(activePathway.firstIndexOf(node));
+//                 }
+//                 if (newActiveEntry != null)
+//                     ActivePathwayEntryHandler.setActive(e, newActiveEntry);
+//             }
+            
         }
     };
+
+    /**
+     * active LWComponent handler (the active single-selection, if there is one).
+     * Will guess at and update the active pathway entry if it can.
+     */
+    private static final ActiveInstance<Resource>
+        ActiveResourceHandler = new ActiveInstance<Resource>(Resource.class) {
+        protected void onChange(ActiveEvent<Resource> e)
+        {
+            if (e.active != null)
+                checkForAndHandleResourceUpdate(e.active);
+        }
+    };
+    
 
     /**
      * If and only if the given Resource has changed on disk: check all open maps for
@@ -364,6 +391,7 @@ public class VUE
      */
     private static final ActiveInstance<MapViewer>
         ActiveViewerHandler = new ActiveInstance<MapViewer>(MapViewer.class) {
+        @Override
         protected void notifyListeners(ActiveEvent<MapViewer> e) {
             if (!(e.active instanceof tufts.vue.ui.SlideViewer)) {
                 // SlideViewer not treated as application-level viewer: ignore when gets selected
@@ -382,6 +410,7 @@ public class VUE
     public static LWPathway.Entry getActiveEntry() { return ActivePathwayEntryHandler.getActive(); }
     public static MapViewer getActiveViewer() { return ActiveViewerHandler.getActive(); }
     public static LWComponent getActiveComponent() { return ActiveComponentHandler.getActive(); }
+    public static Resource getActiveResource() { return ActiveResourceHandler.getActive(); }
 
     public static LWComponent getActiveFocal() {
         MapViewer viewer = getActiveViewer();
@@ -416,6 +445,9 @@ public class VUE
     }
     public static void removeActiveListener(Class clazz, ActiveListener listener) {
         ActiveInstance.removeListener(clazz, listener);
+    }
+    public static void removeActiveListener(Class clazz, Object reflectedListener) {
+        ActiveInstance.removeListener(clazz, reflectedListener);
     }
     
     public static void setAppletContext(AppletContext ac) {
@@ -700,7 +732,7 @@ public class VUE
     }
 
     /** push a short diagnostic string onto the log output stack */
-    public static void pushDiag(String s) {
+    public static void diagPush(String s) {
         s = "[" + s + "]";
         //s = "#" + s;
         if (org.apache.log4j.NDC.getDepth() == 0)
@@ -709,7 +741,7 @@ public class VUE
             org.apache.log4j.NDC.push(s);
     }
 
-    public static void popDiag() {
+    public static void diagPop() {
         org.apache.log4j.NDC.pop();
     }
     
@@ -761,9 +793,9 @@ public class VUE
         try {
 
             initUI();
-            pushDiag("init");
+            diagPush("init");
             initApplication();
-            popDiag();
+            diagPop();
             
         } catch (Throwable t) {
             Util.printStackTrace(t, "VUE init failed");
@@ -779,7 +811,8 @@ public class VUE
         // Load the OSID's and set up UrlAuthentication
         //-------------------------------------------------------
         
-        initDataSources();
+        if (BLOCKING_OSID_LOAD)
+            initDataSources();
         
         try {
             
@@ -814,6 +847,11 @@ public class VUE
         if (exitAfterInit) {
             out("init completed: exiting");
             System.exit(0);
+        }
+
+        if (BLOCKING_OSID_LOAD == false) {
+            initDataSources();
+            DataSourceViewer.configureOSIDs();
         }
 
         // Kick-off tufts.vue.VueDataSource viewer build threads: must
@@ -873,7 +911,8 @@ public class VUE
             Log.debug("initDataSources: started");
             try {
                 DR_BROWSER.loadDataSourceViewer();
-                UrlAuthentication.getInstance(); // VUE-879
+                if (BLOCKING_OSID_LOAD)
+                    UrlAuthentication.getInstance(); // VUE-879
                 didInitDR = true;
             } catch (Throwable t) {
                 Log.error("failed to init data sources", t);
@@ -920,9 +959,9 @@ public class VUE
         
         Log.debug("building interface...");
         
-        pushDiag("build");
+        diagPush("build");
         buildApplicationInterface();
-        popDiag();
+        diagPop();
 
         if (Util.isMacLeopard()) {
             // Critical for keeping DockWindow's on top.
@@ -1026,7 +1065,7 @@ public class VUE
                             public void run() {
                                 VUE.activateWaitCursor();
                                 //LWMap map = OpenAction.loadMap(fileName);
-                                if (DEBUG.INIT) out("opening map during startup " + fileName);
+                                if (DEBUG.Enabled) out("opening map during startup " + fileName);
                                 if (fileName != null) {
                                     displayMap(new File(fileName));
                                     //openedUserMap = true;
@@ -1092,7 +1131,7 @@ public class VUE
             Log.debug("cocoa-java bridge appears present; found " + test);
         else
             Log.error("cocoa-java bridge appears to be missing; couldn't find " + test);
-        
+
         tufts.macosx.MacOSX.registerApplicationListener(new tufts.macosx.MacOSX.ApplicationListener() {
                 public boolean handleOpenFile(String filename) {
                     VUE.Log.info("OSX OPEN FILE " + filename);
@@ -2523,7 +2562,8 @@ public class VUE
      * Create a new viewer and display the given map in it.
      */
     public static MapViewer displayMap(LWMap pMap) {
-        pushDiag("displayMap");
+        if (DEBUG.Enabled) out("displayMap " + pMap);
+        diagPush("displayMap");
         if (DEBUG.INIT) out(pMap.toString());
         MapViewer leftViewer = null;
         MapViewer rightViewer = null;
@@ -2576,7 +2616,7 @@ public class VUE
             mMapTabsRight.setSelectedComponent(rightViewer);
         }
 
-        popDiag();
+        diagPop();
         return leftViewer;
     }
 
@@ -2789,23 +2829,17 @@ public class VUE
        for(int i = 0;i <size;i++) {
            int n1 = Integer.parseInt(v1Parts[i]);
            int n2 = Integer.parseInt(v2Parts[i]);
-//           System.out.println(i+"\t"+v1Parts[i]+"\t"+v2Parts[i]+"\t"+(n1>n2));      
+           //System.out.println(i+"\t"+v1Parts[i]+"\t"+v2Parts[i]+"\t"+(n1>n2));
            if(n1 > n2) return true;
        }
        return false;
    }
+
     public static String getName() {
         if (NAME == null)
             NAME = VueResources.getString("application.name");
         return NAME;
     }
-    
-    public static ResourceSelection getResourceSelection() {
-        if (sResourceSelection == null)
-            sResourceSelection = new ResourceSelection();
-        return sResourceSelection;
-    }
-
     
     /** return the root VUE application frame (where the documents are) */
     public static JFrame getApplicationFrame() {
