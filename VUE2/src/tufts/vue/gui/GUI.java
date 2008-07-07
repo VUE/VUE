@@ -54,7 +54,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.117 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.118 $ / $Date: 2008-07-07 18:31:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -315,8 +315,20 @@ public class GUI
         //ErrorFace = new GUI.Face(errorFont, Font.PLAIN, fontSize+1, Color.darkGray, SystemColor.control);
           
         DataFace = new GUI.Face("Verdana", Font.PLAIN, fontSize, null);
+
+        // Verdana & Trebuchet are designed for the screen sans-serif font 
+        // Georgia a designed for the screen serif font
         
-        ContentFace = new GUI.Face("Arial", Font.PLAIN, 14, null);
+        // Both are especially sensitive to handling bolding, small sizes, and character
+        // differentiation Studies have not found any actual difference in reading
+        // speed, though there may be reduced eye strain.
+        
+        // And of course Arial (Microsoft's virtual Helevetica) is a bit more
+        // compressed, and reliable in at least that everyone's read it
+        // countless times.
+        
+        ContentFace = new GUI.Face("Arial", Font.PLAIN, 14, null); // shows underscores below underline
+        //ContentFace = new GUI.Face("Verdana", Font.PLAIN, 13, null); // underline hides underscores
 
         FocusManager.install();
         //tufts.Util.executeIfFound("tufts.vue.gui.WindowManager", "install", null);
@@ -738,6 +750,8 @@ public class GUI
     private static final boolean SMALL_ICON = false;
 
     private static final String TmpIconDir = VUE.getSystemProperty("java.io.tmpdir");
+
+    private static final Image RSSIcon = VueResources.getImage("dataSourceRSS");    
     
     public static Image getSystemIconForExtension(String ext, int sizeRequest)
     {
@@ -758,7 +772,8 @@ public class GUI
                 IconCache.put(key, image);
             }
             return image;
-        }
+        } else if (ext.equals("rss"))
+            return RSSIcon;
 
         if (ext == Resource.EXTENSION_HTTP)
             ext = "htm";
