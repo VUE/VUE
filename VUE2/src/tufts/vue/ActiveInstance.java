@@ -41,7 +41,7 @@ import static tufts.Util.*;
 
 
  * @author Scott Fraize 2007-05-05
- * @version $Revision: 1.22 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.23 $ / $Date: 2008-07-07 18:34:48 $ / $Author: sfraize $
  */
 
 public class ActiveInstance<T>
@@ -50,7 +50,7 @@ public class ActiveInstance<T>
     
     private static final Map<Class,ActiveInstance> AllActiveHandlers = new HashMap();
     private static final List<ActiveListener> ListenersForAllActiveEvents = new CopyOnWriteArrayList();
-    private static int depth = -1; // event delivery depth
+    protected static int depth = -1; // event delivery depth
     
     private final CopyOnWriteArrayList<ActiveListener> mListeners = new CopyOnWriteArrayList();
     private final Set<T> allInstances = Collections.synchronizedSet(new HashSet());
