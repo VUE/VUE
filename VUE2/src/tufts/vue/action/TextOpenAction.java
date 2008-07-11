@@ -49,7 +49,7 @@ public class TextOpenAction  extends VueAction {
     public static final int MAP_SIZE = 500;
     public static final int MAX_SIZE =5000;
     
-    public static final boolean ZOTERO_PROTOTYPE = false;
+    public static final boolean ZOTERO_PROTOTYPE = true;
     
     public TextOpenAction(String label) {
         super(label, null, ":general/Open");
@@ -107,7 +107,11 @@ public class TextOpenAction  extends VueAction {
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
         String links = null; // for Zotero prototype
-        reader.readLine(); // skip the first line
+        
+        if(!ZOTERO_PROTOTYPE) // in zotero import each row is a node
+        {    
+          reader.readLine(); // skip the first line
+        }
         int count = 0;
         
         // for staggered layout
@@ -118,9 +122,7 @@ public class TextOpenAction  extends VueAction {
         List<String[]> linksList = new ArrayList<String[]>(); // also for Zotero Prototype
         
         while((line=reader.readLine()) != null && count <MAX_SIZE) {
-            
-            
-            
+           
             if(DEBUG_LOCAL)
             {    
               System.out.println(line+" words: "+line.split(",").length);
@@ -134,6 +136,8 @@ public class TextOpenAction  extends VueAction {
               
               if(parts.length > 1)
                 links = parts[1];
+              else
+                links = null;
               
               if(DEBUG_LOCAL)
               {    
@@ -182,11 +186,11 @@ public class TextOpenAction  extends VueAction {
                 // have to be careful about maintaining id for updates
                 // todo: put in content info instead.
                 edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
-                vme.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+                //vme.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
                 String[] obj = {"http://vue.tufts.edu/custom.rdfs#z_id",id};   
                 vme.setObject(obj);
                 node1.getMetadataList().getMetadata().add(vme);
-                
+                vme.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
                 
                 // just for debug purposes -- many more references than I expected
                 // and they are not bidirectional.. this seems to not just be
@@ -199,6 +203,11 @@ public class TextOpenAction  extends VueAction {
                 //node1.getMetadataList().getMetadata().add(vme2);
                 
                 nodeMap.put(words[0],node1);
+                
+                if(DEBUG_LOCAL)
+                {
+                    System.out.println("Node map addition " + words[0] + "," + node1);
+                }
                 //repeatMap.put(words[0], new Integer(1));
                 map.add(node1);
             }
@@ -350,11 +359,28 @@ public class TextOpenAction  extends VueAction {
                 String[] arr = nodes.next();
                 LWNode node = nodeMap.get(arr[0]);
                 
+                if(DEBUG_LOCAL)
+                {
+                    System.out.println("TextOpenAction: linkslist arr length " + arr.length);
+                }
+                
                 for(int i=1;i<arr.length;i++)
                 {
                   String linkKey = arr[0] + "|" +  arr[i];
+                  
+                  if(DEBUG_LOCAL)
+                  {
+                      System.out.println("TextOpenAction: linkKey " + linkKey);
+                  }
+                  
                   if(!linkMap.containsKey(linkKey)) 
                   {
+                      
+                    if(DEBUG_LOCAL)
+                    {
+                      System.out.println("TextOpenAction: accepted -- " + linkKey);  
+                    }
+                      
                     LWNode node2 = nodeMap.get(arr[i]);
                     LWLink link = new LWLink(node,node2);
                     linkMap.put(linkKey,link);
