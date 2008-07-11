@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.109 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.110 $ / $Date: 2008-07-11 20:05:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -893,11 +893,10 @@ public class VueMenuBar extends javax.swing.JMenuBar
        */                
         
         helpMenu.addSeparator();
-        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"),
-                VueResources.getURL("helpMenu.releaseNotes.file"),
+/*        helpMenu.add(new ShowURLAction(VueResources.getString("helpMenu.releaseNotes.label"), VueResources.getURL("helpMenu.releaseNotes.file"),
                 new String("ReleaseNotes_" + VueResources.getString("vue.version") + ".htm").replace(' ', '_')
                 ));
-        helpMenu.addSeparator();
+        helpMenu.addSeparator();*/
         helpMenu.add(new ShortcutsAction());
         
         helpMenu.addSeparator();
