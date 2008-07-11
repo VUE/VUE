@@ -61,7 +61,7 @@ import osid.dr.Asset;
  *
  * @author  Jay Briedis
  * @author  Scott Fraize
- * @version $Revision: 1.105 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.106 $ / $Date: 2008-07-11 16:47:39 $ / $Author: sfraize $
  */
 
 public class PathwayTable extends JTable
@@ -1056,8 +1056,13 @@ public class PathwayTable extends JTable
             		}
             		else
             		{
-            			model.moveRow(dropIndex, dropIndex, model.getPathwayIndexForElementAt(rowAtPoint(arg0.getLocation())),model.getPathwayForElementAt(dropRow));            		
-            			arg0.dropComplete(true);
+
+                            model.moveRow(dropIndex, dropIndex,
+                                          model.getPathwayIndexForElementAt(rowAtPoint(arg0.getLocation())),
+                                          model.getPathwayForElementAt(dropRow));
+                            VUE.getUndoManager().mark();                            
+
+                            arg0.dropComplete(true);
             			arg0.acceptDrop(DnDConstants.ACTION_MOVE);
             		}
             	}	            					
