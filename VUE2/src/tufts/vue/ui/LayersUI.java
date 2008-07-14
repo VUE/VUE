@@ -39,11 +39,13 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.2 $ / $Date: 2008-07-14 18:35:47 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-07-14 19:51:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener
 {
+    private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LayersUI.class);
+
     private final java.util.List<Row> mRows = new java.util.ArrayList();
     private LWMap mMap;
     private boolean isDragUnderway;
@@ -469,7 +471,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             layer.clearHidden(HideCause.LAYER_EXCLUSIVE);
 
             if (excluding) {
-                System.out.println("EXCLUSIVE: " + this);
+                if (DEBUG.Enabled) Log.debug("EXCLUSIVE: " + this);
                 if (layer.isHidden(HideCause.DEFAULT)) {
                     wasHiddenWhenMadeExclusive = true;
                     layer.clearHidden(HideCause.DEFAULT);
@@ -479,7 +481,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     layer.setLocked(false);
                 }
             } else {
-                System.out.println("RELEASING: " + this);
+                if (DEBUG.Enabled) Log.debug("RELEASING: " + this);
                 if (wasHiddenWhenMadeExclusive)
                     layer.setHidden(HideCause.DEFAULT);
                 if (wasLockedWhenMadeExclusive)
@@ -560,6 +562,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             layoutRows(mRows);
             if (didReorder) {
                 didReorder = false;
+
+                if (!DYNAMIC_UPDATE) {
+                    Util.printStackTrace("unimplemented");
+                    // a implement LWContainer.insertAt(index, LWComponent) (can just use mChildren.add(index, c)
+                    return;
+                }
+                
                 if (dragRowIndex == mRows.indexOf(this)) {
                     layer.getMap().getUndoManager().resetMark();
                 } else {
@@ -582,10 +591,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 // by using less than total height, we leave a narrow visible region
                 // where the original item was as a reminder to the user of where
                 // they're dragging from
-                return (int) 0.8f * getHeight();
+                return (int) (0.8f * getHeight());
             } else
                 return getHeight();
         }
+
+        private static final boolean DYNAMIC_UPDATE = false;
 
         public void mouseDragged(MouseEvent e) 
         {
@@ -625,10 +636,15 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 final Row above = mRows.get(curIndex - 1);
 
                 if (newY < above.getY() + above.getHeight() / 2) {
-                    //System.out.println("BUMP DOWN " + above);
-                    //above.setLocation(above.getX(), above.getY() + getDropRegionSize());
-                    //Collections.swap(mRows, curIndex, curIndex - 1);
-                    moved = layer.getParent().bringForward(layer); // will trigger reload/relayout of all rows
+                    if (DYNAMIC_UPDATE) {
+                        // will trigger reload/relayout of all rows                        
+                        moved = layer.getParent().bringForward(layer);
+                    } else {
+                        if (DEBUG.Enabled) Log.debug("BUMP DOWN " + above);
+                        above.setLocation(above.getX(), above.getY() + getDropRegionSize());
+                        Collections.swap(mRows, curIndex, curIndex - 1);
+                        moved = true;
+                    }
                 }
                 
             } else if (mouse.y > dragLastY && curIndex < mRows.size() - 1) {
@@ -637,10 +653,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 final int bottomEdge = newY + getHeight();
                 
                 if (bottomEdge > below.getY() + below.getHeight() / 2) {
-                    //System.out.println("BUMP UP " + below);
-                    //below.setLocation(below.getX(), below.getY() - getDropRegionSize());
-                    //Collections.swap(mRows, curIndex, curIndex + 1);
-                    moved = layer.getParent().sendBackward(layer); // will trigger reload/relayout of all rows
+
+                    if (DYNAMIC_UPDATE) {
+                        // will trigger reload/relayout of all rows                        
+                        moved = layer.getParent().sendBackward(layer);
+                    } else {
+                        if (DEBUG.Enabled) Log.debug("BUMP  UP  " + below);
+                        below.setLocation(below.getX(), below.getY() - getDropRegionSize());
+                        Collections.swap(mRows, curIndex, curIndex + 1);
+                        moved = true;
+                    }
                 }
             }
 
