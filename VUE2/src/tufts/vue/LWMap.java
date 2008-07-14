@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.203 $ / $Date: 2008-07-14 18:31:15 $ / $Author: sfraize $
+ * @version $Revision: 1.204 $ / $Date: 2008-07-14 19:15:26 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -523,7 +523,7 @@ public class LWMap extends LWContainer
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order) {
 
-        if (kind == ChildKind.ANY) {
+        if (kind == ChildKind.ANY || !isLayered()) {
             // include the layers and all descendents
             super.getAllDescendents(kind, bag, order);
         } else {
