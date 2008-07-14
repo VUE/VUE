@@ -301,9 +301,9 @@ public class TypeList extends JList implements MouseListener,ActionListener {
             else
             {
               LWLink r = new LWLink();
-              r.setTailPoint(15,5);
-              r.setHeadPoint(85,45);
-              r.setArrowState(tufts.vue.LWLink.ARROW_HEAD);
+              r.setHeadPoint(15,5);
+              r.setTailPoint(85,45);
+              r.setArrowState(tufts.vue.LWLink.ARROW_TAIL);
               r.setLabel(ontType.getLabel());
               compFor = r;
             }
