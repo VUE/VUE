@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.95 $ / $Date: 2008-07-07 21:10:01 $ / $Author: sfraize $
+ * @version $Revision: 1.96 $ / $Date: 2008-07-14 17:08:35 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -294,6 +294,13 @@ public class InspectorPane extends WidgetStack
     private boolean selectionChanged;
     
     public void activeChanged(final tufts.vue.ActiveEvent e, final LWComponent c) {
+
+//         if (VUE.getSelection().size() == 0 && c != null) {
+//             // to pick up active layer sets
+//             loadSingleSelection(c);
+//             setVisible(true);
+//         }
+            
 
 //         selectionChanged = false;
 
@@ -718,7 +725,7 @@ public class InspectorPane extends WidgetStack
             //-----------------------------------------------------------------------------
             
             b.append("<font size=-1>");
-            b.append("<a href=");
+            b.append("<a href=\"");
 
             try {
                 if (r.isLocalFile()) {
@@ -734,7 +741,7 @@ public class InspectorPane extends WidgetStack
                 b.append(r.getSpec());
             }
             
-            b.append(">");
+            b.append("\">");
             b.append(spec);
             b.append("</a>");
             htmlText.setText(b.toString());
