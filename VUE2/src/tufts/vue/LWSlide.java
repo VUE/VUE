@@ -30,7 +30,7 @@ import java.awt.geom.*;
  * Container for displaying slides.
  *
  * @author Scott Fraize
- * @version $Revision: 1.109 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.110 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
  */
 public class LWSlide extends LWContainer
 {
@@ -163,8 +163,6 @@ public class LWSlide extends LWContainer
     
     @Override
     public boolean isMoveable() {
-        //return getParent() != null && getParent() instanceof LWPathway == false;
-        //return getParent() instanceof LWMap; // hack for now -- still not a truly supported feature yet
         return isPathwayOwned() == false;
     }
 
@@ -400,30 +398,52 @@ public class LWSlide extends LWContainer
                                     o instanceof LWComponent ? o : (o instanceof String ? o : Util.tags(o))));
     }
     
-    @Override
-    public void dropChildren(Iterable<LWComponent> iterable) {
-        track("dropChildren", iterable);
+//     @Override
+//     public void dropChildren(Iterable<LWComponent> iterable) {
+//         track("dropChildren", iterable);
 
-        // TODO: this is being called twice during drops: a MapDropTarget bug, which has
-        // probably been there a long time... as drop operations are generally
-        // idempotent once the new nodes have been created, it was hard to notice, tho
-        // it makes debugging confusing, and it's bound to break something at some
-        // point.
+//         // TODO: this is being called twice during drops: a MapDropTarget bug, which has
+//         // probably been there a long time... as drop operations are generally
+//         // idempotent once the new nodes have been created, it was hard to notice, tho
+//         // it makes debugging confusing, and it's bound to break something at some
+//         // point.
             
-        if (DEBUG.DND) new Throwable("dropChildren " + iterable).printStackTrace();
-        pasteChildren(iterable);
-    }
+//         if (DEBUG.DND) new Throwable("dropChildren " + iterable).printStackTrace();
+//         pasteChildren(iterable);
+//     }
+//     @Override
+//     public void pasteChildren(Iterable<LWComponent> iterable) {
+
+//         track("pasteChildren", iterable);
+
+//         for (LWComponent c : iterable) {
+
+//             if (!applyStyle(c))
+//                 continue;
+            
+//             // TODO: need a size request for LWImage, as the image itself
+//             // may not be loaded yet (or just auto-handle this in userSetSize,
+//             // or setSize or something.
+//             if (c instanceof LWImage) {
+//                 ((LWImage)c).userSetSize(SlideWidth / 4, SlideWidth / 4, null);
+//                 track("resized", c);
+//                 // todo: we actually want this to happen after we're sure we know the image's aspect,
+//                 // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
+//             }
+//         }
+
+//         super.pasteChildren(iterable);
+//     }
 
     @Override
-    public void pasteChildren(Iterable<LWComponent> iterable) {
+    protected void addChildImpl(LWComponent c, Object context)
+    {
+        track("addChildImpl/"+context, c);
 
-        track("pasteChildren", iterable);
+        if (context == ADD_PASTE || context == ADD_DROP) {
 
-        for (LWComponent c : iterable) {
+            applyStyle(c);
 
-            if (!applyStyle(c))
-                continue;
-            
             // TODO: need a size request for LWImage, as the image itself
             // may not be loaded yet (or just auto-handle this in userSetSize,
             // or setSize or something.
@@ -433,22 +453,10 @@ public class LWSlide extends LWContainer
                 // todo: we actually want this to happen after we're sure we know the image's aspect,
                 // which we won't if it's slowly loading -- perhaps we can handle this via a cleanup task.
             }
+            
         }
-
-        super.pasteChildren(iterable);
-    }
-    
-    @Override
-    public void addChildren(Iterable<LWComponent> iterable) {
-        track("addChildren", iterable);
-        super.addChildren(iterable);
-    }
-
-    @Override
-    protected void addChildImpl(LWComponent c)
-    {
-        track("addChildImpl", c);
-        super.addChildImpl(c);
+        
+        super.addChildImpl(c, context);
     }
 
 //     /** Return true if our parent is the given pathway (as slides are currently owned by the pathway).

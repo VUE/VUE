@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.110 $ / $Date: 2008-07-11 20:05:48 $ / $Author: mike $
+ * @version $Revision: 1.111 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -474,8 +474,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // and 1.6 -- SMF 2008-05-31
         
         viewMenu.add(toggleAutoZoomItem);
-        if (DEBUG.Enabled)
-            viewMenu.add(Actions.ToggleAutoZoom);
+        if (DEBUG.Enabled && DEBUG.KEYS) viewMenu.add(Actions.ToggleAutoZoom);
         
 
 //         GUI.getFullScreenWindow().addWindowFocusListener(new WindowFocusListener()
@@ -857,6 +856,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_7, "Pathways"));
         if (VUE.getContentDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_8, "Resources"));
+        if (VUE.getLayersDock() != null)	
+            windowMenu.add(createWindowItem(VUE.getLayersDock(), 0, "Layers"));
                 
                 
            

@@ -42,7 +42,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.188 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.189 $ / $Date: 2008-07-14 17:12:27 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1327,38 +1327,46 @@ public class LWLink extends LWComponent
         if (mRecompute)
             computeLink();
 
-        final Rectangle2D localRect;
-
-        if (getParent() instanceof LWMap) {
-            // checking parent is an optimization: transforming map to local rect is a noop
-            // if we're a direct child of the map
-            localRect = mapRect;
-        } else {
-            // As interectsImpl is called with a rectangle in map coordinates, we transform
-            // it to local (parent) coordinates first, before checking the segments, which
-            // all have local coordinates.
+        final Rectangle2D localRect = transformMapToZeroRect(mapRect);
             
-//             final Rectangle2D tmpRect = (Rectangle2D) mapRect.clone();
-//             //localRect = transformMapToParentLocalRect(tmpRect);
-
-//             localRect = transformMapToZeroRect(tmpRect);
-            
-            // Recall that the zero-rect for a link is actually the parent,
-            // so this is really the "local" rect.
-            localRect = transformMapToZeroRect(mapRect, null);
-            
-            if (DEBUG.LINK && mXMLRestoreUnderway) {
-                System.out.println("TRANSFORMED " + this);
-                if (!localRect.equals(mapRect))
-                    System.out.println("\t" + Util.fmt(mapRect) + " to:"
-                                       + "\n\t" + Util.fmt(localRect));
-            }
+        if (DEBUG.LINK && mXMLRestoreUnderway) {
+            System.out.println("TRANSFORMED " + this);
+            if (!localRect.equals(mapRect))
+                System.out.println("\t" + Util.fmt(mapRect) + " to:"
+                                   + "\n\t" + Util.fmt(localRect));
         }
+        
+//         final Rectangle2D localRect;
+//         if (getParent() instanceof LWMap) {
+//             // checking parent is an optimization: transforming map to local rect is a noop
+//             // if we're a direct child of the map
+//             localRect = mapRect;
+//         } else {
+//             // As interectsImpl is called with a rectangle in map coordinates, we transform
+//             // it to local (parent) coordinates first, before checking the segments, which
+//             // all have local coordinates.
+            
+// //             final Rectangle2D tmpRect = (Rectangle2D) mapRect.clone();
+// //             //localRect = transformMapToParentLocalRect(tmpRect);
 
-//         if (! localRect.intersects(getX(), getY(), getWidth(), getHeight())) {
-//             // fast-reject on pre-computed bounding box
-//             return false;
+// //             localRect = transformMapToZeroRect(tmpRect);
+            
+//             // Recall that the zero-rect for a link is actually the parent,
+//             // so this is really the "local" rect.
+//             localRect = transformMapToZeroRect(mapRect, null);
+            
+//             if (DEBUG.LINK && mXMLRestoreUnderway) {
+//                 System.out.println("TRANSFORMED " + this);
+//                 if (!localRect.equals(mapRect))
+//                     System.out.println("\t" + Util.fmt(mapRect) + " to:"
+//                                        + "\n\t" + Util.fmt(localRect));
+//             }
 //         }
+
+// //         if (! localRect.intersects(getX(), getY(), getWidth(), getHeight())) {
+// //             // fast-reject on pre-computed bounding box
+// //             return false;
+// //         }
         
         if (mCurve != null) {
             for (Line2D seg : new SegIterator())
@@ -1923,18 +1931,24 @@ public class LWLink extends LWComponent
     }
 
     /** OPTIMIZATION FOR LWLink override */
-    // links use this for doing intersction with a map rect (for rect picking & clipping)
     @Override
-    protected final Rectangle2D transformMapToZeroRect(Rectangle2D mapRect, Rectangle2D zeroRect) {
-        if (parent instanceof LWMap) {
-            // This is an optimization we'll want to remove if we ever
-            // embed maps in maps.
-            return mapRect;
-        } else {
-            // note this is being called on PARENT, not SUPER
-            return parent.transformMapToZeroRect(mapRect, zeroRect);
-        }
+    protected final Rectangle2D transformMapToZeroRect(Rectangle2D mapRect) {
+        return parent.transformMapToZeroRect(mapRect);
     }
+        
+//     /** OPTIMIZATION FOR LWLink override */
+//     // links use this for doing intersction with a map rect (for rect picking & clipping)
+//     @Override
+//     protected final Rectangle2D transformMapToZeroRect(Rectangle2D mapRect, Rectangle2D zeroRect) {
+//         if (parent instanceof LWMap) {
+//             // This is an optimization we'll want to remove if we ever
+//             // embed maps in maps.
+//             return mapRect;
+//         } else {
+//             // note this is being called on PARENT, not SUPER
+//             return parent.transformMapToZeroRect(mapRect, zeroRect);
+//         }
+//     }
     
     
     

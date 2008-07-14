@@ -116,6 +116,11 @@
                 
                 <field name="ID"><bind-xml node="attribute"/></field>
 		<field name="XMLlabel"><bind-xml name="label" node="attribute"/></field>
+
+		<field name="layer" type="tufts.vue.LWMap$Layer">
+                  <bind-xml name="layerID" node="attribute" reference="true"/>
+                </field>
+                
 		<field name="XMLnotes"><bind-xml name="notes" node="element"/></field>
 		<!-- field name="metaData"><bind-xml node="element"/></field -->
 		<!-- field name="category"><bind-xml node="element"/></field -->
@@ -132,6 +137,7 @@
 		<field name="XMLtextColor">     <bind-xml name="textColor" node="element"/></field>
 		<field name="XMLfont">          <bind-xml name="font" node="element"/></field>
 		<field name="XMLhidden">        <bind-xml name="hidden" node="attribute"/></field>
+		<field name="XMLlocked">        <bind-xml name="locked" node="attribute"/></field>
 		<field name="XMLtextBox">       <bind-xml name="textBox" node="element"/></field>
                 <field name="strokeWidth">      <bind-xml name="strokeWidth" node="attribute"/></field>
 		<field name="XMLstrokeStyle">   <bind-xml name="strokeStyle" node="attribute"/></field>
@@ -185,18 +191,15 @@
 	</class>
 
 	<class name="tufts.vue.LWContainer" extends="tufts.vue.LWComponent">
-                <!--
-                <field name="nodeList" type="tufts.vue.LWNode" collection="arraylist">
-			<bind-xml name="node"/>
-		</field>
-                <field name="linkList" type="tufts.vue.LWLink" collection="arraylist">
-			<bind-xml name="link"/>
-		</field>
-                -->
-                <field name="childList" type="tufts.vue.LWComponent" collection="arraylist">
-			<bind-xml name="child"/>
-		</field>
-	</class>
+          <field name="XMLChildList" type="tufts.vue.LWComponent" collection="arraylist">
+            <bind-xml name="child"/>
+          </field>
+        </class>
+
+	<class name="tufts.vue.LWMap$Layer" extends="tufts.vue.LWContainer">
+          <map-to xml="layer"/>
+        </class>
+        
 	
 	<class name="tufts.vue.LWGroup" extends="tufts.vue.LWContainer">
 		<map-to xml="group"/>
@@ -285,6 +288,11 @@
 
 	<class name="tufts.vue.LWMap" extends="tufts.vue.LWContainer">
 		<map-to xml="LW-MAP"/>
+
+                <field name="XMLLayers" type="tufts.vue.LWMap$Layer" collection="arraylist">
+                  <bind-xml name="layer"/>
+                </field>
+                
 		<field name="userZoom">
 			<bind-xml name="userZoom"/>
 		</field>
@@ -295,7 +303,7 @@
 			<bind-xml name="presentationBackground" node="element"/>
 		</field>		
 		<!-- field name="Pathways" type="tufts.vue.LWPathwayList" -->
-		
+
 		<field name="PathwayList">
 			<bind-xml name="PathwayList" node="element"/>
 		</field>
@@ -403,9 +411,9 @@
 		<field name="currentIndex" type="integer">
 		  <bind-xml name="currentIndex" node="attribute"/>
 		</field>
-		<field name="locked" type="boolean">
+		<!--field name="locked" type="boolean">
 		  <bind-xml name="locked" node="attribute"/>
-		</field>
+		</field -->
 		<field name="open" type="boolean">
 		  <bind-xml name="open" node="attribute"/>
 		</field>

@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.220 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
+ * @version $Revision: 1.221 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -56,7 +56,6 @@ public class LWPathway extends LWContainer
     
     private int mCurrentIndex = -1;
     private MasterSlide mMasterSlide;
-    private boolean mLocked = false;
     private boolean mRevealer = false;
     /** For PathwayTable: does this pathway currently show it's entries in the list? */
     private transient boolean mOpen = true;
@@ -635,12 +634,6 @@ public class LWPathway extends LWContainer
         return mEntries.size() > 0 ? mEntries.get(mEntries.size()-1) : null;
     }
 
-    /** pathways persist their hidden bit -- this will only persist HideCause.DEFAULT */
-    public Boolean getXMLhidden() {
-        return isHidden(HideCause.DEFAULT) ? Boolean.TRUE : null;
-    }
-    
-
     /**
      * Is this a "reveal"-way?  Members start hidden and are made visible as you move
      * through the pathway.  This value managed by LWPathwayList, as only one Pathway
@@ -1189,15 +1182,6 @@ public class LWPathway extends LWContainer
         ensureID(this);
     }
 
-    public void setLocked(boolean t) {
-        final boolean oldValue = mLocked;
-        mLocked = t;
-        notify("pathway.lock", new Undoable() { void undo() { setLocked(oldValue); }} );
-    }
-    public boolean isLocked(){
-        return mLocked;
-    }
-    
     public void setOpen(boolean open){
         mOpen = open;
         notify("pathway.open");
@@ -1383,7 +1367,7 @@ public class LWPathway extends LWContainer
         @Override
         public java.util.List<LWComponent> getChildList() { return java.util.Collections.EMPTY_LIST; }
         @Override
-        public Collection<LWComponent> getChildren() { return java.util.Collections.EMPTY_LIST; }
+        public java.util.List<LWComponent> getChildren() { return java.util.Collections.EMPTY_LIST; }
         @Override
         protected LWComponent pickChild(PickContext pc, LWComponent c) { return this; }
 
@@ -1398,14 +1382,14 @@ public class LWPathway extends LWContainer
     
 
     
-    // we don't support standard children: we shouldn't be calling any of these
-    @Override
-    public void addChildren(Iterable i) {
-        Util.printStackTrace("Unsupported: LWPathway.addChildren in " + this);
-    }
+//     // we don't support standard children: we shouldn't be calling any of these
+//     @Override
+//     public void addChildren(Iterable i) {
+//         Util.printStackTrace("Unsupported: LWPathway.addChildren in " + this);
+//     }
     
     @Override
-    protected void addChildImpl(LWComponent c) { throw new UnsupportedOperationException(); }
+    protected void addChildImpl(LWComponent c, Object context) { throw new UnsupportedOperationException("add:" +context + "; " + c); }
     
     @Override
     public void removeChildren(Iterable i) {
@@ -1428,7 +1412,7 @@ public class LWPathway extends LWContainer
 
     /** @return Collections.EMPTY_LIST -- the children of pathways are non-proper, and can't be accessed this way */
     @Override
-    public Collection<LWComponent> getChildren() {
+    public java.util.List<LWComponent> getChildren() {
         if (DEBUG.XML || DEBUG.PATHWAY) out("getChildren returning EMPTY, as always");
         return Collections.EMPTY_LIST;
     }

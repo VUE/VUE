@@ -570,7 +570,8 @@ public class LWMergeMap extends LWMap {
         }
         
         // also need to check if parent *will* be visible
-        if(! (node.getParent() instanceof LWMap ) )
+        //if(! (node.getParent() instanceof LWMap ) )
+        if (!node.atTopLevel())
             return true;
        // if(node.getParent() instanceof LWNode && (LWNode.isImageNode((LWNode)(node.getParent()))) )
        //     return true;

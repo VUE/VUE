@@ -66,13 +66,14 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.566 $ / $Date: 2008-07-07 20:56:32 $ / $Author: sfraize $ 
+ * @version $Revision: 1.567 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
     public static boolean VUE3 = false;
+    public static boolean VUE3_LAYERS = false;
     
     // We would like to move to non-blocking (threaded) loading -- when blocking (current impl), a hang in
     // any OSID init or server access will hang VUE during startup.
@@ -91,18 +92,12 @@ public class VUE
      * elements in ModelSelection should always be from the ActiveModel */
     static final LWSelection ModelSelection = new LWSelection();
     
-    /** array of tool windows, used for repeatedly creating JMenuBar's for on all Mac JFrame's */
-    // todo: wanted package private: should be totally private.
-    public static Object[] ToolWindows; // VueMenuBar currently needs this
-
-    //private static com.jidesoft.docking.DefaultDockableHolder frame;
     private static VueFrame ApplicationFrame;
     
     private static MapTabbedPane mMapTabsLeft;
     private static MapTabbedPane mMapTabsRight;
     public static JSplitPane mViewerSplit;
     
-    //static ObjectInspectorPanel ObjectInspectorPanel;
     private static tufts.vue.ui.SlideViewer slideViewer;
     
     // TODO: get rid of this
@@ -142,6 +137,7 @@ public class VUE
     /** active pathway handler -- will update active pathway-entry handler if needed */
     private static final ActiveInstance<LWPathway>
         ActivePathwayHandler = new ActiveInstance<LWPathway>(LWPathway.class) {
+        @Override
         protected void onChange(ActiveEvent<LWPathway> e) {
             // Only run the update if this isn't already an auxillary sync update from ActivePathwayEntryHandler:
             if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWPathway.Entry.class)
@@ -161,6 +157,7 @@ public class VUE
      */
     private static final ActiveInstance<LWComponent>
         ActiveComponentHandler = new ActiveInstance<LWComponent>(LWComponent.class) {
+        @Override
         protected void onChange(ActiveEvent<LWComponent> e)
         {
             final LWComponent node = e.active;
@@ -180,15 +177,12 @@ public class VUE
                 
             }
 
-//             else if (node.hasResource()) {
-
-//                 checkForAndHandleResourceUpdate(node.getResource());
-
-// //                 if (node instanceof LWImage && ((LWImage)node).getStatus() == LWImage.Status.ERROR) {
-// //                     ((LWImage)node).reloadImage();
-// //                 }
-                         
-//             }
+            //-------------------------------------------------------
+            // now set the active Layer
+            //-------------------------------------------------------
+            
+            if (node != null && node.getLayer() != null)
+                ActiveInstance.set(LWMap.Layer.class, this, node.getLayer());
 
             //-------------------------------------------------------
             // now set the active Resource
@@ -225,18 +219,40 @@ public class VUE
     };
 
     /**
+     *
+     */
+    private static final ActiveInstance<LWMap.Layer>
+        ActiveLayerHandler = new ActiveInstance<LWMap.Layer>(LWMap.Layer.class) {
+        @Override
+        protected void onChange(ActiveEvent<LWMap.Layer> e)
+        {
+            ////if (ActiveComponentHandler.getActive() == null)
+            if (getSelection().size() == 0 || getSelection().only() instanceof LWMap.Layer)
+            {
+                getSelection().setTo(e.active);
+                //ActiveComponentHandler.setActive(this, e.active);
+            }
+
+            // keep the active layer in the map up to date
+            e.active.getMap().setActiveLayer(e.active);
+        }
+    };
+    
+
+    /**
      * active LWComponent handler (the active single-selection, if there is one).
      * Will guess at and update the active pathway entry if it can.
      */
     private static final ActiveInstance<Resource>
         ActiveResourceHandler = new ActiveInstance<Resource>(Resource.class) {
+        @Override
         protected void onChange(ActiveEvent<Resource> e)
         {
             if (e.active != null)
                 checkForAndHandleResourceUpdate(e.active);
         }
     };
-    
+
 
     /**
      * If and only if the given Resource has changed on disk: check all open maps for
@@ -319,6 +335,7 @@ public class VUE
      */
     private static final ActiveInstance<LWPathway.Entry>
         ActivePathwayEntryHandler = new ActiveInstance<LWPathway.Entry>(LWPathway.Entry.class) {
+        @Override
         protected void onChange(ActiveEvent<LWPathway.Entry> e) {
             // Only run the update if this isn't already an auxillary sync update from ActivePathwayHandler:
             if (e.source instanceof ActiveEvent && ((ActiveEvent)e.source).type == LWPathway.class)
@@ -370,6 +387,7 @@ public class VUE
      */
     private static final ActiveInstance<LWMap>
         ActiveMapHandler = new ActiveInstance<LWMap>(LWMap.class) {
+        @Override
         protected void onChange(ActiveEvent<LWMap> e) {
             if (e.active != null) {
                 ActivePathwayHandler.setActive(e, e.active.getActivePathway());
@@ -411,6 +429,7 @@ public class VUE
     public static MapViewer getActiveViewer() { return ActiveViewerHandler.getActive(); }
     public static LWComponent getActiveComponent() { return ActiveComponentHandler.getActive(); }
     public static Resource getActiveResource() { return ActiveResourceHandler.getActive(); }
+    public static LWMap.Layer getActiveLayer() { return ActiveLayerHandler.getActive(); }
 
     public static LWComponent getActiveFocal() {
         MapViewer viewer = getActiveViewer();
@@ -707,6 +726,7 @@ public class VUE
     private static DockWindow ObjectInspector;
     private static DockWindow outlineDock;
     private static DockWindow floatingZoomDock;
+    private static DockWindow layersDock;
 
     
     static {
@@ -1065,7 +1085,7 @@ public class VUE
                             public void run() {
                                 VUE.activateWaitCursor();
                                 //LWMap map = OpenAction.loadMap(fileName);
-                                if (DEBUG.Enabled) out("opening map during startup " + fileName);
+                                if (DEBUG.Enabled) Log.debug("opening map during startup " + fileName);
                                 if (fileName != null) {
                                     displayMap(new File(fileName));
                                     //openedUserMap = true;
@@ -1352,11 +1372,14 @@ public class VUE
         inspectorPane = new tufts.vue.ui.InspectorPane();
         ObjectInspector = GUI.createDockWindow("Info");
         ObjectInspector.setContent(inspectorPane.getWidgetStack());
-        
-        
         ObjectInspector.setMenuName("Info / Preview");
         ObjectInspector.setHeight(575);
         
+        if (DEBUG.Enabled || VUE3_LAYERS) {
+            layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
+            layersDock.setFocusableWindowState(false); // needed for workflow support
+            layersDock.setSize(300,200);
+        }
         
         //-----------------------------------------------------------------------------
         // Slide Viewer
@@ -1430,7 +1453,7 @@ public class VUE
             DataSourceViewer.initUI();
             
         }
-        
+
         //-----------------------------------------------------------------------------
 
         if (Util.isMacLeopard() && DockWindow.useManagedWindowHacks()) {
@@ -1804,6 +1827,7 @@ public class VUE
         	//DR_BROWSER_DOCK.setVisible(true);
             
         }
+        
     }
 
     public static FormatPanel getFormattingPanel()
@@ -1864,6 +1888,11 @@ public class VUE
     public static DockWindow getPresentationDock()
     {
     	return pathwayDock;
+    }
+    
+    public static DockWindow getLayersDock()
+    {
+    	return layersDock;
     }
     
     public static PathwayPanel getPathwayPanel()

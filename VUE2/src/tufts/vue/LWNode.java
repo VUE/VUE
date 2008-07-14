@@ -27,6 +27,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
     
 import java.util.Iterator;
 import java.util.Collection;
+import java.util.List;
 import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.ImageIcon;
@@ -38,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.224 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
+ * @version $Revision: 1.225 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -776,7 +777,8 @@ public class LWNode extends LWContainer
                 // todo: this doesn't include stroke width (e.g., addStrokeToBounds, but will need a Rectangle2D.Float...)
                 // Not important for rect picking, but important for paint clipping...
                 // For that, would also need to include selection stroke, etc...
-                return getZeroShape().intersects(transformMapToZeroRect(mapRect, null));
+                //return getZeroShape().intersects(transformMapToZeroRect(mapRect, null));
+                return getZeroShape().intersects(transformMapToZeroRect(mapRect));
             }
         }
         
@@ -847,17 +849,6 @@ public class LWNode extends LWContainer
     
 
     @Override
-    protected void addChildImpl(LWComponent c)
-    {
-        // must set the scale before calling the super
-        // handler, as scale must be in place before
-        // notifyHierarchyChanging/Changed calls.
-        if (isScaledChildType(c))
-            c.setScale(LWNode.ChildScale);
-        super.addChildImpl(c);
-    }
-
-    @Override
     public void XML_completed(Object context) {
         super.XML_completed(context);
         if (hasChildren()) {
@@ -897,39 +888,60 @@ public class LWNode extends LWContainer
     }
 
     @Override
-    public void addChildren(Iterable<LWComponent> iterable)
+    protected void addChildImpl(LWComponent c, Object context)
     {
-        if (!mXMLRestoreUnderway && !hasResource() && !hasChildren()) {
-            if (iterable instanceof Collection && ((Collection)iterable).size() == 1) {
-                final LWComponent first = iterable.iterator().next();
-                if (first instanceof LWImage) {
-                    
-                    // we do this BEFORE calling super.addChildren, so the soon to be
-                    // added LWImage will know to auto-update itself to node icon status
-                    // in it's setParent (or we could call first.updateNodeIconStatus
-                    // directly if we made it public)
+        // must set the scale before calling the super
+        // handler, as scale must be in place before
+        // notifyHierarchyChanging/Changed calls.
+        if (isScaledChildType(c))
+            c.setScale(LWNode.ChildScale);
+        super.addChildImpl(c, context);
+    }
 
-                    // don't call setResource, or our special LWNode impl will auto
-                    // install the image as a node icon, and then addChildren will add
-                    // it a second time.
-                    
-                    // TODO: however, this not undoable...  so we'll want to do this
-                    // after...
-
-                    // TODO: Also, dragging OUT a non-attached image to the map, but
-                    // canceling the drag, triggers this code in the re-add, and
-                    // then the image gets 'stuck' as a node icon.
-                    
-                    takeResource(first.getResource());
-                }
+    @Override
+    public void addChildren(java.util.List<LWComponent> children, Object context)
+    {
+        if (!mXMLRestoreUnderway && !hasResource() && !hasChildren() && children.size() == 1) {
+            final LWComponent first = children.get(0);
+            if (first instanceof LWImage) {
+                // we do this BEFORE calling super.addChildren, so the soon to be
+                // added LWImage will know to auto-update itself to node icon status
+                // in it's setParent (or we could call first.updateNodeIconStatus
+                // directly if we made it public)
+                
+                // don't call setResource, or our special LWNode impl will auto
+                // install the image as a node icon, and then addChildren will add
+                // it a second time.
+                
+                // TODO: however, this not undoable...  so we'll want to do this
+                // after...
+                
+                // TODO: Also, dragging OUT a non-attached image to the map, but
+                // canceling the drag, triggers this code in the re-add, and
+                // then the image gets 'stuck' as a node icon.
+                
+                takeResource(first.getResource());
             }
         }
         
-        super.addChildren(iterable);
+        super.addChildren(children, context);
         
         //Log.info("ADDED CHILDREN: " + Util.tags(iterable));
 
     }
+
+    @Override
+    protected List<LWComponent> sortForIncomingZOrder(List<LWComponent> toAdd)
+    {
+        // Use the YSorter -- as we stack out children, this will then
+        // display them in the same vertical order they had wherever
+        // they came from.  Only guaranteed to make sense when all the
+        // incoming nodes are on the same parent/canvas, (the same
+        // coordinate space).
+        
+        return java.util.Arrays.asList(sort(toAdd, YSorter));
+    }
+    
     
     @Override
     public void setResource(Resource r)
@@ -1218,7 +1230,8 @@ public class LWNode extends LWContainer
         if (labelBox != null)
             labelBox.setBoxLocation(relativeLabelX(), relativeLabelY());
         
-        if (this.parent != null && this.parent instanceof LWMap == false) {
+        //if (this.parent != null && this.parent instanceof LWMap == false) {
+        if (isLaidOut()) {
             // todo: should only need to do if size changed
             this.parent.layout();
         }

@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.201 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
+ * @version $Revision: 1.202 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -104,6 +104,11 @@ public class LWMap extends LWContainer
     private float userOriginY;
     private double userZoom = 1;
 
+    private transient boolean isLayered;
+    private transient Layer mActiveLayer;
+    /** for use during restores only */
+    private transient java.util.List<Layer> mLayers = new ArrayList();
+
     private transient int mSaveFileModelVersion = -1;
     private transient int mModelVersion = getCurrentModelVersion();
 
@@ -132,6 +137,12 @@ public class LWMap extends LWContainer
         // Always do markDate, then markAsSaved as the last items in the constructor:
         // (otherwise this map will look like it's user-modified when it first displays)
         markDate();
+
+        if (VUE.VUE3_LAYERS) {
+            installDefaultLayers();
+            ensureID(this); // make sure the new default layers get ID's
+        }
+        
         markAsSaved();
     }
 
@@ -320,13 +331,13 @@ public class LWMap extends LWContainer
     
     public  void clearFilter() {
         out("clearFilter: cur=" + mLWCFilter);
+        
          if (mLWCFilter.getFilterAction() == LWCFilter.ACTION_SELECT)
-                VUE.getSelection().clear();
-        Iterator i = getAllDescendentsIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+             VUE.getSelection().clear();
+         
+        for (LWComponent c : getAllDescendents())
             c.setFiltered(false);
-        }
+        
         mLWCFilter.setFilterOn(false);       
         notify(LWKey.MapFilter);
     }
@@ -491,12 +502,48 @@ public class LWMap extends LWContainer
     }
 
     @Override
+    public final boolean isTopLevel() {
+        return true;
+    }
+    
+    /** @return true if we have any non-layer children */
+    @Override
+    public boolean hasContent() {
+        for (LWComponent c : getChildren()) {
+            if (c instanceof Layer) {
+                if (c.hasContent())
+                    return true;
+            } else
+                return true;
+        }
+        return false;
+    }
+    
+
+    @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order) {
-        super.getAllDescendents(kind, bag, order);
-        if (kind == ChildKind.ANY && mPathways != null) {
-            for (LWPathway pathway : mPathways) {
-                bag.add(pathway);
-                pathway.getAllDescendents(kind, bag, order);
+
+        if (kind == ChildKind.ANY) {
+            // include the layers and all descendents
+            super.getAllDescendents(kind, bag, order);
+        } else {
+            // exclude the layers, but include their children
+            for (LWComponent layer : getChildren()) {
+                if ((kind == ChildKind.VISIBLE || kind == ChildKind.EDITABLE) && layer.isHidden())
+                    ; // exclude invisible
+                else if (kind == ChildKind.EDITABLE && layer.isLocked())
+                    ; // exclude locked out
+                else
+                    layer.getAllDescendents(kind, bag, order);
+            }
+        }
+
+        if (kind == ChildKind.ANY) {
+            if (mPathways != null) {
+                for (LWPathway pathway : mPathways) {
+                    bag.add(pathway);
+                    pathway.getAllDescendents(kind, bag, order);
+                }
             }
         }
         return bag;
@@ -623,7 +670,7 @@ public class LWMap extends LWContainer
             final LWLink link = (LWLink) c;
             final LWContainer parent = link.getParent();
 
-            if (parent instanceof LWMap) {
+            if (parent instanceof LWMap) { // okay instanceof check: for explicit backward compat
                 //if (DEBUG.Enabled) System.out.println("LINK ALREADY RELATIVE: " + link);
             } else {
                 //if (DEBUG.Enabled) System.out.println("MAKING LINK PARENT RELATIVE: " + link);
@@ -672,6 +719,274 @@ public class LWMap extends LWContainer
         }
     }
 
+
+    public static final class Layer extends LWContainer {
+
+        /** for persistance only */
+        public Layer() {}
+
+        public Layer(String name) {
+            setLabel(name);
+        }
+
+        @Override
+        public boolean isTopLevel() {
+            return true;
+        }
+
+        @Override
+        protected void setParent(LWContainer p) {
+            if (p instanceof LWMap)
+                super.setParent(p);
+            else
+                throw new IllegalArgumentException("Layers can only be parented to map; attempted to add "
+                                                   + this + " to " + p);
+                
+        }
+        
+        @Override public float getX() { return 0; }
+        @Override public float getY() { return 0; }
+        @Override public float getMapX() { return 0; }
+        @Override public float getMapY() { return 0; }
+        @Override protected double getMapXPrecise() { return 0; }
+        @Override protected double getMapYPrecise() { return 0; }
+
+        @Override protected AffineTransform transformDownA(final AffineTransform a) { return a; }
+        @Override protected void transformDownG(final Graphics2D g) {}
+        @Override public void transformZero(final Graphics2D g) {}
+
+        @Override protected Rectangle2D transformMapToZeroRect(Rectangle2D mapRect) { return mapRect; }
+
+        @Override public String getXMLtextColor() { return null; }
+        @Override public String getXMLstrokeColor() { return null; }
+        @Override public String getXMLfont() { return null; }
+
+        /** @return false */
+        public boolean supportsMultiSelection() {
+            return false;
+        }
+        
+        /** @return false -- is editable, but not on the map */
+        public boolean supportsUserLabel() {
+            return false;
+        }
+
+        //@Override public edu.tufts.vue.metadata.MetadataList getMetadataList() { return null; }
+
+        @Override
+        public String getComponentTypeLabel() { return "Layer"; }
+
+        @Override
+        protected boolean intersectsImpl(Rectangle2D mapRect) {
+            // probably better to change LWComponent.requiresPaint
+            // such that there another API call to check along w/clipOptimized
+            // so we can skip making the intersects call entirely
+            return true;
+        }
+
+        private void add(LWComponent c) {
+            if (mChildren == NO_CHILDREN)
+                mChildren = new ArrayList();
+            mChildren.add(c);
+        }
+        
+        
+        @Override
+        public Object getTypeToken() {
+            // will ensure will never be treated as styleable
+            return null;
+        }
+        
+        @Override
+        protected void drawImpl(DrawContext dc) {
+            super.drawImpl(dc);
+            
+            if (isLocked() && getParent().isOnBottom(this)) {
+                
+                // this a better (easier to read) and faster method of fading out a
+                // layer, but it only works on the bottom layer.  To make work on other
+                // layers, we'd have to render the layer offscreen first then fade out
+                // the results, which would be very slow.  Also, this has a bug in that
+                // we're filling the clipRect, which can actually be larger an area than
+                // we'd ideally like to fade out (e.g., see what happens in the
+                // MapPanner).
+
+                // The problem case is if there are any layers BELOW this one that
+                // are not locked/faded out, they'd be faded out anyway by any
+                // locked layers above them.
+                
+                dc.setAlpha(0.5);
+                dc.g.setColor(getMap().getFillColor());
+                dc.g.fill(dc.g.getClipRect());
+            }
+        }
+        
+
+        @Override
+        protected void drawChild(LWComponent child, DrawContext dc)
+        {
+            if (isLocked() && !getParent().isOnBottom(this))
+                dc.setAlpha(0.5);
+            super.drawChild(child, dc);
+        }
+        
+        @Override
+        public java.util.List<LWComponent> getXMLChildList() {
+            // layer contents not persisted with layer for backward compat with old versions of VUE
+            return null;
+        }
+
+        @Override
+        public Layer duplicate(CopyContext cc)
+        {
+            LWComponent c = super.duplicate(cc);
+            c.setLabel(getLabel() + " Copy");
+            return (Layer) c;
+        }
+        
+        @Override
+        public String toString() {
+            try {
+                return
+                    "Layer[<"
+                    + getParent().indexOf(this)
+                    + ">"
+                    + " in " + getParent()
+                    + " n=" + String.format("%2d", numChildren())
+                    + " (" + getLabel() + ")"
+                    + "]"
+                    ;
+            } catch (Throwable t) {
+                return super.toString();
+            }
+        }
+    }
+
+    public boolean isLayered() {
+        if (!VUE.VUE3_LAYERS) return false;
+        return isLayered;
+    }
+
+    public Layer getActiveLayer() {
+        if (VUE.VUE3_LAYERS) return null;
+        return mActiveLayer;
+    }
+    
+    public void setActiveLayer(Layer layer) {
+        if (!VUE.VUE3_LAYERS) return;
+        mActiveLayer = layer;
+    }
+
+    @Override
+    public java.util.List<LWComponent> getXMLChildList() {
+        if (mXMLRestoreUnderway) {
+            return super.getXMLChildList();
+        } else {
+            if (!VUE.VUE3_LAYERS) return getChildren();
+            if (hasChildren()) {
+                List childrenInAllLayers = new ArrayList();
+                //childrenInAllLayers.addAll(mChildren);
+                for (LWComponent c : getChildren()) {
+                    if (c instanceof Layer)
+                        childrenInAllLayers.addAll(c.getChildren());
+                    else
+                        Log.warn("non-layer direct child of map; " + this + ": " + c);
+                }
+                Log.debug("built integrated list of all layer members, n=" + childrenInAllLayers.size());
+                return childrenInAllLayers;
+            } else
+                return null;
+        }
+    }
+
+    public java.util.List<? extends LWComponent> getXMLLayers() {
+        if (mXMLRestoreUnderway)
+            return mLayers;
+        else if (VUE.VUE3_LAYERS)
+            return mChildren;
+        else
+            return null;
+    }
+
+    private boolean reparentAllToLayers() {
+
+        if (!VUE.VUE3_LAYERS) return false;
+
+        boolean addedLayers = false;
+
+        if (mLayers.size() > 0) {
+
+            Log.debug("restoring: found existing layers in " + this);
+
+            for (Layer layer : mLayers) {
+                for (LWComponent c : mChildren) {
+                    if (c.getParent() == layer)
+                        layer.add(c);
+                }
+            }
+
+            // We should never have orphans, but just in case / for debug while testing this:
+            List orphans = new ArrayList();
+            for (LWComponent c : mChildren) {
+                if (c.getParent() instanceof Layer) {
+                    // what we want
+                } else {
+                    orphans.add(c);
+                    Log.error("Layer orphaned node: " + c);
+                }
+            }
+                    
+            mChildren.clear();
+            mChildren.addAll(orphans);
+
+            setActiveLayer(mLayers.get(0));
+
+        } else {
+
+            Log.debug("restoring: creating default layers in " + this);
+
+            installDefaultLayers();
+
+        }
+
+
+        mChildren.addAll(mLayers);
+
+        // mLayers is only needed during restore
+        mLayers = null;
+        isLayered = true;
+
+        return addedLayers;
+    }
+
+    private void installDefaultLayers() {
+        
+        final Layer layer0, layer1, layer2;
+        
+        layer0 = new Layer("Background");
+        layer0.setParent(this);
+        layer0.setVisible(false);
+        
+        layer1 = new Layer("Default");
+        layer1.setParent(this);
+        layer1.mChildren = LWMap.this.mChildren;
+        for (LWComponent c : LWMap.this.mChildren)
+            c.setParent(layer1);
+        
+        layer2 = new Layer("Notations");
+        layer2.setParent(this);
+        layer2.setVisible(false);
+        
+        mChildren = new ArrayList();
+        mChildren.add(layer0);
+        mChildren.add(layer1);
+        mChildren.add(layer2);
+
+        isLayered = true;
+        setActiveLayer(layer1);
+    }
+    
+    
     static final String NODE_INIT_LAYOUT = "completeXMLRestore:NODE";
     static final String LINK_INIT_LAYOUT = "completeXMLRestore:LINK";
 
@@ -680,6 +995,15 @@ public class LWMap extends LWContainer
         if (DEBUG.INIT || DEBUG.IO || DEBUG.XML)
             Log.debug(getLabel() + ": completing restore...");
 
+        //-----------------------------------------------------------------------------
+        // We do this every time, as nodes are always saved as children
+        // of the map, so that old versions of VUE can at least
+        // still see the flattened content.
+        
+        final boolean addedLayers = reparentAllToLayers();
+
+        //-----------------------------------------------------------------------------
+        
         if (mPathways != null) {
             try {
                 mPathways.completeXMLRestore(this);
@@ -687,7 +1011,6 @@ public class LWMap extends LWContainer
                 tufts.Util.printStackTrace(new Throwable(t), "PATHWAYS RESTORE");
             }
         }
-
         // Need to do this after complete XML restore, as getAllDescendents for special
         // componenets may otherwise not yet be ready to return everything (e.g. MasterSlide)
         final Collection<LWComponent> allRestored = getAllDescendents(ChildKind.ANY,
@@ -701,6 +1024,14 @@ public class LWMap extends LWContainer
             mPathways = new LWPathwayList(this);
 
         this.nextID = findGreatestID(allRestored) + 1;
+
+        if (addedLayers) {
+            // if we created any layers, ensure their ID's now, after
+            // we already know the greatest ID.
+            for (LWComponent c : getChildren())
+                c.ensureID(c, false);
+        }
+
         
         for (LWPathway pathway : mPathways) {
             // 2006-11-30 14:33.32 SMF: LWPathways now have ID's,
@@ -1141,7 +1472,7 @@ public class LWMap extends LWContainer
         for (LWComponent c : components) {
             if (c.getID() == null) {
                 if (!(c instanceof LWPathway)) {
-                    out("Found an LWCopmonent persisted without an id: " + c);
+                    Log.warn("found a child persisted without an id: " + Util.tags(c));
                 }
                 continue;
             }
@@ -1164,10 +1495,17 @@ public class LWMap extends LWContainer
     public LWComponent findMostRecentlyCreatedType(Object typeToken) {
         return findMostRecentlyCreated(getAllDescendents(ChildKind.ANY), typeToken);
     }
-    
-    
-    
-    
+
+
+    /**
+     * @return the list of children
+     */
+    // overridden for performance
+    @Override
+    public final java.util.List<LWComponent> getPickList(PickContext pc, List<LWComponent> stored) {
+        return getChildren();
+    }
+
     // do nothing
     //void setScale(float scale) { }
 
@@ -1373,10 +1711,6 @@ public class LWMap extends LWContainer
         return this;
     }
 
-    public int getLayer() {
-        return 0;
-    }
-
     /** @return false: maps can't be selected with anything else */
     public boolean supportsMultiSelection() {
         return false;
@@ -1454,10 +1788,34 @@ public class LWMap extends LWContainer
     }
     
     @Override
-    protected void addChildImpl(LWComponent c) {
+    public void addChildren(List<LWComponent> children, Object context) {
+        if (children.size() == 1 && children.get(0) instanceof LWMap.Layer) {
+            isLayered = true;
+            super.addChildren(children, context);
+        } else if (isLayered() && getActiveLayer() != null){
+            getActiveLayer().addChildren(children);
+        } else {
+            super.addChildren(children, context);
+        }
+    }
+    
+    @Override
+    protected void addChildImpl(LWComponent c, Object context) {
+        
         if (c instanceof LWPathway)
             throw new IllegalArgumentException("LWPathways not added as direct children of map: use addPathway " + c);
-        super.addChildImpl(c);
+        
+        if (isLayered()) {
+            //mActiveLayer.addChildImpl(c);
+            if (c instanceof Layer == false) {
+                Util.printStackTrace("Warning: LWMap adding non-layer: " + Util.tags(c));
+                //return;
+                //throw new IllegalArgumentException("only layers can be added directly to the map");
+            }
+        }
+        
+        super.addChildImpl(c, context);
+
     }
 
     public LWComponent add(LWComponent c) {
@@ -1518,7 +1876,8 @@ public class LWMap extends LWContainer
 
     @Override
     protected Rectangle2D.Float getZeroBounds() {
-        Util.printStackTrace("LWMap getZeroBounds " + this);
+        //Util.printStackTrace("LWMap getZeroBounds " + this);
+        Log.warn("LWMap getZeroBounds " + this);
         return getPaintBounds();
     }
     
@@ -1548,7 +1907,8 @@ public class LWMap extends LWContainer
         
         if (mCachedBounds == null) {
             //mCachedBounds = getBounds(getChildIterator(), maxLayer);
-            mCachedBounds = getPaintBounds(getChildIterator());
+            //mCachedBounds = getPaintBounds(getChildIterator());
+            mCachedBounds = getPaintBounds();
             takeSize(mCachedBounds.width, mCachedBounds.height);
             //takeLocation(mCachedBounds.x, mCachedBounds.y);
             /*
@@ -1596,8 +1956,6 @@ public class LWMap extends LWContainer
         
         while (i.hasNext()) {
             final LWComponent c = i.next();
-//             if (c.getLayer() > maxLayer)
-//                 continue;
             if (c.isDrawn()) {
                 if (rect == null) {
                     rect = new Rectangle2D.Float();
@@ -1612,32 +1970,58 @@ public class LWMap extends LWContainer
 
     @Override
     public Rectangle2D.Float getPaintBounds() {
-        return mChildren == null ? EmptyBounds : getPaintBounds(mChildren.iterator());
+
+        //return mChildren == null ? EmptyBounds : getPaintBounds(mChildren.iterator());
+
+        if (mChildren == NO_CHILDREN)
+            return EmptyBounds;
+
+        // iterate the layers:
+        final Rectangle2D.Float bounds = new Rectangle2D.Float();
+        for (LWComponent layer : getChildren()) {
+            if (layer.isVisible())
+                accruePaintBounds(layer.getChildren(), bounds);
+        }
+        
+        return bounds.isEmpty() ? EmptyBounds : bounds;
+
     }
 
+    private static void accruePaintBounds(Iterable<LWComponent> iterable, Rectangle2D.Float rect)
+    {
+        for (LWComponent c : iterable) {
+            if (c.isDrawn()) {
+                if (rect.isEmpty())
+                    rect.setRect(c.getPaintBounds());
+                else
+                    rect.add(c.getPaintBounds());
+            }
+        }
+    }
+    
     @Override
     public Rectangle2D.Float getFocalBounds() {
         return getPaintBounds();
     }
     
 
-    public static Rectangle2D.Float getPaintBounds(Iterator<LWComponent> i)
-    {
-        Rectangle2D.Float rect = null;
+//     public static Rectangle2D.Float getPaintBounds(Iterator<LWComponent> i)
+//     {
+//         Rectangle2D.Float rect = null;
         
-        while (i.hasNext()) {
-            final LWComponent c = i.next();
-            if (c.isDrawn()) {
-                if (rect == null) {
-                    rect = new Rectangle2D.Float();
-                    rect.setRect(c.getPaintBounds());
-                } else
-                    rect.add(c.getPaintBounds());
-            }
-        }
-        return rect == null ? EmptyBounds : rect;
-        //return rect == null ? new Rectangle2D.Float() : rect;
-    }
+//         while (i.hasNext()) {
+//             final LWComponent c = i.next();
+//             if (c.isDrawn()) {
+//                 if (rect == null) {
+//                     rect = new Rectangle2D.Float();
+//                     rect.setRect(c.getPaintBounds());
+//                 } else
+//                     rect.add(c.getPaintBounds());
+//             }
+//         }
+//         return rect == null ? EmptyBounds : rect;
+//         //return rect == null ? new Rectangle2D.Float() : rect;
+//     }
 
     public static Rectangle2D.Float getBorderBounds(Iterable<LWComponent> iterable)
     {
@@ -1782,7 +2166,7 @@ public class LWMap extends LWContainer
      * @return mapPoint if zeroPoint is null, zeroPoint otherwise
      */
     @Override
-    public Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float zeroPoint) {
+    public final Point2D transformMapToZeroPoint(Point2D.Float mapPoint, Point2D.Float zeroPoint) {
         if (zeroPoint == null) {
             return mapPoint;
         } else {
@@ -1791,6 +2175,18 @@ public class LWMap extends LWContainer
             return zeroPoint;
         }
     }
+
+    @Override
+    protected final Rectangle2D transformMapToZeroRect(Rectangle2D mapRect)
+    {
+        return mapRect;
+//         if (zeroRect == null)
+//             zeroRect = (Rectangle2D) mapRect.clone();
+//         else
+//             zeroRect.setRect(mapRect);
+//         return zeroRect;
+    }
+    
     
     
     public String toString() {
@@ -1841,9 +2237,10 @@ public class LWMap extends LWContainer
      * Model version 2: relative children, groups back to absolute (excepting link members -- only a few days this version)
      * Model version 3: relative children, groups back to relative with crude node-embedding support
      * Model version 4: relative children, groups relative, link points relative to parent (no longer have absolute map location)
+     * Model version 5: layers added
      */
     public static int getCurrentModelVersion() {
-        return 4;
+        return VUE.VUE3_LAYERS ? 5 : 4;
     }
     
     

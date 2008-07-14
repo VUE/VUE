@@ -20,7 +20,7 @@ package tufts.vue;
  *
  * This class essentially just a parameter block for picking LWTraversals.
  *
- * @version $Revision: 1.12 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.13 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -37,8 +37,8 @@ public class PickContext
     /** the DrawContext that produced the current display */
     public final DrawContext dc;
 
-    /** Max layer to access -- determined by the UI/viewer (currently a hack till real layers) */
-    public int maxLayer = Short.MAX_VALUE;
+//     /** Max layer to access -- determined by the UI/viewer (currently a hack till real layers) */
+//     public int maxLayer = Short.MAX_VALUE;
 
     /** 1 means top level only, 0 will pick nothing.  Default is only a loop-preventing Short.MAX_VALUE. */
     public int maxDepth = Short.MAX_VALUE;    // we could use that to allow only root picking?
@@ -111,7 +111,7 @@ public class PickContext
             + " dropping=" + dropping
             + " ignoreSelected=" + ignoreSelected
             + " pickDepth=" + pickDepth
-            + " maxLayer=" + maxLayer
+            //+ " maxLayer=" + maxLayer
             + " maxDepth=" + maxDepth
             + " acceptor=" + acceptor
             //+ " pickType=" + pickType

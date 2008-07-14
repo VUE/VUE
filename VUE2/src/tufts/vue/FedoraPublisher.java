@@ -367,15 +367,5 @@ public class FedoraPublisher {
         }
         return mimeType;
     }
-    public static void replaceResource(LWMap map,Resource r1,Resource r2) {
-        Iterator i = map.getAllDescendentsIterator();
-        while(i.hasNext()) {
-            LWComponent component = (LWComponent) i.next();
-            if(component.hasResource()){
-                Resource resource = component.getResource();
-                if(resource.getSpec().equals(r1.getSpec()))
-                    component.setResource(r2);
-            }
-        }
-    }
+
 }

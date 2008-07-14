@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.562 $ / $Date: 2008-07-07 18:38:42 $ / $Author: sfraize $ 
+ * @version $Revision: 1.563 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1288,6 +1288,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return mFocal;
     }
 
+    public LWComponent getDropFocal() {
+        if (VUE.VUE3_LAYERS && getFocal() instanceof LWMap)
+            return ((LWMap)getFocal()).getActiveLayer();
+        else
+            return getFocal();
+    }
+    
+
     private void unloadFocal() {
         mFocal.removeLWCListener(this);
         mMap = null;
@@ -1826,8 +1834,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             if (singleSrc != null && e.isModelSourced() && singleSrc.isHidden() && !(singleSrc instanceof LWPathway)) {
                 // todo: some kind of semantic check that knows pathway visibility
                 // is irrelevant here, as opposed to the type check.
-                //if (DEBUG.Enabled) out("skipping update from hidden component: " + e);
-                if (DEBUG.Enabled) Util.printStackTrace("skipping update from hidden component: " + e);
+                if (DEBUG.Enabled) out("skipping update from hidden component: " + e);
+                //if (DEBUG.Enabled) Util.printStackTrace("skipping update from hidden component: " + e);
             } else
                 repaint();
         } else {
@@ -1893,7 +1901,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         indicationIsAlternate = alternate;
         if (DEBUG.PARENTING) out("indication  set  to " + c);
         //c.setIndicated(true);
-        repaintMapRegion(indication.getBounds());
+        if (OPTIMIZED_REPAINT)
+            repaintMapRegion(indication.getBounds());
+        else
+            repaint();
 //         if (indication.getStrokeWidth() < STROKE_INDICATION.getLineWidth())
 //             repaintMapRegionGrown(indication.getBounds(), STROKE_INDICATION.getLineWidth());
 //         else
@@ -1923,7 +1934,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         pc.zoom = (float) mZoomFactor;
         pc.root = mFocal;
         pc.acceptor = activeTool;
-        //pc.maxLayer = getMaxLayer();
         if (mFocal != null) {
             // always allow picking through to children of the focal
             pc.pickDepth = mFocal.getPickLevel();
@@ -1962,16 +1972,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             pc.maxDepth = Short.MAX_VALUE; // this is also the default in the PickContext
         } else {
             // default: for rectangular picks, only ever pick top-level items (no children)
-            pc.maxDepth = 1;
+            pc.maxDepth = getMap().isLayered() ? 2 : 1;
         }
         
         return activeTool.initPick(pc, rect);
     }
         
-//     protected int getMaxLayer() {
-//         return 0;
-//     }
-
 //     protected int getPickDepth() {
 //         if (activeTool == DirectSelectTool) // todo: hand to the tool for PickContext modifications
 //             return 1; //Short.MAX_VALUE;
@@ -2769,7 +2775,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         //dc.setActiveTool(getCurrentTool());
-        //dc.setMaxLayer(getMaxLayer());
         //dc.zoomedFocus = mRollover;
         
         return dc;
@@ -3630,13 +3635,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     break;
                 }
             }
-//             else if (c.getLayer() > getMaxLayer()) {
-//                 // Something in selection is not from a layer visible in this viewer,
-//                 // so don't draw the selection box here.
-//                 out("layer " + c.getLayer() + " for " + c + " >maxLayer=" + getMaxLayer());
-//                 drawSelectorBoxInThisViewer = false;
-//                 break;
-//             }
 
             if (c.isDrawn())
                 atLeastOneVisible = true;
@@ -4799,10 +4797,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     
                     final java.util.Collection duplicates;
                     if (LWC == draggedSelectionGroup) {
-                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildList());
+                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
                     } else if (LWC instanceof LWMap) {
                         // don't send the actual map just yet...
-                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildList());
+                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
                     } else {
                         duplicates = java.util.Collections.singletonList(LWC.duplicate());
                     }
@@ -6671,7 +6669,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             LWContainer parentTarget;
             if (indication == null) {
                 if (mFocal instanceof LWContainer && mFocal.supportsChildren()) {
-                    parentTarget = (LWContainer) mFocal;
+                    //parentTarget = (LWContainer) mFocal;
+                    parentTarget = (LWContainer) getDropFocal();
                 } else {
                     //VUE.Log.debug("MapViewer: drag check of non-container focal " + mFocal);
                     return false;
@@ -6929,7 +6928,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 return false;
             if (parentTarget.getParent() == dragComponent)
                 return false;
-            if (parentTarget instanceof LWMap) // prob don't need this check, but just in case
+            if (parentTarget.isTopLevel())
                 return false;
             if (s.size() == 1) {
                 if (!s.first().supportsReparenting())

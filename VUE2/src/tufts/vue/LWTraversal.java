@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.47 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.48 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -296,7 +296,28 @@ public class LWTraversal {
                 return false;
             }
 
-            if (target instanceof LWLink && pc.dropping instanceof LWComponent) {
+            if (target != pc.root) {
+
+                // The below checks never apply to the root
+                
+                if (target.isLocked()) {
+                    if (DEBUG.PICK) eoutln("DENIED: locked " + target);
+                    return false;
+                }
+                
+                if (!target.isDrawn()) {
+                    if (DEBUG.PICK) eoutln("DENIED: not-drawn " + target);
+                    return false;
+                }
+                
+                if (depth > pc.maxDepth) {
+                    if (DEBUG.PICK) eoutln("DENIED: depth " + target + " depth " + depth + " > maxDepth " + pc.maxDepth);
+                    return false;
+                }
+                
+            }
+            
+            if (pc.dropping != null && target instanceof LWLink && pc.dropping instanceof LWComponent) {
 
                 // If we're dragging a node around a map that has links to it, and
                 // we drag it over another node to drop it in, we'd often hit (pick) the
@@ -313,26 +334,6 @@ public class LWTraversal {
             }
                 
 
-            if (target != pc.root) {
-
-                // The below checks never apply to the root
-                
-                if (!target.isDrawn()) {
-                    if (DEBUG.PICK) eoutln("DENIED: not-drawn " + target);
-                    return false;
-                }
-                
-                if (depth > pc.maxDepth) {
-                    if (DEBUG.PICK) eoutln("DENIED: depth " + target + " depth " + depth + " > maxDepth " + pc.maxDepth);
-                    return false;
-                }
-                
-                if (target.getLayer() > pc.maxLayer) {
-                    if (DEBUG.PICK) eoutln("DENIED: layer " + target);
-                    return false;
-                }
-            }
-            
             //else return strayChildren || c.contains(mapX, mapY); // for now, ALWAYS work as if strayChildren was true
             return true;
         }

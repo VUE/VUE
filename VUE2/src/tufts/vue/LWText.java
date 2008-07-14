@@ -622,12 +622,12 @@ public class LWText extends LWComponent {
 			richLabelBox.setBoxLocation(0,0);
 			//richLabelBox.setBoxLocation(relativeLabelX(), relativeLabelY());
 
-		if (this.parent != null && this.parent instanceof LWMap == false) {
-			// todo: should only need to do if size changed
-			this.parent.layout();
-			//System.out.println("layout parent");
+		if (isLaidOut()) {
+                    // todo: should only need to do if size changed
+                    this.parent.layout();
+                    //System.out.println("layout parent");
 		}
-		   if (!isAutoSized())
+                if (!isAutoSized())
 	            notify(LWKey.Size, min); // todo perf: can we optimize this event out?
 		   //System.out.println("OUT OF LAYOUT*************");
 		inLayout = false;

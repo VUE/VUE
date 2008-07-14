@@ -30,15 +30,16 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.140 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.141 $ / $Date: 2008-07-14 17:12:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
 {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWContainer.class);
-    
-    protected java.util.List<LWComponent> mChildren;
-    
+
+    protected java.util.List<LWComponent> mChildren = NO_CHILDREN;
+
+    @Override
     public void XML_fieldAdded(Object context, String name, Object child) {
         super.XML_fieldAdded(context, name, child);
         if (child instanceof LWComponent) {
@@ -51,11 +52,11 @@ public abstract class LWContainer extends LWComponent
      */
     @Override
     public boolean hasChildren() {
-        return mChildren != null && mChildren.size() > 0;
+        return mChildren.size() > 0;
     }
     @Override
     public int numChildren() {
-        return mChildren == null ? 0 : mChildren.size();
+        return mChildren.size();
     }
 
     /** @return true: default allows children dragged in and out */
@@ -65,55 +66,66 @@ public abstract class LWContainer extends LWComponent
     }
 
     /** @return true by default */
+    @Override
     public boolean supportsSlide() {
         return true;
     }
     
-
+    @Override
     public boolean hasChild(LWComponent c) {
-        return mChildren != null && mChildren.contains(c);
+        return mChildren.contains(c);
     }
 
     /** @return true if we have any children */
+    @Override
     public boolean hasContent() {
-        return mChildren != null && mChildren.size() > 0;
+        return mChildren.size() > 0;
     }
     
-    /** @return the list of children.  Note that during a restore, this will always return a list so
+    /**
+     * @return the list of children.  Note that during a restore, this will always return a list so
      * that castor can add children to it.  This should be the only time the returned list should
      * be modified -- callers of this for iteration should NOT modify the list contents. */
-    @Override
-    public java.util.List<LWComponent> getChildList()
+    public java.util.List<LWComponent> getXMLChildList()
     {
         if (mXMLRestoreUnderway) {
-            if (mChildren == null)
+            if (mChildren == NO_CHILDREN)
                 mChildren = new ArrayList();
             return mChildren;
         } else
-            return mChildren == null ? Collections.EMPTY_LIST : mChildren;
+            return mChildren;
     }
 
-    /** @return the list of children, or Collections.EMPTY_LIST if we've never had any children
+    /**
+     * @return the list of children, or NO_CHILDREN if we've never had any children
      * The collection returned is guaranteed to iterate in the z-order of the children (top most is last). */
     @Override
-    public Collection<LWComponent> getChildren()
+    public java.util.List<LWComponent> getChildren()
     {
-        return mChildren == null ? Collections.EMPTY_LIST : mChildren;
+        return mChildren;
     }
+
+    /** @deprecated - use getChildren */
+    @Override
+    public java.util.List<LWComponent> getChildList()
+    {
+        return getChildren();
+    }
+    
     
 
     /** return child at given index, or null if none at that index */
     @Override
     public LWComponent getChild(int index) {
-        if (mChildren != null && mChildren.size() > index)
+        if (mChildren.size() > index)
             return mChildren.get(index);
         else
             return null;
     }
 
-    public Iterator<LWComponent> getChildIterator()
+    public Iterator getChildIterator()
     {
-        return mChildren == null ? Util.EmptyIterator : mChildren.iterator();
+        return mChildren == NO_CHILDREN ? Util.EmptyIterator : mChildren.iterator();
     }
 
 
@@ -153,6 +165,7 @@ public abstract class LWContainer extends LWComponent
         }
     }
     
+    @Override
     protected void updateConnectedLinks(LWComponent movingSrc)
     {
         super.updateConnectedLinks(movingSrc);
@@ -176,6 +189,11 @@ public abstract class LWContainer extends LWComponent
      */
     public void reparentTo(LWContainer newParent, Collection<LWComponent> possibleChildren)
     {
+        if (newParent == this) {
+            Util.printStackTrace(this + "; attempting to reparent back to ourself: " + possibleChildren);
+            return;
+        }
+        
         notify(LWKey.HierarchyChanging);
 
         final List<LWComponent> reparenting = new ArrayList();
@@ -196,76 +214,76 @@ public abstract class LWContainer extends LWComponent
 
     @Override
     public final void addChild(LWComponent c) {
-        addChildren(new Util.SingleIterator(c));
+        //addChildren(new Util.SingleIterator(c));
+        addChildren(Collections.singletonList(c));
     }
 
-//     /** redirects to pasteChildren */
-//     @Override
-//     public void pasteChild(LWComponent c) {
-//         pasteChildren(new Util.SingleIterator(c));
-//     }
-
-//     /** redirects to dropChildren */
-//     @Override
-//     public void dropChild(LWComponent c) {
-//         dropChildren(new Util.SingleIterator(c));
-//     }
-    
     final void removeChild(LWComponent c) {
-        removeChildren(new Util.SingleIterator(c));
+        //removeChildren(new Util.SingleIterator(c));
+        removeChildren(Collections.singletonList(c));
     }
-
-//     public void addChildrenPreservingOrder(List addList)
-//     {
-//         LWComponent[] toAdd = (LWComponent[]) addList.toArray(new LWComponent[addList.size()]);
-//         if (this instanceof LWGroup) {
-//             if (toAdd[0].getParent() == null) {
-//                 // if first item in list has no parent, we assume none do (they're
-//                 // system drag or paste orphans), and we can't sort them based
-//                 // on layer, so we leave them alone for now until all nodes have a z-order
-//                 // value.
-//             } else {
-//                 java.util.Arrays.sort(toAdd, LayerSorter);
-//             }
-//         } else {
-//             java.util.Arrays.sort(toAdd, LWComponent.YSorter);
-//         }
-//         addChildren(toAdd);
-//     }
-    
-    /** If all the children do not have the same parent, the sort order won't be 100% correct. */
-    private static final Comparator LayerSorter = new Comparator<LWComponent>() {
-            public int compare(LWComponent c1, LWComponent c2) {
-                final LWContainer parent1 = c1.getParent();
-                final LWContainer parent2 = c2.getParent();
-
-                // We can't get z-order on a node if it's an orphan (no
-                // parent), which is what any paste's or system drags
-                // will get us.  So we'll need to keep a sync'd a z-order
-                // value in LWComponent to support this in all cases.
-
-                if (parent1 == parent2)
-                    return parent1.getChildList().indexOf(c1) - parent2.getChildList().indexOf(c2);
-                else
-                    return 0;
-                // it's possible to figure out which parent is deepest,
-                // but we'll save that for later.
-            }
-        };
-    
-    // public void addChildren(Iterator<LWComponent> i) {}
 
     
     /** Add the given LWComponents to us as children, using the order they appear in the array
      * for child order (z-order and/or visual order, depending on component impl) */
     protected void addChildren(LWComponent[] toAdd)
     {
-        // note: as ArrayIterator is not a collection, it won't
-        // be re-sorted below.
-        if (mChildren == null)
-            mChildren = new ArrayList(toAdd.length);
+        addChildren(Arrays.asList(toAdd), ADD_PRESORTED);
+    }
+
+//     protected List<LWComponent> sortToMeaningfulZOrder(List<LWComponent> toAdd)
+//     {
+//         // Do what we can to preserve any meaninful order already
+//         // present in the new incoming children.
+
+//         // If we're a group or a layer, use the ZOrderSorter if we can for the add order,
+//         // otherwise, everything else uses the YSorter (e.g., a standard VUE node,
+//         // which stacks it's children, will then display them in the same vertical
+//         // order they had on the map).
         
-        addChildren(new Util.ArrayIterator(toAdd));
+//         LWComponent[] sorted = null;
+            
+//         // todo: the default should be z-order sorting: LWNode can override
+//         // to use the YSorter
+        
+//         if (this instanceof LWGroup || this instanceof LWMap.Layer) {
+//             //if (sorted[0].getParent() == null) {
+//             if (toAdd.get(0).getParent() == null) {
+//                 // if first item in list has no parent, we assume none do (they're
+//                 // system drag or paste orphans), and we can't sort them based
+//                 // on layer, so we leave them alone for now until all nodes have a z-order
+//                 // value.
+//             } else {
+//                 sorted = sort(toAdd, ZOrderSorter);
+//             }
+//         } else {
+//             sorted = sort(toAdd, LWComponent.YSorter);
+//         }
+
+//         if (sorted == null)
+//             return toAdd;
+//         else
+//             return Arrays.asList(sorted);
+//     }
+
+
+    protected List<LWComponent> sortForIncomingZOrder(List<LWComponent> toAdd)
+    {
+        // Do what we can to preserve any meaninful order already
+        // present in the new incoming children.
+
+        // the default is to replicate the existing z-order sort
+
+        if (toAdd.get(0).getParent() == null) {
+            // if first item in list has no parent, we assume none do (they're
+            // probably system drag or paste orphans), and we can't sort them based
+            // on z-order, so we leave them alone for now until all nodes have a z-order
+            // value.
+        } else {
+            toAdd = Arrays.asList(sort(toAdd, ZOrderSorter));
+        }
+
+        return toAdd;
     }
     
     /**
@@ -279,61 +297,41 @@ public abstract class LWContainer extends LWComponent
      * Special case: if we're a Group, we sort by z-order to preserve visual layer.
      */
     @Override
-    public void addChildren(Iterable<LWComponent> iterable)
+    public void addChildren(List<LWComponent> toAdd, Object context)
     {
+        if (DEBUG.Enabled) Log.debug(this + ":addChildren/"+context + ": " + toAdd);
+
+        //if (toAdd.size() == 1) Util.printStackTrace("ADDONE");
+        
+        if (toAdd == null || toAdd.size() < 1)
+            return;
+        
         notify(LWKey.HierarchyChanging);
 
-        if (iterable instanceof Collection && ((Collection)iterable).size() > 1) {
+        if (mChildren == NO_CHILDREN)
+            mChildren = new ArrayList(toAdd.size());
 
-            // performance: pre-allocate enough space for all the children
-            // if this is the first time we're adding.
-            if (mChildren == null)
-                mChildren = new ArrayList( ((Collection)iterable).size() );
+        if (toAdd.size() > 1 && context != ADD_PRESORTED)
+            toAdd = sortForIncomingZOrder(toAdd);
 
-            // Do what we can to preserve any meaninful order already
-            // present in the new incoming children.
-
-            final Collection<LWComponent> bag = (Collection) iterable;
-            final LWComponent[] sorted = bag.toArray(new LWComponent[bag.size()]);
-
-            // If we're a group, use the LayerSorted if we can for the add order,
-            // otherwise, everything else uses the YSorter
-            
-            if (this instanceof LWGroup) {
-                if (sorted[0].getParent() == null) {
-                    // if first item in list has no parent, we assume none do (they're
-                    // system drag or paste orphans), and we can't sort them based
-                    // on layer, so we leave them alone for now until all nodes have a z-order
-                    // value.
-                } else {
-                    java.util.Arrays.sort(sorted, LayerSorter);
-                }
-            } else {
-                java.util.Arrays.sort(sorted, LWComponent.YSorter);
-            }
-            iterable = new tufts.Util.ArrayIterator(sorted);
-        }
+        // in case the passed in toAdd is a list being used elsewhere,
+        // we create a copy to use in the undo queue (and it's also
+        // possible that an individual call to addChildImpl will fail)
         
-        final List<LWComponent> addedChildren = new ArrayList();
+        final List<LWComponent> added = new ArrayList(toAdd.size());
 
-        for (LWComponent c : iterable) {
-            addChildImpl(c);
-            addedChildren.add(c);
+        for (LWComponent c : toAdd) {
+            try {
+                addChildImpl(c, context);
+                added.add(c);
+            } catch (Throwable t) {
+                Log.error(this + "; addChildImpl: " + c + ";", t);
+            }
         }
 
-        if (addedChildren.size() > 0) {
-
-            // need to do this afterwords so everyone has a parent to check
-            // TODO: should be caught by the cleanup task in LWLink, but
-            // is somehow being missed -- this code should move their
-            // entirely.
-            //for (LWComponent c : addedChildren)
-            //ensureLinksPaintOnTopOfAllParents(c);
-            
-            notify(LWKey.ChildrenAdded, addedChildren);
-            
-            layout();
-        }
+        notify(LWKey.ChildrenAdded, added);
+        
+        layout();
     }
 
     @Override
@@ -389,11 +387,11 @@ public abstract class LWContainer extends LWComponent
 
     // TODO: deleteAll: can removeChildren on all, then remove all from model
     
-    protected void addChildImpl(LWComponent c)
+    protected void addChildImpl(LWComponent c, Object context)
     {
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
         //if (DEBUG.PARENTING) out("ADDING " + c);
-        if (DEBUG.PARENTING) track("addChildImpl", c);
+        if (DEBUG.PARENTING) track("addChildImpl/"+context, c);
 
         if (c.getParent() != null && c.getParent().hasChild(c)) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
@@ -413,7 +411,7 @@ public abstract class LWContainer extends LWComponent
         //if (c.getFont() == null)//todo: really want to do this? only if not manually set?
         //    c.setFont(getFont());
 
-        if (mChildren == null)
+        if (mChildren == NO_CHILDREN)
             mChildren = new ArrayList();
         
         mChildren.add(c);
@@ -507,8 +505,7 @@ public abstract class LWContainer extends LWComponent
 
         // c.getMap() should == getMap() at this point; setParent to this LWContainer has been done above
         if (c.getMap() != getMap())
-            //out("different maps?");
-        Util.printStackTrace("different maps?");
+            Util.printStackTrace("different maps? " + c.getMap() + " != " + getMap());
             
         if (c.getID() != null && c.getMap() == null) {
             // if ID is null, the object is still being created (and we don't need to worry about undoing it's initializations)
@@ -523,7 +520,7 @@ public abstract class LWContainer extends LWComponent
         } else
             eventSource = c;
 
-        // This version of LWComponent.setLocation with an eventSource argument was created
+        // The version of LWComponent.setLocation with an eventSource argument was created
         // specifically for this call right here:
         final double scale = getMapScale();
         c.setLocation((float) ((oldMapX - getMapX()) / scale),
@@ -550,7 +547,7 @@ public abstract class LWContainer extends LWComponent
     {
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
         if (DEBUG.PARENTING) out("REMOVING " + c);
-        if (mChildren == null) {
+        if (mChildren == NO_CHILDREN) {
             Util.printStackTrace(this + "; null child list is null trying to remove: " + c);
             return;
         }
@@ -611,6 +608,7 @@ public abstract class LWContainer extends LWComponent
         }
     }
     
+    @Override
     protected void prepareToRemoveFromModel()
     {
         removeChildrenFromModel();
@@ -618,6 +616,7 @@ public abstract class LWContainer extends LWComponent
             throw new IllegalStateException("attempted to delete selection");
     }
     
+    @Override
     protected void restoreToModel()
     {
         Iterator i = getChildIterator();
@@ -727,6 +726,7 @@ public abstract class LWContainer extends LWComponent
     }
     */
 
+    @Override
     public List<LWLink> getAllLinks()
     {
         java.util.List list = new java.util.ArrayList();
@@ -780,29 +780,42 @@ public abstract class LWContainer extends LWComponent
         return bag;
     }
 
-    /**
-     * @deprecated -- use getAllDescendents variants
-     * Lighter weight than getAllDescendents, but must be sure not to modify
-     * map hierarchy (do any reparentings) while iterating or may get concurrent
-     * modification exceptions.
-     */
-    public Iterator getAllDescendentsIterator()
-    {
-        VueUtil.GroupIterator gi = new VueUtil.GroupIterator();
-        gi.add(getChildIterator());
+    /** @return the total number of descendents */
+    @Override
+    public int getDescendentCount() {
+        int count = 0;
         for (LWComponent c : getChildren()) {
-            if (c.hasChildren())
-                gi.add(((LWContainer)c).getAllDescendentsIterator());
+            count++;
+            count += c.getDescendentCount();
         }
-        return gi;
+        return count;
     }
 
+//     /**
+//      * @deprecated -- use getAllDescendents variants
+//      * Lighter weight than getAllDescendents, but must be sure not to modify
+//      * map hierarchy (do any reparentings) while iterating or may get concurrent
+//      * modification exceptions.
+//      */
+//     public Iterator getAllDescendentsIterator()
+//     {
+//         VueUtil.GroupIterator gi = new VueUtil.GroupIterator();
+//         gi.add(getChildIterator());
+//         for (LWComponent c : getChildren()) {
+//             if (c.hasChildren())
+//                 gi.add(((LWContainer)c).getAllDescendentsIterator());
+//         }
+//         return gi;
+//     }
+
+    @Override
     protected LWComponent defaultPickImpl(PickContext pc)
     {
         //return isDrawn() ? this : null; // should already be handled now in the PointPick traversal
         return this;
     }
 
+    @Override
     protected LWComponent defaultDropTarget(PickContext pc) {
         return this;
     }
@@ -815,17 +828,17 @@ public abstract class LWContainer extends LWComponent
 
     public boolean isOnTop(LWComponent c)
     {
-        return mChildren == null ? false : indexOf(c) == mChildren.size()-1;
+        return indexOf(c) == mChildren.size() - 1;
     }
     public boolean isOnBottom(LWComponent c)
     {
         return indexOf(c) == 0;
     }
 
-    public int getLayer(LWComponent c)
-    {
-        return indexOf(c);
-    }
+//     public int getLayer(LWComponent c)
+//     {
+//         return indexOf(c);
+//     }
     
     protected int indexOf(Object c)
     {
@@ -833,7 +846,7 @@ public abstract class LWContainer extends LWComponent
             throw new IllegalStateException("*** Attempting to get index of a child of a deleted component!"
                                             + "\n\tdeleted parent=" + this
                                             + "\n\tseeking index of child=" + c);
-        return mChildren == null ? -1 : mChildren.indexOf(c);
+        return mChildren == NO_CHILDREN ? -1 : mChildren.indexOf(c);
     }
         
     /* To preseve the relative display order of a group of elements
@@ -850,6 +863,7 @@ public abstract class LWContainer extends LWComponent
         public int compare(LWComponent c1, LWComponent c2) {
             return c2.getParent().indexOf(c2) - c1.getParent().indexOf(c1);
         }};
+    
     protected static final Comparator ReverseOrder = new Comparator<LWComponent>() {
         public int compare(LWComponent c1, LWComponent c2) {
             LWContainer parent1 = c1.getParent();
@@ -863,6 +877,29 @@ public abstract class LWContainer extends LWComponent
             else
                 return parent1.getDepth() - parent2.getDepth();
         }};
+
+    /** If all the children do not have the same parent, the sort order won't be 100% correct. */
+    public static final Comparator ZOrderSorter = new Comparator<LWComponent>() {
+            public int compare(LWComponent c1, LWComponent c2) {
+                final LWContainer parent1 = c1.getParent();
+                final LWContainer parent2 = c2.getParent();
+
+                // We can't get z-order on a node if it's an orphan (no
+                // parent), which is what any paste's or system drags
+                // will get us.  So we'll need to keep a sync'd a z-order
+                // value in LWComponent to support this in all cases.
+
+                if (parent1 == parent2)
+                    return parent1.getChildren().indexOf(c1) - parent2.getChildren().indexOf(c2);
+                else
+                    return 0;
+                // it's possible to figure out which parent is deepest,
+                // but we'll save that for later.
+            }
+        };
+    
+    
+    
 
     protected static LWComponent[] sort(Collection<LWComponent> bag, Comparator comparator)
     {
@@ -911,7 +948,7 @@ public abstract class LWContainer extends LWComponent
 
     public boolean bringToFront(LWComponent c)
     {
-        if (mChildren == null) {
+        if (mChildren == NO_CHILDREN) {
             Util.printStackTrace("no children " + this + "; " + c);
             return false;
         }
@@ -933,7 +970,7 @@ public abstract class LWContainer extends LWComponent
     }
     public boolean sendToBack(LWComponent c)
     {
-        if (mChildren == null) {
+        if (mChildren == NO_CHILDREN) {
             Util.printStackTrace("no children " + this + "; " + c);
             return false;
         }
@@ -952,7 +989,7 @@ public abstract class LWContainer extends LWComponent
     }
     public boolean bringForward(LWComponent c)
     {
-        if (mChildren == null) {
+        if (mChildren == NO_CHILDREN) {
             Util.printStackTrace("no children " + this + "; " + c);
             return false;
         }
@@ -971,7 +1008,7 @@ public abstract class LWContainer extends LWComponent
     }
     public boolean sendBackward(LWComponent c)
     {
-        if (mChildren == null) {
+        if (mChildren == NO_CHILDREN) {
             Util.printStackTrace("no children " + this + "; " + c);
             return false;
         }
@@ -997,7 +1034,7 @@ public abstract class LWContainer extends LWComponent
     // essentially this implements an "insert-after" of top relative to bottom
     void ensurePaintSequence(LWComponent onBottom, LWComponent onTop)
     {
-        if (mChildren == null) {
+        if (mChildren == NO_CHILDREN) {
             Util.printStackTrace("no children " + this + "; bot=" + onBottom + "; top=" + onTop);
             return;
         }
@@ -1052,6 +1089,7 @@ public abstract class LWContainer extends LWComponent
     /**
      * Default impl just fills the background and draws any children.
      */
+    @Override
     protected void drawImpl(DrawContext dc)
     {
         //if (!isTransparent()) {
@@ -1167,7 +1205,7 @@ public abstract class LWContainer extends LWComponent
         
         final LWContainer containerCopy = (LWContainer) super.duplicate(cc);
 
-        if (cc.dupeChildren && mChildren != null) {
+        if (cc.dupeChildren && mChildren != NO_CHILDREN) {
 
             containerCopy.mChildren = new ArrayList(mChildren.size());
             
@@ -1184,6 +1222,7 @@ public abstract class LWContainer extends LWComponent
         return containerCopy;
     }
 
+    @Override
     public String paramString()
     {
         if (hasChildren())

@@ -456,19 +456,19 @@ public class UndoManager
             final List childrenAdded;
             final List childrenRemoved;
                 
-            if (newChildList == null) {
+            if (newChildList == LWComponent.NO_CHILDREN) {
                 childrenAdded = Collections.EMPTY_LIST;
             } else {
                 childrenAdded = new ArrayList(newChildList);
-                if (oldChildList != null)
+                if (oldChildList != LWComponent.NO_CHILDREN)
                     childrenAdded.removeAll(oldChildList);
             }
 
-            if (oldChildList == null) {
+            if (oldChildList == LWComponent.NO_CHILDREN) {
                 childrenRemoved = Collections.EMPTY_LIST;
             } else {
                 childrenRemoved = new ArrayList(oldChildList);
-                if (newChildList != null)
+                if (newChildList != LWComponent.NO_CHILDREN)
                     childrenRemoved.removeAll(newChildList);
             }
 
@@ -476,7 +476,7 @@ public class UndoManager
             parent.mChildren = (List) oldValue;
             // now make sure all the children are properly parented,
             // and none of them are marked as deleted.
-            if (parent.mChildren != null) {
+            if (parent.mChildren != LWComponent.NO_CHILDREN) {
                 for (LWComponent child : parent.mChildren) {
                     if (parent instanceof LWPathway) {
                         // Special case for pathways. todo: something cleaner (pathways don't "own" their children)
@@ -601,14 +601,6 @@ public class UndoManager
         setActionLabel(Actions.Redo, RedoList);
     }
 
-    void flush() {
-        UndoList.clear();
-        RedoList.clear();
-        mComponentChanges.clear();
-        if (VUE.getActiveMap() == mMap)
-            updateGlobalActionLabels();
-    }
-
     /* If we are asked to do an undo (or redo), and find modifications
      * on the undo list that have not been collected into a user mark,
      * this is a problem -- all changes should be collected into a
@@ -706,12 +698,20 @@ public class UndoManager
      */
     
     public void mark(String aggregateName) {
-        String name = null;
-        if (mCurrentUndo.size() == 1 && mLastEvent != null) // going to need to put last event into UndoAction..
+        
+        String name = aggregateName;
+        
+        if (name == null && mLastEvent != null) // going to need to put last event into UndoAction..
             name = mLastEvent.getName();
-        else
-            name = aggregateName;
+        
         markChangesAsUndo(name);
+        
+//         String name = null;
+//         if (mCurrentUndo.size() == 1 && mLastEvent != null) // going to need to put last event into UndoAction..
+//             name = mLastEvent.getName();
+//         else
+//             name = aggregateName;
+//         markChangesAsUndo(name);
     }
 
     /**
@@ -960,7 +960,6 @@ public class UndoManager
     public boolean isUndoing() {
         return mUndoUnderway;
     }
-
     
     public synchronized void markChangesAsUndo(String name)
     {
@@ -994,17 +993,29 @@ public class UndoManager
     private synchronized UndoAction collectChangesAsUndoAction(String name)
     {
         if (DEBUG.UNDO) out("collectChangesAsUndoAction " + name);
-        //UndoAction newUndoAction = new UndoAction(name, mUndoSequence);
 
         final UndoAction markedUndo = mCurrentUndo;
         markedUndo.mark(name);
+        resetMark();
+        return markedUndo;
+    }
+
+    public synchronized void resetMark() {
         //mUndoSequence = new ArrayList();
         mCurrentUndo = new UndoAction();
         mComponentChanges.clear();
         mLastEvent = null;
         mEventsSeenSinceLastMark = 0;
         //mChangeCount = 0;
-        return markedUndo;
+    }
+
+    
+    void flush() {
+        UndoList.clear();
+        RedoList.clear();
+        mComponentChanges.clear();
+        if (VUE.getActiveMap() == mMap)
+            updateGlobalActionLabels();
     }
 
     
@@ -1399,8 +1410,8 @@ public class UndoManager
         } else {
             if (oldValue == HIERARCHY_CHANGE_TAG) {
                 final LWContainer container = (LWContainer) component;
-                if (container.mChildren == null)
-                    oldValue = null;
+                if (container.mChildren == LWComponent.NO_CHILDREN)
+                    oldValue = LWComponent.NO_CHILDREN;
                 else
                     oldValue = ((ArrayList)container.mChildren).clone();
             }

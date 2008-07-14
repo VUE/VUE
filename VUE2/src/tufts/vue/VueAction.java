@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.40 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
+ * @version $Revision: 1.41 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -370,8 +370,9 @@ public class VueAction extends javax.swing.AbstractAction
             hadException = true;
         }
 
-        if (VUE.getUndoManager() != null && undoable())
+        if (VUE.getUndoManager() != null && undoable()) {
             VUE.getUndoManager().markChangesAsUndo(getUndoName(ae,hadException));
+        }
 
         updateSelectionWatchers(VUE.getSelection());
 
@@ -397,7 +398,7 @@ public class VueAction extends javax.swing.AbstractAction
     	
     	String undoName = getUndoName();
     	if (undoName == null)
-    		undoName =	e.getActionCommand();
+            undoName = e.getActionCommand();
         if (undoName == null)
             undoName = getActionName();
         if (hadException && DEBUG.Enabled)

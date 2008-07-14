@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.419 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.420 $ / $Date: 2008-07-14 17:12:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -61,18 +61,23 @@ public class LWComponent
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWComponent.class);
     
     public enum ChildKind {
-        /** the default, conceptually significant chilren */
+
+        /** Include any and all children in the traversable LW hierarchy, such as slides and their children -- the only
+         * way to make sure you hit every active LWComponent in the runtime related
+         * to a particular LWMap (not including the Undo queue).  This will return every LWComponent in the
+         * model that has an ID (getID).  These are all components that are persisted in some way.
+         */
+        ANY,
+
+        /** include only default, conceptually significant chilren, leaving out items such a slides, layers and pathways */
         PROPER,
             
-        /** VISIBLE is PROPER + Currently visible */
+        /** VISIBLE is PROPER, excluding those that are not currently visible */
         VISIBLE,
 
-        /** Above, plus include ANY children, such as slides and their children -- the only
-         * way to make sure you hit every active LWComponent in the runtime related
-         * to a particular LWMap (not including the Undo queue)
-         */
-        ANY
-
+        /** EDITABLE is VISIBLE, excluding those that are currently locked */
+        EDITABLE
+            
        // VIRTUAL -- would be *just* what ANY currently adds, and exclude PROPER -- currently unsupported
     }
 
@@ -108,6 +113,8 @@ public class LWComponent
             //FILTER (), 
             /** we've been hidden by link pruning */
             PRUNE (),
+            /** another layer is set to be the exclusive layer */
+            LAYER_EXCLUSIVE (),
             /** we're a member of a pathway that hides when the pathway hides, and all pathways we're on are hidden */
             HIDES_WITH_PATHWAY (true),
             /** we've been hidden by a pathway that is in the process of revealing */
@@ -140,8 +147,11 @@ public class LWComponent
         final int bit = 1 << ordinal();
     }
     
+    public static final Object ADD_DROP = "drop";
+    public static final Object ADD_PASTE = "paste";
+    public static final Object ADD_DEFAULT = "default";
+    public static final Object ADD_PRESORTED = "sorted";
     
-
     //Static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
 
     public static final java.awt.datatransfer.DataFlavor DataFlavor =
@@ -150,7 +160,8 @@ public class LWComponent
     public static final int MIN_SIZE = 10;
     public static final Size MinSize = new Size(MIN_SIZE, MIN_SIZE);
     public static final float NEEDS_DEFAULT = Float.MIN_VALUE;
-    
+    public static final java.util.List<LWComponent> NO_CHILDREN = Collections.EMPTY_LIST;
+
     public interface Listener extends java.util.EventListener {
         public void LWCChanged(LWCEvent e);
     }
@@ -1247,6 +1258,16 @@ u                    getSlot(c).setFromString((String)value);
         return key + " " + valType + "(" + valRep + ")" + extra + "";
     }
     
+    private transient Object clientProperty;
+
+    public void setClientProperty(Object o) {
+        clientProperty = o;
+    }
+    
+    public Object getClientProperty() {
+        return clientProperty;
+    }
+
     /**
      * Get the named property value from this component.
      * @param key property key (see LWKey)
@@ -1492,12 +1513,16 @@ u                    getSlot(c).setFromString((String)value);
             return parent.isPresentationContext();
     }
 
+    protected void ensureID(LWComponent c) {
+        ensureID(c, true);
+    }
 
     /**
      * Make sure this LWComponent has an ID -- will have an effect on
      * on any brand new LWComponent exactly once per VM instance.
+     * @param recurse - if true, will also ensure all children
      */
-    protected void ensureID(LWComponent c)
+    protected void ensureID(LWComponent c, boolean recurse)
     {
         if (c.getID() == null) {
             String id = getNextUniqueID();
@@ -1507,8 +1532,9 @@ u                    getSlot(c).setFromString((String)value);
                 c.setID(id);
         }
 
-        for (LWComponent child : c.getChildList())
-            ensureID(child);
+        if (recurse)
+            for (LWComponent child : c.getChildList())
+                ensureID(child);
     }
 
     protected String getNextUniqueID()
@@ -1891,17 +1917,17 @@ u                    getSlot(c).setFromString((String)value);
      * in it, replace them with spaces.
      */
     public String getDisplayLabel() {
-        if (getLabel() == null) {
-            return getUniqueComponentTypeLabel();
-        } else
+        if (hasLabel())
             return getLabel().replace('\n', ' ');
+        else
+            return getUniqueComponentTypeLabel();
     }
     
     String getDiagnosticLabel() {
-        if (getLabel() == null) {
-            return getUniqueComponentTypeLabel();
-        } else
+        if (hasLabel()) {
             return getUniqueComponentTypeLabel() + ": " + getLabel().replace('\n', ' ');
+        } else
+            return getUniqueComponentTypeLabel();
     }
 
     /** return a guaranteed unique name for this LWComponent */
@@ -2491,6 +2517,17 @@ u                    getSlot(c).setFromString((String)value);
         return this.parent;
     }
 
+    public LWMap.Layer getLayer() {
+        if (getParent() instanceof LWMap.Layer)
+            return (LWMap.Layer) getParent();
+        else
+            return null;
+    }
+
+    public void setLayer(LWMap.Layer layer) {
+        if (!VUE.VUE3_LAYERS) return;
+        setParent(layer);
+    }
 
     protected void setParent(LWContainer newParent) {
 
@@ -2585,26 +2622,11 @@ u                    getSlot(c).setFromString((String)value);
         setFlag(Flag.SLIDE_STYLE, b.booleanValue());
 
     }
-    
 
     /** @deprecated: tmp back compat only */ public void setParentStyle(LWComponent c) { setStyle(c); }
     /** @deprecated: tmp back compat only */ public Boolean getPersistIsStyleParent() { return null; }
     /** @deprecated: tmp back compat only */ public void setPersistIsStyleParent(Boolean b) { setPersistIsStyle(b); }
     /** @deprecated: tmp back compat only */ public LWComponent getParentStyle() { return null; }
-
-
-    // TODO: implement layers -- this a stop-gap for hiding LWSlides
-    public int getLayer() {
-        if (this.parent == null) {
-            //out("parent null, layer 0");
-            return 0;
-        } else {
-            return this.parent.getLayer();
-            //int l = this.parent.getLayer();
-            //out("parent " + parent + " layer is " + l);
-            //return l;
-        }
-    }
 
     public int getDepth() {
         if (parent == null)
@@ -2663,6 +2685,14 @@ u                    getSlot(c).setFromString((String)value);
     public boolean isOrphan() {
         return this.parent == null;
     }
+    
+    public boolean atTopLevel() {
+        return parent != null && parent.isTopLevel();
+    }
+
+    public boolean isTopLevel() {
+        return false;
+    }
 
     public boolean hasChildren() {
         return false;
@@ -2679,6 +2709,10 @@ u                    getSlot(c).setFromString((String)value);
         return false;
     }
 
+    public boolean isLaidOut() {
+        return isManagedLocation();
+    }
+    
     public boolean isManagedLocation() {
         return (parent != null && parent.isManagingChildLocations()) || (isSelected() && isAncestorSelected());
     }
@@ -2691,11 +2725,6 @@ u                    getSlot(c).setFromString((String)value);
     public boolean hasContent() {
         return true;
     }
-
-//     /** @return false by default */
-//     public boolean isImageNode() {
-//         return false;
-//     }
 
     /** @return false by default */
     public boolean isTextNode() {
@@ -2713,52 +2742,33 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     
-
-    /**
-     * Although unsupported on LWComponents (must be an LWContainer subclass to support children),
-     * this method appears here for typing convenience and debug.  If a non LWContainer subclass
-     * calls this, it's a no-op, and a diagnostic stack trace is dumped to the console.
-     */
     public void addChild(LWComponent c) {
-        Util.printStackTrace(this + ": can't take children; ignored new child: " + c);
+        //Util.printStackTrace(this + ": can't take children; ignored new child: " + c);
+        addChildren(Collections.singletonList(c), ADD_DEFAULT);
     }
 
-    /** default action: redirect to pasteChildren */
-    public void pasteChild(LWComponent c) {
-        pasteChildren(new Util.SingleIterator(c));
-    }
-
-    /** default action: redirects to dropChildren */
     public void dropChild(LWComponent c) {
-        dropChildren(new Util.SingleIterator(c));
+        addChildren(Collections.singletonList(c), ADD_DROP);
     }
-        
-//     /** default action: pasteChild */
-//     public void dropChild(LWComponent c) {
-//         pasteChild(c);
-//     }
+    
+    public void pasteChild(LWComponent c) {
+        addChildren(Collections.singletonList(c), ADD_PASTE);
+    }
 
+    public final void addChildren(List<LWComponent> children) {
+        addChildren(children, ADD_DEFAULT);
+    }
 
     /**
      * Although unsupported on LWComponents (must be an LWContainer subclass to support children),
      * this method appears here for typing convenience and debug.  If a non LWContainer subclass
      * calls this, it's a no-op, and a diagnostic stack trace is dumped to the console.
      */
-    public void addChildren(Iterable<LWComponent> iterable) {
-        Util.printStackTrace(this + ": can't take children; ignored iterable: " + iterable);
+    public void addChildren(List<LWComponent> children, Object context) {
+        Util.printStackTrace(this + ": can't take children; ignored: " + Util.tags(children) + "; context=" + context);
     }
 
-    /** default action: addChildren */
-    public void pasteChildren(Iterable<LWComponent> iterable) {
-        addChildren(iterable);
-    }
-
-    /** default action: pasteChildren */
-    public void dropChildren(Iterable<LWComponent> iterable) {
-        pasteChildren(iterable);
-    }
-
-    /** return true if this component is only a "virutal" member of the map:
+    /** return true if this component is only a "virtual" member of the map:
      * It may report that it's parent is in the map, but that parent doesn't
      * list the component as a child (so it will never be drawn or traversed
      * when handling the entire map).
@@ -2772,14 +2782,20 @@ u                    getSlot(c).setFromString((String)value);
         return 0;
     }
     
+    /** @deprecated - use getChildren */
     public java.util.List<LWComponent> getChildList()
     {
-        return java.util.Collections.EMPTY_LIST;
+        return NO_CHILDREN;
     }
 
-    public Collection<LWComponent> getChildren()
+    public java.util.List<LWComponent> getChildren()
     {
-        return java.util.Collections.EMPTY_LIST;
+        return NO_CHILDREN;
+    }
+
+    /** @return 0 -- override for container impls */
+    public int getDescendentCount() {
+        return 0;
     }
 
 
@@ -2919,7 +2935,7 @@ u                    getSlot(c).setFromString((String)value);
     
     
     
-    public java.util.Iterator<LWComponent> getChildIterator() {
+    public java.util.Iterator<? extends LWComponent> getChildIterator() {
         return tufts.Util.EmptyIterator;
     }
 
@@ -2967,9 +2983,9 @@ u                    getSlot(c).setFromString((String)value);
     /** for tracking who's linked to us */
     void removeLinkRef(LWLink link)
     {
-        if (DEBUG.EVENTS||DEBUG.UNDO) out(this + " removing link ref to " + link);
+        if (DEBUG.EVENTS||DEBUG.UNDO) out("removeLinkRef: " + link);
         if (mLinks == null || !mLinks.remove(link))
-            throw new IllegalStateException("removeLinkRef: " + this + " didn't contain " + link);
+            Log.error("removeLinkRef: " + this + " didn't contain " + link);
         clearHidden(HideCause.PRUNE);
         notify(LWKey.LinkRemoved, link); // informational only event
     }
@@ -3690,7 +3706,7 @@ u                    getSlot(c).setFromString((String)value);
         if (w < MIN_SIZE) w = MIN_SIZE;
         if (h < MIN_SIZE) h = MIN_SIZE;
         takeSize(w, h);
-        if (getParent() != null && !(getParent() instanceof LWMap))
+        if (isLaidOut())
             getParent().layout();
         updateConnectedLinks(null);
         if (!isAutoSized())
@@ -4606,10 +4622,12 @@ u                    getSlot(c).setFromString((String)value);
      * the resulting zeroRect in this case would be 0,0->20,20 (assuming no scale or rotation).
      *
      */
-    protected Rectangle2D transformMapToZeroRect(Rectangle2D mapRect, Rectangle2D zeroRect)
+    //protected Rectangle2D transformMapToZeroRect(Rectangle2D mapRect, Rectangle2D zeroRect)
+    protected Rectangle2D transformMapToZeroRect(Rectangle2D mapRect)
     {
-        if (zeroRect == null)
-            zeroRect = (Rectangle2D) mapRect.clone(); // simpler than newInstace, tho we won't need the data-copy in the end
+//         if (zeroRect == null)
+//             zeroRect = (Rectangle2D) mapRect.clone(); // simpler than newInstace, tho we won't need the data-copy in the end
+        Rectangle2D zeroRect = new Rectangle2D.Float();
 
         // If want to handle rotation, we'll need to transform each corner of the
         // rectangle separately, generating Polygon2D (which sun never implemented!)  or
@@ -4777,10 +4795,6 @@ u                    getSlot(c).setFromString((String)value);
         // we need to draw just in case any of the children are NOT filtered.
         if (isHidden() || (isFiltered() && !hasChildren()))
             return false;
-
-        // Not currently used:
-        //if (getLayer() > dc.getMaxLayer())
-        //    return false;
 
         if (dc.isClipOptimized()) {
 
@@ -5871,6 +5885,25 @@ u                    getSlot(c).setFromString((String)value);
     public boolean hasFlag(Flag flag) {
         return (mFlags & flag.bit) != 0;
     }
+
+    public void setLocked(boolean locked) {
+        if (hasFlag(Flag.LOCKED) != locked) {
+            setFlag(Flag.LOCKED, locked);
+            notify("locked");
+        }
+    }
+    
+    public boolean isLocked() {
+        return hasFlag(Flag.LOCKED);
+    }
+
+    public Boolean getXMLlocked() {
+        return isLocked() ? Boolean.TRUE : null;
+    }
+    
+    public void setXMLlocked(Boolean b) {
+        setLocked(b);
+    }
     
     
     private void setHideBits(int bits) {
@@ -5936,10 +5969,12 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     public void setHidden(HideCause cause) {
+        if (DEBUG.EVENTS) out("setHidden " + cause);
         setHideBits(mHideBits | cause.bit);
     }
     
     public void clearHidden(HideCause cause) {
+        if (DEBUG.EVENTS) out("clrHidden " + cause);
         setHideBits(mHideBits & ~cause.bit);
     }
 
@@ -5961,14 +5996,11 @@ u                    getSlot(c).setFromString((String)value);
         return mHideBits == 0;
     }
     
-    
-    /** @return always null (false): subclasses can override to persist the DEFAULT
-     * hidden bit if they wish.
-     */
+    /** persist with value true only if HideCause.DEFAULT is set */
     public Boolean getXMLhidden() {
-        //return hidden ? Boolean.TRUE : null;
-        return null;
+        return isHidden(HideCause.DEFAULT) ? Boolean.TRUE : null;
     }
+
     public void setXMLhidden(Boolean b) {
         setVisible(!b.booleanValue());
     }

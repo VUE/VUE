@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.87 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.88 $ / $Date: 2008-07-14 17:12:27 $ / $Author: sfraize $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -483,8 +483,8 @@ public class LWGroup extends LWContainer
     }
 
     @Override
-    public void addChildren(Iterable<LWComponent> iterable) {
-        super.addChildren(iterable);
+    public void addChildren(List<LWComponent> iterable, Object context) {
+        super.addChildren(iterable, context);
         requestCleanup("addChildren");
     }
     

@@ -279,12 +279,12 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
      * @param c - the component to reshape
      * @param request - the new requested bounds
      */
-    private void dragReshape(final int controlPoint, final LWComponent c, final Rectangle2D.Float request, MapMouseEvent e)
+    private void dragReshape(final int controlPoint, final LWComponent c, Rectangle2D.Float request, MapMouseEvent e)
     {
         //if (DEBUG.WORK) out("dragReshape; request=" + Util.fmt(request));
         boolean lockedLocation = c.isManagedLocation(); // todo: this also checks selection, which we may not want...
 
-        if (c instanceof LWImage && !(c.getParent() instanceof LWMap) && !e.isShiftDown()) {
+        if (c instanceof LWImage && c.getParent() instanceof LWSlide && !e.isShiftDown()) {
             // TODO: fix 
             // Total hack for now for at least images on slides to do something
             // reasonable: includes knowledge the images resize differently if shift is down...
@@ -297,7 +297,8 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
             // note: this has never worked, but makes sense to move in direction
             // of doing this first (and then won't have to transform the location
             // x/y below when we actually do a set)
-            c.getParent().transformMapToZeroRect(request, request);
+            //c.getParent().transformMapToZeroRect(request, request);
+            request = (Rectangle2D.Float) c.getParent().transformMapToZeroRect(request);
             // note that if the object itself is scaled, this actually won't work,
             // as the zeroRect in the parent is the net scaled size, whereas
             // we want the "actual" size to actually set on the component...
@@ -575,7 +576,7 @@ class ResizeControl implements LWSelection.ControlListener, VueConstants
                 final LWComponent parent = c.getParent();
 
                 if (DEBUG.WORK) System.out.format("new absolute loc: %6.1f,%6.1f for %s\n", c_new_x, c_new_y, c);
-                if (parent instanceof LWMap) {
+                if (c.atTopLevel()) {
                     // no adjustment needed
                 } else {
                     // TODO: not working...

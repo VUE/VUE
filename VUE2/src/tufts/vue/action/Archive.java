@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.9 $ / $Date: 2008-04-14 19:39:55 $ / $Author: sfraize $ 
+ * @version $Revision: 1.10 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -365,9 +365,7 @@ public class Archive
 
 
     public static void replaceResource(LWMap map,Resource r1,Resource r2) {
-        Iterator i = map.getAllDescendentsIterator();
-        while(i.hasNext()) {
-            LWComponent component = (LWComponent) i.next();
+        for (LWComponent component : map.getAllDescendents()) {
             if(component.hasResource()){
                 Resource resource = component.getResource();
                 if(resource.getSpec().equals(r1.getSpec()))
