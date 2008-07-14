@@ -293,14 +293,7 @@ public class Actions implements VueConstants
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         public void act() {
-            VUE.getSelection().setTo(VUE.getActiveViewer().getFocal().getAllDescendents());
-            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsIterator());
-            
-            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendentsGroupOpaque()); // TODO: handle when moving selection: don't move objects if parent is moving
-            //VUE.getSelection().setTo(VUE.getActiveMap().getAllDescendents(LWComponent.ChildKind.VISIBLE));
-            
-            // SelectAll now ONLY does the top level of the map -- maybe direct selection tool could do deep selection
-            //VUE.getSelection().setTo(VUE.getActiveMap().getChildList());
+            VUE.getSelection().setTo(VUE.getActiveViewer().getFocal().getAllDescendents(LWComponent.ChildKind.EDITABLE));
         }
     };
     
@@ -314,7 +307,8 @@ public class Actions implements VueConstants
      public static final Action SelectAllNodes =
         new VueAction("Select Nodes") {
             public void act() {
-            	VUE.getSelection().setTo(VUE.getActiveViewer().getMap().getNodeIterator());            
+                // TODO TODO: This should be called on the focal, not the map!  Need to impl on LWComponent or via a traversal.
+            	VUE.getSelection().setTo(VUE.getActiveViewer().getMap().getNodeIterator());
             }
         };
                 
@@ -676,7 +670,11 @@ public class Actions implements VueConstants
     
     private static final int CopyOffset = 10;
     
-    public static Collection<LWComponent> duplicatePreservingLinks(Iterable<LWComponent> iterable) {
+    public static List<LWComponent> duplicatePreservingLinks(Iterable<LWComponent> iterable) {
+        return duplicatePreservingLinks(iterable, false);
+    }
+    
+    public static List<LWComponent> duplicatePreservingLinks(Iterable<LWComponent> iterable, boolean preserveParents) {
         CopyContext.reset();
         DupeList.clear();
 
@@ -707,6 +705,8 @@ public class Actions implements VueConstants
                 continue;
             }
             LWComponent copy = c.duplicate(CopyContext);
+            if (preserveParents)
+                copy.parent = c.parent;
             if (copy != null)
                 DupeList.add(copy);
             //System.out.println("duplicated " + copy);
@@ -727,7 +727,7 @@ public class Actions implements VueConstants
     }
 
     private static boolean canEdit(LWComponent c) {
-        if (c.hasFlag(Flag.LOCKED))
+        if (c.isLocked())
             return false;
         else if (c instanceof LWSlide && !DEBUG.META)
             return false;
@@ -745,32 +745,134 @@ public class Actions implements VueConstants
         // any selected children, creating extra siblings.
         boolean hierarchicalAction() { return true; }
 
-        // TODO: preserve layering order of components -- don't
-        // just leave in the arbitrary selection order.
-        void act(Iterator i) {
-            DupeList.clear();
-            CopyContext.reset();
-            super.act(i);
-            CopyContext.complete();
-            VUE.getSelection().setTo(DupeList);
-            if (DupeList.size() == 1 && DupeList.get(0).supportsUserLabel())
-                VUE.getActiveViewer().activateLabelEdit(DupeList.get(0));
-            DupeList.clear();
+//         void act(Iterator i) {
+//             DupeList.clear();
+//             CopyContext.reset();
+//             super.act(i);
+//             CopyContext.complete();
+//             VUE.getSelection().setTo(DupeList);
+//             if (DupeList.size() == 1 && DupeList.get(0).supportsUserLabel())
+//                 VUE.getActiveViewer().activateLabelEdit(DupeList.get(0));
+//             DupeList.clear();
+//         }
+//         void act(LWComponent c) {
+//             if (canEdit(c)) {
+//                 LWComponent copy = c.duplicate(CopyContext);
+//                 if (copy != null) {
+//                     DupeList.add(copy);
+//                     copy.translate(CopyOffset, CopyOffset);
+//                     c.getParent().pasteChild(copy);
+//                 }
+//             }
+//         }
+
+        void act(LWSelection selection) {
+
+            final List<LWComponent> dupes;
+
+            // need to sort first, as after duping, will not have a real
+            // z-order position inside a parent, so z-order will be unknown.
+            
+            final List sorted;
+            if (selection.size() == 1)
+                sorted = selection;
+            else
+                sorted = Arrays.asList(LWContainer.sort(selection, LWContainer.ZOrderSorter));
+            
+            dupes = duplicatePreservingLinks(sorted, true);
+
+            final LWContainer parent0 = dupes.get(0).parent;
+            boolean allHaveSameParent = true;
+
+            for (LWComponent copy : dupes) {
+                copy.translate(CopyOffset, CopyOffset);
+                if (copy.parent != parent0)
+                    allHaveSameParent = false;
+            }
+
+            if (allHaveSameParent) {
+                for (LWComponent copy : dupes)
+                    copy.parent = null; // reset parent before proper API add call
+                parent0.addChildren(dupes, LWComponent.ADD_PASTE);
+            } else {
+                // Todo: would be smoother to collect all the nodes by parent
+                // and do a single collective add to each parent
+                LWContainer parent;
+                for (LWComponent copy : dupes) {
+                    parent = copy.parent;
+                    copy.parent = null; // reset parent before proper API add call
+                    parent.pasteChild(copy);
+                }
+                    
+            }
+            
+            VUE.getSelection().setTo(dupes);
+            
+            if (dupes.size() == 1 && dupes.get(0).supportsUserLabel())
+                VUE.getActiveViewer().activateLabelEdit(dupes.get(0));
         }
         
-        void act(LWComponent c) {
-            if (canEdit(c)) {
-                LWComponent copy = c.duplicate(CopyContext);
-                if (copy != null) {
-                    DupeList.add(copy);
-                    copy.translate(CopyOffset, CopyOffset);
-                    c.getParent().pasteChild(copy);
-                }
-            }
-        }
         
     };
 
+    public static final LWCAction Copy =
+    new LWCAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
+        boolean enabledFor(LWSelection s) { return canEdit(s); }
+        void act(LWSelection selection) {
+            ScratchBuffer.clear();
+
+            // TODO: duplicatePreservingLinks should handle preserving
+            // the relative z-orders: move Duplicate action code for
+            // this to there to make it standard.
+            
+            ScratchBuffer.addAll(duplicatePreservingLinks(selection));
+            
+            // Enable if want to use system clipboard.  FYI: the clip board manager
+            // will immediately grab all the data available from the transferrable
+            // to cache in the system.
+            //Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
+            //clipboard.setContents(VUE.getActiveViewer().getTransferableSelection(), null);
+            
+        }
+    };
+
+    public static final VueAction Paste =
+    new VueAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
+        //public boolean isEnabled() //would need to listen for scratch buffer fills
+        
+        private Point2D.Float lastMouseLocation;
+        private Point2D.Float lastPasteLocation;
+        public void act() {
+            
+            final MapViewer viewer = VUE.getActiveViewer();
+            final List pasted = duplicatePreservingLinks(ScratchBuffer);
+            final Point2D.Float mouseLocation = viewer.getLastFocalMousePoint();
+            final Point2D.Float pasteLocation;
+
+            if (mouseLocation.equals(lastMouseLocation) && lastPasteLocation != null) {
+                pasteLocation = lastPasteLocation;
+                // translate both current and last paste location:
+                pasteLocation.x += CopyOffset;
+                pasteLocation.y += CopyOffset;
+            } else {
+                pasteLocation = mouseLocation;
+                lastPasteLocation = pasteLocation;
+            }
+            
+            MapDropTarget.setCenterAt(pasted, pasteLocation); // only works on un-parented nodes
+            viewer.getDropFocal().addChildren(pasted, LWComponent.ADD_PASTE);
+            viewer.getSelection().setTo(pasted);
+            lastMouseLocation = mouseLocation;
+        }
+
+        
+        // stub code for if we want to start using the system clipboard for cut/paste
+        void act_system() {
+            Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
+            VUE.getActiveViewer().getMapDropTarget().processTransferable(clipboard.getContents(this), null);
+        }
+        
+    };
     
     public static final Action Cut =
     new LWCAction("Cut", keyStroke(KeyEvent.VK_X, COMMAND)) {
@@ -783,31 +885,6 @@ public class Actions implements VueConstants
         }
     };
     
-    public static final LWCAction Copy =
-    new LWCAction("Copy", keyStroke(KeyEvent.VK_C, COMMAND)) {
-        boolean enabledFor(LWSelection s) { return canEdit(s); }
-        void act(LWSelection selection) {
-            ScratchBuffer.clear();
-            ScratchBuffer.addAll(duplicatePreservingLinks(selection));
-            //ScratchMap = VUE.getActiveMap();
-            // paste differs from duplicate in that the new parent is
-            // always the top level map -- not the old parent -- so a node
-            // that was a child has to have it's scale set back to 1.0
-            // todo: do this automatically in removeChild?
-            for (LWComponent c : ScratchBuffer) {
-                if (c.getScale() != 1f)
-                    c.setScale(1f);
-            }
-
-            // Enable if want to use system clipboard.  FYI: the clip board manager
-            // will immediately grab all the data available from the transferrable
-            // to cache in the system.
-            //Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
-            //clipboard.setContents(VUE.getActiveViewer().getTransferableSelection(), null);
-            
-        }
-    };
-
     public static final LWCAction Delete =
         // "/tufts/vue/images/delete.png" looks greate (from jide), but too unlike others
         new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
@@ -848,7 +925,7 @@ public class Actions implements VueConstants
                 info("skipping (parent already deleted): " + c); // parent will call deleteChildPermanently
             } else if (parent.isSelected()) { // if parent selected, it will delete it's children
                 info("skipping - parent selected & will be deleting: " + c);
-            } else if (c.hasFlag(Flag.LOCKED)) {
+            } else if (c.isLocked()) {
                 info("not permitted: " + c);
             } else if (!canEdit(c)) {
                 info("cannot edit: " + c);
@@ -879,44 +956,6 @@ public class Actions implements VueConstants
         void act(LWComponent c) {
             c.copyStyle(StyleBuffer);
         }
-    };
-    
-    public static final VueAction Paste =
-    new VueAction("Paste", keyStroke(KeyEvent.VK_V, COMMAND)) {
-        //public boolean isEnabled() //would need to listen for scratch buffer fills
-        
-        private Point2D.Float lastMouseLocation;
-        private Point2D.Float lastPasteLocation;
-        public void act() {
-            
-            final MapViewer viewer = VUE.getActiveViewer();
-            final Collection pasted = duplicatePreservingLinks(ScratchBuffer);
-            final Point2D.Float mouseLocation = viewer.getLastFocalMousePoint();
-            final Point2D.Float pasteLocation;
-
-            if (mouseLocation.equals(lastMouseLocation) && lastPasteLocation != null) {
-                pasteLocation = lastPasteLocation;
-                // translate both current and last paste location:
-                pasteLocation.x += CopyOffset;
-                pasteLocation.y += CopyOffset;
-            } else {
-                pasteLocation = mouseLocation;
-                lastPasteLocation = pasteLocation;
-            }
-            
-            MapDropTarget.setCenterAt(pasted, pasteLocation); // only works on un-parented nodes
-            viewer.getFocal().pasteChildren(pasted);
-            viewer.getSelection().setTo(pasted);
-            lastMouseLocation = mouseLocation;
-        }
-
-        
-        // stub code for if we want to start using the system clipboard for cut/paste
-        void act_system() {
-            Clipboard clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard();
-            VUE.getActiveViewer().getMapDropTarget().processTransferable(clipboard.getContents(this), null);
-        }
-        
     };
     
     //-----------------------
@@ -1035,7 +1074,7 @@ public class Actions implements VueConstants
                     node.setLabel(resource.getTitle());                                                            
                     
                     node.setResource(resource);
-                    VUE.getActiveViewer().getFocal().pasteChild(node);
+                    VUE.getActiveViewer().getDropFocal().pasteChild(node);
                     VUE.getActiveViewer().getSelection().setTo(node);
                     VUE.setActive(LWComponent.class, this, c);
                 
@@ -1159,7 +1198,7 @@ public class Actions implements VueConstants
                             //LWNode node= new LWNode(resource.getTitle());                  
                             
                             //node.addChild(image);
-                            VUE.getActiveViewer().getFocal().dropChild(node);
+                            VUE.getActiveViewer().getDropFocal().dropChild(node);
                             
                             node.setLabel(uri.toString());
                             node.setResource(resource);
@@ -1671,7 +1710,7 @@ public class Actions implements VueConstants
         boolean undoable() { return false; } // label editor handles the undo
             
         boolean enabledFor(LWSelection s) {
-            return s.size() == 1 && s.first().supportsUserLabel() && !s.first().hasFlag(Flag.LOCKED);
+            return s.size() == 1 && s.first().supportsUserLabel() && !s.first().isLocked();
         }
         void act(LWComponent c) {
             // todo: throw interal exception if c not in active map
@@ -1835,10 +1874,9 @@ public class Actions implements VueConstants
                     if (c instanceof LWLink)
                         i.remove();
                     // remove all children of nodes or groups, who's parent handles their layout
-                    //if (!(c.getParent() instanceof LWMap)) // really: c.isLaidOut()
                     // need to allow for in-group components now.
                     // todo: unexpected behaviour if some in-group and some not?
-                    if (c.getParent() instanceof LWNode) // really: c.isLaidOut()
+                    if (c.isLaidOut())
                         i.remove();
                 }
             }
@@ -2278,7 +2316,7 @@ public class Actions implements VueConstants
         // it)
 
         new VueAction("Auto Zoom",
-                      (!Util.isMacPlatform() || DEBUG.Enabled)
+                      (!Util.isMacPlatform() || (DEBUG.Enabled&&DEBUG.KEYS))
                       ? keyStroke(KeyEvent.VK_Z, ALT)
                       : keyStroke(KeyEvent.VK_E, COMMAND+SHIFT) // can only get away witl COMMAND root modifier for now
                       )
@@ -2293,7 +2331,7 @@ public class Actions implements VueConstants
                 edu.tufts.vue.preferences.implementations.AutoZoomPreference.getInstance().setValue(Boolean.valueOf(state));
             }
             void updateName() {
-                if (DEBUG.Enabled && Util.isMacPlatform()) {
+                if (DEBUG.Enabled && DEBUG.KEYS && Util.isMacPlatform()) {
                     // workaroud for mac java bug with accelerator glpyhs in JCheckBoxMenuItem's
                     if (state)
                         putValue(NAME, getPermanentActionName() + " (ON)");
@@ -2597,9 +2635,9 @@ public class Actions implements VueConstants
          * a select all was done) be sure NOT to act on it, otherwise
          * the action will be done twice). [ Why was this? -- disabled 2007-05-30 -- SMF ]
          */
-        void act(Iterator i) {
+        void act(Iterator<LWComponent> i) {
             while (i.hasNext()) {
-                LWComponent c = (LWComponent) i.next();
+                LWComponent c = i.next();
                 if (hierarchicalAction() && c.isAncestorSelected()) {
                     // If has no parent, must already have been acted on to get that way.
                     // If parent is selected, action will happen via it's parent.
@@ -2651,6 +2689,16 @@ public class Actions implements VueConstants
         }
         
         void actOn(LWComponent c) { act(c); } // for manual init calls from internal code
+
+        @Override
+        public String getUndoName(ActionEvent e, boolean hadException)
+        {
+            String name = super.getUndoName(e, hadException);
+            if (VUE.getSelection().size() == 1)
+                name += " (" + VUE.getSelection().first().getComponentTypeLabel() + ")";
+            return name;
+    }
+        
         
         //public String toString() { return "LWCAction[" + getActionName() + "]"; }
     }
