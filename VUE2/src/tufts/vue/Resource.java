@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.79 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.80 $ / $Date: 2008-07-14 18:30:54 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -1006,7 +1006,7 @@ public abstract class Resource implements Cloneable
         if (file == null) {
             file = getLocalFileIfPresent(makeURL(urlOrPath));
         } else {
-            if (DEBUG.IO) Log.debug("GLFIP testing " + file);
+            if (DEBUG.IO) Log.debug(Util.tags(file) + "; GLFIP testing");
             if (!file.exists()) 
                 file = getLocalFileIfPresent(makeURL(urlOrPath));
         }
@@ -1095,10 +1095,9 @@ public abstract class Resource implements Cloneable
                 }
                 
 
-                if (DEBUG.IO) Log.debug("getLocalFileIfPresent(URL): testing " + file);
+                if (DEBUG.IO) Log.debug(Util.tags(file) + "; getLocalFileIfPresent(URL): testing");
                 if (!file.exists()) {
-                    //if (DEBUG.Enabled) Log.debug("ignoring non-existent " + Util.tags(file));
-                    Log.info("ignoring non-existent " + Util.tags(file));
+                    Log.info(Util.tags(file) + "; ignoring non-existent");
                     return null;
                 }
                 
