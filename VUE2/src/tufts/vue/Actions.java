@@ -670,23 +670,33 @@ public class Actions implements VueConstants
     
     private static final int CopyOffset = 10;
     
-    public static List<LWComponent> duplicatePreservingLinks(Iterable<LWComponent> iterable) {
-        return duplicatePreservingLinks(iterable, false);
-    }
+    private static final boolean RECORD_OLD_PARENT = true;
+    private static final boolean SORT_BY_Z_ORDER = true;
     
+    public static List<LWComponent> duplicatePreservingLinks(Collection<LWComponent> items) {
+        return duplicatePreservingLinks(items, !RECORD_OLD_PARENT, !SORT_BY_Z_ORDER);
+    }
+
     /**
      * @param preserveParents - if true, the old parent will be stored in the copy as a clientProperty
+     * @param sortByZOrder - if true, will maintain the relative z-order of components in the dupe-set
      */
-    public static List<LWComponent> duplicatePreservingLinks(Iterable<LWComponent> iterable, boolean preserveParents) {
+    public static List<LWComponent> duplicatePreservingLinks(Collection<LWComponent> items, boolean preserveParents, boolean sortByZOrder) {
         CopyContext.reset();
         DupeList.clear();
 
-        // TODO: preserve z-order layering of duplicated elements.
+        final Collection<LWComponent> ordered;
+        if (sortByZOrder && items.size() > 1)
+            ordered = Arrays.asList(LWContainer.sort(items, LWContainer.ZOrderSorter));
+        else
+            ordered = items;
+
+            // TODO: preserve z-order layering of duplicated elements.
         // probably merge LinkPatcher into CopyContext, and
         // while at it change dupe action to add all the
         // children to the new parent with a single addChildren event.
         
-        for (LWComponent c : iterable) {
+        for (LWComponent c : ordered) {
 
             // TODO: all users of this method may not be depending on items being
             // selected!  CopyContext should sort out duped items with a HashSet, only
@@ -755,18 +765,8 @@ public class Actions implements VueConstants
 
         void act(LWSelection selection) {
 
-            final List<LWComponent> dupes;
-
-            // need to sort first, as after duping, will not have a real
-            // z-order position inside a parent, so z-order will be unknown.
-            
-            final List sorted;
-            if (selection.size() == 1)
-                sorted = selection;
-            else
-                sorted = Arrays.asList(LWContainer.sort(selection, LWContainer.ZOrderSorter));
-            
-            dupes = duplicatePreservingLinks(sorted, true);
+            final List<LWComponent> dupes =
+                duplicatePreservingLinks(selection, RECORD_OLD_PARENT, SORT_BY_Z_ORDER);
 
             final LWContainer parent0 = dupes.get(0).getClientProperty(LWContainer.class);
             boolean allHaveSameParent = true;
@@ -805,12 +805,7 @@ public class Actions implements VueConstants
         boolean enabledFor(LWSelection s) { return canEdit(s); }
         void act(LWSelection selection) {
             ScratchBuffer.clear();
-
-            // TODO: duplicatePreservingLinks should handle preserving
-            // the relative z-orders: move Duplicate action code for
-            // this to there to make it standard.
-            
-            ScratchBuffer.addAll(duplicatePreservingLinks(selection));
+            ScratchBuffer.addAll(duplicatePreservingLinks(selection, !RECORD_OLD_PARENT, SORT_BY_Z_ORDER));
             
             // Enable if want to use system clipboard.  FYI: the clip board manager
             // will immediately grab all the data available from the transferrable
