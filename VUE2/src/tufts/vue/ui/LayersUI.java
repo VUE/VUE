@@ -39,7 +39,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2008-07-14 17:13:07 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-07-14 18:35:47 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener
@@ -235,11 +235,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private Row produceRow(final LWComponent layer)
     {
-        if (layer.getClientProperty() != null) {
-            return (Row) layer.getClientProperty();
+        Row row = layer.getClientProperty(Row.class);
+        if (row != null) {
+            return row;
         } else {
-            Row row = new Row(layer);
-            layer.setClientProperty(row);
+            row = new Row(layer);
+            layer.setClientProperty(Row.class, row);
             return row;
         }
     }
