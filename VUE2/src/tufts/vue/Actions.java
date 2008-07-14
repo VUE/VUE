@@ -674,6 +674,9 @@ public class Actions implements VueConstants
         return duplicatePreservingLinks(iterable, false);
     }
     
+    /**
+     * @param preserveParents - if true, the old parent will be stored in the copy as a clientProperty
+     */
     public static List<LWComponent> duplicatePreservingLinks(Iterable<LWComponent> iterable, boolean preserveParents) {
         CopyContext.reset();
         DupeList.clear();
@@ -705,8 +708,13 @@ public class Actions implements VueConstants
                 continue;
             }
             LWComponent copy = c.duplicate(CopyContext);
-            if (preserveParents)
-                copy.parent = c.parent;
+            if (preserveParents) {
+                // we could store this as the actual parent, but if we do that,
+                // changes made to the components before they're fully baked
+                // (e.g., link reconnections, translations) will generate events
+                // that will confuse the UndoManager.
+                copy.setClientProperty(LWContainer.class, c.parent);
+            }
             if (copy != null)
                 DupeList.add(copy);
             //System.out.println("duplicated " + copy);
@@ -745,27 +753,6 @@ public class Actions implements VueConstants
         // any selected children, creating extra siblings.
         boolean hierarchicalAction() { return true; }
 
-//         void act(Iterator i) {
-//             DupeList.clear();
-//             CopyContext.reset();
-//             super.act(i);
-//             CopyContext.complete();
-//             VUE.getSelection().setTo(DupeList);
-//             if (DupeList.size() == 1 && DupeList.get(0).supportsUserLabel())
-//                 VUE.getActiveViewer().activateLabelEdit(DupeList.get(0));
-//             DupeList.clear();
-//         }
-//         void act(LWComponent c) {
-//             if (canEdit(c)) {
-//                 LWComponent copy = c.duplicate(CopyContext);
-//                 if (copy != null) {
-//                     DupeList.add(copy);
-//                     copy.translate(CopyOffset, CopyOffset);
-//                     c.getParent().pasteChild(copy);
-//                 }
-//             }
-//         }
-
         void act(LWSelection selection) {
 
             final List<LWComponent> dupes;
@@ -781,30 +768,28 @@ public class Actions implements VueConstants
             
             dupes = duplicatePreservingLinks(sorted, true);
 
-            final LWContainer parent0 = dupes.get(0).parent;
+            final LWContainer parent0 = dupes.get(0).getClientProperty(LWContainer.class);
             boolean allHaveSameParent = true;
 
             for (LWComponent copy : dupes) {
-                copy.translate(CopyOffset, CopyOffset);
-                if (copy.parent != parent0)
+                if (copy.getClientProperty(LWContainer.class) != parent0)
                     allHaveSameParent = false;
+                copy.translate(CopyOffset, CopyOffset);
             }
 
             if (allHaveSameParent) {
-                for (LWComponent copy : dupes)
-                    copy.parent = null; // reset parent before proper API add call
                 parent0.addChildren(dupes, LWComponent.ADD_PASTE);
             } else {
                 // Todo: would be smoother to collect all the nodes by parent
-                // and do a single collective add to each parent
-                LWContainer parent;
-                for (LWComponent copy : dupes) {
-                    parent = copy.parent;
-                    copy.parent = null; // reset parent before proper API add call
-                    parent.pasteChild(copy);
-                }
+                // and do a separate collective adds for each parent
+                for (LWComponent copy : dupes) 
+                    copy.getClientProperty(LWContainer.class).pasteChild(copy);
                     
             }
+
+            // clear out old parent references now that we're done with them
+            for (LWComponent copy : dupes)
+                copy.setClientProperty(LWContainer.class, null);
             
             VUE.getSelection().setTo(dupes);
             
