@@ -1915,6 +1915,19 @@ public class Util
         else
             return String.format("%s@%07x", o.getClass().getName(), System.identityHashCode(o));
     }
+
+    public static String quote(String s) {
+        StringBuffer buf = new StringBuffer(s == null ? 2 : s.length() + 2);
+        buf.append('"');
+        //buf.append('\u201C');
+        ////buf.append('\u201F');
+        if (s != null)
+            buf.append(s);
+        //buf.append('\u201D');
+        buf.append('"');
+        return buf.toString();
+        
+    }
     
     /**
      * Produce a "package.class@idenityHashCode[toString]" debug tag to uniquely identify
@@ -1927,7 +1940,7 @@ public class Util
 
         if (o instanceof java.lang.String) {
             // special case for strings: we dont care about hashCode / type -- just return quoted
-            return '"' + o.toString() + '"';
+            return quote((String) o);
             //return TERM_RED + '"' + o.toString() + '"' + TERM_CLEAR;
         }
         if (o instanceof java.lang.Number) {
