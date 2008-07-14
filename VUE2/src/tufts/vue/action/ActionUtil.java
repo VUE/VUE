@@ -65,7 +65,7 @@ import java.net.*;
  * A class which defines utility methods for any of the action class.
  * Most of this code is for save/restore persistence thru castor XML.
  *
- * @version $Revision: 1.121 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.122 $ / $Date: 2008-07-14 17:09:09 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
  */
@@ -658,12 +658,15 @@ public class ActionUtil
         Log.debug("marshalling " + map + " ...");
         //map.addNode(new tufts.vue.LWNode("Hello World:"+((char)11)));
         try {
-            // try the test map first 
+            // try the test map first
+            // TODO: DOES NOT ACTUALLY DO A TEST WRITE FIRST
+            // It will still completely blow away the user's map if there is any kind of error.
             marshaller.marshal(map);
             Log.debug("marshalled " + map + " to " + writer + "; file=" + file);
             writer.flush();
-             //if (DEBUG.CASTOR || DEBUG.IO) System.out.println("Completed marshalling " + map);
         } catch (Throwable t) {
+            Log.error(file + "; " + map, t);
+            // TODO: This is a bad message.  This describes just one of many, many errors that may occur.
             VueUtil.alert("The map contains characters that are not supported. Reverting to earlier saved version","Save Error");
             try {
                 if (file != null) {
