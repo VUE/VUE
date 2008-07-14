@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.420 $ / $Date: 2008-07-14 17:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.421 $ / $Date: 2008-07-14 18:34:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -223,6 +223,9 @@ public class LWComponent
     private transient List<LWPathway> mPathways;
     /** list of all pathway entries that refer to us (one for each time we appear on an individual pathway) */
     protected transient List<LWPathway.Entry> mEntries;
+    
+    /** properties for use by model clients (e.g., UI components) */
+    protected transient HashMap mClientProperties;
     
     // todo memory perf: mEntries should subclass ArrayList and implement this iter
     // so they can be allocated together, instead of leaving this slot here unused
@@ -1258,14 +1261,25 @@ u                    getSlot(c).setFromString((String)value);
         return key + " " + valType + "(" + valRep + ")" + extra + "";
     }
     
-    private transient Object clientProperty;
-
-    public void setClientProperty(Object o) {
-        clientProperty = o;
+    /** set a generic property in the model -- users of this API need to ensure the keys
+     * they're using are unique with respect to any other potential users of this API.
+     * Setting a property value to null removes the property */
+    public void setClientProperty(Object key, Object o) {
+        if (mClientProperties == null)
+            mClientProperties = new HashMap();
+        if (o == null)
+            mClientProperties.remove(key);
+        else
+            mClientProperties.put(key, o);
     }
     
-    public Object getClientProperty() {
-        return clientProperty;
+    public Object getClientProperty(Object key) {
+        return mClientProperties == null ? null : mClientProperties.get(key);
+    }
+    
+    /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
+    public <A> A getClientProperty(Class<A> classKey) {
+        return (A) getClientProperty((Object)classKey);
     }
 
     /**
