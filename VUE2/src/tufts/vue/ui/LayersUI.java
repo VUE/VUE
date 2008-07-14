@@ -39,7 +39,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2008-07-14 19:51:18 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-07-14 19:51:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener
@@ -596,7 +596,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 return getHeight();
         }
 
-        private static final boolean DYNAMIC_UPDATE = false;
+        private static final boolean DYNAMIC_UPDATE = true;
 
         public void mouseDragged(MouseEvent e) 
         {
