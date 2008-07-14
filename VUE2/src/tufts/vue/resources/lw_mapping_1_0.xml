@@ -434,7 +434,8 @@
        
        
  </class>
- <class name="tufts.vue.GoogleDataSource" extends="tufts.vue.BrowseDataSource">
+ 
+ <!-- class name="tufts.vue.GoogleDataSource" extends="tufts.vue.BrowseDataSource">
        <field name = "url" type = "string">
           <bind-xml name = "url" node = "element" />
        </field> 
@@ -444,16 +445,15 @@
        <field name = "site" type = "string">
           <bind-xml name = "site" node = "element" />
        </field> 
-	</class>
- <class name="tufts.vue.LocalFileDataSource" extends="tufts.vue.BrowseDataSource">
-	</class>
- <class name="tufts.vue.FavoritesDataSource" extends="tufts.vue.BrowseDataSource">
-	</class>
+	</class !-->
+ 
+ <class name="tufts.vue.LocalFileDataSource" extends="tufts.vue.BrowseDataSource"></class>
+ <class name="tufts.vue.FavoritesDataSource" extends="tufts.vue.BrowseDataSource"></class>
+ 
  <!-- class name="tufts.vue.OsidDataSource" extends="tufts.vue.BrowseDataSource"></class -->
  <!-- class name="tufts.vue.Osid2DataSource" extends="tufts.vue.BrowseDataSource"></class -->
-        
-        <class name="tufts.artifact.DataSource" extends="tufts.vue.BrowseDataSource">
-	</class>
+ <!-- class name="tufts.artifact.DataSource" extends="tufts.vue.BrowseDataSource"></class -->
+ 
 <class name="tufts.vue.RemoteFileDataSource" extends="tufts.vue.BrowseDataSource">
       <field name = "UserName" type = "string">
           <bind-xml name = "UserName" node = "element" />
