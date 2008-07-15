@@ -771,6 +771,9 @@ public class Actions implements VueConstants
             final LWContainer parent0 = dupes.get(0).getClientProperty(LWContainer.class);
             boolean allHaveSameParent = true;
 
+            // dupes may have fewer items in it that the selection: it will only
+            // contain the top-level items duplicated -- not any of their children
+
             for (LWComponent copy : dupes) {
                 if (copy.getClientProperty(LWContainer.class) != parent0)
                     allHaveSameParent = false;
