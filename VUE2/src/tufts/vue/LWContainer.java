@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.141 $ / $Date: 2008-07-14 17:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.142 $ / $Date: 2008-07-16 15:22:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -187,10 +187,15 @@ public abstract class LWContainer extends LWComponent
      * to be reparented.  Children not in this container are ignored.
      * @param newParent is the new parent for any children of ours found in possibleChildren
      */
-    public void reparentTo(LWContainer newParent, Collection<LWComponent> possibleChildren)
+    public void reparentTo(final LWContainer newParent, Collection<LWComponent> possibleChildren)
     {
+        if (newParent == null) {
+            Log.warn(this + "; reparentTo: null new parent reparenting " + possibleChildren);
+            return;
+        }
         if (newParent == this) {
-            Util.printStackTrace(this + "; attempting to reparent back to ourself: " + possibleChildren);
+            //Util.printStackTrace(this + "; attempting to reparent back to ourself: " + possibleChildren);
+            Log.warn(this + "; reparentTo: attempting to reparent back to ourself: " + possibleChildren);
             return;
         }
         
@@ -321,6 +326,8 @@ public abstract class LWContainer extends LWComponent
         final List<LWComponent> added = new ArrayList(toAdd.size());
 
         for (LWComponent c : toAdd) {
+//             if (c.getParent() == this) // currently needed to support re-dropping into an LWNode
+//                 continue;
             try {
                 addChildImpl(c, context);
                 added.add(c);
@@ -372,10 +379,6 @@ public abstract class LWContainer extends LWComponent
         }
     }
 
-    protected void out(String s) {
-        if (DEBUG.Enabled) Log.debug(s + "; " + this);
-    }
-    
     private static void track(String where, Object o) {
         if (DEBUG.Enabled)
             Log.debug(String.format("%12s: %s",
