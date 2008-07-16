@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.80 $ / $Date: 2008-07-14 18:30:54 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2008-07-16 15:17:33 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -1274,13 +1274,18 @@ public abstract class Resource implements Cloneable
 
         try {
 
-            if (c0 == '#') {
+            if (c0 == '#' || s.startsWith("rdf:#")) {
                 
                 // Our current RDF code sometimes tries to make Resources from random
                 // non string fragments, which will always fail to create a URI unless
                 // both a URI scheme and a URI scheme-specific-part are also specified.
+
+                final String schemeSpecific = "fragment";
                 
-                uri = new java.net.URI("rdf", "fragment", s.substring(1));
+                if (c0 == '#')
+                    uri = new java.net.URI("rdf", schemeSpecific, s.substring(1));
+                else
+                    uri = new java.net.URI("rdf", schemeSpecific, s.substring(5));
                 Log.warn("makeURI: guessed at creating " + Util.tags(uri) + " from " + Util.tags(s));
             }
             else if (c0 == '/' || c0 == '\\' || (Character.isLetter(c0) && c1 == ':')) {
