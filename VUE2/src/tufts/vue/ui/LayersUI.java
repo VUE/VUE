@@ -42,7 +42,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2008-07-16 15:35:38 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2008-07-16 15:47:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -149,7 +149,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
 
     private Layer getActiveLayer() {
-        return mMap.getActiveLayer();
+        if (mMap == null) {
+            Log.warn("getActiveLayer when map is null");
+            return null;
+        } else {
+            return mMap.getActiveLayer();
+        }
     }
     
     public void selectionChanged(LWSelection s) {
@@ -181,6 +186,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     
     private void loadMap(final LWMap map)
     {
+        if (DEBUG.Enabled) Log.debug("load map " + map); 	
+         	
         if (mMap == map)
             return;
 
@@ -192,10 +199,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         //setActiveLayer(map.getActiveLayer());
         loadLayers(map);
 
-        // todo: we should be able to just listen for LWKey.HierarchyChanged, tho
-        // this currently is only generated on UNDO's, and hardly anything is
-        // currently listenting for it (OutlineViewTree, and some references to "hier.*)
-        map.addLWCListener(this);
+        if (map != null) {
+            // todo: we should be able to just listen for LWKey.HierarchyChanged, tho
+            // this currently is only generated on UNDO's, and hardly anything is
+            // currently listenting for it (OutlineViewTree, and some references to "hier.*)
+            map.addLWCListener(this);
+        }
     }
 
     public void LWCChanged(LWCEvent e) {
