@@ -43,13 +43,11 @@ public class RSSDataSource extends BrowseDataSource
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RSSDataSource.class);
     private static final String JIRA_SFRAIZE_COOKIE = "seraph.os.cookie=LkPlQkOlJlHkHiEpGiOiGjJjFi";
     
-    //public static final String DEFAULT_AUTHENTICATION_COOKIE = JIRA_SFRAIZE_COOKIE;
-    public static final String DEFAULT_AUTHENTICATION_COOKIE = DEBUG.Enabled ? JIRA_SFRAIZE_COOKIE : "none";
-    public static final String AUTHENTICATION_COOKIE_KEY = "url_authentication_cookie";
-    // todo: THIS IS REALLY AN AUTHORIZATION KEY, NOT AN AUTHENTICATION KEY
+    public static final String DEFAULT_AUTHORIZATION_COOKIE = DEBUG.Enabled ? JIRA_SFRAIZE_COOKIE : "none";
+    public static final String AUTHORIZATION_COOKIE_KEY = "url_authentication_cookie";
     
     // apparent, some RSS Feeds (e.g., craigslist) will fail with "TOO MANY REDIRECTS" if there isn't SOME cookie sent
-    private String authenticationCookie = DEFAULT_AUTHENTICATION_COOKIE;
+    private String authorizationCookie = DEFAULT_AUTHORIZATION_COOKIE;
 
     private List<SyndEntry> mItems;
     
@@ -81,16 +79,16 @@ public class RSSDataSource extends BrowseDataSource
 
         String val;
         
-        if ((val = p.getProperty(AUTHENTICATION_COOKIE_KEY)) != null)
+        if ((val = p.getProperty(AUTHORIZATION_COOKIE_KEY)) != null)
             setAuthenticationCookie(val);
     }
 
     private void setAuthenticationCookie(String s) {
         Log.debug("setAuthenticationCookie[" + s + "]");
-        if (s == authenticationCookie || (s != null && s.equals(authenticationCookie))) {
+        if (s == authorizationCookie || (s != null && s.equals(authorizationCookie))) {
             return;
         } else {
-            authenticationCookie = s;
+            authorizationCookie = s;
             unloadViewer();
         }
     }
@@ -103,7 +101,7 @@ public class RSSDataSource extends BrowseDataSource
 //         b.append("<title>Authentication</title>");
 //         b.append("<description>Any required authentication cookie</description>");
 //         //b.append("<default></default>");
-//         b.append("<default>" + DEFAULT_AUTHENTICATION_COOKIE + "</default>");
+//         b.append("<default>" + DEFAULT_AUTHORIZATION_COOKIE + "</default>");
 //         b.append("<mandatory>false</mandatory>");
 //         b.append("<maxChars>99</maxChars>");
 //         b.append("<ui>0</ui>");
@@ -157,10 +155,10 @@ public class RSSDataSource extends BrowseDataSource
             URLConnection conn = address.openConnection(); 
             conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.8) Gecko/20071008 Firefox/2.0.0.8");
             
-            if (authenticationCookie != null)
-                conn.setRequestProperty("Cookie", authenticationCookie);
+            if (authorizationCookie != null)
+                conn.setRequestProperty("Cookie", authorizationCookie);
 //             else if (tufts.vue.DEBUG.Enabled)
-//                 conn.setRequestProperty("Cookie", DEFAULT_AUTHENTICATION_COOKIE);
+//                 conn.setRequestProperty("Cookie", DEFAULT_AUTHORIZATION_COOKIE);
             
             // TODO: "old-stye" build-in VueDataSource's don't appear to be able to persist
             // extra properties, so above we're always sending a default cookie above

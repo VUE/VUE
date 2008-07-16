@@ -120,10 +120,10 @@ public class EditLibraryPanel extends JPanel implements ActionListener
 
             if (DEBUG.Enabled)
             addField(b,
-                     edu.tufts.vue.rss.RSSDataSource.AUTHENTICATION_COOKIE_KEY,
+                     edu.tufts.vue.rss.RSSDataSource.AUTHORIZATION_COOKIE_KEY,
                      "Authentication",
                      "Any required authentication cookie",
-                     edu.tufts.vue.rss.RSSDataSource.DEFAULT_AUTHENTICATION_COOKIE,
+                     edu.tufts.vue.rss.RSSDataSource.DEFAULT_AUTHORIZATION_COOKIE,
                      SINGLE_LINE_CLEAR_TEXT_CONTROL,
                      0);
                      
