@@ -49,7 +49,7 @@ public class TextOpenAction  extends VueAction {
     public static final int MAP_SIZE = 500;
     public static final int MAX_SIZE =5000;
     
-    public static final boolean ZOTERO_PROTOTYPE = true;
+    public static final boolean ZOTERO_PROTOTYPE = false;
     
     public TextOpenAction(String label) {
         super(label, null, ":general/Open");
@@ -210,6 +210,7 @@ public class TextOpenAction  extends VueAction {
                 }
                 //repeatMap.put(words[0], new Integer(1));
                 map.add(node1);
+                node1.layout();
             }
             else
             if(words.length == 4) {
