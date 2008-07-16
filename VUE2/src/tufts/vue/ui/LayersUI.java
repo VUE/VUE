@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright 2003-2008 Tufts University  Licensed under the
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
@@ -19,7 +19,9 @@ import tufts.vue.DEBUG;
 import tufts.vue.VUE;
 import tufts.vue.LWComponent;
 import tufts.vue.LWComponent.HideCause;
+import tufts.vue.LWContainer;
 import tufts.vue.LWMap;
+import tufts.vue.LWMap.Layer;
 import tufts.vue.LWCEvent;
 import tufts.vue.LWKey;
 import tufts.vue.ActiveInstance;
@@ -27,6 +29,7 @@ import tufts.vue.ActiveEvent;
 import tufts.vue.VueConstants;
 import tufts.vue.DrawContext;
 import tufts.vue.VueResources;
+import tufts.vue.LWSelection;
 import tufts.vue.gui.*;
 
 import tufts.Util;
@@ -39,19 +42,18 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2008-07-14 19:51:56 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-07-16 15:26:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
-public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener
+public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LayersUI.class);
 
     private final java.util.List<Row> mRows = new java.util.ArrayList();
     private LWMap mMap;
     private boolean isDragUnderway;
-    private Row mExclusiveRow;
     private Row mDragRow;
-    
+
     public LayersUI() {
         super("layers");
         setName("layersUI");
@@ -59,46 +61,121 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         //setLayout(new GridLayout(0,1));
         setLayout(new GridBagLayout());
         VUE.addActiveListener(LWMap.class, this);
-        VUE.addActiveListener(LWMap.Layer.class, this);
-        VUE.addActiveListener(LWComponent.class, this);
-
+        VUE.getSelection().addListener(this);
+        //VUE.addActiveListener(Layer.class, this);
+        //VUE.addActiveListener(LWComponent.class, this);
         //setFocusable(false);
 
-//         addKeyListener(new KeyAdapter() {
-//                 public void keyPressed(KeyEvent e) {
-//                     // TODO: CLEANUP
-//                     // Why aren't the mark's working?
-//                     //System.out.println("KP " + e);
-//                     final tufts.vue.LWContainer layer = VUE.getActiveLayer();
-//                     if (layer == null)
-//                         return;
-//                     if (e.getKeyCode() == KeyEvent.VK_UP) {
-//                         if (layer.getParent().bringForward(layer)) {
-//                             layer.getMap().getUndoManager().mark("Raise Layer " + Util.quote(layer.getLabel()));
-//                         }
-//                     } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
-//                         if (layer.getParent().sendBackward(layer)) {
-//                             layer.getMap().getUndoManager().mark("Lower Layer " + Util.quote(layer.getLabel()));
-//                         }
-//                     }
-//                 }
-//             });
     }
 
     public void activeChanged(ActiveEvent e, LWMap map) {
         loadMap(map);
     }
 
-    public void activeChanged(ActiveEvent e, LWMap.Layer layer) {
-        indicateActiveLayer(layer);
+//     public void activeChanged(ActiveEvent e, Layer layer) {
+//         indicateActiveLayer(layer, null);
+//     }
+
+//     public void activeChanged(ActiveEvent e, LWComponent c) {
+//         enableForSingleSelection(c);
+//         // for debug / child-list mode:
+//         if (mMap != null && !mMap.isLayered())
+//             indicateActiveLayer(null);
+//     }
+
+    private static final boolean UPDATE = true;
+    
+    private void setActiveLayer(Layer c) {
+        setActiveLayer(c, !UPDATE);
     }
 
-    public void activeChanged(ActiveEvent e, LWComponent c) {
-        enableForSingleSelection(c);
+    private void setActiveLayer(Layer c, boolean update) {
+        //if (DEBUG.Enabled) Log.debug("SET-ACTIVE: " + c);
+        if (c != null)
+            mMap.setClientProperty(Layer.class, "last", mMap.getActiveLayer());
+        mMap.setActiveLayer(c);
+        if (update)
+            indicateActiveLayers(null);
+    }
 
-        // for debug / child-list mode:
-        if (mMap != null && !mMap.isLayered())
-            indicateActiveLayer(null);
+    private boolean canBeActive(LWComponent layer) {
+        return canBeActive(layer, true);
+    }
+    private boolean canBeActive(LWComponent layer, boolean checkLocking) {
+        if (layer == null || layer.isHidden() || (checkLocking && layer.isLocked()))
+            return false;
+        else
+            return layer instanceof Layer;
+    }
+
+    private static final boolean AUTO_ADJUST_ACTIVE_LAYER = false;
+    
+    private void attemptAlternativeActiveLayer() {
+
+        if (!AUTO_ADJUST_ACTIVE_LAYER) return;
+
+        final Layer curActive = getActiveLayer();
+        final Layer lastActive = mMap.getClientProperty(Layer.class, "last");
+
+        if (canBeActive(lastActive)) {
+            setActiveLayer(lastActive, UPDATE);
+            return;
+        }
+
+        LWComponent fullyOpen = null;
+        
+        // find the top-most visible and unlocked layer:
+        for (Row row : mRows)
+            if (canBeActive(row.layer))
+                fullyOpen = row.layer;
+
+        if (fullyOpen != null) {
+            setActiveLayer((Layer) fullyOpen, UPDATE);
+            return;
+        }
+        
+        LWComponent visibleButLocked = null;
+        
+        // find the top-most visible layer:
+        for (Row row : mRows)
+            if (canBeActive(row.layer, false))
+                visibleButLocked = row.layer;
+
+        if (visibleButLocked != null && curActive.isHidden() && curActive.isLocked()) {
+            // only switch to visible but locked if the current active is actually worse off
+            setActiveLayer((Layer) visibleButLocked, UPDATE);
+        }
+    }
+
+
+    private Layer getActiveLayer() {
+        return mMap.getActiveLayer();
+    }
+    
+    public void selectionChanged(LWSelection s) {
+
+        //Log.debug("selectionChanged: " + s + "; size=" + s.size() + "; " + Arrays.asList(s.toArray()) + "; parents=" + s.getParents());
+
+        enableForSelection(s);
+
+//         if (!s.getParents().contains(mMap.getActiveLayer()))
+//             for (LWComponent c : s.getParents())
+//                 if (c instanceof Layer)
+//                     mMap.setActiveLayer(c);
+
+        if (s.size() == 1 && s.first().getLayer() != null) {
+            //if (DEBUG.Enabled) Log.debug("selectionChanged: single selection; activate layer of: " + s.first());
+            setActiveLayer(s.first().getLayer());
+        } else if (s.getParents().size() == 1 && s.first().getParent() instanceof Layer) {
+            //if (DEBUG.Enabled) Log.debug("selectionChanged: one parent in selection; active parent " + s.first().getParent());
+            setActiveLayer((Layer) s.first().getParent());
+        }
+        
+        indicateActiveLayers(s.getParents());
+
+//         // for debug / child-list mode:
+//         if (mMap != null && !mMap.isLayered())
+//             indicateActiveLayer(null);
     }
 
     
@@ -112,9 +189,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         mMap = map;
 
+        //setActiveLayer(map.getActiveLayer());
         loadLayers(map);
 
-        // TODO: we should be able to just listen for LWKey.HierarchyChanged, tho
+        // todo: we should be able to just listen for LWKey.HierarchyChanged, tho
         // this currently is only generated on UNDO's, and hardly anything is
         // currently listenting for it (OutlineViewTree, and some references to "hier.*)
         map.addLWCListener(this);
@@ -134,6 +212,57 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
     }
     
+    private final Color ActiveBG = VueConstants.COLOR_SELECTION;
+    private final Color SelectedBG = VueConstants.COLOR_SELECTION.brighter();
+    
+    private void indicateActiveLayers(Collection<? extends LWComponent> layers) {
+
+        //Log.debug("INDICATE ACTIVES: mapActive=" + mMap.getActiveLayer() + "; multiSelect=" + layers);
+
+        final Layer activeLayer = getActiveLayer();
+
+        // TODO: Why are selection bits being left on?  (why getting SelectedBG on multiple items!)
+        // can probably just hack it and check the selection here manually...  tho this
+        // shouldn't be happening...
+
+        for (Row row : mRows) {
+
+            // Log.debug("UPDATING: " + row.layer);
+            
+            if (row.layer == activeLayer) {
+                //Log.debug("**ACTIVE: " + row.layer);
+                row.activeIcon.setEnabled(true);
+                row.setBackground(row.layer.isSelected() ? SelectedBG : ActiveBG);
+                continue;
+            }
+
+            row.activeIcon.setEnabled(false);
+            
+            if (layers != null) 
+                row.setBackground(layers.contains(row.layer) ? ActiveBG : null);
+            else if (row.layer.isSelected())
+                row.setBackground(SelectedBG);
+            else
+                row.setBackground(null);
+        }
+        
+    }
+        
+    private void enableForSelection(LWSelection s) {
+
+        final boolean enableAny = s.size() > 0 && !(s.only() instanceof Layer);
+        final Collection parents = s.getParents();
+        
+        for (Row r : mRows) {
+            if (enableAny && (parents.size() > 1 || !s.getParents().contains(r.layer)))
+                r.grab.setEnabled(true);
+            else
+                r.grab.setEnabled(false);
+        }
+        
+        
+    }
+    
     private void loadLayers(final LWMap map) {
 
         mRows.clear();
@@ -149,8 +278,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
 
         if (!isDragUnderway) {
-            enableForSingleSelection(VUE.getActiveComponent());
-            indicateActiveLayer(map.getActiveLayer());
+            enableForSelection(VUE.getSelection());
+            indicateActiveLayers(null);
         }
         
         layoutRows(mRows);
@@ -196,45 +325,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         repaint();
     }
 
-    private void indicateActiveLayer(LWComponent nowActive) {
-
-        Color select = VueConstants.COLOR_SELECTION;
-
-        if (nowActive == null) {
-            // this for debug/child-list mode
-            nowActive = VUE.getActiveComponent();
-            select = select.brighter();
-        }
-            
-
-        for (Row row : mRows) {
-            if (row.layer == nowActive)
-                row.setBackground(select);
-            else
-                row.setBackground(null);
-        }
-        
-    }
-        
-    private void enableForSingleSelection(LWComponent c) {
-        if (c == null || c instanceof LWMap.Layer)
-            setGrabsEnabled(c, false);
-        else
-            setGrabsEnabled(c, c.atTopLevel());
-    }
-    
-
-    private void setGrabsEnabled(LWComponent c, boolean enabled) {
-        if (true) return;// leave all on for now
-        for (Row r : mRows) {
-            if (enabled && c.getParent() != r.layer && c != r.layer)
-                r.grab.setEnabled(enabled);
-            else
-                r.grab.setEnabled(false);
-        }
-    }
-    
-
     private Row produceRow(final LWComponent layer)
     {
         Row row = layer.getClientProperty(Row.class);
@@ -246,12 +336,31 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             return row;
         }
     }
-    
+
+    private boolean inExclusiveMode() {
+        return getExclusiveRow() != null;
+    }
+
+    private Row getExclusiveRow() {
+        return mMap.getClientProperty(Row.class, "exclusive");
+    }
+    private void setExclusiveRow(Row row) {
+        mMap.setClientProperty(Row.class, "exclusive", row);
+    }
+
+    private Layer getPreExclusiveLayer() {
+        return mMap.getClientProperty(Layer.class, "pre-exclusive");
+    }
+    private void setPreExclusiveLayer(Layer layer) {
+        mMap.setClientProperty(Layer.class, "pre-exclusive", layer);
+    }
+
     private class Row extends JPanel implements javax.swing.event.MouseInputListener, Runnable {
 
         final AbstractButton exclusive = new JRadioButton();
         final AbstractButton visible = new JCheckBox();
         final AbstractButton locked = new JRadioButton();
+        final JLabel activeIcon = new JLabel();
         final JLabel label = new JLabel();
         final JPanel preview;
         final AbstractButton grab = new JButton("Grab");
@@ -280,23 +389,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             //setBorder(new LineBorder(Color.black));
             
-//             addMouseListener(new tufts.vue.MouseAdapter() {
-//                     public void mousePressed(MouseEvent e) {
-//                         if (layer instanceof LWMap.Layer) {
-//                             ActiveInstance.set(LWMap.Layer.class, Row.this, layer);
-//                         } else {
-//                             // this case for debug/test only: we shouldn't normally
-//                             // see regular objects a the top level of the map anymore
-//                             VUE.getSelection().setTo(layer);
-//                         }
-//                         LayersUI.this.requestFocus();
-//                     }
-//                 });
-
             addMouseListener(this);
             addMouseMotionListener(this);
             
-            if (layer instanceof LWMap.Layer)
+            if (layer instanceof Layer)
                 defaultBackground = null;
             else
                 defaultBackground = Color.gray; // debug/test case
@@ -315,7 +411,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             locked.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         layer.setLocked(locked.isSelected());
-                        //grab.setEnabled(!layer.isLocked()); // TODO: need to disable selection changes from re-enabling
+                        if (layer == getActiveLayer() && !canBeActive(layer))
+                            attemptAlternativeActiveLayer();
                     }});
 
             visible.setSelected(layer.isVisible());
@@ -324,6 +421,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         layer.setVisible(visible.isSelected());
                         locked.setEnabled(layer.isVisible());
                         label.setEnabled(layer.isVisible());
+                        if (layer == getActiveLayer() && !canBeActive(layer))
+                            attemptAlternativeActiveLayer();
                             
                     }});
 
@@ -409,6 +508,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
             l.LWCChanged(null); // do the initial set
 
+            activeIcon.setIcon(VueResources.getIcon(VUE.class, "resources/hand_open.png"));
+            activeIcon.setDisabledIcon(new GUI.EmptyIcon(activeIcon.getIcon()));
+            activeIcon.setBorder(GUI.makeSpace(4,0,0,0));
+
             
             //final JComponent label = new VueTextField(layer.getLabel());
             // VueTextField impl not useful to us (also not used anywhere)
@@ -431,6 +534,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             add(Box.createHorizontalStrut(2));
             add(info);
             
+            add(Box.createHorizontalStrut(5));
+            add(activeIcon);
+            
             if (preview != null) {
                 add(Box.createHorizontalStrut(7));
                 add(preview);
@@ -449,14 +555,27 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         private void setExclusive(final boolean excluding) {
 
-            if (excluding && LayersUI.this.mExclusiveRow == this)
+            Row exclusiveRow = getExclusiveRow();
+
+            //Log.debug("SET-EXCLUSIVE " + this + " = " + excluding + "; nowExclusive=" + exclusiveRow);
+
+            if (excluding && exclusiveRow == this)
                 return;
 
+            exclusiveRow = this;
+
             if (excluding) {
-                LayersUI.this.mExclusiveRow = this;
-                ActiveInstance.set(LWMap.Layer.class, this, layer);
-            } else if (LayersUI.this.mExclusiveRow == this)
-                LayersUI.this.mExclusiveRow = null;
+                setPreExclusiveLayer(getActiveLayer());
+                setExclusiveRow(this);
+                if (layer instanceof Layer)
+                    setActiveLayer((Layer) layer);
+            } else if (exclusiveRow == this) {
+                setExclusiveRow(null);
+                final Layer activePreExclusive = getPreExclusiveLayer();
+                if (activePreExclusive != layer)
+                    setActiveLayer(activePreExclusive);
+                setPreExclusiveLayer(null);
+            }
 
             exclusive.setSelected(excluding);
             if (true) {
@@ -471,7 +590,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             layer.clearHidden(HideCause.LAYER_EXCLUSIVE);
 
             if (excluding) {
-                if (DEBUG.Enabled) Log.debug("EXCLUSIVE: " + this);
+                //if (DEBUG.Enabled) Log.debug("EXCLUSIVE: " + this);
                 if (layer.isHidden(HideCause.DEFAULT)) {
                     wasHiddenWhenMadeExclusive = true;
                     layer.clearHidden(HideCause.DEFAULT);
@@ -481,7 +600,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     layer.setLocked(false);
                 }
             } else {
-                if (DEBUG.Enabled) Log.debug("RELEASING: " + this);
+                //if (DEBUG.Enabled) Log.debug("RELEASING: " + this);
                 if (wasHiddenWhenMadeExclusive)
                     layer.setHidden(HideCause.DEFAULT);
                 if (wasLockedWhenMadeExclusive)
@@ -491,7 +610,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
 
             for (Row row : mRows) {
-                if (row != mExclusiveRow) {
+                if (row != exclusiveRow) {
                     if (excluding) row.exclusive.setSelected(false);
                     
                     //row.setEnabled(!excluding);
@@ -501,10 +620,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     //row.visible.setVisible(!excluding);
                     //row.locked.setVisible(!excluding);
                 
-                    row.label.setEnabled(!excluding);
+                    row.label.setEnabled(excluding ? false : row.visible.isSelected());
                     row.layer.setHidden(HideCause.LAYER_EXCLUSIVE, excluding);
                 }
             }
+
+            indicateActiveLayers(null);
         }
         
 
@@ -536,11 +657,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         public void mouseExited(MouseEvent e) {}
         
         public void mousePressed(MouseEvent e) {
-            if (layer instanceof LWMap.Layer) {
-                if (mExclusiveRow != null)
+            if (layer instanceof Layer) {
+                if (inExclusiveMode())
                     setExclusive(true);
-                else if (layer.isVisible()) 
-                    ActiveInstance.set(LWMap.Layer.class, Row.this, layer);
+                else if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
+                    setActiveLayer((Layer) layer, UPDATE);
+                if (VUE.getSelection().isEmpty() || VUE.getSelection().only() instanceof Layer)
+                    VUE.getSelection().setTo(layer);
             } else {
                 // this case for debug/test only: we shouldn't normally
                 // see regular objects a the top level of the map anymore
@@ -699,7 +822,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         @Override
         public String toString() {
-            return getName();
+            return "Row[" + mRows.indexOf(this) + "; " + layer + "]";
         }
         
     }
@@ -707,3 +830,21 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
 
 }
+//         addKeyListener(new KeyAdapter() {
+//                 public void keyPressed(KeyEvent e) {
+//                     // Why aren't the mark's working?
+//                     //System.out.println("KP " + e);
+//                     final tufts.vue.LWContainer layer = VUE.getActiveLayer();
+//                     if (layer == null)
+//                         return;
+//                     if (e.getKeyCode() == KeyEvent.VK_UP) {
+//                         if (layer.getParent().bringForward(layer)) {
+//                             layer.getMap().getUndoManager().mark("Raise Layer " + Util.quote(layer.getLabel()));
+//                         }
+//                     } else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+//                         if (layer.getParent().sendBackward(layer)) {
+//                             layer.getMap().getUndoManager().mark("Lower Layer " + Util.quote(layer.getLabel()));
+//                         }
+//                     }
+//                 }
+//             });
