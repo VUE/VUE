@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.567 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.568 $ / $Date: 2008-07-16 15:21:54 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -223,19 +223,19 @@ public class VUE
      */
     private static final ActiveInstance<LWMap.Layer>
         ActiveLayerHandler = new ActiveInstance<LWMap.Layer>(LWMap.Layer.class) {
-        @Override
-        protected void onChange(ActiveEvent<LWMap.Layer> e)
-        {
-            ////if (ActiveComponentHandler.getActive() == null)
-            if (getSelection().size() == 0 || getSelection().only() instanceof LWMap.Layer)
-            {
-                getSelection().setTo(e.active);
-                //ActiveComponentHandler.setActive(this, e.active);
-            }
+//         @Override
+//         protected void onChange(ActiveEvent<LWMap.Layer> e)
+//         {
+//             ////if (ActiveComponentHandler.getActive() == null)
+//             if (getSelection().size() == 0 || getSelection().only() instanceof LWMap.Layer)
+//             {
+//                 getSelection().setTo(e.active);
+//                 //ActiveComponentHandler.setActive(this, e.active);
+//             }
 
-            // keep the active layer in the map up to date
-            e.active.getMap().setActiveLayer(e.active);
-        }
+//             // keep the active layer in the map up to date
+//             e.active.getMap().setActiveLayer(e.active);
+//         }
     };
     
 
@@ -1439,7 +1439,7 @@ public class VUE
         // Outline View
         //-----------------------------------------------------------------------------
 
-        if (!SKIP_DR) {
+        if (true||!SKIP_DR) {
         
             OutlineViewTree outlineTree = new OutlineViewTree();
             JScrollPane outlineScroller = new JScrollPane(outlineTree);
@@ -1799,6 +1799,8 @@ public class VUE
         ObjectInspector.positionWindowFromProperties();
         if (outlineDock != null)
             outlineDock.positionWindowFromProperties();       
+        if (layersDock != null)
+            layersDock.positionWindowFromProperties();       
     
         mapInspectorPanel.metadataPanel.refresh();
         
@@ -2260,6 +2262,8 @@ public class VUE
         ObjectInspector.saveWindowProperties();
         if (outlineDock != null)
             outlineDock.saveWindowProperties();
+        if (layersDock != null)
+            layersDock.saveWindowProperties();
         ApplicationFrame.saveWindowProperties();
        
         if (mMapTabsLeft == null) // so debug harnesses can quit (no maps displayed)
