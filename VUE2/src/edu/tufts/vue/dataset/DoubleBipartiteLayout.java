@@ -91,8 +91,7 @@ public class DoubleBipartiteLayout extends AbstractLayout{
             
             
             count++;
-            System.out.println("Counters "+n1Counter+"\t"+n2Counter+"\t"+count);
-        }
+       }
         return map;
     }
 }
