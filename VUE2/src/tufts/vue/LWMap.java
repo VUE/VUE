@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.204 $ / $Date: 2008-07-14 19:15:26 $ / $Author: sfraize $
+ * @version $Revision: 1.205 $ / $Date: 2008-07-16 15:18:24 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -781,6 +781,10 @@ public class LWMap extends LWContainer
             // probably better to change LWComponent.requiresPaint
             // such that there another API call to check along w/clipOptimized
             // so we can skip making the intersects call entirely
+
+            // TODO: we can optimize this by having layers track their bounds,
+            // which they currently don't
+            
             return true;
         }
 
@@ -867,14 +871,23 @@ public class LWMap extends LWContainer
         return isLayered;
     }
 
+    public LWContainer getActiveContainer() {
+        if (!VUE.VUE3_LAYERS) return null;
+        return mActiveLayer == null ? this : mActiveLayer;
+    }
+    
     public Layer getActiveLayer() {
-        if (VUE.VUE3_LAYERS) return null;
+        if (!VUE.VUE3_LAYERS) return null;
         return mActiveLayer;
     }
     
-    public void setActiveLayer(Layer layer) {
+    public void setActiveLayer(LWComponent layer) {
         if (!VUE.VUE3_LAYERS) return;
-        mActiveLayer = layer;
+        out("setActiveLayer: " + layer);
+        if (layer == null || layer instanceof Layer)
+            mActiveLayer = (Layer) layer;
+        else
+            Util.printStackTrace("not a layer: " + Util.tags(layer));
     }
 
     @Override
@@ -946,6 +959,7 @@ public class LWMap extends LWContainer
             Log.debug("restoring: creating default layers in " + this);
 
             installDefaultLayers();
+            addedLayers = true;
 
         }
 
@@ -1792,8 +1806,8 @@ public class LWMap extends LWContainer
         if (children.size() == 1 && children.get(0) instanceof LWMap.Layer) {
             isLayered = true;
             super.addChildren(children, context);
-        } else if (isLayered() && getActiveLayer() != null){
-            getActiveLayer().addChildren(children);
+        } else if (isLayered() && mActiveLayer != null) {
+            mActiveLayer.addChildren(children);
         } else {
             super.addChildren(children, context);
         }
@@ -1976,11 +1990,17 @@ public class LWMap extends LWContainer
         if (mChildren == NO_CHILDREN)
             return EmptyBounds;
 
-        // iterate the layers:
         final Rectangle2D.Float bounds = new Rectangle2D.Float();
-        for (LWComponent layer : getChildren()) {
-            if (layer.isVisible())
-                accruePaintBounds(layer.getChildren(), bounds);
+        
+        if (isLayered()) {
+            
+            for (LWComponent layer : getChildren())
+                if (layer.isVisible())
+                    accruePaintBounds(layer.getChildren(), bounds);
+
+        } else {
+
+            accruePaintBounds(getChildren(), bounds);
         }
         
         return bounds.isEmpty() ? EmptyBounds : bounds;
