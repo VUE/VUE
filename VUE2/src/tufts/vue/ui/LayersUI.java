@@ -42,7 +42,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.8 $ / $Date: 2008-07-16 20:54:16 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2008-07-16 22:38:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -364,6 +364,121 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private void setPreExclusiveLayer(Layer layer) {
         mMap.setClientProperty(Layer.class, "pre-exclusive", layer);
     }
+    
+
+    private static class TextEdit extends JTextField implements FocusListener, MouseListener {
+
+        Border activeBorder;
+        Border inactiveBorder;
+
+        final Row row;
+        
+        public TextEdit(final Row row) {
+            this.row = row;
+            
+            setDragEnabled(false);
+            addFocusListener(this);
+            setPreferredSize(new Dimension(Short.MAX_VALUE, 24));
+            setMaximumSize(new Dimension(Short.MAX_VALUE, 24));
+
+            setText(row.layer.getDisplayLabel());
+
+            addMouseListener(this);
+
+            addKeyListener(new KeyAdapter() {
+                    public void keyPressed(KeyEvent e) {
+                        Log.debug("KEY " + e);
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                            focusLost(null);
+                    }
+                });
+
+            activeBorder = getBorder();
+            Insets insets = activeBorder.getBorderInsets(this);
+            if (Util.isMacLeopard()) {
+                // don't know why this is wrong...
+                insets.left -= 3;
+                insets.right -= 3;
+            }
+            inactiveBorder = GUI.makeSpace(insets);
+
+            row.layer.addLWCListener(new LWComponent.Listener() {
+                    public void LWCChanged(LWCEvent e) {
+                        setText(row.layer.getDisplayLabel());
+                        // for some reason need to do this later to make sure it works
+                        GUI.invokeAfterAWT(new Runnable() { public void run() {
+                            setScrollOffset(0);
+                        }});
+                    }},
+                LWKey.Label);
+            
+        }
+        
+
+        @Override
+        public void addNotify() {
+            setEditable(false);
+            // opaque/null bg should be handle by setEditable, but some kind of crap on
+            // Leopard makes us do it here also otherwise they start with white
+            // backgrounds until repainted
+            setOpaque(false);
+            setBackground(null);
+            super.addNotify();
+        }
+        
+        @Override
+        public void setEditable(boolean edit) {
+            Log.debug("SET EDITABLE " + edit + " " + row);
+            if (edit) {
+                setFocusable(true);
+                setBorder(activeBorder);
+                setBackground(Color.white);
+                setOpaque(true);
+            } else {
+                setFocusable(false);
+                setBorder(inactiveBorder);
+                setBackground(null);
+                setOpaque(false);
+            }
+            super.setEditable(edit);
+        }
+
+        public void mouseEntered(MouseEvent e) {}
+        public void mouseExited(MouseEvent e) {}
+        
+        public void mouseClicked(MouseEvent e)
+        {
+            if (GUI.isDoubleClick(e)) {
+                Log.debug("DOUBLE CLICK " + this);
+                setEditable(true);
+                requestFocus();
+            }
+        }
+
+        // hack to pass these along to the Row -- why AWT doesn't allow passthrough: will we ever know?
+        public void mousePressed(MouseEvent e) {
+            if (!isEditable()) {
+                Log.debug("PASSING ALONG " + e);
+                row.mousePressed(e);
+            }
+        }
+        public void mouseReleased(MouseEvent e) {
+            if (!isEditable()) {
+                Log.debug("PASSING ALONG " + e);
+                row.mouseReleased(e);
+            }
+        }
+        
+        
+        public void focusGained(FocusEvent e) {}                    
+        public void focusLost(FocusEvent e) {
+            setEditable(false);
+            setScrollOffset(0);
+            row.layer.setLabel(getText().trim());
+            // make sure if text is longer than fits into field, we scroll back to 0 at the left
+            row.layer.getMap().getUndoManager().mark();
+        }
+    }
 
     private class Row extends JPanel implements javax.swing.event.MouseInputListener, Runnable {
 
@@ -371,8 +486,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         final AbstractButton visible = new JCheckBox();
         final AbstractButton locked = new JRadioButton();
         final JLabel activeIcon = new JLabel();
-        final JLabel label = new JLabel();
-        //final JTextField label = new JTextField();
+        //final JLabel label = new JLabel();
+
+        final JTextField label;
+        
         final JPanel preview;
         final AbstractButton grab = new JButton("Grab");
         //final AbstractButton visible = new VueButton.Toggle("layerUI.button.visible");
@@ -388,6 +505,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         Row(final LWComponent layer)
         {
             this.layer = layer;
+            label = new TextEdit(this);
             setName("row:" + layer);
             //super(BoxLayout.X_AXIS);
             //setOpaque(true);
@@ -439,28 +557,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             label.setEnabled(layer.isVisible());
 
-            if (false){
-            label.setMaximumSize(new Dimension(Short.MAX_VALUE, 24));
-            //final Border b = new MatteBorder(label.getBorder().getBorderInsets(label), Color.red);
-            final Border activeBorder = label.getBorder();
-            final Border inactiveBorder = GUI.makeSpace(activeBorder.getBorderInsets(label));
-            label.setBorder(inactiveBorder);
-            label.setBackground(null);
-            //label.setOpaque(false);
-            label.addFocusListener(new FocusAdapter() {
-                    public void focusGained(FocusEvent e) {
-                        label.setBackground(Color.white);
-//                         label.setOpaque(true);
-                        label.setBorder(activeBorder);
-                    }
-                    public void focusLost(FocusEvent e) {
-                        label.setBackground(null);
-//                         label.setOpaque(false);
-                        label.setBorder(inactiveBorder);
-                    }
-                });
-            }
-            
             exclusive.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         Row.this.setExclusive(exclusive.isSelected());
@@ -515,12 +611,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
 
             LWComponent.Listener l;
-            layer.addLWCListener(l = new LWComponent.Listener() {
-                    public void LWCChanged(LWCEvent e) {
-                        label.setText(layer.getDisplayLabel());
-                    }},
-                LWKey.Label);
-            l.LWCChanged(null); // do the initial set
+            
+//             layer.addLWCListener(l = new LWComponent.Listener() {
+//                     public void LWCChanged(LWCEvent e) {
+//                         label.setText(layer.getDisplayLabel());
+//                     }},
+//                 LWKey.Label);
+//             l.LWCChanged(null); // do the initial set
 
 
             final JLabel info = new JLabel();
@@ -538,8 +635,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             info.setText(counts);                        
                         }},
                     LWKey.ChildrenAdded, LWKey.ChildrenRemoved);
+                l.LWCChanged(null); // do the initial set
             }
-            l.LWCChanged(null); // do the initial set
+
 
             activeIcon.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
             activeIcon.setDisabledIcon(new GUI.EmptyIcon(activeIcon.getIcon()));
@@ -692,15 +790,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}
         
-        public void mousePressed(MouseEvent e) {
+        public void mouseClicked(MouseEvent e) {}
 
-//             if (GUI.isDoubleClick(e)) {
-//                 if (label.contains(e.getPoint()))
-//                     Log.debug("HIT WITH " + e.getPoint());
-//                 label.setFocusable(true);
-//                 label.requestFocus();
-//                 return;
-//             }
+        public void mousePressed(MouseEvent e) {
             
             if (layer instanceof Layer) {
                 if (inExclusiveMode())
@@ -751,7 +843,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
         }
         
-        public void mouseClicked(MouseEvent e) {}
         public void mouseMoved(MouseEvent e){}
 
         private int getDropRegionSize() {
