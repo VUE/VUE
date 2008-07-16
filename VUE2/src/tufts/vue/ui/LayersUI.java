@@ -42,7 +42,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.7 $ / $Date: 2008-07-16 15:47:24 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2008-07-16 20:54:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -331,6 +331,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
         }
 
+        revalidate(); // needed for Tiger (uneeded on Leopard)
         repaint();
     }
 
@@ -371,6 +372,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         final AbstractButton locked = new JRadioButton();
         final JLabel activeIcon = new JLabel();
         final JLabel label = new JLabel();
+        //final JTextField label = new JTextField();
         final JPanel preview;
         final AbstractButton grab = new JButton("Grab");
         //final AbstractButton visible = new VueButton.Toggle("layerUI.button.visible");
@@ -436,6 +438,28 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     }});
 
             label.setEnabled(layer.isVisible());
+
+            if (false){
+            label.setMaximumSize(new Dimension(Short.MAX_VALUE, 24));
+            //final Border b = new MatteBorder(label.getBorder().getBorderInsets(label), Color.red);
+            final Border activeBorder = label.getBorder();
+            final Border inactiveBorder = GUI.makeSpace(activeBorder.getBorderInsets(label));
+            label.setBorder(inactiveBorder);
+            label.setBackground(null);
+            //label.setOpaque(false);
+            label.addFocusListener(new FocusAdapter() {
+                    public void focusGained(FocusEvent e) {
+                        label.setBackground(Color.white);
+//                         label.setOpaque(true);
+                        label.setBorder(activeBorder);
+                    }
+                    public void focusLost(FocusEvent e) {
+                        label.setBackground(null);
+//                         label.setOpaque(false);
+                        label.setBorder(inactiveBorder);
+                    }
+                });
+            }
             
             exclusive.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
@@ -640,7 +664,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         @Override
         protected void addImpl(Component comp, Object constraints, int index) {
+            if (comp instanceof JComponent)
+                ((JComponent)comp).setOpaque(false); // needed for Tiger (uneeded on Leopard)
             comp.setFocusable(false);
+            //comp.setFocusable(comp instanceof JTextField);
             super.addImpl(comp, constraints, index);
         }
         
@@ -666,6 +693,15 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         public void mouseExited(MouseEvent e) {}
         
         public void mousePressed(MouseEvent e) {
+
+//             if (GUI.isDoubleClick(e)) {
+//                 if (label.contains(e.getPoint()))
+//                     Log.debug("HIT WITH " + e.getPoint());
+//                 label.setFocusable(true);
+//                 label.requestFocus();
+//                 return;
+//             }
+            
             if (layer instanceof Layer) {
                 if (inExclusiveMode())
                     setExclusive(true);
