@@ -42,7 +42,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.9 $ / $Date: 2008-07-16 22:38:21 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2008-07-16 22:43:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -413,7 +413,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 LWKey.Label);
             
         }
-        
+
+        @Override
+        public void setEnabled(boolean enabled) {
+            setForeground(enabled ? Color.black : Color.gray);
+        }
 
         @Override
         public void addNotify() {
