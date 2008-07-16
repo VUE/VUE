@@ -17,9 +17,8 @@ package tufts.vue;
 
 import tufts.Util;
 
-import java.util.List;
-import java.util.Iterator;
-import java.util.Collection;
+import java.util.*;
+
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
@@ -28,7 +27,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.87 $ / $Date: 2008-07-07 21:03:51 $ / $Author: sfraize $
+ * @version $Revision: 1.88 $ / $Date: 2008-07-16 15:19:57 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -59,6 +58,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private long mEditablePropertyKeys;
 
+    private final Set<LWContainer> mParents = new java.util.HashSet();
+    private final Set<Class> mTypes = new java.util.HashSet();
     private List<LWComponent> mSecureList = null;
 
     public LWSelection() {}
@@ -331,15 +332,21 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return;
         
         boolean changed = false;
+        boolean removed = false;
         for (LWComponent c : iterable) {
             if (c.isSelected()) {
                 changed = true;
+                removed = true;
                 removeSilent(c);
             } else {
                 if (addSilent(c))
                     changed = true;
             }
         }
+
+        if (removed)
+            resetStatistics();
+        
         if (changed)
             notifyListeners();
     }
@@ -374,9 +381,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
-            mBounds = null;
-            mEditablePropertyKeys = 0;  // set to recompute
             super.add(c);
+            mBounds = null;
+            mTypes.add(c.getClass());
+            mParents.add(c.getParent());
+            mEditablePropertyKeys = 0;  // set to recompute
             if (!isClone && c instanceof ControlListener)
                 addControlListener((ControlListener)c);
             return true;
@@ -384,11 +393,12 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             throw new RuntimeException(this + " attempt to add already selected component " + c);
     }
     
-    public synchronized void remove(LWComponent c)
-    {
-        removeSilent(c);
-        notifyListeners();
-    }
+//     public synchronized void remove(LWComponent c)
+//     {
+//         removeSilent(c);
+//         resetStatistics();
+//         notifyListeners();
+//     }
 
     private synchronized void removeSilent(LWComponent c)
     {
@@ -398,10 +408,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (!isClone) c.setSelected(false);
         if (!isClone && c instanceof ControlListener)
             removeControlListener((ControlListener)c);
-        mBounds = null;
-        mEditablePropertyKeys = 0; // set to recompute
+
         if (!super.remove(c))
             throw new RuntimeException(this + " remove: list doesn't contain " + c);
+        
     }
     
     /**
@@ -446,16 +456,27 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 c.setSelected(false);
             lastSelection = clone();
         }
+        
         controlListeners.clear();
-        mEditablePropertyKeys = 0;
-        mBounds = null;
+
         super.clear();
+
+        resetStatistics();
+        
         return true;
     }
 
     /** Remove from selection anything that's been deleted */
+
+
     synchronized void clearDeleted()
     {
+        // This is special case code called by the UndoManager during an undo whenever
+        // there are any hierarchy changes.  Would be cleaner to for the selection to
+        // listen to all it's members for deletion events (expensive to always
+        // add/remove all those listeners), or listen to the map for all deletion events
+        // and and check if any are on our members.
+
         if (DEBUG.SELECTION) debug("clearDeleted");
         boolean removed = false;
         LWComponent[] elements = new LWComponent[size()];
@@ -468,8 +489,24 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 removed = true;
             }
         }
-        if (removed)
+        if (removed) {
+            resetStatistics();
             notifyListeners();
+        }
+    }
+
+    private void resetStatistics() {
+        mBounds = null;
+        mTypes.clear();
+        mParents.clear();
+        mEditablePropertyKeys = 0; // set to recompute
+        if (size() > 0) {
+            if (DEBUG.Enabled) Log.debug("RECOMPUTING STATISTICS");
+            for (LWComponent c : this) {
+                mParents.add(c.getParent());
+                mTypes.add(c.getClass());
+            }
+        }
     }
 
     /** return bounds of map selection in map (not screen) coordinates */
@@ -529,55 +566,69 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public int countTypes(Class clazz)
     {
         int count = 0;
-        Iterator i = iterator();
-        while (i.hasNext())
-            if (clazz.isInstance(i.next()))
+
+        for (Class contentClass : mTypes)
+            if (clazz.isAssignableFrom(contentClass))
                 count++;
+        
+//         Iterator i = iterator();
+//         while (i.hasNext())
+//             if (clazz.isInstance(i.next()))
+//                 count++;
+        
         return count;
     }
     
     public boolean containsType(Class clazz)
     {
-        Iterator i = iterator();
-        while (i.hasNext())
-            if (clazz.isInstance(i.next()))
-                return true;
+        for (Class contentClass : mTypes)
+            if (clazz.isAssignableFrom(contentClass))
+        return true;
+        
+//         Iterator i = iterator();
+//         while (i.hasNext())
+//             if (clazz.isInstance(i.next()))
+//                 return true;
+        
         return false;
     }
     
     public boolean allOfType(Class clazz)
     {
-        Iterator i = iterator();
-        while (i.hasNext())
-            if (!clazz.isInstance(i.next()))
+        for (Class contentClass : mTypes)
+            if (!clazz.isAssignableFrom(contentClass))
                 return false;
+        
         return size() != 0;
+        
+//         Iterator i = iterator();
+//         while (i.hasNext())
+//             if (!clazz.isInstance(i.next()))
+//                 return false;
+//         return size() != 0;
     }
 
     public boolean allOfSameType()
     {
-        if (size() <= 1)
-            return true;
+        return size() < 2 || mTypes.size() == 1;
         
-        final Iterator i = iterator();
-        final Class firstType = i.next().getClass();
-        while (i.hasNext())
-            if (i.next().getClass() != firstType)
-                return false;
-        return true;
+//         if (size() <= 1)
+//             return true;
+//         final Iterator i = iterator();
+//         final Class firstType = i.next().getClass();
+//         while (i.hasNext())
+//             if (i.next().getClass() != firstType)
+//                 return false;
+//         return true;
+    }
+
+    public Collection<LWContainer> getParents() {
+        return mParents;
     }
 
     public boolean allHaveSameParent()
     {
-        LWComponent oc = null;
-        Iterator i = iterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
-            if (oc != null && oc.getParent() != c.getParent())
-                return false;
-            oc = c;
-        }
-        return true;
+        return mParents.size() < 2;
     }
     
     public boolean allHaveSameParentOfType(Class clazz)
