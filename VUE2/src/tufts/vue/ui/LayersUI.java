@@ -42,7 +42,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2008-07-16 15:26:58 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-07-16 15:35:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -508,7 +508,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
             l.LWCChanged(null); // do the initial set
 
-            activeIcon.setIcon(VueResources.getIcon(VUE.class, "resources/hand_open.png"));
+            activeIcon.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
             activeIcon.setDisabledIcon(new GUI.EmptyIcon(activeIcon.getIcon()));
             activeIcon.setBorder(GUI.makeSpace(4,0,0,0));
 
