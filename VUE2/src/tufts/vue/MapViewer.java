@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.563 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.564 $ / $Date: 2008-07-16 15:20:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1289,9 +1289,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     }
 
     public LWComponent getDropFocal() {
-        if (VUE.VUE3_LAYERS && getFocal() instanceof LWMap)
+        if (VUE.VUE3_LAYERS && getFocal() instanceof LWMap) {
+            if (((LWMap)getFocal()).getActiveLayer() == null) {
+                Util.printStackTrace("NO ACTIVE LAYER IN: " + getFocal());
+                return getFocal();
+            }
             return ((LWMap)getFocal()).getActiveLayer();
-        else
+        } else
             return getFocal();
     }
     
@@ -3561,7 +3565,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     // TODO: don't draw unless all components are within mFocal...
     protected void drawSelection(DrawContext dc, final LWSelection selection)
     {
-        if (selection.only() == mFocal || selection.first() instanceof MasterSlide) {
+        if (selection.only() == mFocal || selection.first() instanceof MasterSlide || selection.first() instanceof LWMap.Layer) {
             // never draw a selection when the focal is the only selection,
             // or if it's a master slide.
             // todo: some kind of special indicator for this... (or check type token?)
@@ -6683,9 +6687,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (!droppedChild.supportsReparenting())
                     continue;
 
-//                 if (droppedChild instanceof LWSlide) // todo: something more abstract
-//                     continue;
-
                 final LWContainer currentParent = droppedChild.getParent();
 
                 if (currentParent == null) // must have grabbed the LWMap
@@ -6726,14 +6727,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // back to the parent's layout spot from the draggeed position they
                 // currently occupy and we're trying to move them to.
                 
-                Collection<LWContainer> parents = new java.util.HashSet();
+                Set<LWContainer> parents = new java.util.HashSet();
                 for (LWComponent c : moveList)
                     parents.add(c.getParent());
 
                 for (LWContainer parent : parents) {
                     if (DEBUG.PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
                     parent.reparentTo(parentTarget, moveList);
-                    //parent.removeChildren(moveList.iterator());
                 }
                 
                 selectionSet(moveList);
