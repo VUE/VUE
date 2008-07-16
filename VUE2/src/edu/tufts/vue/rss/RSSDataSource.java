@@ -44,10 +44,11 @@ public class RSSDataSource extends BrowseDataSource
     private static final String JIRA_SFRAIZE_COOKIE = "seraph.os.cookie=LkPlQkOlJlHkHiEpGiOiGjJjFi";
     
     //public static final String DEFAULT_AUTHENTICATION_COOKIE = JIRA_SFRAIZE_COOKIE;
-    public static final String DEFAULT_AUTHENTICATION_COOKIE = DEBUG.Enabled ? JIRA_SFRAIZE_COOKIE : "";
+    public static final String DEFAULT_AUTHENTICATION_COOKIE = DEBUG.Enabled ? JIRA_SFRAIZE_COOKIE : "none";
     public static final String AUTHENTICATION_COOKIE_KEY = "url_authentication_cookie";
     // todo: THIS IS REALLY AN AUTHORIZATION KEY, NOT AN AUTHENTICATION KEY
     
+    // apparent, some RSS Feeds (e.g., craigslist) will fail with "TOO MANY REDIRECTS" if there isn't SOME cookie sent
     private String authenticationCookie = DEFAULT_AUTHENTICATION_COOKIE;
 
     private List<SyndEntry> mItems;
