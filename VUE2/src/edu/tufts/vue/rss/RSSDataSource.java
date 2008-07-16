@@ -330,10 +330,10 @@ public class RSSDataSource extends BrowseDataSource
 
         final SyndContent content = item.getDescription();
         
+        r.addPropertyIfContent("Description", content.getValue());
+            
         if (!DEBUG.Enabled)
             return r;
-            
-        r.addPropertyIfContent("Description", content.getValue());
             
         r.addPropertyIfContent("~0rss-content-type", content.getType());
         r.addPropertyIfContent("~0rss-content-mode", content.getMode());
