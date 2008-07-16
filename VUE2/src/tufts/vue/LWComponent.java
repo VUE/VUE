@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.421 $ / $Date: 2008-07-14 18:34:19 $ / $Author: sfraize $
+ * @version $Revision: 1.422 $ / $Date: 2008-07-16 15:24:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -59,7 +59,7 @@ public class LWComponent
     implements VueConstants, XMLUnmarshalListener
 {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWComponent.class);
-    
+
     public enum ChildKind {
 
         /** Include any and all children in the traversable LW hierarchy, such as slides and their children -- the only
@@ -1260,6 +1260,8 @@ u                    getSlot(c).setFromString((String)value);
         
         return key + " " + valType + "(" + valRep + ")" + extra + "";
     }
+
+    // maybe rename these store/fetchProperty
     
     /** set a generic property in the model -- users of this API need to ensure the keys
      * they're using are unique with respect to any other potential users of this API.
@@ -1267,6 +1269,12 @@ u                    getSlot(c).setFromString((String)value);
     public void setClientProperty(Object key, Object o) {
         if (mClientProperties == null)
             mClientProperties = new HashMap();
+
+//         if (DEBUG.Enabled) {
+//             String keyName = key instanceof Class ? key.toString() : Util.tags(key);
+//             out("setClientProperty: " + keyName + "=" + Util.tags(o));
+//         }
+
         if (o == null)
             mClientProperties.remove(key);
         else
@@ -1277,11 +1285,28 @@ u                    getSlot(c).setFromString((String)value);
         return mClientProperties == null ? null : mClientProperties.get(key);
     }
     
+    public void setClientProperty(Class classKey, String subKey, Object o) {
+        setClientProperty(classKey.getName() + "/" + subKey, o);
+    }
+    
+//     public void setInstanceProperty(String subKey, Object o) {
+//         setClientProperty(o.getClass().getName() + "/" + subKey, o);
+//     }
+    
+//     public void setInstanceProperty(Object o) {
+//         setClientProperty(o.getClass(), o);
+//     }
+    
+    /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
+    public <A> A getClientProperty(Class<A> classKey, String subKey) {
+        return (A) getClientProperty(classKey.getName() + "/" + subKey);
+    }
+
     /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
     public <A> A getClientProperty(Class<A> classKey) {
         return (A) getClientProperty((Object)classKey);
     }
-
+    
     /**
      * Get the named property value from this component.
      * @param key property key (see LWKey)
@@ -2543,6 +2568,21 @@ u                    getSlot(c).setFromString((String)value);
         setParent(layer);
     }
 
+    public int getDepth() {
+        if (parent == null)
+            return 0;
+        else
+            return parent.getDepth() + 1;
+    }
+
+    public int getIndex() {
+        if (parent == null)
+            return -1;
+        else
+            return parent.indexOf(this);
+    }
+    
+
     protected void setParent(LWContainer newParent) {
 
         if (DEBUG.UNDO) System.err.println("*** SET-PARENT: " + newParent + " for " + this);
@@ -2641,13 +2681,6 @@ u                    getSlot(c).setFromString((String)value);
     /** @deprecated: tmp back compat only */ public Boolean getPersistIsStyleParent() { return null; }
     /** @deprecated: tmp back compat only */ public void setPersistIsStyleParent(Boolean b) { setPersistIsStyle(b); }
     /** @deprecated: tmp back compat only */ public LWComponent getParentStyle() { return null; }
-
-    public int getDepth() {
-        if (parent == null)
-            return 0;
-        else
-            return parent.getDepth() + 1;
-    }
 
     /**
      * @return 0 by default
@@ -6177,30 +6210,14 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     protected void out(String s) {
-        if (DEBUG.Enabled) Log.debug(s + "; " + this);
-//         if (DEBUG.THREAD) {
-//             String thread = Thread.currentThread().toString().substring(6);
-//             System.err.format("%-32s%s %s\n", thread, this, s);
-//         } else {
-//             System.err.println(this + " " + s);
-//         }
+        //if (DEBUG.Enabled) Log.debug(s + "; " + this);
+        if (DEBUG.Enabled) LWLog.debug(String.format("%s[%-12.12s] %s", getClass().getSimpleName(), getDisplayLabel(), s));
     }
 
     protected void outf(String format, Object ... args) {
         Util.outf(Log, format, args);
     }
     
-    /*
-    static protected void out(Object o) {
-        System.out.println((o==null?"null":o.toString()));
-    }
-    */
-/*
-    static protected void out(String s) {
-        System.out.println(s);
-    }
-*/
-
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
     public void XML_initialized(Object context) {
         mXMLRestoreUnderway = true;
@@ -6644,9 +6661,14 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
+    protected static final org.apache.log4j.Logger LWLog = org.apache.log4j.Logger.getLogger(LW.class);
     
 }
 
+
+/** for debug */
+final class LW {}
+    
 
 
         /*
@@ -6685,30 +6707,3 @@ u                    getSlot(c).setFromString((String)value);
             return null;
         }
         */
-        /*
-        Object getValue(LWComponent c) {
-            if (field == null)
-                return getSlot(c).get();
-
-            try {
-                return field.get(c);
-            } catch (Throwable t) {
-                tufts.Util.printStackTrace(t);
-            }
-            return null;
-        }
-        void setValue(LWComponent c, Object value) {
-            if (field == null)
-                getSlot(c).set(value);
-            
-            try {
-                field.set(c, value);
-            } catch (Throwable t) {
-                tufts.Util.printStackTrace(t);
-            }
-        }
-        */
-        
-
-
-
