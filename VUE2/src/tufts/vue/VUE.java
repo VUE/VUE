@@ -66,14 +66,14 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.568 $ / $Date: 2008-07-16 15:21:54 $ / $Author: sfraize $ 
+ * @version $Revision: 1.569 $ / $Date: 2008-07-16 15:28:05 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
-    public static boolean VUE3 = false;
-    public static boolean VUE3_LAYERS = false;
+    public static boolean VUE3 = true;
+    public static boolean VUE3_LAYERS = true;
     
     // We would like to move to non-blocking (threaded) loading -- when blocking (current impl), a hang in
     // any OSID init or server access will hang VUE during startup.
