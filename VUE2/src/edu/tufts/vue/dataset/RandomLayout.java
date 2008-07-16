@@ -1,7 +1,7 @@
 /*
- * Circular.java
+ * RandomLayout.java
  *
- * Created on July 7, 2008, 3:06 PM
+ * Created on July 7, 2008, 2:27 PM
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
  * Mozilla Public License Version 1.1 (the "License"); you may not use this file
@@ -22,7 +22,8 @@
  *
  * @author akumar03
  */
-package tufts.vue.action.dataset;
+
+package edu.tufts.vue.dataset;
 
 import java.io.*;
 import java.net.*;
@@ -31,13 +32,13 @@ import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
 
-public class CircularLayout extends AbstractLayout{
-    public static final int MAP_SIZE = 500;
-    public static final int MAX_SIZE =5000;
-    static final String LABEL = "Circular Layout";
+
+public class RandomLayout extends AbstractLayout{
     
-    /** Creates a new instance of Circular */
-    public CircularLayout() {
+   static String LABEL = "Random Layout";
+    /** Creates a new instance of RandomLayout */
+    
+    public RandomLayout() {
         super(LABEL);
     }
     
@@ -45,13 +46,13 @@ public class CircularLayout extends AbstractLayout{
     public LWMap loadMap(String fileName,String mapName) throws Exception{
         Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
         Map<String,Integer> repeatMap = new HashMap<String,Integer>();
-        
+       
         LWMap map = new LWMap(mapName);
         BufferedReader reader = new BufferedReader(new FileReader(fileName));
         String line;
         int count = 0;
         while((line=reader.readLine()) != null && count <MAX_SIZE) {
-            if(DEBUG.LAYOUT) System.out.println(line+" words: "+line.split(",").length);
+            System.out.println(line+" words: "+line.split(",").length);
             String[] words = line.split(",");
             LWNode node1;
             LWNode node2;
@@ -71,11 +72,8 @@ public class CircularLayout extends AbstractLayout{
             }
             LWLink link = new LWLink(node1,node2);
             map.add(link);
-            double angle = Math.random()*Math.PI*4;
-            node1.setLocation(MAP_SIZE*(1+Math.cos(angle)),MAP_SIZE*(1+Math.sin(angle)));
-            angle = Math.random()*Math.PI*4;
-            node2.setLocation(MAP_SIZE*(1+Math.cos(angle)),MAP_SIZE*(1+Math.sin(angle)));
-            count++;
+            node1.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+            node2.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
         }
         return map;
     }

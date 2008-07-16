@@ -22,10 +22,34 @@
  *
  * @author akumar03
  */
+package edu.tufts.vue.dataset;
+
+import java.io.*;
+import java.util.*;
+
 public class LayoutFactory {
     
+    private static LayoutFactory factory = null;
     /** Creates a new instance of LayoutFactory */
-    public LayoutFactory() {
+    protected LayoutFactory() {
     }
     
+    public static  LayoutFactory getInstance() {
+        if(factory == null) {
+            factory = new LayoutFactory();
+        }
+        return factory;
+    }
+    
+    public List<AbstractLayout> getAvailableLayouts() {
+        List<AbstractLayout> list = new ArrayList<AbstractLayout>();
+        list.add(new RandomLayout());
+        list.add(new CircularLayout());
+        list.add(new GravitationalLayout());
+        list.add(new HierarchicalLayout());
+        list.add(new TabularLayout());
+        list.add(new DoubleBipartiteLayout());
+        list.add(new DoubleCircularLayout());
+        return list;
+    }
 }

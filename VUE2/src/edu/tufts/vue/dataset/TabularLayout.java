@@ -22,7 +22,8 @@
  *
  * @author akumar03
  */
-package tufts.vue.action.dataset;
+
+package edu.tufts.vue.dataset;
 
 import java.io.*;
 import java.net.*;

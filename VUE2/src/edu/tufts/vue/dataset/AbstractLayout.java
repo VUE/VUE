@@ -23,7 +23,7 @@
  * @author akumar03
  */
 
-package tufts.vue.action.dataset;
+package edu.tufts.vue.dataset;
 
 import java.io.*;
 import java.net.*;
@@ -32,7 +32,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
 
-abstract class  AbstractLayout  extends VueAction {
+public abstract class  AbstractLayout  extends VueAction {
     public  int MAP_SIZE = 500;
     public  int MAX_SIZE =5000;
     /** Creates a new instance of AbstractLayout */
