@@ -54,7 +54,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.118 $ / $Date: 2008-07-07 18:31:29 $ / $Author: sfraize $
+ * @version $Revision: 1.119 $ / $Date: 2008-07-16 15:25:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1842,17 +1842,23 @@ public class GUI
     }
     
     
-    
-
-    private static final class EmptyIcon16 implements Icon {
-        public final void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {}
-        public final int getIconWidth() { return 16; }
-        public final int getIconHeight() { return 16; }
-        public final String toString() { return "EmptyIcon16"; }
+    public static final class EmptyIcon implements Icon {
+        final int width, height;
+        public EmptyIcon(int w, int h) {
+            width = w;
+            height = h;
+        }
+        public EmptyIcon(Icon icon) {
+            this(icon.getIconWidth(), icon.getIconHeight());
+        }
+        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {}
+        public int getIconWidth() { return width; }
+        public int getIconHeight() { return height; }
+        public String toString() { return "EmptyIcon" + width + "x" + height; }
     }
     
-    public static final Icon EmptyIcon16 = new EmptyIcon16();
-    public static final Icon NO_ICON = new EmptyIcon16();
+    public static final Icon EmptyIcon16 = new EmptyIcon(16,16);
+    public static final Icon NO_ICON = new EmptyIcon(0,0);
     public static final Insets EmptyInsets = new Insets(0,0,0,0);
         
     private static boolean anyIcons(Component[] items) {
