@@ -42,7 +42,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.10 $ / $Date: 2008-07-16 22:43:26 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2008-07-17 16:02:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -366,41 +366,42 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     }
     
 
-    private static class TextEdit extends JTextField implements FocusListener, MouseListener {
+    private static class TextEdit extends JTextField implements FocusListener, MouseListener, MouseMotionListener {
 
-        Border activeBorder;
-        Border inactiveBorder;
+        static final boolean TransparentHack = Util.isMacLeopard();
+
+        static final Color Transparent = new Color(0,0,0,0);
+        //static final Color Transparent = TransparentHack ? new Color(0,0,0,0) : null;
+        //static final Color Transparent = Color.red;
+
+        // todo perf: these could be static
+        final Border activeBorder;
+        final Border inactiveBorder;
 
         final Row row;
         
         public TextEdit(final Row row) {
             this.row = row;
-            
+
             setDragEnabled(false);
             addFocusListener(this);
+            
             setPreferredSize(new Dimension(Short.MAX_VALUE, 24));
             setMaximumSize(new Dimension(Short.MAX_VALUE, 24));
 
             setText(row.layer.getDisplayLabel());
 
             addMouseListener(this);
+            addMouseMotionListener(this);
 
             addKeyListener(new KeyAdapter() {
                     public void keyPressed(KeyEvent e) {
                         Log.debug("KEY " + e);
                         if (e.getKeyCode() == KeyEvent.VK_ENTER)
-                            focusLost(null);
+                            //focusLost(null); // will be called again on actual focus-loss; could call setEditable(false);
+                            setEditable(false); // rely's on focusLost being generated
                     }
                 });
-
-            activeBorder = getBorder();
-            Insets insets = activeBorder.getBorderInsets(this);
-            if (Util.isMacLeopard()) {
-                // don't know why this is wrong...
-                insets.left -= 3;
-                insets.right -= 3;
-            }
-            inactiveBorder = GUI.makeSpace(insets);
 
             row.layer.addLWCListener(new LWComponent.Listener() {
                     public void LWCChanged(LWCEvent e) {
@@ -411,40 +412,65 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         }});
                     }},
                 LWKey.Label);
-            
+
+            activeBorder = getBorder();
+//             Insets insets = activeBorder.getBorderInsets(this);
+//             if (Util.isMacLeopard()) {
+//                 // sometimes this is wrong... would be safer to do this in addNotify
+//                 insets.left -= 3;
+//                 insets.right -= 3;
+//             }
+//             inactiveBorder = GUI.makeSpace(insets);
+            inactiveBorder = GUI.makeSpace(activeBorder.getBorderInsets(this));
+
+            //setOpaque(true);
+            setEditable(false);
         }
 
+        private boolean isConstructed() {
+            return activeBorder != null;
+        }
+
+        
         @Override
         public void setEnabled(boolean enabled) {
             setForeground(enabled ? Color.black : Color.gray);
         }
 
         @Override
-        public void addNotify() {
-            setEditable(false);
-            // opaque/null bg should be handle by setEditable, but some kind of crap on
-            // Leopard makes us do it here also otherwise they start with white
-            // backgrounds until repainted
-            setOpaque(false);
-            setBackground(null);
-            super.addNotify();
+        public void setEditable(boolean edit) {
+            if (isConstructed()) 
+                makeEditable(edit); // don't do this during default JTextComponent init
+            super.setEditable(edit);
         }
         
-        @Override
-        public void setEditable(boolean edit) {
-            Log.debug("SET EDITABLE " + edit + " " + row);
+        public void focusGained(FocusEvent e) {}                    
+        public void focusLost(FocusEvent e) {
+            setEditable(false);
+            setScrollOffset(0);
+            row.layer.setLabel(getText().trim());
+            // make sure if text is longer than fits into field, we scroll back to 0 at the left
+            row.layer.getMap().getUndoManager().mark();
+        }
+
+        private void makeEditable(boolean edit) {
+            if (DEBUG.Enabled) Log.debug("MAKE EDITABLE " + Util.tags(this) + " " + edit);
             if (edit) {
                 setFocusable(true);
                 setBorder(activeBorder);
                 setBackground(Color.white);
-                setOpaque(true);
+                if (!TransparentHack)
+                    setOpaque(true);
             } else {
                 setFocusable(false);
                 setBorder(inactiveBorder);
-                setBackground(null);
-                setOpaque(false);
+                if (TransparentHack) {
+                    setBackground(Transparent);
+                } else {
+                    setBackground(null);
+                    setOpaque(false);
+                }
             }
-            super.setEditable(edit);
         }
 
         public void mouseEntered(MouseEvent e) {}
@@ -462,25 +488,27 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         // hack to pass these along to the Row -- why AWT doesn't allow passthrough: will we ever know?
         public void mousePressed(MouseEvent e) {
             if (!isEditable()) {
-                Log.debug("PASSING ALONG " + e);
+                if (DEBUG.MOUSE) Log.debug(this + " passing along " + e);
                 row.mousePressed(e);
             }
         }
         public void mouseReleased(MouseEvent e) {
             if (!isEditable()) {
-                Log.debug("PASSING ALONG " + e);
+                if (DEBUG.MOUSE) Log.debug(this + " passing along " + e);
                 row.mouseReleased(e);
             }
         }
+        public void mouseDragged(MouseEvent e) {
+            if (!isEditable()) {
+                if (DEBUG.MOUSE) Log.debug(this + " passing along " + e);
+                row.mouseDragged(e);
+            }
+        }
+        public void mouseMoved(MouseEvent e) {}
         
         
-        public void focusGained(FocusEvent e) {}                    
-        public void focusLost(FocusEvent e) {
-            setEditable(false);
-            setScrollOffset(0);
-            row.layer.setLabel(getText().trim());
-            // make sure if text is longer than fits into field, we scroll back to 0 at the left
-            row.layer.getMap().getUndoManager().mark();
+        public String toString() {
+            return "TextEdit[" + row + "]";
         }
     }
 
@@ -644,7 +672,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
 
             activeIcon.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
-            activeIcon.setDisabledIcon(new GUI.EmptyIcon(activeIcon.getIcon()));
+            // todo perf: only actually need instance of each of these for all rows:
+            activeIcon.setDisabledIcon(new GUI.EmptyIcon(activeIcon.getIcon())); 
             activeIcon.setBorder(GUI.makeSpace(4,0,0,0));
 
             
@@ -775,10 +804,22 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         @Override
         public void setBackground(Color bg) {
-            if (bg == null)
+            if (bg == null) {
                 super.setBackground(defaultBackground);
-            else
+//                 if (label != null)
+//                     label.setBackground(defaultBackground);
+            } else {
                 super.setBackground(bg);
+//                 if (label != null) {
+//                     if (bg.getAlpha() != 255) {
+//                         //label.setBackground(Color.red);
+//                         label.setBackground(new Color(0,0,0,0));
+//                         label.setOpaque(false);
+//                     } else {
+//                         label.setBackground(bg);
+//                     }
+//                 }
+            }
         }
         
 
@@ -797,6 +838,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         public void mouseClicked(MouseEvent e) {}
 
         public void mousePressed(MouseEvent e) {
+
+            Log.debug(e);
             
             if (layer instanceof Layer) {
                 if (inExclusiveMode())
