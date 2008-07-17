@@ -23,7 +23,7 @@ import static tufts.vue.Resource.*;
 /**
  * Code related to identifying, creating and unpacking VUE archives.
  *
- * @version $Revision: 1.10 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.11 $ / $Date: 2008-07-17 16:47:23 $ / $Author: sfraize $ 
  */
 public class Archive
 {
@@ -667,6 +667,11 @@ public class Archive
 
                 final File sourceFile = r.getActiveDataFile();
                 final String description = "" + (DEBUG.Enabled ? r : r.getSpec());
+
+                // todo: if source file is a .vue file, could load the map (faster if is
+                // already open and we find it), then archive THAT out as a tmp .vpk file,
+                // and add that to to archive uncompressed, converting the .vue resource
+                // to a .vpk resource.
 
                 if (sourceFile == null) {
                     Log.info("skipped: " + description);
