@@ -34,10 +34,9 @@ import tufts.vue.*;
 import java.awt.geom.*;
 
 public class DoubleCircularLayout extends AbstractLayout{
- 
+   
     public final int COLUMNS = 4;
-    public  final double Q_SIZE = (double)MAP_SIZE/COLUMNS;
- 
+   
     public static final String LABEL = "Double Circular Layout";
     
     /** Creates a new instance of DoubleCircular */
@@ -46,6 +45,10 @@ public class DoubleCircularLayout extends AbstractLayout{
     }
     
     public  LWMap loadMap(String fileName,String mapName) throws Exception{
+        MAP_SIZE = 5000; 
+        double Q_SIZE = (double)MAP_SIZE/COLUMNS;
+ 
+        
         Map<String,LWNode> node1Map = new HashMap<String,LWNode>();
         Map<String,LWNode> node2Map = new HashMap<String,LWNode>();
        
@@ -76,7 +79,6 @@ public class DoubleCircularLayout extends AbstractLayout{
             } else {
                 node1 = node1Map.get(words[0]);
             }
-            //           if(!node2Map.containsKey(words[1])) {
             String label2 = words[1];
             if(words[1].length()>40)  {
                 label2 = words[1].substring(0,40)+"...";
@@ -84,18 +86,13 @@ public class DoubleCircularLayout extends AbstractLayout{
             node2 = new LWNode(label2);
             node2.setFillColor(Color.LIGHT_GRAY) ;
             map.add(node2);
-//                node2Map.put(words[1],node2);
             double angle = Math.random()*Math.PI*4;
             Point2D point = node1.getLocation();
             node2.setLocation(point.getX()+Math.cos(angle)*Q_SIZE/3,point.getY()+Math.sin(angle)*Q_SIZE/3);
             n2Counter++;
-//            } else {
-//                node2 = node2Map.get(words[1]);;
-//            }
             LWLink link = new LWLink(node1,node2);
             map.add(link);
             count++;
-          //  System.out.println("Counters "+n1Counter+"\t"+n2Counter+"\t"+count);
         }
         return map;
     }
