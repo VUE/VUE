@@ -54,7 +54,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.119 $ / $Date: 2008-07-16 15:25:08 $ / $Author: sfraize $
+ * @version $Revision: 1.120 $ / $Date: 2008-07-17 16:00:44 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -1851,7 +1851,12 @@ public class GUI
         public EmptyIcon(Icon icon) {
             this(icon.getIconWidth(), icon.getIconHeight());
         }
-        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {}
+        public void paintIcon(java.awt.Component c, java.awt.Graphics g, int x, int y) {
+            if (DEBUG.BOXES) {
+                g.setColor(Color.gray);
+                g.drawRect(x, y, width-1, height-1);
+            }
+        }
         public int getIconWidth() { return width; }
         public int getIconHeight() { return height; }
         public String toString() { return "EmptyIcon" + width + "x" + height; }
