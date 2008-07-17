@@ -42,7 +42,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.11 $ / $Date: 2008-07-17 16:02:14 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2008-07-17 16:19:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -397,16 +397,35 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             addKeyListener(new KeyAdapter() {
                     public void keyPressed(KeyEvent e) {
                         Log.debug("KEY " + e);
-                        if (e.getKeyCode() == KeyEvent.VK_ENTER)
+                        if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                             //focusLost(null); // will be called again on actual focus-loss; could call setEditable(false);
                             setEditable(false); // rely's on focusLost being generated
+                        }
                     }
                 });
 
             row.layer.addLWCListener(new LWComponent.Listener() {
                     public void LWCChanged(LWCEvent e) {
-                        setText(row.layer.getDisplayLabel());
-                        // for some reason need to do this later to make sure it works
+
+                        final String text = row.layer.getDisplayLabel();
+
+                        if (text.equals(getText())) {
+                            
+                            // be sure to skip the setText if the text is the same:
+                            // setting a text component to the same value tends to
+                            // trigger a java bug where setScrollOffset(0) stops
+                            // working, and the left-most text stays obscured if the
+                            // text is wider than the display area.
+                            
+                            return;
+                        }
+                        
+                        setText(text);
+                        setScrollOffset(0);
+                        // also do this later just in case: somes helps, tho
+                        // Vista and XP still seem to have a hard time with this bug,
+                        // but generally only if the model text is set elsewhere,
+                        // and we're just handling a value update here.
                         GUI.invokeAfterAWT(new Runnable() { public void run() {
                             setScrollOffset(0);
                         }});
