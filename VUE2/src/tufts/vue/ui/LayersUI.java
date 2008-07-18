@@ -33,7 +33,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.13 $ / $Date: 2008-07-18 17:45:02 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2008-07-18 18:22:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -48,15 +48,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     public LayersUI() {
         super("layers");
         setName("layersUI");
-        //setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        //setLayout(new GridLayout(0,1));
         setLayout(new GridBagLayout());
         VUE.addActiveListener(LWMap.class, this);
         VUE.getSelection().addListener(this);
         //VUE.addActiveListener(Layer.class, this);
         //VUE.addActiveListener(LWComponent.class, this);
-        //setFocusable(false);
-
+        setMinimumSize(new Dimension(400,120));
     }
 
     public void activeChanged(ActiveEvent e, LWMap map) {
@@ -384,7 +381,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
         }
 
+        // will property event or DockWindow API: DockWindow controls this, and only polls it on init
+        //setMinimumSize(new Dimension(400,40*rows.size())); 
         revalidate(); // needed for Tiger (uneeded on Leopard)
+        ////if (isVisible()) SwingUtilities.getWindowAncestor(this).pack();
         repaint();
     }
 
@@ -426,6 +426,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         static final Color Transparent = new Color(0,0,0,0);
 
         static final Dimension MaxSize = new Dimension(Short.MAX_VALUE, 30);
+        // we'd like to use a shorter max-size to allow more room for the layer
+        // if you drag the window very big instead of the text-box, but
+        // this doesn't work with our hack that allows the variable width
+        // info field to not throw off row-to-row column alignment.
+        //static final Dimension MaxSize = new Dimension(200, 30);
 
         // todo perf: these could be static
         final Border activeBorder;
@@ -718,7 +723,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                                          GUI.makeSpace(3,7,3,7)));
             //setBorder(GUI.makeSpace(9,7,9,7));
             //setPreferredSize(new Dimension(Short.MAX_VALUE, 48));
-            setMinimumSize(new Dimension(128, 48));
+            //setMinimumSize(new Dimension(150, 100)); // no effect
 
             //setBorder(new LineBorder(Color.black));
             
@@ -852,10 +857,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 //JPanel box = new JPanel();
                 label.setPreferredSize(null); // must remove this, or info gets squished to 0 width
                 box.add(label);
+                //box.add(Box.createHorizontalGlue());
                 box.add(info);
                 if (DEBUG.BOXES) box.setBorder(new LineBorder(Color.red));
                 box.setPreferredSize(GUI.MaxSize);
-                //box.setMaximumSize(GUI.MaxSize);
+                //box.setPreferredSize(new Dimension(200, 30));
+                //box.setMaximumSize(new Dimension(200, 30)); // apparently no use
                 
                 c.weightx = 1;
                 c.fill = GridBagConstraints.HORIZONTAL;
