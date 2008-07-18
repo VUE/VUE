@@ -27,7 +27,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.88 $ / $Date: 2008-07-16 15:19:57 $ / $Author: sfraize $
+ * @version $Revision: 1.89 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -357,6 +357,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
         if (c == null) {
             tufts.Util.printStackTrace("can't add null to a selection");
+            return false;
+        }
+
+        if (c instanceof LWMap.Layer) {
+            Util.printStackTrace("not allowed to select " + c);
             return false;
         }
 

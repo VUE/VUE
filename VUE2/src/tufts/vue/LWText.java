@@ -29,6 +29,7 @@ import com.lightdev.app.shtm.SHTMLDocument;
 import com.lightdev.app.shtm.VueStyleSheet;
 
 import tufts.Util;
+import static tufts.Util.grow;
 
 
 public class LWText extends LWComponent {

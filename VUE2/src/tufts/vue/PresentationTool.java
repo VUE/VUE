@@ -1528,11 +1528,11 @@ public class PresentationTool extends VueTool
 
             if (onMapNode instanceof LWLink) {
                 reticle = onMapNode.getFocalBounds();
-                LWComponent.grow(reticle, 2);
+                Util.grow(reticle, 2);
             } else {
                 if (entry != null) {
                     reticle = onMapNode.getPaintBounds();
-                    LWComponent.grow(reticle, 2);
+                    Util.grow(reticle, 2);
                     if (onMapNode.hasEntries() && entry.pathway.isShowingSlides()) {
                         // include room for the slide icon pathway border stroke:
                         reticle.width += 5;
@@ -1540,7 +1540,7 @@ public class PresentationTool extends VueTool
                     }
                 } else {
                     reticle = onMapNode.getMapBounds();
-                    LWComponent.grow(reticle, 3);
+                    Util.grow(reticle, 3);
                 }
                 
                 //reticle = standout.getPaintBounds();

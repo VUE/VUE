@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.205 $ / $Date: 2008-07-16 15:18:24 $ / $Author: sfraize $
+ * @version $Revision: 1.206 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -765,6 +765,14 @@ public class LWMap extends LWContainer
         public boolean supportsMultiSelection() {
             return false;
         }
+
+        /** @return false */
+        @Override
+        protected boolean selectedOrParent() {
+            // even if a layer is selected, it's not part of the a "normal" hierarchical selection
+            return false;
+        }
+        
         
         /** @return false -- is editable, but not on the map */
         public boolean supportsUserLabel() {
@@ -776,22 +784,52 @@ public class LWMap extends LWContainer
         @Override
         public String getComponentTypeLabel() { return "Layer"; }
 
+//         @Override
+//         protected boolean intersectsImpl(Rectangle2D mapRect) {
+//             // probably better to change LWComponent.requiresPaint
+//             // such that there another API call to check along w/clipOptimized
+//             // so we can skip making the intersects call entirely
+//             // TODO: we can optimize this by having layers track their bounds,
+//             // which they currently don't
+//             return true;
+//         }
+
         @Override
         protected boolean intersectsImpl(Rectangle2D mapRect) {
-            // probably better to change LWComponent.requiresPaint
-            // such that there another API call to check along w/clipOptimized
-            // so we can skip making the intersects call entirely
+            // must always return FALSE otherwise can be picked via a region pick
+            return false;
+        }
+        @Override
+        public boolean requiresPaint(DrawContext dc)
+        {
+            // this is overkill for now: layers don't track their own bounds
+            return isVisible();
+        }
+        
 
-            // TODO: we can optimize this by having layers track their bounds,
-            // which they currently don't
-            
-            return true;
+        @Override
+        protected Rectangle2D.Float getZeroBounds() {
+            Util.printStackTrace(this + "; Layer getZeroBounds; always empty");
+            return EmptyBounds;
         }
 
         private void add(LWComponent c) {
             if (mChildren == NO_CHILDREN)
                 mChildren = new ArrayList();
             mChildren.add(c);
+        }
+
+        @Override
+        protected void setAsChildAndLocalize(LWComponent c) {
+            if (c.getParent() instanceof Layer) {
+                // skip localization -- un-needed as layers share
+                // same coordinate space
+                if (DEBUG.Enabled && c.getMap() != getMap())
+                    Util.printStackTrace("cross-map reparenting! " + c.getMap() + " -> " + getMap());
+                c.setParent(this);
+            } else {
+                super.setAsChildAndLocalize(c);
+            }
         }
         
         
@@ -805,7 +843,7 @@ public class LWMap extends LWContainer
         protected void drawImpl(DrawContext dc) {
             super.drawImpl(dc);
             
-            if (isLocked() && getParent().isOnBottom(this)) {
+            if (isLocked() && dc.focal != this && getParent().isOnBottom(this)) {
                 
                 // this a better (easier to read) and faster method of fading out a
                 // layer, but it only works on the bottom layer.  To make work on other
@@ -851,15 +889,12 @@ public class LWMap extends LWContainer
         @Override
         public String toString() {
             try {
-                return
-                    "Layer[<"
-                    + getParent().indexOf(this)
-                    + ">"
-                    + " in " + getParent()
-                    + " n=" + String.format("%2d", numChildren())
-                    + " (" + getLabel() + ")"
-                    + "]"
-                    ;
+                return String.format("Layer[%s<%d> \"%s\" %d]",
+                                     getParent().getDisplayLabel(),
+                                     getParent().indexOf(this),
+                                     getDisplayLabel(),
+                                     numChildren()
+                                     );
             } catch (Throwable t) {
                 return super.toString();
             }
@@ -979,7 +1014,7 @@ public class LWMap extends LWContainer
         
         layer0 = new Layer("Background");
         layer0.setParent(this);
-        layer0.setVisible(false);
+        //layer0.setVisible(false);
         
         layer1 = new Layer("Default");
         layer1.setParent(this);
@@ -989,7 +1024,7 @@ public class LWMap extends LWContainer
         
         layer2 = new Layer("Notations");
         layer2.setParent(this);
-        layer2.setVisible(false);
+        //layer2.setVisible(false);
         
         mChildren = new ArrayList();
         mChildren.add(layer0);
@@ -2007,7 +2042,7 @@ public class LWMap extends LWContainer
 
     }
 
-    private static void accruePaintBounds(Iterable<LWComponent> iterable, Rectangle2D.Float rect)
+    public static void accruePaintBounds(Iterable<LWComponent> iterable, Rectangle2D.Float rect)
     {
         for (LWComponent c : iterable) {
             if (c.isDrawn()) {

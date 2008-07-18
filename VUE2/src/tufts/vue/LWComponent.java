@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.422 $ / $Date: 2008-07-16 15:24:33 $ / $Author: sfraize $
+ * @version $Revision: 1.423 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -5905,7 +5905,7 @@ u                    getSlot(c).setFromString((String)value);
         return this.selected;
     }
 
-    protected final boolean selectedOrParent() {
+    protected boolean selectedOrParent() {
         return parent == null ? isSelected() : (parent.selectedOrParent() | isSelected());
     }
     
@@ -6290,21 +6290,6 @@ u                    getSlot(c).setFromString((String)value);
         return createImage(alpha, maxSize, null, 1.0);
     }
 
-    protected final static Rectangle2D.Float grow(Rectangle2D.Float r, int size) {
-        r.x -= size;
-        r.y -= size;
-        r.width += size * 2;
-        r.height += size * 2;
-        return r;
-    }
-    
-    protected final static Rectangle2D.Float grow(Rectangle2D.Float r, float size) {
-        r.x -= size;
-        r.y -= size;
-        r.width += size * 2;
-        r.height += size * 2;
-        return r;
-    }
 
     /** @return the map bounds to use for rendering when generating an image of this LWComponent */
     protected Rectangle2D.Float getImageBounds() {

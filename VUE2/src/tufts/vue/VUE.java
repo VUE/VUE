@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.570 $ / $Date: 2008-07-17 16:00:30 $ / $Author: sfraize $ 
+ * @version $Revision: 1.571 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -1378,7 +1378,7 @@ public class VUE
         if (DEBUG.Enabled || VUE3_LAYERS) {
             layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
             //layersDock.setFocusableWindowState(false);
-            layersDock.setSize(300,200);
+            layersDock.setSize(375,200);
         }
         
         //-----------------------------------------------------------------------------

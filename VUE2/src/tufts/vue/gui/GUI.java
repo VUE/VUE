@@ -54,7 +54,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.120 $ / $Date: 2008-07-17 16:00:44 $ / $Author: sfraize $
+ * @version $Revision: 1.121 $ / $Date: 2008-07-18 17:45:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -116,6 +116,11 @@ public class GUI
     public static Insets GInsets; // todo: this should be at least package private
     public static int GScreenWidth;
     public static int GScreenHeight;
+
+    public static final Dimension MaxWidth = new Dimension(Short.MAX_VALUE, 1);
+    public static final Dimension MaxHeight = new Dimension(1, Short.MAX_VALUE);
+    public static final Dimension MaxSize = new Dimension(Short.MAX_VALUE, Short.MAX_VALUE);
+    public static final Dimension ZeroSize = new Dimension(0,0);
 
     private static Window FullScreenWindow;
 

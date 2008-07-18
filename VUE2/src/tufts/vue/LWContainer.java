@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.142 $ / $Date: 2008-07-16 15:22:34 $ / $Author: sfraize $
+ * @version $Revision: 1.143 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -426,9 +426,34 @@ public abstract class LWContainer extends LWComponent
         // in an indeterminate state.
         //----------------------------------------------------------------------------------------
 
+        setAsChildAndLocalize(c);
+
+//         final double newParentMapScale = getMapScale();
+//         if (oldParentMapScale != newParentMapScale) {
+//             notifyMapScaleChanged(oldParentMapScale, newParentMapScale);
+//         }
+
+        //c.reparentNotify(this);
+        ensureID(c);
+
+        c.notifyHierarchyChanged();
+        
+    }
+
+    protected void setAsChildAndLocalize(LWComponent c) {
+        
         final LWContainer oldParent = c.getParent();
 
+        //----------------------------------------------------------------------------------------
+        // Delicately reparent, taking care that the model does not generate events while
+        // in an indeterminate state.
+        //----------------------------------------------------------------------------------------
+        
         if (oldParent != null && !isManagingChildLocations()) {
+
+            // If we're managing child locations (e.g., and LWNode), no need
+            // to localize, as the node will have it's position explicitly assigned
+            // by the parent when it lays itself out
         
             // Save current mapX / mapY before setting the parent (which would change the reported mapX / mapY)
             final float oldMapX = c.getMapX();
@@ -456,16 +481,6 @@ public abstract class LWContainer extends LWComponent
             c.setParent(this);
             
         }
-
-//         final double newParentMapScale = getMapScale();
-//         if (oldParentMapScale != newParentMapScale) {
-//             notifyMapScaleChanged(oldParentMapScale, newParentMapScale);
-//         }
-
-        //c.reparentNotify(this);
-        ensureID(c);
-
-        c.notifyHierarchyChanged();
         
     }
 

@@ -17,6 +17,7 @@ package tufts.vue;
 
 import tufts.Util;
 import static tufts.Util.fmt;
+import static tufts.Util.grow;
 
 import java.util.*;
 
@@ -42,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.189 $ / $Date: 2008-07-14 17:12:27 $ / $Author: sfraize $
+ * @version $Revision: 1.190 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable

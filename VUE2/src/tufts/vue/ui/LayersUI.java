@@ -15,21 +15,10 @@
 
 package tufts.vue.ui;
 
-import tufts.vue.DEBUG;
-import tufts.vue.VUE;
-import tufts.vue.LWComponent;
-import tufts.vue.LWComponent.HideCause;
-import tufts.vue.LWContainer;
-import tufts.vue.LWMap;
-import tufts.vue.LWMap.Layer;
-import tufts.vue.LWCEvent;
-import tufts.vue.LWKey;
-import tufts.vue.ActiveInstance;
+import tufts.vue.*;
 import tufts.vue.ActiveEvent;
-import tufts.vue.VueConstants;
-import tufts.vue.DrawContext;
-import tufts.vue.VueResources;
-import tufts.vue.LWSelection;
+import tufts.vue.LWComponent.HideCause;
+import tufts.vue.LWMap.Layer;
 import tufts.vue.gui.*;
 
 import tufts.Util;
@@ -37,12 +26,14 @@ import tufts.Util;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import javax.swing.*;
 import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.12 $ / $Date: 2008-07-17 16:19:10 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2008-07-18 17:45:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
@@ -259,19 +250,81 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
     private void enableForSelection(LWSelection s) {
 
-        final boolean enableAny = s.size() > 0 && !(s.only() instanceof Layer);
-        final Collection parents = s.getParents();
-        
-        for (Row r : mRows) {
-            if (enableAny && (parents.size() > 1 || !s.getParents().contains(r.layer)))
-                r.grab.setEnabled(true);
-            else
-                r.grab.setEnabled(false);
+        final Collection<LWContainer> parents = s.getParents();
+        //final LWContainer parent0 = parents.isEmpty() ? null : parents.iterator().next();
+
+        boolean disable =
+            s.size() < 1
+            || s.only() instanceof Layer;
+
+        // todo: to be more precise, could always accumme related parets
+
+        if (!disable) {
+            boolean canExtract = false;
+            for (LWContainer parent : parents) {
+                if (isExtractableParent(parent)) {
+                    canExtract = true;
+                    break;
+                }
+            }
+            disable = !canExtract;
         }
         
+        for (Row row : mRows) {
+            if (disable)
+                row.grab.setEnabled(false);
+            else if (parents.size() == 1 && parents.contains(row.layer))
+                row.grab.setEnabled(false);
+            else 
+                row.grab.setEnabled(true);
+        }
+    }
+
+    private static boolean isExtractableParent(LWContainer parent) {
+
+        return parent instanceof Layer;
+        
+//         if (parent instanceof LWGroup)
+//             return false;
+//         else if (parent instanceof LWNode)
+//             return false;
+//         else if (parent instanceof LWSlide)
+//             return false;
+//         else
+//             return true;
+    }
+
+    private static boolean layerCanGrab(Layer layer, LWComponent c) {
+
+        final LWContainer parent = c.getParent();
+
+        if (parent == layer)
+            return false;
+        else
+            return isExtractableParent(parent);
         
     }
     
+    private static void grabFromSelection(Layer layer) {
+        final LWSelection selection = VUE.getSelection();
+        
+        final java.util.List grabbing = new ArrayList();
+        
+        for (LWComponent c : selection) {
+            if (layerCanGrab(layer, c))
+                grabbing.add(c);
+        }
+        
+        layer.addChildren(grabbing);
+        
+    }
+    
+    
+        
+
+
+
+
     private void loadLayers(final LWMap map) {
 
         mRows.clear();
@@ -348,31 +401,31 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     }
 
     private boolean inExclusiveMode() {
-        return getExclusiveRow() != null;
+        return fetchExclusiveRow() != null;
     }
 
-    private Row getExclusiveRow() {
+    private Row fetchExclusiveRow() {
         return mMap.getClientProperty(Row.class, "exclusive");
     }
-    private void setExclusiveRow(Row row) {
+    private void storeExclusiveRow(Row row) {
         mMap.setClientProperty(Row.class, "exclusive", row);
     }
 
-    private Layer getPreExclusiveLayer() {
+    private Layer fetchPreExclusiveLayer() {
         return mMap.getClientProperty(Layer.class, "pre-exclusive");
     }
-    private void setPreExclusiveLayer(Layer layer) {
+    private void storePreExclusiveLayer(Layer layer) {
         mMap.setClientProperty(Layer.class, "pre-exclusive", layer);
     }
     
 
-    private static class TextEdit extends JTextField implements FocusListener, MouseListener, MouseMotionListener {
+    private static class TextEdit extends JTextField implements FocusListener {
 
         static final boolean TransparentHack = Util.isMacLeopard();
 
         static final Color Transparent = new Color(0,0,0,0);
-        //static final Color Transparent = TransparentHack ? new Color(0,0,0,0) : null;
-        //static final Color Transparent = Color.red;
+
+        static final Dimension MaxSize = new Dimension(Short.MAX_VALUE, 30);
 
         // todo perf: these could be static
         final Border activeBorder;
@@ -384,19 +437,18 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             this.row = row;
 
             setDragEnabled(false);
-            addFocusListener(this);
+            setPreferredSize(MaxSize);
+            setMaximumSize(MaxSize);
             
-            setPreferredSize(new Dimension(Short.MAX_VALUE, 24));
-            setMaximumSize(new Dimension(Short.MAX_VALUE, 24));
-
             setText(row.layer.getDisplayLabel());
 
-            addMouseListener(this);
-            addMouseMotionListener(this);
+            enableEvents(AWTEvent.MOUSE_EVENT_MASK);
+            enableEvents(AWTEvent.MOUSE_MOTION_EVENT_MASK);
 
+            addFocusListener(this);
             addKeyListener(new KeyAdapter() {
                     public void keyPressed(KeyEvent e) {
-                        Log.debug("KEY " + e);
+                        if (DEBUG.KEYS) Log.debug("KEY " + e);
                         if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                             //focusLost(null); // will be called again on actual focus-loss; could call setEditable(false);
                             setEditable(false); // rely's on focusLost being generated
@@ -449,7 +501,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         private boolean isConstructed() {
             return activeBorder != null;
         }
-
         
         @Override
         public void setEnabled(boolean enabled) {
@@ -492,44 +543,145 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
         }
 
-        public void mouseEntered(MouseEvent e) {}
-        public void mouseExited(MouseEvent e) {}
+//         @Override
+//         public void addNotify() {
+//             // horizontal mouse-draggs across a non-edit mode label draw's some selection or
+//             // repaints chars with semi-transpareng BG, leading to blocky artifacts -- if this is
+//             // caret/hilighter, we should be able to turn it off or change the color, but having
+//             // had no success in that, it may just be a repaint issue much harder to fix (e.g.,
+//             // sometimes the text itself appears to "bolden" as it repaints)
+//             super.addNotify();
+//             //getCaret().setVisible(false);
+//             //getCaret().setSelectionVisible(false);
+//             setSelectionColor(Color.red);
+//             setHighlighter(null);
+//             //setCaret(null); // we'll get NPE
+//         }
         
-        public void mouseClicked(MouseEvent e)
+        @Override
+        protected void processEvent(AWTEvent e) {
+
+            // this form of delegation is much simpler than passing everything through
+            // our own mouse / mouse motion listeners, and has the added benefit of
+            // preventing horizontal cross-text drags from causing the blocky
+            // character-level repaint bug (when the background is semi-transparent)
+            
+            if (!isEditable() && e instanceof MouseEvent) {
+                if (e.getID() == MouseEvent.MOUSE_CLICKED) {
+                    mouseClicked((MouseEvent)e);
+                } else {
+                    // This allows mouse press/release/drag events to 
+                    // be passed on to the Row as if they happened there.
+                    // The coordinate system will be different, but
+                    // Row.mouseDragged really only needs the relatve
+                    // event-to-event deltas.
+                    row.processEventUp(e);
+                }
+                
+            } else
+                super.processEvent(e);
+        }
+
+        private void mouseClicked(MouseEvent e)
         {
             if (GUI.isDoubleClick(e)) {
-                Log.debug("DOUBLE CLICK " + this);
+                if (DEBUG.MOUSE) Log.debug("DOUBLE CLICK " + this);
                 setEditable(true);
                 requestFocus();
             }
         }
 
-        // hack to pass these along to the Row -- why AWT doesn't allow passthrough: will we ever know?
-        public void mousePressed(MouseEvent e) {
-            if (!isEditable()) {
-                if (DEBUG.MOUSE) Log.debug(this + " passing along " + e);
-                row.mousePressed(e);
-            }
-        }
-        public void mouseReleased(MouseEvent e) {
-            if (!isEditable()) {
-                if (DEBUG.MOUSE) Log.debug(this + " passing along " + e);
-                row.mouseReleased(e);
-            }
-        }
-        public void mouseDragged(MouseEvent e) {
-            if (!isEditable()) {
-                if (DEBUG.MOUSE) Log.debug(this + " passing along " + e);
-                row.mouseDragged(e);
-            }
-        }
-        public void mouseMoved(MouseEvent e) {}
-        
-        
+
         public String toString() {
             return "TextEdit[" + row + "]";
         }
     }
+
+    private static class Preview extends JPanel {
+
+        final LWComponent layer;
+
+        Preview(LWComponent c) {
+            layer = c;
+        }
+        
+        @Override
+        public void paintComponent(Graphics _g) {
+
+            final Graphics2D g = (Graphics2D) _g;
+                        
+            //System.out.println("bounds: " + Util.fmt(getBounds()));
+            //System.out.println("  clip: " + Util.fmt(g.getClipRect()));
+            
+//             if (layer.isVisible()) {
+//                 //g.setColor(Color.yellow);
+//                 g.setColor(layer.getMap().getFillColor());
+//                 ((Graphics2D)g).fill(g.getClipRect());
+//             }
+                        
+            final Rectangle frame = getBounds();
+
+            frame.x = frame.y = 0; // our GC is already offset to Component.getX/getY
+            frame.grow(-1, -1);
+            //frame.grow(-1, -4); // leave a vertical gap, and a bit of horiz room to prevent clipping at right
+                        
+            final Point2D.Float offset = new Point2D.Float();
+            final Size size = new Size(frame);
+
+            final Rectangle2D.Float allLayerBounds = new Rectangle2D.Float();
+
+            // todo: would be nice if layers cached all their children bounds
+            // -- LWMap should be using code for same
+            for (LWComponent l : layer.getMap().getChildren())
+                LWMap.accruePaintBounds(l.getChildren(), allLayerBounds);
+                        
+            final double zoom = tufts.vue.ZoomTool
+                .computeZoomFit(size,
+                                0,
+                                allLayerBounds,
+                                offset);
+                        
+            //final DrawContext dc = new DrawContext(DEBUG.BOXES ? g.create() : g, layer);
+            final DrawContext dc = new DrawContext(g.create(), layer);
+            dc.setAntiAlias(true);
+            dc.setPrioritizeSpeed(true);
+            dc.setDraftQuality(true);
+            dc.setInteractive(false);
+                        
+            dc.g.translate(-offset.x + frame.x, -offset.y + frame.y);
+            dc.g.scale(zoom, zoom);
+            dc.setClipOptimized(false);
+            layer.drawZero(dc);
+
+            if (DEBUG.BOXES) {
+
+                // Would be nice if computeZoomFit could also set for us a used
+                // viewport size, so we wouldn't have to draw this in the scaled
+                // down GC, and it would be easier to create insets.
+                dc.setAbsoluteStroke(1);
+                //dc.g.setColor(Color.blue);
+                //dc.g.draw(allLayerBounds);
+                dc.g.setColor(Color.red);
+                //Util.grow(allLayerBounds, 5 / (float) zoom);
+                //Util.grow(allLayerBounds, 5);
+                //allLayerBounds.width -= 1/zoom;
+                dc.g.draw(allLayerBounds);
+            }
+                        
+
+            if (true||DEBUG.BOXES) {
+                g.setColor(Color.lightGray);
+                Rectangle r = getBounds();
+                g.drawRect(0,0, r.width-1, r.height-1);
+            }
+
+            //g.draw(new Rectangle2D.Float(offset.x,offset.y, allLayerBounds.width, allLayerBounds.height));
+                        
+            //((Graphics2D)g).draw(frame);
+            //((LWContainer)layer).drawChildren(dc);
+        }
+    }
+
 
     private class Row extends JPanel implements javax.swing.event.MouseInputListener, Runnable {
 
@@ -557,10 +709,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         {
             this.layer = layer;
             label = new TextEdit(this);
-            setName("row:" + layer);
+            setName(layer.toString());
             //super(BoxLayout.X_AXIS);
             //setOpaque(true);
-            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            //setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
+            setLayout(new GridBagLayout());
             setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
                                          GUI.makeSpace(3,7,3,7)));
             //setBorder(GUI.makeSpace(9,7,9,7));
@@ -571,6 +724,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             addMouseListener(this);
             addMouseMotionListener(this);
+            //label.addMouseListener(this);
+            //label.addMouseMotionListener(this);
             
             if (layer instanceof Layer)
                 defaultBackground = null;
@@ -621,45 +776,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 grab.addActionListener(new ActionListener() {
                         public void actionPerformed(ActionEvent e) {
                             if (VUE.getSelection().size() > 0) {
-                                layer.addChildren(VUE.getSelection());
+                                grabFromSelection((Layer)layer);
                                 VUE.getUndoManager().mark("Move To Layer " + Util.quote(layer.getLabel()));
                             }
                         }});
             }
-
-            preview = null;
-//             preview = new JPanel() {
-//                     @Override
-//                     public void paintComponent(Graphics g) {
-//                         System.out.println("bounds: " + Util.fmt(getBounds()));
-//                         System.out.println("  clip: " + Util.fmt(g.getClipRect()));
-//                         g.setColor(Color.lightGray);
-//                         ((Graphics2D)g).fill(g.getClipRect());
-//                         //LWComponent focal = layer;
-//                         LWComponent focal = layer.getMap();
-//                         DrawContext dc = new DrawContext(g, focal);
-//                         //focal.drawFit(dc, getBounds(), 0);
-//                         //focal.drawFit(dc, new java.awt.geom.Rectangle2D.Float(0,0,getWidth()-2,getHeight()-2), 0);
-//                         focal.drawFit(dc, g.getClipRect(), 0);
-//                         //layer.drawFit(dc, g.getClipRect(), 0);
-//                         //layer.drawFit(dc, getSize(), 0);
-//                     }
-//                 };
-
-//             preview.setOpaque(true);
-//             //preview.setSize(32,32);
-//             //preview.setBorder(new LineBorder(Color.darkGray));
-
-            if (false && DEBUG.Enabled)
-                layer.addLWCListener(new LWComponent.Listener() {
-                        public void LWCChanged(LWCEvent e) {
-                            // this is heavy duty!  Would be nice if UserActionCompleted
-                            // came through the layer, and we could listen for that,
-                            // but it comes through the map
-                            preview.repaint();
-                        }});
-            
-            
 
             LWComponent.Listener l;
             
@@ -671,7 +792,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //             l.LWCChanged(null); // do the initial set
 
 
-            final JLabel info = new JLabel();
+            final JLabel info = new JLabel()
+                //{ public Dimension getMinimumSize() { return GUI.ZeroSize; } }
+                ;
+            
             if (layer.supportsChildren()) {
                 layer.addLWCListener(l = new LWComponent.Listener() {
                         public void LWCChanged(LWCEvent e) {
@@ -703,61 +827,147 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             //final JLabel info = new JLabel("(" + layer.numChildren() + " items)");
             
+            final GridBagConstraints c = new GridBagConstraints();
+            c.weighty = 1; // 1 has all expanding to fill vertical, 0 leaves all at min height
+            c.anchor = GridBagConstraints.WEST;
             
-            add(exclusive);
+            add(exclusive, c);
 
-            add(Box.createHorizontalStrut(5));
-            add(visible);
+            //add(Box.createHorizontalStrut(5), c);
+            add(visible, c);
+            
+            info.setHorizontalAlignment(SwingConstants.RIGHT);
 
-            add(Box.createHorizontalStrut(4));
-            add(label);
+            if (true) {
+
+                // this magic, setting min-size to zero on the info text to 0, and wrapping
+                // it in a container with the label, allows it fill left, shriking the
+                // edit label if need-be, but never expanding the size of the two
+                // components togehter -- that way, all label-edit + info-text groups
+                // in all rows will always have the same width, keeping everything
+                // in alignment
+                
+                info.setMinimumSize(GUI.ZeroSize);
+                Box box = new Box(BoxLayout.X_AXIS);
+                //JPanel box = new JPanel();
+                label.setPreferredSize(null); // must remove this, or info gets squished to 0 width
+                box.add(label);
+                box.add(info);
+                if (DEBUG.BOXES) box.setBorder(new LineBorder(Color.red));
+                box.setPreferredSize(GUI.MaxSize);
+                //box.setMaximumSize(GUI.MaxSize);
+                
+                c.weightx = 1;
+                c.fill = GridBagConstraints.HORIZONTAL;
+                c.insets.right = 4;
+                add(box, c);
+                //c.insets.right = 0;
+                c.weightx = 0;
+                c.fill = GridBagConstraints.NONE;
+                
+            } else {
+
+                c.weightx = 1;
+                c.fill = GridBagConstraints.HORIZONTAL;
+                add(label, c);
+                c.fill = GridBagConstraints.NONE;
+                c.weightx = 0;
+                add(info, c);
+
+//                 add(Box.createHorizontalStrut(1));
+//                 add(label);
             
-            add(Box.createHorizontalGlue());
+//                 //add(Box.createHorizontalGlue());
             
-            add(Box.createHorizontalStrut(2));
-            add(info);
-            
-            add(Box.createHorizontalStrut(5));
-            add(activeIcon);
-            
-            if (preview != null) {
-                add(Box.createHorizontalStrut(7));
-                add(preview);
+//                 add(Box.createHorizontalStrut(1));
+//                 //info.setBorder(new LineBorder(Color.red));
+//                 //info.setPreferredSize(new Dimension(70,Short.MAX_VALUE));
+//                 //info.setMinimumSize(new Dimension(60,0));
+//                 add(info);
             }
             
-            add(Box.createHorizontalStrut(5));
-            add(locked);
+            //add(Box.createHorizontalGlue(), c);
+            
+            preview = new Preview(layer);
+            //preview.setMinimumSize(new Dimension(128, 64));
+            
+            //preview.setPreferredSize(GUI.MaxSize);
+            //preview.setSize(256,128);
+            //preview.setPreferredSize(new Dimension(256, Short.MAX_VALUE));
+            //preview.setMaximumSize(GUI.MaxSize);
 
-            add(Box.createHorizontalStrut(5));
+            if (false && DEBUG.Enabled)
+                layer.addLWCListener(new LWComponent.Listener() {
+                        public void LWCChanged(LWCEvent e) {
+                            // this is heavy duty!  Would be nice if UserActionCompleted
+                            // came through the layer, and we could listen for that,
+                            // but it comes through the map
+                            preview.repaint();
+                        }});
+            
+            
+
+            //add(Box.createHorizontalGlue());
+            
+            if (preview != null) {
+                c.weightx = 1;
+                c.fill = GridBagConstraints.BOTH;
+                //c.fill = GridBagConstraints.VERTICAL;
+                //add(Box.createHorizontalStrut(7));
+                add(preview, c);
+                c.weightx = 0;
+                c.fill = GridBagConstraints.NONE;
+                
+            }
+            
+            //add(Box.createHorizontalStrut(5));
+            add(activeIcon, c);
+            
+            //add(Box.createHorizontalStrut(5));
+            add(locked, c);
+
+            //add(Box.createHorizontalStrut(5));
             if (layer.supportsChildren())
-                add(grab);
+                add(grab, c);
             
             
         }
 
+        private void add(Component comp, GridBagConstraints c) {
+            //super.add(comp);
+            super.add(comp, c);
+            //c.gridx++;
+        }
+
+        private void processEventUp(AWTEvent e) {
+            super.processEvent(e);
+        }
 
         private void setExclusive(final boolean excluding) {
 
-            Row exclusiveRow = getExclusiveRow();
+            Row exclusiveRow = fetchExclusiveRow();
 
-            //Log.debug("SET-EXCLUSIVE " + this + " = " + excluding + "; nowExclusive=" + exclusiveRow);
+            Log.debug("SET-EXCLUSIVE " + this + " = " + excluding + "; nowExclusive=" + exclusiveRow);
 
             if (excluding && exclusiveRow == this)
                 return;
 
+            final boolean wasExcluding = exclusiveRow != null;
+
             exclusiveRow = this;
 
             if (excluding) {
-                setPreExclusiveLayer(getActiveLayer());
-                setExclusiveRow(this);
+                if (!wasExcluding)
+                    storePreExclusiveLayer(getActiveLayer());
+                storeExclusiveRow(this);
                 if (layer instanceof Layer)
                     setActiveLayer((Layer) layer);
             } else if (exclusiveRow == this) {
-                setExclusiveRow(null);
-                final Layer activePreExclusive = getPreExclusiveLayer();
+                storeExclusiveRow(null);
+                final Layer activePreExclusive = fetchPreExclusiveLayer();
                 if (activePreExclusive != layer)
                     setActiveLayer(activePreExclusive);
-                setPreExclusiveLayer(null);
+                storePreExclusiveLayer(null);
             }
 
             exclusive.setSelected(excluding);
@@ -773,7 +983,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             layer.clearHidden(HideCause.LAYER_EXCLUSIVE);
 
             if (excluding) {
-                //if (DEBUG.Enabled) Log.debug("EXCLUSIVE: " + this);
+                if (DEBUG.Enabled) Log.debug("EXCLUSIVE: " + this);
                 if (layer.isHidden(HideCause.DEFAULT)) {
                     wasHiddenWhenMadeExclusive = true;
                     layer.clearHidden(HideCause.DEFAULT);
@@ -783,7 +993,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     layer.setLocked(false);
                 }
             } else {
-                //if (DEBUG.Enabled) Log.debug("RELEASING: " + this);
+                if (DEBUG.Enabled) Log.debug("RELEASING: " + this);
                 if (wasHiddenWhenMadeExclusive)
                     layer.setHidden(HideCause.DEFAULT);
                 if (wasLockedWhenMadeExclusive)
@@ -809,6 +1019,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
 
             indicateActiveLayers(null);
+            //tufts.vue.ZoomTool.setZoomFit();
         }
         
 
@@ -865,8 +1076,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     setExclusive(true);
                 else if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
                     setActiveLayer((Layer) layer, UPDATE);
-                if (VUE.getSelection().isEmpty() || VUE.getSelection().only() instanceof Layer)
-                    VUE.getSelection().setTo(layer);
+//                 if (VUE.getSelection().isEmpty() || VUE.getSelection().only() instanceof Layer)
+//                     VUE.getSelection().setTo(layer);
             } else {
                 // this case for debug/test only: we shouldn't normally
                 // see regular objects a the top level of the map anymore
@@ -1026,12 +1237,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         public String toString() {
             return "Row[" + mRows.indexOf(this) + "; " + layer + "]";
         }
-        
     }
+}
+        
     
 
 
-}
+
+    
 //         addKeyListener(new KeyAdapter() {
 //                 public void keyPressed(KeyEvent e) {
 //                     // Why aren't the mark's working?
