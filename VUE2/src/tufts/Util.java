@@ -186,6 +186,10 @@ public class Util
         return OSisMacLeopard;
     }
        
+    public static boolean isMacTiger() {
+        return MacPlatform && !OSisMacLeopard;
+    }
+       
 
     /** @return true if we're running on a version Microsoft Windows */
     public static boolean isWindowsPlatform() {
@@ -1488,6 +1492,24 @@ public class Util
         // We'll get this if /System/Library/Java isn't in the classpath
         System.err.println(e + ": Not Mac OS X Platform, or VUE-MacOSX.jar and/or /System/Library/Java not in classpath");
     }
+
+
+    public static Rectangle2D.Float grow(Rectangle2D.Float r, int size) {
+        r.x -= size;
+        r.y -= size;
+        r.width += size * 2;
+        r.height += size * 2;
+        return r;
+    }
+    
+    public static Rectangle2D.Float grow(Rectangle2D.Float r, float size) {
+        r.x -= size;
+        r.y -= size;
+        r.width += size * 2;
+        r.height += size * 2;
+        return r;
+    }
+    
 
 
     public static String fmt(final Shape shape) {
