@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.206 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.207 $ / $Date: 2008-07-19 19:18:37 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -761,10 +761,10 @@ public class LWMap extends LWContainer
         @Override public String getXMLstrokeColor() { return null; }
         @Override public String getXMLfont() { return null; }
 
-        /** @return false */
-        public boolean supportsMultiSelection() {
-            return false;
-        }
+//         /** @return false */
+//         public boolean supportsMultiSelection() {
+//             return false;
+//         }
 
         /** @return false */
         @Override
@@ -882,7 +882,8 @@ public class LWMap extends LWContainer
         public Layer duplicate(CopyContext cc)
         {
             LWComponent c = super.duplicate(cc);
-            c.setLabel(getLabel() + " Copy");
+            if (hasLabel())
+                c.setLabel(getLabel() + " Copy");
             return (Layer) c;
         }
         
