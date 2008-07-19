@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.564 $ / $Date: 2008-07-16 15:20:57 $ / $Author: sfraize $ 
+ * @version $Revision: 1.565 $ / $Date: 2008-07-19 20:08:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6454,7 +6454,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
                     //i = movingComponent.getAllConnectedComponents().iterator();
                     if (movingComponent != null)
-                        i = movingComponent.getAllLinks().iterator();
+                        i = movingComponent.getLinkChain().iterator();
+                    //i = movingComponent.getAllLinks().iterator();
                     // actually, we probably do NOT need to add the nodes at the other
                     // ends of the links anymore sinde the link always connects at the
                     // edge of the node...
