@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.190 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.191 $ / $Date: 2008-07-19 21:11:21 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -633,72 +633,38 @@ public class LWLink extends LWComponent
     }
 
     
-
-    
-    
-    
     public Collection<LWComponent> getEndpointChain(LWComponent endpoint) {
         HashSet set = new HashSet();
         set.add(this);
         // pre-add us to the set, so we can't back up through our other endpoint
         return endpoint.getLinkChain(set);
     }
-
     
     /**
-     * @return all linked LWComponents: for a link, this is usually just it's endpoints,
+     * @return all linked components: for a link, this is usually just it's endpoints,
      *  but like any other LWComponent, it will also include any other links that connect
-     *  directly to us (IS EFFECTED BY PRUNING)
+     *  directly to us
+     *
+     * The includusion if it's enpodints is effected by pruning -- pruned enpoints
+     * will not include their nodes.
      */
-    public Collection<LWComponent> getLinked(Collection bag) {
+    @Override
+    public Collection<? extends LWComponent> getConnected() {
+
+        final List links = getLinks();
+        final Collection bag = new HashSet(links.size() + 2); // common case size
+
         if (head.hasNode() && !head.isPruned())
             bag.add(head.node);
         if (tail.hasNode() && !tail.isPruned())
             bag.add(tail.node);
-        return super.getLinked(bag);
-    }
 
-    public Collection<LWComponent> getLinked() {
-        return getLinked(new ArrayList(getLinks().size() + 2));
-    }
-
-    
-
-    /* overrides superclass as optimization 
-    public Collection<LWComponent> getLinked() {
-        if (getLinks().size() > 0 || (head == null && tail == null))
-            return super.getLinked();
-
-        // now we know we have no links to this link
-
-        if (head == null || tail == null) {
-        }
-    }
-    
-*/    
-
-    /*
-    public java.util.Iterator getLinkEndpointsIterator()
-    {
-        java.util.List endpoints = new java.util.ArrayList(2);
-        if (this.head.hasNode()) endpoints.add(this.head);
-        if (this.tail.hasNode()) endpoints.add(this.tail);
-        return new VueUtil.GroupIterator(endpoints,
-                                         super.getLinkEndpointsIterator());
+        if (links.size() > 0)
+            bag.addAll(links);
         
+        return bag;
     }
-    
-    public java.util.List getAllConnectedComponents()
-    {
-        java.util.List list = new java.util.ArrayList(getLinkRefs().size() + 2);
-        list.addAll(getLinkRefs());
-        list.add(getHead());
-        list.add(getTail());
-        return list;
-    }
-    */
-    
-    
+
     
     /** interface ControlListener handler
      * One of our control points (an endpoint or curve control point).

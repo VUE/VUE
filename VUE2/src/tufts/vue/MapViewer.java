@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.565 $ / $Date: 2008-07-19 20:08:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.566 $ / $Date: 2008-07-19 21:11:21 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -6405,6 +6405,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 repaint();
                 
             } else {
+
+                // todo: completely broken -- probably because dragComponent
+                // is actually generally an LWGroup
+
                 //if (DEBUG.PAINT) System.out.println("MAP REPAINT REGION: " + repaintRegion);
                 //-------------------------------------------------------
                 //
@@ -6424,7 +6428,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 // hacked-patched for now with a fixed slop region.
                 // Will also need to grow by stroke width of a dragged link
                 // as it's corners are beyond bounds point with very wide strokes.
-                
+
                 LWComponent movingComponent = dragComponent;
                 if (dragControl != null && dragControl instanceof LWComponent)
                     movingComponent = (LWComponent) dragControl;
@@ -6453,9 +6457,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // TODO: if this isn't the active map, dragComponent/movingCompontent will be null!
 
                     //i = movingComponent.getAllConnectedComponents().iterator();
+//                      if (movingComponent != null)
+//                          i = movingComponent.getAllLinks().iterator();
+
+                    // todo: add all in the special moving group dragComponent, THEN
+                    // all connected and all linked to those...
                     if (movingComponent != null)
-                        i = movingComponent.getLinkChain().iterator();
-                    //i = movingComponent.getAllLinks().iterator();
+                         i = movingComponent.getLinked().iterator();
                     // actually, we probably do NOT need to add the nodes at the other
                     // ends of the links anymore sinde the link always connects at the
                     // edge of the node...
@@ -6468,7 +6476,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 while (i != null && i.hasNext()) {
                     LWComponent c = (LWComponent) i.next();
                     //if (DEBUG.PAINT) System.out.println("RR adding: " + c);
-                    repaintRegion.add(c.getBounds());
+                    repaintRegion.add(c.getMapBounds());
+                    //repaintRegion.add(c.getPaintBounds());
+                    //repaintRegion.add(c.getBounds());
                 }
                 //if (linkSource != null) repaintRegion.add(linkSource.getBounds());
                 

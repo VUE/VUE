@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.425 $ / $Date: 2008-07-19 19:34:55 $ / $Author: sfraize $
+ * @version $Revision: 1.426 $ / $Date: 2008-07-19 21:11:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3054,7 +3054,7 @@ u                    getSlot(c).setFromString((String)value);
     {
         if (DEBUG.EVENTS||DEBUG.UNDO) out("removeLinkRef: " + link);
         if (mLinks == null || !mLinks.remove(link))
-            Log.error("removeLinkRef: " + this + " didn't contain " + link);
+            Log.warn("removeLinkRef: " + this + " didn't contain " + link);
         clearHidden(HideCause.PRUNE);
         notify(LWKey.LinkRemoved, link); // informational only event
     }
@@ -3063,26 +3063,46 @@ u                    getSlot(c).setFromString((String)value);
     public List<LWLink> getLinks(){
         return mLinks == null ? Collections.EMPTY_LIST : mLinks;
     }
-    
-    /** @return all LWComponents directly connected to this one: for most components, this
-     * is just all the LWLink's that connect to us.  For LWLinks, it's mainly it's endpoints,
-     * plus also any LWLink that may be directly connected to the link itself
-     */
+
+//     /** get all links to us + to any descendents */
+//     public List getAllLinks() {
+//         return getLinks();
+//     }
+
+    /** @return all components at the far end of any links that are connected to us
+     * Note that if this is called on an LWLink, it will only return objects linking to us,
+     * not the objects at our endpoints.
+     **/
     public Collection<? extends LWComponent> getLinked() {
-        // returning mLinks is an optimization, but requireds
-        // subclasses to override this method also if want to change
-        // the impl.
-        return getLinks();
-        
-        //return getLinked(new ArrayList(mLinks.size()));
-        //return Collections.unmodifiableList(mLinks);
+        // default uses a set, in case there are multiple links to the same endpoint
+        return getLinked(new HashSet(getLinks().size()));
     }
-    
-    public Collection<LWComponent> getLinked(Collection bag) {
-        bag.addAll(getLinks());
+
+    protected Collection<? extends LWComponent> getLinked(Collection bag)
+    {
+        for (LWLink link : getLinks()) {
+            final LWComponent head = link.getHead();
+            if (head != this) {
+                if (head != null)
+                    bag.add(head);
+            } else {
+                final LWComponent tail = link.getTail();
+                if (tail != this && tail != null)
+                    bag.add(tail);
+            }
+        }
         return bag;
     }
 
+    
+    /** @return all components directly connected to this one: for most components, this
+     * is just all the LWLink's that connect to us.  For LWLinks, it's mainly it's endpoints,rg
+     * plus also any LWLink that may be directly connected to the link itself
+     */
+    public Collection<? extends LWComponent> getConnected() {
+        return Collections.unmodifiableList(getLinks());
+    }
+    
     /** @return a list of every component connected to this one via links, including the links themselves */
     public Collection<LWComponent> getLinkChain() {
         return getLinkChain(new HashSet());
@@ -3092,7 +3112,7 @@ u                    getSlot(c).setFromString((String)value);
      * @return a list of every component connected to this one via links, including the links themselves
      * @param bag - the collection to store the results in.  Any component already in the bag will not
      * have it's outbound links followed -- this provides inherent loop protection.
-     * Note that this collection isn't a Set of some kind, components will appear in the bag more than once.
+     * Note that if this collection isn't a Set of some kind, components will appear in the bag more than once.
      * (Once for every time they were visited).
      */
     public Collection<LWComponent> getLinkChain(Collection bag)
@@ -3102,7 +3122,7 @@ u                    getSlot(c).setFromString((String)value);
             return bag;
         }
         
-        for (LWComponent c : getLinked())
+        for (LWComponent c : getConnected())
             c.getLinkChain(bag);
 
         return bag;
@@ -3176,32 +3196,6 @@ u                    getSlot(c).setFromString((String)value);
         }
 
         return r;
-    }
-
-    
-    /** @return a list of all LWComponents at the far end of any links that are connected to us
-     * Note that if this is called on an LWLink, it will only return objects linking to us -- not
-     * the objects at our endpoints.
-     **/
-    public Collection<LWComponent> getConnectedByLinks() {
-        // default uses a set, in case there are multiple links to the same endpoint
-        return getConnectedByLinks(new HashSet(getLinks().size()));
-    }
-
-    private Collection<LWComponent> getConnectedByLinks(Collection bag)
-    {
-        for (LWLink link : getLinks()) {
-            final LWComponent head = link.getHead();
-            if (head != this) {
-                if (head != null)
-                    bag.add(head);
-            } else {
-                final LWComponent tail = link.getTail();
-                if (tail != this && tail != null)
-                    bag.add(tail);
-            }
-        }
-        return bag;
     }
 
     
