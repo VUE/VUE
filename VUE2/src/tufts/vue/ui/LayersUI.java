@@ -33,28 +33,146 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.14 $ / $Date: 2008-07-18 18:22:21 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2008-07-19 19:19:02 $ / $Author: sfraize $
  * @author Scott Fraize
  */
-public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener
+public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LayersUI.class);
 
     private final java.util.List<Row> mRows = new java.util.ArrayList();
+    private final JPanel mToolbar = new JPanel();
+    private final JPanel mRowList = new JPanel();
+
+    private final AbstractButton mShowAll = new JToggleButton("Show All");
+
+    private final LWSelection mSelection = new LWSelection() {
+            @Override
+            protected boolean isSelectable(LWComponent c) {
+                return c instanceof LWMap.Layer;
+            }
+            @Override
+            public String toString() {
+                return "LayerSelection[" + paramString() + "]";
+            }
+        };
+    
     private LWMap mMap;
     private boolean isDragUnderway;
     private Row mDragRow;
 
+    private class LayerAction extends VueAction {
+        Layer active;
+        
+        LayerAction(String name, String tip) {
+            //super(name, tip, KeyStroke.getKeyStroke(KeyEvent.VK_L, 0), null);
+            super(name, tip, null, null);
+        }
+        @Override
+        public void actionPerformed(ActionEvent ae) {
+            active = mMap.getActiveLayer();
+            super.actionPerformed(ae);
+        }
+
+        @Override
+        protected LWSelection selection() {
+            return mSelection;
+        }
+
+        public String getUndoName(ActionEvent e, boolean hadException) {
+            String name = super.getUndoName(e, hadException) + " Layer";
+            if (active != null && (this == LAYER_DUPLICATE || this == LAYER_DELETE))
+                name += " " + Util.quote(active.getDisplayLabel());
+            return name;
+        }
+        
+    }
+
+    private final LayerAction
+
+        LAYER_NEW = new LayerAction("New", "Create a new layer") {
+                public void act() {
+                    mMap.addChild(new LWMap.Layer());
+                }
+            },
+        
+        LAYER_DUPLICATE = new LayerAction("Duplicate", "Create a copy of a layer") {
+                public void act() {
+                    final Layer dupe = (Layer) active.duplicate();
+                    mMap.addChild(dupe);
+                    //GUI.invokeAfterAWT(new Runnable() { public void run() {
+                    setActiveLayer(dupe, true);
+                    //}});
+                }
+            },
+        
+        LAYER_MERGE = new LayerAction("Merge", "Merge multiple layers") {
+                public void act() {
+                    
+                }
+            },
+        
+        LAYER_DELETE = new LayerAction("Delete", "Remove a layer and all of it's contents") {
+                public void act() {
+                    mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
+                    mMap.setActiveLayer(null);
+                    //setActiveLayer(null, true);
+                    attemptAlternativeActiveLayer(); // better if this tried to find the nearest layer, and not check last-active
+                }
+            }
+        ;
+    
     public LayersUI() {
         super("layers");
         setName("layersUI");
-        setLayout(new GridBagLayout());
+        
+        //setLayout(new GridBagLayout());
+
+        mToolbar.setName("layersUI.tool");
+        mRowList.setName("layersUI.rows");
+        mRowList.setLayout(new GridBagLayout());
+
+        addButton(LAYER_NEW);
+        addButton(LAYER_DUPLICATE);
+        addButton(LAYER_MERGE);
+        addButton(LAYER_DELETE);
+        if (DEBUG.Enabled) {
+            mShowAll.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        loadLayers(mMap);
+                    }});
+            addButton(mShowAll);
+        }
+
+        add(mToolbar, BorderLayout.NORTH);
+        add(mRowList, BorderLayout.CENTER);
+        
         VUE.addActiveListener(LWMap.class, this);
         VUE.getSelection().addListener(this);
         //VUE.addActiveListener(Layer.class, this);
         //VUE.addActiveListener(LWComponent.class, this);
-        setMinimumSize(new Dimension(400,120));
+        setMinimumSize(new Dimension(400,120+40));
     }
+
+    private void addButton(VueAction a) {
+        addButton(new JButton(a));
+    }
+    private void addButton(AbstractButton b) {
+        if (b instanceof JToggleButton)
+            ;//b.putClientProperty("JButton.buttonType", "roundRect"); // for Mac Leopard Java
+        else
+            b.putClientProperty("JButton.buttonType", "textured"); // for Mac Leopard Java
+        b.setFont(VueConstants.SmallFont);
+        b.setFocusable(false);
+        mToolbar.add(b);
+        //b.addActionListener(this);
+    }
+
+//     @Override
+//     public void addNotify() {
+//         super.addNotify();
+//         setMinimumSize(new Dimension(400,120+mToolbar.getHeight()));
+//     }
 
     public void activeChanged(ActiveEvent e, LWMap map) {
         loadMap(map);
@@ -90,7 +208,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         return canBeActive(layer, true);
     }
     private boolean canBeActive(LWComponent layer, boolean checkLocking) {
-        if (layer == null || layer.isHidden() || (checkLocking && layer.isLocked()))
+        if (layer == null || layer.isHidden() || (checkLocking && layer.isLocked()) || layer.isDeleted())
             return false;
         else
             return layer instanceof Layer;
@@ -100,7 +218,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     
     private void attemptAlternativeActiveLayer() {
 
-        if (!AUTO_ADJUST_ACTIVE_LAYER) return;
+        //if (!AUTO_ADJUST_ACTIVE_LAYER) return;
 
         final Layer curActive = getActiveLayer();
         final Layer lastActive = mMap.getClientProperty(Layer.class, "last");
@@ -203,7 +321,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         if (e.key == LWKey.UserActionCompleted) {
             repaint(); // repaint the previews
         }
-        else if (e.getSource() == mMap) {
+        else if (mShowAll.isSelected() || e.getSource() == mMap) {
             if (e.getName().startsWith("hier."))
                 loadLayers(mMap);
         }
@@ -235,12 +353,20 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             row.activeIcon.setEnabled(false);
             
-            if (layers != null) 
-                row.setBackground(layers.contains(row.layer) ? ActiveBG : null);
+            if (layers != null && layers.contains(row.layer))
+                row.setBackground(ActiveBG);
             else if (row.layer.isSelected())
                 row.setBackground(SelectedBG);
             else
                 row.setBackground(null);
+
+//             if (layers != null) 
+//                 row.setBackground(layers.contains(row.layer) ? ActiveBG : null);
+//             else if (row.layer.isSelected())
+//                 row.setBackground(SelectedBG);
+//             else
+//                 row.setBackground(null);
+            
         }
         
     }
@@ -316,11 +442,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
     }
     
-    
-        
-
-
-
 
     private void loadLayers(final LWMap map) {
 
@@ -330,9 +451,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             // handle in reverse order (top layer on top)
             for (int i = map.numChildren() - 1; i >= 0; i--) {
-                LWComponent layer = map.getChild(i);
-                Row row = produceRow(layer);
-                mRows.add(row);
+                final LWComponent layer = map.getChild(i);
+                mRows.add(produceRow(layer));
+                if (mShowAll.isSelected()) {
+                    for (int x = layer.numChildren() - 1; x >= 0; x--)
+                        mRows.add(produceRow(layer.getChild(x)));
+                }
             }
         }
 
@@ -341,10 +465,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             indicateActiveLayers(null);
         }
         
-        layoutRows(mRows);
+        layoutRows();
     }
 
-    private void layoutRows(final java.util.List<? extends JComponent> rows)
+    private void layoutRows() {
+        layoutRows(mRowList, mRows);
+    }
+        
+    private void layoutRows(final JComponent container, final java.util.List<? extends JComponent> rows)
     {
         GridBagConstraints c = new GridBagConstraints();
         c.weighty = 1; // 1 has all expanding to fill vertical, 0 leaves all at min height
@@ -364,12 +492,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         // overlap during standard display (e.g., but not when drag-reordering)
         c.insets = new Insets(0,0,-1,0);
 
-        removeAll();
+        container.removeAll();
 
         if (!rows.isEmpty()) {
         
             for (JComponent row : rows) {
-                add(row, c);
+                if (((Row)row).layer instanceof Layer)
+                    c.insets.left = 0;
+                else
+                    c.insets.left = 75;
+                container.add(row, c);
                 c.gridy++;
             }
         
@@ -377,15 +509,15 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 // now add a default vertical expander so the rest of items stay at the top
                 c.weighty = 1;
                 c.gridy = rows.size() + 1;
-                add(new JPanel(), c);
+                container.add(new JPanel(), c);
             }
         }
 
         // will property event or DockWindow API: DockWindow controls this, and only polls it on init
         //setMinimumSize(new Dimension(400,40*rows.size())); 
-        revalidate(); // needed for Tiger (uneeded on Leopard)
+        container.revalidate(); // needed for Tiger (uneeded on Leopard)
         ////if (isVisible()) SwingUtilities.getWindowAncestor(this).pack();
-        repaint();
+        container.repaint();
     }
 
     private Row produceRow(final LWComponent layer)
@@ -613,8 +745,19 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         @Override
         public void paintComponent(Graphics _g) {
 
-            final Graphics2D g = (Graphics2D) _g;
+            //final DrawContext dc = new DrawContext(DEBUG.BOXES ? g.create() : g, layer);
+            final DrawContext dc = new DrawContext(_g.create(), layer);
+            dc.setAntiAlias(true);
+            dc.setPrioritizeSpeed(true);
+            dc.setDraftQuality(true);
+            dc.setInteractive(false);
                         
+            if (layer instanceof Layer == false) {
+                //dc.fillBackground(Color.white);
+                layer.drawFit(dc, 0);
+                return;
+            }
+
             //System.out.println("bounds: " + Util.fmt(getBounds()));
             //System.out.println("  clip: " + Util.fmt(g.getClipRect()));
             
@@ -637,6 +780,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             // todo: would be nice if layers cached all their children bounds
             // -- LWMap should be using code for same
+
             for (LWComponent l : layer.getMap().getChildren())
                 LWMap.accruePaintBounds(l.getChildren(), allLayerBounds);
                         
@@ -645,13 +789,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                                 0,
                                 allLayerBounds,
                                 offset);
-                        
-            //final DrawContext dc = new DrawContext(DEBUG.BOXES ? g.create() : g, layer);
-            final DrawContext dc = new DrawContext(g.create(), layer);
-            dc.setAntiAlias(true);
-            dc.setPrioritizeSpeed(true);
-            dc.setDraftQuality(true);
-            dc.setInteractive(false);
                         
             dc.g.translate(-offset.x + frame.x, -offset.y + frame.y);
             dc.g.scale(zoom, zoom);
@@ -675,6 +812,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         
 
             if (true||DEBUG.BOXES) {
+                final Graphics2D g = (Graphics2D) _g;
                 g.setColor(Color.lightGray);
                 Rectangle r = getBounds();
                 g.drawRect(0,0, r.width-1, r.height-1);
@@ -752,7 +890,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     public void actionPerformed(ActionEvent e) {
                         layer.setLocked(locked.isSelected());
                         if (layer == getActiveLayer() && !canBeActive(layer))
-                            attemptAlternativeActiveLayer();
+                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer();
                     }});
 
             visible.setSelected(layer.isVisible());
@@ -762,7 +900,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         locked.setEnabled(layer.isVisible());
                         label.setEnabled(layer.isVisible());
                         if (layer == getActiveLayer() && !canBeActive(layer))
-                            attemptAlternativeActiveLayer();
+                            if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer();
                             
                     }});
 
@@ -1041,6 +1179,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         @Override
         public void setBackground(Color bg) {
+            Log.debug(this + " setBackground " + bg);
             if (bg == null) {
                 super.setBackground(defaultBackground);
 //                 if (label != null)
@@ -1079,6 +1218,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             Log.debug(e);
             
             if (layer instanceof Layer) {
+                if (e.isShiftDown())
+                    mSelection.add(layer);
+                else
+                    mSelection.setTo(layer);
                 if (inExclusiveMode())
                     setExclusive(true);
                 else if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
@@ -1103,7 +1246,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 setBackground(saveColor);
                 saveColor = null;
             }                
-            layoutRows(mRows);
+            layoutRows();
             if (didReorder) {
                 didReorder = false;
 
@@ -1270,3 +1413,42 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //                     }
 //                 }
 //             });
+
+//     private static final String LAYER_NEW = "New";
+//     private static final String LAYER_DUPLICATE = "Duplicate";
+//     private static final String LAYER_MERGE = "Merge";
+//     private static final String LAYER_DELETE = "Delete";
+
+//     public void actionPerformed(ActionEvent e) {
+
+//         if (mMap == null)
+//             return;
+
+//         final String a = e.getActionCommand();
+//         final Layer active = mMap.getActiveLayer();
+        
+//         if (a == LAYER_NEW) {
+
+//             mMap.addChild(new LWMap.Layer());
+
+//         } else if (a == LAYER_DUPLICATE) {
+
+//             Layer dupe = (Layer) active.duplicate();
+//             mMap.addChild(dupe);
+            
+//         } else if (a == LAYER_MERGE) {
+
+//         } else if (a == LAYER_DELETE) {
+
+//             mMap.deleteChildPermanently(active);
+
+//         } else {
+            
+//             Log.warn("unhandled action: " + e);
+//         }
+
+//         mMap.getUndoManager().mark(a + " Layer");
+
+//     }
+
+
