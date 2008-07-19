@@ -992,20 +992,17 @@ public class Util
         return buf.toString();
     }
 
-    
-    public static final java.util.Iterator EmptyIterator = new java.util.Iterator() {
-            public boolean hasNext() { return false; }
-            public Object next() { throw new NoSuchElementException(); }
-            public void remove() { throw new UnsupportedOperationException(); }
-            public String toString() { return "EmptyIterator"; }
-        };
+    public static final Iterator EmptyIterator = new EmptyIterable();
+    public static final Iterable EmptyIterable = (Iterable) EmptyIterator;
 
-    public static final Iterable EmptyIterable = new Iterable() {
-            public Iterator iterator() { return EmptyIterator; }
-            public String toString() { return "EmptyIterable"; }
-        };
-    
-
+    private static final class EmptyIterable implements java.util.Iterator, java.lang.Iterable {
+        public boolean hasNext() { return false; }
+        public Object next() { throw new NoSuchElementException(); }
+        public void remove() { throw new UnsupportedOperationException(); }
+        public String toString() { return "EmptyIterator"; }
+        public Iterator iterator() { return this; }
+    }
+        
     /** Convenience class: provides a single element iterator.  Is also an iterable, returning self.
      * Each request for an iterable resets us to be iterated again (not threadsafe) */
     public static final class SingleIterator<T> implements java.util.Iterator<T>, Iterable<T> {
@@ -1021,6 +1018,122 @@ public class Util
         public String toString() { return "[" + object + "]"; }
         
     };
+
+
+    /**
+     * Identical to Arrays.asList, except that toArray() returns the internal array,
+     * which allows for Collection.addAll(ExposedArrayList) to be used w/out triggering an array clone
+     */
+
+    public static class ExposedArrayList<E> extends AbstractList<E>
+	implements RandomAccess
+    {
+	private final Object[] a;
+
+	ExposedArrayList(E[] array) {
+            if (array == null) throw new NullPointerException();
+	    a = array;
+	}
+
+	public int size() { return a.length; }
+
+        /** returns the internal array -- allows for Collection.addAll(ExposedArrayList) to be called w/out triggering a clone */
+	public Object[] toArray() { return a; }
+
+	public E get(int index) { return (E)a[index]; }
+
+	public E set(int index, E element) {
+	    Object oldValue = a[index];
+	    a[index] = element;
+	    return (E)oldValue;
+	}
+
+        public int indexOf(Object o) {
+            if (o==null) {
+                for (int i=0; i<a.length; i++)
+                    if (a[i]==null)
+                        return i;
+            } else {
+                for (int i=0; i<a.length; i++)
+                    if (o.equals(a[i]))
+                        return i;
+            }
+            return -1;
+        }
+
+        public boolean contains(Object o) {
+            return indexOf(o) != -1;
+        }
+    }
+
+    /**
+
+     * Note the hairy generic method signature.  'A' is the generic type contained in
+     * an iterable that is the source of all objects for the filter.  'T' is the
+     * specific type that we're looking for.  T should be a subclass of A.
+
+     */
+    public static <A, T extends A> Iterable<T> typeFilter(Iterable<A> iterable, Class<T> clazz) {
+        return new IteratorFilter<A,T>(iterable, clazz);
+    }
+
+    public static final class IteratorFilter<A,T extends A> implements Iterable<T>, Iterator<T> {
+
+        private static final Object NEXT_NEEDED = new Object();
+        private static final Object EOL = new Object();
+        
+        final Iterator<A> iter;
+        final Class<T> clazz;
+        
+        Object next = NEXT_NEEDED;
+        
+        // todo: could also allow an array of varied types to be looked for
+        public IteratorFilter(Iterable<A> i, Class<T> c) {
+            iter = i.iterator();
+            clazz = c;
+        }
+
+        private void advance() {
+            if (iter.hasNext()) {
+                while (true) {
+                    next = iter.next();
+                    //Log.debug(" ADVANCED " + tags(next));
+                    if (clazz.isInstance(next))
+                        break;
+                    if (!iter.hasNext()) {
+                        next = EOL;
+                        break;
+                    }
+                }
+            } else {
+                next = EOL;
+            }
+        }
+        
+        public boolean hasNext() {
+            if (next == NEXT_NEEDED)
+                advance();
+            //if (next == EOL) Log.debug("EOL on " + tags(iter));
+            return next != EOL;
+        }
+        
+        public T next() {
+            if (next == NEXT_NEEDED)
+                advance();
+            if (next == EOL)
+                throw new NoSuchElementException("at end of iterator " + tags(iter));
+            final Object result = next;
+            next = NEXT_NEEDED;
+            //Log.debug("RETURNING " + tags(result));
+            return (T) result;
+        }
+        
+        public void remove() { throw new UnsupportedOperationException(); }
+        
+        public Iterator<T> iterator() { return this; }
+    };
+    
+    
     
     /** Convenience class: provides an array iterator */
     public static final class ArrayIterator implements java.util.Iterator, Iterable {
@@ -1038,43 +1151,54 @@ public class Util
 
     /** GroupIterator allows you to construct a new iterator that
      * will aggregate an underlying set of Iterators and/or Collections */
-    public static final class GroupIterator extends java.util.ArrayList
-        implements java.util.Iterator, Iterable
+    public static final class GroupIterator<T> extends java.util.ArrayList
+        implements java.util.Iterator, java.lang.Iterable
     {
         int iterIndex = 0;
-        Iterator curIter;
+        Iterator<T> curIter;
         
         public GroupIterator() {}
         
-        /** All parameters must be either instances of Iterator or Collection */
-        public GroupIterator(Object i1, Object i2)
-        {
-            this(i1, i2, null);
+        public GroupIterator(Iterable<T>... iterables) {
+            super.addAll(new ExposedArrayList(iterables));
         }
-        /** All parameters must be either instances of Iterator or Collection */
-        public GroupIterator(Object i1, Object i2, Object i3)
-        {
-            super(3);
-            if (i1 == null || i2 == null)
-                throw new IllegalArgumentException("null Collection or Iterator");
-            add(i1);
-            add(i2);
-            if (i3 != null)
-                add(i3);
+        
+        public GroupIterator(Iterator<T>... iterators) {
+            super.addAll(new ExposedArrayList(iterators));
         }
-
+        
+        public GroupIterator(Object... mixedTypes) {
+            for (Object o : mixedTypes)
+                add(o);
+        }
+        
         /**
-         * Add a new Iterator or Collection to this GroupIterator.  This can only be
+         * Add a new Iterator or Iterable to this GroupIterator.  This can only be
          * done before iteration has started for this GroupIterator.
          * @param o an Iterator or Collection
          * @return result of super.add (ArrayList.add)
          */
+        @Override
         public boolean add(Object o) {
             if (!(o instanceof Iterable) &&
                 !(o instanceof Iterator))
-                throw new IllegalArgumentException("Can only add Iterable or Iterator: " + o);
+                throw new IllegalArgumentException("GroupIterator: can only add Iterable's or Iterators: " + o);
             return super.add(o);
         }
+
+        /**
+         * Add a new Iterable to to group.  This can only be done before iteration has started.
+         */
+        public void add(Iterable o) {
+            super.add(o);
+        }
+        /**
+         * Add a new Iterator to to group.  This can only be done before iteration has started.
+         */
+        public void add(Iterator o) {
+            super.add(o);
+        }
+        
 
         public boolean hasNext()
         {
@@ -1099,7 +1223,7 @@ public class Util
             }
         }
 
-        public Object next()
+        public T next()
         {
             if (curIter == null)
                 return null;
@@ -1115,6 +1239,7 @@ public class Util
                 throw new IllegalStateException(this + ": no underlying iterator");
         }
 
+        @Override
         public Iterator iterator() {
             return this;
         }
