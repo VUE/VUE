@@ -1072,12 +1072,14 @@ public class Util
      * an iterable that is the source of all objects for the filter.  'T' is the
      * specific type that we're looking for.  T should be a subclass of A.
 
+     * Currently creates a type filter that requires *exact* type matching: subclasses of the type do NOT match.
+
      */
     public static <A, T extends A> Iterable<T> typeFilter(Iterable<A> iterable, Class<T> clazz) {
         return new IteratorFilter<A,T>(iterable, clazz);
     }
 
-    public static final class IteratorFilter<A,T extends A> implements Iterable<T>, Iterator<T> {
+    private static final class IteratorFilter<A,T extends A> implements Iterable<T>, Iterator<T> {
 
         private static final Object NEXT_NEEDED = new Object();
         private static final Object EOL = new Object();
@@ -1098,8 +1100,10 @@ public class Util
                 while (true) {
                     next = iter.next();
                     //Log.debug(" ADVANCED " + tags(next));
-                    if (clazz.isInstance(next))
+                    if (next != null && next.getClass() == clazz)
                         break;
+//                     if (clazz.isInstance(next))
+//                         break;
                     if (!iter.hasNext()) {
                         next = EOL;
                         break;
