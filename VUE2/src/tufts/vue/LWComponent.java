@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.424 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $
+ * @version $Revision: 1.425 $ / $Date: 2008-07-19 19:34:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3179,28 +3179,32 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     
-    /** @return a list of all LWComponents at the far end of any links that are connected to us */
-    public Collection<LWComponent> getLinkEndPoints() {
+    /** @return a list of all LWComponents at the far end of any links that are connected to us
+     * Note that if this is called on an LWLink, it will only return objects linking to us -- not
+     * the objects at our endpoints.
+     **/
+    public Collection<LWComponent> getConnectedByLinks() {
         // default uses a set, in case there are multiple links to the same endpoint
-        return getLinkEndPoints(new HashSet(getLinks().size()));
+        return getConnectedByLinks(new HashSet(getLinks().size()));
     }
 
-    public Collection<LWComponent> getLinkEndPoints(Collection bag)
+    private Collection<LWComponent> getConnectedByLinks(Collection bag)
     {
         for (LWLink link : getLinks()) {
             final LWComponent head = link.getHead();
-            final LWComponent tail = link.getTail();
             if (head != this) {
                 if (head != null)
                     bag.add(head);
-            } else if (tail != this) {
-                if (tail != null)
+            } else {
+                final LWComponent tail = link.getTail();
+                if (tail != this && tail != null)
                     bag.add(tail);
             }
         }
         return bag;
     }
 
+    
     /*
      * Return an iterator over all link endpoints,
      * which will all be instances of LWComponent.
@@ -3234,36 +3238,8 @@ u                    getSlot(c).setFromString((String)value);
                 }
             };
     }
-     */    
-    /*
-     * Return all LWComponents connected via LWLinks to this object.
-     * Included everything except LWLink objects themselves (unless
-     * it's an endpoint -- a link to a link)
-     *
-     * todo opt: this is repaint optimization -- when links
-     * eventually know their own bounds (they know real connection
-     * endpoints) we can re-do this as getAllConnections(), which
-     * will can return just the linkRefs and none of the endpoints)
      */
-    /*
-    public java.util.List getAllConnectedNodes()
-    {
-        java.util.List list = new java.util.ArrayList(mLinks.size());
-        java.util.Iterator i = mLinks.iterator();
-        while (i.hasNext()) {
-            LWLink l = (LWLink) i.next();
-            if (l.getComponent1() != this)
-                list.add(l.getComponent1());
-            else if (l.getComponent2() != this) // todo opt: remove extra check eventually
-                list.add(l.getComponent2());
-            else
-                // todo: actually, I think we want to support these
-                throw new IllegalStateException("link to self on " + this);
-            
-        }
-        return list;
-    }
-    */
+    
     
     /* include all links and far endpoints of links connected to this component 
     public java.util.List getAllConnectedComponents()
@@ -3284,12 +3260,6 @@ u                    getSlot(c).setFromString((String)value);
     }
 */
     
-    /** get all links to us + to any descendents */
-    // TODO: return immutable versions
-    public List getAllLinks() {
-        return getLinks();
-    }
-
     public int countLinksTo(LWComponent c)
     {
         if (c == null || mLinks == null)
