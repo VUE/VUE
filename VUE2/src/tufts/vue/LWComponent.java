@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.423 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.424 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2983,7 +2983,7 @@ u                    getSlot(c).setFromString((String)value);
     
     
     public java.util.Iterator<? extends LWComponent> getChildIterator() {
-        return tufts.Util.EmptyIterator;
+        return EmptyIterator;
     }
 
     /** The default is to get all ChildKind.PROPER children (backward compatability)
@@ -2995,7 +2995,10 @@ u                    getSlot(c).setFromString((String)value);
         // LWComponents have no proper children.
         // return getAllDescendents(CHILD_PROPER);
         return java.util.Collections.EMPTY_LIST;
-    }    
+    }
+
+
+    
 
     public Collection<LWComponent> getAllDescendents(final ChildKind kind) {
         if (kind == ChildKind.PROPER)
@@ -3011,7 +3014,26 @@ u                    getSlot(c).setFromString((String)value);
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection<LWComponent> bag, Order order) {
         return bag;
     }
+
+    /** @return getDescendentsOfType(ChildKind.PROPER, clazz) */
+    public <A extends LWComponent> Iterable<A> getDescendentsOfType(Class<A> clazz) {
+        return getDescendentsOfType(ChildKind.PROPER, clazz);
+    }
     
+    /** @see LWContainer (this impl EmptyIterator) */
+    public <A extends LWComponent> Iterable<A> getDescendentsOfType(ChildKind kind, Class<A> clazz) { return EmptyIterable; }
+    /** @see LWContainer (this impl EmptyIterator) */
+    public <A extends LWComponent> Iterable<A> getChildrenOfType(Class<A> clazz) { return EmptyIterable; }
+    /** @see LWContainer (this impl EmptyIterator) */
+    public Iterator<LWNode> getAllNodesIterator()    { return EmptyIterator; }
+    /** @see LWContainer (this impl EmptyIterator) */
+    public Iterator<LWLink> getAllLinksIterator()    { return EmptyIterator; }
+    /** @see LWContainer (this impl EmptyIterator) */
+    public Iterator<LWNode> getChildNodeIterator()    { return EmptyIterator; }
+    /** @see LWContainer (this impl EmptyIterator) */
+    public Iterator<LWLink> getChildLinkIterator()    { return EmptyIterator; }
+    
+
 
     /** for tracking who's linked to us */
     void addLinkRef(LWLink link)

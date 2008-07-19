@@ -27,15 +27,16 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.89 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
 
-// TODO: have this listen to everyone in it, and then
-// folks who want to monitor the selected object
-// can only once regiester as a selectedEventListener,
-// instead of always adding and removing from the individual objects.
+// could have this listen to everyone in it, and then folks who want
+// to monitor the selected object can only once regiester as a
+// selectedEventListener, instead of always adding and removing from
+// the individual objects.
+
 public class LWSelection extends java.util.ArrayList<LWComponent>
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWSelection.class);
@@ -265,11 +266,13 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return;
         if (notifyUnderway())
             return;
+
         clearSilent();
         add(c);
+        
     }
     
-    public void setTo(Collection bag)
+    public void setTo(Iterable bag)
     {
         setTo(bag.iterator());
     }
@@ -278,8 +281,18 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     {
         if (notifyUnderway())
             return;
+
+        final boolean hadContents = !isEmpty();
+        
         clearSilent();
         add(i);
+
+        if (hadContents && isEmpty()) {
+            // we ended up changing the the selection by
+            // clearing it out and then setting it to nothing
+            notifyListeners();
+        }
+        
     }
     
     synchronized public boolean add(LWComponent c)
@@ -350,6 +363,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         if (changed)
             notifyListeners();
     }
+
+    protected boolean isSelectable(LWComponent c) {
+        return c instanceof LWMap.Layer == false;
+    }
     
     private synchronized boolean addSilent(LWComponent c)
     {
@@ -360,7 +377,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             return false;
         }
 
-        if (c instanceof LWMap.Layer) {
+        if (!isSelectable(c)) {
             Util.printStackTrace("not allowed to select " + c);
             return false;
         }
@@ -681,10 +698,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
 
     private void debug(String s) {
-        Log.debug(String.format("[%s] %s", paramString(), s));
+        Log.debug(String.format("%s %s", this, s));
+        //Log.debug(String.format("[%s] %s", paramString(), s));
     }
 
-    private String paramString()
+    protected String paramString()
     {
         String content = (size() != 1 ? "" : " (" + first().toString() + ")");
 
@@ -700,6 +718,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 //              );
     }
 
+    @Override
     public String toString() {
         return "LWSelection[" + paramString() + "]";
     }

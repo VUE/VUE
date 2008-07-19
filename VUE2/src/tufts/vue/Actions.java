@@ -20,6 +20,7 @@ import java.util.Iterator;
 import tufts.Util;
 import tufts.vue.NodeTool.NodeModeTool;
 import static tufts.vue.LWComponent.Flag;
+import tufts.vue.LWComponent.ChildKind;
 import java.util.*;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -293,22 +294,21 @@ public class Actions implements VueConstants
     public static final Action SelectAll =
     new VueAction("Select All", keyStroke(KeyEvent.VK_A, COMMAND)) {
         public void act() {
-            VUE.getSelection().setTo(VUE.getActiveViewer().getFocal().getAllDescendents(LWComponent.ChildKind.EDITABLE));
+            selection().setTo(focal().getAllDescendents(ChildKind.EDITABLE));
         }
     };
     
     public static final Action SelectAllLinks =
         new VueAction("Select Links") {
             public void act() {
-                VUE.getSelection().setTo(VUE.getActiveViewer().getFocal().getAllLinks());            
+                selection().setTo(focal().getDescendentsOfType(ChildKind.EDITABLE, LWLink.class));
             }
         };
 
      public static final Action SelectAllNodes =
         new VueAction("Select Nodes") {
             public void act() {
-                // TODO TODO: This should be called on the focal, not the map!  Need to impl on LWComponent or via a traversal.
-            	VUE.getSelection().setTo(VUE.getActiveViewer().getMap().getNodeIterator());
+            	selection().setTo(focal().getDescendentsOfType(ChildKind.EDITABLE, LWNode.class));
             }
         };
                 
@@ -316,14 +316,14 @@ public class Actions implements VueConstants
     new LWCAction("Deselect All", keyStroke(KeyEvent.VK_A, SHIFT+COMMAND)) {
         boolean enabledFor(LWSelection s) { return s.size() > 0; }
         public void act() {
-            VUE.getSelection().clear();
+            selection().clear();
         }
     };
 
     public static final Action Reselect =
         new VueAction("Reselect", keyStroke(KeyEvent.VK_R, COMMAND)) {
             public void act() {
-                VUE.getSelection().reselect();
+                selection().reselect();
             }
         };
     
@@ -691,10 +691,10 @@ public class Actions implements VueConstants
         else
             ordered = items;
 
-            // TODO: preserve z-order layering of duplicated elements.
-        // probably merge LinkPatcher into CopyContext, and
-        // while at it change dupe action to add all the
-        // children to the new parent with a single addChildren event.
+        // todo: ideally to preserve z-order layering of duplicated
+        // elements, probably merge LinkPatcher into CopyContext, and
+        // while at it change dupe action to add all the children to
+        // the new parent with a single addChildren event.
         
         for (LWComponent c : ordered) {
 
@@ -759,11 +759,12 @@ public class Actions implements VueConstants
     new LWCAction("Duplicate", keyStroke(KeyEvent.VK_D, COMMAND)) {
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return canEdit(s); }
+        
         // hierarchicalAction set to true: if parent being duplicated, don't duplicate
         // any selected children, creating extra siblings.
-        boolean hierarchicalAction() { return true; }
+        boolean hierarchicalAction() { return true; } // note: shouldn't be required: impl now handles this itself
 
-        void act(LWSelection selection) {
+        void act(final LWSelection selection) {
 
             final List<LWComponent> dupes =
                 duplicatePreservingLinks(selection, RECORD_OLD_PARENT, SORT_BY_Z_ORDER);
@@ -794,7 +795,7 @@ public class Actions implements VueConstants
             for (LWComponent copy : dupes)
                 copy.setClientProperty(LWContainer.class, null);
             
-            VUE.getSelection().setTo(dupes);
+            selection().setTo(dupes);
             
             if (dupes.size() == 1 && dupes.get(0).supportsUserLabel())
                 VUE.getActiveViewer().activateLabelEdit(dupes.get(0));
@@ -2510,7 +2511,7 @@ public class Actions implements VueConstants
 //         public void actOn(LWSelection selection) {
             
         public void act() {
-            LWSelection selection = VUE.getSelection();
+            LWSelection selection = selection();
             //System.out.println("LWCAction: " + getActionName() + " n=" + selection.size());
             if (enabledFor(selection)) {
                 if (mayModifySelection()) {
@@ -2551,7 +2552,7 @@ public class Actions implements VueConstants
         }
 
         @Override
-        protected boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(VUE.getSelection()); }
+        protected boolean enabled() { return VUE.getActiveViewer() != null && enabledFor(selection()); }
         
 //         public void selectionChanged(LWSelection selection) {
 //             if (VUE.getActiveViewer() == null)
@@ -2565,7 +2566,7 @@ public class Actions implements VueConstants
         
         void checkEnabled() {
             //selectionChanged(VUE.getSelection());
-            updateEnabled(VUE.getSelection());
+            updateEnabled(selection());
         }
         
         protected final void updateEnabled(LWSelection selection) {
@@ -2677,7 +2678,7 @@ public class Actions implements VueConstants
         public String getUndoName(ActionEvent e, boolean hadException)
         {
             String name = super.getUndoName(e, hadException);
-            if (VUE.getSelection().size() == 1)
+            if (selection().size() == 1)
                 name += " (" + VUE.getSelection().first().getComponentTypeLabel() + ")";
             return name;
     }

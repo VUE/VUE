@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.41 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.42 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -363,18 +363,16 @@ public class VueAction extends javax.swing.AbstractAction
             synchronized (System.err) {
                 System.err.println("*** VueAction: exception during action [" + getActionName() + "]");
                 System.err.println("*** VueAction: " + getClass());
-                System.err.println("*** VueAction: selection is " + VUE.getSelection());
+                System.err.println("*** VueAction: selection is " + selection());
                 System.err.println("*** VueAction: event was " + ae);
                 tufts.Util.printStackTrace(t);
             }
             hadException = true;
         }
 
-        if (VUE.getUndoManager() != null && undoable()) {
-            VUE.getUndoManager().markChangesAsUndo(getUndoName(ae,hadException));
-        }
-
-        updateSelectionWatchers(VUE.getSelection());
+        establishMarkForUndo(ae, hadException);
+        
+        updateSelectionWatchers(selection());
 
         //if (DEBUG.EVENTS) Log.debug(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
         if (DEBUG.EVENTS) Log.debug("\n===============================================================================================================\n");
@@ -386,6 +384,24 @@ public class VueAction extends javax.swing.AbstractAction
         // action is attempted that you can't actually do right now -- problem is if we
         // disable the action based on enabled(), it has no way of ever getting turned
         // back on!
+    }
+
+    protected LWSelection selection() {
+        return VUE.getSelection();
+    }
+    
+    protected MapViewer viewer() {
+        return VUE.getActiveViewer();
+    }
+
+    protected LWComponent focal() {
+        return viewer().getFocal();
+    }    
+
+    protected void establishMarkForUndo(ActionEvent ae, boolean hadException) {
+        if (VUE.getUndoManager() != null && undoable()) {
+            VUE.getUndoManager().markChangesAsUndo(getUndoName(ae, hadException));
+        }
     }
     
     public String getUndoName()

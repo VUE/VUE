@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.143 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $
+ * @version $Revision: 1.144 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -123,33 +123,12 @@ public abstract class LWContainer extends LWComponent
             return null;
     }
 
+
     public Iterator getChildIterator()
     {
         return mChildren == NO_CHILDREN ? Util.EmptyIterator : mChildren.iterator();
     }
 
-
-    // These should probably be deprecated or generalized into parameterized type fetchers
-
-    public Iterator getNodeIterator()    { return getNodeList().iterator(); }
-    private List<LWNode> getNodeList()
-    {
-        final ArrayList list = new ArrayList();
-        for (LWComponent c : getChildren())
-            if (c instanceof LWNode)
-                list.add(c);
-        return list;
-    }
-    
-    public Iterator getLinkIterator()    { return getLinkList().iterator(); }
-    private List<LWLink> getLinkList()
-    {
-        final ArrayList list = new ArrayList();
-        for (LWComponent c : getChildren())
-            if (c instanceof LWLink)
-                list.add(c);
-        return list;
-    }
 
     /** In case the container subclass can do anything to lay out it's children
      *  (e.g., so that LWNode can override & handle chil layout).
@@ -594,10 +573,10 @@ public abstract class LWContainer extends LWComponent
      */
     public void deleteChildPermanently(LWComponent c)
     {
-        if (c.hasFlag(Flag.LOCKED)) {
-            if (DEBUG.Enabled) out("is locked; deletion not permitted: " + c);
-            return;
-        }
+//         if (c.isLocked()) {
+//             if (DEBUG.Enabled) out("is locked; deletion not permitted: " + c);
+//             return;
+//         }
         
         if (DEBUG.UNDO || DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
 
@@ -744,18 +723,6 @@ public abstract class LWContainer extends LWComponent
     }
     */
 
-    @Override
-    public List<LWLink> getAllLinks()
-    {
-        java.util.List list = new java.util.ArrayList();
-        list.addAll(super.getAllLinks());
-        for (LWComponent c : getChildren())
-            list.addAll(c.getAllLinks());
-        return list;
-    }
-    
-
-
     /**
      * The default is to get all ChildKind.PROPER children
      */
@@ -769,13 +736,8 @@ public abstract class LWContainer extends LWComponent
      */
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind) {
-        return getAllDescendents(kind, new java.util.ArrayList(), Order.TREE);
+        return getAllDescendents(kind, new java.util.ArrayList(numChildren()*2), Order.TREE);
     }    
-
-//     @Override
-//     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag) {
-//         return getAllDescendents(kind, bag, Order.TREE);
-//     }
 
     @Override
     public Collection<LWComponent> getAllDescendents(final ChildKind kind, final Collection bag, Order order)
@@ -797,6 +759,51 @@ public abstract class LWContainer extends LWComponent
         
         return bag;
     }
+
+    /** @return an iterable containing all ChildKind.PROPER descendents that are instances of the given class */
+    public <A extends LWComponent> Iterable<A> getDescendentsOfType(ChildKind kind, Class<A> clazz) {
+        
+        return Util.typeFilter(getAllDescendents(kind), clazz);
+
+//         final List list = new ArrayList();
+//         for (LWComponent c : getAllDescendents())
+//             if (clazz.isInstance(c))
+//                 list.add(c);
+//         return list;
+    }
+    
+    /** @return an iterable containing all direct children that are instances of the given class */
+    public <A extends LWComponent> Iterable<A> getChildrenOfType(Class<A> clazz) {
+
+        return Util.typeFilter(getChildren(), clazz);
+
+//         final List list = new ArrayList(numChildren());
+//         for (LWComponent c : getChildren())
+//             if (clazz.isInstance(c))
+//                 list.add(c);
+//         return list;
+        
+    }
+
+    /** same us using: for (LWNode node : getDescendentsOfType(LWNode.class)) { ... } */
+    @Override
+    public Iterator<LWNode> getAllNodesIterator()    { return getDescendentsOfType(LWNode.class).iterator(); }
+    /** same as using: for (LWLink link : getDescendentsOfType(LWLink.class)) { ... } */
+    @Override
+    public Iterator<LWLink> getAllLinksIterator()    { return getDescendentsOfType(LWLink.class).iterator(); }
+
+    /** same us using: for (LWNode node : getChildrenOfType(LWNode.class)) { ... } */
+    @Override
+    public Iterator<LWNode> getChildNodeIterator()    { return getChildrenOfType(LWNode.class).iterator(); }
+    /** same us using: for (LWLink link : getChildrenOfType(LWLink.class)) { ... } */
+    @Override
+    public Iterator<LWLink> getChildLinkIterator()    { return getChildrenOfType(LWLink.class).iterator(); }
+    
+
+    /** @deprecated - use getChildNodeIterator */
+    public Iterator getNodeIterator()    { return getChildNodeIterator(); }
+    /** @deprecated - use getChildLinkIterator */
+    public Iterator getLinkIterator()    { return getChildLinkIterator(); }
 
     /** @return the total number of descendents */
     @Override
