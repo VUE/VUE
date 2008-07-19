@@ -80,11 +80,11 @@ public class RSSDataSource extends BrowseDataSource
         String val;
         
         if ((val = p.getProperty(AUTHORIZATION_COOKIE_KEY)) != null)
-            setAuthenticationCookie(val);
+            setAuthorizationCookie(val);
     }
 
-    private void setAuthenticationCookie(String s) {
-        Log.debug("setAuthenticationCookie[" + s + "]");
+    private void setAuthorizationCookie(String s) {
+        Log.debug("setAuthorizationCookie[" + s + "]");
         if (s == authorizationCookie || (s != null && s.equals(authorizationCookie))) {
             return;
         } else {
