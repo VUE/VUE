@@ -33,7 +33,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.15 $ / $Date: 2008-07-19 19:19:02 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2008-07-19 21:10:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -136,6 +136,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         addButton(LAYER_DUPLICATE);
         addButton(LAYER_MERGE);
         addButton(LAYER_DELETE);
+
+        LAYER_MERGE.setEnabled(false);
+        
         if (DEBUG.Enabled) {
             mShowAll.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
@@ -811,7 +814,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
                         
 
-            if (true||DEBUG.BOXES) {
+            if (DEBUG.BOXES) {
                 final Graphics2D g = (Graphics2D) _g;
                 g.setColor(Color.lightGray);
                 Rectangle r = getBounds();
@@ -873,7 +876,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if (layer instanceof Layer)
                 defaultBackground = null;
             else
-                defaultBackground = Color.gray; // debug/test case
+                defaultBackground = Color.white; // debug/test case
             setBackground(defaultBackground);
             
             if (true) {
