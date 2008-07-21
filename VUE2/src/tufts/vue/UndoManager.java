@@ -1413,7 +1413,7 @@ public class UndoManager
                 if (container.mChildren == LWComponent.NO_CHILDREN)
                     oldValue = LWComponent.NO_CHILDREN;
                 else
-                    oldValue = ((ArrayList)container.mChildren).clone();
+                    oldValue = ((ArrayList)container.mChildren).clone(); // TODO: impl dependency on ArrayList
             }
             if (allChangesToComponent != null)
                 allChangesToComponent.put(propertyKey, new TaggedPropertyValue(undoAction.size(), oldValue));
