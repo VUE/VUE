@@ -21,6 +21,7 @@ import java.io.*;
 import java.net.*;
 import java.lang.ref.*;
 import java.util.*;
+import java.util.List;
 import java.util.jar.*;
 import java.util.prefs.*;
 import java.awt.*;
@@ -1136,6 +1137,15 @@ public class Util
         
         public Iterator<T> iterator() { return this; }
     };
+
+    /** for providing a copy of a list -- especially useful for providing a concurrency safe iteration of a list */
+    public static <T> List<T> copy(java.util.List<T> list) {
+        if (list instanceof java.util.ArrayList)
+            return (List<T>) ((java.util.ArrayList)list).clone();
+        else
+            return new ArrayList(list);
+    }
+    
 
     /** usage: for (SomeObject o : reverse(someObjectList)) { ... } */
     public static <T> Iterable<T> reverse(java.util.List<T> list) {
