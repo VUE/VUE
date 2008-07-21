@@ -388,7 +388,7 @@ public class LWImage extends
     
     @Override
     public void setSelected(boolean selected) {
-        boolean wasSelected = this.selected;
+        boolean wasSelected = isSelected();
         super.setSelected(selected);
         if (selected && !wasSelected && mImageStatus == Status.ERROR && hasResource()) {
             //Util.printStackTrace("ADD SELCTED IMAGE CLEANUP " + this);
