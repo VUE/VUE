@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.571 $ / $Date: 2008-07-18 17:45:01 $ / $Author: sfraize $ 
+ * @version $Revision: 1.572 $ / $Date: 2008-07-21 18:01:58 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -177,12 +177,12 @@ public class VUE
                 
             }
 
-            //-------------------------------------------------------
-            // now set the active Layer
-            //-------------------------------------------------------
+//             //-------------------------------------------------------
+//             // now set the active Layer
+//             //-------------------------------------------------------
             
-            if (node != null && node.getLayer() != null)
-                ActiveInstance.set(LWMap.Layer.class, this, node.getLayer());
+//             if (node != null && node.getLayer() != null)
+//                 ActiveInstance.set(LWMap.Layer.class, this, node.getLayer());
 
             //-------------------------------------------------------
             // now set the active Resource
