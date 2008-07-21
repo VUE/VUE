@@ -22,6 +22,7 @@ import tufts.vue.LWMap.Layer;
 import tufts.vue.gui.*;
 
 import tufts.Util;
+import static tufts.Util.reverse;
 
 import java.util.*;
 import java.awt.*;
@@ -33,7 +34,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.16 $ / $Date: 2008-07-19 21:10:08 $ / $Author: sfraize $
+ * @version $Revision: 1.17 $ / $Date: 2008-07-21 18:02:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -46,80 +47,205 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private final AbstractButton mShowAll = new JToggleButton("Show All");
 
-    private final LWSelection mSelection = new LWSelection() {
-            @Override
-            protected boolean isSelectable(LWComponent c) {
-                return c instanceof LWMap.Layer;
-            }
-            @Override
-            public String toString() {
-                return "LayerSelection[" + paramString() + "]";
-            }
-        };
+    // PROBLEM: IF WE ALLOW LAYERS IN THE SELECTION, LWComponent.selctedOrParent will
+    // start returning TRUE for anything inside the layer.  This screws up
+    // hierarchy actions, delete, duplicate, etc.
+
+//     private final LWSelection mSelection = new LWSelection() {
+//             @Override
+//             protected boolean isSelectable(LWComponent c) {
+//                 return c instanceof LWMap.Layer;
+//             }
+//             @Override
+//             protected void postNotify() { /* do nothing */ }
+//             @Override
+//             public String toString() {
+//                 return "LayerSelection[" + paramString() + "]";
+//             }
+//         };
     
     private LWMap mMap;
     private boolean isDragUnderway;
     private Row mDragRow;
 
+    //private static final Collection<VueAction> _selectionWatchers = new java.util.ArrayList();
+
+    private static final Collection<LayerAction> AllLayerActions = new java.util.ArrayList();
+    
+    //private class LayerAction extends Actions.LWCAction {
     private class LayerAction extends VueAction {
+
+//         @Override
+//         protected Collection<VueAction> getSelectionWatchers() {
+//             return _selectionWatchers;
+//         }
+    
         Layer active;
         
         LayerAction(String name, String tip) {
             //super(name, tip, KeyStroke.getKeyStroke(KeyEvent.VK_L, 0), null);
             super(name, tip, null, null);
+            AllLayerActions.add(this);
         }
         @Override
         public void actionPerformed(ActionEvent ae) {
-            active = mMap.getActiveLayer();
+            active = getActiveLayer();
             super.actionPerformed(ae);
         }
 
+//         protected java.util.List<LWComponent> selection() {
+//             return null;
+//         }
+
+//         @Override
+//         protected LWSelection selection() {
+//             return mSelection;
+//         }
+
+//         // This is overridden only because VueAction.enabledFor is
+//         // *package* private, instead of protected, and we're
+//         // not going to change that right now, so we need a
+//         // new enabled method we can override.
+//         @Override
+//         protected void updateEnabled(LWSelection selection) {
+//             if (selection == null)
+//                 setEnabled(false);
+//             else
+//                 setEnabled(enabledWith(selection));
+//         }
+//        boolean enabledWith(LWSelection s) { return s.size() > 0; }
+        
+        boolean enabledWith(Layer layer) { return layer != null; }
+
+        // this is called at the end of each action execution
         @Override
-        protected LWSelection selection() {
-            return mSelection;
+        protected void updateSelectionWatchers() {
+            super.updateSelectionWatchers();
+            updateLayerActionEnabled(getActiveLayer());
         }
 
-        public String getUndoName(ActionEvent e, boolean hadException) {
-            String name = super.getUndoName(e, hadException) + " Layer";
+        @Override
+        public String getUndoName(ActionEvent e, Throwable exception) {
+            String name = super.getUndoName(e, exception) + " Layer";
+            //if (selection().only() instanceof Layer && (this == LAYER_DUPLICATE || this == LAYER_DELETE))
             if (active != null && (this == LAYER_DUPLICATE || this == LAYER_DELETE))
                 name += " " + Util.quote(active.getDisplayLabel());
+            //name += " " + Util.quote(selection().only().getDisplayLabel());
             return name;
         }
+
+        
         
     }
+
+    static void updateLayerActionEnabled(Layer layer) {
+        for (LayerAction a : AllLayerActions)
+            a.setEnabled(a.enabledWith(layer));
+    }
+
+    
+
+    private static int NewLayerCount = 1;
+
+//     private final VueAction
+//         LAYER_NEW = new VueAction("New", "Create a new layer", null, null) {
+//                 public void act() {
+//                     mMap.addLayer("New Layer " + NewLayerCount++);
+//                 }
+//                 @Override
+//                 public String getUndoName() { return "New Layer"; }
+//             };
+        
 
     private final LayerAction
 
         LAYER_NEW = new LayerAction("New", "Create a new layer") {
-                public void act() {
-                    mMap.addChild(new LWMap.Layer());
+                @Override
+                boolean enabledWith(Layer layer) {
+                    return mMap != null;
                 }
+                public void act() {
+                    mMap.addLayer("New Layer " + NewLayerCount++);
+                }
+                @Override
+                public String getUndoName() { return "New Layer"; }
             },
         
+        
         LAYER_DUPLICATE = new LayerAction("Duplicate", "Create a copy of a layer") {
+//                 public void act() {
+//                     for (LWComponent c : reverse(selection()))
+//                         mMap.addChild(c.duplicate());
+//                 }
                 public void act() {
                     final Layer dupe = (Layer) active.duplicate();
                     mMap.addChild(dupe);
-                    //GUI.invokeAfterAWT(new Runnable() { public void run() {
-                    setActiveLayer(dupe, true);
-                    //}});
-                }
-            },
-        
-        LAYER_MERGE = new LayerAction("Merge", "Merge multiple layers") {
-                public void act() {
-                    
                 }
             },
         
         LAYER_DELETE = new LayerAction("Delete", "Remove a layer and all of it's contents") {
+                @Override
                 public void act() {
                     mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
                     mMap.setActiveLayer(null);
                     //setActiveLayer(null, true);
                     attemptAlternativeActiveLayer(); // better if this tried to find the nearest layer, and not check last-active
                 }
+            },
+        
+        LAYER_MERGE_DOWN = new LayerAction("Merge Down", "Merge into layer below") {
+//                 @Override
+//                 boolean enabledWith(LWSelection s) {
+//                     return s.size() == 1
+//                         && s.first() != mRows.get(mRows.size()-1).layer;
+//                 }
+                @Override
+                boolean enabledWith(Layer layer) {
+                    return layer != null && indexOf(layer) < mRows.size() - 1;
+                }
+                
+                @Override
+                public void act() {
+                    //final LWComponent mergingDown = selection().first();
+                    final LWComponent mergingDown = active;
+                    final Layer below = (Layer) mRows.get(indexOf(mergingDown) + 1).layer;
+                    below.takeAllChildren(mergingDown);
+                    setActiveLayer(below);
+                    mMap.deleteChildPermanently(mergingDown);
+                }
             }
+                
+//         LAYER_MERGE = new LayerAction("Merge", "Merge multiple layers") {
+//                 @Override
+//                 boolean enabledWith(LWSelection s) { return s.size() > 1; }
+//                 @Override
+//                 public void act() {
+
+//                     final Layer merged = new LWMap.Layer("Merged");
+
+//                     final ArrayList<LWComponent> mergedChildren = new ArrayList();
+
+//                     for (LWComponent c : reverse(selection())) {
+//                         merged.takeAllChildren(c);
+//                         mMap.deleteChildPermanently(c);
+//                     }
+
+// //                     for (LWComponent c : reverse(selection())) {
+// //                         mergedChildren.addAll(c.getChildren());
+// //                         if (c instanceof LWContainer)
+// //                             ((LWContainer)c).setChildren(null);
+// //                         mMap.deleteChildPermanently(c);
+// //                         //merged.addChildren(c.getChildren(), LWComponent.ADD_PRESORTED);
+// //                         //merged.addAll(c.getChildren());
+// //                     }
+// //                     merged.setChildren(mergedChildren);
+                    
+//                     mMap.addChild(merged);
+//                 }
+//                 @Override
+//                 public String getUndoName() { return "Merge Layers"; }
+//             },
+        
         ;
     
     public LayersUI() {
@@ -134,11 +260,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         addButton(LAYER_NEW);
         addButton(LAYER_DUPLICATE);
-        addButton(LAYER_MERGE);
+        //addButton(LAYER_MERGE);
+        addButton(LAYER_MERGE_DOWN);
         addButton(LAYER_DELETE);
 
-        LAYER_MERGE.setEnabled(false);
-        
         if (DEBUG.Enabled) {
             mShowAll.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
@@ -149,6 +274,18 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         add(mToolbar, BorderLayout.NORTH);
         add(mRowList, BorderLayout.CENTER);
+
+
+//         mSelection.addListener(new LWSelection.Listener() {
+//                 public void selectionChanged(LWSelection s) {
+//                     LayerAction.updateSelectionWatchers(_selectionWatchers, s);
+//                 }
+//                 @Override
+//                 public String toString() {
+//                     return "Handler for " + _selectionWatchers.size() + " " + LayerAction.class.getSimpleName() + "s";
+//                 }
+//             });
+
         
         VUE.addActiveListener(LWMap.class, this);
         VUE.getSelection().addListener(this);
@@ -182,14 +319,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     }
 
 //     public void activeChanged(ActiveEvent e, Layer layer) {
-//         indicateActiveLayer(layer, null);
+//         // used to just call indic
 //     }
 
 //     public void activeChanged(ActiveEvent e, LWComponent c) {
 //         enableForSingleSelection(c);
 //         // for debug / child-list mode:
 //         if (mMap != null && !mMap.isLayered())
-//             indicateActiveLayer(null);
+//             indicateActiveLayers(null);
 //     }
 
     private static final boolean UPDATE = true;
@@ -198,13 +335,21 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         setActiveLayer(c, !UPDATE);
     }
 
-    private void setActiveLayer(Layer c, boolean update) {
+    private void setActiveLayer(final Layer layer, boolean update) {
         //if (DEBUG.Enabled) Log.debug("SET-ACTIVE: " + c);
-        if (c != null)
+        if (layer != null)
             mMap.setClientProperty(Layer.class, "last", mMap.getActiveLayer());
-        mMap.setActiveLayer(c);
+        mMap.setActiveLayer(layer);
         if (update)
             indicateActiveLayers(null);
+
+        updateLayerActionEnabled(layer);
+
+        if (DEBUG.Enabled) {
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                VUE.setActive(Layer.class, LayersUI.this, layer);
+            }});
+        }
     }
 
     private boolean canBeActive(LWComponent layer) {
@@ -284,7 +429,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             //if (DEBUG.Enabled) Log.debug("selectionChanged: one parent in selection; active parent " + s.first().getParent());
             setActiveLayer((Layer) s.first().getParent());
         }
-        
+
         indicateActiveLayers(s.getParents());
 
 //         // for debug / child-list mode:
@@ -333,46 +478,91 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private final Color ActiveBG = VueConstants.COLOR_SELECTION;
     private final Color SelectedBG = VueConstants.COLOR_SELECTION.brighter();
     
-    private void indicateActiveLayers(Collection<? extends LWComponent> layers) {
-
-        //Log.debug("INDICATE ACTIVES: mapActive=" + mMap.getActiveLayer() + "; multiSelect=" + layers);
+    private void indicateActiveLayers(Collection<LWContainer> parents) {
 
         final Layer activeLayer = getActiveLayer();
 
-        // TODO: Why are selection bits being left on?  (why getting SelectedBG on multiple items!)
-        // can probably just hack it and check the selection here manually...  tho this
-        // shouldn't be happening...
+        if (parents == null) {
 
-        for (Row row : mRows) {
+            for (Row row : mRows) {
 
-            // Log.debug("UPDATING: " + row.layer);
-            
-            if (row.layer == activeLayer) {
-                //Log.debug("**ACTIVE: " + row.layer);
-                row.activeIcon.setEnabled(true);
-                row.setBackground(row.layer.isSelected() ? SelectedBG : ActiveBG);
-                continue;
+                row.activeIcon.setEnabled(row.layer == activeLayer);
+                
+                if (row.layer.isSelected() || row.layer == activeLayer)
+                //if (row.layer.isSelected())
+                    row.setBackground(row.layer instanceof Layer ? ActiveBG : SelectedBG);
+                else
+                    row.setBackground(null);
             }
 
-            row.activeIcon.setEnabled(false);
-            
-            if (layers != null && layers.contains(row.layer))
-                row.setBackground(ActiveBG);
-            else if (row.layer.isSelected())
-                row.setBackground(SelectedBG);
-            else
-                row.setBackground(null);
+        } else {
 
-//             if (layers != null) 
-//                 row.setBackground(layers.contains(row.layer) ? ActiveBG : null);
-//             else if (row.layer.isSelected())
-//                 row.setBackground(SelectedBG);
-//             else
-//                 row.setBackground(null);
+            for (Row row : mRows) {
+
+                row.activeIcon.setEnabled(row.layer == activeLayer);
+                
+                if (row.layer instanceof Layer) {
+
+                    if (parents.contains(row.layer)) {
+                        //row.layer.setSelected(true);
+                        row.setBackground(ActiveBG);
+                    } else {
+                        //row.layer.setSelected(false);
+                        row.setBackground(null);
+                    }
+                    
+                } else if (row.layer.isSelected()) {
+                    row.setBackground(SelectedBG);
+                } else
+                    row.setBackground(null);
+            }
+            
             
         }
         
     }
+
+//     private void indicateActiveLayers(Collection<LWContainer> parents) {
+
+//         //Log.debug("INDICATE ACTIVES: mapActive=" + mMap.getActiveLayer() + "; multiSelect=" + layers);
+
+//         final Layer activeLayer = getActiveLayer();
+
+//         // TODO: Why are selection bits being left on?  (why getting SelectedBG on multiple items!)
+//         // can probably just hack it and check the selection here manually...  tho this
+//         // shouldn't be happening...
+
+//         for (Row row : mRows) {
+
+//             // Log.debug("UPDATING: " + row.layer);
+            
+//             if (row.layer == activeLayer) {
+//                 //Log.debug("**ACTIVE: " + row.layer);
+//                 row.activeIcon.setEnabled(true);
+//                 row.setBackground(row.layer.isSelected() ? SelectedBG : ActiveBG);
+//                 continue;
+//             }
+
+//             row.activeIcon.setEnabled(false);
+            
+//             if (parents != null && parents.contains(row.layer))
+//                 row.setBackground(ActiveBG);
+//             else if (row.layer.isSelected())
+//                 row.setBackground(SelectedBG);
+//             else
+//                 row.setBackground(null);
+
+// //             if (layers != null) 
+// //                 row.setBackground(layers.contains(row.layer) ? ActiveBG : null);
+// //             else if (row.layer.isSelected())
+// //                 row.setBackground(SelectedBG);
+// //             else
+// //                 row.setBackground(null);
+            
+//         }
+        
+//     }
+    
         
     private void enableForSelection(LWSelection s) {
 
@@ -453,16 +643,19 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         if (map != null) {
             
             // handle in reverse order (top layer on top)
-            for (int i = map.numChildren() - 1; i >= 0; i--) {
-                final LWComponent layer = map.getChild(i);
+            for (LWComponent layer : reverse(map.getChildren())) {
                 mRows.add(produceRow(layer));
                 if (mShowAll.isSelected()) {
-                    for (int x = layer.numChildren() - 1; x >= 0; x--)
-                        mRows.add(produceRow(layer.getChild(x)));
+                    for (LWComponent c : reverse(layer.getChildren()))
+                        mRows.add(produceRow(c));
                 }
             }
-        }
 
+            updateLayerActionEnabled(map.getActiveLayer());
+        } else {
+            updateLayerActionEnabled(null);
+        }
+        
         if (!isDragUnderway) {
             enableForSelection(VUE.getSelection());
             indicateActiveLayers(null);
@@ -534,6 +727,17 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             return row;
         }
     }
+
+    private int indexOf(final LWComponent layer) {
+        int i = 0;
+        for (Row row : mRows) {
+            if (row.layer == layer)
+                return i;
+            i++;
+        }
+        return -1;
+    }
+    
 
     private boolean inExclusiveMode() {
         return fetchExclusiveRow() != null;
@@ -1221,10 +1425,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             Log.debug(e);
             
             if (layer instanceof Layer) {
-                if (e.isShiftDown())
-                    mSelection.add(layer);
-                else
-                    mSelection.setTo(layer);
+// //                 if (e.isShiftDown())
+// //                     mSelection.toggle(layer);
+// //                 else
+//                     mSelection.setTo(layer);
                 if (inExclusiveMode())
                     setExclusive(true);
                 else if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
