@@ -2481,9 +2481,8 @@ public class Actions implements VueConstants
     // again, tho this should in fact be "impossible"...
     
     public static class LWCAction extends VueAction
-//implements LWSelection.Listener
     {
-        LWCAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon) {
+        public LWCAction(String name, String shortDescription, KeyStroke keyStroke, Icon icon) {
             super(name, shortDescription, keyStroke, icon);
             init();
         }
@@ -2505,11 +2504,6 @@ public class Actions implements VueConstants
             this(name, null, keyStroke, (Icon) null);
         }
         
-//         public void act() {
-//             actOn(VUE.getSelection());
-//         }
-//         public void actOn(LWSelection selection) {
-            
         public void act() {
             LWSelection selection = selection();
             //System.out.println("LWCAction: " + getActionName() + " n=" + selection.size());
@@ -2569,7 +2563,7 @@ public class Actions implements VueConstants
             updateEnabled(selection());
         }
         
-        protected final void updateEnabled(LWSelection selection) {
+        protected void updateEnabled(LWSelection selection) {
             if (selection == null)
                 setEnabled(false);
             else
@@ -2654,18 +2648,10 @@ public class Actions implements VueConstants
             
         }
         
-        void act(LWLink c) {
-            ignoredDebug(c);
-        }
-        void act(LWNode c) {
-            ignoredDebug(c);
-        }
-        void act(LWImage c) {
-            ignoredDebug(c);
-        }
-        void act(LWSlide c) {
-            ignoredDebug(c);
-        }
+        void act(LWLink c) { ignoredDebug(c); }
+        void act(LWNode c) { ignoredDebug(c); }
+        void act(LWImage c) { ignoredDebug(c); }
+        void act(LWSlide c) { ignoredDebug(c); }
 
         private void ignoredDebug(LWComponent c) {
             if (DEBUG.Enabled) System.out.println("LWCAction: ignoring " + getActionName() + " on " + c);
@@ -2675,11 +2661,11 @@ public class Actions implements VueConstants
         void actOn(LWComponent c) { act(c); } // for manual init calls from internal code
 
         @Override
-        public String getUndoName(ActionEvent e, boolean hadException)
+        public String getUndoName(ActionEvent e, Throwable exception)
         {
-            String name = super.getUndoName(e, hadException);
+            String name = super.getUndoName(e, exception);
             if (selection().size() == 1)
-                name += " (" + VUE.getSelection().first().getComponentTypeLabel() + ")";
+                name += " (" + selection().first().getComponentTypeLabel() + ")";
             return name;
     }
         
