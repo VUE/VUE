@@ -1137,6 +1137,7 @@ public class Util
         public Iterator<T> iterator() { return this; }
     };
 
+    /** usage: for (SomeObject o : reverse(someObjectList)) { ... } */
     public static <T> Iterable<T> reverse(java.util.List<T> list) {
         return new ReverseListIterator<T>(list);
     }
