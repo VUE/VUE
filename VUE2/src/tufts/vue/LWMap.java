@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.207 $ / $Date: 2008-07-19 19:18:37 $ / $Author: sfraize $
+ * @version $Revision: 1.208 $ / $Date: 2008-07-21 18:00:37 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -761,10 +761,16 @@ public class LWMap extends LWContainer
         @Override public String getXMLstrokeColor() { return null; }
         @Override public String getXMLfont() { return null; }
 
-//         /** @return false */
-//         public boolean supportsMultiSelection() {
-//             return false;
-//         }
+        @Override
+        public void removeAllLWCListeners() {
+            // do nothing: when deleting, layers need to leave these around for LayerUI Row components
+        }
+
+
+        /** @return false */
+        public boolean supportsMultiSelection() {
+            return false;
+        }
 
         /** @return false */
         @Override
@@ -824,7 +830,7 @@ public class LWMap extends LWContainer
             if (c.getParent() instanceof Layer) {
                 // skip localization -- un-needed as layers share
                 // same coordinate space
-                if (DEBUG.Enabled && c.getMap() != getMap())
+                if (DEBUG.Enabled && getMap() != null && c.getMap() != getMap())
                     Util.printStackTrace("cross-map reparenting! " + c.getMap() + " -> " + getMap());
                 c.setParent(this);
             } else {
@@ -890,11 +896,12 @@ public class LWMap extends LWContainer
         @Override
         public String toString() {
             try {
-                return String.format("Layer[%s<%d> \"%s\" %d]",
+                return String.format("Layer[%s<%d> \"%s\" %d%s]",
                                      getParent().getDisplayLabel(),
                                      getParent().indexOf(this),
                                      getDisplayLabel(),
-                                     numChildren()
+                                     numChildren(),
+                                     describeBits()
                                      );
             } catch (Throwable t) {
                 return super.toString();
@@ -916,6 +923,14 @@ public class LWMap extends LWContainer
         if (!VUE.VUE3_LAYERS) return null;
         return mActiveLayer;
     }
+
+    public Layer addLayer(String name) {
+        if (!VUE.VUE3_LAYERS) return null;
+        Layer layer = new Layer(name);
+        addChild(layer);
+        return layer;
+    }
+    
     
     public void setActiveLayer(LWComponent layer) {
         if (!VUE.VUE3_LAYERS) return;
