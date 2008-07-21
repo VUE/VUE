@@ -27,7 +27,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.90 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2008-07-21 17:47:43 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -235,14 +235,18 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 }
             }
 
-            if (size() == 1)
-                VUE.setActive(LWComponent.class, this, first());
-            else
-                VUE.setActive(LWComponent.class, this, null);
-            
+            postNotify();
+
         } finally {
             inNotify = false;
         }
+    }
+
+    protected void postNotify() {
+        if (size() == 1)
+            VUE.setActive(LWComponent.class, this, first());
+        else
+            VUE.setActive(LWComponent.class, this, null);
     }
 
     private boolean notifyUnderway() {
@@ -338,6 +342,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             notifyListeners();
     }
     
+    public void toggle(LWComponent c) {
+        toggle(new Util.SingleIterator(c));
+    }
+
+    
     /** Change the selection status of all LWComponents in iterator */
     synchronized void toggle(Iterable<LWComponent> iterable)
     {
@@ -415,12 +424,12 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             throw new RuntimeException(this + " attempt to add already selected component " + c);
     }
     
-//     public synchronized void remove(LWComponent c)
-//     {
-//         removeSilent(c);
-//         resetStatistics();
-//         notifyListeners();
-//     }
+    public synchronized void remove(LWComponent c)
+    {
+        removeSilent(c);
+        resetStatistics();
+        notifyListeners();
+    }
 
     private synchronized void removeSilent(LWComponent c)
     {
