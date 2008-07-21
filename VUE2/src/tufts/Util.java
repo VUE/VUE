@@ -1138,7 +1138,7 @@ public class Util
     };
 
     public static <T> Iterable<T> reverse(java.util.List<T> list) {
-        return new ReverseListIterator(list);
+        return new ReverseListIterator<T>(list);
     }
     
     /** Convenience class: provides a reversed list iteration.  List should not modified during iteration. */
