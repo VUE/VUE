@@ -16,6 +16,7 @@
 package tufts.vue;
 
 import tufts.Util;
+import static tufts.Util.copy;
 
 import java.util.*;
 import java.awt.Graphics2D;
@@ -30,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.146 $ / $Date: 2008-07-21 17:58:19 $ / $Author: sfraize $
+ * @version $Revision: 1.147 $ / $Date: 2008-07-21 19:03:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -216,7 +217,7 @@ public abstract class LWContainer extends LWComponent
         // modified as it's iterated by addChildImpl, which is going to extract it from
         // from the source parent's list as each child is moved over
         
-        addChildren(new ArrayList(taking), ADD_PRESORTED);
+        addChildren(copy(taking), ADD_PRESORTED);
         
         //addChildren(taking.toArray(new LWComponent[taking.size()]));
     }
@@ -344,9 +345,14 @@ public abstract class LWContainer extends LWComponent
         if (toAdd.size() > 1 && context != ADD_PRESORTED)
             toAdd = sortForIncomingZOrder(toAdd);
 
-        // in case the passed in toAdd is a list being used elsewhere,
-        // we create a copy to use in the undo queue (and it's also
-        // possible that an individual call to addChildImpl will fail)
+        // in case the passed in toAdd is a list being used elsewhere, we create a copy
+        // to use in the undo queue (and it's also possible that an individual call to
+        // addChildImpl will fail) Note: the added list is for components that may be
+        // trying to track what's going on in the model: the UndoManager handles
+        // hierarchy changes is it's own internal, very reliable way: saving the entire
+        // list of children the first time a HierarchyChanging event is seen during a
+        // user action, and after that, it can ignore further changes on the same
+        // parent: it has all it needs to restore the parent's state before the action.
         
         final List<LWComponent> added = new ArrayList(toAdd.size());
 
@@ -600,7 +606,7 @@ public abstract class LWContainer extends LWComponent
             return;
         }
         if (!mChildren.remove(c)) {
-            Util.printStackTrace(this + "; didn't contain child for removal: " + c);
+            Log.warn(this + "; didn't contain child for removal: " + c);
             /*
             if (DEBUG.PARENTING) {
                 System.out.println(this + " FYI: didn't contain child for removal: " + c);
@@ -644,11 +650,13 @@ public abstract class LWContainer extends LWComponent
 
     protected void removeChildrenFromModel()
     {
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        // in certian cases, removing an object from the model will trigger the
+        // auto-deleting of other objects from the model (possible also children of
+        // ours), so we iterate over a copy of the the list to ensure we don't get any
+        // ConcurrentModificationException's
+        
+        for (LWComponent c : copy(getChildren()))
             c.removeFromModel();
-        }
     }
     
     @Override
