@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.42 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $ 
+ * @version $Revision: 1.43 $ / $Date: 2008-07-21 18:02:26 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -144,7 +144,7 @@ public class VueAction extends javax.swing.AbstractAction
         AllActionList.add(this);
 
         if (isSelectionWatcher())
-            SelectionWatchers.add(this);
+            getSelectionWatchers().add(this);
 
         if (DEBUG.Enabled)
             trackForDupeStrokes(this, keyStroke);
@@ -338,7 +338,8 @@ public class VueAction extends javax.swing.AbstractAction
             }
             return;
         }
-        boolean hadException = false;
+        
+        Throwable exception = null;
         
         try {
 
@@ -367,12 +368,12 @@ public class VueAction extends javax.swing.AbstractAction
                 System.err.println("*** VueAction: event was " + ae);
                 tufts.Util.printStackTrace(t);
             }
-            hadException = true;
+            exception = t;
         }
 
-        establishMarkForUndo(ae, hadException);
+        establishMarkForUndo(ae, exception);
         
-        updateSelectionWatchers(selection());
+        updateSelectionWatchers();
 
         //if (DEBUG.EVENTS) Log.debug(this + " END OF actionPerformed: ActionEvent=" + ae.paramString() + "\n");
         if (DEBUG.EVENTS) Log.debug("\n===============================================================================================================\n");
@@ -398,9 +399,9 @@ public class VueAction extends javax.swing.AbstractAction
         return viewer().getFocal();
     }    
 
-    protected void establishMarkForUndo(ActionEvent ae, boolean hadException) {
+    protected void establishMarkForUndo(ActionEvent ae, Throwable exception) {
         if (VUE.getUndoManager() != null && undoable()) {
-            VUE.getUndoManager().markChangesAsUndo(getUndoName(ae, hadException));
+            VUE.getUndoManager().markChangesAsUndo(getUndoName(ae, exception));
         }
     }
     
@@ -409,7 +410,7 @@ public class VueAction extends javax.swing.AbstractAction
     	return null;
     }
     
-    public String getUndoName(ActionEvent e, boolean hadException)
+    public String getUndoName(ActionEvent e, Throwable exception)
     {
     	
     	String undoName = getUndoName();
@@ -417,8 +418,12 @@ public class VueAction extends javax.swing.AbstractAction
             undoName = e.getActionCommand();
         if (undoName == null)
             undoName = getActionName();
-        if (hadException && DEBUG.Enabled)
-            undoName += " (!)";
+        if (exception != null) {
+            if (DEBUG.Enabled)
+                undoName += " (!" + exception + ")";
+            else
+                undoName += " (!)";
+        }
         
         return undoName;
     }
@@ -478,58 +483,46 @@ public class VueAction extends javax.swing.AbstractAction
         return fireIfMatching(e, e);
     }
 
+    private static final Collection<VueAction> _selectionWatchers = new java.util.ArrayList();
 
-    // To update action's enabled state after an action is performed.
+     /** can be overridden for action subclass categories that may want to use a different selection */
+    protected Collection<VueAction> getSelectionWatchers() {
+        return _selectionWatchers;
+    }
 
-    // todo: create a single VueAction LWSelection listener that then
-    // dispatches selection updates to all the actions (and then see
-    // how many ms all together are taking), and for performance can
-    // break down selection once into a selection info object for
-    // action's to check against (size, #nodes, #links, etc)
-    // also consider just putting all that info directly in
-    // the selection.
+     /** can be overridden for action subclass categories */
+    protected void updateSelectionWatchers() {
+        updateSelectionWatchers(getSelectionWatchers(), selection());
+    }
     
-    // This should be static / not run from here: should be
-    // run at any "user-mark" (any undo-manager possible checkpoint)
-
-//     protected void updateActionListeners()
-//     {
-//         Iterator i = VUE.getSelection().getListeners().iterator();
-//         while (i.hasNext()) {
-//             LWSelection.Listener l = (LWSelection.Listener) i.next();
-//             if (l instanceof javax.swing.Action) {
-//                 l.selectionChanged(VUE.getSelection());
-//                 //System.out.println("Notifying action " + l);
-//             }
-//             //else System.out.println("Skipping listener " + l);
-//         }
-//     }
-
-    private static final Collection<VueAction> SelectionWatchers = new java.util.ArrayList();
     
-    private static void updateSelectionWatchers(LWSelection s) {
+    static {
+        VUE.getSelection().addListener(new LWSelection.Listener() {
+                public void selectionChanged(LWSelection s) {
+                    updateSelectionWatchers(_selectionWatchers, s);
+                }
+                @Override
+                public String toString() {
+                    return "Global Handler for " + _selectionWatchers.size() + " " + VueAction.class.getSimpleName() + "s";
+                }
+            });
+    }
+
+    private static void updateSelectionWatchers(final Collection<VueAction> watchers, final LWSelection s) {
         final LWSelection selection = VUE.getActiveViewer() == null ? null : s;
-        for (VueAction a : SelectionWatchers) {
+        //if (DEBUG.SELECTION) Log.debug("updating " + _selectionWatchers.size() + " selection watchers...");
+        for (VueAction a : watchers) {
             try {
+                // todo: this should ideally be run at any "user-mark" (any undo-manager possible checkpoint)
+                // not just when selection changes -- would be faster / have to less often, tho would then be
+                // subject to being out of date if we miss any user marks, tho those are bugs anyway.
                 a.updateEnabled(selection);
             } catch (Throwable t) {
                 Log.error("updateEnabled failed in: " + Util.tags(a) + "; with selection " + selection);
             }
         }
+        //if (DEBUG.SELECTION) Log.debug("#UPDATED " + _selectionWatchers.size() + " selection watchers");
     }
-
-    static {
-        VUE.getSelection().addListener(new LWSelection.Listener() {
-                public void selectionChanged(LWSelection s) {
-                    updateSelectionWatchers(s);
-                }
-                @Override
-                public String toString() {
-                    return "Global " + VueAction.class.getSimpleName() + " enabled-state updater";
-                }
-            });
-    }
-    
 
     /** @return false in this impl: override to change */
     protected boolean isSelectionWatcher() { return false; }
