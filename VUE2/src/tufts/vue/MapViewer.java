@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.566 $ / $Date: 2008-07-19 21:11:21 $ / $Author: sfraize $ 
+ * @version $Revision: 1.567 $ / $Date: 2008-07-21 18:01:08 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1821,9 +1821,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //             setBackground(mMap.getFillColor());
         } else if (e.key == LWKey.Hidden) {
             if (e.getComponent().isHidden() && e.getComponent().isSelected()) {
-                VueSelection.remove(e.getComponent());
-            } else
-                repaint();
+                // This is important for pruning, and maybe filtering?
+                // Tho it could cause major havoc with layers if we use them in the
+                // selection.
+                selectionRemove(e.getComponent());
+            }
+            repaint();
             return;
         }
 
