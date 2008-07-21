@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.426 $ / $Date: 2008-07-19 21:11:21 $ / $Author: sfraize $
+ * @version $Revision: 1.427 $ / $Date: 2008-07-21 17:51:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -133,6 +133,9 @@ public class LWComponent
     public enum Flag {
         DELETED,
             
+            /** this component is selected */
+            SELECTED,
+            
             IS_STYLE,
             /** cannot move, delete, link to or edit label */
             LOCKED,
@@ -207,7 +210,7 @@ public class LWComponent
 
     protected transient TextBox labelBox = null;
     protected transient BasicStroke stroke = STROKE_ZERO;
-    protected transient boolean selected = false;
+    //protected transient boolean selected = false;
 
     protected int mHideBits = 0x0; // any bit set means we're hidden
     protected int mFlags = 0x0;
@@ -5883,12 +5886,17 @@ u                    getSlot(c).setFromString((String)value);
         clearHidden(HideCause.PRUNE);
      }
     
+//     public void setSelected(boolean selected) {
+//         this.selected = selected;
+//     }
+//     public final boolean isSelected() {
+//         return this.selected;
+//     }
     public void setSelected(boolean selected) {
-        this.selected = selected;
+        setFlag(Flag.SELECTED, selected);
     }
-    
     public final boolean isSelected() {
-        return this.selected;
+        return hasFlag(Flag.SELECTED);
     }
 
     protected boolean selectedOrParent() {
@@ -6581,12 +6589,20 @@ u                    getSlot(c).setFromString((String)value);
         //if (this.scale != 1f) s += "z" + this.scale + " ";
         if (getScale() != 1f) s += String.format("z%.2f ", getScale());
         s += paramString();
-        if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
-        if (mFlags != 0) s += " " + getDescriptionOfSetBits(Flag.class, mFlags);
+        s += describeBits();
+//         if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
+//         if (mFlags != 0) s += " " + getDescriptionOfSetBits(Flag.class, mFlags);
         if (getResource() != null)
             s += " " + getResource().getSpec();
         //s += " <" + getResource() + ">";
         s += "]";
+        return s;
+    }
+
+    protected String describeBits() {
+        String s = "";
+        if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
+        if (mFlags != 0) s += " " + getDescriptionOfSetBits(Flag.class, mFlags);
         return s;
     }
 
