@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.144 $ / $Date: 2008-07-19 19:20:29 $ / $Author: sfraize $
+ * @version $Revision: 1.145 $ / $Date: 2008-07-21 17:52:25 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -207,10 +207,21 @@ public abstract class LWContainer extends LWComponent
         removeChildren(Collections.singletonList(c));
     }
 
-    
+    /** we're moving an entire list of children from one container to another -- preseve z-order, and prevent concurrent modication exceptions */
+    public void takeAllChildren(LWComponent source) {
+
+        final List<LWComponent> taking = source.getChildren();
+        
+        // we can't add the instance of the child list directly, as it's going to be
+        // modified as it's iterated by addChildImpl, which is going to extract it from
+        // from the source parent's list as each child is moved over
+        
+        addChildren(taking.toArray(new LWComponent[taking.size()]));
+    }
+
     /** Add the given LWComponents to us as children, using the order they appear in the array
      * for child order (z-order and/or visual order, depending on component impl) */
-    protected void addChildren(LWComponent[] toAdd)
+    public void addChildren(LWComponent[] toAdd)
     {
         addChildren(Arrays.asList(toAdd), ADD_PRESORTED);
     }
@@ -269,6 +280,39 @@ public abstract class LWContainer extends LWComponent
 
         return toAdd;
     }
+
+//     /** can only be called on constructing containers, and as long as all being added are either also out-model,
+//      * or are about to be removed from the model (deleted)
+//      */
+//     public void addAll(List<LWComponent> toAdd) {
+//         if (getParent() != null)
+//             throw new IllegalStateException(this + " can only add directly on out-model constructing LWContainers");
+
+//         if (mChildren == NO_CHILDREN)
+//             mChildren = new ArrayList(toAdd.size());
+
+//         mChildren.addAll(toAdd);
+//     }
+    
+//     /** absoulute minimum done to reparent -- for layers, where coordinate systems are fully registered */
+//     public void setChildren(final ArrayList<LWComponent> children) {
+
+//         if (getParent() != null)
+//             notify(LWKey.HierarchyChanging);
+
+//         if (children == null) {
+//             mChildren = NO_CHILDREN;
+//         } else {
+//             mChildren = children;
+
+//             for (LWComponent c : children) {
+//                 if (c.parent instanceof LWMap.Layer)
+//                     c.parent = this;
+//                 else
+//                     Log.error("setChildren: cannot steal from a non-layer: " + c + "; in: " + c.parent);
+//             }
+//         }
+//     }
     
     /**
      * This will add the contents of the iterable as children to the LWContainer.  If
