@@ -30,7 +30,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.145 $ / $Date: 2008-07-21 17:52:25 $ / $Author: sfraize $
+ * @version $Revision: 1.146 $ / $Date: 2008-07-21 17:58:19 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -216,7 +216,9 @@ public abstract class LWContainer extends LWComponent
         // modified as it's iterated by addChildImpl, which is going to extract it from
         // from the source parent's list as each child is moved over
         
-        addChildren(taking.toArray(new LWComponent[taking.size()]));
+        addChildren(new ArrayList(taking), ADD_PRESORTED);
+        
+        //addChildren(taking.toArray(new LWComponent[taking.size()]));
     }
 
     /** Add the given LWComponents to us as children, using the order they appear in the array
