@@ -236,7 +236,8 @@ public class LWChangeSupport
                 ;
             // this situation not so serious at this point: we may have no listeners
             if (DEBUG.Enabled)
-                Util.printStackTrace(msg);
+                Log.warn(msg, new Throwable("FYI"));
+                //Util.printStackTrace(msg);
             else
                 Log.warn(msg);
         }
