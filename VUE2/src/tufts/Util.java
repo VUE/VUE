@@ -1076,10 +1076,10 @@ public class Util
 
      */
     public static <A, T extends A> Iterable<T> typeFilter(Iterable<A> iterable, Class<T> clazz) {
-        return new IteratorFilter<A,T>(iterable, clazz);
+        return new IteratorTypeFilter<A,T>(iterable, clazz);
     }
 
-    private static final class IteratorFilter<A,T extends A> implements Iterable<T>, Iterator<T> {
+    private static final class IteratorTypeFilter<A,T extends A> implements Iterable<T>, Iterator<T> {
 
         private static final Object NEXT_NEEDED = new Object();
         private static final Object EOL = new Object();
@@ -1090,7 +1090,7 @@ public class Util
         Object next = NEXT_NEEDED;
         
         // todo: could also allow an array of varied types to be looked for
-        public IteratorFilter(Iterable<A> i, Class<T> c) {
+        public IteratorTypeFilter(Iterable<A> i, Class<T> c) {
             iter = i.iterator();
             clazz = c;
         }
@@ -1136,12 +1136,29 @@ public class Util
         
         public Iterator<T> iterator() { return this; }
     };
+
+    public static <T> Iterable<T> reverse(java.util.List<T> list) {
+        return new ReverseListIterator(list);
+    }
     
-    
+    /** Convenience class: provides a reversed list iteration.  List should not modified during iteration. */
+    // could provide a standard fail-fast on concurrent modification by internally using a ListIterator
+    private static final class ReverseListIterator<T> implements java.util.Iterator<T>, Iterable<T> {
+        private final java.util.List<T> list;
+        private int index;
+        public ReverseListIterator(java.util.List<T> toReverse) {
+            list = toReverse;
+            index = list.size();
+        }
+        public boolean hasNext() { return index > 0; }
+        public T next() { return list.get(--index); }
+        public void remove() { throw new UnsupportedOperationException(); }
+        public Iterator iterator() { return this; }
+    };
     
     /** Convenience class: provides an array iterator */
     public static final class ArrayIterator implements java.util.Iterator, Iterable {
-        private Object[] array;
+        private final Object[] array;
         private int index;
         public ArrayIterator(Object[] a) {
             array = a;
