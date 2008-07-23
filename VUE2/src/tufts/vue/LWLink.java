@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.192 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
+ * @version $Revision: 1.193 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -432,13 +432,9 @@ public class LWLink extends LWComponent
     }
 
     @Override
-    public boolean supportsUserLabel() {
-        return true;
-    }
+    public boolean supportsUserLabel() { return true; }
     @Override
-    public boolean supportsReparenting() {
-        return false;
-    }
+    public boolean supportsReparenting() { return false; }
     
     public boolean handleSingleClick(MapMouseEvent e)
     {

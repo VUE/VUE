@@ -30,7 +30,7 @@ import java.awt.geom.AffineTransform;
  * this class, and just use an LWComponent with dynamically disabled properies
  * as we see fit...
  *
- * @version $Revision: 1.21 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
+ * @version $Revision: 1.22 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $ 
  */
 
 public class LWPortal extends LWNode
@@ -260,24 +260,21 @@ public class LWPortal extends LWNode
     */
     
 
+    /** @return false so LWNode.super won't draw it */
     @Override
-    public boolean hasLabel() { // so LWNode won't draw it
-        return false;
-    }
+    public boolean hasLabel() { return false; }
     
+    /** @return false -- nothing can be added to a portal */
     @Override
-    public boolean supportsChildren() {
-        return false;
-    }
+    public boolean supportsChildren() { return false; }
+    
+    /** @return false so can't be dropped into anything else (e.g. a node) */
     @Override
-    public boolean supportsReparenting() {
-        return false;
-    }
-
+    public boolean supportsReparenting() { return false; }
+    
+    /** @return false -- doesn't display any icons */
     @Override
-    protected boolean iconShowing() {
-        return false;
-    }
+    protected boolean iconShowing() { return false; }
 
 }
     

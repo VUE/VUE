@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.568 $ / $Date: 2008-07-23 15:44:48 $ / $Author: sfraize $ 
+ * @version $Revision: 1.569 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1037,6 +1037,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return rr;
     }
     
+    @Override
     protected void processEvent(AWTEvent e) {
         try {
             if (e instanceof MouseEvent) {
@@ -6557,11 +6558,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (dragComponent == null || !isDropRequest(e)) {
                     ; // nothing dragged, or shift requst to skip reparenting
                 } else {
-                        if (DEBUG.EVENTS) System.out.println(TERM_GREEN + "\nINTERNAL MAP MOUSE DROP EVENT in " + this
-                                                         + "\n\t     event: " + e
-                                                         + "\n\tindication: " + indication
-                                                             + TERM_CLEAR);
-                        checkAndHandleDroppedReparenting();
+                    processViewerLocalMoveAndDrop(e, (LWContainer) indication, getSelection());
                 }
             }
             
@@ -6678,91 +6675,215 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
         
         
-        /**
-         * Take what's in the selection and drop it on the current indication,
-         * or on the map if no current indication.
-         *
-         * @return true if we did anything
-         */
-        private boolean checkAndHandleDroppedReparenting() {
-            //-------------------------------------------------------
-            // check to see if any things could be dropped on a new parent
-            // This got alot more complicated adding support for
-            // dropping whole selections of components, especially
-            // if there are embedded children selected.
-            //-------------------------------------------------------
-            
-            LWContainer parentTarget;
-            if (indication == null) {
-                if (mFocal instanceof LWContainer && mFocal.supportsChildren()) {
-                    //parentTarget = (LWContainer) mFocal;
-                    parentTarget = (LWContainer) getDropFocal();
-                } else {
-                    //VUE.Log.debug("MapViewer: drag check of non-container focal " + mFocal);
-                    return false;
-                }
-            } else
-                parentTarget = (LWContainer) indication;
+    /**
+     * Take what's in the selection and drop it on the current indication,
+     * or on the map if no current indication.
+     *
+     * @return true if we did anything
+     */
+    private boolean processViewerLocalMoveAndDrop(final MouseEvent e,
+                                                  final LWContainer target,
+                                                  final LWSelection selection) {
+        
+        if (DEBUG.EVENTS || DEBUG.DND)
+            System.out.println(TERM_GREEN + "\nINTERNAL MAP MOUSE DROP EVENT in " + this
+                               + "\n\t     event: " + e
+                               + "\n\tindication: " + target
+                               + TERM_CLEAR);
 
-            Collection<LWComponent> moveList = new java.util.ArrayList();
-            for (LWComponent droppedChild : VueSelection) {
-                if (!droppedChild.supportsReparenting())
-                    continue;
-
-                final LWContainer currentParent = droppedChild.getParent();
-
-                if (currentParent == null) // must have grabbed the LWMap
-                    continue;
-                
-                // even tho the indication has already checked this via isValidParentTarget,
-                // if there's more than one item in the selection, we still need
-                // to do do this check against bad cases -- TODO: not allowing
-                // reparenting when child moving from the a group to become
-                // a child of another group member.
-                if (!currentParent.supportsChildren())
-                    continue;
-                //  continue; // not with new "page" groups
-                // don't do anything if parent might be reparenting
-                if (currentParent.isSelected())
-                    continue;
-                // todo: actually re-do drop if anything other than map so will re-layout
-                if (
-                    (currentParent != parentTarget || parentTarget instanceof LWNode) &&
-                    droppedChild != parentTarget) {
-                    //-------------------------------------------------------
-                    // we were over a valid NEW parent -- reparent
-                    //-------------------------------------------------------
-                    if (DEBUG.PARENTING)
-                        System.out.println("*** REPARENTING " + droppedChild + " as child of " + parentTarget);
-                    moveList.add(droppedChild);
-                }
-            }
-            
-            if (moveList.size() > 0) {
-            
-                // okay -- what we want is to tell the parent we're moving from to remove
-                // them all at once -- the problem is our selection could contain components
-                // of multiple parents.  So we have to handle each source parent seperately,
-                // and remove all it's children at once -- this is so the parent won't
-                // re-lay itself out (call layout()) while removing children, because if
-                // does it will re-set the position of other siblings about to be removed
-                // back to the parent's layout spot from the draggeed position they
-                // currently occupy and we're trying to move them to.
-                
-                Set<LWContainer> parents = new java.util.HashSet();
-                for (LWComponent c : moveList)
-                    parents.add(c.getParent());
-
-                for (LWContainer parent : parents) {
-                    if (DEBUG.PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
-                    parent.reparentTo(parentTarget, moveList);
-                }
-                
-                selectionSet(moveList);
-                return true;
-            }
+        if (target != null && !target.supportsChildren())
             return false;
+            
+        // if target is null, this means it was dropped "at the top level", which
+        // used to mean the map, but now that means the layer that the component
+        // is on, and each it selection could be from a different layer.
+
+        // Unless the focal is something unlayered, say, a slide, in which case
+        // target will *generally* be the slide, but if you go off slide it will
+        // be null -- merge this case so null always shows up as the slide (focal)
+        
+        //-------------------------------------------------------
+        // check to see if any things could be dropped on a new parent
+        // This got alot more complicated adding support for
+        // dropping whole selections of components, especially
+        // if there are embedded children selected.
+        //-------------------------------------------------------
+
+        final Collection<LWComponent> moveList = new java.util.ArrayList();
+        final Collection<LWContainer> putbacks = new java.util.ArrayList();
+        
+        for (LWComponent dropped : selection) {
+
+            if (DEBUG.DND) out("processMoveAndDrop", dropped);
+
+            if (!dropped.supportsReparenting())
+                continue;
+            
+            final LWContainer parent = dropped.getParent();
+
+            if (parent == null) {
+                Log.error("attempting to moveAndDrop unparented: " + dropped);
+                continue;
+            }
+
+            if (parent == target) {
+                if (parent.isManagingChildLocations()) {
+                    // if same parent, nothing to do, unless parent lays out it
+                    // it's children, in which case we used to re-add so
+                    // it would re-layout -- for now just try re-layout
+                    putbacks.add(parent);
+                    //continue;
+                } else 
+                    continue; 
+            }
+
+            if (!parent.supportsChildren()) { // old condition?
+                if (DEBUG.Enabled) Util.printStackTrace("ignoring, current parent does not support children: " + dropped);
+                continue;
+            }
+            
+            //-------------------------------------------------------
+            // we were over a valid NEW parent -- reparent
+            //-------------------------------------------------------
+            if (DEBUG.PARENTING) out("REPARENTING", dropped + " as child of " + target);
+            moveList.add(dropped);
         }
+
+        boolean moved = false;
+            
+        if (moveList.size() > 0) {
+            
+            // What we need to do is tell the parent we're moving from to remove them
+            // all at once -- the problem is our selection could contain components of
+            // multiple parents.  So we have to handle each source parent seperately,
+            // and remove all it's children at once -- this is so the parent won't
+            // re-lay itself out (call layout()) while removing children, because if
+            // does it will re-set the position of other siblings about to be removed
+            // back to the parent's layout spot from the draggeed position they
+            // currently occupy and we're trying to move them to.
+                
+            Set<LWContainer> parents = new java.util.HashSet();
+            for (LWComponent c : moveList)
+                parents.add(c.getParent());
+
+            if (DEBUG.PARENTING)  out("MOVING", moveList);
+
+            for (LWContainer parent : parents) {
+                
+                final LWContainer newParent = reparentTarget(parent, target);
+                
+                if (newParent == null) {
+                    Log.info("null new parent moving from " + parent);
+                    continue;
+                }
+
+                if (newParent != parent || parent.isManagingChildLocations()) {
+                    if (DEBUG.PARENTING)  out("DIRECTING", parent + " -> " + newParent);
+                    parent.reparentTo(newParent, moveList);
+                    moved = true;
+                }
+            }
+                
+            selectionSet(moveList);
+        }
+
+        for (LWContainer c : putbacks)
+            c.layout();
+        
+        return moved;
+    }
+
+    private LWContainer reparentTarget(LWContainer oldParent, LWContainer picked) {
+
+        LWContainer target = null;
+
+        if (picked == null) {
+            target = oldParent.getLayer();
+            // never let rise above the focal
+            if (getFocal().getDepth() > target.getDepth()) {
+                if (getFocal() instanceof LWContainer)
+                    target = (LWContainer) getFocal();
+                else
+                    target = null;
+            }
+        } else
+            target = picked;
+
+        return target;
+        
+    }
+
+//         private boolean checkAndHandleDroppedReparenting() {
+//             //-------------------------------------------------------
+//             // check to see if any things could be dropped on a new parent
+//             // This got alot more complicated adding support for
+//             // dropping whole selections of components, especially
+//             // if there are embedded children selected.
+//             //-------------------------------------------------------
+            
+//             LWContainer parentTarget;
+//             if (indication == null) {
+//                 if (mFocal instanceof LWContainer && mFocal.supportsChildren()) {
+//                     //parentTarget = (LWContainer) mFocal;
+//                     parentTarget = (LWContainer) getDropFocal();
+//                 } else {
+//                     //VUE.Log.debug("MapViewer: drag check of non-container focal " + mFocal);
+//                     return false;
+//                 }
+//             } else
+//                 parentTarget = (LWContainer) indication;
+
+//             Collection<LWComponent> moveList = new java.util.ArrayList();
+//             for (LWComponent droppedChild : VueSelection) {
+//                 if (!droppedChild.supportsReparenting())
+//                     continue;
+
+//                 final LWContainer currentParent = droppedChild.getParent();
+
+//                 if (currentParent == null) // must have grabbed the LWMap
+//                     continue;
+                
+//                 // even tho the indication has already checked this via isValidParentTarget,
+//                 // if there's more than one item in the selection, we still need
+//                 // to do do this check against bad cases -- TODO: not allowing
+//                 // reparenting when child moving from the a group to become
+//                 // a child of another group member.
+//                 if (!currentParent.supportsChildren())
+//                     continue;
+//                 //  continue; // not with new "page" groups
+//                 // don't do anything if parent might be reparenting
+//                 if (currentParent.isSelected())
+//                     continue;
+//                 // todo: actually re-do drop if anything other than map so will re-layout
+//                 if (
+//                     (currentParent != parentTarget || parentTarget instanceof LWNode) &&
+//                     droppedChild != parentTarget) {
+//                     //-------------------------------------------------------
+//                     // we were over a valid NEW parent -- reparent
+//                     //-------------------------------------------------------
+//                     if (DEBUG.PARENTING)
+//                         System.out.println("*** REPARENTING " + droppedChild + " as child of " + parentTarget);
+//                     moveList.add(droppedChild);
+//                 }
+//             }
+            
+//             if (moveList.size() > 0) {
+//                 Set<LWContainer> parents = new java.util.HashSet();
+//                 for (LWComponent c : moveList)
+//                     parents.add(c.getParent());
+
+//                 for (LWContainer parent : parents) {
+//                     if (DEBUG.PARENTING)  System.out.println("*** HANDLING PARENT " + parent);
+//                     parent.reparentTo(parentTarget, moveList);
+//                 }
+                
+//                 selectionSet(moveList);
+//                 return true;
+//             }
+//             return false;
+//         }
+
+    
 
 
         private final int SYSTEM_DRAG_MODIFIER = VueUtil.isMacPlatform() ? InputEvent.META_MASK : (InputEvent.ALT_MASK + InputEvent.CTRL_MASK);
@@ -7414,7 +7535,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     protected void out(String method, Object msg) {
         if (method.charAt(0) == '@')
             tufts.Util.printStackTrace(method);
-        Log.debug(String.format("  <%s>[%s] %12s: %s",
+        Log.debug(String.format("  <%s>[%s] %18s: %s",
                                 instanceName,
                                 mFocal == null ? "<NULL-FOCAL>" : mFocal.getDiagnosticLabel(),
                                 method,

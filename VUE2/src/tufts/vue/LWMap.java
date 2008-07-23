@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.210 $ / $Date: 2008-07-23 15:44:48 $ / $Author: sfraize $
+ * @version $Revision: 1.211 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -755,6 +755,10 @@ public class LWMap extends LWContainer
         public boolean isTopLevel() {
             return true;
         }
+        @Override
+        public Layer getLayer() {
+            return this;
+        }
 
         @Override
         protected void setParent(LWContainer p) {
@@ -778,9 +782,12 @@ public class LWMap extends LWContainer
 
 
         /** @return false */
-        public boolean supportsMultiSelection() {
-            return false;
-        }
+        @Override
+        public boolean supportsMultiSelection() { return false; }
+
+        /** @return false -- is editable, but not on the map */
+        @Override
+        public boolean supportsUserLabel() { return false; }
 
         /** @return false */
         @Override
@@ -789,12 +796,6 @@ public class LWMap extends LWContainer
             return false;
         }
         
-        
-        /** @return false -- is editable, but not on the map */
-        public boolean supportsUserLabel() {
-            return false;
-        }
-
         //@Override public edu.tufts.vue.metadata.MetadataList getMetadataList() { return null; }
 
         @Override
@@ -849,11 +850,9 @@ public class LWMap extends LWContainer
         }
         
         
+        /** @return null to ensure will never be treated as styleable */
         @Override
-        public Object getTypeToken() {
-            // will ensure will never be treated as styleable
-            return null;
-        }
+        public Object getTypeToken() { return null; }
         
         @Override
         protected void drawImpl(DrawContext dc) {
@@ -888,11 +887,9 @@ public class LWMap extends LWContainer
             super.drawChild(child, dc);
         }
         
+        /** @return null -- layer contents not persisted with layer for backward compat with old versions of VUE */
         @Override
-        public java.util.List<LWComponent> getXMLChildList() {
-            // layer contents not persisted with layer for backward compat with old versions of VUE
-            return null;
-        }
+        public List<LWComponent> getXMLChildList() { return null; }
 
         @Override
         public Layer duplicate(CopyContext cc)
@@ -1787,9 +1784,7 @@ public class LWMap extends LWContainer
     }
 
     /** @return false: maps can't be selected with anything else */
-    public boolean supportsMultiSelection() {
-        return false;
-    }
+    public boolean supportsMultiSelection() { return false; }
     
 
     /** @return false -- maps aren't moveable objects */

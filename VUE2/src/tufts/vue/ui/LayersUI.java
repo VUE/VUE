@@ -34,7 +34,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.18 $ / $Date: 2008-07-23 15:26:00 $ / $Author: sfraize $
+ * @version $Revision: 1.19 $ / $Date: 2008-07-23 18:22:38 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -423,13 +423,17 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //                 if (c instanceof Layer)
 //                     mMap.setActiveLayer(c);
 
-        if (s.size() == 1 && s.first().getLayer() != null) {
-            //if (DEBUG.Enabled) Log.debug("selectionChanged: single selection; activate layer of: " + s.first());
+        if (s.getParents().size() == 1)
             setActiveLayer(s.first().getLayer());
-        } else if (s.getParents().size() == 1 && s.first().getParent() instanceof Layer) {
-            //if (DEBUG.Enabled) Log.debug("selectionChanged: one parent in selection; active parent " + s.first().getParent());
-            setActiveLayer((Layer) s.first().getParent());
-        }
+
+
+//         if (s.size() == 1 && s.first().getLayer() != null) {
+//             //if (DEBUG.Enabled) Log.debug("selectionChanged: single selection; activate layer of: " + s.first());
+//             setActiveLayer(s.first().getLayer());
+//         } else if (s.getParents().size() == 1 && s.first().getParent() instanceof Layer) {
+//             //if (DEBUG.Enabled) Log.debug("selectionChanged: one parent in selection; active parent " + s.first().getParent());
+//             setActiveLayer((Layer) s.first().getParent());
+//         }
 
         indicateActiveLayers(s.getParents());
 

@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.89 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
+ * @version $Revision: 1.90 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -65,22 +65,18 @@ public class LWGroup extends LWContainer
     }
 
     @Override
-    public boolean supportsChildren() {
-        return FancyGroups;
-    }
+    public boolean supportsChildren() { return FancyGroups; }
     
     @Override
-    public boolean supportsUserResize() {
+    public boolean supportsUserResize() { return false; }
 //         if (FancyGroups)
 //             return !isTransparent();
 //         else
-            return false;
-    }
+//             return false;
+//     }
 
     @Override
-    public boolean supportsUserLabel() {
-        return false;
-    }
+    public boolean supportsUserLabel() { return false; }
 
     @Override
     public boolean isOrphan() {
@@ -464,10 +460,11 @@ public class LWGroup extends LWContainer
     private void requestCleanup(Object srcMsg) {
         //super.addCleanupTask(new DisperseOrNormalize(srcMsg)); // always allocates the darn task..
 
-        if (DEBUG.CONTAINMENT) out("requestCleanup on " + srcMsg);
+        //if (DEBUG.CONTAINMENT) out("requestCleanup on " + srcMsg);
         
         final UndoManager um = getUndoManager();
         if (um != null && !um.isUndoing() && !um.hasLastTask(this)) {
+            if (DEBUG.CONTAINMENT) out("addLastTask/DisperseOrNormalize; on " + srcMsg);
             //if (DEBUG.Enabled) out(TERM_RED + "ADDING CLEANUP TASK on: " + srcMsg + TERM_CLEAR);
             //um.addCleanupTask(this, new DisperseOrNormalize(srcMsg));
             //super.addCleanupTask(new DisperseOrNormalize(srcMsg));

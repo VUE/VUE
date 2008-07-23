@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.428 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
+ * @version $Revision: 1.429 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2058,37 +2058,26 @@ u                    getSlot(c).setFromString((String)value);
     /** does this support user resizing? */
     // TODO: change these "supports" calls to an arbitrary property list
     // that could have arbitrary properties added to it by plugged-in non-standard tools
-    public boolean supportsUserResize() {
-        return false;
-    }
+    public boolean supportsUserResize() { return false; }
     
     /** @return false: subclasses (e.g. containers), override to return true if allows children dragged in and out
      * by a user.
      */
-    public boolean supportsChildren() {
-        return false;
-    }
+    public boolean supportsChildren() { return false; }
 
     /** @Return true: subclasses (e.g. containers), override to return false if you never want this component
         reparented by users */
-    public boolean supportsReparenting() {
-        return parent instanceof LWGroup == false; // todo: handle via API that LWGroup can declare
-    }
+    // todo: handle via API that LWGroup can declare    
+    public boolean supportsReparenting() { return parent instanceof LWGroup == false; }
 
     /** @return true: by default, all objects can be selected with other objects at the same time */
-    public boolean supportsMultiSelection() {
-        return true;
-    }
+    public boolean supportsMultiSelection() { return true; }
 
     /** @return false by default -- only containers can have slides */
-    public boolean supportsSlide() {
-        return false;
-    }
+    public boolean supportsSlide() { return false; }
 
     /** @return false by default -- override to initiate dupe and system drag */
-    public boolean supportsCopyOnDrag() {
-        return false;
-    }
+    public boolean supportsCopyOnDrag() { return false; }
     
 
     /** @return true if we allow a link to the target, and the target allows a link to us.
@@ -2568,16 +2557,28 @@ u                    getSlot(c).setFromString((String)value);
                              getHeight() / 2);
     }
 
-    public LWContainer getParent() {
+    public final LWContainer getParent() {
         return this.parent;
     }
 
+//     /** @return our Layer ONLY IF IT IS OUR DIRECT PARENT */
+//     public LWMap.Layer getLayer() {
+//         if (parent instanceof LWMap.Layer)
+//             return (LWMap.Layer) parent;
+//         else
+//             return null;
+//     }
+
+    /** @return what layer we're inside */
     public LWMap.Layer getLayer() {
-        if (getParent() instanceof LWMap.Layer)
-            return (LWMap.Layer) getParent();
-        else
+        if (parent == null)
             return null;
+        else if (parent instanceof LWMap.Layer)
+            return (LWMap.Layer) parent;
+        else
+            return parent.getLayer();
     }
+    
 
     public void setLayer(LWMap.Layer layer) {
         if (!VUE.VUE3_LAYERS) return;
