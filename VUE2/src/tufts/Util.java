@@ -1003,13 +1003,19 @@ public class Util
         public String toString() { return "EmptyIterator"; }
         public Iterator iterator() { return this; }
     }
+
+    public interface Itering<T> extends java.util.Iterator<T>, Iterable<T> {}
+
+    public static <T> Itering<T> iterable(T o) {
+        return new SingletonIterable<T>(o);
+    }
         
     /** Convenience class: provides a single element iterator.  Is also an iterable, returning self.
      * Each request for an iterable resets us to be iterated again (not threadsafe) */
-    public static final class SingleIterator<T> implements java.util.Iterator<T>, Iterable<T> {
+    private static final class SingletonIterable<T> implements Itering<T> {
         private final T object;
         private boolean done;
-        public SingleIterator(T o) {
+        public SingletonIterable(T o) {
             object = o;
         }
         public boolean hasNext() { return !done; }
@@ -1021,12 +1027,17 @@ public class Util
     };
 
 
+
+    public static <T> List<T> asList(T[] array) {
+        return new ExposedArrayList(array);
+    }
+    
     /**
      * Identical to Arrays.asList, except that toArray() returns the internal array,
      * which allows for Collection.addAll(ExposedArrayList) to be used w/out triggering an array clone
      */
 
-    public static class ExposedArrayList<E> extends AbstractList<E>
+    private static final class ExposedArrayList<E> extends AbstractList<E>
 	implements RandomAccess
     {
 	private final Object[] a;
@@ -1137,6 +1148,7 @@ public class Util
         
         public Iterator<T> iterator() { return this; }
     };
+    
 
     /** for providing a copy of a list -- especially useful for providing a concurrency safe iteration of a list */
     public static <T> List<T> copy(java.util.List<T> list) {
