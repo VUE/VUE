@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.209 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
+ * @version $Revision: 1.210 $ / $Date: 2008-07-23 15:44:48 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -247,7 +247,11 @@ public class LWMap extends LWContainer
             Log.debug("saveLocation " + mSaveLocation);
             mSaveLocationURI = parentDir.toURI();
             Log.debug("saveLocationURI " + mSaveLocationURI);
+            takeResource(Resource.instance(mFile));
+        } else {
+            takeResource(null);
         }
+
 
 
 // Don't handle relativzation here.  On save, handle vie makeReadyForSaving, and on restore,

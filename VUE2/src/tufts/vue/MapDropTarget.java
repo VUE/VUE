@@ -47,7 +47,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.102 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $  
+ * @version $Revision: 1.103 $ / $Date: 2008-07-23 15:44:48 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -699,8 +699,17 @@ class MapDropTarget
                 
                 foundFlavor = Resource.DataFlavor;
                 foundData = extractData(transfer, foundFlavor);
+
+                if (foundData == null)
+                    throw new IllegalStateException("null resource found");
+
                 dropType = DROP_RESOURCE_LIST;
-                dropItems = (List) foundData;
+                
+                if (foundData instanceof List)
+                    dropItems = (List) foundData;
+                else
+                    dropItems = Collections.singletonList(foundData);
+
             
             } else if (found_HTTP_URL != null && !found_HTTP_URL.getHost().equals("images.google.com")) {
                 // don't use fragment URL if standard URL was from google image light-tray, as

@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.567 $ / $Date: 2008-07-21 18:01:08 $ / $Author: sfraize $ 
+ * @version $Revision: 1.568 $ / $Date: 2008-07-23 15:44:48 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4727,7 +4727,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             LWComponent.DataFlavor,
             DataFlavor.stringFlavor,
             DataFlavor.imageFlavor,
-            MapResource.DataFlavor,
+            //MapResource.DataFlavor,
             TypeList.DataFlavor
             //URLFlavor, // try text/uri-list
         };
@@ -4749,6 +4749,14 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 if (DEBUG.DND) out("LWTransfer: isDataFlavorSupported, flavor=" + flavor);
                 
                 if (flavor == null)
+                    return false;
+
+                if (flavor == LWComponent.DataFlavor && LWC instanceof LWMap) {
+                    // prevent the dropping of the entire map onto itself
+                    return false;
+                }
+                
+                if (flavor == Resource.DataFlavor && LWC.getResource() == null)
                     return false;
                 
                 for (int i = 0; i < LWFlavors.length; i++)
