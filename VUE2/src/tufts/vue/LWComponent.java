@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.427 $ / $Date: 2008-07-21 17:51:49 $ / $Author: sfraize $
+ * @version $Revision: 1.428 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -131,11 +131,15 @@ public class LWComponent
     }
 
     public enum Flag {
+        /** been deleted (is in undo queue) */
         DELETED,
-            
-            /** this component is selected */
+            /** is in the process of being deleted */
+            DELETING,
+            /** is in the process of being un-deleted (undo) */
+            UNDELETING,
+            /** is selected */
             SELECTED,
-            
+            /** is a style special style object (style source) */
             IS_STYLE,
             /** cannot move, delete, link to or edit label */
             LOCKED,
@@ -2238,10 +2242,15 @@ u                    getSlot(c).setFromString((String)value);
             mPathways = new ArrayList();
         if (!mPathways.contains(p)) {
             mPathways.add(p);
-            layout();
+            // todo: too late, UNDELETING flag already cleared (call is from pathway on pathway undelete)
+            // okay for now: re-layout on undo should be harmless, but generates lots
+            // of needless location events that clog up event debugging when doing undo's
+            if (!hasFlag(Flag.UNDELETING) && LWIcon.IconPref.getPathwayIconValue()) 
+                layout();
         }
         //notify("pathway.add");
     }
+    
     private void removePathwayRef(LWPathway p)
     {
         if (mPathways == null) {
@@ -2254,7 +2263,11 @@ u                    getSlot(c).setFromString((String)value);
         for (HideCause cause : HideCause.values())
             if (cause.isPathwayCause)
                 clearHidden(cause);
-        layout();
+
+        if (!hasFlag(Flag.DELETING) && LWIcon.IconPref.getPathwayIconValue())  {
+            // todo: handle at higher level or have icon block listen for some event
+            layout();
+        }
         //notify("pathway.remove");
     }
 
@@ -2954,7 +2967,7 @@ u                    getSlot(c).setFromString((String)value);
         if (mEntries.size() == 1) {
             final LWPathway.Entry e = mEntries.get(0);
             if (e.hasVisibleSlide())
-                return new Util.SingleIterator(e.getSlide());
+                return Util.iterable(e.getSlide());
             else
                 return Util.EmptyIterable;
         } else {
@@ -3676,8 +3689,8 @@ u                    getSlot(c).setFromString((String)value);
 
     protected void notifyMapScaleChanged(double oldParentMapScale, double newParentMapScale) {}
 
-    /** A notification to the component that it or some ancestor is about to change parentage */
-    public void notifyHierarchyChanging() {}
+//     /** A notification to the component that it or some ancestor is about to change parentage */
+//     public void notifyHierarchyChanging() {}
     
     /** A notification to the component that it or some ancestor changed parentage */
     public void notifyHierarchyChanged() {
@@ -5655,17 +5668,24 @@ u                    getSlot(c).setFromString((String)value);
 
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
-        //if (e.key.isSignal || e.key == LWKey.Location && e.source == this) {
-        if (e.key == LWKey.UserActionCompleted || e.key == LWKey.Location && e.source == this) {
-            // only keep if the location event is on us:
-            // if this is our child that moved, obviously
-            // clear the cache (we look different)
-            //out("*** KEEPING IMAGE CACHE ***");
-            ; // keep the cached image
-        } else {
-            //out("*** CLEARING IMAGE CACHE");
-            //mCachedImage = null;
+        if (isDeleted() && !permitZombieEvent(e)) {
+            // note: this test shortcuts much more detailed diagnostics in LWChangeSupport
+            // for tracking zombie events -- comment out for advanced debugging
+            if (DEBUG.Enabled) Log.debug(this + " ignoring: " + e);
+            return;
         }
+        
+//         //if (e.key.isSignal || e.key == LWKey.Location && e.source == this) {
+//         if (e.key == LWKey.UserActionCompleted || e.key == LWKey.Location && e.source == this) {
+//             // only keep if the location event is on us:
+//             // if this is our child that moved, obviously
+//             // clear the cache (we look different)
+//             //out("*** KEEPING IMAGE CACHE ***");
+//             ; // keep the cached image
+//         } else {
+//             //out("*** CLEARING IMAGE CACHE");
+//             //mCachedImage = null;
+//         }
 
         if (isStyle() && getParent() == null)
             ; // ignore events from non-embedded style objects (e.g., EditorManager constructs)
@@ -5685,6 +5705,11 @@ u                    getSlot(c).setFromString((String)value);
         }
 
         // labels need own call to this due to TextBox use of setLabel0
+    }
+
+    /** @return false -- subclasses can override */
+    protected boolean permitZombieEvent(LWCEvent e) {
+        return false;
     }
 
     
@@ -5831,10 +5856,12 @@ u                    getSlot(c).setFromString((String)value);
         }
         if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " removeFromModel(lwc)");
         //throw new IllegalStateException(this + ": attempt to delete already deleted");
+        setFlag(Flag.DELETING);
         notify(LWKey.Deleting);
         prepareToRemoveFromModel();
         removeAllLWCListeners();
         disconnectFromLinks(); // if any of the links themseleves are being deleted, we don't actually need to disconnect
+        clearFlag(Flag.DELETING);
         setDeleted(true);
     }
 
@@ -5848,32 +5875,30 @@ u                    getSlot(c).setFromString((String)value);
     /** undelete */
     protected void restoreToModel()
     {
-        if (DEBUG.PARENTING||DEBUG.EVENTS) out(this + " restoreToModel");
-        if (!isDeleted()) {
-            //throw new IllegalStateException("Attempt to restore already restored: " + this);
-            if (DEBUG.Enabled) out("FYI: already restored");
-            //return;
-        }
-        // There is no reconnectToLinks: link endpoint connect events handle this.
-        // We couldn't do it here anyway as we wouldn't know which of the two endpoint to connect us to.
+        setFlag(Flag.UNDELETING);
+        
+        if (DEBUG.PARENTING||DEBUG.EVENTS) out("restoreToModel: " + this);
+
+        if (!isDeleted()) if (DEBUG.Enabled) out("FYI: already restored");
+
         setDeleted(false);
+
+        clearFlag(Flag.UNDELETING);
     }
 
     public boolean isDeleted() {
-        //return isHidden(HideCause.DELETED);
         return hasFlag(Flag.DELETED);
     }
     
     private void setDeleted(boolean deleted) {
         if (deleted) {
             //mHideBits |= HideCause.DELETED.bit; // direct set: don't trigger notify
-            mFlags |= Flag.DELETED.bit;
+            setFlag(Flag.DELETED);
             if (DEBUG.PARENTING||DEBUG.UNDO||DEBUG.EVENTS)
                 if (parent != null) out("parent not yet null in setDeleted true (ok for undo of creates)");
             this.parent = null;
         } else
-            mFlags &= ~Flag.DELETED.bit; // direct set: don't trigger notify
-        //mHideBits &= ~HideCause.DELETED.bit; // direct set: don't trigger notify
+            clearFlag(Flag.DELETED);
     }
 
     private void disconnectFromLinks()
@@ -6015,6 +6040,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     public void clearHidden(HideCause cause) {
+        //Log.debug(this, new Throwable("clearHidden"));
         if (DEBUG.EVENTS) out("clrHidden " + cause);
         setHideBits(mHideBits & ~cause.bit);
     }
@@ -6196,22 +6222,6 @@ u                    getSlot(c).setFromString((String)value);
     }
 
 
-    /** subclasses override this to add info to toString()
-     (return super.paramString() + new info) */
-    public String paramString()
-    {
-        return String.format(" %+.0f,%+.0f %.0fx%.0f", getX(), getY(), width, height);
-    }
-
-    protected void out(String s) {
-        //if (DEBUG.Enabled) Log.debug(s + "; " + this);
-        if (DEBUG.Enabled) LWLog.debug(String.format("%s[%-12.12s] %s", getClass().getSimpleName(), getDisplayLabel(), s));
-    }
-
-    protected void outf(String format, Object ... args) {
-        Util.outf(Log, format, args);
-    }
-    
     /** interface {@link XMLUnmarshalListener} -- does nothing here */
     public void XML_initialized(Object context) {
         mXMLRestoreUnderway = true;
@@ -6563,35 +6573,56 @@ u                    getSlot(c).setFromString((String)value);
         return s;
     }
     
+    /** subclasses override this to add info to toString()
+     (return super.paramString() + new info) */
+    public String paramString()
+    {
+        return String.format(" %+4.0f,%+4.0f %3.0fx%-3.0f", getX(), getY(), width, height);
+    }
+
+    protected void out(String s) {
+        //if (DEBUG.Enabled) Log.debug(s + "; " + this);
+        String typeName = getClass().getSimpleName();
+        if (typeName.startsWith("LW"))
+            typeName = typeName.substring(2);
+        if (DEBUG.Enabled) LWLog.debug(String.format("%6s[%-12.12s] %s", typeName, getDisplayLabel(), s));
+    }
+
+    protected void outf(String format, Object ... args) {
+        Util.outf(Log, format, args);
+    }
+    
     public String toString()
     {
-        String cname = getClass().getName();
-        String typeName = cname.substring(cname.lastIndexOf('.')+1);
+        String typeName = getClass().getSimpleName();
+        if (typeName.startsWith("LW"))
+            typeName = typeName.substring(2);
         String label = "";
         String s;
         if (getLabel() != null) {
             if (true||isAutoSized())
-                label = "\"" + getDisplayLabel() + "\" ";
+                label = " \"" + getDisplayLabel() + "\"";
             else
-                label = "(" + getDisplayLabel() + ") ";
+                label = " (" + getDisplayLabel() + ")";
         }
 
         if (getID() == null) {
-            s = String.format("%-17s[",
+            s = String.format("%-15s[",
                               typeName + "." + Integer.toHexString(System.identityHashCode(this))
                               );
             //s += tufts.Util.pad(9, Integer.toHexString(hashCode()));
         } else {
-            s = String.format("%-17s", typeName + "[" + getID());
+            s = String.format("%6s[%-8s", typeName, getID());
+            //s = String.format("%-17s", typeName + "[" + getID());
             //s += tufts.Util.pad(4, getID());
         }
-        s += label;
         //if (this.scale != 1f) s += "z" + this.scale + " ";
-        if (getScale() != 1f) s += String.format("z%.2f ", getScale());
-        s += paramString();
         s += describeBits();
+        s += " " + paramString();
+        if (getScale() != 1f) s += String.format(" z%.2f", getScale());
 //         if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
 //         if (mFlags != 0) s += " " + getDescriptionOfSetBits(Flag.class, mFlags);
+        s += label;
         if (getResource() != null)
             s += " " + getResource().getSpec();
         //s += " <" + getResource() + ">";
@@ -6601,8 +6632,8 @@ u                    getSlot(c).setFromString((String)value);
 
     protected String describeBits() {
         String s = "";
-        if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
-        if (mFlags != 0) s += " " + getDescriptionOfSetBits(Flag.class, mFlags);
+        if (mHideBits != 0) s += getDescriptionOfSetBits(HideCause.class, mHideBits) + " ";
+        if (mFlags != 0) s += getDescriptionOfSetBits(Flag.class, mFlags) + " ";
         return s;
     }
 

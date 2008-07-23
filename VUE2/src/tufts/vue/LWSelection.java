@@ -27,7 +27,7 @@ import java.awt.geom.RectangularShape;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.91 $ / $Date: 2008-07-21 17:47:43 $ / $Author: sfraize $
+ * @version $Revision: 1.92 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -343,7 +343,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     }
     
     public void toggle(LWComponent c) {
-        toggle(new Util.SingleIterator(c));
+        toggle(Util.iterable(c));
     }
 
     
@@ -408,7 +408,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 return false; // don't add
         }
 
-        if (DEBUG.SELECTION) debug("add " + c);
+        if (DEBUG.SELECTION) debug("      add " + c);
         
         if (!c.isSelected()) {
             if (!isClone) c.setSelected(true);
@@ -429,6 +429,31 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         removeSilent(c);
         resetStatistics();
         notifyListeners();
+    }
+
+    /**
+     *
+     * special case: does not currently issue any notifications, tho
+     * will recompute statistics -- selection must be cleared after
+     * using this to be restored to a sane state
+     *
+     */
+    public synchronized void removeAncestorSelected() {
+            
+        boolean removed = false;
+        Iterator<LWComponent> i = iterator();
+        while (i.hasNext()) {
+            final LWComponent c = i.next();
+            if (c.isAncestorSelected()) {
+                i.remove();
+                c.setSelected(false);
+                if (DEBUG.Enabled) debug("pruned " + c);
+                removed = true;
+            }
+        }
+        if (removed)
+            resetStatistics();
+        
     }
 
     private synchronized void removeSilent(LWComponent c)
@@ -657,6 +682,11 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return mParents;
     }
 
+    public LWContainer firstParent() {
+        return (LWContainer) mParents.toArray()[0];
+    }
+    
+
     public boolean allHaveSameParent()
     {
         return mParents.size() < 2;
@@ -703,6 +733,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         // if anybody tries to use these we want a NPE
         copy.listeners = null;
         copy.controlListeners = null;
+        // not that statistics are currently shared in the clone!
         return copy;
     }
 

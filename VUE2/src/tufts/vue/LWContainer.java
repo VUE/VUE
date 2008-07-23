@@ -31,12 +31,15 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.147 $ / $Date: 2008-07-21 19:03:34 $ / $Author: sfraize $
+ * @version $Revision: 1.148 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
 {
     protected static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LWContainer.class);
+
+    private static final Object REMOVE_DEFAULT = "default";
+    private static final Object REMOVE_DELETE = "delete";
 
     protected java.util.List<LWComponent> mChildren = NO_CHILDREN;
 
@@ -199,25 +202,27 @@ public abstract class LWContainer extends LWComponent
 
     @Override
     public final void addChild(LWComponent c) {
-        //addChildren(new Util.SingleIterator(c));
         addChildren(Collections.singletonList(c));
     }
 
     final void removeChild(LWComponent c) {
-        //removeChildren(new Util.SingleIterator(c));
-        removeChildren(Collections.singletonList(c));
+        removeChildren(Util.iterable(c));
     }
 
     /** we're moving an entire list of children from one container to another -- preseve z-order, and prevent concurrent modication exceptions */
-    public void takeAllChildren(LWComponent source) {
+    public void takeAllChildren(LWContainer source) {
 
-        final List<LWComponent> taking = source.getChildren();
+        if (source == this)
+            throw new IllegalArgumentException("takeAllChildren: source is target: " + this);
+
+        final List<LWComponent> taking = copy(source.getChildren());
         
         // we can't add the instance of the child list directly, as it's going to be
         // modified as it's iterated by addChildImpl, which is going to extract it from
         // from the source parent's list as each child is moved over
         
-        addChildren(copy(taking), ADD_PRESORTED);
+        source.removeChildren(taking);
+        this.addChildren(taking, ADD_PRESORTED);
         
         //addChildren(taking.toArray(new LWComponent[taking.size()]));
     }
@@ -372,12 +377,12 @@ public abstract class LWContainer extends LWComponent
         layout();
     }
 
-    @Override
-    public void notifyHierarchyChanging() {
-        super.notifyHierarchyChanging();
-        for (LWComponent c : getChildren())
-            c.notifyHierarchyChanging();
-    }
+//     @Override
+//     public void notifyHierarchyChanging() {
+//         super.notifyHierarchyChanging();
+//         for (LWComponent c : getChildren())
+//             c.notifyHierarchyChanging();
+//     }
     
     
     @Override
@@ -385,29 +390,6 @@ public abstract class LWContainer extends LWComponent
         super.notifyHierarchyChanged();
         for (LWComponent c : getChildren())
             c.notifyHierarchyChanged();
-    }
-
-    
-    /**
-     * Remove any children in this iterator from this container.
-     */
-    protected void removeChildren(Iterable<LWComponent> iterable)
-    {
-        notify(LWKey.HierarchyChanging);
-
-        ArrayList removedChildren = new ArrayList();
-        for (LWComponent c : iterable) {
-            if (c.getParent() == this) {
-                c.notifyHierarchyChanging();
-                removeChildImpl(c);
-                removedChildren.add(c);
-            } else
-                throw new IllegalStateException(this + " asked to remove child it doesn't own: " + c);
-        }
-        if (removedChildren.size() > 0) {
-            notify(LWKey.ChildrenRemoved, removedChildren);
-            layout();
-        }
     }
 
     private static void track(String where, Object o) {
@@ -438,7 +420,7 @@ public abstract class LWContainer extends LWComponent
                 // this okay -- in fact useful for child node re-drop on existing parent to trigger
                 // re-ordering & re-layout
             }
-            c.notifyHierarchyChanging();
+            //c.notifyHierarchyChanging();
             c.getParent().removeChild(c); // is LWGroup requesting cleanup???
         }
         
@@ -592,6 +574,49 @@ public abstract class LWContainer extends LWComponent
         if (DEBUG.Enabled||DEBUG.PARENTING || DEBUG.CONTAINMENT) out("         now localized: " + c);
     }
     
+    /**
+     * Remove any children in this iterator from this container.
+     */
+    protected final void removeChildren(Iterable<LWComponent> iterable) {
+        removeChildren(iterable, REMOVE_DEFAULT);
+    }
+    
+    //private void removeChildren(Iterable<LWComponent> iterable, boolean permanent)
+
+    /**
+     * Remove any children in this iterator from this container.
+     * If context is REMOVE_DELETE, just ignore objects that are not currently our children.
+     */
+    protected void removeChildren(Iterable<LWComponent> iterable, Object context)
+    {
+        final boolean permanent = (context == REMOVE_DELETE);
+        
+        notify(LWKey.HierarchyChanging);
+
+        ArrayList removedChildren = new ArrayList();
+        for (LWComponent c : iterable) {
+            if (c.getParent() == this) {
+                //c.notifyHierarchyChanging();
+                removeChildImpl(c);
+                removedChildren.add(c);
+
+                if (permanent)
+                    c.removeFromModel();
+                
+            } else if (!permanent)
+                throw new IllegalStateException(this + " asked to remove child it doesn't own: " + c);
+        }
+        if (removedChildren.size() > 0) {
+            notify(LWKey.ChildrenRemoved, removedChildren);
+            layout();
+        }
+    }
+
+    public final void deleteChildrenPermanently(Iterable<LWComponent> iterable)
+    {
+        removeChildren(iterable, REMOVE_DELETE);
+    }
+    
     protected void removeChildImpl(LWComponent c)
     {
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] REMOVING " + c);
@@ -616,37 +641,42 @@ public abstract class LWContainer extends LWComponent
         }
         //c.setParent(null);
     }
-    
+
 
     /**
      * Delete a child and PERMANENTLY remove it from the model.
      * Differs from removeChild / removeChildren, which just
      * de-parent the nodes, tho leave any listeners & links to it in place.
      */
-    public void deleteChildPermanently(LWComponent c)
+    public final void deleteChildPermanently(LWComponent c)
     {
-//         if (c.isLocked()) {
-//             if (DEBUG.Enabled) out("is locked; deletion not permitted: " + c);
-//             return;
-//         }
-        
-        if (DEBUG.UNDO || DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
-
-        // We did the "deleting" notification first, so anybody listening can still see
-        // the node in it's full current state before anything changes.  But children
-        // now keep their parent reference until they're removed from the model, so the
-        // only thing different when removeFromModel issues it's LWKey.Deleting event is
-        // the parent won't list it as a child, but since it still has the parent ref,
-        // event up-notification will still work, which is good enough.  (It's probably
-        // not safe to deliver more than one LWKey.Deleting event -- if need to put it
-        // back here, have to be able to tell removeFromModel optionally not to issue
-        // the event).
-
-        //c.notify(LWKey.Deleting);
-        
-        removeChild(c);
-        c.removeFromModel();
+        removeChildren(Util.iterable(c), REMOVE_DELETE);
     }
+        
+//     public final void deleteChildPermanently(LWComponent c)
+//     {
+// //         if (c.isLocked()) {
+// //             if (DEBUG.Enabled) out("is locked; deletion not permitted: " + c);
+// //             return;
+// //         }
+        
+//         if (DEBUG.UNDO || DEBUG.PARENTING) System.out.println("["+getLabel() + "] DELETING PERMANENTLY " + c);
+
+//         // We did the "deleting" notification first, so anybody listening can still see
+//         // the node in it's full current state before anything changes.  But children
+//         // now keep their parent reference until they're removed from the model, so the
+//         // only thing different when removeFromModel issues it's LWKey.Deleting event is
+//         // the parent won't list it as a child, but since it still has the parent ref,
+//         // event up-notification will still work, which is good enough.  (It's probably
+//         // not safe to deliver more than one LWKey.Deleting event -- if need to put it
+//         // back here, have to be able to tell removeFromModel optionally not to issue
+//         // the event).
+
+//         //c.notify(LWKey.Deleting);
+        
+//         removeChild(c);
+//         c.removeFromModel();
+//     }
 
     protected void removeChildrenFromModel()
     {
@@ -670,11 +700,10 @@ public abstract class LWContainer extends LWComponent
     @Override
     protected void restoreToModel()
     {
-        Iterator i = getChildIterator();
-        while (i.hasNext()) {
-            LWComponent c = (LWComponent) i.next();
+        for (LWComponent c : getChildren()) {
+            c.setFlag(Flag.UNDELETING);
             c.setParent(this);
-            c.restoreToModel();
+            c.restoreToModel(); // todo: take parent as argument
         }
         super.restoreToModel();
     }

@@ -760,10 +760,6 @@ public class Actions implements VueConstants
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return canEdit(s); }
         
-        // hierarchicalAction set to true: if parent being duplicated, don't duplicate
-        // any selected children, creating extra siblings.
-        boolean hierarchicalAction() { return true; } // note: shouldn't be required: impl now handles this itself
-
         void act(final LWSelection selection) {
 
             final List<LWComponent> dupes =
@@ -872,6 +868,7 @@ public class Actions implements VueConstants
     public static final LWCAction Delete =
         // "/tufts/vue/images/delete.png" looks greate (from jide), but too unlike others
         new LWCAction("Delete", keyStroke(KeyEvent.VK_DELETE), ":general/Delete") {
+            
             // We could use BACK_SPACE instead of DELETE because that key is bigger, and
             // on the mac it's actually LABELED "delete", even tho it sends BACK_SPACE.
             // BUT, if we use backspace, trying to use it in a text field in, say
@@ -879,44 +876,72 @@ public class Actions implements VueConstants
             // backing up a char...
             // The MapViewer special-case handles both anyway as a backup.
                       
-        // hierarchicalAction is true: if parent being deleted,
-        // let it handle deleting the children (ignore any
-        // children in selection who's parent is also in selection)
-        boolean hierarchicalAction() { return true; }
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return canEdit(s); }
         
-        void act(Iterator i) {
-            super.act(i);
+            void act(LWSelection s) {
+
+                s.removeAncestorSelected();
+
+                // the selection will now only contain the top levels in the
+                // the hierarchy of what's selected.
+
+                final Collection toDelete = new ArrayList();
+
+                for (LWComponent c : s) {
+                    if (canEdit(c))
+                        toDelete.add(c);
+                    else
+                        Log.info("delete not permitted: " + c);
+                }
+
+                for (LWContainer parent : s.getParents()) {
+                    if (DEBUG.Enabled) info("deleting for parent " + parent);
+                    parent.deleteChildrenPermanently(toDelete);
+
+                    // someday: would be nice if this could simply be
+                    // handled as a traversal on the map: pass down
+                    // the list of items to remove, and any parent
+                    // that notices one of it's children removes it.
+                    
+                }
+                
+                // LWSelection does NOT listen for events among what's selected (an
+                // optimization & we don't want the selection updating iself and issuing
+                // selection change events AS a delete takes place for each component as
+                // it's deleted) -- it only needs to know about deletions, so they're
+                // handled special case.  Here, all we need to do is clear the selection as
+                // we know everything in it has just been deleted.
             
-            // LWSelection does NOT listen for events among what's selected (an
-            // optimization & we don't want the selection updating iself and issuing
-            // selection change events AS a delete takes place for each component as
-            // it's deleted) -- it only needs to know about deletions, so they're
-            // handled special case.  Here, all we need to do is clear the selection as
-            // we know everything in it has just been deleted.
+                selection().clear();
             
-            VUE.getSelection().clear();
-        }
-        void act(LWComponent c) {
-            LWContainer parent = c.getParent();
-            
-            if (parent == null) {
-                info("skipping: null parent (already deleted): " + c);
-            } else if (c.isDeleted()) {
-                info("skipping (already deleted): " + c);
-            } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
-                info("skipping (parent already deleted): " + c); // parent will call deleteChildPermanently
-            } else if (parent.isSelected()) { // if parent selected, it will delete it's children
-                info("skipping - parent selected & will be deleting: " + c);
-            } else if (c.isLocked()) {
-                info("not permitted: " + c);
-            } else if (!canEdit(c)) {
-                info("cannot edit: " + c);
-            } else {
-                parent.deleteChildPermanently(c);
             }
-        }
+            
+//             void act(LWSelection s) {
+//                 s.removeAncestorSelected();
+//                 act(s.iterator());
+//                 selection().clear();
+//             }
+            
+//         void act(LWComponent c) {
+//             LWContainer parent = c.getParent();
+            
+//             if (parent == null) {
+//                 info("skipping: null parent (already deleted): " + c);
+//             } else if (c.isDeleted()) {
+//                 info("skipping (already deleted): " + c);
+//             } else if (parent.isDeleted()) { // after prior check, this case should be impossible now
+//                 info("skipping (parent already deleted): " + c); // parent will call deleteChildPermanently
+//             } else if (parent.isSelected()) { // if parent selected, it will delete it's children
+//                 info("skipping - parent selected & will be deleting: " + c);
+//             } else if (c.isLocked()) {
+//                 info("not permitted: " + c);
+//             } else if (!canEdit(c)) {
+//                 info("cannot edit: " + c);
+//             } else {
+//                 parent.deleteChildPermanently(c);
+//             }
+//         }
     };
     
 
@@ -2590,12 +2615,12 @@ public class Actions implements VueConstants
         
         boolean mayModifySelection() { return false; }
         
-        /** hierarchicalAction: any children in selection who's
-         * parent is also in the selection are ignore during
-         * iterator -- for actions such as delete where deleting
-         * the parent will automatically delete any children.
-         */
-        boolean hierarchicalAction() { return false; }
+//         /** hierarchicalAction: any children in selection who's
+//          * parent is also in the selection are ignore during
+//          * iterator -- for actions such as delete where deleting
+//          * the parent will automatically delete any children.
+//          */
+//         boolean hierarchicalAction() { return false; }
         
         void act(LWSelection selection) {
             act(selection.iterator());
@@ -2616,22 +2641,12 @@ public class Actions implements VueConstants
         void act(Iterator<LWComponent> i) {
             while (i.hasNext()) {
                 LWComponent c = i.next();
-                if (hierarchicalAction() && c.isAncestorSelected()) {
-                    // If has no parent, must already have been acted on to get that way.
-                    // If parent is selected, action will happen via it's parent.
-                    continue;
-                }
-                act(c);
-//                 // it's possible c was deleted by above action,
-//                 // so make sure we don't proceed if that's the case.
-//                 if (c instanceof LWGroup && !hierarchicalAction() && !c.isDeleted()) {
-//                     Iterator gi = ((LWGroup)c).getChildIterator();
-//                     while (gi.hasNext()) {
-//                         LWComponent gc = (LWComponent) gi.next();
-//                         if (!gc.isSelected())
-//                             act(gc);
-//                     }
+//                 if (hierarchicalAction() && c.isAncestorSelected()) {
+//                     // If has no parent, must already have been acted on to get that way.
+//                     // If parent is selected, action will happen via it's parent.
+//                     continue;
 //                 }
+                act(c);
             }
         }
         void act(LWComponent c) {

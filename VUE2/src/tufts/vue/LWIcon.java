@@ -69,7 +69,7 @@ public abstract class LWIcon extends Rectangle2D.Float
     //  ------------------------------------------------------------------
     // Preferences
     //------------------------------------------------------------------
-    private static final ShowIconsPreference IconPref = new ShowIconsPreference();
+    public static final ShowIconsPreference IconPref = new ShowIconsPreference();
 
     private LWIcon(LWComponent lwc, Color c) {
         // default size

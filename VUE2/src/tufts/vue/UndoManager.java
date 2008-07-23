@@ -874,9 +874,9 @@ public class UndoManager
     // should be run inside a synchronized block against mCleanupTasks & mLastTasks
     private void runPrioritizedCleanupTasks(boolean debug) {
         if (mCurrentUndo.size() == 0) {
-            if (DEBUG.Enabled)
-                Util.printStackTrace("Running cleanup tasks with an empty undo queue: " + this);
-            else
+//             if (DEBUG.Enabled)
+//                 Util.printStackTrace("Running cleanup tasks with an empty undo queue: " + this);
+//             else
                 Log.info("Running cleanup tasks with an empty undo queue: " + this);
             
             debug = true;

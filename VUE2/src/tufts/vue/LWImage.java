@@ -127,10 +127,6 @@ public class LWImage extends
     	edu.tufts.vue.preferences.implementations.ImageSizePreference.getInstance().addVuePrefListener(this);
     }
 
-    protected void out(String s) {
-        Log.debug(s);
-    }
-
     /** @return true -- an image is always it's own content */
     @Override
     public boolean hasContent() {

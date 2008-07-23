@@ -225,7 +225,7 @@ public class LWChangeSupport
             return;
         }
         
-        if (client.isDeleted()) {
+        if (client.isDeleted() && !client.permitZombieEvent(e)) {
             String msg =
                 "FYI, ZOMBIE EVENT: notifyListeners; deleted component attempting event notification:"
                 + "\n\t        deleted client: " + client
@@ -278,7 +278,7 @@ public class LWChangeSupport
                 eoutln(e + " " + client.getParent() + " ** PARENT UP-NOTIFICATION");
             }
             client.getParent().broadcastChildEvent(e);
-        } else if (client.isOrphan()) {
+        } else if (client.isOrphan() && !client.permitZombieEvent(e)) {
             if (listeners != null && listeners.size() > 0) {
                 System.out.println("*** ORPHAN NODE w/LISTENERS DELIVERED EVENTS:"
                                    + "\n\torphan=" + client
@@ -326,13 +326,16 @@ public class LWChangeSupport
                                             + ", assumed looping on delivery of "
                                             + e + " in " + source + " to " + listeners);
 
-        if (source instanceof LWComponent && ((LWComponent)source).isDeleted() || listeners == null) {
-            System.err.println("ZOMBIE DISPATCH: deleted component or null listeners attempting event dispatch:"
-                               + "\n\tsource=" + source
-                               + "\n\tlisteners=" + listeners
-                               + "\n\tattempted notification=" + e);
-            new Throwable("ZOMBIE DISPATCH").printStackTrace();
-            return;
+        if (source instanceof LWComponent) {
+            final LWComponent client = (LWComponent) source;
+            if ((client.isDeleted() && !client.permitZombieEvent(e)) || listeners == null) {
+                System.err.println("ZOMBIE DISPATCH: deleted component or null listeners attempting event dispatch:"
+                                   + "\n\tsource=" + source
+                                   + "\n\tlisteners=" + listeners
+                                   + "\n\tattempted notification=" + e);
+                new Throwable("ZOMBIE DISPATCH").printStackTrace();
+                return;
+            }
         }
         
         // todo perf: take array code out and see if can fix all

@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.191 $ / $Date: 2008-07-19 21:11:21 $ / $Author: sfraize $
+ * @version $Revision: 1.192 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -1663,16 +1663,16 @@ public class LWLink extends LWComponent
 //             tail.node.addCleanupTask((LWLink)tail.node);
     }
 
-//     private double oldMapScale = 1.0;
-//     private LWComponent oldParent = this;
-//     @Override
-//     public void notifyHierarchyChanging()
-//     {
-//         super.notifyHierarchyChanging();
-//         oldParent = getParent();
-//         oldMapScale = getMapScale();
-//         if (DEBUG.WORK )out("NH CHANGING:  curScale=" + oldMapScale);
-//     }
+// //     private double oldMapScale = 1.0;
+// //     private LWComponent oldParent = this;
+// //     @Override
+// //     public void notifyHierarchyChanging()
+// //     {
+// //         super.notifyHierarchyChanging();
+// //         oldParent = getParent();
+// //         oldMapScale = getMapScale();
+// //         if (DEBUG.WORK )out("NH CHANGING:  curScale=" + oldMapScale);
+// //     }
     
 //     @Override
 //     public void notifyHierarchyChanged() {

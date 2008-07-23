@@ -34,7 +34,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.17 $ / $Date: 2008-07-21 18:02:57 $ / $Author: sfraize $
+ * @version $Revision: 1.18 $ / $Date: 2008-07-23 15:26:00 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -97,10 +97,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 //             return null;
 //         }
 
-//         @Override
-//         protected LWSelection selection() {
-//             return mSelection;
-//         }
+        @Override
+        protected LWSelection selection() {
+            return null;
+            //return mSelection;
+        }
 
 //         // This is overridden only because VueAction.enabledFor is
 //         // *package* private, instead of protected, and we're
@@ -207,7 +208,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 @Override
                 public void act() {
                     //final LWComponent mergingDown = selection().first();
-                    final LWComponent mergingDown = active;
+                    final LWContainer mergingDown = active;
                     final Layer below = (Layer) mRows.get(indexOf(mergingDown) + 1).layer;
                     below.takeAllChildren(mergingDown);
                     setActiveLayer(below);
@@ -1147,8 +1148,17 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 ;
             
             if (layer.supportsChildren()) {
+                
+                // This might slow down undo of some large-set operations in large maps,
+                // such as grabs, as auto-reparenting will currently de-parent each
+                // child separately, issuing an event for each.  (All hierarchy events,
+                // however, are merged into a single one for undo/redo for each parent).
+                
+                // Note: depends on Layer having permitZombieEvent(e) return
+                // true, otherwise won't update correctly on undo.
                 layer.addLWCListener(l = new LWComponent.Listener() {
                         public void LWCChanged(LWCEvent e) {
+                            if (DEBUG.Enabled) Log.debug("\n\n*** UPDATING " + Row.this + " " + e);
                             String counts = "";
                             final int nChild = layer.numChildren();
                             final int allChildren = layer.getDescendentCount();
@@ -1386,7 +1396,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         @Override
         public void setBackground(Color bg) {
-            Log.debug(this + " setBackground " + bg);
+            //Log.debug(this + " setBackground " + bg);
             if (bg == null) {
                 super.setBackground(defaultBackground);
 //                 if (label != null)

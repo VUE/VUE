@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.208 $ / $Date: 2008-07-21 18:00:37 $ / $Author: sfraize $
+ * @version $Revision: 1.209 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -729,21 +729,6 @@ public class LWMap extends LWContainer
             setLabel(name);
         }
 
-        @Override
-        public boolean isTopLevel() {
-            return true;
-        }
-
-        @Override
-        protected void setParent(LWContainer p) {
-            if (p instanceof LWMap)
-                super.setParent(p);
-            else
-                throw new IllegalArgumentException("Layers can only be parented to map; attempted to add "
-                                                   + this + " to " + p);
-                
-        }
-        
         @Override public float getX() { return 0; }
         @Override public float getY() { return 0; }
         @Override public float getMapX() { return 0; }
@@ -761,10 +746,31 @@ public class LWMap extends LWContainer
         @Override public String getXMLstrokeColor() { return null; }
         @Override public String getXMLfont() { return null; }
 
+
         @Override
-        public void removeAllLWCListeners() {
-            // do nothing: when deleting, layers need to leave these around for LayerUI Row components
+        public boolean isTopLevel() {
+            return true;
         }
+
+        @Override
+        protected void setParent(LWContainer p) {
+            if (p instanceof LWMap)
+                super.setParent(p);
+            else
+                throw new IllegalArgumentException("Layers can only be parented to map; attempted to add "
+                                                   + this + " to " + p);
+                
+        }
+
+        /** @return true -- to support our UI impl that keeps listening JComponents around */
+        @Override
+        protected boolean permitZombieEvent(LWCEvent e) {
+            return true;
+        }
+        
+        /** do nothing: when deleting, layers need to keep listeners active for our UI impl */
+        @Override
+        public void removeAllLWCListeners() {}
 
 
         /** @return false */
@@ -896,7 +902,7 @@ public class LWMap extends LWContainer
         @Override
         public String toString() {
             try {
-                return String.format("Layer[%s<%d> \"%s\" %d%s]",
+                return String.format("Layer[%s<%d> \"%s\" %2d%s]",
                                      getParent().getDisplayLabel(),
                                      getParent().indexOf(this),
                                      getDisplayLabel(),

@@ -46,7 +46,7 @@ import javax.swing.Icon;
  * component specific per path). --SF
  *
  * @author  Scott Fraize
- * @version $Revision: 1.221 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.222 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
  */
 public class LWPathway extends LWContainer
     implements LWComponent.Listener
@@ -926,7 +926,7 @@ public class LWPathway extends LWContainer
     
     /** and an entry for the given component at the end of the pathway */
     public void add(LWComponent c) {
-        add(new VueUtil.SingleIterator(c));
+        add(Util.iterable(c));
     }
 
     /** @return true if the given component can be added to a pathway */
@@ -1170,7 +1170,7 @@ public class LWPathway extends LWContainer
      */
     private void removeAllOnDelete(LWComponent deleted)
     {
-        removeEntries(new VueUtil.SingleIterator(deleted), -1, true);
+        removeEntries(Util.iterable(deleted), -1, true);
     }
 
     public LWMap getMap(){
@@ -1392,7 +1392,7 @@ public class LWPathway extends LWContainer
     protected void addChildImpl(LWComponent c, Object context) { throw new UnsupportedOperationException("add:" +context + "; " + c); }
     
     @Override
-    public void removeChildren(Iterable i) {
+    public void removeChildren(Iterable i, Object context) {
         Util.printStackTrace("Unsupported: LWPathway.removeChildren in " + this);
     }
     
