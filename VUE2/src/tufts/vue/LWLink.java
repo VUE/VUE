@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.193 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
+ * @version $Revision: 1.194 $ / $Date: 2008-07-23 22:30:45 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -908,14 +908,15 @@ public class LWLink extends LWComponent
      */
     public void run() {
         if (!isDeleted()) {
-            reparentBasedOnEndpoints();
-            // this is overkill, and could / should be re-implemented here
-            // to be much faster and cleaner, but it should get the job done.
-            // (e.g., only one call that ensures a re-ordering over both endpoints at once)
-            if (head.hasNode())
-                LWContainer.ensureLinkPaintsOverAllAncestors(this, head.node);
-            if (tail.hasNode())
-                LWContainer.ensureLinkPaintsOverAllAncestors(this, tail.node);
+            if (reparentBasedOnEndpoints()) {
+                // this is overkill, and could / should be re-implemented here
+                // to be much faster and cleaner, but it should get the job done.
+                // (e.g., only one call that ensures a re-ordering over both endpoints at once)
+                if (head.hasNode())
+                    LWContainer.ensureLinkPaintsOverAllAncestors(this, head.node);
+                if (tail.hasNode())
+                    LWContainer.ensureLinkPaintsOverAllAncestors(this, tail.node);
+            }
         }
     }
 
@@ -930,6 +931,12 @@ public class LWLink extends LWComponent
             return false;
         }
 
+        // if already at a "top" level, which now includes layers, we don't need to
+        // reparent ourself -- all top levels are considered equal
+
+        if (getParent().isTopLevel() && commonAncestor.isTopLevel())
+            return false;
+        
         if (DEBUG.LINK) out(Util.TERM_GREEN + "REPARENTING TO NEW COMMON ANCESTOR: " + commonAncestor + Util.TERM_CLEAR);
 
         commonAncestor.addChild(this);
