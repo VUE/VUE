@@ -42,20 +42,19 @@ public class TabularLayout extends  AbstractLayout{
         super(LABEL);
     }
      
-    public  LWMap loadMap(String fileName,String mapName) throws Exception{
+     public LWMap createMap(Dataset ds,String mapName) throws Exception{
         Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
         Map<String,Integer> repeatMap = new HashMap<String,Integer>();
         
         LWMap map = new LWMap(mapName);
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line;
+       
         int count = 0;
         float y = 20;
         float x = 0;
         int toggle = 0;
-        while((line=reader.readLine()) != null && count <MAX_SIZE) {
-            if(DEBUG.LAYOUT) System.out.println(line+" words: "+line.split(",").length);
-            String[] words = line.split(",");
+       for(ArrayList<String> row: ds.getRowList()) {
+            String node1Label = row.get(0);
+            String node2Label = row.get(1);
             LWNode node1;
             LWNode node2;
             x += 300;
@@ -72,21 +71,21 @@ public class TabularLayout extends  AbstractLayout{
                 x = 400;
                 toggle = 0;
             }
-            if(!nodeMap.containsKey(words[0])) {
-                node1 = new LWNode(words[0]);
-                nodeMap.put(words[0],node1);
+            if(!nodeMap.containsKey(node1Label)) {
+                node1 = new LWNode(node1Label);
+                nodeMap.put(node1Label,node1);
                 map.add(node1);
                 count++;
             } else {
-                node1 = nodeMap.get(words[0]);
+                node1 = nodeMap.get(node1Label);
             }
-            if(!nodeMap.containsKey(words[1])) {
-                node2 = new LWNode(words[1]);
+            if(!nodeMap.containsKey(node2Label)) {
+                node2 = new LWNode(node2Label);
                 map.add(node2);
-                nodeMap.put(words[1],node2);
+                nodeMap.put(node2Label,node2);
                 count++;
             } else {
-                node2 = nodeMap.get(words[1]);
+                node2 = nodeMap.get(node2Label);
             }
             LWLink link = new LWLink(node1,node2);
             map.add(link);

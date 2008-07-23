@@ -41,48 +41,45 @@ public class HierarchicalLayout extends AbstractLayout{
         super(LABEL);
     }
     
-    public   LWMap loadMap(String fileName,String mapName) throws Exception{
+    public LWMap createMap(Dataset ds,String mapName) throws Exception{
         Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
         Map<String,Integer> repeatMap = new HashMap<String,Integer>();
          
         LWMap map = new LWMap(mapName);
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line;
         int count = 0;
         
-        while((line=reader.readLine()) != null && count <MAX_SIZE) {
-            if(DEBUG.LAYOUT) System.out.println(line+" words: "+line.split(",").length);
-            String[] words = line.split(",");
-            LWNode node1;
+        for(ArrayList<String> row: ds.getRowList()) {
+            String node1Label = row.get(0);
+            String node2Label = row.get(1);
+             LWNode node1;
             LWNode node2;
-            if(!nodeMap.containsKey(words[0])) {
-                node1 = new LWNode(words[0]);
-                nodeMap.put(words[0],node1);
-                repeatMap.put(words[0], new Integer(1));
-                
+            if(!nodeMap.containsKey(node1Label)) {
+                node1 = new LWNode(node1Label);
+                nodeMap.put(node1Label,node1);
+                repeatMap.put(node1Label, new Integer(1));
                 count++;
                 node1.setLocation(MAP_SIZE/2,count*40);
                 map.add(node1);
             } else {
-                node1 = nodeMap.get(words[0]);
-                int nc= repeatMap.get(words[0]).intValue();
-                repeatMap.put(words[0],new Integer(nc+1));
+                node1 = nodeMap.get(node1Label);
+                int nc= repeatMap.get(node1Label).intValue();
+                repeatMap.put(node1Label,new Integer(nc+1));
                 Point2D p = node1.getLocation();
                 node1.setLocation(p.getX()-40,p.getY());
             }
-            if(!nodeMap.containsKey(words[1])) {
-                node2 = new LWNode(words[1]);
-                repeatMap.put(words[1], new Integer(1));
-                nodeMap.put(words[1],node2);
+            if(!nodeMap.containsKey(node2Label)) {
+                node2 = new LWNode(node2Label);
+                repeatMap.put(node2Label, new Integer(1));
+                nodeMap.put(node2Label,node2);
                 count++;
                 node2.setLocation(MAP_SIZE/2,count*40+20);
                 map.add(node2);
             } else {
-                node2 = nodeMap.get(words[1]);
-                int nc= repeatMap.get(words[1]).intValue();
+                node2 = nodeMap.get(node2Label);
+                int nc= repeatMap.get(node2Label).intValue();
                 Point2D p = node2.getLocation();
                 node2.setLocation(p.getX()-40,p.getY());
-                repeatMap.put(words[1],new Integer(nc+1));
+                repeatMap.put(node2Label,new Integer(nc+1));
             }
             LWLink link = new LWLink(node1,node2);
             map.add(link);

@@ -35,7 +35,7 @@ import tufts.vue.*;
 
 public class RandomLayout extends AbstractLayout{
     
-   static String LABEL = "Random Layout";
+    static String LABEL = "Random Layout";
     /** Creates a new instance of RandomLayout */
     
     public RandomLayout() {
@@ -43,32 +43,30 @@ public class RandomLayout extends AbstractLayout{
     }
     
     
-    public LWMap loadMap(String fileName,String mapName) throws Exception{
+    public LWMap createMap(Dataset ds,String mapName) throws Exception{
         Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
         Map<String,Integer> repeatMap = new HashMap<String,Integer>();
-       
+        
         LWMap map = new LWMap(mapName);
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line;
         int count = 0;
-        while((line=reader.readLine()) != null && count <MAX_SIZE) {
-            System.out.println(line+" words: "+line.split(",").length);
-            String[] words = line.split(",");
+        for(ArrayList<String> row: ds.getRowList()) {
+            String node1Label = row.get(0);
+            String node2Label = row.get(1);
             LWNode node1;
             LWNode node2;
-            if(!nodeMap.containsKey(words[0])) {
-                node1 = new LWNode(words[0]);
-                nodeMap.put(words[0],node1);
+            if(!nodeMap.containsKey(node1Label)) {
+                node1 = new LWNode(node1Label);
+                nodeMap.put(node1Label,node1);
                 map.add(node1);
             } else {
-                node1 = nodeMap.get(words[0]);
+                node1 = nodeMap.get(node1Label);
             }
-            if(!nodeMap.containsKey(words[1])) {
-                node2 = new LWNode(words[1]);
+            if(!nodeMap.containsKey(node2Label)) {
+                node2 = new LWNode(node2Label);
                 map.add(node2);
-                nodeMap.put(words[1],node2);
+                nodeMap.put(node2Label,node2);
             } else {
-                node2 = nodeMap.get(words[1]);
+                node2 = nodeMap.get(node2Label);
             }
             LWLink link = new LWLink(node1,node2);
             map.add(link);

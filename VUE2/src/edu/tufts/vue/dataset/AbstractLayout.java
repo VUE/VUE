@@ -72,13 +72,17 @@ public abstract class  AbstractLayout  extends VueAction {
     }
     
     protected LWMap loadMap(String fileName)  throws Exception{
-        return loadMap(fileName,getMapName(fileName));
+        System.out.println("Loading file: "+fileName);
+        Dataset ds = new Dataset();
+        ds.load(fileName);
+        return createMap(ds,getMapName(fileName));
+       // return loadMap(fileName,getMapName(fileName));
     }
     /* creates name for map from file name
      */
     
     private  String getMapName(String fileName) {
-        String mapName = fileName.substring(fileName.lastIndexOf("/")+1,fileName.length());
+       String mapName = fileName.substring(fileName.lastIndexOf(File.separator)+1,fileName.length());
         if(mapName.lastIndexOf(".")>0)
             mapName = mapName.substring(0,mapName.lastIndexOf("."));
         if(mapName.length() == 0)
@@ -86,8 +90,9 @@ public abstract class  AbstractLayout  extends VueAction {
         return mapName;
     }
     
+  abstract LWMap createMap(Dataset ds,String fileName) throws Exception ;
     
-    abstract   LWMap loadMap(String fileName,String mapName) throws Exception;
+    
     
     
 }

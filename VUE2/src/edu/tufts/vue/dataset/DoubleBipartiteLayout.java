@@ -33,7 +33,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 public class DoubleBipartiteLayout extends AbstractLayout{
- 
+    
     static final String LABEL = "Double Bipartite Layout";
     
     /** Creates a new instance of DoubleBipartite */
@@ -41,57 +41,43 @@ public class DoubleBipartiteLayout extends AbstractLayout{
         super(LABEL);
     }
     
-
-    public  LWMap loadMap(String fileName,String mapName) throws Exception{
+    
+    public LWMap createMap(Dataset ds,String mapName) throws Exception{
         Map<String,LWNode> node1Map = new HashMap<String,LWNode>();
         Map<String,LWNode> node2Map = new HashMap<String,LWNode>();
-       
+        
         LWMap map = new LWMap(mapName);
-        BufferedReader reader = new BufferedReader(new FileReader(fileName));
-        String line;
         int count = 0;
         int n1Counter = 0;
         int n2Counter = 0;
-        while((line=reader.readLine()) != null && count <MAX_SIZE) {
-            if(DEBUG.LAYOUT) System.out.println(line+" words: "+line.split(",").length);
-            String[] words = line.split(",");
+        for(ArrayList<String> row: ds.getRowList()) {
+            String node1Label = row.get(0);
+            String node2Label = row.get(1);
             LWNode node1;
             LWNode node2;
-            if(!node1Map.containsKey(words[0])) {
-                String label1 = words[0];
-                if(words[0].length()>40)  {
-                    label1 = words[0].substring(0,40)+"...";
-                }
-                node1 = new LWNode(label1);
-                //               node1.setFillColor(Color.)
-                node1Map.put(words[0],node1);
+            if(!node1Map.containsKey(node1Label)) {
+                node1 = new LWNode(node1Label);
+                node1Map.put(node1Label,node1);
                 node1.setLocation(MAP_SIZE/5 ,n1Counter*30);
                 map.add(node1);
                 n1Counter++;
             } else {
-                node1 = node1Map.get(words[0]);
+                node1 = node1Map.get(node1Label);
             }
-            if(!node2Map.containsKey(words[1])) {
-                String label2 = words[1];
-                if(words[1].length()>40)  {
-                    label2 = words[1].substring(0,40)+"...";
-                }
-                node2 = new LWNode(label2);
+            if(!node2Map.containsKey(node2Label)) {
+                 node2 = new LWNode(node2Label);
                 node2.setFillColor(Color.LIGHT_GRAY) ;
                 map.add(node2);
-                node2Map.put(words[1],node2);
+                node2Map.put(node2Label,node2);
                 node2.setLocation(MAP_SIZE/5+300 ,n2Counter*30);
                 n2Counter++;
             } else {
-                node2 = node2Map.get(words[1]);;
+                node2 = node2Map.get(node2Label);;
             }
             LWLink link = new LWLink(node1,node2);
             map.add(link);
-            
-            
-            
             count++;
-       }
+        }
         return map;
     }
 }
