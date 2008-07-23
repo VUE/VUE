@@ -54,7 +54,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.121 $ / $Date: 2008-07-18 17:45:02 $ / $Author: sfraize $
+ * @version $Revision: 1.122 $ / $Date: 2008-07-23 22:32:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2282,6 +2282,17 @@ public class GUI
             c.setOpaque(false);
         }
             
+    }
+
+    public static void paintNow(JComponent c) {
+        c.paintImmediately(0, 0, c.getWidth(), c.getHeight());
+    }
+    
+    public static void flashBackground(JComponent c, Color color) {
+        final Color old = c.getBackground();
+        c.setBackground(color);
+        paintNow(c);
+        c.setBackground(old);
     }
     
     public static void setDocumentFont(javax.swing.JTextPane tp, Font f)
