@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.569 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $ 
+ * @version $Revision: 1.570 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4186,7 +4186,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         sMultiPopup.add(GUI.buildMenu(extendMenu, Actions.EXTEND_MENU_ACTIONS));
         LWSelection selection = VUE.getSelection();
 		
-        if (selection.size() > 1 && selection.countTypes(LWLink.class) ==0)
+        if (selection.size() > 1 && selection.count(LWLink.class) ==0)
 		{
 			extendMenu.setEnabled(true);
 		}
@@ -4883,6 +4883,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //boolean isDraggingControlHandle = false;
         int dragControlIndex;
         boolean mouseWasDragged = false;
+        boolean mouseDragInitiated = false;
         LWComponent justSelected;    // for between mouse press & click
         boolean hitOnSelectionHandle = false; // we moused-down on a selection handle
 
@@ -4929,6 +4930,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 //         kdebug("processKeyBinding", e);
 //         return super.processKeyBinding(ks, e, condition, pressed);
 //     }
+
+    private void clearMouse() {
+        mouseWasDragged = false;
+        mouseDragInitiated = false;
+    }
     
         
         private int kk = 0;
@@ -4989,7 +4995,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     //dragPosition.setLocation(oldX, oldY);
                     setDragger(null);
                     activeTool.handleDragAbort();
-                    mouseWasDragged = false;
+                    clearMouse();
                     clearIndicated(); // incase dragging new link
                     // TODO: dragControl not abortable...
                     repaint();
@@ -6281,6 +6287,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     if (DEBUG.MOUSE) out("delaying drag start with dx="+dx + " dy="+dy);
                     return;
                 }
+
+                mouseDragInitiated = true;
             
                 // todo opt: do all this in dragStart
                 //-------------------------------------------------------
@@ -6553,6 +6561,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             else if (!mouseConsumed && activeTool.handleMouseReleased(mme)) {
                 repaint();
             }
+            // TODO: some global state still not being set: mouse-up after 1-2px move will deparent any node!
+            //else if (mouseDragInitiated && (indication == null || indication instanceof LWContainer)) {
             else if (mouseWasDragged && (indication == null || indication instanceof LWContainer)) {
                 // this allows dropping into a group
                 if (dragComponent == null || !isDropRequest(e)) {
@@ -6663,7 +6673,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             dragControl = null;
             setDragger(null);
             isDraggingSelectorBox = false;
-            mouseWasDragged = false;
+            clearMouse();
             activeToolAteMousePress = false;
             
             

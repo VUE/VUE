@@ -18,16 +18,18 @@ package tufts.vue;
 import tufts.Util;
 
 import java.util.*;
-
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.awt.geom.RectangularShape;
+
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multisets;
 
 /**
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.92 $ / $Date: 2008-07-23 15:25:59 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -60,7 +62,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     private long mEditablePropertyKeys;
 
     private final Set<LWContainer> mParents = new java.util.HashSet();
-    private final Set<Class> mTypes = new java.util.HashSet();
+    private final Multiset<Class> mTypes = Multisets.newHashMultiset();
     private List<LWComponent> mSecureList = null;
 
     public LWSelection() {}
@@ -619,32 +621,16 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return size() == 0 ? null : (LWComponent) get(size()-1);
     }
     
-    public int countTypes(Class clazz)
+    public int count(Class<? extends LWComponent> clazz)
     {
-        int count = 0;
-
-        for (Class contentClass : mTypes)
-            if (clazz.isAssignableFrom(contentClass))
-                count++;
-        
-//         Iterator i = iterator();
-//         while (i.hasNext())
-//             if (clazz.isInstance(i.next()))
-//                 count++;
-        
-        return count;
+        return mTypes.count(clazz);
     }
     
     public boolean containsType(Class clazz)
     {
         for (Class contentClass : mTypes)
             if (clazz.isAssignableFrom(contentClass))
-        return true;
-        
-//         Iterator i = iterator();
-//         while (i.hasNext())
-//             if (clazz.isInstance(i.next()))
-//                 return true;
+                return true;
         
         return false;
     }
@@ -656,36 +642,16 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 return false;
         
         return size() != 0;
-        
-//         Iterator i = iterator();
-//         while (i.hasNext())
-//             if (!clazz.isInstance(i.next()))
-//                 return false;
-//         return size() != 0;
     }
 
     public boolean allOfSameType()
     {
         return size() < 2 || mTypes.size() == 1;
-        
-//         if (size() <= 1)
-//             return true;
-//         final Iterator i = iterator();
-//         final Class firstType = i.next().getClass();
-//         while (i.hasNext())
-//             if (i.next().getClass() != firstType)
-//                 return false;
-//         return true;
     }
 
-    public Collection<LWContainer> getParents() {
+    public Set<LWContainer> getParents() {
         return mParents;
     }
-
-    public LWContainer firstParent() {
-        return (LWContainer) mParents.toArray()[0];
-    }
-    
 
     public boolean allHaveSameParent()
     {

@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.90 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
+ * @version $Revision: 1.91 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -499,7 +499,7 @@ public class LWGroup extends LWContainer
         if (DEBUG.PARENTING || DEBUG.CONTAINMENT) System.out.println("DISPERSING: " + this);
 
         if (hasChildren()) {
-            final LWContainer newParent = (LWContainer) getParentOfType(LWContainer.class);
+            final LWContainer newParent = getParentOfType(LWContainer.class);
             final List tmpChildren = new ArrayList(mChildren);
             //if (DEBUG.PARENTING || DEBUG.CONTAINMENT) out("DISPERSING " + tmpChildren.size() + " children");
                 

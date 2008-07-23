@@ -1608,10 +1608,10 @@ public class Actions implements VueConstants
             //return s.size() >= 2 && s.allHaveSameParent();
             
             // below condition doesn't allow explicit grouping of links -- was this causing trouble somewhere?
-            return ((s.size() - s.countTypes(LWLink.class)) >= 2 && s.allHaveSameParent() && !(VUE.getActiveViewer().getFocal() instanceof LWSlide));
+            return ((s.size() - s.count(LWLink.class)) >= 2 && s.allHaveSameParent() && !(VUE.getActiveViewer().getFocal() instanceof LWSlide));
         }
         void act(LWSelection s) {
-            if (s.size() == 2 && s.countTypes(LWGroup.class) == 1) {
+            if (s.size() == 2 && s.count(LWGroup.class) == 1) {
                 // special case: join the group (really need another action for this)
                 LWGroup toJoin;
                 LWComponent toAdd;
@@ -1649,11 +1649,11 @@ public class Actions implements VueConstants
         new LWCAction("Ungroup", keyStroke(KeyEvent.VK_G, COMMAND+SHIFT), "/tufts/vue/images/xUngroup.png") {
             boolean mayModifySelection() { return true; }
             boolean enabledFor(LWSelection s) {
-                return s.countTypes(LWGroup.class) > 0 || s.allHaveSameParentOfType(LWGroup.class);
+                return s.count(LWGroup.class) > 0 || s.allHaveSameParentOfType(LWGroup.class);
             }
             void act(LWSelection s) {
                 final Collection<LWComponent> toSelect = new HashSet(); // ensure no duplicates
-                if (s.countTypes(LWGroup.class) > 0) {
+                if (s.count(LWGroup.class) > 0) {
                     if (DEBUG.EVENTS) out("Ungroup: dispersing any selected groups");
                     disperse(s, toSelect);
                 } else {
@@ -1707,7 +1707,7 @@ public class Actions implements VueConstants
             private void disperse(Iterable<LWComponent> iterable, Collection toSelect) {
                 for (LWComponent c : iterable) {
                     if (c instanceof LWGroup) {
-                        toSelect.addAll(c.getChildList());
+                        toSelect.addAll(c.getChildren());
                         ((LWGroup)c).disperse();
                     }
                 }

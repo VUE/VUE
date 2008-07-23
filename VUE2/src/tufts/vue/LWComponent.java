@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.429 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
+ * @version $Revision: 1.430 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3351,12 +3351,12 @@ u                    getSlot(c).setFromString((String)value);
     
 
     /** @return the first ancestor, EXCLUDING this component (starting with the parent), that is of the given type, or null if none found */
-    public LWComponent getParentOfType(Class clazz) {
+    public <T extends LWComponent> T getParentOfType(Class<T> clazz) {
         return getParentOfType(clazz, null);
     }
     
     /** never ascend above root */
-    public LWComponent getParentOfType(Class clazz, LWComponent root) {
+    public <T extends LWComponent> T getParentOfType(Class<T> clazz, LWComponent root) {
         LWComponent parent = getParent();
         if (parent == null)
             return null;
@@ -3366,14 +3366,14 @@ u                    getSlot(c).setFromString((String)value);
     
     /** @return the first ancestor, INCLUDING this component, that is of the given type, or null if none found */
     // TODO: including this component is confusing...
-    public LWComponent getAncestorOfType(Class clazz) {
+    public <T extends LWComponent> T getAncestorOfType(Class<T> clazz) {
         return getAncestorOfType(clazz, null);
     }
     
     /** never ascend above root */
-    public LWComponent getAncestorOfType(Class clazz, LWComponent root) {
+    public <T extends LWComponent> T getAncestorOfType(Class<T> clazz, LWComponent root) {
         if (clazz.isInstance(this))
-            return this;
+            return (T) this;
         else if (this == root)
             return null;
         else
