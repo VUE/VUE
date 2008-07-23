@@ -34,7 +34,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.20 $ / $Date: 2008-07-23 18:34:37 $ / $Author: sfraize $
+ * @version $Revision: 1.21 $ / $Date: 2008-07-23 22:31:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -184,7 +184,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 }
             },
         
-        LAYER_DELETE = new LayerAction("Delete", "Remove a layer and all of it's contents") {
+        LAYER_DELETE = new LayerAction("Delete", "Remove a layer and all of its contents") {
                 @Override
                 public void act() {
                     mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
@@ -640,6 +640,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if (layerCanGrab(layer, c))
                 grabbing.add(c);
         }
+
+        // todo perf: remove all old layer in one swoop, then add to new
         
         layer.addChildren(grabbing);
         
@@ -1176,7 +1178,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                                 counts += nChild;
                             if (allChildren != nChild)
                                 counts += "/" + allChildren;
-                            info.setText(counts);                        
+                            info.setText(counts);
+                            //if (DEBUG.Enabled)
+                                { Row.this.validate(); GUI.paintNow(Row.this); } // slower
+                            //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(info); } // faster
                         }},
                     LWKey.ChildrenAdded, LWKey.ChildrenRemoved);
                 l.LWCChanged(null); // do the initial set
