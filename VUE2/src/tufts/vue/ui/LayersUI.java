@@ -34,7 +34,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.19 $ / $Date: 2008-07-23 18:22:38 $ / $Author: sfraize $
+ * @version $Revision: 1.20 $ / $Date: 2008-07-23 18:34:37 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -502,13 +502,18 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         } else {
 
+            final Set<Layer> layers = new HashSet(parents.size());
+            
+            for (LWComponent c : parents)
+                layers.add(c.getLayer());
+            
             for (Row row : mRows) {
 
                 row.activeIcon.setEnabled(row.layer == activeLayer);
                 
                 if (row.layer instanceof Layer) {
 
-                    if (parents.contains(row.layer)) {
+                    if (layers.contains(row.layer)) {
                         //row.layer.setSelected(true);
                         row.setBackground(ActiveBG);
                     } else {
