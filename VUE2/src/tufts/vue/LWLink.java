@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.195 $ / $Date: 2008-07-24 16:20:09 $ / $Author: sfraize $
+ * @version $Revision: 1.196 $ / $Date: 2008-07-24 21:53:12 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -908,15 +908,14 @@ public class LWLink extends LWComponent
      */
     public void run() {
         if (!isDeleted()) {
-            if (reparentBasedOnEndpoints()) {
-                // this is overkill, and could / should be re-implemented here
-                // to be much faster and cleaner, but it should get the job done.
-                // (e.g., only one call that ensures a re-ordering over both endpoints at once)
-                if (head.hasNode())
-                    LWContainer.ensureLinkPaintsOverAllAncestors(this, head.node);
-                if (tail.hasNode())
-                    LWContainer.ensureLinkPaintsOverAllAncestors(this, tail.node);
-            }
+            reparentBasedOnEndpoints();
+            // this is overkill, and could / should be re-implemented here
+            // to be much faster and cleaner, but it should get the job done.
+            // (e.g., only one call that ensures a re-ordering over both endpoints at once)
+            if (head.hasNode() && head.node.getLayer() == getLayer())
+                LWContainer.ensureLinkPaintsOverAllAncestors(this, head.node);
+            if (tail.hasNode() && tail.node.getLayer() == getLayer())
+                LWContainer.ensureLinkPaintsOverAllAncestors(this, tail.node);
         }
     }
 
