@@ -19,6 +19,8 @@ import tufts.vue.*;
 import tufts.vue.ActiveEvent;
 import static tufts.vue.LWComponent.Flag.*;
 import static tufts.vue.LWComponent.HideCause.*;
+import static tufts.vue.LWComponent.ChildKind;
+import static tufts.vue.LWComponent.Order;
 import tufts.vue.LWMap.Layer;
 import tufts.vue.gui.*;
 
@@ -35,12 +37,14 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2008-07-24 18:53:58 $ / $Author: sfraize $
+ * @version $Revision: 1.25 $ / $Date: 2008-07-24 20:04:21 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(LayersUI.class);
+
+    private static final boolean SCROLLABLE = true;
 
     private final java.util.List<Row> mRows = new java.util.ArrayList();
     private final JPanel mToolbar = new JPanel();
@@ -277,7 +281,13 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
 
         add(mToolbar, BorderLayout.NORTH);
-        add(mRowList, BorderLayout.CENTER);
+        if (SCROLLABLE) {
+            final JScrollPane sp = new JScrollPane(mRowList);
+            //sp.setBorder(null);
+            add(sp, BorderLayout.CENTER);
+        } else {
+            add(mRowList, BorderLayout.CENTER);
+        }
 
 
 //         mSelection.addListener(new LWSelection.Listener() {
@@ -622,7 +632,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             for (LWComponent layer : reverse(map.getChildren())) {
                 mRows.add(produceRow(layer));
                 if (mShowAll.isSelected()) {
-                    for (LWComponent c : reverse(layer.getChildren()))
+                    //for (LWComponent c : reverse(layer.getChildren()))
+                    for (LWComponent c : reverse(layer.getAllDescendents(ChildKind.PROPER, new ArrayList(), Order.DEPTH)))
                         mRows.add(produceRow(c));
                 }
             }
@@ -669,7 +680,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         if (!rows.isEmpty()) {
         
             for (JComponent row : rows) {
-                c.insets.left = (((Row)row).layer.getDepth() - 1) * 75; // refactoring: note Row cast
+                c.insets.left = (((Row)row).layer.getDepth() - 1) * 56; // refactoring: note Row cast
                 container.add(row, c);
                 c.gridy++;
             }
@@ -1054,25 +1065,21 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     }
 
     private static final Insets LockedInsets = new Insets(4,4,4,4);
+    private static final Dimension LayerHeight = new Dimension(0, 38);
+    private static final Dimension DefaultHeight = new Dimension(0, 28);
 
     private class Row extends JPanel implements javax.swing.event.MouseInputListener, Runnable {
 
-        final AbstractButton exclusive = new JRadioButton();
+        final AbstractButton exclusive;
         final AbstractButton visible = new JCheckBox();
         final AbstractButton locked = new JRadioButton();
         final JLabel activeIcon = new JLabel();
-        //final JLabel label = new JLabel();
 
         final JTextField label;
-        
         final JPanel preview;
         final AbstractButton grab;
-        //final AbstractButton visible = new VueButton.Toggle("layerUI.button.visible");
         
         final LWComponent layer;
-
-        //private boolean wasHiddenWhenMadeExclusive;
-        //private boolean wasLockedWhenMadeExclusive;
 
         final Color defaultBackground;
 
@@ -1082,22 +1089,19 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             this.layer = layer;
             label = new TextEdit(this);
             setName(layer.toString());
-            //super(BoxLayout.X_AXIS);
-            //setOpaque(true);
-            //setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             setLayout(new GridBagLayout());
             setBorder(new CompoundBorder(new MatteBorder(1,0,1,0, Color.lightGray),
                                          GUI.makeSpace(3,7,3,7)));
-            //setBorder(GUI.makeSpace(9,7,9,7));
-            //setPreferredSize(new Dimension(Short.MAX_VALUE, 48));
+            if (SCROLLABLE) {
+                if (layer instanceof Layer)
+                    setPreferredSize(LayerHeight);
+                else
+                    setPreferredSize(DefaultHeight);
+            }
             //setMinimumSize(new Dimension(150, 100)); // no effect
 
-            //setBorder(new LineBorder(Color.black));
-            
             addMouseListener(this);
             addMouseMotionListener(this);
-            //label.addMouseListener(this);
-            //label.addMouseMotionListener(this);
             
             if (layer instanceof Layer)
                 defaultBackground = null;
@@ -1117,6 +1121,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
             
             locked.setSelected(layer.isLocked());
+            locked.setBorderPainted(layer.isLocked());
             locked.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         locked.setBorderPainted(locked.isSelected());
@@ -1137,14 +1142,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     }});
 
             label.setEnabled(layer.isVisible());
-
-            exclusive.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        Row.this.setExclusive(exclusive.isSelected());
-                    }});
             
             
             if (layer instanceof Layer) {
+
+                exclusive = new JRadioButton();            
+                exclusive.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            Row.this.setExclusive(exclusive.isSelected());
+                        }});
+            
                 grab = new JButton("Grab");                
                 grab.setFont(VueConstants.SmallFont);
                 grab.putClientProperty("JButton.buttonType", "textured");
@@ -1157,6 +1164,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             }
                         }});
             } else {
+                exclusive = null;
                 grab = null;
             }
 
@@ -1306,20 +1314,17 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 
             }
             
-            //add(Box.createHorizontalStrut(5));
             add(activeIcon, c);
             
-            //add(Box.createHorizontalStrut(5));
             add(locked, c);
 
-            //add(Box.createHorizontalStrut(5));
-            if (grab != null)
-                add(grab, c);
-            
+            add(grab, c);
             
         }
 
         private void add(Component comp, GridBagConstraints c) {
+            if (comp == null)
+                return;
             //super.add(comp);
             super.add(comp, c);
             //c.gridx++;
