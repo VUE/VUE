@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.211 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
+ * @version $Revision: 1.212 $ / $Date: 2008-07-24 00:05:05 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -941,7 +941,7 @@ public class LWMap extends LWContainer
     
     public void setActiveLayer(LWComponent layer) {
         if (!VUE.VUE3_LAYERS) return;
-        out("setActiveLayer: " + layer);
+        if (DEBUG.Enabled) out("setActiveLayer: " + layer);
         if (layer == null || layer instanceof Layer)
             mActiveLayer = (Layer) layer;
         else

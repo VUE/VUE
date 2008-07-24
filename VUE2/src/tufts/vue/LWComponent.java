@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.430 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $
+ * @version $Revision: 1.431 $ / $Date: 2008-07-24 00:05:05 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -114,7 +114,7 @@ public class LWComponent
             /** we've been hidden by link pruning */
             PRUNE (),
             /** another layer is set to be the exclusive layer */
-            LAYER_EXCLUSIVE (),
+            LAYER_EXCLUDED (),
             /** we're a member of a pathway that hides when the pathway hides, and all pathways we're on are hidden */
             HIDES_WITH_PATHWAY (true),
             /** we've been hidden by a pathway that is in the process of revealing */
@@ -145,9 +145,16 @@ public class LWComponent
             LOCKED,
             /** can't be moved */
             FIXED_LOCATION,
-//             NO_DELETE,
-//             NO_LINKS,
-            SLIDE_STYLE;
+            /** has been specially styled for for appearance on a slide */
+            SLIDE_STYLE,
+
+//             /** if temporarily changing locked state, can save old value here (layers use this) */
+//             WAS_LOCKED,
+//             /** if temporarily changing default hidden state, can save old value here (layers use this) */
+//             WAS_HIDDEN,
+
+
+            ;
 
         // TODO: general LOCKED which means fixed,no-delete,no-duplicate?,no-reorder(forward/back),no-link
             
@@ -1277,10 +1284,10 @@ u                    getSlot(c).setFromString((String)value);
         if (mClientProperties == null)
             mClientProperties = new HashMap();
 
-//         if (DEBUG.Enabled) {
-//             String keyName = key instanceof Class ? key.toString() : Util.tags(key);
-//             out("setClientProperty: " + keyName + "=" + Util.tags(o));
-//         }
+        if (DEBUG.DATA) {
+            String keyName = key instanceof Class ? key.toString() : Util.tags(key);
+            out("setClientProperty: " + keyName + "=" + Util.tags(o));
+        }
 
         if (o == null)
             mClientProperties.remove(key);
@@ -5937,7 +5944,7 @@ u                    getSlot(c).setFromString((String)value);
         mFlags |= flag.bit;
     }
 
-    protected void setFlag(Flag flag, boolean set) {
+    public void setFlag(Flag flag, boolean set) {
         if (set)
             setFlag(flag);
         else
@@ -5945,7 +5952,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
-    protected void clearFlag(Flag flag) {
+    public void clearFlag(Flag flag) {
         mFlags &= ~flag.bit;
     }
 
@@ -6633,8 +6640,12 @@ u                    getSlot(c).setFromString((String)value);
 
     protected String describeBits() {
         String s = "";
-        if (mHideBits != 0) s += getDescriptionOfSetBits(HideCause.class, mHideBits) + " ";
-        if (mFlags != 0) s += getDescriptionOfSetBits(Flag.class, mFlags) + " ";
+        if (mHideBits != 0) s += " " + getDescriptionOfSetBits(HideCause.class, mHideBits);
+        if (mFlags != 0) {
+            if (mHideBits != 0)
+                s += " ";
+            s += getDescriptionOfSetBits(Flag.class, mFlags);
+        }
         return s;
     }
 

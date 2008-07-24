@@ -17,7 +17,8 @@ package tufts.vue.ui;
 
 import tufts.vue.*;
 import tufts.vue.ActiveEvent;
-import tufts.vue.LWComponent.HideCause;
+import static tufts.vue.LWComponent.Flag.*;
+import static tufts.vue.LWComponent.HideCause.*;
 import tufts.vue.LWMap.Layer;
 import tufts.vue.gui.*;
 
@@ -34,7 +35,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.21 $ / $Date: 2008-07-23 22:31:21 $ / $Author: sfraize $
+ * @version $Revision: 1.22 $ / $Date: 2008-07-24 00:05:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -769,6 +770,54 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         mMap.setClientProperty(Layer.class, "pre-exclusive", layer);
     }
     
+    // TODO: if a row is deleted while in exclusive mode, you won't
+    // be able to access it's controls if it's un-deleted when NOT
+    // in exclusive mode -- you'll need to enter/exit exlusive mode
+    // to re-gain access (to visible/lock buttons)
+
+    private void setExclusiveMode(boolean entering, Row exclusiveRow)
+    {
+        //Log.debug("SET-EXCLUSIVE-MODE " + entering + "; nowExclusive=" + exclusiveRow);
+        
+        if (entering)
+            storePreExclusiveLayer(getActiveLayer());
+
+        for (Row row : mRows) {
+
+            final LWComponent layer = row.layer;
+
+            if (entering) {
+                //layer.setFlag(WAS_LOCKED, layer.isLocked());
+                //layer.setFlag(WAS_HIDDEN, layer.isHidden(DEFAULT));
+            } else {
+                layer.setLocked(row.locked.isSelected());
+                layer.setHidden(DEFAULT, !row.visible.isSelected());
+                //layer.setLocked(layer.hasFlag(WAS_LOCKED));
+                //layer.setHidden(DEFAULT, layer.hasFlag(WAS_HIDDEN));
+                //layer.clearFlag(WAS_LOCKED);
+                //layer.clearFlag(WAS_HIDDEN);
+            }
+
+            row.visible.setEnabled(!entering);
+            row.locked.setEnabled(!entering);
+
+            if (row == exclusiveRow)
+                continue;
+
+            row.label.setEnabled(entering ? false : row.visible.isSelected());
+                
+            layer.setHidden(LAYER_EXCLUDED, entering);
+        }
+
+        if (!entering) {
+            setActiveLayer(fetchPreExclusiveLayer(), true);
+            storeExclusiveRow(null);
+            storePreExclusiveLayer(null);
+        }
+
+    }
+        
+        
 
     private static class TextEdit extends JTextField implements FocusListener {
 
@@ -1061,8 +1110,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
         final LWComponent layer;
 
-        private boolean wasHiddenWhenMadeExclusive;
-        private boolean wasLockedWhenMadeExclusive;
+        //private boolean wasHiddenWhenMadeExclusive;
+        //private boolean wasLockedWhenMadeExclusive;
 
         final Color defaultBackground;
 
@@ -1144,16 +1193,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         }});
             }
 
-            LWComponent.Listener l;
             
-//             layer.addLWCListener(l = new LWComponent.Listener() {
-//                     public void LWCChanged(LWCEvent e) {
-//                         label.setText(layer.getDisplayLabel());
-//                     }},
-//                 LWKey.Label);
-//             l.LWCChanged(null); // do the initial set
-
-
             final JLabel info = new JLabel()
                 //{ public Dimension getMinimumSize() { return GUI.ZeroSize; } }
                 ;
@@ -1167,7 +1207,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 
                 // Note: depends on Layer having permitZombieEvent(e) return
                 // true, otherwise won't update correctly on undo.
-                layer.addLWCListener(l = new LWComponent.Listener() {
+                final LWComponent.Listener countListener
+                    = new LWComponent.Listener() {
                         public void LWCChanged(LWCEvent e) {
                             if (DEBUG.Enabled) Log.debug("\n\n*** UPDATING " + Row.this + " " + e);
                             String counts = "";
@@ -1182,9 +1223,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             //if (DEBUG.Enabled)
                                 { Row.this.validate(); GUI.paintNow(Row.this); } // slower
                             //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(info); } // faster
-                        }},
-                    LWKey.ChildrenAdded, LWKey.ChildrenRemoved);
-                l.LWCChanged(null); // do the initial set
+                        }};
+                countListener.LWCChanged(null); // do the initial set
+                layer.addLWCListener(countListener, LWKey.ChildrenAdded, LWKey.ChildrenRemoved);
             }
 
 
@@ -1323,81 +1364,44 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             Row exclusiveRow = fetchExclusiveRow();
 
-            Log.debug("SET-EXCLUSIVE " + this + " = " + excluding + "; nowExclusive=" + exclusiveRow);
+            //Log.debug("SET-EXCLUSIVE " + this + " = " + excluding + "; nowExclusive=" + exclusiveRow);
 
             if (excluding && exclusiveRow == this)
                 return;
 
             final boolean wasExcluding = exclusiveRow != null;
-
+            final Row lastExcluded = exclusiveRow;
             exclusiveRow = this;
+
+            if (wasExcluding && excluding) {
+                // disable old row
+                lastExcluded.label.setEnabled(false);
+                lastExcluded.layer.setHidden(LAYER_EXCLUDED);
+                lastExcluded.exclusive.setSelected(false);
+            }
 
             if (excluding) {
                 if (!wasExcluding)
-                    storePreExclusiveLayer(getActiveLayer());
+                    setExclusiveMode(true, this);
                 storeExclusiveRow(this);
                 if (layer instanceof Layer)
                     setActiveLayer((Layer) layer);
             } else if (exclusiveRow == this) {
-                storeExclusiveRow(null);
-                final Layer activePreExclusive = fetchPreExclusiveLayer();
-                if (activePreExclusive != layer)
-                    setActiveLayer(activePreExclusive);
-                storePreExclusiveLayer(null);
+                setExclusiveMode(false, null);
+                return;
             }
 
             exclusive.setSelected(excluding);
-            if (true) {
-                visible.setEnabled(!excluding);
-                locked.setEnabled(!excluding);
-            } else {
-                visible.setVisible(!excluding);
-                locked.setVisible(!excluding);
-            }
             label.setEnabled(true);
                         
-            layer.clearHidden(HideCause.LAYER_EXCLUSIVE);
-
-            if (excluding) {
-                if (DEBUG.Enabled) Log.debug("EXCLUSIVE: " + this);
-                if (layer.isHidden(HideCause.DEFAULT)) {
-                    wasHiddenWhenMadeExclusive = true;
-                    layer.clearHidden(HideCause.DEFAULT);
-                }
-                if (layer.isLocked()) {
-                    wasLockedWhenMadeExclusive = true;
-                    layer.setLocked(false);
-                }
-            } else {
-                if (DEBUG.Enabled) Log.debug("RELEASING: " + this);
-                if (wasHiddenWhenMadeExclusive)
-                    layer.setHidden(HideCause.DEFAULT);
-                if (wasLockedWhenMadeExclusive)
-                    layer.setLocked(true);
-                
-            }
-        
-
-            for (Row row : mRows) {
-                if (row != exclusiveRow) {
-                    if (excluding) row.exclusive.setSelected(false);
-                    
-                    //row.setEnabled(!excluding);
-                    
-                    row.visible.setEnabled(!excluding);
-                    row.locked.setEnabled(!excluding);
-                    //row.visible.setVisible(!excluding);
-                    //row.locked.setVisible(!excluding);
-                
-                    row.label.setEnabled(excluding ? false : row.visible.isSelected());
-                    row.layer.setHidden(HideCause.LAYER_EXCLUSIVE, excluding);
-                }
-            }
+            layer.clearHidden(DEFAULT);
+            layer.clearHidden(LAYER_EXCLUDED);
+            layer.setLocked(false);
 
             indicateActiveLayers(null);
             //tufts.vue.ZoomTool.setZoomFit();
         }
-        
+
 
         @Override
         protected void addImpl(Component comp, Object constraints, int index) {
