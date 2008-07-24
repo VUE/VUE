@@ -35,7 +35,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.22 $ / $Date: 2008-07-24 00:05:06 $ / $Author: sfraize $
+ * @version $Revision: 1.23 $ / $Date: 2008-07-24 18:02:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -272,6 +272,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         loadLayers(mMap);
                     }});
             addButton(mShowAll);
+            addButton(Actions.Group);
+            addButton(Actions.Undo);
         }
 
         add(mToolbar, BorderLayout.NORTH);
@@ -296,7 +298,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         setMinimumSize(new Dimension(400,120+40));
     }
 
-    private void addButton(VueAction a) {
+    private void addButton(Action a) {
         addButton(new JButton(a));
     }
     private void addButton(AbstractButton b) {
@@ -533,48 +535,6 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
     }
 
-//     private void indicateActiveLayers(Collection<LWContainer> parents) {
-
-//         //Log.debug("INDICATE ACTIVES: mapActive=" + mMap.getActiveLayer() + "; multiSelect=" + layers);
-
-//         final Layer activeLayer = getActiveLayer();
-
-//         // TODO: Why are selection bits being left on?  (why getting SelectedBG on multiple items!)
-//         // can probably just hack it and check the selection here manually...  tho this
-//         // shouldn't be happening...
-
-//         for (Row row : mRows) {
-
-//             // Log.debug("UPDATING: " + row.layer);
-            
-//             if (row.layer == activeLayer) {
-//                 //Log.debug("**ACTIVE: " + row.layer);
-//                 row.activeIcon.setEnabled(true);
-//                 row.setBackground(row.layer.isSelected() ? SelectedBG : ActiveBG);
-//                 continue;
-//             }
-
-//             row.activeIcon.setEnabled(false);
-            
-//             if (parents != null && parents.contains(row.layer))
-//                 row.setBackground(ActiveBG);
-//             else if (row.layer.isSelected())
-//                 row.setBackground(SelectedBG);
-//             else
-//                 row.setBackground(null);
-
-// //             if (layers != null) 
-// //                 row.setBackground(layers.contains(row.layer) ? ActiveBG : null);
-// //             else if (row.layer.isSelected())
-// //                 row.setBackground(SelectedBG);
-// //             else
-// //                 row.setBackground(null);
-            
-//         }
-        
-//     }
-    
-        
     private void enableForSelection(LWSelection s) {
 
         final Collection<LWContainer> parents = s.getParents();
@@ -1096,6 +1056,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private class Row extends JPanel implements javax.swing.event.MouseInputListener, Runnable {
 
+        private static final Insets LockedInsets = new Insets(4,4,4,4);
+
         final AbstractButton exclusive = new JRadioButton();
         final AbstractButton visible = new JCheckBox();
         final AbstractButton locked = new JRadioButton();
@@ -1149,13 +1111,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 visible.setIcon(VueResources.getImageIcon("pathwayOff"));
                 visible.setSelectedIcon(VueResources.getImageIcon("pathwayOn"));
                 // need a bigger and/or colored icon -- to tough to see
-                //locked.setIcon(VueResources.getImageIcon("lockOpen"));
-                //locked.setSelectedIcon(VueResources.getImageIcon("lock"));
+                locked.setIcon(VueResources.getImageIcon("lockOpen"));
+                locked.setSelectedIcon(VueResources.getImageIcon("lock"));
+                locked.setMargin(LockedInsets);
+                //locked.setBorder(GUI.makeSpace(1,5,5,1)); // no effect
             }
             
             locked.setSelected(layer.isLocked());
             locked.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
+                        locked.setBorderPainted(locked.isSelected());
                         layer.setLocked(locked.isSelected());
                         if (layer == getActiveLayer() && !canBeActive(layer))
                             if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer();
@@ -1210,7 +1175,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 final LWComponent.Listener countListener
                     = new LWComponent.Listener() {
                         public void LWCChanged(LWCEvent e) {
-                            if (DEBUG.Enabled) Log.debug("\n\n*** UPDATING " + Row.this + " " + e);
+                            if (DEBUG.Enabled) Log.debug("UPDATING " + Row.this + " " + e);
                             String counts = "";
                             final int nChild = layer.numChildren();
                             final int allChildren = layer.getDescendentCount();
@@ -1220,8 +1185,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             if (allChildren != nChild)
                                 counts += "/" + allChildren;
                             info.setText(counts);
-                            //if (DEBUG.Enabled)
-                                { Row.this.validate(); GUI.paintNow(Row.this); } // slower
+                            if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(Row.this); } // slower
                             //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(info); } // faster
                         }};
                 countListener.LWCChanged(null); // do the initial set
@@ -1246,9 +1210,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             c.weighty = 1; // 1 has all expanding to fill vertical, 0 leaves all at min height
             c.anchor = GridBagConstraints.WEST;
             
+            c.insets.right = 4;
             add(exclusive, c);
 
             //add(Box.createHorizontalStrut(5), c);
+            c.insets.right = 0;
             add(visible, c);
             
             info.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -1278,6 +1244,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 c.fill = GridBagConstraints.HORIZONTAL;
                 c.insets.right = 4;
                 add(box, c);
+                c.insets.left = 0;
                 //c.insets.right = 0;
                 c.weightx = 0;
                 c.fill = GridBagConstraints.NONE;
