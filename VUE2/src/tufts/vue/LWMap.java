@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.212 $ / $Date: 2008-07-24 00:05:05 $ / $Author: sfraize $
+ * @version $Revision: 1.213 $ / $Date: 2008-07-24 18:03:29 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -755,6 +755,7 @@ public class LWMap extends LWContainer
         public boolean isTopLevel() {
             return true;
         }
+        
         @Override
         public Layer getLayer() {
             return this;
@@ -762,11 +763,12 @@ public class LWMap extends LWContainer
 
         @Override
         protected void setParent(LWContainer p) {
-            if (p instanceof LWMap)
+            if (p instanceof LWMap) {
                 super.setParent(p);
-            else
-                throw new IllegalArgumentException("Layers can only be parented to map; attempted to add "
-                                                   + this + " to " + p);
+            } else {
+                //throw new IllegalArgumentException("Layers can only be parented to map; attempted to add " + this + " to " + p);
+                Util.printStackTrace("Layers can only be parented to map; attempted to add " + this + " to " + p);
+            }
                 
         }
 

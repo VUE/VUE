@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.431 $ / $Date: 2008-07-24 00:05:05 $ / $Author: sfraize $
+ * @version $Revision: 1.432 $ / $Date: 2008-07-24 18:03:29 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2568,14 +2568,6 @@ u                    getSlot(c).setFromString((String)value);
         return this.parent;
     }
 
-//     /** @return our Layer ONLY IF IT IS OUR DIRECT PARENT */
-//     public LWMap.Layer getLayer() {
-//         if (parent instanceof LWMap.Layer)
-//             return (LWMap.Layer) parent;
-//         else
-//             return null;
-//     }
-
     /** @return what layer we're inside */
     public LWMap.Layer getLayer() {
         if (parent == null)
@@ -2586,8 +2578,16 @@ u                    getSlot(c).setFromString((String)value);
             return parent.getLayer();
     }
     
+    /** @return null if we are not a child of a layer, or the layer if it's our immediate parent  */
+    public LWMap.Layer getPersistLayer() {
+        if (parent instanceof LWMap.Layer)
+            return (LWMap.Layer) parent;
+        else
+            return null;
+    }
 
-    public void setLayer(LWMap.Layer layer) {
+
+    public void setPersistLayer(LWMap.Layer layer) {
         if (!VUE.VUE3_LAYERS) return;
         setParent(layer);
     }
