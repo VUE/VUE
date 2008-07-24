@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.25 $ / $Date: 2008-07-24 20:04:21 $ / $Author: sfraize $
+ * @version $Revision: 1.26 $ / $Date: 2008-07-24 21:15:08 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1420,7 +1420,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         public void mouseEntered(MouseEvent e) {}
         public void mouseExited(MouseEvent e) {}
         
-        public void mouseClicked(MouseEvent e) {}
+        public void mouseClicked(MouseEvent e) {
+            if (GUI.isDoubleClick(e)) {
+                VUE.getSelection().setTo(layer.getAllDescendents());
+            }
+        }
 
         public void mousePressed(MouseEvent e) {
 
