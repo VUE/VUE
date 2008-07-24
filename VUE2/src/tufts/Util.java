@@ -1078,6 +1078,33 @@ public class Util
         }
     }
 
+    public static <A, T extends A> int countTypes(final Iterable<A> list, final Class<T> clazz) {
+        int count = 0;
+        for (A item: list)
+            if (clazz.isInstance(item))
+                count++;
+        return count;
+    }
+    
+    public static <A, T extends A> boolean containsOnly(final Iterable<A> list, final Class<T> clazz) {
+        for (A item: list)
+            if (!clazz.isInstance(item))
+                return false;
+        return true;
+    }
+
+    public static <A, T extends A> List<T> extractType(final List<A> list, final Class<T> clazz) {
+
+        final List<T> desiredType = new ArrayList(list.size());
+
+        for (A item: list)
+            if (clazz.isInstance(item))
+                desiredType.add((T)item);
+
+        return desiredType;
+    }
+    
+
     /**
 
      * Note the hairy generic method signature.  'A' is the generic type contained in
