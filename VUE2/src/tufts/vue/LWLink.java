@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.194 $ / $Date: 2008-07-23 22:30:45 $ / $Author: sfraize $
+ * @version $Revision: 1.195 $ / $Date: 2008-07-24 16:20:09 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -3095,13 +3095,13 @@ public class LWLink extends LWComponent
     @Override
     public String paramString()
     {
-        String s = String.format("%.0f,%.0f-->%.0f,%.0f", head.x, head.y, tail.x, tail.y);
+        String s = String.format("%s %.0f,%.0f-->%.0f,%.0f", mStrokeStyle.get(), head.x, head.y, tail.x, tail.y);
         if (getControlCount() == 1)
             s += String.format(" (%.0f,%.0f)", mQuad.ctrlx,  mQuad.ctrly);
         else if (getControlCount() == 2)
             s += String.format(" (%.0f,%.0f & %.0f,%.0f)",
                                mCubic.ctrlx1,  mCubic.ctrly1, mCubic.ctrlx2,  mCubic.ctrly2);
-        return s + " " + mStrokeStyle.get();            
+        return s;
     }
 
     /** @deprecated -- use getHead */ public LWComponent getComponent1() { return getHead(); }
