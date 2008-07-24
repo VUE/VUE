@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.213 $ / $Date: 2008-07-24 18:03:29 $ / $Author: sfraize $
+ * @version $Revision: 1.214 $ / $Date: 2008-07-24 19:16:23 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -537,8 +537,14 @@ public class LWMap extends LWContainer
                     ; // exclude invisible
                 else if (kind == ChildKind.EDITABLE && layer.isLocked())
                     ; // exclude locked out
-                else
+                else if (layer instanceof Layer) {
+                    // should always be the case
                     layer.getAllDescendents(kind, bag, order);
+                } else {
+                    // failsafe in case anything has leaked up to the map level
+                    Log.warn("child of map, not layer: " + layer);
+                    bag.add(layer);
+                }
             }
         }
 
@@ -751,15 +757,17 @@ public class LWMap extends LWContainer
         @Override public String getXMLfont() { return null; }
 
 
+        /** @return true */
         @Override
-        public boolean isTopLevel() {
-            return true;
-        }
+        public boolean isTopLevel() { return true; }
         
+        /** @return this */
         @Override
-        public Layer getLayer() {
-            return this;
-        }
+        public Layer getLayer() { return this; }
+        
+        /** @return null */
+        @Override
+        public Layer getPersistLayer() {return null; }
 
         @Override
         protected void setParent(LWContainer p) {
@@ -960,12 +968,14 @@ public class LWMap extends LWContainer
                 List childrenInAllLayers = new ArrayList();
                 //childrenInAllLayers.addAll(mChildren);
                 for (LWComponent c : getChildren()) {
-                    if (c instanceof Layer)
+                    if (c instanceof Layer) {
                         childrenInAllLayers.addAll(c.getChildren());
-                    else
-                        Log.warn("non-layer direct child of map; " + this + ": " + c);
+                    } else {
+                        Log.warn("getXMLChildList: non-layer direct child of map; " + this + ": " + c);
+                        childrenInAllLayers.add(c);
+                    }
                 }
-                Log.debug("built integrated list of all layer members, n=" + childrenInAllLayers.size());
+                Log.debug("getXMLChildList: built integrated list of all layer members, n=" + childrenInAllLayers.size());
                 return childrenInAllLayers;
             } else
                 return null;
@@ -973,11 +983,21 @@ public class LWMap extends LWContainer
     }
 
     public java.util.List<? extends LWComponent> getXMLLayers() {
-        if (mXMLRestoreUnderway)
+        if (mXMLRestoreUnderway) {
             return mLayers;
-        else if (VUE.VUE3_LAYERS)
-            return mChildren;
-        else
+        } else if (VUE.VUE3_LAYERS) {
+            if (Util.containsOnly(mChildren, Layer.class)) {
+                // this should always be the case unless of model up-leakage
+                return mChildren;
+            } else {
+                // just in case: never let anything that isn't a layer at the
+                // top level be accidentally persisted as a layer
+                Log.warn("getXMLLayers: "
+                         + (mChildren.size() - Util.countTypes(mChildren, Layer.class))
+                         + " non-layer children were ignored in producing the layers-list");
+                return Util.extractType(mChildren, Layer.class);
+            }
+        } else
             return null;
     }
 
@@ -2052,9 +2072,22 @@ public class LWMap extends LWContainer
         
         if (isLayered()) {
             
-            for (LWComponent layer : getChildren())
-                if (layer.isVisible())
-                    accruePaintBounds(layer.getChildren(), bounds);
+            for (LWComponent layer : getChildren()) {
+                if (layer.isVisible()) {
+                    if (layer instanceof Layer) { // this should always be the case
+
+                        accruePaintBounds(layer.getChildren(), bounds);
+                        
+                    } else {
+                        
+                        // but in case of error in maintaining the hierarchy, if any
+                        // regular components leak up to the top of the map, still
+                        // compute bounds correctly.
+                        
+                        accruePaintBounds(Util.iterable(layer), bounds);
+                    }
+                }
+            }
 
         } else {
 
