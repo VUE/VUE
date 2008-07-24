@@ -35,7 +35,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.23 $ / $Date: 2008-07-24 18:02:49 $ / $Author: sfraize $
+ * @version $Revision: 1.24 $ / $Date: 2008-07-24 18:53:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -558,6 +558,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
         
         for (Row row : mRows) {
+            if (row.grab == null)
+                continue;
             if (disable)
                 row.grab.setEnabled(false);
             else if (parents.size() == 1 && parents.contains(row.layer))
@@ -569,7 +571,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private static boolean isExtractableParent(LWContainer parent) {
 
-        return parent instanceof Layer;
+        return parent instanceof Layer
+            || parent instanceof LWMap; // shouldn't happen, but just in case of up-leakage
         
 //         if (parent instanceof LWGroup)
 //             return false;
@@ -666,10 +669,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         if (!rows.isEmpty()) {
         
             for (JComponent row : rows) {
-                if (((Row)row).layer instanceof Layer)
-                    c.insets.left = 0;
-                else
-                    c.insets.left = 75;
+                c.insets.left = (((Row)row).layer.getDepth() - 1) * 75; // refactoring: note Row cast
                 container.add(row, c);
                 c.gridy++;
             }
@@ -1053,10 +1053,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
     }
 
+    private static final Insets LockedInsets = new Insets(4,4,4,4);
 
     private class Row extends JPanel implements javax.swing.event.MouseInputListener, Runnable {
-
-        private static final Insets LockedInsets = new Insets(4,4,4,4);
 
         final AbstractButton exclusive = new JRadioButton();
         final AbstractButton visible = new JCheckBox();
@@ -1067,7 +1066,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         final JTextField label;
         
         final JPanel preview;
-        final AbstractButton grab = new JButton("Grab");
+        final AbstractButton grab;
         //final AbstractButton visible = new VueButton.Toggle("layerUI.button.visible");
         
         final LWComponent layer;
@@ -1145,7 +1144,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                     }});
             
             
-            if (layer.supportsChildren()) {
+            if (layer instanceof Layer) {
+                grab = new JButton("Grab");                
                 grab.setFont(VueConstants.SmallFont);
                 grab.putClientProperty("JButton.buttonType", "textured");
                 //grab.putClientProperty("JButton.sizeVariant", "tiny");
@@ -1156,6 +1156,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                                 VUE.getUndoManager().mark("Move To Layer " + Util.quote(layer.getLabel()));
                             }
                         }});
+            } else {
+                grab = null;
             }
 
             
@@ -1311,7 +1313,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             add(locked, c);
 
             //add(Box.createHorizontalStrut(5));
-            if (layer.supportsChildren())
+            if (grab != null)
                 add(grab, c);
             
             
