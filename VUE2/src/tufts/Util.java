@@ -1186,6 +1186,15 @@ public class Util
     }
     
 
+    /** usage: for (SomeObject o : reverse(someObjectCollection)) { ... } */
+    public static <T> Iterable<T> reverse(java.util.Collection<T> bag) {
+        if (bag instanceof List) {
+            return reverse((java.util.List)bag);
+        } else {
+            return new ReverseArrayIterator(bag.toArray());
+        }
+    }
+    
     /** usage: for (SomeObject o : reverse(someObjectList)) { ... } */
     public static <T> Iterable<T> reverse(java.util.List<T> list) {
         return new ReverseListIterator<T>(list);
@@ -1206,8 +1215,7 @@ public class Util
         public Iterator iterator() { return this; }
     };
     
-    /** Convenience class: provides an array iterator */
-    public static final class ArrayIterator implements java.util.Iterator, Iterable {
+    private static final class ArrayIterator implements java.util.Iterator, Iterable {
         private final Object[] array;
         private int index;
         public ArrayIterator(Object[] a) {
@@ -1216,6 +1224,19 @@ public class Util
         }
         public boolean hasNext() { return index < array.length; }
         public Object next() { return array[index++]; }
+        public void remove() { throw new UnsupportedOperationException(); }
+        public Iterator iterator() { return this; }
+    };
+
+    private static final class ReverseArrayIterator implements java.util.Iterator, Iterable {
+        private final Object[] array;
+        private int index;
+        public ReverseArrayIterator(Object[] a) {
+            array = a;
+            index = a.length;
+        }
+        public boolean hasNext() { return index > 0; }
+        public Object next() { return array[--index]; }
         public void remove() { throw new UnsupportedOperationException(); }
         public Iterator iterator() { return this; }
     };
