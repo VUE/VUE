@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.26 $ / $Date: 2008-07-24 21:15:08 $ / $Author: sfraize $
+ * @version $Revision: 1.27 $ / $Date: 2008-07-26 21:17:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -409,7 +409,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             if (canBeActive(row.layer, false))
                 visibleButLocked = row.layer;
 
-        if (visibleButLocked != null && curActive.isHidden() && curActive.isLocked()) {
+        if (visibleButLocked != null && curActive != null && curActive.isHidden() && curActive.isLocked()) {
             // only switch to visible but locked if the current active is actually worse off
             setActiveLayer((Layer) visibleButLocked, UPDATE);
         }
