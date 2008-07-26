@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.93 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $
+ * @version $Revision: 1.94 $ / $Date: 2008-07-26 21:24:08 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -527,7 +527,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     /** Remove from selection anything that's been deleted */
 
 
-    synchronized void clearDeleted()
+    public synchronized void clearDeleted()
     {
         // This is special case code called by the UndoManager during an undo whenever
         // there are any hierarchy changes.  Would be cleaner to for the selection to
