@@ -681,7 +681,9 @@ public class Actions implements VueConstants
      * @param preserveParents - if true, the old parent will be stored in the copy as a clientProperty
      * @param sortByZOrder - if true, will maintain the relative z-order of components in the dupe-set
      */
-    public static List<LWComponent> duplicatePreservingLinks(Collection<LWComponent> items, boolean preserveParents, boolean sortByZOrder) {
+    public static List<LWComponent> duplicatePreservingLinks
+        (Collection<LWComponent> items, boolean preserveParents, boolean sortByZOrder)
+    {
         CopyContext.reset();
         DupeList.clear();
 
@@ -760,7 +762,22 @@ public class Actions implements VueConstants
         boolean mayModifySelection() { return true; }
         boolean enabledFor(LWSelection s) { return canEdit(s); }
         
+        /**
+         * this permits repeated duplicates: when a single duplicate is
+         * made, it auto-activates label edit, which normally disables
+         * all actions -- this way, we can duplicate again immediately.
+         */
+        @Override
+        public boolean overrideIgnoreAllActions() { return true; }        
+        
+        @Override
         void act(final LWSelection selection) {
+
+            if (!haveViewer())
+                return;
+
+//             if (viewer().hasActiveTextEdit() && selection().size() > 1) 
+//                 return;
 
             final List<LWComponent> dupes =
                 duplicatePreservingLinks(selection, RECORD_OLD_PARENT, SORT_BY_Z_ORDER);
@@ -790,11 +807,18 @@ public class Actions implements VueConstants
             // clear out old parent references now that we're done with them
             for (LWComponent copy : dupes)
                 copy.setClientProperty(LWContainer.class, null);
+
+//             if (selection.only() instanceof LWLink) {
+//                 LWLink oneLink = (LWLink) selection.first();
+//                 // if link is directed, and tail was connected,
+//                 // re-connect the tail -- duping another "outbound"
+//                 // link from a node.
+//             }
             
             selection().setTo(dupes);
             
             if (dupes.size() == 1 && dupes.get(0).supportsUserLabel())
-                VUE.getActiveViewer().activateLabelEdit(dupes.get(0));
+                viewer().activateLabelEdit(dupes.get(0));
         }
         
         
@@ -2559,6 +2583,7 @@ public class Actions implements VueConstants
         private void init() {
             //VUE.getSelection().addListener(this);
         }
+
         
         @Override
         protected boolean isSelectionWatcher() { return true; }
