@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.196 $ / $Date: 2008-07-24 21:53:12 $ / $Author: sfraize $
+ * @version $Revision: 1.197 $ / $Date: 2008-07-29 20:41:30 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -83,6 +83,7 @@ public class LWLink extends LWComponent
      * if need be.
      */
 
+    // TODO: the endpoint should contain bit for the presence of an arrow head / conncetor specifier
     private static final class End extends Point2D.Float { 
         LWComponent node; // if null, not connected
         boolean pruned;
