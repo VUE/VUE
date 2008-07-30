@@ -35,7 +35,7 @@ import javax.swing.Icon;
  * Base class for VueActions that don't use the selection.
  * @see Actions.LWCAction for actions that use the selection
  *
- * @version $Revision: 1.43 $ / $Date: 2008-07-21 18:02:26 $ / $Author: sfraize $ 
+ * @version $Revision: 1.44 $ / $Date: 2008-07-30 19:32:05 $ / $Author: sfraize $ 
  */
 public class VueAction extends javax.swing.AbstractAction
 {
@@ -394,6 +394,10 @@ public class VueAction extends javax.swing.AbstractAction
     protected MapViewer viewer() {
         return VUE.getActiveViewer();
     }
+    
+    protected boolean haveViewer() {
+        return viewer() != null;
+    }
 
     protected LWComponent focal() {
         return viewer().getFocal();
@@ -440,6 +444,11 @@ public class VueAction extends javax.swing.AbstractAction
             return "Menu item: " + getActionName();
     }
 
+    public void fire(java.awt.event.KeyEvent e) {
+        e.consume();
+        fire((Object)e);
+    }
+    
     public void fire(Object source) {
         fire(source, getActionName());
     }
