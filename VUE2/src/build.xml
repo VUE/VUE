@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.166 $ / $Date: 2008-07-23 22:35:32 $ / $Author: sfraize $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.166 2008-07-23 22:35:32 sfraize Exp $ -->
+<!-- $Revision: 1.167 $ / $Date: 2008-08-04 15:44:19 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.167 2008-08-04 15:44:19 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -47,6 +47,7 @@
   <property name="build.class" value="${build.home}/classes" />
   <property name="dist.home"   value="${basedir}/dist"/>
   <property name="dist.src"    value="${dist.home}/src"/>
+  <property name="keystore"	   value="${top.dir}/keystore/keystore.vue"/>
   <property name="release.home" value="${basedir}/release"/>
   <property name="lib.home"    value="../lib"/>
   <property name="linux.src"    value="../linux/src"/>
@@ -63,6 +64,8 @@
        the classpath if it's called anything with "NarraVision" in the
        name to decide if it should run with MIT features -->
   <property name="vue.jar"              value="${build.home}/VUE.jar"/>
+  <property name="vueapplet.jar"        value="${build.home}/VUEApplet.jar"/>
+	<property name="vueapplet-pack.jar"        value="${build.home}/VUEApplet.pack"/>
   <property name="vue-linux.jar"        value="${build.home}/VUE-linux.jar"/>
   <property name="narravision.jar"      value="${build.home}/NarraVision.jar"/>
 
@@ -218,6 +221,7 @@
                    itext-2.0.4.jar
                    simplyhtml2.jar    
                    gnu-regexp-1.1.4.jar
+  				   looks-2.1.4.jar
                    "/>
 
 <!-- added quaqua-filechooser-only.jar to the above on 2006-12-08 MK -->
@@ -291,6 +295,7 @@
 		   itext-2.0.4.jar 
 		   simplyhtml2.jar
 		   gnu-regexp-1.1.4.jar
+	   looks-2.1.4.jar
                    "/>
                                                                                                           
   <path id="compile.classpath.common">
@@ -374,6 +379,8 @@
     <pathelement path="${lib.home}/rome-0.9.jar" />
     <pathelement path="${lib.home}/itext-2.0.4.jar" />    
     <pathelement path="${lib.home}/simplyhtml2.jar" />   
+  	<pathelement path="${lib.home}/looks-2.1.4.jar" />   
+	   
     <pathelement path="${lib.home}/gnu-regexp-1.1.4.jar"/>
     <!-- I'm not sure it's safe to include a prior build's class files in the current build's
          classpath - can we remove this? SMF 8/5/05.
@@ -394,7 +401,7 @@
     <pathelement path="${lib.home}/jms.jar" />
     <pathelement path="${lib.home}/jxtaid.jar" />
     <pathelement path="${lib.home}/jxtasecurity.jar" />
-    <pathelement path="${lib.home}/saaj.jar" />
+    <pathelement path="${lib.home}/saaj.jar" />	
     <pathelement path="${lib.home}/xalan.jar" />
 
     <pathelement path="${lib.home}/commons-httpclient-2.0.jar" />
@@ -775,6 +782,12 @@
         <exclude name="**/tmp/**"/>
         <exclude name="altView/**"/>
         <exclude name="build.xml"/>
+      	<exclude name="test/**"/>
+      	<exclude name="linux/**"/>
+      	<exclude name="data.narravision/**"/>
+      	<exclude name="MacOS/**"/>      
+      	<exclude name="maclib/**"/>
+      	<exclude name="java15/**"/>
         <include name="**/*.xml"/>
         <include name="**/*.conf"/>
         <include name="**/*.css"/>
@@ -813,6 +826,16 @@
   <target name="jar"
           depends="jar-core,check-third-party-jars-against_VUE.jar" unless="vue.jar.current"
           description="Create VUE.jar - a single, distributable, runnable jar file containing VUE and all supporting libraries.">
+  	     <!-- Create our packer task -->
+  	<!--     <taskdef name="pack200"
+  	    	classname="com.sun.tools.apache.ant.pack200.Pack200Task"
+  	    	classpath="${lib.home}/Pack200Task.jar"/>
+	-->
+  	     <!-- Create our unpacker task -->
+  	 <!--    <taskdef name="unpack200"
+  	    	classname="com.sun.tools.apache.ant.pack200.Unpack200Task"
+  	    	classpath="${lib.home}/Pack200Task.jar"/>
+	-->
     <tstamp/>
     <echo message="Building ${vue.jar}..."/>
     <jar destfile="${vue.jar}" compress="true" index="true" update="false" duplicate="preserve">
@@ -825,13 +848,17 @@
       </manifest>
         <!-- zipfileset src="${basedir}/VUE-core.jar" excludes="**/*.properties"/ example excludes that works for one file -->
         <zipfileset src="${basedir}/VUE-core.jar"/>
-        <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"/>
+        <zipgroupfileset dir="${lib.home}" includes="${thirdparty.jarfiles.names}"
+        	excludes="org/apache/tools/ant/**"/>
         <!-- may be able to modify this to exclude README's, .txt files, etc -->
     </jar>
     <jar jarfile="${vue.jar}"
          basedir="${basedir}" 
 		 update="true"
          includes="osid.properties"/>
+  	 
+  
+
   </target>
   <target name="linux-jar" depends="compile-linux,jar">
     <!--
@@ -910,7 +937,27 @@
   </target>
      
   <target name="all" depends="clean,mac-dist,linux-jar" description="Rebuild everything from scratch."/>
-  
+  <target name="vue-applet" depends="all">
+	<copy file="${vue.jar}" tofile="${vueapplet.jar}"/>
+
+  	<signjar
+  	    alias="mykey"
+  	    storepass="vuevue"
+  		keystore="${keystore}"
+  	    preservelastmodified="true"
+  		jar="${vueapplet.jar}">
+  	</signjar>
+<!--
+    <pack200 src="${vueapplet.jar}"
+    		 destfile="${vueapplet-pack.jar}"
+    		 effort="9"
+    	 	 modificationtime="latest"
+    		 deflatehint="false"
+    		 unknownattribute="error"
+  			 verbose="1"
+ 	/>
+  	-->
+  </target>
   <target name="mac" depends="clean,mac-dist"/>
 
   <target name="clean"
