@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.226 $ / $Date: 2008-07-23 18:22:37 $ / $Author: sfraize $
+ * @version $Revision: 1.227 $ / $Date: 2008-08-04 18:53:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -462,10 +462,9 @@ public class LWNode extends LWContainer
      */
     protected boolean iconShowing()
     {    	
-        //if (isPresentationContext() || isTextNode())
-        if (hasFlag(Flag.SLIDE_STYLE) || isTextNode())
-            return false;
-         else
+//         if (hasFlag(Flag.SLIDE_STYLE) || isTextNode()) // VUE-1220 - never hide resource icon, even on slides
+//             return false;
+//          else
             return mIconBlock.isShowing(); // remember not current till after a layout
     }
 
