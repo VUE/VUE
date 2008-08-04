@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.572 $ / $Date: 2008-07-21 18:01:58 $ / $Author: sfraize $ 
+ * @version $Revision: 1.573 $ / $Date: 2008-08-04 17:17:00 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -927,7 +927,7 @@ public class VUE
 
     private static boolean didInitDR = false;
     private static synchronized void initDataSources() {
-        if (didInitDR == false && SKIP_DR == false && DR_BROWSER != null) {
+        if (didInitDR == false && SKIP_DR == false && DR_BROWSER != null && !VUE.isApplet()) {
             Log.debug("initDataSources: started");
             try {
                 DR_BROWSER.loadDataSourceViewer();
@@ -979,10 +979,12 @@ public class VUE
         
         Log.debug("building interface...");
         
+     
         diagPush("build");
         buildApplicationInterface();
         diagPop();
-
+        
+        
         if (Util.isMacLeopard()) {
             // Critical for keeping DockWindow's on top.
             // See tufts.vue.gui.FullScreen.FSWindow constructor for more on this.
@@ -1190,9 +1192,14 @@ public class VUE
         //-------------------------------------------------------
         // Create the tabbed panes for the viewers
         //-------------------------------------------------------
+    	if (!VUE.isApplet())
+    	{
+    		mMapTabsLeft = new MapTabbedPane("*left", true);
+    		mMapTabsRight = new MapTabbedPane("right", false);
+    	}
+    	else
+    		mMapTabsLeft = VueApplet.getMapTabbedPane();
         
-        mMapTabsLeft = new MapTabbedPane("*left", true);
-        mMapTabsRight = new MapTabbedPane("right", false);
         
         //-------------------------------------------------------
         // Create the split pane
@@ -1233,50 +1240,21 @@ public class VUE
         DockWindow toolbarDock = null;
 
         final JComponent toolbar;
-        final JPanel toolbarPanel = new JPanel();
-        
-        if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
-            toolbar = tbc.getToolbar();
-        else
-            toolbar = tbc.getToolbar().getMainToolbar();
-        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT);
-        flowLayout.setVgap(0);
-        //toolbarPanel.
-        toolbarPanel.setLayout(flowLayout);
-        toolbarPanel.add(toolbar);
-        returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));
-        returnToMapButton.addActionListener(new ActionListener(){
-        	public void actionPerformed(ActionEvent e)
-        	{
-        		Actions.ReturnToMap.act();
-        	}
-        });
-        tufts.vue.VUE.addActiveListener(tufts.vue.LWMap.class,new ActiveListener()
+        JPanel toolbarPanel = null;
+        if (!VUE.isApplet())
         {
-
-			public void activeChanged(ActiveEvent e) {
-				if ((VUE.getActiveViewer()!=null && VUE.getActiveViewer().getFocal()!= null) 
-						&& (VUE.getActiveViewer().getFocal() instanceof LWSlide ||
-								VUE.getActiveViewer().getFocal() instanceof MasterSlide || 
-								VUE.getActiveViewer().getFocal() instanceof LWGroup))
-				{
-					returnToMapButton.setVisible(true);		
-				}
-				else
-					returnToMapButton.setVisible(false);
-				
-			}
-        }); 
-        returnToMapButton.setVisible(false);
-        toolbarPanel.add(returnToMapButton);
-        if (ToolbarAtTopScreen) {
-            toolbarDock = GUI.createToolbar("Toolbar", toolbar);
-        } else {
-            ApplicationFrame.addComp(toolbarPanel, BorderLayout.NORTH);
+        	 if (VueToolPanel.IS_CONTEXTUAL_TOOLBAR_ENABLED)
+                 toolbar = tbc.getToolbar();
+             else
+                 toolbar = tbc.getToolbar().getMainToolbar();
+        	 
+        	toolbarPanel = constructToolPanel(toolbar);
+        	if (ToolbarAtTopScreen) {
+                 toolbarDock = GUI.createToolbar("Toolbar", toolbar);
+             } else {
+                 ApplicationFrame.addComp(toolbarPanel, BorderLayout.NORTH);
+             }
         }
-        
-        if (DEBUG.INIT) out("created ToolBar");
-
         
         //=============================================================================
         //
@@ -1472,7 +1450,8 @@ public class VUE
             anchor.setVisible(true);
         }
 
-
+if (!VUE.isApplet())
+{
         // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
 
         //final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
@@ -1480,8 +1459,8 @@ public class VUE
         //final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
         //final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
         //final DockWindow fontDock = null;
-        final DockWindow linkDock = null;
-        final DockWindow actionDock = null;
+        //final DockWindow linkDock = null;
+        //final DockWindow actionDock = null;
 
         //fontDock.setResizeEnabled(false);
         //linkDock.setResizeEnabled(false);
@@ -1721,7 +1700,7 @@ public class VUE
             }
         }
         
-
+}
         if (toolbarDock != null) {
             toolbarDock.suggestLocation(0,0);
             toolbarDock.setWidth(GUI.GScreenWidth);
@@ -1831,7 +1810,47 @@ public class VUE
         }
         
     }
+    protected static JPanel constructToolPanel(JComponent toolbar)
+    {
+    	JPanel toolbarPanel = new JPanel();
+        
+        FlowLayout flowLayout = new FlowLayout(FlowLayout.LEFT);
+        flowLayout.setVgap(0);
+        //toolbarPanel.
+        toolbarPanel.setLayout(flowLayout);
+        toolbarPanel.add(toolbar);
+        returnToMapButton = new JButton(VueResources.getString("returnToMap.label"));
+        returnToMapButton.addActionListener(new ActionListener(){
+        	public void actionPerformed(ActionEvent e)
+        	{
+        		Actions.ReturnToMap.act();
+        	}
+        });
+        tufts.vue.VUE.addActiveListener(tufts.vue.LWMap.class,new ActiveListener()
+        {
 
+			public void activeChanged(ActiveEvent e) {
+				if ((VUE.getActiveViewer()!=null && VUE.getActiveViewer().getFocal()!= null) 
+						&& (VUE.getActiveViewer().getFocal() instanceof LWSlide ||
+								VUE.getActiveViewer().getFocal() instanceof MasterSlide || 
+								VUE.getActiveViewer().getFocal() instanceof LWGroup))
+				{
+					returnToMapButton.setVisible(true);		
+				}
+				else
+					returnToMapButton.setVisible(false);
+				
+			}
+        }); 
+        returnToMapButton.setVisible(false);
+        toolbarPanel.add(returnToMapButton);
+       
+        
+        if (DEBUG.INIT) out("created ToolBar");
+        
+        return toolbarPanel;
+
+    }
     public static FormatPanel getFormattingPanel()
     {
     	return formattingPanel;
@@ -2466,25 +2485,30 @@ public class VUE
     }
     
     public static void closeMap(LWMap map, boolean reverting) {
+    
     	if (!reverting)
     	{
     		if (askSaveIfModified(map)) {
-    			try{
+    			 try{
+    		 
     			mMapTabsLeft.closeMap(map);
     			}
     			catch(ArrayIndexOutOfBoundsException abe){}
     			try
     			{
-    			mMapTabsRight.closeMap(map);
+    				if (mMapTabsRight != null)
+    					mMapTabsRight.closeMap(map);
     			}
     			catch(ArrayIndexOutOfBoundsException abe){}
+    		 
     		}
     	}
     	else
     	{
     		if (askIfRevertOK(map)) {
     			mMapTabsLeft.closeMap(map);
-    			mMapTabsRight.closeMap(map);
+    			if (mMapTabsRight != null)
+    				mMapTabsRight.closeMap(map);
     		}	
     	}
     }
@@ -2506,38 +2530,57 @@ public class VUE
         if (file == null)
             return;
 
-		/*
-		* If there is 1 map open, and it has no content and hasn't been saved yet close it.
-		* requested in vue-520 
-		*/
-        if (isActiveViewerOnLeft())
+        if (VUE.isApplet())
         {
-        	if ((mMapTabsLeft != null) && 
-        			mMapTabsLeft.getTabCount() == 1 && 
-        			(getActiveMap() != null) && 
-        			!getActiveMap().hasContent() && 
-        			getActiveMap().getFile() == null)
+        	if (	(getActiveMap() != null) && 
+    				!getActiveMap().hasContent() && 
+    				getActiveMap().getFile() == null)
+    		{
+    			try
+    			{
+    				closeMap(getActiveMap());
+    			}
+    			catch(ArrayIndexOutOfBoundsException abe)
+    			{
+    				abe.printStackTrace();
+    			}
+    		}
+        }
+        else
+        {
+        	/*
+        	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
+        	 * requested in vue-520 
+        	 */
+        	if (isActiveViewerOnLeft())
         	{
-        		try
+        		if ((mMapTabsLeft != null) && 
+        				mMapTabsLeft.getTabCount() == 1 && 
+        				(getActiveMap() != null) && 
+        				!getActiveMap().hasContent() && 
+        				getActiveMap().getFile() == null)
         		{
-        		closeMap(getActiveMap());
+        			try
+        			{
+        				closeMap(getActiveMap());
+        			}
+        			catch(ArrayIndexOutOfBoundsException abe)
+        			{
+        				abe.printStackTrace();
+        			}
         		}
-        		catch(ArrayIndexOutOfBoundsException abe)
-        		{
-        			abe.printStackTrace();
-        		}
-        	}
         	
         	
-        } else 
-        {
-            	if ((mMapTabsRight != null) && 
+        	} else 
+        	{
+        		if ((mMapTabsRight != null) && 
             			mMapTabsRight.getTabCount() == 1 && 
             			(getActiveMap() != null) && 
             			!getActiveMap().hasContent() && 
             			getActiveMap().getFile() == null)
             		closeMap(getActiveMap());
             	
+        	}
         }
 
         
@@ -2640,12 +2683,13 @@ public class VUE
             }
 
             mMapTabsLeft.addViewer(leftViewer);
-            mMapTabsRight.addViewer(rightViewer);
+            if (mMapTabsRight != null)
+            	mMapTabsRight.addViewer(rightViewer);
         }
         
         if (isActiveViewerOnLeft()) {
             mMapTabsLeft.setSelectedComponent(leftViewer);
-        } else {
+        } else if (mMapTabsRight != null){
             mMapTabsRight.setSelectedComponent(rightViewer);
         }
 
@@ -2744,8 +2788,14 @@ public class VUE
     
     /** return the root VUE window, mainly for those who'd like it to be their parent */
     public static Window getRootWindow() {
-        return VUE.ApplicationFrame;
-        /*
+    	if (!VUE.isApplet())
+    		return VUE.ApplicationFrame;
+    	else
+    	{
+    		Frame[] frames = JFrame.getFrames();
+    		return frames[0];
+    	}
+    	/*
         if (true) {
             return VUE.frame;
         } else {

@@ -49,12 +49,15 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.MutableAttributeSet;
 
+import com.jgoodies.looks.LookUtils;
+import com.jgoodies.looks.plastic.Plastic3DLookAndFeel;
+
 import sun.awt.shell.ShellFolder;
 
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.122 $ / $Date: 2008-07-23 22:32:48 $ / $Author: sfraize $
+ * @version $Revision: 1.123 $ / $Date: 2008-08-04 17:17:00 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -227,10 +230,10 @@ public class GUI
                                                  "p0HJOS:Y049mQb8BLRr9ntdkv9P6ihW" });
         */
 
-        isMacAqua = Util.isMacPlatform() && !FORCE_WINDOWS_LAF;
+        isMacAqua = Util.isMacPlatform() && !FORCE_WINDOWS_LAF && !VUE.isApplet();
 
         isMacAquaBrushedMetal =
-            isMacAqua &&
+            isMacAqua && !VUE.isApplet() &&
             VUE.isSystemPropertyTrue("apple.awt.brushMetalLook");
 
         ToolbarColor = initToolbarColor();
@@ -250,7 +253,18 @@ public class GUI
         if (false)
             installUIDefaults();
 
-        if (Util.isMacPlatform()) {
+        if (VUE.isApplet())
+        {
+        	   try {
+        		   UIManager.put("ClassLoader", LookUtils.class.getClassLoader());
+        		      UIManager.setLookAndFeel(new Plastic3DLookAndFeel());
+        		   } catch (Exception e) 
+        		   {
+        			   Log.error("Couldn't load jlooks look and feel");
+        		   }
+
+        }
+        else if (Util.isMacPlatform()) {
 
             if (!SKIP_CUSTOM_LAF) {
 
@@ -271,6 +285,10 @@ public class GUI
             //if (FORCE_WINDOWS_LAF && Util.isWindowsPlatform())
             if (Util.isWindowsPlatform() && !SKIP_WIN_NATIVE_LAF)
                 setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+            else if (Util.isMacPlatform() && VUE.isApplet())
+            {
+            	/////Load up some JLooks stuff here.
+            }
             else {
                 if (!SKIP_CUSTOM_LAF)
                     installMetalTheme();
@@ -947,7 +965,7 @@ public class GUI
         // always stay on top of their parent, but not on top of other windows,
         // including "grandparents".)
         
-    	if (Util.isUnixPlatform() && Util.getJavaVersion() >= 1.5f)
+    	if ((Util.isUnixPlatform() && Util.getJavaVersion() >= 1.5f ) || VUE.isApplet()	)
     	{
     		//There are a bunch of focus problems on Unix, hopefully this clears it up.
     		return new DockWindow(title,VUE.getRootWindow(),null,asToolbar,showCloseButton);
