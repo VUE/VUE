@@ -37,8 +37,8 @@ public class VueToolUtils
         
         try {
             //if (DEBUG.Enabled) System.out.println("Loading tool class " + className);
-            Class toolClass = ClassLoader.getSystemClassLoader().loadClass(className);
-
+//            Class toolClass = ClassLoader.getSystemClassLoader().loadClass(className);
+        	Class toolClass = VueToolUtils.class.getClassLoader().loadClass(className);
             if (DEBUG.INIT) Log.debug("Loading tool " + pName + " " + toolClass);
             
            	tool = (VueTool) toolClass.newInstance();            
@@ -67,7 +67,8 @@ public class VueToolUtils
         Class toolClass = null;
         try {
             //if (DEBUG.Enabled) System.out.println("Loading tool class " + className);
-             toolClass = ClassLoader.getSystemClassLoader().loadClass(className);
+            toolClass = VueToolUtils.class.getClassLoader().loadClass(className);
+//        	toolClass = ClassLoader.getSystemClassLoader().loadClass(className);
 
         } catch (Exception e) {
             Log.error("loadToolFromMap() exception: " + e);

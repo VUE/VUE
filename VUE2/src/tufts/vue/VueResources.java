@@ -32,7 +32,7 @@ import java.io.File;
  * resource types.  It also can be modified to support caching of
  * of resources for performance (todo: yes, implement a result cache).
  *
- * @version $Revision: 1.54 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $
+ * @version $Revision: 1.55 $ / $Date: 2008-08-04 17:16:22 $ / $Author: mike $
  *
  */
 public class VueResources
@@ -167,7 +167,7 @@ public class VueResources
         if (clazz == null) {
             String str = getString(key);
             if (str != null)
-                icon = loadImageIcon(str);
+                icon = loadImageIcon(VueResources.class,str);
         } else {
             icon = loadImageIcon(clazz, keyOrPath);
         }
@@ -321,7 +321,8 @@ public class VueResources
             
         try {
             //url =new File(sResourceBundle.getClass().getResource(getString(pLookupKey)).getFile().replaceAll("%20"," ")).toURL();
-            url = sResourceBundle.getClass().getResource(getString(pLookupKey));
+			//url = sResourceBundle.getClass().getResource(getString(pLookupKey));
+			url = VueResources.class.getResource(getString(pLookupKey));
             if (DEBUG.INIT) alert("URL for key <" + pLookupKey + "> is [" + url + "]");
         } catch (Exception e) {
             alert("  !!! failed to lead due to "+ e.toString() );    
