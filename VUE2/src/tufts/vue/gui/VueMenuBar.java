@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.113 $ / $Date: 2008-07-23 22:35:29 $ / $Author: sfraize $
+ * @version $Revision: 1.114 $ / $Date: 2008-08-04 17:14:48 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -447,7 +447,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         editMenu.add(Actions.SelectAllLinks);
         editMenu.add(Actions.Reselect);
         editMenu.add(Actions.DeselectAll);
-        if (!tufts.Util.isMacPlatform())
+        if (!tufts.Util.isMacPlatform() || VUE.isApplet())
         {   editMenu.addSeparator();
             editMenu.add(Actions.Preferences);
         }
@@ -885,7 +885,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         // Build Help Menu
         ////////////////////////////////////////////////////////////////////////////////////
 
-        if (tufts.Util.isMacPlatform() == false) {
+        if (tufts.Util.isMacPlatform() == false || VUE.isApplet()) {
             // already in standard MacOSX place
             helpMenu.add(new AboutAction());
             helpMenu.addSeparator();
