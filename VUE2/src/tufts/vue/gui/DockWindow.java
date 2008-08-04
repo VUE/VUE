@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.136 $ / $Date: 2008-06-30 20:53:05 $ / $Author: mike $
+ * @version $Revision: 1.137 $ / $Date: 2008-08-04 17:15:26 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -1600,7 +1600,7 @@ public class DockWindow
 
         GUI.setRootPaneNames(_peer, title);
 
-        if (isMac && isDisplayable()) {
+        if (isMac && isDisplayable() && !VUE.isApplet()) {
             // isDisplayable true if we have a peer, which we need before MacOSX lib calls
             try {
                 MacOSX.setTitle(_win, title);
@@ -3369,7 +3369,7 @@ public class DockWindow
     
 
     private void updateWindowShadow() {
-        if (isMac) {
+        if (isMac && !VUE.isApplet()) {
 
             if (!MacWindowShadowEnabled) {
                 setWindowShadow(false);
