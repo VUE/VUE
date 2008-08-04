@@ -8,7 +8,7 @@
 
 <project name="tests" default="usage" basedir=".">
 
-<!-- $Revision: 1.32 $ / $Date: 2007-11-07 18:39:16 $ -->
+<!-- $Revision: 1.33 $ / $Date: 2008-08-04 16:13:54 $ -->
 
 <!-- 
 This ant build file:
@@ -94,7 +94,9 @@ This ant build file:
     <pathelement location="${build.lib}/junit.jar"/>
     <pathelement location="${lib.home}/saaj-api-unsigned.jar" />
     <pathelement location="${lib.home}/googleapi.jar" />
-   
+    <pathelement path="${lib.home}/google-collect-snapshot-20080530.jar"/>
+  	<!-- for applet -->
+  	<pathelement path="${lib.home}/looks-2.1.4.jar" />   
 	
     <pathelement location="${lib.home}/okiSID.jar" />	
 	<pathelement location="${lib.home}/log4j-1.2.12.jar" />
