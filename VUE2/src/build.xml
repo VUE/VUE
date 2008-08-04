@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.167 $ / $Date: 2008-08-04 15:44:19 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.167 2008-08-04 15:44:19 mike Exp $ -->
+<!-- $Revision: 1.168 $ / $Date: 2008-08-04 18:10:14 $ / $Author: mike $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.168 2008-08-04 18:10:14 mike Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -280,7 +280,7 @@
                    commons-discovery.jar
                    commons-logging.jar
                    dom2.jar
-                  fedora-client_2_2.jar
+                   fedora-client_2_2.jar
                    fedoragentypes.jar
                    fedorautilities.jar
                    fop.jar
@@ -292,10 +292,11 @@
                    xercesImpl-2.7.1.jar
                    xerces-2.7.1-xml-apis.jar
   				   quaqua-filechooser-only.jar
-		   itext-2.0.4.jar 
-		   simplyhtml2.jar
-		   gnu-regexp-1.1.4.jar
-	   looks-2.1.4.jar
+		   		   itext-2.0.4.jar 
+		   		   simplyhtml2.jar
+		  	 	   gnu-regexp-1.1.4.jar
+	   			   looks-2.1.4.jar
+  				   google-collect-snapshot-20080530.jar
                    "/>
                                                                                                           
   <path id="compile.classpath.common">
@@ -944,7 +945,6 @@
   	    alias="mykey"
   	    storepass="vuevue"
   		keystore="${keystore}"
-  	    preservelastmodified="true"
   		jar="${vueapplet.jar}">
   	</signjar>
 <!--
