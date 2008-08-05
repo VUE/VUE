@@ -304,7 +304,10 @@ public class RDFIndex extends ModelCom
                 VueMetadataElement element = i.next();
                 if(DEBUG.RDF) System.out.println("Resouece: "+r+" Element:"+element+" class of element:"+element.getClass());
                 if(element.getObject() != null)
-                    statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getValue());
+                {
+                    String encodedKey = getEncodedKey(element.getKey());
+                    statement = this.createStatement(r,createPropertyFromKey(encodedKey),element.getValue());
+                }
                     //statement = this.createStatement(r,createPropertyFromKey(element.getKey()),element.getObject().toString());
                 addStatement(statement);
             }
@@ -396,6 +399,22 @@ public class RDFIndex extends ModelCom
             t.printStackTrace();
         }
         return defaultIndex;
+    }
+    
+    public static String getEncodedKey(String key)
+    {
+       String encodedKey = key;
+       try
+       {
+         String prefix = key.substring(0,key.indexOf("#"));
+         String end = key.substring(key.indexOf("#")+1,key.length());
+         encodedKey = prefix + "#" + java.net.URLEncoder.encode(end,"UTF-8");
+       }
+       catch(java.io.UnsupportedEncodingException uee)
+       {
+         System.out.println("Query: attempting to encode criteria.key -- " + uee);  
+       }
+       return encodedKey;
     }
     
 }

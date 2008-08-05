@@ -59,12 +59,15 @@ public class Query  {
         for(Criteria criteria: criteriaList) {
              i++;
             keyword ="keyword"+i;
+            
+            String encodedKey = RDFIndex.getEncodedKey(criteria.key);
+            
             switch(criteria.qualifier)  {
                 case CONTAINS:
-                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\""+criteria.value+ "\",\"i\") . ";
+                    query +=  "?resource <"+ encodedKey +"> ?"+keyword+" FILTER regex(?"+keyword+",\""+criteria.value+ "\",\"i\") . ";
                     break;
                 case STARTS_WITH:
-                    query +=  "?resource <"+criteria.key+"> ?"+keyword+" FILTER regex(?"+keyword+",\"^"+criteria.value+ "\",\"i\") . ";
+                    query +=  "?resource <"+ encodedKey +"> ?"+keyword+" FILTER regex(?"+keyword+",\"^"+criteria.value+ "\",\"i\") . ";
                     break;                 
             }
         }
