@@ -80,10 +80,9 @@ public class CircularLayout extends AbstractLayout{
         return map;
     }
     
-     public LWMap createMap(Dataset ds,String mapName) throws Exception{
+    public LWMap createMap(RelationalDataset ds,String mapName) throws Exception{
         Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
-        Map<String,Integer> repeatMap = new HashMap<String,Integer>();
-        
+         
         LWMap map = new LWMap(mapName);
         for(ArrayList<String> row: ds.getRowList()) {
             String node1Label = row.get(0);
@@ -110,6 +109,28 @@ public class CircularLayout extends AbstractLayout{
             node1.setLocation(MAP_SIZE*(1+Math.cos(angle)),MAP_SIZE*(1+Math.sin(angle)));
             angle = Math.random()*Math.PI*4;
             node2.setLocation(MAP_SIZE*(1+Math.cos(angle)),MAP_SIZE*(1+Math.sin(angle)));
+        }
+        return map;
+    }
+    
+    public LWMap createMap(ListDataset ds,String mapName) throws Exception{
+        Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
+        LWMap map = new LWMap(mapName);
+        for(ArrayList<String> row: ds.getRowList()) {
+            String node1Label = row.get(0);
+            LWNode node1;
+            if(!nodeMap.containsKey(node1Label)) {
+                node1 = new LWNode(node1Label);
+                nodeMap.put(node1Label,node1);
+                map.add(node1);
+            } else {
+                node1 = nodeMap.get(node1Label);
+            }
+            
+            
+            double angle = Math.random()*Math.PI*4;
+            node1.setLocation(MAP_SIZE*(1+Math.cos(angle)),MAP_SIZE*(1+Math.sin(angle)));
+            
         }
         return map;
     }

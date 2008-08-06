@@ -1,7 +1,7 @@
 /*
- * Dataset.java
+ * ListDataset.java
  *
- * Created on July 15, 2008, 5:40 PM
+ * Created on July 23, 2008, 6:06 PM
  *
  * <p><b>License and Copyright: </b>The contents of this file are subject to the
  * Mozilla Public License Version 1.1 (the "License"); you may not use this file
@@ -12,7 +12,7 @@
  * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
  * the specific language governing rights and limitations under the License.</p>
  *
- * <p>The entire file consists of original code.  Copyright &copy; 2003-2007
+ * <p>The entire file consists of original code.  Copyright &copy; 2003-2008
  * Tufts University. All rights reserved.</p>
  *
  * -----------------------------------------------------------------------------
@@ -21,28 +21,13 @@
 /**
  *
  * @author akumar03
- *
  */
 package edu.tufts.vue.dataset;
 
-
-import java.util.*;
-import java.io.*;
-
-public class Dataset {
+public class ListDataset extends Dataset {
     
-    public static final int MAX_SIZE = tufts.vue.VueResources.getInt("dataset.maxSize");
-    public static final int MAX_LABEL_SIZE = 40;
-    String label;
-    ArrayList<String> heading;
-    ArrayList<ArrayList<String>> rowList;
-    /** Creates a new instance of Dataset */
-    public Dataset() {
+    /** Creates a new instance of ListDataset */
+    public ListDataset() {
     }
     
-    
-    
-    public ArrayList<ArrayList<String>> getRowList() {
-        return rowList;
-    }
 }
