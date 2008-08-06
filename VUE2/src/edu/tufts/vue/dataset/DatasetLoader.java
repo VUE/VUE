@@ -3,19 +3,18 @@
  *
  * Created on July 23, 2008, 2:31 PM
  *
- * <p><b>License and Copyright: </b>The contents of this file are subject to the
- * Mozilla Public License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of the License
- * at <a href="http://www.mozilla.org/MPL">http://www.mozilla.org/MPL/.</a></p>
- *
- * <p>Software distributed under the License is distributed on an "AS IS" basis,
- * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
- * the specific language governing rights and limitations under the License.</p>
- *
- * <p>The entire file consists of original code.  Copyright &copy; 2003-2008
- * Tufts University. All rights reserved.</p>
- *
- * -----------------------------------------------------------------------------
+ * Copyright 2003-2008 Tufts University  Licensed under the
+ * Educational Community License, Version 2.0 (the "License"); you may
+ * not use this file except in compliance with the License. You may
+ * obtain a copy of the License at
+ * 
+ * http://www.osedu.org/licenses/ECL-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an "AS IS"
+ * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
 
 /**
@@ -60,6 +59,9 @@ public class DatasetLoader {
         dialog.setVisible(true);
         return ds;
     }
+    public Dataset load(File file) throws Exception {
+        return load(file.getAbsolutePath());
+    }
     
     private JPanel createDatasetsTypePanel() {
         final int numButtons = 2;
@@ -85,9 +87,11 @@ public class DatasetLoader {
                 String command = group.getSelection().getActionCommand();
                 if (command == relationalDS) {
                     ds = new RelationalDataset();
+                    ds.setLayout(new RelRandomLayout());
                 }  else {
                     ds  = new ListDataset();
                 }
+                ds.setFileName(fileName);
                 loadDataset();
                 dialog.setVisible(false);
             }
