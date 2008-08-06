@@ -37,7 +37,7 @@ import java.awt.*;
  *  A wrapper for CabinetEntry objects which can be used as the user object in a 
  *  DefaultMutableTreeNode.  It implements the Resource interface specification.
  *
- * @version $Revision: 1.40 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.41 $ / $Date: 2008-08-06 17:33:51 $ / $Author: sfraize $
  * @author  Mark Norton
  */
 public class CabinetResource extends URLResource
@@ -204,84 +204,85 @@ public class CabinetResource extends URLResource
 //     public void setExtension(String extenstion) {
 //         this.extension = extension;
 //     }
-    /**
-     *  Return the metadata properties associated with this object.  Metadata is extracted
-     *  from the various flavors of CabinetEntry and collected into a Properties object,
-     *  which is returned.  Each metadata element has a property keyword defined above.
-     *
-     *  @author Mark Norton
-     */
-    public PropertyMap getFilingProperties() {
-        PropertyMap props = new PropertyMap();
+    
+//     /**
+//      *  Return the metadata properties associated with this object.  Metadata is extracted
+//      *  from the various flavors of CabinetEntry and collected into a Properties object,
+//      *  which is returned.  Each metadata element has a property keyword defined above.
+//      *
+//      *  @author Mark Norton
+//      */
+//     public PropertyMap getFilingProperties() {
+//         PropertyMap props = new PropertyMap();
         
         
-        //  Check for a restored resource.
-        if (this.entry == null)
-            return super.getProperties();//(Properties)this.mProperties;
-        else {
-            try {if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore)
-                if (this.entry instanceof RemoteByteStore) {
-                    RemoteByteStore bs = (RemoteByteStore) this.entry;
-                    props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
-                   // props.setProperty(CabinetResource.MD_TIME,Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
-                    props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
-                    /**
-                    if (bs.isReadable())
-                        props.setProperty(CabinetResource.MD_READ, "true");
-                    else
-                        props.setProperty(CabinetResource.MD_READ, "false");
-                    if (bs.isWritable())
-                        props.setProperty(CabinetResource.MD_WRITE, "true");
-                    else
-                        props.setProperty(CabinetResource.MD_WRITE, "false");
-                    props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
-                     */
-                    //props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
+//         //  Check for a restored resource.
+//         if (this.entry == null)
+//             return super.getProperties();//(Properties)this.mProperties;
+//         else {
+//             try {if (this.entry instanceof tufts.oki.remoteFiling.RemoteByteStore)
+//                 if (this.entry instanceof RemoteByteStore) {
+//                     RemoteByteStore bs = (RemoteByteStore) this.entry;
+//                     props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
+//                    // props.setProperty(CabinetResource.MD_TIME,Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
+//                     props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
+//                     /**
+//                     if (bs.isReadable())
+//                         props.setProperty(CabinetResource.MD_READ, "true");
+//                     else
+//                         props.setProperty(CabinetResource.MD_READ, "false");
+//                     if (bs.isWritable())
+//                         props.setProperty(CabinetResource.MD_WRITE, "true");
+//                     else
+//                         props.setProperty(CabinetResource.MD_WRITE, "false");
+//                     props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
+//                      */
+//                     //props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
 
-                }
-                else if (this.entry instanceof RemoteCabinet) {
-                    RemoteCabinet cab = (RemoteCabinet) this.entry;
-                    props.setProperty(CabinetResource.MD_NAME, cab.getDisplayName());
-                   // props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
-                }
-                else if (this.entry instanceof LocalByteStore) {
+//                 }
+//                 else if (this.entry instanceof RemoteCabinet) {
+//                     RemoteCabinet cab = (RemoteCabinet) this.entry;
+//                     props.setProperty(CabinetResource.MD_NAME, cab.getDisplayName());
+//                    // props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
+//                 }
+//                 else if (this.entry instanceof LocalByteStore) {
       
-                    LocalByteStore bs = (LocalByteStore) this.entry;
-                    props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
-                    //props.setProperty(CabinetResource.MD_TIME, Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
-                    props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
-                    /**
-                    if (bs.isReadable())
-                        props.setProperty(CabinetResource.MD_READ, "true");
-                    else
-                        props.setProperty(CabinetResource.MD_READ, "false");
-                    if (bs.isWritable())
-                        props.setProperty(CabinetResource.MD_WRITE, "true");
-                    else
-                        props.setProperty(CabinetResource.MD_WRITE, "false");
+//                     LocalByteStore bs = (LocalByteStore) this.entry;
+//                     props.setProperty(CabinetResource.MD_NAME, bs.getDisplayName());
+//                     //props.setProperty(CabinetResource.MD_TIME, Long.toString(bs.getLastAccessedTime().getTimeInMillis()));
+//                     props.setProperty(CabinetResource.MD_OWNER, bs.getOwner().getDisplayName());
+//                     /**
+//                     if (bs.isReadable())
+//                         props.setProperty(CabinetResource.MD_READ, "true");
+//                     else
+//                         props.setProperty(CabinetResource.MD_READ, "false");
+//                     if (bs.isWritable())
+//                         props.setProperty(CabinetResource.MD_WRITE, "true");
+//                     else
+//                         props.setProperty(CabinetResource.MD_WRITE, "false");
                      
-                    props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
-                     */
-                   // props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
+//                     props.setProperty(CabinetResource.MD_LENGTH, String.valueOf(bs.length()));
+//                      */
+//                    // props.setProperty(CabinetResource.MD_MIME, bs.getMimeType());
                      
-                }
-                else if (this.entry instanceof LocalCabinet) {
-                    LocalCabinet cab = (LocalCabinet) this.entry;
-                    props.setProperty(CabinetResource.MD_NAME, cab.getDisplayName());
-                    //props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
-                }
-            }
-            catch (osid.filing.FilingException ex1) {
-                //  If we get an exception, just return what we got.
-            }
-            catch (osid.shared.SharedException ex2) {
-                //  If we get an exception, just return what we got.
-            }
-            //this.mProperties = props;            //  Cache the metadata.
-            System.err.println("Unimplemented: filing properties on resource");
-            return props;
-        }
-    }
+//                 }
+//                 else if (this.entry instanceof LocalCabinet) {
+//                     LocalCabinet cab = (LocalCabinet) this.entry;
+//                     props.setProperty(CabinetResource.MD_NAME, cab.getDisplayName());
+//                     //props.setProperty(CabinetResource.MD_TIME, cab.getLastAccessedTime().toString());
+//                 }
+//             }
+//             catch (osid.filing.FilingException ex1) {
+//                 //  If we get an exception, just return what we got.
+//             }
+//             catch (osid.shared.SharedException ex2) {
+//                 //  If we get an exception, just return what we got.
+//             }
+//             //this.mProperties = props;            //  Cache the metadata.
+//             System.err.println("Unimplemented: filing properties on resource");
+//             return props;
+//         }
+//     }
     
 //     /*
 //      *  Return the resource specification.  For cabinet resources, this is URL of either
