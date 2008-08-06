@@ -281,9 +281,10 @@ public class RDFIndex extends ModelCom
               tufts.vue.Resource res = component.getResource();
               if(res !=null)
               {
-                PropertyMap map = res.getProperties();
-              
-                javax.swing.table.TableModel model = map.getTableModel();
+//                 PropertyMap map = res.getProperties();
+//                 javax.swing.table.TableModel model = map.getTableModel();
+
+                javax.swing.table.TableModel model = res.getProperties().getTableModel();
               
                 for(int i=0;i<model.getRowCount();i++)
                 {
