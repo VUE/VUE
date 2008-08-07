@@ -53,7 +53,6 @@ public class DatasetAction  extends VueAction {
             DatasetLoader dsl = new DatasetLoader();
             Dataset ds = dsl.load(file);
             LWMap loadedMap = ds.createMap();
-            ds.
             VUE.displayMap(loadedMap);
             VUE.clearWaitCursor();
             System.out.println("Action["+e.getActionCommand()+"] completed.");
