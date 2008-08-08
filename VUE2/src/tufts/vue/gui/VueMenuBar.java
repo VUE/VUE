@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.114 $ / $Date: 2008-08-04 17:14:48 $ / $Author: mike $
+ * @version $Revision: 1.115 $ / $Date: 2008-08-08 16:04:37 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -207,7 +207,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final OpenAction openAction = new OpenAction("Open...");
         final ExitAction exitAction = new ExitAction("Quit");
         final JMenu publishMenu = makeMenu("Publish");
-        final JMenu dataMenu = makeMenu("Import Dataset");
+        final  edu.tufts.vue.dataset.DatasetAction dataAction = new edu.tufts.vue.dataset.DatasetAction();
         //final JMenu publishAction =  Publish.getPublishMenu();
         final RDFOpenAction rdfOpen = new RDFOpenAction();
         
@@ -235,9 +235,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	
         });
         // create menu for dataset import
-        for(edu.tufts.vue.dataset.AbstractLayout layout: edu.tufts.vue.dataset.LayoutFactory.getInstance().getAvailableLayouts()) {
-            dataMenu.add(layout);
-        }
+       
          
         
         edu.tufts.vue.dsm.impl.VueDataSourceManager.getInstance().addDataSourceListener(new edu.tufts.vue.dsm.DataSourceListener() {
@@ -342,7 +340,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.add(saveAsAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask+Event.SHIFT_MASK));                
         fileMenu.add(Actions.Revert);
         fileMenu.addSeparator();   
-        fileMenu.add(dataMenu);
+        fileMenu.add(dataAction);
         String includeText = VueResources.getString("text.file.menu.include");
         if(includeText != null && includeText.equals("TRUE"))
         {
