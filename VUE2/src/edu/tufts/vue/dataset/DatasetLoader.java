@@ -7,9 +7,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -32,6 +32,7 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import au.com.bytecode.opencsv.CSVReader;
 
 
 public class DatasetLoader {
@@ -107,12 +108,19 @@ public class DatasetLoader {
             
             ds.rowList = new ArrayList<ArrayList<String>>();
             ds.label = fileName;
-            BufferedReader reader = new BufferedReader(new FileReader(fileName));
+            CSVReader reader;
+            if(fileName.endsWith(".csv")) {
+                reader = new CSVReader(new FileReader(fileName));
+            } else {
+                reader = new CSVReader(new FileReader(fileName),'\t');
+            }
             String line;
             int count = 0;
-            while((line=reader.readLine()) != null && count < ds.MAX_SIZE) {
+            // add the first line to heading  of dataset
+            
+            String [] words;
+            while((words = reader.readNext()) != null && count < ds.MAX_SIZE) {
                 ArrayList<String> row = new ArrayList<String>();
-                String[] words = line.split(",");
                 for(int i =0;i<words.length;i++) {
                     if(words[i].length() > ds.MAX_LABEL_SIZE) {
                         row.add(words[i].substring(0,ds.MAX_LABEL_SIZE)+"...");
@@ -120,7 +128,11 @@ public class DatasetLoader {
                         row.add(words[i]);
                     }
                 }
-                ds.rowList.add(row);
+                if(count==0) {
+                    ds.setHeading(row);
+                }else {
+                    ds.rowList.add(row);
+                }
                 count++;
             }
             reader.close();

@@ -31,7 +31,7 @@ import tufts.vue.*;
 public class Dataset {
     
     public static final int MAX_SIZE = tufts.vue.VueResources.getInt("dataset.maxSize");
-    public static final int MAX_LABEL_SIZE = 40;
+    public static final int MAX_LABEL_SIZE = 10000;
     String fileName;
     String label;
     ArrayList<String> heading;
@@ -49,6 +49,13 @@ public class Dataset {
     public void setFileName(String fileName) {
         this.fileName = fileName;
     }
+    public void setHeading(ArrayList<String> heading) {
+        this.heading = heading;
+    }
+    public ArrayList<String> getHeading() {
+        return heading;
+    }
+    
     
     public ArrayList<ArrayList<String>> getRowList() {
         return rowList;

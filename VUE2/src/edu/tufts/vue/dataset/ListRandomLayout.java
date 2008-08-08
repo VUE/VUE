@@ -29,9 +29,11 @@ import java.util.*;
 import java.awt.event.*;
 import javax.swing.*;
 import tufts.vue.*;
+import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
 
 public class ListRandomLayout extends Layout {
-    
+    public static String DEFAULT_METADATA_LABEL = "default";
     /** Creates a new instance of ListRandomLayout */
     public ListRandomLayout() {
     }
@@ -44,26 +46,30 @@ public class ListRandomLayout extends Layout {
         int count = 0;
         for(ArrayList<String> row: ds.getRowList()) {
             String node1Label = row.get(0);
-            String node2Label = row.get(1);
             LWNode node1;
             LWNode node2;
             if(!nodeMap.containsKey(node1Label)) {
                 node1 = new LWNode(node1Label);
+                
+                for(int i=1;i<row.size();i++ ) {
+                    String value = row.get(i);
+                    String key = ((ds.getHeading()==null) || ds.getHeading().size() <i)?DEFAULT_METADATA_LABEL:ds.getHeading().get(i);
+ //                   System.out.println("i="+i+" key="+key+" value ="+value);
+                    
+                    VueMetadataElement vm = new VueMetadataElement();
+                    vm.setKey(key);
+                    vm.setValue(value);
+                    vm.setType(VueMetadataElement.CATEGORY);
+                    node1.getMetadataList().addElement(vm);
+                }
                 nodeMap.put(node1Label,node1);
                 map.add(node1);
             } else {
                 node1 = nodeMap.get(node1Label);
             }
-            if(!nodeMap.containsKey(node2Label)) {
-                node2 = new LWNode(node2Label);
-                map.add(node2);
-                nodeMap.put(node2Label,node2);
-            } else {
-                node2 = nodeMap.get(node2Label);
-            }
-   
+            
             node1.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
-            node2.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+            
         }
         return map;
     }
