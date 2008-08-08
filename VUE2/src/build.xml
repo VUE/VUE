@@ -29,8 +29,8 @@
     you're off and running.
   </description>
 
-<!-- $Revision: 1.169 $ / $Date: 2008-08-04 19:04:58 $ / $Author: mike $ -->
-<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.169 2008-08-04 19:04:58 mike Exp $ -->
+<!-- $Revision: 1.170 $ / $Date: 2008-08-08 19:54:27 $ / $Author: anoop $ -->
+<!-- $Header: /home/svn/cvs2svn-2.1.1/at-cvs-repo/VUE2/src/build.xml,v 1.170 2008-08-08 19:54:27 anoop Exp $ -->
 
 <!-- We want to ignore anything in the environment CLASSPATH variable -->
 <property name="build.sysclasspath"      value="ignore"/>
@@ -206,6 +206,7 @@
                    rome-0.9.jar
                    okiSID_rc6_1.jar
                    okiSIDimpl.jar
+                      opencsv-1.8.jar 
 				   OsidProvider.jar
 				   OsidRegistry.jar
                    saxon6.5.jar
@@ -341,6 +342,7 @@
     <pathelement path="${lib.home}/okiOSID-2.0a.jar" />	
     <pathelement path="${lib.home}/okiSID.jar" />	
     <pathelement path="${lib.home}/okiSIDImpl.jar" />	
+    <pathelement path="${lib.home}/opencsv-1.8.jar" />
     <pathelement path="${lib.home}/MITSearchTypes.jar" />
     <pathelement path="${lib.home}/MITRepositoryTypes.jar" />
     <pathelement path="${lib.home}/OsidProvider.jar" />
