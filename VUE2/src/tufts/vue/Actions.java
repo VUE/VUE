@@ -749,6 +749,8 @@ public class Actions implements VueConstants
     private static boolean canEdit(LWComponent c) {
         if (c.isLocked())
             return false;
+        else if (c.hasFlag(Flag.FIXED_LOCATION))
+            return false;
         else if (c instanceof LWSlide && !DEBUG.META)
             return false;
         else if (c.getParent() instanceof LWPathway) // old-style slides not map-owned

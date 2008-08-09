@@ -28,7 +28,7 @@ import java.awt.Font;
  * is the the current focal.
  *
  * @author Scott Fraize
- * @version $Revision: 1.15 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $ 
+ * @version $Revision: 1.16 $ / $Date: 2008-08-09 21:25:16 $ / $Author: sfraize $ 
  */
 public final class MasterSlide extends LWSlide
 {
@@ -218,7 +218,6 @@ public final class MasterSlide extends LWSlide
 
     private void initStyle(LWComponent style) {
         style.setPersistIsStyle(Boolean.TRUE);
-        style.setFlag(Flag.LOCKED);
         style.setFlag(Flag.FIXED_LOCATION);
         style.disableProperty(LWKey.Label);
         style.setMoveable(false);
