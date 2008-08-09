@@ -156,6 +156,8 @@ public class DataSourceListCellRenderer extends DefaultListCellRenderer //implem
                 mIconLabel.setIcon(remoteIcon);
             else if (value instanceof edu.tufts.vue.rss.RSSDataSource)
                 mIconLabel.setIcon(rssIcon);
+            else
+                mIconLabel.setIcon(null);
         }
         else {
             System.out.println("DataSourceList: unhandled data source: " + tufts.Util.tags(value));
