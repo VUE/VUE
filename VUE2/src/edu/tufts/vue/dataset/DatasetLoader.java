@@ -94,6 +94,7 @@ public class DatasetLoader {
                 }
                 ds.setFileName(fileName);
                 loadDataset();
+                ds.createOntology();
                 dialog.setVisible(false);
             }
         });

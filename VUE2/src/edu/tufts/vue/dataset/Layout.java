@@ -32,7 +32,7 @@ import javax.swing.*;
 import tufts.vue.*;
 
 public abstract class Layout {
-    public  int MAP_SIZE = 500;
+    public  int MAP_SIZE = 5000;
     public  int MAX_SIZE =5000;
     /** Creates a new instance of Layout */
     public Layout() {

@@ -50,11 +50,16 @@ public class ListRandomLayout extends Layout {
             LWNode node2;
             if(!nodeMap.containsKey(node1Label)) {
                 node1 = new LWNode(node1Label);
+                // add the ont type
+                VueMetadataElement vmOnt = new VueMetadataElement();
+                vmOnt.setValue(ds.getBaseClass());
+                vmOnt.setType(VueMetadataElement.ONTO_TYPE);
+                node1.getMetadataList().addElement(vmOnt);
                 
                 for(int i=1;i<row.size();i++ ) {
                     String value = row.get(i);
                     String key = ((ds.getHeading()==null) || ds.getHeading().size() <i)?DEFAULT_METADATA_LABEL:ds.getHeading().get(i);
- //                   System.out.println("i="+i+" key="+key+" value ="+value);
+                    //                   System.out.println("i="+i+" key="+key+" value ="+value);
                     
                     VueMetadataElement vm = new VueMetadataElement();
                     vm.setKey(key);
@@ -62,7 +67,9 @@ public class ListRandomLayout extends Layout {
                     vm.setType(VueMetadataElement.CATEGORY);
                     node1.getMetadataList().addElement(vm);
                 }
+                
                 nodeMap.put(node1Label,node1);
+                node1.layout();
                 map.add(node1);
             } else {
                 node1 = nodeMap.get(node1Label);
@@ -72,5 +79,16 @@ public class ListRandomLayout extends Layout {
             
         }
         return map;
+    }
+    
+    /** It takes a map and scatters the nodes randomly
+     * @param map the map for layout
+     */
+    public void layout(LWMap map) {
+        Iterator<LWNode> nodeIterator =  map.getChildIterator();
+        while(nodeIterator.hasNext()) {
+            LWNode node = nodeIterator.next();
+            node.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+        }
     }
 }
