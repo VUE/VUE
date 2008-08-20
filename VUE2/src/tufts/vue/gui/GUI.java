@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.123 $ / $Date: 2008-08-04 17:17:00 $ / $Author: mike $
+ * @version $Revision: 1.124 $ / $Date: 2008-08-20 18:34:13 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -264,7 +264,7 @@ public class GUI
         		   }
 
         }
-        else if (Util.isMacPlatform()) {
+        else if (Util.isMacPlatform() && !VUE.isApplet()) {
 
             if (!SKIP_CUSTOM_LAF) {
 
@@ -454,7 +454,10 @@ public class GUI
             super("GUI.init hasn't run; indeterminate result");
         }
     }
-
+    public static boolean isGUIInited()
+    {
+    	return !initUnderway;
+    }
     public static boolean isMacAqua() {
         if (initUnderway) throw new InitError("isMacAqua");
         return isMacAqua;
