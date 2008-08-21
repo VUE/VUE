@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.573 $ / $Date: 2008-08-04 17:17:00 $ / $Author: mike $ 
+ * @version $Revision: 1.574 $ / $Date: 2008-08-21 13:46:38 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -571,10 +571,11 @@ public class VUE
     }
     
     static void initUI() {
-        GUI.init();
+
+    	GUI.init();
         
         try {
-            if (DEBUG.Enabled && Util.isMacPlatform()) {
+            if (DEBUG.Enabled && Util.isMacPlatform() && !VUE.isApplet()) {
                 // This is for debugging.  The application icon for a distributed version
                 // of VUE is set via an icons file specified in the Info.plist from
                 // the VUE.app directory.
@@ -765,7 +766,6 @@ public class VUE
         org.apache.log4j.NDC.pop();
     }
     
-    
     public static void main(String[] args)
     {
         VUE.isStartupUnderway = true;
@@ -946,7 +946,7 @@ public class VUE
     {
         final Window splashScreen;
         
-        if (SKIP_DR || SKIP_SPLASH) {
+        if (SKIP_DR || SKIP_SPLASH || VUE.isApplet()) {
             splashScreen = null;
             //DEBUG.Enabled = true;
         } else
@@ -1213,7 +1213,8 @@ public class VUE
         
         if (DEBUG.INIT) out("creating VueFrame...");
 
-        VUE.ApplicationFrame = new VueFrame();
+        if (!VUE.isApplet())
+        	VUE.ApplicationFrame = new VueFrame();
         
         if (DEBUG.INIT) out("created VueFrame");
 
@@ -1266,6 +1267,7 @@ public class VUE
         // Pathways panel
         //-----------------------------------------------------------------------------
         pathwayPanel = new PathwayPanel(VUE.getDialogParentAsFrame());
+        if (pathwayDock == null)
         pathwayDock = GUI.createDockWindow(VueResources.getString("dockWindow.presentation.title"),
                                                             pathwayPanel);
 
@@ -1275,8 +1277,11 @@ public class VUE
 
         //formatDock = null;
         formattingPanel = new FormatPanel();
-        formatDock = GUI.createDockWindow("Format",true,true);
-        formatDock.setContent(formattingPanel);
+        if (formatDock == null)
+        {
+        	formatDock = GUI.createDockWindow("Format",true,true);
+        	formatDock.setContent(formattingPanel);
+        }
         //formatDock.setFocusable(true);
         
 
@@ -1286,77 +1291,88 @@ public class VUE
 
         //formatDock = null;
         floatingZoomPanel = new FloatingZoomPanel();
-        floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
-        floatingZoomDock.setContent(floatingZoomPanel);
-        //floatingZoomDock.setFocusable(true); // can grab key events causing MapViewer actions to be disabled
-        floatingZoomDock.setSize(new Dimension(280,30));
-        floatingZoomDock.setLocation(0,GUI.GInsets.top+15);        
-        
+        if (floatingZoomDock == null)
+        {
+        	floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
+        	floatingZoomDock.setContent(floatingZoomPanel);
+        	//floatingZoomDock.setFocusable(true); // can grab key events causing MapViewer actions to be disabled
+        	floatingZoomDock.setSize(new Dimension(280,30));
+        	floatingZoomDock.setLocation(0,GUI.GInsets.top+15);        
+        }
         //-----------------------------------------------------------------------------
         // Panner
         //-----------------------------------------------------------------------------
+        if (pannerDock == null)
+        {
+        	pannerDock = GUI.createDockWindow("Panner", new MapPanner());
+        	//pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
+        	//pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
+        	//pannerDock.setSize(120,120);
+        	//pannerDock.setSize(112,120);
+        	//pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
 
-        pannerDock = GUI.createDockWindow("Panner", new MapPanner());
-        //pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
-        //pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
-        //pannerDock.setSize(120,120);
-        //pannerDock.setSize(112,120);
-        //pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
-
-        if (Util.isMacPlatform()) {
-            // Can't do this on PC as 'x' close button is on right
-            pannerDock.setMenuActions(new Action[] {
+        	if (Util.isMacPlatform()) {
+        		// Can't do this on PC as 'x' close button is on right
+        		pannerDock.setMenuActions(new Action[] {
                     Actions.ZoomFit,
                     Actions.ZoomActual
                 });
+        	}
         }
-
 
         //-----------------------------------------------------------------------------
         // Resources Stack (Libraries / DRBrowser)
         // DRBrowser class initializes the DockWindow itself.
         //-----------------------------------------------------------------------------
-        
-        DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
-        //DockWindow searchDock = GUI.createDockWindow("Search");
-        DockWindow searchDock = null;
-        if (!SKIP_DR) {
+        if (DR_BROWSER_DOCK == null)
+        {
+        	DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
+        	//DockWindow searchDock = GUI.createDockWindow("Search");
+        	DockWindow searchDock = null;
+        	if (!SKIP_DR) {
             
-            // TODO: DRBrowser init needs to load all it's content/viewers in a threaded
-            // manner (didn't this used to happen?)  In any case, even local file data
-            // sources, which can still take quite a long time to init depending on
-            // what's out there (e.g., CabinetResources don't know how to lazy init
-            // their contents -- every 1st & 2nd level file is polled and initialized at
-            // startup).  SMF 2007-10-05
+        		// TODO: DRBrowser init needs to load all it's content/viewers in a threaded
+        		// manner (didn't this used to happen?)  In any case, even local file data
+        		// sources, which can still take quite a long time to init depending on
+        		// what's out there (e.g., CabinetResources don't know how to lazy init
+        		// their contents -- every 1st & 2nd level file is polled and initialized at
+        		// startup).  SMF 2007-10-05
             
-            DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
-            DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        		DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
+        		DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        	}
         }
-		
         //-----------------------------------------------------------------------------
         // Map Inspector
         //-----------------------------------------------------------------------------
-
-        MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
-        mapInspectorPanel = new MapInspectorPanel(MapInspector);
-//        MapInspector.setContent(mapInspectorPanel.getMapInfoStack());
-  //      MapInspector.setHeight(450);
-        
+        if (MapInspector == null)
+        {
+        	MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
+        	mapInspectorPanel = new MapInspectorPanel(MapInspector);
+        	//        MapInspector.setContent(mapInspectorPanel.getMapInfoStack());
+        	//      MapInspector.setHeight(450);
+        }
         //-----------------------------------------------------------------------------
         // Object Inspector / Resource Inspector
         //-----------------------------------------------------------------------------
 
         //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
         inspectorPane = new tufts.vue.ui.InspectorPane();
-        ObjectInspector = GUI.createDockWindow("Info");
-        ObjectInspector.setContent(inspectorPane.getWidgetStack());
-        ObjectInspector.setMenuName("Info / Preview");
-        ObjectInspector.setHeight(575);
+        if (ObjectInspector == null)
+        {
+        	ObjectInspector = GUI.createDockWindow("Info");
+        	ObjectInspector.setContent(inspectorPane.getWidgetStack());
+        	ObjectInspector.setMenuName("Info / Preview");
+        	ObjectInspector.setHeight(575);
+        }
         
         if (DEBUG.Enabled || VUE3_LAYERS) {
-            layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
-            //layersDock.setFocusableWindowState(false);
-            layersDock.setSize(375,200);
+        	if (layersDock == null)
+        	{
+        		layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
+        		//layersDock.setFocusableWindowState(false);
+        		layersDock.setSize(375,200);
+        	}
         }
         
         //-----------------------------------------------------------------------------
@@ -1426,7 +1442,8 @@ public class VUE
             VUE.ActiveMapHandler.addListener(outlineTree);
             outlineScroller.setPreferredSize(new Dimension(500, 300));
             //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
-            outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+            if (outlineDock == null)
+            	outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
 
             DataSourceViewer.initUI();
             

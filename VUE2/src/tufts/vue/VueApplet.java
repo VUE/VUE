@@ -32,6 +32,7 @@ import java.security.PrivilegedAction;
 import javax.swing.*;
 
 import tufts.vue.gui.GUI;
+import tufts.vue.gui.VueMenuBar;
 
 
 // To get to run from classpath: had to be sure to create a symlink to VueResources.properties
@@ -42,7 +43,7 @@ import tufts.vue.gui.GUI;
 /**
  * Experimental VUE applet.
  *
- * @version $Revision: 1.5 $ / $Date: 2008-08-04 17:17:00 $ / $Author: mike $ 
+ * @version $Revision: 1.6 $ / $Date: 2008-08-21 13:46:38 $ / $Author: mike $ 
  */
 public class VueApplet extends JApplet implements Runnable {
 
@@ -52,74 +53,41 @@ public class VueApplet extends JApplet implements Runnable {
     // If want to have viewer left in same state when go forwrd/back in browser,
     // will need javacript assist to associate the viewer with the instance of a web browser page:
     // new applet & context objects are created even when you go forward/back pages.  
-    LWMap map = null;
+    private LWMap map = null;
     static MapTabbedPane mMapTabbedPane = null;
     
     public void init() {
-    	System.out.println("APPLET WIDTH : " + this.getWidth());
-    	System.out.println("APPLET HEIGHT : " + this.getHeight());
-    	VUE.setAppletContext(this.getAppletContext());
-        msg("init\n\tapplet=" + Integer.toHexString(hashCode()) + "\n\tcontext=" + getAppletContext());
-        VUE.initUI();
-        mMapTabbedPane = new MapTabbedPane("*left", true);
-        map = new LWMap("Applet Map");
-        VUE.initApplication();
-        /* MIKEK Test thread.
-        new Thread(new Runnable()
-        {
-        	public void run()
-        	{
-        		while (true)
-        		{
-        			System.out.println(System.currentTimeMillis());
-        			System.out.println(buttonPushed);
-        				
-        			
-        			try {
-        				Thread.currentThread().sleep(1000);
-        			} catch (InterruptedException e) {
-        				// TODO Auto-generated catch block
-        				e.printStackTrace();
-        			}
-        		}
+    	
+    		System.out.println("APPLET WIDTH : " + this.getWidth());
+    		System.out.println("APPLET HEIGHT : " + this.getHeight());
+    		VUE.setAppletContext(this.getAppletContext());
+        	msg("init\n\tapplet=" + Integer.toHexString(hashCode()) + "\n\tcontext=" + getAppletContext());
+        	if (!GUI.isGUIInited())
+        	{	
+        		VUE.initUI();
+        		
+        		mMapTabbedPane = new MapTabbedPane("*left", true);
+        		map = new LWMap("Applet Map");
+        	
+        		VUE.initApplication();
         	}
-        }).start();*/
-        
-        //setBackground(Color.blue);
-        
-        /*
-        JPanel content= new JPanel();
-        content.setBackground(Color.yellow);
-        setContentPane(content);
-        */
-        
-        if (viewer != null) {
-            setContentPane(viewer);
-        } else {
-            //JPanel panel = new JPanel();
-            //panel.setBackground(Color.orange);
-            loadLabel = new JLabel("Loading VUE...");
-            //label.setBackground(Color.orange);
-            //Box box = Box.createHorizontalBox();
-            getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
-            //getContentPane().setLayout(new FlowLayout());
-            //box.setOpaque(false);
-            //setContentPane(box);
-            getContentPane().add(Box.createHorizontalGlue());
-            getContentPane().add(loadLabel);
-            getContentPane().add(Box.createHorizontalGlue());
-            //getContentPane().add(label, BorderLayout.CENTER);
-        
-            new Thread(this).start();
-            
-        }
-        //installMapViewer();
-
-        msg("init completed");
+        	if (viewer != null) {
+        		loadViewer();
+        		//setContentPane(viewer);
+        	} else {
+        		loadLabel = new JLabel("Loading VUE...");
+        		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
+        		getContentPane().add(Box.createHorizontalGlue());
+        		getContentPane().add(loadLabel);
+        		getContentPane().add(Box.createHorizontalGlue());
+        		new Thread(this).start();
+        	}
+        	msg("init completed");
+    	
     }
 
     // Load the MapViewer, triggering massive class loading...
-    public void run() {
+    public void run() {	
         msg("load thread started...");
         try {
             loadViewer();
@@ -128,14 +96,21 @@ public class VueApplet extends JApplet implements Runnable {
         }
         msg("load thread complete");
     }
-
+    public void destroy() {
+    	super.destroy();
+    	msg("destroy");
+    }
     public void start() {
+    	super.start();
         msg("start");
     }
     
     public void stop() {
+    	super.stop();	
+    //	VUE.finalizeDocks();
         msg("stop");
     }
+    private JPanel toolbarPanel = null;
     
     public void loadViewer() {
       //  viewer = getMapViewer();
@@ -152,18 +127,24 @@ public class VueApplet extends JApplet implements Runnable {
      */   
         msg("contentPane set");
         msg("setting menu bar...");
-        setJMenuBar(new tufts.vue.gui.VueMenuBar());
+        
+        setJMenuBar(new VueMenuBar());
         //setContentPane(label);
-      ;
-        viewer = new MapViewer(map);
-        mMapTabbedPane.addViewer(viewer);
+      
+        if (viewer == null)
+        {
+        	viewer = new MapViewer(map);
+        	mMapTabbedPane.addViewer(viewer);
+       	   
+           
+        }
         
-        VueToolbarController tbc = VueToolbarController.getController();
-        
+        VueToolbarController tbc = VueToolbarController.getController();   
         JComponent toolbar = tbc.getToolbar().getMainToolbar();
+        toolbarPanel = VUE.constructToolPanel(toolbar);
         getContentPane().removeAll();
         getContentPane().setLayout(new BorderLayout());
-        JPanel toolbarPanel = VUE.constructToolPanel(toolbar);
+        
    	    this.getContentPane().add(toolbarPanel,BorderLayout.NORTH);
    	    getContentPane().add(mMapTabbedPane,BorderLayout.CENTER);
         msg("validating...");
@@ -175,19 +156,6 @@ public class VueApplet extends JApplet implements Runnable {
     private void msg(String s) {
         System.out.println("VueApplet: " + s);
         //showStatus("VueApplet: " + s);
-    }
-
-
-    private void installMapViewer() {
-        LWMap map = new LWMap("Applet Test Map");
-
-        VUE.installExampleMap(map);	
-
-        MapViewer v = new MapViewer(map);
-
-        //setContentPane(v);
-        this.getContentPane().add(v,BorderLayout.CENTER);
-        //getContentPane().add(viewer, BorderLayout.CENTER);
     }
     
     @SuppressWarnings("unchecked")
