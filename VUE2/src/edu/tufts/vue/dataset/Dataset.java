@@ -44,6 +44,7 @@ import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
 
+import edu.tufts.vue.layout.*;
 
 public class Dataset {
     

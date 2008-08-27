@@ -34,6 +34,7 @@ import java.awt.*;
 import java.awt.event.*;
 import au.com.bytecode.opencsv.CSVReader;
 
+import edu.tufts.vue.layout.*;
 
 public class DatasetLoader {
     public static final String LOADER_LABEL = "Dataset Type";
