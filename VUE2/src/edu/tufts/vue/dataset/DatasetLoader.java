@@ -32,7 +32,7 @@ import java.io.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import au.com.bytecode.opencsv.CSVReader;
+
 
 import edu.tufts.vue.layout.*;
 
@@ -66,11 +66,12 @@ public class DatasetLoader {
     }
     
     private JPanel createDatasetsTypePanel() {
-        final int numButtons = 2;
+        final int numButtons = 3;
         JRadioButton[] radioButtons = new JRadioButton[numButtons];
         final ButtonGroup group = new ButtonGroup();
         final String listDS = "List";
-        final String  relationalDS= "Relational";
+        final String relationalDS= "Relational";
+        final String folderDS = "Folder";
         
         
         radioButtons[0] = new JRadioButton("List");
@@ -79,6 +80,9 @@ public class DatasetLoader {
         radioButtons[1] = new JRadioButton("Relational");
         radioButtons[1].setActionCommand(relationalDS);
         
+        
+        radioButtons[2] = new JRadioButton("Folder");
+        radioButtons[2].setActionCommand(folderDS);
         for (int i = 0; i < numButtons; i++) {
             group.add(radioButtons[i]);
         }
@@ -90,12 +94,18 @@ public class DatasetLoader {
                 if (command == relationalDS) {
                     ds = new RelationalDataset();
                     ds.setLayout(new RelRandomLayout());
-                }  else {
+                } else if(command == folderDS) {
+                    ds = new FolderDataset();
+                }else {
                     ds  = new ListDataset();
                 }
                 ds.setFileName(fileName);
-                loadDataset();
-                ds.createOntology();
+                try {
+                    ds.loadDataset();
+                } catch(Exception ex) {
+                    ex.printStackTrace();
+                }
+              //  ds.createOntology();
                 dialog.setVisible(false);
             }
         });
@@ -105,43 +115,6 @@ public class DatasetLoader {
         
     }
     
-    private void loadDataset() {
-        try {
-            
-            ds.rowList = new ArrayList<ArrayList<String>>();
-            ds.label = fileName;
-            CSVReader reader;
-            if(fileName.endsWith(".csv")) {
-                reader = new CSVReader(new FileReader(fileName));
-            } else {
-                reader = new CSVReader(new FileReader(fileName),'\t');
-            }
-            String line;
-            int count = 0;
-            // add the first line to heading  of dataset
-            
-            String [] words;
-            while((words = reader.readNext()) != null && count < ds.MAX_SIZE) {
-                ArrayList<String> row = new ArrayList<String>();
-                for(int i =0;i<words.length;i++) {
-                    if(words[i].length() > ds.MAX_LABEL_SIZE) {
-                        row.add(words[i].substring(0,ds.MAX_LABEL_SIZE)+"...");
-                    } else {
-                        row.add(words[i]);
-                    }
-                }
-                if(count==0) {
-                    ds.setHeading(row);
-                }else {
-                    ds.rowList.add(row);
-                }
-                count++;
-            }
-            reader.close();
-        } catch(Exception ex) {
-            ex.printStackTrace();
-        }
-    }
     
     
     

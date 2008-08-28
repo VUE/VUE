@@ -44,6 +44,8 @@ import com.hp.hpl.jena.vocabulary.RDF;
 import com.hp.hpl.jena.shared.PrefixMapping;
 import com.hp.hpl.jena.util.iterator.Filter;
 
+import au.com.bytecode.opencsv.CSVReader;
+
 import edu.tufts.vue.layout.*;
 
 public class Dataset {
@@ -124,6 +126,38 @@ public class Dataset {
         }
         
         
+    }
+    public  void loadDataset() throws Exception {
+        rowList = new ArrayList<ArrayList<String>>();
+        label = fileName;
+        CSVReader reader;
+        if(fileName.endsWith(".csv")) {
+            reader = new CSVReader(new FileReader(fileName));
+        } else {
+            reader = new CSVReader(new FileReader(fileName),'\t');
+        }
+        String line;
+        int count = 0;
+        // add the first line to heading  of dataset
+        
+        String [] words;
+        while((words = reader.readNext()) != null && count < MAX_SIZE) {
+            ArrayList<String> row = new ArrayList<String>();
+            for(int i =0;i<words.length;i++) {
+                if(words[i].length() > MAX_LABEL_SIZE) {
+                    row.add(words[i].substring(0,MAX_LABEL_SIZE)+"...");
+                } else {
+                    row.add(words[i]);
+                }
+            }
+            if(count==0) {
+                setHeading(row);
+            }else {
+                rowList.add(row);
+            }
+            count++;
+        }
+        reader.close();
     }
     
     private  String getMapName(String fileName) {
