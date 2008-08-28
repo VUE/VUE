@@ -56,14 +56,13 @@ public class ListRandomLayout extends Layout {
         for(ArrayList<String> row: ds.getRowList()) {
             String node1Label = row.get(0);
             LWNode node1;
-            LWNode node2;
-            if(!nodeMap.containsKey(node1Label)) {
+             if(!nodeMap.containsKey(node1Label)) {
                 node1 = new LWNode(node1Label);
                 // add the ont type
-                VueMetadataElement vmOnt = new VueMetadataElement();
-                vmOnt.setValue(ds.getBaseClass());
-                vmOnt.setType(VueMetadataElement.ONTO_TYPE);
-                node1.getMetadataList().addElement(vmOnt);
+ //               VueMetadataElement vmOnt = new VueMetadataElement();
+ //               vmOnt.setValue(ds.getBaseClass());
+//                vmOnt.setType(VueMetadataElement.ONTO_TYPE);
+//                node1.getMetadataList().addElement(vmOnt);
                 
                 for(int i=1;i<row.size();i++ ) {
                     String value = row.get(i);
@@ -76,7 +75,10 @@ public class ListRandomLayout extends Layout {
                     vm.setType(VueMetadataElement.CATEGORY);
                     node1.getMetadataList().addElement(vm);
                 }
-                
+                if(ds.getHeading().size()>1 && ds.getHeading().get(1).equals("resource")) {
+                    Resource resource = node1.getResourceFactory().get(new File(row.get(1)));
+                    node1.setResource(resource);
+                }
                 nodeMap.put(node1Label,node1);
                 node1.layout();
                 map.add(node1);
@@ -97,6 +99,12 @@ public class ListRandomLayout extends Layout {
         Iterator<LWNode> nodeIterator =  map.getChildIterator();
         while(nodeIterator.hasNext()) {
             LWNode node = nodeIterator.next();
+            node.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+        }
+    }
+    
+    public void layout(List<LWNode> nodeList) {
+        for(LWNode node: nodeList) {
             node.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
         }
     }
