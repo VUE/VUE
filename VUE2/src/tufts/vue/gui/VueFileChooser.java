@@ -47,7 +47,7 @@ public class VueFileChooser extends JFileChooser{
 	public VueFileChooser()
 	{
 		super();
-		
+	
 		checkForChooser();
 		
 		
@@ -70,7 +70,17 @@ public class VueFileChooser extends JFileChooser{
 		VueFileChooser chooser = null;
 		if (!Util.isMacPlatform())
     	{
+    	 // TODO
+    	 // This is really what I want to do for the John Bullard issue, although,
+    	 // I'm not quite sure this will accomplish what I want, need to come 
+    	 // up with a test case to see if this will really go.
+    	 // MK
+		 // try{
     		chooser = new VueFileChooser();
+		 // } catch(Throwable t)
+		 // {
+		 //	  chooser.setUI(new javax.swing.plaf.metal.MetalFileChooserUI(chooser));
+		 // }
     		if (VueUtil.isCurrentDirectoryPathSet()) 
     			chooser.setCurrentDirectory(new File(VueUtil.getCurrentDirectoryPath()));
     	}
