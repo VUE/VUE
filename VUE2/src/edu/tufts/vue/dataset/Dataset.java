@@ -99,27 +99,14 @@ public class Dataset {
             OntModel m = ModelFactory.createOntologyModel(OntModelSpec.OWL_LITE_MEM, null);
             m.createClass(baseClass);
             OWLLOntology ontology = new OWLLOntology();
-            
-            //ontology.setBase((new File(fileName)).toURI().toURL().toString());
             ontology.equals(base);
-            // OntType ontType = new OntType();
-            // ontType.setId(ontClassLabel);
-            // ontType.setLabel(ontClassLabel);
-            // ontology.getOntTypes().add(ontType);
-            
-            // ontology.applyDefaultStyle();
-            //    ontology.write(new FileWriter(base));
             m.write(new FileWriter(base));
             edu.tufts.vue.ontology.OntManager.getOntManager().load();
             TypeList list = new TypeList();
-            
             tufts.vue.gui.Widget w = null;
             URL ontURL = new File(base).toURI().toURL();
             w = OntologyBrowser.getBrowser().addTypeList(list, ontology.getLabel(),ontURL);
-            //   list.loadOntology(new File(base).toURI().toURL(),ontology.getStyle(),OntologyChooser.getOntType(new URL(ontology.getBase())),OntologyBrowser.getBrowser(),w);
             list.loadOntology(ontURL ,null,OntologyChooser.getOntType(ontURL),OntologyBrowser.getBrowser(),w);
-            
-            //OntManager.getOntManager().addOntology((new File(fileName)).toURI().toURL(),ontology);
         } catch(Exception ex) {
             System.out.println("Dataset.createOntology :"+ex);
             ex.printStackTrace();
