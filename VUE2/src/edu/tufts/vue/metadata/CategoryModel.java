@@ -20,11 +20,9 @@
 package edu.tufts.vue.metadata;
 
 import  edu.tufts.vue.ontology.*;
-
 import java.util.*;
 import java.net.*;
 import java.io.*;
-
 import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.ontology.*;
 
@@ -89,7 +87,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
         defaultOntologyUrls = tufts.vue.VueResources.getStringArray("metadata.load.files");
         for(int i =0;i<defaultOntologyUrls.length;i++) {
             try {
-                loadOntology(tufts.vue.VueResources.getBundle().getClass().getResource(defaultOntologyUrls[i]));
+                loadOntology(/*tufts.vue.VueResources.getBundle().getClass()*/tufts.vue.VueResources.class.getResource(defaultOntologyUrls[i]));
             } catch(Throwable t) {
                 Log.error("Problem loading metadata: "+defaultOntologyUrls[i]+" Error:"+t.getMessage());
             }
@@ -100,7 +98,7 @@ public class CategoryModel extends ArrayList<edu.tufts.vue.ontology.Ontology>
         defaultOntologyUrls = tufts.vue.VueResources.getStringArray("metadata.load.files");
         //for(int i =0;i<defaultOntologyUrls.length;i++) {
             try {
-                loadOntology(location,tufts.vue.VueResources.getBundle().getClass().getResource(defaultOntologyUrls[location]));
+                loadOntology(location,tufts.vue.VueResources.class.getResource(defaultOntologyUrls[location]));
             } catch(Throwable t) {
                 Log.error("Problem loading metadata: "+defaultOntologyUrls[location]+" Error:"+t.getMessage());
             }
