@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.115 $ / $Date: 2008-08-08 16:04:37 $ / $Author: anoop $
+ * @version $Revision: 1.116 $ / $Date: 2008-09-11 01:35:45 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -809,15 +809,20 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	
         });
         
-        notesMenu.add(Actions.MapAsPDF);
-        notesMenu.add(Actions.FullPageSlideNotes);
-        notesMenu.add(Actions.Slides8PerPage);
-        notesMenu.add(Actions.SpeakerNotes1);
-        notesMenu.add(Actions.SpeakerNotes4);
-        notesMenu.add(Actions.AudienceNotes);
-        notesMenu.add(Actions.SpeakerNotesOutline);   
+        if (!VUE.isApplet())
+        {
+        	notesMenu.add(Actions.MapAsPDF);
+        	notesMenu.add(Actions.FullPageSlideNotes);
+        	notesMenu.add(Actions.Slides8PerPage);
+        	notesMenu.add(Actions.SpeakerNotes1);
+        	notesMenu.add(Actions.SpeakerNotes4);
+        	notesMenu.add(Actions.AudienceNotes);
+        	notesMenu.add(Actions.SpeakerNotesOutline);   
+        }
         
-        presentationMenu.add(notesMenu);
+        if (!VUE.isApplet())
+        	presentationMenu.add(notesMenu);
+        
         presentationMenu.addMenuListener(new MenuListener(){
 			public void menuCanceled(MenuEvent e) {/* no op	*/}
 			public void menuDeselected(MenuEvent e) {/*no op */}
@@ -835,8 +840,12 @@ public class VueMenuBar extends javax.swing.JMenuBar
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Analysis Menu
         ////////////////////////////////////////////////////////////////////////////////////
-        analysisMenu.add(createCMAction);
-        analysisMenu.add(analyzeCMAction);
+        if (!VUE.isApplet())
+        {
+        	analysisMenu.add(createCMAction);
+        	analysisMenu.add(analyzeCMAction);
+        }
+       
         
         ////////////////////////////////////////////////////////////////////////////////////
         // Window Menu
@@ -919,7 +928,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         add(formatMenu);
         add(contentMenu);
         add(presentationMenu);
-        add(analysisMenu);        
+        if (!VUE.isApplet())
+        	add(analysisMenu);        
         add(windowMenu);
         add(helpMenu);
         
