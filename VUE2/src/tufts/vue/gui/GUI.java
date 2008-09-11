@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.124 $ / $Date: 2008-08-20 18:34:13 $ / $Author: mike $
+ * @version $Revision: 1.125 $ / $Date: 2008-09-11 01:37:39 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -297,7 +297,8 @@ public class GUI
 
         UIManager.put("FileChooser.filesOfTypeLabelText","Format:");
 
-        javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
+        if (!VUE.isApplet())
+        	javax.swing.JPopupMenu.setDefaultLightWeightPopupEnabled(false);
         
         if (Util.getJavaVersion() < 1.5f)
             UseAlwaysOnTop = false;
@@ -437,7 +438,7 @@ public class GUI
         return false;
     }
     
-
+/*
     private static void installAquaLAFforVUE() {
         try {
             javax.swing.UIManager.setLookAndFeel(new VueAquaLookAndFeel());
@@ -445,7 +446,7 @@ public class GUI
             e.printStackTrace();
         }
     }
-
+*/
     private static class InitError extends Error {
         InitError(String s) {
             super("GUI.init hasn't run; indeterminate result for: " + s);
