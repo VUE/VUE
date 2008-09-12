@@ -43,7 +43,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  *
- * @version $Revision: 1.6 $ / $Date: 2008-08-21 13:46:38 $ / $Author: mike $ 
+ * @version $Revision: 1.7 $ / $Date: 2008-09-12 18:33:39 $ / $Author: mike $ 
  */
 public class VueApplet extends JApplet implements Runnable {
 
@@ -56,10 +56,16 @@ public class VueApplet extends JApplet implements Runnable {
     private LWMap map = null;
     static MapTabbedPane mMapTabbedPane = null;
     
+    //applet parameters
+   /*
+    * Valid values for zoteroPlugin : true , false default value: false
+    */
+    private static final String zoteroPlugin = "zoteroPlugin";
+    
     public void init() {
     	
-    		System.out.println("APPLET WIDTH : " + this.getWidth());
-    		System.out.println("APPLET HEIGHT : " + this.getHeight());
+    		//System.out.println("APPLET WIDTH : " + this.getWidth());
+    		//System.out.println("APPLET HEIGHT : " + this.getHeight());
     		VUE.setAppletContext(this.getAppletContext());
         	msg("init\n\tapplet=" + Integer.toHexString(hashCode()) + "\n\tcontext=" + getAppletContext());
         	if (!GUI.isGUIInited())
@@ -70,6 +76,8 @@ public class VueApplet extends JApplet implements Runnable {
         		map = new LWMap("Applet Map");
         	
         		VUE.initApplication();
+        		
+        		processAppletParameters();
         	}
         	if (viewer != null) {
         		loadViewer();
@@ -86,6 +94,17 @@ public class VueApplet extends JApplet implements Runnable {
     	
     }
 
+    private final void processAppletParameters()
+    {
+    	String zoteroPlugin = this.getParameter(this.zoteroPlugin);
+    	if (zoteroPlugin != null)
+    		zoteroPlugin = zoteroPlugin.toLowerCase();
+    	if (zoteroPlugin != null && zoteroPlugin.equals("true"))
+    	{
+    			tufts.vue.action.TextOpenAction.setZoteroPrototypeEnabled(true);
+    	}
+    	
+    }
     // Load the MapViewer, triggering massive class loading...
     public void run() {	
         msg("load thread started...");

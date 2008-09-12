@@ -49,7 +49,7 @@ public class TextOpenAction  extends VueAction {
     public static final int MAP_SIZE = 500;
     public static final int MAX_SIZE =5000;
     
-    public static final boolean ZOTERO_PROTOTYPE = false;
+    public static boolean ZOTERO_PROTOTYPE = false;
     
     public TextOpenAction(String label) {
         super(label, null, ":general/Open");
@@ -59,6 +59,15 @@ public class TextOpenAction  extends VueAction {
         this("Import Text file...");
     }
     
+    public static boolean isZoteroProtypeEnabled()
+    {
+    	return ZOTERO_PROTOTYPE;
+    }
+    
+    public static void setZoteroPrototypeEnabled(boolean enabled)
+    {
+    	ZOTERO_PROTOTYPE = enabled;
+    }
     
     // workaround for rapid-succession Ctrl-O's which pop multiple open dialogs
     private static final Object LOCK = new Object();
