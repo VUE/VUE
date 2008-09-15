@@ -25,10 +25,12 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.25 $ / $Date: 2008-09-15 14:24:59 $ / $Author: dan $ *
+ * @version $Revision: 1.26 $ / $Date: 2008-09-15 20:47:03 $ / $Author: dan $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
+    
+    public static final int UPPER_LEFT_MARGIN = 30;
     
 	private Dimension imageDimensions;
     private int xOffset, yOffset;
@@ -121,12 +123,17 @@ public class ImageMap extends VueAction {
             
             if (node.getParent() instanceof LWGroup)
             {
-            	groupX =(int)node.getParent().getMapX();
-            	groupY =(int)node.getParent().getMapY();
+                // don't count margin twixe in adjustment below
+                // note: offsets provide translation to upper left corner coordinate system
+                // todo: define a coordinate system within this class so don't have
+                // to adjust coordinates for any future artifacts to be placed in imagemap.'
+            	groupX =(int)node.getParent().getMapX() - xOffset - UPPER_LEFT_MARGIN;
+            	groupY =(int)node.getParent().getMapY() - yOffset - UPPER_LEFT_MARGIN;
             }	
             String res = "";
             int ox = (int)node.getMapX() + groupX -  xOffset;
-            int oy = (int)node.getMapY() + groupY -  yOffset;
+            int oy = (int)node.getMapY() + groupY -  yOffset; 
+            
             int ow = (int)node.getWidth();
             int oh = (int)node.getHeight();
                         
@@ -215,8 +222,9 @@ public class ImageMap extends VueAction {
         
         LWMap currentMap = VUE.getActiveMap();   
         Rectangle2D bounds = currentMap.getBounds();
-        xOffset = (int)bounds.getX()-30; 
-        yOffset = (int)bounds.getY()-30;
+        
+        xOffset = (int)bounds.getX()- UPPER_LEFT_MARGIN; 
+        yOffset = (int)bounds.getY()- UPPER_LEFT_MARGIN;
         Dimension size = new Dimension((int)bounds.getWidth(), (int)bounds.getHeight());
         
         String out = "<HTML><HEAD><TITLE>" + currentMap.getLabel();
