@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.24 $ / $Date: 2008-09-15 14:19:33 $ / $Author: dan $ *
+ * @version $Revision: 1.25 $ / $Date: 2008-09-15 14:24:59 $ / $Author: dan $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -121,8 +121,8 @@ public class ImageMap extends VueAction {
             
             if (node.getParent() instanceof LWGroup)
             {
-            	groupX =(int)node.getParent().getX();
-            	groupY =(int)node.getParent().getY();
+            	groupX =(int)node.getParent().getMapX();
+            	groupY =(int)node.getParent().getMapY();
             }	
             String res = "";
             int ox = (int)node.getMapX() + groupX -  xOffset;
