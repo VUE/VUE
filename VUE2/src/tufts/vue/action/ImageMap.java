@@ -25,7 +25,7 @@ import java.awt.image.BufferedImage;
 import tufts.vue.*;
 
 /**
- * @version $Revision: 1.23 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $ *
+ * @version $Revision: 1.24 $ / $Date: 2008-09-15 14:19:33 $ / $Author: dan $ *
  * @author  Jay Briedis
  */
 public class ImageMap extends VueAction {
@@ -97,8 +97,9 @@ public class ImageMap extends VueAction {
             else
             	continue;
             
-            if (node.hasChildren())
-              out += writeOutCss(imageName,(LWContainer)node);
+            // seemed to be creating duplicates (getAllDescendants already traverses entire tree..)
+            //if (node.hasChildren())
+            //  out += writeOutCss(imageName,(LWContainer)node);
                 
             String altLabel = null;
             
@@ -124,8 +125,8 @@ public class ImageMap extends VueAction {
             	groupY =(int)node.getParent().getY();
             }	
             String res = "";
-            int ox = (int)node.getX() + groupX -  xOffset;
-            int oy = (int)node.getY() + groupY -  yOffset;
+            int ox = (int)node.getMapX() + groupX -  xOffset;
+            int oy = (int)node.getMapY() + groupY -  yOffset;
             int ow = (int)node.getWidth();
             int oh = (int)node.getHeight();
                         
@@ -159,8 +160,9 @@ public class ImageMap extends VueAction {
             else
             	continue;
             
-            if (node.hasChildren())
-              out += writeOutLi((LWContainer)node);
+            // seemed to be creating duplicates (getAllDescendants already traverses entire tree..)
+            //if (node.hasChildren())
+            //  out += writeOutLi((LWContainer)node);
             
             String shape = "rect";
             String altLabel = null;
