@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.69 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $ 
+ * @version $Revision: 1.70 $ / $Date: 2008-09-15 23:01:52 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -421,10 +421,14 @@ public class DRBrowser extends JPanel
         Images.loadDiskCache();
         Log.debug("loading disk cache: done");
 
+        DockWindow.setManagedWindows(false);
+        
         DockWindow drDock = GUI.createDockWindow("Content");
         //DockWindow drDock = new DockWindow("Content", owner);
 		
         DRBrowser drBrowser = new DRBrowser(true, drDock, null);
+
+        //drDock.setFocusableWindowState(true);
         
         tufts.vue.ui.InspectorPane inspectorPane = new tufts.vue.ui.InspectorPane();
         //ObjectInspector = GUI.createDockWindow("Info");
@@ -454,6 +458,12 @@ public class DRBrowser extends JPanel
 
         drBrowser.loadDataSourceViewer();
 
+        GUI.invokeAfterAWT(new Runnable() { public void run() {
+            DataSourceViewer.cacheDataSourceViewers();
+        }});
+
+        DataSourceViewer.configureOSIDs();
+            
         /*
         DockWindow dw = GUI.createDockWindow("Test Resources");
         DRBrowser drb = new DRBrowser(true, dw, null);
