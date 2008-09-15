@@ -59,7 +59,7 @@ import javax.swing.border.*;
  * We'd probably need a delegating impl tho to handle that.
  *
  *
- * @version $Revision: 1.70 $ / $Date: 2008-09-15 23:01:52 $ / $Author: sfraize $ 
+ * @version $Revision: 1.71 $ / $Date: 2008-09-15 23:03:11 $ / $Author: sfraize $ 
  */
 public class DRBrowser extends JPanel
 {
@@ -463,6 +463,13 @@ public class DRBrowser extends JPanel
         }});
 
         DataSourceViewer.configureOSIDs();
+
+        //-------------------------------------------------------
+        // TODO: mods to the data-sources might wipe out the saved
+        // datasources, as the internal code currently handles
+        // auto-saving on change (need to fix that), but may not have
+        // been fully populated by our test load here?
+        // -------------------------------------------------------
             
         /*
         DockWindow dw = GUI.createDockWindow("Test Resources");
