@@ -54,7 +54,7 @@ import edu.tufts.vue.preferences.implementations.WindowPropertiesPreference;
  * want it within these Windows.  Another side effect is that the cursor can't be
  * changed anywhere in the Window when it's focusable state is false.
 
- * @version $Revision: 1.137 $ / $Date: 2008-08-04 17:15:26 $ / $Author: mike $
+ * @version $Revision: 1.138 $ / $Date: 2008-09-15 23:01:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -76,7 +76,7 @@ public class DockWindow
     //final static String DownArrow = "" + DownArrowChar;
 
     public final static int ToolbarHeight = VueResources.getInt("gui.dockToolbar.height", 70);
-    private final static boolean MacWindowShadowEnabled = false;
+    private static boolean MacWindowShadowEnabled = false;
     private static Border WindowBorder;
     private static Border ContentBorder;
     private static Border ContentBorderInset;
@@ -323,7 +323,7 @@ public class DockWindow
     }
 
     //private static final boolean ManagedWindows = !Util.isMacLeopard();
-    private static final boolean ManagedWindows = true;
+    private static boolean ManagedWindows = true;
     private static final boolean ON_TOP = true;
     private static final boolean DECORATED = true;
     
@@ -332,6 +332,12 @@ public class DockWindow
             //|| true
             //&& false
             ;
+    }
+
+    /** test */
+    public static void setManagedWindows(boolean managed) {
+        ManagedWindows = managed;
+        MacWindowShadowEnabled = !managed;
     }
 
 //     public static void lowerAll() {
