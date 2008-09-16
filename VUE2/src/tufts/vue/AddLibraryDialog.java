@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.75 $ / $Date: 2008-07-07 21:09:10 $ / $Author: sfraize $
+ * @version $Revision: 1.76 $ / $Date: 2008-09-16 11:54:40 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -32,6 +32,7 @@ import javax.swing.event.*;
 
 import java.awt.*;
 
+import tufts.vue.ds.*;
 import tufts.vue.gui.*;
 import tufts.vue.gui.FocusManager;
 
@@ -65,13 +66,18 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     private static String MY_COMPUTER_DESCRIPTION = "Add a browse control for your filesystem.  You can configure where to start the tree.";
     private static String MY_SAVED_CONTENT = "My Saved Content";
     private static String MY_SAVED_CONTENT_DESCRIPTION = "Add a browse control for your saved content.  You can configure a name for this source.";
-    private static String FTP = "FTP";
-    private static String FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
-    private static String LOADING = VueResources.getString("addLibrary.loading.label");
-    private static String RSS = "RSS Feed";
-    private static String RSS_DESCRIPTION = "RSS Feeds can be added by selecting this.";
+    private static String DS_FTP = "FTP";
+    private static String DS_FTP_DESCRIPTION = "Add a browse control for an FTP site.  You must configure this.";
+    private static String DS_RSS = "RSS Feed";
+    private static String DS_RSS_DESCRIPTION = "RSS Feeds can be added by selecting this.";
+    private static String DS_XML = "XML Data";
+    private static String DS_XML_DESCRIPTION = "XML sources can be added by selecting this.";
+    
     private static String TITLE = "Add a Resource";
     private static String AVAILABLE = "Resources available:";
+    
+    private static String LOADING = VueResources.getString("addLibrary.loading.label");
+    
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private ProviderListCellRenderer providerListRenderer;
     private Timer timer;
@@ -221,6 +227,9 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     	PopulateThread t = new PopulateThread();
         t.start();           
     }
+
+    /** apparently, the number of data sources before "LOADING" ? */
+    private static final int LIST_PARTITION_CONSTANT = DEBUG.Enabled ? 5 : 4;
     
     private void populate() {
         listModel.removeAllElements();
@@ -242,11 +251,12 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             //add all data sources we include with VUE
             listModel.addElement(MY_COMPUTER);            
             listModel.addElement(MY_SAVED_CONTENT);         
-             listModel.addElement(RSS);
-            listModel.addElement(FTP);
+            listModel.addElement(DS_RSS);
+            if (DEBUG.Enabled) listModel.addElement(DS_XML);
+            listModel.addElement(DS_FTP);
             listModel.addElement(LOADING);
        int ONE_TNTH_SECOND = 100;
-            providerListRenderer.invokeWaitingMode(4);
+            providerListRenderer.invokeWaitingMode(LIST_PARTITION_CONSTANT);
             timer = new Timer(ONE_TNTH_SECOND, new ActionListener() {
                 public void actionPerformed(ActionEvent evt) {
                     repaint();
@@ -258,7 +268,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
 			java.util.Vector providerIdStringVector = new java.util.Vector();
             org.osid.provider.ProviderIterator providerIterator = factory.getProviders();
             providerListRenderer.endWaitingMode();
-            listModel.remove(4);
+            listModel.remove(LIST_PARTITION_CONSTANT);
             while (providerIterator.hasNextProvider()) {
                 org.osid.provider.Provider nextProvider = providerIterator.getNextProvider();
 				// only latest
@@ -284,7 +294,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
 			}
 			
             // copy to an array            
-            int size = listModel.size()-4;
+            int size = listModel.size()-LIST_PARTITION_CONSTANT;
             checked = new org.osid.provider.Provider[size];
             for (int i=0; i < size; i++) {
                 checked[i] = (org.osid.provider.Provider)checkedVector.elementAt(i);
@@ -312,10 +322,12 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                         descriptionTextArea.setText(MY_COMPUTER_DESCRIPTION);
                     } else if (s.equals(MY_SAVED_CONTENT)) {
                         descriptionTextArea.setText(MY_SAVED_CONTENT_DESCRIPTION);
-                    } else if (s.equals(FTP)) {
-                        descriptionTextArea.setText(FTP_DESCRIPTION);
-                    } else if (s.equals(RSS)) {
-                        descriptionTextArea.setText(RSS_DESCRIPTION);
+                    } else if (s.equals(DS_FTP)) {
+                        descriptionTextArea.setText(DS_FTP_DESCRIPTION);
+                    } else if (s.equals(DS_RSS)) {
+                        descriptionTextArea.setText(DS_RSS_DESCRIPTION);
+                    } else if (s.equals(DS_XML)) {
+                        descriptionTextArea.setText(DS_XML_DESCRIPTION);
                     }
                 } else {
                     org.osid.provider.Provider p = (org.osid.provider.Provider)(((JList)lse.getSource()).getSelectedValue());
@@ -358,7 +370,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     String name = ds.getDisplayName();
                     xml = xml.replaceFirst("DEFAULT_NAME",name);
                     this.oldDataSource = ds;
-                } else if (s.equals(FTP)) {
+                } else if (s.equals(DS_FTP)) {
                     RemoteFileDataSource ds = new RemoteFileDataSource();
                     xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Name for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>FTP Address</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>256</maxChars><ui>0</ui></field><field><key>username</key><title>Username</title><description>FTP site username</description><default>DEFAULT_USERNAME</default><mandatory>true</mandatory><maxChars>64</maxChars><ui>9</ui></field><field><key>password</key><title>Password</title><description>FTP site password for username</description><default>DEFAULT_PASSWORD</default><mandatory>true</mandatory><maxChars></maxChars><ui>1</ui></field></configuration>";
                     String name = ds.getDisplayName();
@@ -374,8 +386,19 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                     xml = xml.replaceFirst("DEFAULT_USERNAME",username);
                     xml = xml.replaceFirst("DEFAULT_PASSWORD",password);
                     this.oldDataSource = ds;
-                } else if (s.equals(RSS)) {
+                } else if (s.equals(DS_RSS)) {
                     RSSDataSource ds = new RSSDataSource("", null);
+                    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Namee for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
+                    String name = ds.getDisplayName();
+                    if (name == null) name = "";
+                    String address = ds.getAddress();
+                    if (address == null) address = "";
+                    xml = xml.replaceFirst("DEFAULT_NAME",name);
+                    xml = xml.replaceFirst("DEFAULT_ADDRESS",address);
+                    this.oldDataSource = ds;
+                } else if (s.equals(DS_XML)) {
+                    // TODO: get rid of all this duplicate code: e.g., this is copy of RSS case
+                    XmlDataSource ds = new XmlDataSource("", null);
                     xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><configuration><field><key>name</key><title>Display Name</title><description>Namee for this datasource</description><default>DEFAULT_NAME</default><mandatory>true</mandatory><maxChars></maxChars><ui>0</ui></field><field><key>address</key><title>Address</title><description>RSS Url</description><default>DEFAULT_ADDRESS</default><mandatory>true</mandatory><maxChars>1000</maxChars><ui>0</ui></field></configuration>";
                     String name = ds.getDisplayName();
                     if (name == null) name = "";
@@ -516,7 +539,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             java.util.Properties p = cui.getProperties();
                             FavoritesDataSource ds = (FavoritesDataSource)this.oldDataSource;
                             ds.setDisplayName(p.getProperty("name"));
-                        } else if (s.equals(FTP)) {
+                        } else if (s.equals(DS_FTP)) {
                             java.util.Properties p = cui.getProperties();
                             RemoteFileDataSource ds = (RemoteFileDataSource)this.oldDataSource;
                             ds.setDisplayName(p.getProperty("name"));
@@ -532,11 +555,15 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
                             }
                             
                             
-                        } else if (s.equals(RSS)) {
+                        } else if (s.equals(DS_RSS) || s.equals(DS_XML)) {
                             java.util.Properties p = cui.getProperties();
-                            RSSDataSource ds = (RSSDataSource)this.oldDataSource;
+                            BrowseDataSource ds = (BrowseDataSource)this.oldDataSource;
                             ds.setDisplayName(p.getProperty("name"));
                             ds.setAddress(p.getProperty("address"));
+//                             java.util.Properties p = cui.getProperties();
+//                             RSSDataSource ds = (RSSDataSource)this.oldDataSource;
+//                             ds.setDisplayName(p.getProperty("name"));
+//                             ds.setAddress(p.getProperty("address"));
                         }
                     } else {
                         try {
