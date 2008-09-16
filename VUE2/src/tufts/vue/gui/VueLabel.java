@@ -29,7 +29,7 @@ public class VueLabel extends JLabel
 		super();
 	}
 	
-	public JToolTip createToolTip()
+	@Override public JToolTip createToolTip()
 	{
 		JMultiLineToolTip tip = new JMultiLineToolTip();
 		tip.setColumns(20);
