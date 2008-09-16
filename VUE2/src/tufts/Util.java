@@ -1005,10 +1005,20 @@ public class Util
     }
 
     public interface Itering<T> extends java.util.Iterator<T>, Iterable<T> {}
+    
+    public static abstract class AbstractItering<T> implements Itering<T> {
+        public Iterator<T> iterator() {
+            return this;
+        }
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
 
     public static <T> Itering<T> iterable(T o) {
         return new SingletonIterable<T>(o);
     }
+    
         
     /** Convenience class: provides a single element iterator.  Is also an iterable, returning self.
      * Each request for an iterable resets us to be iterated again (not threadsafe) */
@@ -1175,6 +1185,51 @@ public class Util
         
         public Iterator<T> iterator() { return this; }
     };
+
+//     /** Flatten's a Map who's values are collections: returns a key/value for each value in each collection */
+//     public static final class FlatteningIterator<K,V> extends AbstractItering<Map.Entry<K,V>> {
+
+//         final Iterator<Map.Entry<Object,Collection>> keyIterator;
+        
+//         /** this object returned as the result every time */
+//         final KVEntry entry = new KVEntry();
+        
+//         Iterator valueIterator;
+
+//         FlatteningIterator(Map<Object,Collection> map) {
+//             keyIterator = map.entrySet().iterator();
+//             if (keyIterator.hasNext()) {
+//                 findValueIteratorAndKey();
+//             } else {
+//                 valueIterator = Iterators.emptyIterator();
+//             }
+//         }
+
+//         void findValueIteratorAndKey() {
+//             final Map.Entry e = keyIterator.next();
+//             entry.key = e.getKey();
+//             Collection collection = (Collection) e.getValue();
+//             valueIterator = collection.iterator();
+//         }
+
+//         public boolean hasNext() {
+//             return valueIterator.hasNext() || keyIterator.hasNext();
+//         }
+
+//         /** note: current impl will always return the same Map.Entry object */
+//         public Map.Entry next() {
+//             if (!hasNext()) throw new NoSuchElementException();
+            
+//             if (!valueIterator.hasNext())
+//                 findValueIteratorAndKey();
+
+//             entry.value = valueIterator.next();
+            
+//             return entry;
+//         }
+//     }
+    
+    
     
 
     /** for providing a copy of a list -- especially useful for providing a concurrency safe iteration of a list */
