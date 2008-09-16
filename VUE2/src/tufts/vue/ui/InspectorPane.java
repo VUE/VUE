@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.96 $ / $Date: 2008-07-14 17:08:35 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2008-09-16 12:02:09 $ / $Author: sfraize $
  */
 
 public class InspectorPane extends WidgetStack
@@ -435,7 +435,50 @@ public class InspectorPane extends WidgetStack
         component.setName(title);
     }
 
-    private static String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "inspector-content";
+    private static final String DESCRIPTION_VIEWER_KEY = Resource.HIDDEN_RUNTIME_PREFIX + "inspector-content";
+    
+    //-----------------------------------------------------------------------------
+    // experimental code to export to PropertyMap:
+    private static final class Key<T> {
+        final String name;
+        //Key(T t) { type = t; }
+        Key(String s) { name = s; }
+        //Key() { name = T.class; } // can't query type for class
+        @Override
+        public String toString() {
+            return name;
+        }
+
+        public T cast(Object o) { // would this be needed / handy?  (would it even work to throw a cast-class, or is this all type-erased?)
+            return (T) o;
+        }
+    }
+    
+    //private static final Key<JComponent> DESCRIPTION_VIEWER = new Key(JComponent.class);
+    private static final Key<JComponent> DESCRIPTION_VIEWER = new Key("description_viewer");
+    private static final Key<Integer> DESCRIPTION_VIEWER_N = new Key("test_int");
+
+    private static <T> T get(Key<T> key) { return (T) null; }
+
+    // or could infer a new key from arguments? (of course, would need to cache the keys tho)
+    //private static <T> void put(Class<T> type, String name, T value) {
+    private static <T> T put(String name, T value) {
+        Key<T> key = new Key(name);
+
+        return get(key);
+    }
+
+    static {
+//         int x = put("foo", 1);
+//         long z = put("foo", 1);
+//         char c = put("foo", 'x');
+//         JLabel l = put("bar", new JLabel("baz"));
+//         //JLabel m = put("bar", new JPanel()); // error, as appropriate
+        
+//         JComponent foo = get(DESCRIPTION_VIEWER);
+//         int i = get(DESCRIPTION_VIEWER_N);
+    }    
+    //-----------------------------------------------------------------------------
 
     private void loadResource(final Resource r) {
         
@@ -484,6 +527,8 @@ public class InspectorPane extends WidgetStack
 
                 if (gotView)
                     r.setProperty(DESCRIPTION_VIEWER_KEY, new java.lang.ref.SoftReference(descriptionView));
+                // r.putSoft
+                // r.data.putSoft
             }
 
             mDescription.removeAll();
@@ -525,7 +570,7 @@ public class InspectorPane extends WidgetStack
         htmlText.addHyperlinkListener(DefaultHyperlinkListener);
             
         if (desc != null) {
-            StringBuffer buf = new StringBuffer(desc.length() + 128);
+            final StringBuilder buf = new StringBuilder(desc.length() + 128);
 
             //int si = desc.indexOf("</style>");
             //                if (si > 0) {
@@ -552,15 +597,47 @@ public class InspectorPane extends WidgetStack
             if (desc.indexOf("<style") < 0) {
                 // only add a title of now style sheet present ("complex content" e.g., jackrabbit jira)
 
-                buf.append("<b>");
+                buf.append("<b><font size=+1>");
                 buf.append(title);
-                buf.append("</b>\n<p>");
+                buf.append("</font></b>");
 
+                Object published = r.getProperty("Published");
+                if (published == null)
+                    published = r.getProperty("pubDate");
+                
+                if (published != null) {
+                    buf.append("<br>\n");
+                    //buf.append("<font size=-1 color=808080>");
+                    buf.append("<font color=B0B0B0><b>");
+                    buf.append(published);
+                    String author = r.getProperty("Author");
+                    if (author == null)
+                        author = r.getProperty("dc:creator");
+                    if (author != null) {
+                        buf.append(" - ");
+                        buf.append(author);
+                    }
+                    buf.append("</b></font>");
+                    //buf.append("Published " + r.getProperty("Published"));
+                }
+
+                //             if (r.hasProperty("Published")) {
+                //                 buf.append("<p>");
+                //                 //buf.append("<font size=-1 color=808080>");
+                //                 buf.append("<font color=B0B0B0><b>");
+                //                 buf.append(r.getProperty("Published"));
+                //                 //buf.append("Published " + r.getProperty("Published"));
+                //             }
+
+                
                 // first, handle white-space around breaks so as not to overbreak later handling newlines
                 desc = desc.replaceAll("<br>\\s*<br>\\s*", "<p>");
                     
                 // now handle common paragraph breaks
                 desc = desc.replaceAll("\n\n", "<p>");
+
+                if (!desc.startsWith("<p>"))
+                    buf.append("<p>\n");
 
             }
 
@@ -587,14 +664,6 @@ public class InspectorPane extends WidgetStack
 
                 // not all HTML entities are handled by JTextPane, for example: &mdash; &euro;
                 buf.append(org.apache.commons.lang.StringEscapeUtils.unescapeHtml(desc));
-            }
-
-            if (r.hasProperty("Published")) {
-                buf.append("<p>");
-                //buf.append("<font size=-1 color=808080>");
-                buf.append("<font color=B0B0B0><b>");
-                buf.append(r.getProperty("Published"));
-                //buf.append("Published " + r.getProperty("Published"));
             }
 
             final String reformatted = buf.toString();
@@ -638,7 +707,7 @@ public class InspectorPane extends WidgetStack
             //mDescription.setToolTipText(reformatted);
             if (DEBUG.Enabled) r.setProperty("~reformatted", reformatted);
         } else {
-            final StringBuffer b = new StringBuffer(128);
+            final StringBuilder b = new StringBuilder(128);
             final String title = r.getTitle();
             if (title != null) {
                 b.append("<b>");
