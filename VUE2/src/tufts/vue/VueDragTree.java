@@ -32,7 +32,7 @@ import java.net.*;
 import java.awt.event.*;
 import java.awt.datatransfer.*;
 import java.awt.dnd.*;
-import java.util.Vector;
+import java.util.*;
 import javax.swing.event.*;
 import osid.dr.*;
 
@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.79 $ / $Date: 2008-07-07 21:20:10 $ / $Author: sfraize $
+ * @version $Revision: 1.80 $ / $Date: 2008-09-16 12:31:44 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  Scott Fraize
  */
@@ -70,7 +70,9 @@ public class VueDragTree extends JTree
 //     protected static final ImageIcon inactiveIcon = VueResources.getImageIcon("favorites.inactiveIcon") ;
 //     protected static final ImageIcon activeIcon = VueResources.getImageIcon("favorites.activeIcon") ;
 
-    public VueDragTree(Iterable iterable, String treeName) {
+    private final java.util.List<Resource> mResources = new ArrayList();
+
+    public VueDragTree(Iterable<Resource> iterable, String treeName) {
         if (DEBUG.DR) Log.debug("NEW: " + treeName + "; " + Util.tags(iterable));
         //if (DEBUG.Enabled) Util.printStackTrace(Util.tags(this) + "; NEW " + getClass() + " " + treeName);
         setModel(createTreeModel(iterable, treeName));
@@ -225,17 +227,16 @@ public class VueDragTree extends JTree
     
     
     
-    private DefaultTreeModel createTreeModel(Iterable iterable, String treeName) {
+    private DefaultTreeModel createTreeModel(Iterable<Resource> iterable, String treeName) {
         //final Resource resourceRoot = Resource.getFactory().get(treeName);
         //final ResourceNode root = new ResourceNode(resourceRoot);
         final ResourceNode root = new RootNode(treeName);
         if (DEBUG.Enabled) Log.debug("createTreeModel: " + root);
         
         if (iterable != null) {
-            Iterator i = iterable.iterator();
             boolean didFirst = false;
-            while (i.hasNext()) {
-                Object resource = i.next();
+            for (Resource resource : iterable) {
+                mResources.add(resource);
                 if (DEBUG.RESOURCE || DEBUG.DR) Log.debug("\tchild: " + resource);
 
                 if (resource instanceof CabinetResource) {
@@ -260,7 +261,7 @@ public class VueDragTree extends JTree
                             cabNode.explore();
                     }
                 } else {
-                    ResourceNode node = new ResourceNode((Resource)resource);
+                    ResourceNode node = new ResourceNode(resource);
                     
                     //-------------------------------------------------------
                     root.add(node);
@@ -329,6 +330,18 @@ public class VueDragTree extends JTree
         JPopupMenu popup = new JPopupMenu();
         menuItem = new JMenuItem("Open Resource");
         menuItem.addActionListener(this);
+        popup.add(menuItem);
+        if (mResources.size() > 0) {
+            menuItem = new JMenuItem("Add All To Map");
+            menuItem.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        VUE.getActiveViewer().getMapDropTarget()
+                            .processTransferable(new tufts.vue.gui.GUI.ResourceTransfer(mResources), null);
+                        // VUE.getActiveMap().getUndoManager().mark("Add Resources to Map"); // todo: can't override pre-existing "Drop" mark
+                    }
+                });
+        }
+                
         popup.add(menuItem);
         
         //Add listener to the text area so the popup menu can come up.
