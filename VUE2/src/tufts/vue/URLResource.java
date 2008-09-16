@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
  * Resource, if all the asset-parts need special I/O (e.g., non HTTP network traffic),
  * to be obtained.
  *
- * @version $Revision: 1.77 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.78 $ / $Date: 2008-09-16 12:22:29 $ / $Author: sfraize $
  */
 
 public class URLResource extends Resource implements XMLUnmarshalListener
@@ -450,10 +450,10 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         if (mXMLpropertyList == null)
             return;
         
-        for (PropertyEntry entry : mXMLpropertyList) {
+        for (KVEntry entry : mXMLpropertyList) {
             
-            final Object key = entry.getEntryKey();
-            final Object value = entry.getEntryValue();
+            final Object key = entry.getKey();
+            final Object value = entry.getValue();
 
             try {
                 
@@ -466,6 +466,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                     setURL_Thumb((String) value);
                 } else {
                     setProperty((String)key, value);
+                    //addProperty((String)key, value);
                 }
                 
             } catch (Throwable t) {
@@ -1620,15 +1621,22 @@ public class URLResource extends Resource implements XMLUnmarshalListener
                 return null;
 
             mXMLpropertyList = new ArrayList(mProperties.size());
+            
+            for (Map.Entry<String,?> e : mProperties.entrySet())
+                mXMLpropertyList.add(new PropertyEntry(e));
+            
+            // E.g., if using a multi-map: (or provide an asMap() view)
+            // for (Map.Entry<String,?> e : mProperties.flattendEntries())
 
-            Iterator i = mProperties.keySet().iterator();
-            while (i.hasNext()) {
-                final String key = (String) i.next();
-                final PropertyEntry entry = new PropertyEntry();
-                entry.setEntryKey(key);
-                entry.setEntryValue(mProperties.get(key));
-                mXMLpropertyList.add(entry);
-            }
+
+//             Iterator i = mProperties.keySet().iterator();
+//             while (i.hasNext()) {
+//                 final String key = (String) i.next();
+//                 final PropertyEntry entry = new PropertyEntry();
+//                 entry.setEntryKey(key);
+//                 entry.setEntryValue(mProperties.get(key));
+//                 mXMLpropertyList.add(entry);
+//             }
         }
 
         if (DEBUG.CASTOR) System.out.println(this + " getPropertyList " + mXMLpropertyList);
@@ -1764,7 +1772,7 @@ public class URLResource extends Resource implements XMLUnmarshalListener
         setSpec(s);
     }
 
-    protected void setURL_Thumb(String s) {
+    public void setURL_Thumb(String s) {
         if (DEBUG.RESOURCE) dumpField("setURL_Thumb", s);
         // TODO performance: don't need to do this until thumbnail is requested
         mURL_ThumbData = makeURL(s);
