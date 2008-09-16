@@ -30,7 +30,7 @@ import javax.swing.*;
 import static tufts.vue.ds.XMLIngest.*;
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2008-09-16 12:00:50 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-09-16 12:12:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -128,7 +128,8 @@ public class XmlDataSource extends BrowseDataSource
         final Resource top = Resource.instance(getAddress());
 
         top.reset();
-        top.setClientType(Resource.DIRECTORY);
+        //top.setClientType(Resource.DIRECTORY); // todo: fix later -- Resource.java can't be checked in at the moment
+        top.setClientType(3);
         top.setTitle("XML Data Feed: " + getDisplayName() + " " + new Date());
         top.setProperty("URL", getAddress());
         //fr.setDataType("xml");
