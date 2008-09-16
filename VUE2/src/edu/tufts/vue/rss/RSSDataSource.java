@@ -13,12 +13,6 @@
  * permissions and limitations under the License.
  */
 
-/**
- * @author akumar03
- * @author Daniel J. Heller
- * @author Scott Fraize
- */
-
 package edu.tufts.vue.rss;
 
 import tufts.vue.*;
@@ -37,20 +31,19 @@ import com.sun.syndication.io.*;
 import com.sun.syndication.feed.*;
 import com.sun.syndication.feed.synd.*;
 
+/**
+ * @version $Revision: 1.20 $ / $Date: 2008-09-16 12:03:24 $ / $Author: sfraize $
+ *
+ * @author akumar03
+ * @author Daniel J. Heller
+ * @author Scott Fraize
+ */
 
 public class RSSDataSource extends BrowseDataSource
 {
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(RSSDataSource.class);
-    private static final String JIRA_SFRAIZE_COOKIE = "seraph.os.cookie=LkPlQkOlJlHkHiEpGiOiGjJjFi";
     
-    public static final String DEFAULT_AUTHORIZATION_COOKIE = DEBUG.Enabled ? JIRA_SFRAIZE_COOKIE : "none";
-    public static final String AUTHORIZATION_COOKIE_KEY = "url_authentication_cookie";
-    
-    // apparent, some RSS Feeds (e.g., craigslist) will fail with "TOO MANY REDIRECTS" if there isn't SOME cookie sent
-    private String authorizationCookie = DEFAULT_AUTHORIZATION_COOKIE;
-
     private List<SyndEntry> mItems;
-    
     
     public RSSDataSource() {
         //Log.debug("created empty RSS feed");
@@ -70,44 +63,15 @@ public class RSSDataSource extends BrowseDataSource
     public int getCount() {
         return mItems == null ? -1 : mItems.size();
     }
-    
-    
-    @Override
-    public void setConfiguration(java.util.Properties p) {
 
-        super.setConfiguration(p);
+    /** apparently, some RSS Feeds (e.g., craigslist) will fail with "TOO MANY REDIRECTS" if there isn't SOME cookie sent,
+     * so this always at least returns "none" */
+    @Override public String getAuthenticationCookie() {
+        final String cookie = super.getAuthenticationCookie();
 
-        String val;
-        
-        if ((val = p.getProperty(AUTHORIZATION_COOKIE_KEY)) != null)
-            setAuthorizationCookie(val);
-    }
-
-    private void setAuthorizationCookie(String s) {
-        Log.debug("setAuthorizationCookie[" + s + "]");
-        if (s == authorizationCookie || (s != null && s.equals(authorizationCookie))) {
-            return;
-        } else {
-            authorizationCookie = s;
-            unloadViewer();
-        }
+        return cookie == null ? "none" : cookie;
     }
     
-//     public CharSequence getConfigurationUI_XML_Fields() {
-//         final StringBuffer b = new StringBuffer();       
-//         // all elements appear to be required or ConfigurationUI bombs
-//         b.append("<field>");
-//         b.append("<key>url_authentication_cookie</key>");
-//         b.append("<title>Authentication</title>");
-//         b.append("<description>Any required authentication cookie</description>");
-//         //b.append("<default></default>");
-//         b.append("<default>" + DEFAULT_AUTHORIZATION_COOKIE + "</default>");
-//         b.append("<mandatory>false</mandatory>");
-//         b.append("<maxChars>99</maxChars>");
-//         b.append("<ui>0</ui>");
-//         b.append("</field>");
-//         return b;
-//     }
     
     @Override
     protected JComponent buildResourceViewer() {
@@ -132,84 +96,25 @@ public class RSSDataSource extends BrowseDataSource
     {
         Log.debug("loadContentAndBuildViewer...");
         
-        String addressText = getAddress();
+        //final WireFeedInput feedBuilder = new WireFeedInput();
 
-        if (addressText.toLowerCase().startsWith("feed:"))
-            addressText = "http:" + addressText.substring(5);
-        
-        URL address = null;
-        
-        try {
-            address = new URL(addressText);
-        } catch (Throwable t) {
-            throw new DataSourceException("Bad RSS feed address", t);
-        }
-        
+        final URLConnection conn = openAddress();
+        final Map<String,List<String>> headers = conn.getHeaderFields();
         final SyndFeedInput feedBuilder = new SyndFeedInput();
         final SyndFeed _feed;
-
-        Map<String,List<String>> headers = null;
         
         try {
-            if (DEBUG.Enabled) Log.debug("opening " + address);
-            URLConnection conn = address.openConnection(); 
-            conn.setRequestProperty("User-Agent","Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.8) Gecko/20071008 Firefox/2.0.0.8");
-            
-            if (authorizationCookie != null)
-                conn.setRequestProperty("Cookie", authorizationCookie);
-//             else if (tufts.vue.DEBUG.Enabled)
-//                 conn.setRequestProperty("Cookie", DEFAULT_AUTHORIZATION_COOKIE);
-            
-            // TODO: "old-stye" build-in VueDataSource's don't appear to be able to persist
-            // extra properties, so above we're always sending a default cookie above
-            // just in case we're accessing VUE's JIRA site -- this for VUE3 test phase only
-            
-            if (DEBUG.Enabled) Log.debug("request-properties: " + conn.getRequestProperties());
-            
-            conn.connect();
-
-            if (DEBUG.Enabled) {
-
-                Log.debug("connected; fetching headers [" + conn + "]");
-                
-                final StringBuffer buf = new StringBuffer(512);
-                
-                buf.append("headers [" + conn + "];\n");
-                
-                headers = conn.getHeaderFields();
-                
-                List<String> response = headers.get(null);
-                if (response != null)
-                    buf.append(String.format("%20s: %s\n", "HTTP-RESPONSE", response));
-                
-                for (Map.Entry<String,List<String>> e : headers.entrySet()) {
-                    if (e.getKey() != null)
-                        buf.append(String.format("%20s: %s\n", e.getKey(), e.getValue()));
-                }
-                
-                Log.debug(buf);
-                
-            }
-            
-            
             //feed = feedBuilder.build(new InputStreamReader(conn.getInputStream()));
             
             // XmlReader does magic to try and best handle the input charset-encoding:
             XmlReader charsetEncodingReader = new XmlReader(conn);
             _feed = feedBuilder.build(charsetEncodingReader);
 
-        } catch (FeedException fe) {
-            throw new DataSourceException(null, fe);
         } catch (java.io.IOException io) {
             throw new DataSourceException(null, io);
+        } catch (FeedException fe) {
+            throw new DataSourceException(null, fe);
         }
-// Let other exceptions pass up undisturbed:
-//         } catch (Throwable t) {
-//             //Log.error("opening feed " + address, t);
-//             throw new DataSourceException("RSS feed error", t);
-//         }
-        
-        //final WireFeedInput feedBuilder = new WireFeedInput();
         
         final SyndFeed feed = _feed;
 
@@ -235,8 +140,7 @@ public class RSSDataSource extends BrowseDataSource
         final Resource fr = Resource.instance(feed.getLink());
 
         fr.reset();
-        //fr.setClientType(Resource.DIRECTORY);
-        fr.setClientType(3);
+        fr.setClientType(Resource.DIRECTORY);
         //fr.setDataType("rss");
         fr.setTitle(feed.getTitle());
         
