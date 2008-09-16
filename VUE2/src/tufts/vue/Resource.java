@@ -37,7 +37,7 @@ import javax.swing.ImageIcon;
  *  objects, displaying their content, and fetching their data.
 
  *
- * @version $Revision: 1.81 $ / $Date: 2008-07-16 15:17:33 $ / $Author: sfraize $
+ * @version $Revision: 1.82 $ / $Date: 2008-09-16 12:25:13 $ / $Author: sfraize $
  */
 
 public abstract class Resource implements Cloneable
@@ -199,7 +199,7 @@ public abstract class Resource implements Cloneable
     static final int NONE = 0;              //  Unknown type.
     static final int FILE = 1;              //  Resource is a Java File object.
     static final int URL = 2;               //  Resource is a URL.
-    static final int DIRECTORY = 3;         //  Resource is a directory or folder.
+    public static final int DIRECTORY = 3;         //  Resource is a directory or folder.
     static final int FAVORITES = 4;         //  Resource is a Favorites Folder
     static final int ASSET_OKIDR  = 10;     //  Resource is an OKI DR Asset.
     static final int ASSET_FEDORA = 11;     //  Resource is a Fedora Asset.
