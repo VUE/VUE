@@ -35,7 +35,7 @@ import javax.swing.*;
  * Note that the ultimate behaviour of the stack will be very dependent on the
  * the preferredSize/maximumSize/minimumSize settings on the contained JComponent's.
  *
- * @version $Revision: 1.46 $ / $Date: 2008-07-07 18:32:01 $ / $Author: sfraize $
+ * @version $Revision: 1.47 $ / $Date: 2008-09-16 21:53:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class WidgetStack extends Widget
@@ -490,7 +490,7 @@ public class WidgetStack extends Widget
                                         15, // fixed width
                                         16); // fixed height
             //if (isMac)
-                 mIcon.setBorder(new javax.swing.border.EmptyBorder(0,0,1,0)); // t,l,b,r
+                 mIcon.setBorder(GUI.makeSpace(0,0,1,0)); // t,l,b,r
              
             add(mIcon);
             
@@ -499,8 +499,22 @@ public class WidgetStack extends Widget
 
             add(Box.createGlue());
             
+//             if (true) {
+//                 //final AbstractButton addAll = new VueButton("add");
+//                 final AbstractButton addAll = new JButton(); 
+//                 addAll.setIcon(VueResources.getIcon("add.raw"));
+//                 addAll.setOpaque(false);
+//                 addAll.setBorder(null);
+//                 //addAll.setBorderPainted(false);
+//                 addAll.setAlignmentY(0.5f);                
+//                 addAll.setBorder(GUI.makeSpace(0,0,1,0));
+//                 add(addAll);
+//                 add(Box.createHorizontalStrut(2));
+//             }
+            
             refreshButton = new RefreshButton("refreshButton",null);
             add(refreshButton);
+            
             
             miscActionButton = new MiscActionButton();
             add(miscActionButton);
@@ -871,7 +885,7 @@ public class WidgetStack extends Widget
             // todo: to keep manually picking a height and a bottom pad to get this
             // middle aligned is no good: will eventually want to use a TextLayout to
             // get precise bounds for center, and create as a real Icon
-            setBorder(new javax.swing.border.EmptyBorder(3,3,3,3));
+            setBorder(GUI.makeSpace(3,3,3,3));
             setMenuActions(actions);
             
         }
@@ -907,6 +921,55 @@ public class WidgetStack extends Widget
 
         
     }
+    
+// // Todo: the below classes are all doing something almost identical to this: refactor
+//     private static class RolloverButton extends JLabel implements MouseListener {
+//     	private final String iconNormal;
+//     	private final String iconRollover;
+    
+//         RolloverButton(String iconName, MouseListener action) {
+//             this.iconName = iconName;
+//             setAlignmentY(0.5f);
+//             addMouseListener(this);
+//             setAction(action);
+//             mouseExited(null); // initialie icon
+//         }
+
+//         public void setAction(MouseListener action) 
+//         {
+//             clearAction();
+
+//             if (action == null) {
+//                 setVisible(false);
+//                 return;
+//             }
+//             else
+//             {            	
+//             	addMouseListener(this);
+//             	addMouseListener(action);
+//             	setVisible(true);
+//             }
+
+//         }
+//         private void clearAction() {
+//             MouseListener[] ml = getMouseListeners();
+//             for (int i = 0; i < ml.length; i++) {                
+//                     removeMouseListener(ml[i]);
+//             }
+//         }
+//         public void mouseEntered(MouseEvent arg0) {
+//             setIcon(VueResources.getImageIcon(iconName+".hover"));
+//         }
+
+//         public void mouseExited(MouseEvent arg0) {
+//             setIcon(VueResources.getImageIcon(iconName+".raw"));
+//         }
+//         public void mouseClicked(MouseEvent arg0) {}
+//         public void mousePressed(MouseEvent arg0) {}
+//         public void mouseReleased(MouseEvent arg0) {}
+
+//     }
+
 
     static class HelpButton extends VueLabel implements MouseListener {
         
@@ -922,7 +985,7 @@ public class WidgetStack extends Widget
             // middle aligned is no good: will eventually want to use a TextLayout to
             // get precise bounds for center, and create as a real Icon
         	addMouseListener(this);
-            setBorder(new javax.swing.border.EmptyBorder(3,3,3,3));
+            setBorder(GUI.makeSpace(3,3,3,3));
             setHelpText(null);
         }    
         
@@ -968,20 +1031,28 @@ public class WidgetStack extends Widget
 		}                
 
     }
-    static class RefreshButton extends JLabel implements MouseListener{
+    
+    static class RefreshButton extends JLabel implements MouseListener {
     	
-    	private String iconChar;
-    	
+// Would make more sense as extending AbstractButton, but is having trouble being visible that way.
+//         RefreshButton(String icon, MouseListener action) {
+//             setIcon(VueResources.getImageIcon(icon+".raw"));        	     
+//             setRolloverIcon(VueResources.getImageIcon(icon+".hover"));
+//             setText("bang");
+//             setBorderPainted(false);
+//             setRolloverEnabled(true);
+//             setAction(action);           
+//         }
+        
+    	private final String iconChar;
+    
         RefreshButton(String icon, MouseListener action) {
-        	super();
-        	iconChar = icon;
-        	setIcon(VueResources.getImageIcon(iconChar+".raw"));        	     
-        	Insets noInsets=new Insets(0,0,0,0);
+            iconChar = icon;
+            setIcon(VueResources.getImageIcon(iconChar+".raw"));        	     
             setAlignmentY(0.5f);
-            setBorder(new javax.swing.border.EmptyBorder(3,0,3,5));
+            setBorder(GUI.makeSpace(3,0,3,5));
             addMouseListener(this);
             setAction(action);           
-            
         }
 
         public void setAction(MouseListener action) 
@@ -1044,7 +1115,7 @@ public class WidgetStack extends Widget
         	        	     
         	Insets noInsets=new Insets(0,0,0,0);
             setAlignmentY(0.5f);
-            setBorder(new javax.swing.border.EmptyBorder(3,0,3,5));
+            setBorder(GUI.makeSpace(3,0,3,5));
             addMouseListener(this);
             setAction(null);         
             
