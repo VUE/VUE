@@ -221,22 +221,37 @@ public class UndoManager
          */
         String getDisplayName() {
             if (DEBUG.UNDO) return this.name + " {" + changeCount() + "}";
+            String display = null;
+            try {
+                display = produceDisplayName();
+            } catch (Throwable t) {
+                Log.error(Util.tags(this.name), t);
+            }
+            return display == null ? this.name : display;
+        }
+        
+        private String produceDisplayName() {
+
+            if (this.name == LWKey.HierarchyChanging)
+                return "(Hierarchy Change)"; // shouldn't see this
             
             String display = "";
             String uName = this.name;
-            if (uName == LWKey.HierarchyChanging)
-                uName = "Change";
-            else if (uName.startsWith("hier."))
+            
+            if (uName.startsWith("hier."))
                 uName = uName.substring(5);
             // Replace all '.' with ' ' and capitalize first letter of each word
             uName = uName.replace('-', '.');
-            String[] word = uName.split("\\.");
-            for (int i = 0; i < word.length; i++) {
-                if (Character.isLowerCase(word[i].charAt(0)))
-                    word[i] = Character.toUpperCase(word[i].charAt(0)) + word[i].substring(1);
+            String[] words = uName.split("\\.");
+            for (int i = 0; i < words.length; i++) {
+                final String word = words[i];
+                if (word.length() == 0)
+                    return null; // if seen multiple dots in a row, presume pre-formatted
+                if (Character.isLowerCase(word.charAt(0)))
+                    words[i] = Character.toUpperCase(word.charAt(0)) + word.substring(1);
                 if (i > 0)
                     display += " ";
-                display += word[i];
+                display += words[i];
             }
             return display;
         }
