@@ -684,6 +684,10 @@
        
        <field name = "address" type = "string">
             <bind-xml name ="address" node = "element" />
+       </field>
+       
+       <field name = "authenticationCookie" type = "string">
+            <bind-xml name ="authentication" node = "element" />
        </field> 
  </class>
  <class name="tufts.vue.LocalFileDataSource" extends="tufts.vue.BrowseDataSource">
@@ -705,8 +709,15 @@
     </field>
 </class>
  <class name="edu.tufts.vue.rss.RSSDataSource" extends="tufts.vue.BrowseDataSource">
-    <map-to xml="edu.tufts.vue.rss.RSSDataSource" />
+    <!-- map-to xml="edu.tufts.vue.rss.RSSDataSource" / -->
+    <map-to xml="rssFeed" />
 </class>
+ <class name="tufts.vue.ds.XmlDataSource" extends="tufts.vue.BrowseDataSource">
+    <map-to xml="xmlFeed" />
+    <field name="itemKey" type="string">
+          <bind-xml name="itemKey" node="element" />
+    </field>
+ </class>
 <!--
 
  <class name="tufts.vue.GoogleDataSource" extends="tufts.vue.VueDataSource">
