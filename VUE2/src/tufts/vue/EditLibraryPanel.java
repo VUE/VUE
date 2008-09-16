@@ -15,6 +15,8 @@
 
 package tufts.vue;
 
+import tufts.vue.BrowseDataSource.ConfigField;
+
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.*;
@@ -30,6 +32,11 @@ public class EditLibraryPanel extends JPanel implements ActionListener
     private final tufts.vue.DataSource oldStyleDataSource;
     private final DataSourceViewer dsv;
     private edu.tufts.vue.ui.ConfigurationUI cui;
+
+    // edu.tufts.vue.ui.ConfigurationUI uses XML to set up its fields.  This is probably
+    // overkill and is adding lots of extra complexity -- e.g., to make it easy to
+    // add a single new field to a data-source, we've had to create a whole bunch
+    // of helper code on top of it (see BrowseDataSource)
 	
     public EditLibraryPanel(DataSourceViewer dsv, edu.tufts.vue.dsm.DataSource dataSource)
     {
@@ -81,7 +88,7 @@ public class EditLibraryPanel extends JPanel implements ActionListener
     {
         // use canned configurations
 
-        final StringBuffer b = new StringBuffer();
+        final StringBuilder b = new StringBuilder();
         final String name = dataSource.getDisplayName();
         //final String address = dataSource.getAddress();
             
@@ -112,26 +119,27 @@ public class EditLibraryPanel extends JPanel implements ActionListener
             addField(b, "pasword", "Password", "FTP site password", ds.getPassword(), SINGLE_LINE_MASKED_TEXT_CONTROL, 16);
             
             
-        } else if (dataSource instanceof edu.tufts.vue.rss.RSSDataSource) {
+        } else if (dataSource instanceof tufts.vue.BrowseDataSource) {
                             
-            //final edu.tufts.vue.rss.RSSDataSource ds = (edu.tufts.vue.rss.RSSDataSource) dataSource;
+            final tufts.vue.BrowseDataSource ds = (tufts.vue.BrowseDataSource) dataSource;
             
-            addField(b, "address", "Address", "RSS Feed URL", dataSource.getAddress(), SINGLE_LINE_CLEAR_TEXT_CONTROL, 0);
+//             addField(b,
+//                      "address",
+//                      "Address",
+//                      ds.getTypeName() + " URL",
+//                      dataSource.getAddress(),
+//                      SINGLE_LINE_CLEAR_TEXT_CONTROL,
+//                      0);
+//             addField(b,
+//                      tufts.vue.BrowseDataSource.AUTHENTICATION_COOKIE_KEY,
+//                      "Authentication",
+//                      "Any required authentication cookie (optional)",
+//                      ds.getAuthenticationCookie(),
+//                      SINGLE_LINE_CLEAR_TEXT_CONTROL,
+//                      0);
 
-            if (DEBUG.Enabled)
-            addField(b,
-                     edu.tufts.vue.rss.RSSDataSource.AUTHORIZATION_COOKIE_KEY,
-                     "Authorization",
-                     "Any required authorization cookie",
-                     edu.tufts.vue.rss.RSSDataSource.DEFAULT_AUTHORIZATION_COOKIE,
-                     SINGLE_LINE_CLEAR_TEXT_CONTROL,
-                     0);
-                     
-            
-//             // Extra Fields
-//             b.append(ds.getConfigurationUI_XML_Fields());
-//             b.append('\n');
-
+            for (ConfigField f : ds.getConfigurationUIFields()) 
+                addField(b, f.key, f.title, f.description, f.value, f.uiControl, f.maxLen);
 
         }
 
@@ -140,7 +148,8 @@ public class EditLibraryPanel extends JPanel implements ActionListener
         return b.toString();
     }
 
-    private void addField(StringBuffer b, String key, String title, String description, String value, int uiControl, int max)
+    
+    private void addField(StringBuilder b, String key, String title, String description, String value, int uiControl, int max)
     {
         b.append("<field>");
 
