@@ -16,6 +16,7 @@
 package tufts.vue.ds;
 
 import tufts.Util;
+import tufts.vue.DEBUG;
 import tufts.vue.MetaMap;
 import tufts.vue.MetaMap.*;
 
@@ -54,11 +55,13 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2008-09-16 12:00:50 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-09-16 22:33:10 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 class XMLIngest {
+
+    private static final boolean XML_DEBUG = false;
 
     static class Field
     {
@@ -85,7 +88,7 @@ class XMLIngest {
 
         Field(String n) {
             name = n;
-            errout("(created field " + n + ")");
+            if (XML_DEBUG) errout("(created field " + n + ")");
         }
 
         public String toString() {
@@ -234,7 +237,7 @@ class XMLIngest {
 
         void addValue(Field f, String value) {
             final String existing = values.put(f, value);
-            if (existing != null)
+            if (existing != null && XML_DEBUG)
                 errout("ROW SUB-KEY COLLISION " + f);
             
             //errout("ROW SUB-KEY COLLISION " + f + "; " + existing);
@@ -569,7 +572,7 @@ class XMLIngest {
             }
             //eoutln("NODE: " + type + " name=" + name + " " + Util.tags(n) + " firstChild=" + Util.tags(firstChild));
                 //System.err.println(name);
-            else
+            else if (XML_DEBUG)
                 System.err.print(".");
         }
 
@@ -622,7 +625,7 @@ class XMLIngest {
 //                     ;
 //                 else
                     closeOnSameLine = true;
-            } else
+            } else if (XML_DEBUG)
                 System.out.print('\n');
             
             if (FOLD_TEXT && (type != Node.ELEMENT_NODE && type != Node.ATTRIBUTE_NODE)) {
@@ -886,17 +889,17 @@ class XMLIngest {
     final static String TAB = "    ";
 
     public static void iout(int _depth, String s) {
-        for (int x = 0; x < _depth; x++) System.out.print(TAB);
+        //for (int x = 0; x < _depth; x++) System.out.print(TAB);
         //System.out.print(s);
     }
     
     public static void ioutln(int _depth, String s) {
-        for (int x = 0; x < _depth; x++) System.out.print(TAB);
+        //for (int x = 0; x < _depth; x++) System.out.print(TAB);
         //System.out.println(s);
     }
 
     public static void eoutln(int _depth, String s) {
-        for (int x = 0; x < _depth; x++) System.err.print(TAB);
+        //for (int x = 0; x < _depth; x++) System.err.print(TAB);
         //System.err.println(s);
     }
 
