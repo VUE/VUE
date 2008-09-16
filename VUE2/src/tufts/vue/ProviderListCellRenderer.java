@@ -32,12 +32,11 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
     private final Icon remoteIcon = VueResources.getImageIcon("dataSourceRemote");
     private final Icon checkedIcon = VueResources.getImageIcon("addLibrary.checkMarkIcon");
     private final ImageIcon waitIcon = VueResources.getImageIcon("waitIcon");
-    private final Icon rssIcon = remoteIcon;
-	private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
+    private final Icon rssIcon = VueResources.getImageIcon("dataSourceRSS");    
 	private static String LOADING = VueResources.getString("addLibrary.loading.label");
+    
+	private static String MY_COMPUTER = VueResources.getString("addLibrary.mycomputer.label");
 	private static String MY_SAVED_CONTENT = "My Saved Content";
-	private static String FTP = "FTP";
-        private static String RSS = "RSS Feed";
 	
     private JPanel mRow = new JPanel();
     private JPanel mLabelPanel = new JPanel();
@@ -197,28 +196,23 @@ public class ProviderListCellRenderer extends DefaultListCellRenderer
             }*/
             mRow.setBorder(EmptyDividerBorder);
         } else if (value instanceof String) {
-			String s = (String)value;
-			if (s.equals(MY_COMPUTER)) {
-				mRow.setBorder(DividerBorder);
-				displayName = MY_COMPUTER;            
-				mIconLabel.setIcon(myComputerIcon);
-			} else if (s.equals(MY_SAVED_CONTENT)) {
-				mRow.setBorder(DividerBorder);
-				displayName = MY_SAVED_CONTENT;            
-				mIconLabel.setIcon(savedResourcesIcon);
-			} else if (s.equals(FTP)) {
-				mRow.setBorder(DividerBorder);
-				displayName = FTP;            
-				mIconLabel.setIcon(remoteIcon);
-			} else if (s.equals(RSS)) {
-                                mRow.setBorder(DividerBorder);
-                                displayName = RSS;
-                                mIconLabel.setIcon(rssIcon);
-                         }  else if (s.equals(LOADING)) {
-				mRow.setBorder(DividerBorder);
-				displayName = LOADING;
-				mIconLabel.setIcon(null);
-			}
+            String s = (String)value;
+            mRow.setBorder(DividerBorder);
+            displayName = s;
+            if (s.equals(MY_COMPUTER)) {
+                mIconLabel.setIcon(myComputerIcon);
+            } else if (s.equals(MY_SAVED_CONTENT)) {
+                mIconLabel.setIcon(savedResourcesIcon);
+            } else if (s.startsWith("FTP")) {
+                mIconLabel.setIcon(remoteIcon);
+            } else if (s.startsWith("RSS")) {
+                mIconLabel.setIcon(rssIcon);
+            }  else if (s.equals(LOADING)) {
+                displayName = LOADING;
+                mIconLabel.setIcon(null);
+            } else {
+                mIconLabel.setIcon(null);
+            }
 			
         } else {
             mRow.setBorder(DividerBorder);
