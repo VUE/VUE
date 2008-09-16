@@ -22,45 +22,107 @@
 
 package tufts.vue;
 
+import java.util.Map;
+
+
 /**
- * Class to save and restore properties
- * @author  akumar03
+ * Basic {@link Map.Entry} implmentation.
  */
-public class PropertyEntry {
+class KVEntry<K,V> implements Map.Entry<K,V> {
+    K key;
+    V value;
     
-    /** Creates a new instance of PropertyEntry */
-    public PropertyEntry() {}
-    public PropertyEntry(String key, Object value) {
-        entryKey = key;
-        entryValue = value;
+    public KVEntry(K key, V value) {
+        this.key   = key;
+        this.value = value;
     }
-    
-    String entryKey;
-    Object entryValue;
-    
-    public String getEntryKey() {
-        return this.entryKey;
+
+    public KVEntry(Map.Entry<K,V> e) {
+        this.key   = e.getKey();
+        this.value = e.getValue();
     }
-    
-    public void setEntryKey(String entryKey) {
-        this.entryKey = entryKey;
+
+    public K getKey() {
+        return key;
     }
-    
-     public Object getEntryValue() {
-        return this.entryValue;
+
+    public V getValue() {
+        return value;
     }
-    
-    public void setEntryValue(Object entryValue) {
-        this.entryValue = entryValue;
+
+    public V setValue(V value) {
+        V oldValue = this.value;
+        this.value = value;
+        return oldValue;
+    }
+
+    public int hashCode() {
+        return ((key   == null)   ? 0 :   key.hashCode()) ^
+               ((value == null)   ? 0 : value.hashCode());
     }
 
     public String toString() {
-        return "PropertyEntry[" + entryKey + "=" + entryValue + "]";
+        return key + "=" + value;
     }
 
-    // this for castor hacks
+    public boolean equals(Object o) {
+        if (!(o instanceof Map.Entry))
+            return false;
+        final Map.Entry e = (Map.Entry) o;
+        final Object k1 = getKey();
+        final Object k2 = e.getKey();
+        if (k1 == k2 || (k1 != null && k1.equals(k2))) {
+            final Object v1 = getValue();
+            final Object v2 = e.getValue();
+            if (v1 == v2 || (v1 != null && v1.equals(v2))) 
+                return true;
+        }
+        return false;
+    }
+
+    /** must have for persistance */
+    public KVEntry() {}
+    
+}
+
+
+/**
+ * Class to save and restore properties (used with Castor XML persistance)
+ *
+ * @author  akumar03
+ */
+public final class PropertyEntry extends KVEntry<String,Object> {
+    
+    public PropertyEntry(Map.Entry<String,?> e) {
+        super((Map.Entry<String,Object>)e);
+    }
+    public PropertyEntry(String key, Object value) {
+        super(key, value);
+    }
+    /** must have for persistance */
+    public PropertyEntry() {}
+    
+    public String getEntryKey() {
+        return getKey();
+    }
+    
+    public void setEntryKey(String entryKey) {
+        super.key = entryKey;
+    }
+    
+    public Object getEntryValue() {
+        return getValue();
+    }
+    
+    public void setEntryValue(Object entryValue) {
+        super.setValue(entryValue);
+    }
+
+    public String toString() {
+        return "PropertyEntry[" + key + "=" + value + "]";
+    }
+
+    /** for backward-compat castor hacks */
     public Object getNull() { return null; }
-    
-    
-    
+
 }
