@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.570 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $ 
+ * @version $Revision: 1.571 $ / $Date: 2008-09-16 11:57:41 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -1051,10 +1051,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         }
     }
 
-    boolean hasActiveTextEdit() {
-        return activeTextEdit != null || activeRichTextEdit != null;
-    }
-    
     @Override
     public void reshape(int x, int y, int w, int h) {
         boolean ignore =
@@ -3271,6 +3267,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
             }
         }
+    }
+    
+    boolean hasActiveTextEdit() {
+        return activeTextEdit != null || activeRichTextEdit != null;
     }
     
     void cancelLabelEdit() {
