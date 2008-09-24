@@ -32,8 +32,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.*;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -2018,6 +2017,170 @@ public class Actions implements VueConstants
             }
         }
     }
+
+    
+    public static final LWCAction PushOut =
+    new LWCAction("Push Out", keyStroke(KeyEvent.VK_P, COMMAND+SHIFT)) {
+        
+        //boolean enabledFor(LWSelection s) { return s.size() == 1; }
+        boolean enabledFor(LWSelection s) {
+            return s.size() == 1
+                && !(s.first() instanceof LWLink) // links giving us trouble
+                && s.first().getParent() instanceof LWMap.Layer; // don't allow pushing inside slides, nodes / anything
+                //&& viewer().getDropFocal() instanceof LWMap.Layer; // do not allow pushing on slides
+        }
+        // todo: for selection size > 1, push on bounding box
+        void act(LWComponent c) {
+
+            // although we don't currently want to support pushing inside anything other than
+            // a layer, this generic call would handle other cases if we can support them
+            pushNodes(c.getParent(), c);
+            
+            // currenly only pushes within a single layer: provide the map
+            // as the focal if want to push in all layers
+            //pushNodes(viewer().getDropFocal(), c); // push in active focal: will work for slides also
+            // active focal should normally be a layer otherwise
+            // ideally would ask the node for it's layer, as theoretically we could be dropping into
+            // one layer then push in another
+            //pushNearbyNodes(viewer().getMap(), c);
+            //pushNearbyNodes(viewer().getDropFocal(), c);
+
+        }
+        
+        private static final int PUSH_DISTANCE = 24;
+        
+        // todo: combine into a Geometry.java with computeIntersection, computeConnector, projectPoint code from VueUtil
+        // todo: to handle pushing inside slides, we'd need to get rid of the references to map bounds,
+        // and always use local bounds
+        public void pushNodes(final LWComponent parentFocal, final LWComponent pushing)
+        {
+            final Point2D.Float groundZero = new Point2D.Float(pushing.getMapCenterX(),
+                                                               pushing.getMapCenterY());
+            final Rectangle2D pushingRect = pushing.getMapBounds();
+
+            final java.util.List<LWComponent> links = new java.util.ArrayList();
+            final java.util.List<LWComponent> nodes = new java.util.ArrayList();
+        
+            for (LWComponent node : parentFocal.getChildren()) {
+
+                if (node == pushing)
+                    continue;
+                
+                if (node.isManagedLocation())
+                    continue;
+                
+                if (node instanceof LWLink) {
+                    LWLink link = (LWLink) node;
+                    if (link.isConnected() || link.isCurved()) // both cases are buggy right now
+                        continue;
+                }
+
+                final Line2D.Float connector = new Line2D.Float();
+                final boolean overlap = VueUtil.computeConnectorAndCenterHit(pushing, node, connector);
+                //VueUtil.computeConnector(pushing, node, connector);
+
+                final Point2D newCenter;
+            
+                float dist = (float) connector.getP1().distance(connector.getP2());
+                float adjust = PUSH_DISTANCE;
+
+                //final boolean intersects = node.intersects(pushingRect); // problems w/slide icons
+                final boolean intersects = pushingRect.intersects(node.getMapBounds());
+
+                final boolean moveToEdge = overlap || intersects;
+
+                if (false && DEBUG.Enabled) {
+                    LWLink link = new LWLink();
+                    link.setHeadPoint(connector.getP1());
+                    link.setTailPoint(connector.getP2());
+                    link.setArrowState(LWLink.ARROW_TAIL);
+                    link.setNotes("head: " + pushing + "\ntail: " + node);
+                    links.add(link);
+                }
+            
+                if (moveToEdge) {
+
+                    // If overlapping, we want to move the node along a line away from
+                    // the center of the pushing node until it no longer overlaps.  As
+                    // part of this process, we compute the point at the edge of the
+                    // pushing node that the overlapping node would be at if all we were
+                    // going to do was move it to the edge.  This isn't strictly needed
+                    // to produce the end result (we could start iterating immediately,
+                    // we don't need to start at the intersect), but it's useful for
+                    // debugging, and it may be a useful location to know for future
+                    // tweaks to this code.
+                
+                    // first, find a point along the line from center of pushing to the center of node
+                    // that we know is outside of the pushing node
+                    final Point2D farOut = VueUtil.projectPoint(groundZero, connector, Short.MAX_VALUE);
+                    // now produce a ray that shoots from that point back to the center of the pushing node
+                    final Line2D.Float testRay = new Line2D.Float(farOut, groundZero);
+                    // now find the point at the edge of the pushing node that the ray intersects it
+                    final Point2D.Float intersect = VueUtil.computeIntersection(testRay, pushing);
+
+                    // now project the node along the connector line from the intersect
+                    // by small increments until the node no longer overlaps the
+                    // pushing node
+                        
+                    for (int i = 0; i < 1000; i++) {
+                        node.setCenterAt(VueUtil.projectPoint(intersect, connector, i * 2f));
+//                         if (!node.intersects(pushingRect)) // problems w/slide icons
+//                             break;
+                        if (!pushingRect.intersects(node.getMapBounds()))
+                            break;
+                        if (DEBUG.Enabled) Log.debug("PUSH ITER " + i + " on " + node);
+                    }
+
+                    adjust /= 2; // we'll only push half the standard amount from here
+                }
+
+                newCenter = VueUtil.projectPoint(node.getMapCenterX(), node.getMapCenterY(), connector, adjust);
+
+                if (DEBUG.Enabled) {
+                    String notes = String.format("distance: %.1f\nadjust: %.1f\n-center: %s\n+center: %s\nconnect: %s",
+                                                 dist,
+                                                 adjust,
+                                                 Util.fmt(node.getMapCenter()),
+                                                 Util.fmt(newCenter),
+                                                 Util.fmt(connector)
+                                                 );
+
+
+                    if (intersects) notes += "\nINTERSECTS";
+                    if (overlap) notes += "\nOVERLAP";
+
+                    final LWComponent n;
+
+                    if (false) {
+                        n = node.duplicate();
+                        node.setNotes(notes);
+                        nodes.add(n);
+                        n.setStrokeWidth(1);
+                    } else
+                        n = node;
+                
+                    if (moveToEdge) {
+                        n.setTextColor(java.awt.Color.red);
+                        n.mFontStyle.set(java.awt.Font.BOLD);
+                    }
+                    n.setNotes(notes);
+                    if (newCenter != null)
+                        n.setCenterAt(newCenter);
+                } else {
+                    if (newCenter != null)
+                        node.setCenterAt(newCenter);
+                }
+            
+            
+            }
+
+            if (DEBUG.Enabled) {
+                pushing.getMap().sendToBack(pushing);
+                pushing.getMap().addChildren(nodes);
+                pushing.getMap().addChildren(links);
+            }
+        }
+    };
     
     // Note: if JScrollPane has focus, it will grap unmodified arrow keys.  If, say, a random DockWindow
     // has focus (e.g., not a field that would also grab arrow keys), they get through.
@@ -2142,7 +2305,9 @@ public class Actions implements VueConstants
         NudgeUp,
         NudgeDown,
         NudgeLeft,
-        NudgeRight
+        NudgeRight,
+        null,
+        PushOut
     };
     public static final Action[] ARRANGE_SINGLE_MENU_ACTIONS = {
         NudgeUp,
