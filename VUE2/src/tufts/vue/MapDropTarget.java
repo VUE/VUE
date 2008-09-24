@@ -23,6 +23,9 @@ import java.awt.dnd.*;
 import java.awt.datatransfer.*;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.Shape;
 import java.awt.Point;
 import java.awt.Image;
 
@@ -47,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.103 $ / $Date: 2008-07-23 15:44:48 $ / $Author: sfraize $  
+ * @version $Revision: 1.104 $ / $Date: 2008-09-24 22:20:34 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1252,7 +1255,7 @@ class MapDropTarget
         return addNodeToFocal(NodeModeTool.createTextNode(text), where);
     }
 
-    private LWComponent addNodeToFocal(LWComponent node, Point2D where)
+    private LWComponent addNodeToFocal(final LWComponent node, Point2D where)
     {
         if (DEBUG.DND) Log.debug("addNodeToFocal: " + node + "; where=" + where + "; centerAt=" + CenterNodesOnDrop);
 
@@ -1264,8 +1267,172 @@ class MapDropTarget
         else
             node.setLocation(where);
         mViewer.getFocal().dropChild(node);
+
+        if (true || DEBUG.Enabled) {
+            //GUI.invokeAfterAWT(new Runnable() { public void run() {
+            node.addCleanupTask(new Runnable() { public void run() {
+                final Rectangle2D.Float clearRegion = Util.grow(node.getMapBounds(), 24);
+                for (LWComponent n : node.getLayer().getChildren()) {
+                    if (n != node && clearRegion.intersects(n.getMapBounds())) {
+                        Actions.PushOut.act(node);
+                        break;
+                    }
+                }
+            }});
+        }
+         	
         return node;
     }
+
+
+//     private void pushNearbyNodes(final LWComponent pushing)
+//     {
+//         // test hack for "dynamic map" auto re-arranging of nearby nodes
+//         // -- could try using force-based algorithms
+
+// //         final float pushX = node.getMapCenterX();
+// //         final float pushY = node.getMapCenterY();
+
+//         final Point2D.Float groundZero = new Point2D.Float(pushing.getMapCenterX(),
+//                                                            pushing.getMapCenterY());
+
+//         out("SEARCHING FOCAL: "  + mViewer.getDropFocal());
+
+//         final Rectangle2D pushingRect = pushing.getMapBounds();
+
+//         final java.util.List<LWComponent> links = new java.util.ArrayList();
+//         final java.util.List<LWComponent> nodes = new java.util.ArrayList();
+        
+//         for (LWComponent node : mViewer.getDropFocal().getChildrenOfType(LWNode.class)) {
+
+//             if (node == pushing)
+//                 continue;
+
+//             final Line2D.Float connector = new Line2D.Float();
+//             final boolean overlap = VueUtil.computeConnectorAndCenterHit(pushing, node, connector);
+//             //VueUtil.computeConnector(pushing, node, connector);
+
+//             final Point2D newCenter;
+            
+//             float dist = (float) connector.getP1().distance(connector.getP2());
+//             float adjust = 24;
+
+//             final boolean intersects = node.intersects(pushingRect);
+
+//             final boolean moveToEdge = overlap || intersects;
+
+//             if (false && DEBUG.Enabled) {
+//                 LWLink link = new LWLink();
+//                 link.setHeadPoint(connector.getP1());
+//                 link.setTailPoint(connector.getP2());
+//                 link.setArrowState(LWLink.ARROW_TAIL);
+//                 link.setNotes("head: " + pushing + "\ntail: " + node);
+//                 links.add(link);
+//             }
+            
+//             if (moveToEdge) {
+
+//                 // explicitly move out to nearest edge, attempting to move out of the way
+                
+//                 final Point2D farOut = VueUtil.projectPoint(groundZero, connector, Short.MAX_VALUE);
+//                 final Line2D.Float tester = new Line2D.Float(farOut, groundZero);
+//                 Point2D.Float intersect = VueUtil.computeIntersection(tester, pushing);
+
+//                 Point2D nearOut;
+//                 for (int i = 0; i < 1000; i++) {
+//                     nearOut = VueUtil.projectPoint(intersect, connector, i * 2f);
+//                     node.setCenterAt(nearOut);
+//                     if (!node.intersects(pushingRect))
+//                         break;
+//                     Log.debug("ITER " + i + " on " + node);
+//                 }
+
+// //                 float xoff = node.getX() - intersect.x;
+// //                 float yoff = node.getY() - intersect.y;
+// //                 node.translate(-xoff, -yoff);
+
+//                 //node.setLocation(intersect);
+
+//                 adjust /= 2;
+                
+//                 //adjust = 16;
+//                 //adjust = 0;
+//                 //newCenter = null;
+//                 //newCenter = intersect;
+                
+//                 //adjust = Math.max(node.getWidth(), node.getHeight()); // a guesstimate proxy to try and prevent overlap
+//                 //Point2D nearOut = VueUtil.projectPoint(intersectEdge, connector, adjust);
+//                 //newCenter = nearOut;
+                
+//             }
+
+// //             else {
+                
+// //                 //if (dist > 100) continue;
+                
+// //                 if (dist < 9)
+// //                     dist = 9; // if very close, will adjust to far out
+                
+// //                 //adjust = 1000f/dist;
+// //                 adjust = 100f / (float) Math.sqrt(dist);
+                
+// //                 //Point2D.Float p = new Point2D.Float(node.getMapCenterX(), node.getMapCenterY());
+                
+// //             }
+
+//             newCenter = VueUtil.projectPoint(node.getMapCenterX(), node.getMapCenterY(), connector, adjust);
+
+
+//             if (DEBUG.Enabled) {
+//                 String notes = String.format("distance: %.1f\nadjust: %.1f\n-center: %s\n+center: %s\nconnect: %s",
+//                                              dist,
+//                                              adjust,
+//                                              Util.fmt(node.getMapCenter()),
+//                                              Util.fmt(newCenter),
+//                                              Util.fmt(connector)
+//                                              );
+
+
+//                 if (intersects) notes += "\nINTERSECTS";
+//                 if (overlap) notes += "\nOVERLAP";
+
+//                 final LWComponent n;
+
+//                 if (false) {
+//                     n = node.duplicate();
+//                     node.setNotes(notes);
+//                     nodes.add(n);
+//                     n.setStrokeWidth(1);
+//                 } else
+//                     n = node;
+                
+//                 if (moveToEdge) {
+//                     n.setTextColor(java.awt.Color.red);
+//                     n.mFontStyle.set(java.awt.Font.BOLD);
+//                 }
+//                 n.setNotes(notes);
+//                 if (newCenter != null)
+//                     n.setCenterAt(newCenter);
+//             } else {
+//                 if (newCenter != null)
+//                     node.setCenterAt(newCenter);
+//             }
+            
+            
+//         }
+
+//         if (DEBUG.Enabled) {
+//             pushing.getMap().sendToBack(pushing);
+//             pushing.getMap().addChildren(nodes);
+//             pushing.getMap().addChildren(links);
+//         }
+
+        
+        
+//     }
+        
+
+        
 
 
 
