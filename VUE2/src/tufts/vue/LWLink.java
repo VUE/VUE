@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.197 $ / $Date: 2008-07-29 20:41:30 $ / $Author: sfraize $
+ * @version $Revision: 1.198 $ / $Date: 2008-09-24 22:20:08 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -844,8 +844,11 @@ public class LWLink extends LWComponent
 
         if (head.hasPrunedNode() || (moveableOnly && head.hasNode()))
             mControlPoints[CHead] = null;
-        else 
+        else  {
             mControlPoints[CHead] = new ConnectCtrl(mapHead.x, mapHead.y, head.isConnected());
+            if (DEBUG.BOXES) mControlPoints[CHead].setColor(Color.green); // mark the head
+                
+        }
 
         if (tail.hasPrunedNode() || (moveableOnly && tail.hasNode()))
             mControlPoints[CTail] = null;
@@ -2371,30 +2374,32 @@ public class LWLink extends LWComponent
 
     private double computeVerticalRotation(double x1, double y1, double x2, double y2)
     {
-        final double xdiff = x1 - x2;
-        final double ydiff = y1 - y2;
-        final double slope = xdiff / ydiff; // really, inverse slope
-        double radians = -Math.atan(slope);
+        return VueUtil.computeVerticalRotation(x1, y1, x2, y2);
+        
+//         final double xdiff = x1 - x2;
+//         final double ydiff = y1 - y2;
+//         final double slope = xdiff / ydiff; // really, inverse slope
+//         double radians = -Math.atan(slope);
 
-        if (xdiff >= 0 && ydiff >= 0)
-            radians += Math.PI;
-        else if (xdiff <= 0 && ydiff >= 0)
-            radians -= Math.PI;
+//         if (xdiff >= 0 && ydiff >= 0)
+//             radians += Math.PI;
+//         else if (xdiff <= 0 && ydiff >= 0)
+//             radians -= Math.PI;
 
-        // diagnostics
-        if (DEBUG.BOXES) {
-            if (DEBUG.LINK) out("normalizing rotation " + radians);
-            if (DEBUG.META) {
-                this.label =
-                    Util.oneDigitDecimal(xdiff) + "/" + Util.oneDigitDecimal(ydiff) + "=" + (float) slope
-                    + " atan=" + (float) radians
-                    + " deg=[" + Util.oneDigitDecimal(Math.toDegrees(radians))
-                    + "]";
-                getLabelBox().setText(this.label);
-            }
-        }
+//         // diagnostics
+//         if (DEBUG.BOXES) {
+//             if (DEBUG.LINK) out("normalizing rotation " + radians);
+//             if (DEBUG.META) {
+//                 this.label =
+//                     Util.oneDigitDecimal(xdiff) + "/" + Util.oneDigitDecimal(ydiff) + "=" + (float) slope
+//                     + " atan=" + (float) radians
+//                     + " deg=[" + Util.oneDigitDecimal(Math.toDegrees(radians))
+//                     + "]";
+//                 getLabelBox().setText(this.label);
+//             }
+//         }
 
-        return radians;
+//         return radians;
     }
 
     public void setArrowState(int arrowState) { mArrowState.set(arrowState); }
