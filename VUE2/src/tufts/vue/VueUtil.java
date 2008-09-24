@@ -18,7 +18,9 @@ package tufts.vue;
 import java.io.File;
 import java.util.*;
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.awt.geom.Line2D;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -27,7 +29,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.96 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.97 $ / $Date: 2008-09-24 22:23:51 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -279,6 +281,15 @@ public class VueUtil extends tufts.Util
         return computeIntersection(rayX1,rayY1, rayX2,rayY2, shape, shapeTransform, new float[2], 1);
     }
     
+    public static Point2D.Float computeIntersection(Line2D.Float l, LWComponent c) {
+        float[] p = computeIntersection(l.x1, l.y1, l.x2, l.y2, c.getZeroShape(), c.getZeroTransform(), new float[2], 1);
+        return new Point2D.Float(p[0], p[1]);
+    }
+    public static float[] computeIntersection(float segX1, float segY1, float segX2, float segY2, LWComponent c) {
+        return computeIntersection(segX1, segY1, segX2, segY2, c.getZeroShape(), c.getZeroTransform(), new float[2], 1);
+    }
+
+
     /**
      * Compute the intersection of an arbitrary shape and a line segment
      * that is assumed to pass throught the shape.  Usually used
@@ -291,8 +302,8 @@ public class VueUtil extends tufts.Util
      * @return float array of size 2: x & y values of intersection,
      * or ff no intersection, returns Float.NaN values for x/y.
      */
-    public static float[] computeIntersection(float rayX1, float rayY1,
-                                              float rayX2, float rayY2,
+    public static float[] computeIntersection(float segX1, float segY1,
+                                              float segX2, float segY2,
                                               java.awt.Shape shape, java.awt.geom.AffineTransform shapeTransform,
                                               float[] result, int max)
     {
@@ -323,12 +334,12 @@ public class VueUtil extends tufts.Util
             float endY = seg[1];
                 
             // at cnt == 0, we have only the first point from the path iterator, and so no line yet.
-            if (cnt > 0 && Line2D.linesIntersect(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1])) {
+            if (cnt > 0 && Line2D.linesIntersect(segX1, segY1, segX2, segY2, lastX, lastY, seg[0], seg[1])) {
                 //System.out.println("intersection at segment #" + cnt + " " + SegTypes[segType]);
                 if (max <= 1) {
-                    return computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1], result);
+                    return computeLineIntersection(segX1, segY1, segX2, segY2, lastX, lastY, seg[0], seg[1], result);
                 } else {
-                    float[] tmp = computeLineIntersection(rayX1, rayY1, rayX2, rayY2, lastX, lastY, seg[0], seg[1], new float[2]);
+                    float[] tmp = computeLineIntersection(segX1, segY1, segX2, segY2, lastX, lastY, seg[0], seg[1], new float[2]);
                     result[hits*2 + 0] = tmp[0];
                     result[hits*2 + 1] = tmp[1];
                     if (++hits >= max)
@@ -432,57 +443,171 @@ public class VueUtil extends tufts.Util
     }
     
 
+    public static Line2D.Float computeConnector(LWComponent c1, LWComponent c2, Line2D.Float result)
+    {
+        computeConnectorAndCenterHit(c1, c2, result);
+        return result;
+    }
+    
+    
+    //public static Line2D.Float computeConnector(LWComponent c1, LWComponent c2, Line2D.Float result)
     /**
      * On a line drawn from the center of c1 to the center of c2, compute the the line segment
      * from the intersection at the edge of shape c1 to the intersection at the edge of shape c2.
-     * The returned line will be in the LWMap coordinate space.
+     * The returned line will be in the LWMap coordinate space.  If the components overlap sufficiently,
+     * the segment returned will either be from the center of one component to the edge of the other,
+     * or from center-to-center.
+     *
+     * @param result: this line will be set to connecting segment
+     * @return true if the components overlapped in such a way as to cause the segment to connect at one or
+     * or both of the component centers, as opposed to their edges
      */
-    
-    public static Line2D.Float computeConnector(LWComponent c1, LWComponent c2, Line2D.Float result)
+    public static boolean computeConnectorAndCenterHit(LWComponent head, LWComponent tail, Line2D.Float result)
     {
-
         // TODO: do these defaults still want to be the map-center now that we do
         // relative coords and parent-local links?  Shouldn't they be the center
         // relative to some desired parent focal? (e.g. a link parent)
         
-        final float segX1 = c1.getMapCenterX();
-        final float segY1 = c1.getMapCenterY();
-        final float segX2 = c2.getMapCenterX();
-        final float segY2 = c2.getMapCenterY();
+        final float headX = head.getMapCenterX();
+        final float headY = head.getMapCenterY();
+        final float tailX = tail.getMapCenterX();
+        final float tailY = tail.getMapCenterY();
 
-        // compute intersection at shape 2 of ray from center of shape 1 to center of shape 2
-        //float[] intersection_at_2 = computeIntersection(segX1, segY1, segX2, segY2, c2.getShape());
-        // compute intersection at shape 1 of ray from center of shape 2 to center of shape 1
-        //float[] intersection_at_1 = computeIntersection(segX2, segY2, segX1, segY1, c1.getShape());
+        // compute intersection at head shape of line from center of head to center of tail shape
+        final float[] intersection_at_1 = computeIntersection(headX, headY, tailX, tailY, head);
 
-        // compute intersection at shape 1 of ray from center of shape 1 to center of shape 2
-        float[] intersection_at_1 = computeIntersection(segX1, segY1, segX2, segY2, c1.getZeroShape(), c1.getZeroTransform());
-        // compute intersection at shape 2 of ray from center of shape 2 to center of shape 1
-        float[] intersection_at_2 = computeIntersection(segX2, segY2, segX1, segY1, c2.getZeroShape(), c2.getZeroTransform());
+        boolean overlap = false;
 
         if (intersection_at_1 == NoIntersection) {
             // default to center of component 1
-            result.x1 = segX1;
-            result.y1 = segY1;
+            result.x1 = headX;
+            result.y1 = headY;
+            overlap = true;
         } else {
             result.x1 = intersection_at_1[0];
             result.y1 = intersection_at_1[1];
         }
         
+        // compute intersection at tail shape of line from prior intersection to center of tail shape
+        final float[] intersection_at_2 = computeIntersection(result.x1, result.y1, tailX, tailY, tail);
+
         if (intersection_at_2 == NoIntersection) {
             // default to center of component 2
-            result.x2 = segX2;
-            result.y2 = segY2;
+            result.x2 = tailX;
+            result.y2 = tailY;
+            overlap = true;
         } else {
             result.x2 = intersection_at_2[0];
             result.y2 = intersection_at_2[1];
         }
-
-        //System.out.println("connector: " + out(result));
-        //System.out.println("\tfrom: " + c1);
-        //System.out.println("\t  to: " + c2);
         
-        return result;
+        return overlap;
+    }
+
+// Old version: could produce "internal" connections if nodes overlapped: directionality of the connector
+// would get reversed. E.g., connector would be from the edge of a node back towards it's own center,
+// to connect the outer edge of an overlapping node.
+    
+//     public static boolean computeConnectorAndCenterHit(LWComponent c1, LWComponent c2, Line2D.Float result)
+//     {
+//         // TODO: do these defaults still want to be the map-center now that we do
+//         // relative coords and parent-local links?  Shouldn't they be the center
+//         // relative to some desired parent focal? (e.g. a link parent)
+        
+//         final float segX1 = c1.getMapCenterX();
+//         final float segY1 = c1.getMapCenterY();
+//         final float segX2 = c2.getMapCenterX();
+//         final float segY2 = c2.getMapCenterY();
+
+//         // compute intersection at shape 1 of line from center of shape 1 to center of shape 2
+//         final float[] intersection_at_1 = computeIntersection(segX1, segY1, segX2, segY2, c1);
+//         // compute intersection at shape 2 of line from center of shape 2 to center of shape 1
+//         final float[] intersection_at_2 = computeIntersection(segX2, segY2, segX1, segY1, c2);
+
+//         boolean overlap = false;
+
+//         if (intersection_at_1 == NoIntersection) {
+//             // default to center of component 1
+//             result.x1 = segX1;
+//             result.y1 = segY1;
+//             overlap = true;
+//         } else {
+//             result.x1 = intersection_at_1[0];
+//             result.y1 = intersection_at_1[1];
+//         }
+        
+//         if (intersection_at_2 == NoIntersection) {
+//             // default to center of component 2
+//             result.x2 = segX2;
+//             result.y2 = segY2;
+//             overlap = true;
+//         } else {
+//             result.x2 = intersection_at_2[0];
+//             result.y2 = intersection_at_2[1];
+//         }
+
+//         //System.out.println("connector: " + out(result));
+//         //System.out.println("\tfrom: " + c1);
+//         //System.out.println("\t  to: " + c2);
+        
+//         return overlap;
+//     }
+    
+
+    public static double computeVerticalRotation(Line2D l) {
+        return computeVerticalRotation(l.getX1(), l.getY1(), l.getX2(), l.getY2());
+    }
+    
+    /**
+     * Compute the rotation needed to normalize the line segment to vertical orientation, making it
+     * parrallel to the Y axis.  So vertical lines will return either 0 or Math.PI (180 degrees), horizontal lines
+     * will return +/- PI/2.  (+/- 90 degrees).  In the rotated space, +y values will move down, +x values will move right.
+     */
+    public static double computeVerticalRotation(double x1, double y1, double x2, double y2)
+    {
+        final double xdiff = x1 - x2;
+        final double ydiff = y1 - y2;
+        final double slope = xdiff / ydiff; // really, inverse slope
+        double radians = -Math.atan(slope);
+
+        if (xdiff >= 0 && ydiff >= 0)
+            radians += Math.PI;
+        else if (xdiff <= 0 && ydiff >= 0)
+            radians -= Math.PI;
+
+        return radians;
+    }
+
+    /**
+     * Move a point a given distance along a line parallel to the
+     * ray implied by the the given line.  The direction of projection
+     * is parallel to the ray that begins at the first point in the line,
+     * and passes through the second point of the line.  The start point
+     * does not need to be on the given line.
+     * 
+     * @return the new point
+     */
+
+    public static Point2D projectPoint(float x, float y, Line2D ray, float distance) {
+
+        final Point2D.Float p = new Point2D.Float();
+
+        final double rotation = computeVerticalRotation(ray);
+
+        final java.awt.geom.AffineTransform tx = new java.awt.geom.AffineTransform();
+
+        tx.setToTranslation(x, y);
+        tx.rotate(rotation);
+        tx.translate(0,distance);
+        tx.transform(p,p);
+
+        return p;
+
+        
+    }
+    
+    public static Point2D projectPoint(Point2D.Float p, Line2D ray, float distance) {
+        return projectPoint(p.x, p.y, ray, distance);
     }
 
     
