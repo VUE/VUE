@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.433 $ / $Date: 2008-09-24 22:24:48 $ / $Author: sfraize $
+ * @version $Revision: 1.434 $ / $Date: 2008-09-24 22:25:20 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3920,6 +3920,7 @@ u                    getSlot(c).setFromString((String)value);
         return getMapY() + getMapHeight() / 2;
     }
 
+    /** @return the center of this node in map coordinates */
     public Point2D getMapCenter() {
         return new Point2D.Float(getMapCenterX(), getMapCenterY());
     }
