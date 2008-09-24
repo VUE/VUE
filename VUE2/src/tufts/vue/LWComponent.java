@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.432 $ / $Date: 2008-07-24 18:03:29 $ / $Author: sfraize $
+ * @version $Revision: 1.433 $ / $Date: 2008-09-24 22:24:48 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3724,7 +3724,7 @@ u                    getSlot(c).setFromString((String)value);
         setLocation((float) p.getX() - getWidth()/2,
                     (float) p.getY() - getHeight()/2);
     }
-
+    
     public Point2D getLocation()
     {
         return new Point2D.Float(getX(), getY());
@@ -3918,6 +3918,10 @@ u                    getSlot(c).setFromString((String)value);
     /** @return center y of the component in absolute map coordinates */
     public float getMapCenterY() {
         return getMapY() + getMapHeight() / 2;
+    }
+
+    public Point2D getMapCenter() {
+        return new Point2D.Float(getMapCenterX(), getMapCenterY());
     }
 
 //     // these two don't handle scale properly yet: need to adjust for parent scales...
@@ -4147,7 +4151,10 @@ u                    getSlot(c).setFromString((String)value);
     /** @return our shape, full transformed into map coords and ultimate scale when drawn at 100% map zoom
      * this is used for portal clipping, and will be imperfect for some scaled shapes, such as RountRect's
      * This only works for raw shapes that are RectangularShapes -- other Shape types just return the map bounds
-     * (e.g., a link shape) */
+     * (e.g., a link shape)
+     *
+     * Caveat: if current shape isn't an instance of RectangularShape, just the bounding box is returned.
+     */
     public Shape getMapShape()
     {
         // Will not work for shapes like RoundRect when scaled -- e..g, corner scaling will be off
@@ -4823,7 +4830,7 @@ u                    getSlot(c).setFromString((String)value);
 //         //+ " for " + fmt(getPaintBounds()) + " " + this);
 //         return hit;
     }
-    
+
     /** default impl intersects the render/paint bounds, including any borders (we use this for draw clipping as well as selection) */
     protected boolean intersectsImpl(Rectangle2D mapRect) {
         //if (DEBUG.CONTAINMENT) System.out.println("INTERSECTS " + Util.fmt(rect));
