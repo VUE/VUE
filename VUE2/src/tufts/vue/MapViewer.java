@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.571 $ / $Date: 2008-09-16 11:57:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.572 $ / $Date: 2008-09-24 22:20:45 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -2598,8 +2598,6 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
      */
     // java bug: Do NOT create try and create an axis using Integer.MIN_VALUE or Integer.MAX_VALUE
     // -- this triggers line rendering bugs in PC Java 1.4.1 (W2K) -- same for floats.
-    //private static final int MinCoord = -10240;
-    //private static final int MaxCoord = 10240;
     private static final int MinCoord = Short.MIN_VALUE;
     private static final int MaxCoord = Short.MAX_VALUE;
     private static final Line2D Xaxis = new Line2D.Float(MinCoord, 0, MaxCoord, 0);
