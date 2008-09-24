@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.28 $ / $Date: 2008-07-26 21:24:09 $ / $Author: sfraize $
+ * @version $Revision: 1.29 $ / $Date: 2008-09-24 22:24:14 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -360,11 +360,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         updateLayerActionEnabled(layer);
 
-        if (DEBUG.Enabled) {
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                VUE.setActive(Layer.class, LayersUI.this, layer);
-            }});
-        }
+//         if (DEBUG.Enabled) {
+//             GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                 VUE.setActive(Layer.class, LayersUI.this, layer);
+//             }});
+//         }
     }
 
     private boolean canBeActive(LWComponent layer) {
@@ -1196,7 +1196,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                             if (allChildren != nChild)
                                 counts += "/" + allChildren;
                             info.setText(counts);
-                            if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(Row.this); } // slower
+                            //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(Row.this); } // slower
+                            // above will usually cause a deadlock tho when dropping images and this UI is visible
                             //if (DEBUG.Enabled) { Row.this.validate(); GUI.paintNow(info); } // faster
                         }};
                 countListener.LWCChanged(null); // do the initial set
