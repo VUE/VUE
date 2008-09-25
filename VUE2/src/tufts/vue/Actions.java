@@ -1910,7 +1910,7 @@ public class Actions implements VueConstants
                     // remove all children of nodes or groups, who's parent handles their layout
                     // need to allow for in-group components now.
                     // todo: unexpected behaviour if some in-group and some not?
-                    if (c.isLaidOut())
+                    if (c.isManagedLocation())
                         i.remove();
                 }
             }
@@ -2048,6 +2048,7 @@ public class Actions implements VueConstants
         }
         
         private static final int PUSH_DISTANCE = 24;
+        private static final boolean DEBUG_PUSH = false;
         
         // todo: combine into a Geometry.java with computeIntersection, computeConnector, projectPoint code from VueUtil
         // todo: to handle pushing inside slides, we'd need to get rid of the references to map bounds,
@@ -2081,7 +2082,6 @@ public class Actions implements VueConstants
 
                 final Point2D newCenter;
             
-                float dist = (float) connector.getP1().distance(connector.getP2());
                 float adjust = PUSH_DISTANCE;
 
                 //final boolean intersects = node.intersects(pushingRect); // problems w/slide icons
@@ -2089,7 +2089,8 @@ public class Actions implements VueConstants
 
                 final boolean moveToEdge = overlap || intersects;
 
-                if (false && DEBUG.Enabled) {
+                if (false && DEBUG_PUSH) {
+                    // create a detached link from center of pushing to edge of each pushed to show vectors
                     LWLink link = new LWLink();
                     link.setHeadPoint(connector.getP1());
                     link.setTailPoint(connector.getP2());
@@ -2128,7 +2129,7 @@ public class Actions implements VueConstants
 //                             break;
                         if (!pushingRect.intersects(node.getMapBounds()))
                             break;
-                        if (DEBUG.Enabled) Log.debug("PUSH ITER " + i + " on " + node);
+                        if (DEBUG_PUSH) Log.debug("PUSH ITER " + i + " on " + node);
                     }
 
                     adjust /= 2; // we'll only push half the standard amount from here
@@ -2136,7 +2137,8 @@ public class Actions implements VueConstants
 
                 newCenter = VueUtil.projectPoint(node.getMapCenterX(), node.getMapCenterY(), connector, adjust);
 
-                if (DEBUG.Enabled) {
+                if (DEBUG_PUSH) {
+                    float dist = (float) connector.getP1().distance(connector.getP2());
                     String notes = String.format("distance: %.1f\nadjust: %.1f\n-center: %s\n+center: %s\nconnect: %s",
                                                  dist,
                                                  adjust,
@@ -2164,17 +2166,15 @@ public class Actions implements VueConstants
                         n.mFontStyle.set(java.awt.Font.BOLD);
                     }
                     n.setNotes(notes);
-                    if (newCenter != null)
-                        n.setCenterAt(newCenter);
+                    n.setCenterAt(newCenter);
                 } else {
-                    if (newCenter != null)
-                        node.setCenterAt(newCenter);
+                    node.setCenterAt(newCenter);
                 }
             
             
             }
 
-            if (DEBUG.Enabled) {
+            if (DEBUG_PUSH) {
                 pushing.getMap().sendToBack(pushing);
                 pushing.getMap().addChildren(nodes);
                 pushing.getMap().addChildren(links);
@@ -2216,6 +2216,56 @@ public class Actions implements VueConstants
         void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
     
+    public static final ArrangeAction MakeCircle = new ArrangeAction("Make Circle", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
+            boolean supportsSingleMover() { return false; }
+            boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            // todo bug: an already made row is shifting everything to the left
+            // (probably always, actually)
+            
+            void arrange(LWSelection selection) {
+
+                final double radiusHorz, radiusVert;
+                
+                if (selection.size() == 1) {
+                    // if a single item in selection, arrange all nodes linked to it in a ciricle around it
+                    LWComponent center = selection.first();
+                    selection.clear();
+                    selection.addAll(center.getLinked());
+                    centerX = center.getMapCenterX(); // should probably be local center, not map center
+                    centerY = center.getMapCenterY();
+                    // todo: radius should be at least half center node width + half widest node width
+                    // and bump up if there are link labels to make room for
+                    // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
+                    // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
+                    radiusHorz = center.getWidth() * 2;
+                    radiusVert = center.getHeight() * 2;
+                } else {
+                    radiusHorz = (maxX - minX) / 2;
+                    radiusVert = (maxY - minY) / 2;
+                }
+                    
+                
+                final double slice = (Math.PI * 2) / selection.size();
+                int i = 0;
+                
+                // todo: if a link-chain detected, lay out in link-order e.g., start
+                // with any non-linked nodes, then find any with one link (into our
+                // set), and then follow the link chain laying out any nodes found in
+                // our selection first (removing them from the layout list), then
+                // continue to the next node, etc.  Also, can prefer link directionality
+                // if there are arrow heads.
+                
+                for (LWComponent c : selection) {
+                    // We add Math.PI/2*3 so the "clock" always starts at the top -- so something
+                    // is always is laid out at 12 o'clock
+                    final double angle = Math.PI/2*3 + slice * i++;
+                    c.setCenterAt(centerX + radiusHorz * Math.cos(angle),
+                                  centerY + radiusVert * Math.sin(angle));
+                }
+
+            }
+    };
+    
     public static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
@@ -2227,6 +2277,8 @@ public class Actions implements VueConstants
                 DistributeHorizontally.arrange(selection);
             }
     };
+
+    
     public static final ArrangeAction MakeColumn = new ArrangeAction("Make Column", keyStroke(KeyEvent.VK_C, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
@@ -2298,6 +2350,7 @@ public class Actions implements VueConstants
         null,    
         MakeRow,
         MakeColumn,
+        MakeCircle,
         null,
         DistributeVertically,
         DistributeHorizontally,
