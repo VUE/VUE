@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.94 $ / $Date: 2008-07-26 21:24:08 $ / $Author: sfraize $
+ * @version $Revision: 1.95 $ / $Date: 2008-09-25 01:07:10 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -515,7 +515,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             lastSelection = clone();
         }
         
-        controlListeners.clear();
+        if (controlListeners != null)
+            controlListeners.clear();
 
         super.clear();
 
