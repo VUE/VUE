@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.435 $ / $Date: 2008-09-25 01:06:58 $ / $Author: sfraize $
+ * @version $Revision: 1.436 $ / $Date: 2008-09-25 18:46:11 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -4155,12 +4155,10 @@ u                    getSlot(c).setFromString((String)value);
 
     /** @return our shape, full transformed into map coords and ultimate scale when drawn at 100% map zoom
      * this is used for portal clipping, and will be imperfect for some scaled shapes, such as RountRect's
-     * This only works for raw shapes that are RectangularShapes -- other Shape types just return the map bounds
-     * (e.g., a link shape)
-     *
-     * Caveat: if current shape isn't an instance of RectangularShape, just the bounding box is returned.
+     * This only works for raw shapes that are RectangularShapes -- other Shape types just return the bounding
+     * box in map coordinates (e.g., a link shape)
      */
-    public Shape getMapShape()
+    public RectangularShape getMapShape()
     {
         // Will not work for shapes like RoundRect when scaled -- e..g, corner scaling will be off
             
