@@ -2219,15 +2219,13 @@ public class Actions implements VueConstants
     public static final ArrangeAction MakeCircle = new ArrangeAction("Make Circle", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
-            // todo bug: an already made row is shifting everything to the left
-            // (probably always, actually)
             
             void arrange(LWSelection selection) {
 
-                final double radiusHorz, radiusVert;
+                final double radiusWide, radiusTall;
                 
                 if (selection.size() == 1) {
-                    // if a single item in selection, arrange all nodes linked to it in a ciricle around it
+                    // if a single item in selection, arrange all nodes linked to it in a circle around it
                     LWComponent center = selection.first();
                     selection.clear();
                     selection.addAll(center.getLinked());
@@ -2237,17 +2235,30 @@ public class Actions implements VueConstants
                     // and bump up if there are link labels to make room for
                     // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
                     // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
-                    radiusHorz = center.getWidth() * 2;
-                    radiusVert = center.getHeight() * 2;
+                    radiusWide = center.getWidth() * 2;
+                    radiusTall = center.getHeight() * 2;
+                    selection().setTo(center);
+                    selection().add(selection);
                 } else {
-                    radiusHorz = (maxX - minX) / 2;
-                    radiusVert = (maxY - minY) / 2;
+                    radiusWide = (maxX - minX) / 2;
+                    radiusTall = (maxY - minY) / 2;
+
+                    // The ring will expand on subsequent MakeCircle calls, because nodes are laid
+                    // out on the ring on-center, but the bounds used to create the initial ring
+                    // form the the top of the north-most mode to the bottom of the south-most node
+                    // (same for east/west), which on the next call will be a bigger ring.  Would
+                    // be hairy trying to figure out the the ring size that would contain the given
+                    // nodes inside a given rectangle when laid-out on-center. [ Actually, would
+                    // just computing the on-center bounds work? Better, but only perfectly if
+                    // there's a node at exaclty N/S/E/W on the dial, and the ring-order (currently
+                    // selection order, which is usually stacking order) hasn't changed.] If we
+                    // want such functionality, would be better handled via a persistent "ring"
+                    // layout object (like a group), that maintains a persistant, selectable oval
+                    // that can be resized directly -- the bounding box would only be used for
+                    // picking the initial size.
+
                 }
                     
-                
-                final double slice = (Math.PI * 2) / selection.size();
-                int i = 0;
-                
                 // todo: if a link-chain detected, lay out in link-order e.g., start
                 // with any non-linked nodes, then find any with one link (into our
                 // set), and then follow the link chain laying out any nodes found in
@@ -2255,12 +2266,16 @@ public class Actions implements VueConstants
                 // continue to the next node, etc.  Also, can prefer link directionality
                 // if there are arrow heads.
                 
+                
+                final double slice = (Math.PI * 2) / selection.size();
+                int i = 0;
+                
                 for (LWComponent c : selection) {
-                    // We add Math.PI/2*3 so the "clock" always starts at the top -- so something
+                    // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
                     // is always is laid out at 12 o'clock
                     final double angle = Math.PI/2*3 + slice * i++;
-                    c.setCenterAt(centerX + radiusHorz * Math.cos(angle),
-                                  centerY + radiusVert * Math.sin(angle));
+                    c.setCenterAt(centerX + radiusWide * Math.cos(angle),
+                                  centerY + radiusTall * Math.sin(angle));
                 }
 
             }
