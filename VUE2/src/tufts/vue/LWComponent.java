@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.434 $ / $Date: 2008-09-24 22:25:20 $ / $Author: sfraize $
+ * @version $Revision: 1.435 $ / $Date: 2008-09-25 01:06:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3721,8 +3721,12 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     public void setCenterAt(Point2D p) {
-        setLocation((float) p.getX() - getWidth()/2,
-                    (float) p.getY() - getHeight()/2);
+        setCenterAt(p.getX(), p.getY());
+    }
+    
+    public void setCenterAt(double x, double y) {
+        setLocation((float) x - getWidth()/2,
+                    (float) y - getHeight()/2);
     }
     
     public Point2D getLocation()
