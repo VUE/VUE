@@ -2057,7 +2057,8 @@ public class Actions implements VueConstants
         {
             final Point2D.Float groundZero = new Point2D.Float(pushing.getMapCenterX(),
                                                                pushing.getMapCenterY());
-            final Rectangle2D pushingRect = pushing.getMapBounds();
+            //final Rectangle2D pushingRect = pushing.getMapBounds();
+            final RectangularShape pushingShape = pushing.getMapShape();
 
             final java.util.List<LWComponent> links = new java.util.ArrayList();
             final java.util.List<LWComponent> nodes = new java.util.ArrayList();
@@ -2085,7 +2086,8 @@ public class Actions implements VueConstants
                 float adjust = PUSH_DISTANCE;
 
                 //final boolean intersects = node.intersects(pushingRect); // problems w/slide icons
-                final boolean intersects = pushingRect.intersects(node.getMapBounds());
+                //final boolean intersects = pushingRect.intersects(node.getMapBounds());
+                final boolean intersects = pushingShape.intersects(node.getMapBounds());
 
                 final boolean moveToEdge = overlap || intersects;
 
@@ -2127,7 +2129,7 @@ public class Actions implements VueConstants
                         node.setCenterAt(VueUtil.projectPoint(intersect, connector, i * 2f));
 //                         if (!node.intersects(pushingRect)) // problems w/slide icons
 //                             break;
-                        if (!pushingRect.intersects(node.getMapBounds()))
+                        if (!pushingShape.intersects(node.getMapBounds()))
                             break;
                         if (DEBUG_PUSH) Log.debug("PUSH ITER " + i + " on " + node);
                     }
