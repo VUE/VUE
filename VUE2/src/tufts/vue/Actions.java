@@ -1867,11 +1867,12 @@ public class Actions implements VueConstants
     // (error occurs even in first adjustment, but easier to notice
     // in follow-ons)
     //-------------------------------------------------------
-    abstract static class ArrangeAction extends LWCAction {
+    public abstract static class ArrangeAction extends LWCAction {
         static float minX, minY;
         static float maxX, maxY;
         static float centerX, centerY;
         static float totalWidth, totalHeight; // added width/height of all in selection
+        static float maxWide, maxTall; // width of widest, height of tallest
         // obviously not thread-safe here
         
         private ArrangeAction(String name, KeyStroke keyStroke) {
@@ -1891,6 +1892,10 @@ public class Actions implements VueConstants
         }
 
         boolean supportsSingleMover() { return true; }
+
+        public void act(List<LWComponent> bag) {
+            act(new LWSelection(bag));
+        }
         
         void act(LWSelection selection) {
             LWComponent singleMover = null;
@@ -1926,18 +1931,25 @@ public class Actions implements VueConstants
                 r.height = selection.getHeight();
             }
 
-            minX = r.x;
-            minY = r.y;
-            maxX = r.x + r.width;
-            maxY = r.y + r.height;
-            centerX = (minX + maxX) / 2;
-            centerY = (minY + maxY) / 2;
-            totalWidth = totalHeight = 0;
+            computeStatistics(r, selection);
 
-            for (LWComponent c : selection) {
-                totalWidth += c.getWidth();
-                totalHeight += c.getHeight();
-            }
+//             minX = r.x;
+//             minY = r.y;
+//             maxX = r.x + r.width;
+//             maxY = r.y + r.height;
+//             centerX = (minX + maxX) / 2;
+//             centerY = (minY + maxY) / 2;
+//             totalWidth = totalHeight = 0;
+//             maxWide = maxTall = 0;
+
+//             for (LWComponent c : selection) {
+//                 totalWidth += c.getWidth();
+//                 totalHeight += c.getHeight();
+//                 if (c.getWidth() > maxWide)
+//                     maxWide = c.getWidth();
+//                 if (c.getHeight() > maxTall)
+//                     maxTall = c.getHeight();
+//             }
 
             if (singleMover != null) {
                 // If we're a single selected object laying out in a parent,
@@ -1948,6 +1960,30 @@ public class Actions implements VueConstants
                 arrange(singleMover);
             } else {
                 arrange(selection);
+            }
+        }
+
+        static protected void computeStatistics(Rectangle2D.Float r, Collection<LWComponent> nodes) {
+            
+            if (r == null)
+                r = LWMap.getLayoutBounds(nodes);
+
+            minX = r.x;
+            minY = r.y;
+            maxX = r.x + r.width;
+            maxY = r.y + r.height;
+            centerX = (minX + maxX) / 2;
+            centerY = (minY + maxY) / 2;
+            totalWidth = totalHeight = 0;
+            maxWide = maxTall = 0;
+
+            for (LWComponent c : nodes) {
+                totalWidth += c.getWidth();
+                totalHeight += c.getHeight();
+                if (c.getWidth() > maxWide)
+                    maxWide = c.getWidth();
+                if (c.getHeight() > maxTall)
+                    maxTall = c.getHeight();
             }
         }
         
@@ -2225,25 +2261,27 @@ public class Actions implements VueConstants
             void arrange(LWSelection selection) {
 
                 final double radiusWide, radiusTall;
-                
+
+                final Collection<LWComponent> nodes;
+
                 if (selection.size() == 1) {
                     // if a single item in selection, arrange all nodes linked to it in a circle around it
                     LWComponent center = selection.first();
-                    selection.clear();
-                    selection.addAll(center.getLinked());
+                    nodes = center.getLinked();
+                    computeStatistics(null, nodes);
                     centerX = center.getMapCenterX(); // should probably be local center, not map center
                     centerY = center.getMapCenterY();
-                    // todo: radius should be at least half center node width + half widest node width
-                    // and bump up if there are link labels to make room for
+                    // todo: bump up if there are link labels to make room for
                     // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
                     // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
-                    radiusWide = center.getWidth() * 2;
-                    radiusTall = center.getHeight() * 2;
+                    radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
+                    radiusTall = center.getHeight() / 2 + maxTall / 2 + 50;
                     selection().setTo(center);
-                    selection().add(selection);
+                    selection().add(nodes);
                 } else {
                     radiusWide = (maxX - minX) / 2;
                     radiusTall = (maxY - minY) / 2;
+                    nodes = selection;
 
                     // The ring will expand on subsequent MakeCircle calls, because nodes are laid
                     // out on the ring on-center, but the bounds used to create the initial ring
@@ -2268,11 +2306,10 @@ public class Actions implements VueConstants
                 // continue to the next node, etc.  Also, can prefer link directionality
                 // if there are arrow heads.
                 
-                
-                final double slice = (Math.PI * 2) / selection.size();
+                final double slice = (Math.PI * 2) / nodes.size();
                 int i = 0;
                 
-                for (LWComponent c : selection) {
+                for (LWComponent c : nodes) {
                     // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
                     // is always is laid out at 12 o'clock
                     final double angle = Math.PI/2*3 + slice * i++;
