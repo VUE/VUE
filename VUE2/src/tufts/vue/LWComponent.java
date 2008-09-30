@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.436 $ / $Date: 2008-09-25 18:46:11 $ / $Author: sfraize $
+ * @version $Revision: 1.437 $ / $Date: 2008-09-30 13:06:34 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -147,6 +147,9 @@ public class LWComponent
             FIXED_LOCATION,
             /** has been specially styled for for appearance on a slide */
             SLIDE_STYLE,
+
+            /** was created to serve some internal purpose: not intended to exist on a regular user map */
+            INTERNAL,
 
 //             /** if temporarily changing locked state, can save old value here (layers use this) */
 //             WAS_LOCKED,
@@ -3097,12 +3100,12 @@ u                    getSlot(c).setFromString((String)value);
      * Note that if this is called on an LWLink, it will only return objects linking to us,
      * not the objects at our endpoints.
      **/
-    public Collection<? extends LWComponent> getLinked() {
+    public Collection<LWComponent> getLinked() {
         // default uses a set, in case there are multiple links to the same endpoint
         return getLinked(new HashSet(getLinks().size()));
     }
 
-    protected Collection<? extends LWComponent> getLinked(Collection bag)
+    protected Collection<LWComponent> getLinked(Collection bag)
     {
         for (LWLink link : getLinks()) {
             final LWComponent head = link.getHead();
