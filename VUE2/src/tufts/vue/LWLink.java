@@ -43,7 +43,7 @@ import javax.swing.JTextArea;
  * we inherit from LWComponent.
  *
  * @author Scott Fraize
- * @version $Revision: 1.198 $ / $Date: 2008-09-24 22:20:08 $ / $Author: sfraize $
+ * @version $Revision: 1.199 $ / $Date: 2008-09-30 15:43:38 $ / $Author: sfraize $
  */
 public class LWLink extends LWComponent
     implements LWSelection.ControlListener, Runnable
@@ -2387,17 +2387,15 @@ public class LWLink extends LWComponent
 //             radians -= Math.PI;
 
 //         // diagnostics
-//         if (DEBUG.BOXES) {
-//             if (DEBUG.LINK) out("normalizing rotation " + radians);
-//             if (DEBUG.META) {
+// //         if (DEBUG.BOXES) {
+// //             if (DEBUG.LINK) out("normalizing rotation " + radians);
+// //             if (DEBUG.META) {
 //                 this.label =
-//                     Util.oneDigitDecimal(xdiff) + "/" + Util.oneDigitDecimal(ydiff) + "=" + (float) slope
-//                     + " atan=" + (float) radians
-//                     + " deg=[" + Util.oneDigitDecimal(Math.toDegrees(radians))
-//                     + "]";
+//                     String.format("%.1f/%.1f=%.1f atan=%.3f deg=%.1f",
+//                                   xdiff, ydiff, slope, radians, Math.toDegrees(radians));
 //                 getLabelBox().setText(this.label);
-//             }
-//         }
+// //             }
+// //         }
 
 //         return radians;
     }
