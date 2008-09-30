@@ -46,7 +46,7 @@ import java.util.Iterator;
 
 /**
  *
- * @version $Revision: 1.80 $ / $Date: 2008-09-16 12:31:44 $ / $Author: sfraize $
+ * @version $Revision: 1.81 $ / $Date: 2008-09-30 15:44:22 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  Scott Fraize
  */
@@ -113,7 +113,7 @@ public class VueDragTree extends JTree
 
     }
     
-    public VueDragTree(FavoritesNode favoritesNode) {
+    protected VueDragTree(FavoritesNode favoritesNode) {
 
         //Util.printStackTrace("NEW: " + getClass() + "; " + favoritesNode + "; " + favoritesNode.getResource());
         if (DEBUG.Enabled) Log.debug("NEW: " + favoritesNode + "; " + favoritesNode.getResource());;
@@ -124,7 +124,6 @@ public class VueDragTree extends JTree
         createPopupMenu();
         implementDrag(this);
         addTreeSelectionListener(this);
-
         addListeners();
 
         if (DEBUG.SELECTION) Util.printStackTrace(GUI.namex(this) + " constructed from FavoritesNode " + favoritesNode);
@@ -183,11 +182,13 @@ public class VueDragTree extends JTree
     
     private void  implementDrag(VueDragTree tree){
         DragSource dragSource = DragSource.getDefaultDragSource();
-        dragSource.createDefaultDragGestureRecognizer(tree,
-                DnDConstants.ACTION_COPY |
-                DnDConstants.ACTION_MOVE |
-                DnDConstants.ACTION_LINK,
-                tree);
+        dragSource.createDefaultDragGestureRecognizer
+            (tree,
+             DnDConstants.ACTION_COPY |
+             DnDConstants.ACTION_MOVE |
+             DnDConstants.ACTION_LINK,
+             (DragGestureListener) tree);
+        
         addTreeExpansionListener(new TreeExpansionListener(){
             public void treeCollapsed(TreeExpansionEvent e) {}
             public void treeExpanded(TreeExpansionEvent e) {
