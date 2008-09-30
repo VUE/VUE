@@ -29,7 +29,7 @@ import javax.swing.border.*;
  *
  * Various static utility methods for VUE.
  *
- * @version $Revision: 1.97 $ / $Date: 2008-09-24 22:23:51 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2008-09-30 15:44:37 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -589,6 +589,8 @@ public class VueUtil extends tufts.Util
      */
 
     public static Point2D projectPoint(float x, float y, Line2D ray, float distance) {
+
+        // todo: this impl could be much simpler
 
         final Point2D.Float p = new Point2D.Float();
 
