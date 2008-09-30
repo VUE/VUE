@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.572 $ / $Date: 2008-09-24 22:20:45 $ / $Author: sfraize $ 
+ * @version $Revision: 1.573 $ / $Date: 2008-09-30 15:44:04 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4713,7 +4713,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         return new LWTransfer(draggedSelectionGroup);
     }
     
-    public Transferable getTransferableHelper(LWComponent comp) {
+    public static Transferable getTransferableHelper(LWComponent comp) {
         //draggedSelectionGroup.useSelection(VueSelection);
         
         return new LWTransfer(comp);
@@ -4722,7 +4722,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
     
     //private final DataFlavor URLFlavor = GUI.makeDataFlavor(java.net.URL.class);
     
-    private final DataFlavor LWFlavors[] = {
+    private static final DataFlavor LWFlavors[] = {
             LWComponent.DataFlavor,
             DataFlavor.stringFlavor,
             DataFlavor.imageFlavor,
@@ -4731,21 +4731,27 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //URLFlavor, // try text/uri-list
         };
 
-        public class LWTransfer implements Transferable
+        public static class LWTransfer implements Transferable
         {
             private final LWComponent LWC;
+            private final MapViewer viewer;
 
-            public LWTransfer(LWComponent c) {
+            public LWTransfer(MapViewer viewer, LWComponent c) {
                 this.LWC = c;
+                this.viewer = viewer;
             }
     
+            public LWTransfer(LWComponent c) {
+                this(null, c);
+            }
+            
             public DataFlavor[] getTransferDataFlavors() {
                 return LWFlavors;
             }
             
             public boolean isDataFlavorSupported(DataFlavor flavor)
             {
-                if (DEBUG.DND) out("LWTransfer: isDataFlavorSupported, flavor=" + flavor);
+                if (DEBUG.DND) Log.debug("LWTransfer: isDataFlavorSupported, flavor=" + flavor);
                 
                 if (flavor == null)
                     return false;
@@ -4784,10 +4790,13 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 Object data = null;
         
                 
-                if(TypeList.DataFlavor.equals(flavor)){
-                   data = LWC.getMetadataList().getMetadata().get(0).getObject();
-                } else
-                if (DataFlavor.stringFlavor.equals(flavor)) {
+                if (TypeList.DataFlavor.equals(flavor)) {
+                    try {
+                        data = LWC.getMetadataList().getMetadata().get(0).getObject();
+                    } catch (Throwable t) {
+                        Log.warn(t);
+                    }
+                } else if (DataFlavor.stringFlavor.equals(flavor)) {
                     
                     String s = null;
                     if (LWC instanceof LWMap && ((LWMap)LWC).getFile() != null)
@@ -4810,9 +4819,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 } else if (LWComponent.DataFlavor.equals(flavor)) {
                     
                     final java.util.Collection duplicates;
-                    if (LWC == draggedSelectionGroup) {
+                    if (viewer != null && LWC == viewer.draggedSelectionGroup) {
                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
                     } else if (LWC instanceof LWMap) {
+                        // don't send the actual map just yet...
+                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
+                    } else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
                         // don't send the actual map just yet...
                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
                     } else {
@@ -6159,7 +6171,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             GUI.startLWCDrag(MapViewer.this,
                              e,
                              toDrag,
-                             new LWTransfer(toDrag));
+                             new LWTransfer(this, toDrag));
         }
 
     private boolean isDropRequest(MouseEvent e) {
