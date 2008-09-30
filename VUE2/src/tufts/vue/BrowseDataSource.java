@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.2 $ / $Date: 2008-09-16 11:55:40 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-09-30 15:43:26 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -316,7 +316,13 @@ public abstract class BrowseDataSource implements DataSource
         try {
             address = new URL(addressText);
         } catch (Throwable t) {
-            throw new DataSourceException("Bad address in " + getClass().getSimpleName(), t);
+            try {
+                address = new URL("file://" + addressText);
+            } catch (Throwable t2) {
+                address = null;
+            }
+            if (address == null)
+                throw new DataSourceException("Bad address in " + getClass().getSimpleName(), t);
         }
         
         Map<String,List<String>> headers = null;
