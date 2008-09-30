@@ -1893,7 +1893,7 @@ public class Actions implements VueConstants
 
         boolean supportsSingleMover() { return true; }
 
-        public void act(List<LWComponent> bag) {
+        public void act(List<? extends LWComponent> bag) {
             act(new LWSelection(bag));
         }
         
@@ -1920,6 +1920,9 @@ public class Actions implements VueConstants
                 }
             }
 
+            // TODO: do we need to recompute statistics in the selection?  E.g., links from another
+            // layer in selection should be removed.  Also, need allHaveTopLevelParent
+            // or some such -- objects from different layers should be allowed.
             if (!selection.allHaveSameParent())
                 throw new DeniedException("all must have same parent");
 
@@ -1932,24 +1935,6 @@ public class Actions implements VueConstants
             }
 
             computeStatistics(r, selection);
-
-//             minX = r.x;
-//             minY = r.y;
-//             maxX = r.x + r.width;
-//             maxY = r.y + r.height;
-//             centerX = (minX + maxX) / 2;
-//             centerY = (minY + maxY) / 2;
-//             totalWidth = totalHeight = 0;
-//             maxWide = maxTall = 0;
-
-//             for (LWComponent c : selection) {
-//                 totalWidth += c.getWidth();
-//                 totalHeight += c.getHeight();
-//                 if (c.getWidth() > maxWide)
-//                     maxWide = c.getWidth();
-//                 if (c.getHeight() > maxTall)
-//                     maxTall = c.getHeight();
-//             }
 
             if (singleMover != null) {
                 // If we're a single selected object laying out in a parent,
@@ -2275,7 +2260,7 @@ public class Actions implements VueConstants
                     // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
                     // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
                     radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
-                    radiusTall = center.getHeight() / 2 + maxTall / 2 + 50;
+                    radiusTall = Math.max(totalHeight/2, center.getHeight() / 2 + maxTall / 2 + 50);
                     selection().setTo(center);
                     selection().add(nodes);
                 } else {
@@ -2311,7 +2296,7 @@ public class Actions implements VueConstants
                 
                 for (LWComponent c : nodes) {
                     // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
-                    // is always is laid out at 12 o'clock
+                    // is always is laid out at exactly the 12 o'clock position
                     final double angle = Math.PI/2*3 + slice * i++;
                     c.setCenterAt(centerX + radiusWide * Math.cos(angle),
                                   centerY + radiusTall * Math.sin(angle));
