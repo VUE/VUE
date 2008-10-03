@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.125 $ / $Date: 2008-09-11 01:37:39 $ / $Author: mike $
+ * @version $Revision: 1.126 $ / $Date: 2008-10-03 16:18:50 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2403,15 +2403,6 @@ public class GUI
     private static AlphaComposite DragAlpha = AlphaComposite.getInstance(AlphaComposite.SRC, .667f);
     public static final Color TransparentColor = new Color(0,0,0,0);
     
-    public static void startLWCDrag(Component source,
-                                    MouseEvent mouseEvent,
-                                    tufts.vue.LWComponent c)
-    {
-        // TODO: move LWTransfer (or most of it) out of MapViewer to GUI
-        //startLWCDrag(source, mouseEvent, c, new LWTransfer(c));
-        throw new UnsupportedOperationException();
-    }
-
     public static boolean dragImagesSupported()
     {
         // The windows platform, at least as of XP, doesn't support dragging an image,
@@ -2424,6 +2415,28 @@ public class GUI
         return Util.isMacPlatform();
     }
 
+//     public static void startLWCDrag(Component source,
+//                                     MouseEvent mouseEvent,
+//                                     tufts.vue.LWComponent c)
+//     {
+//         // TODO: move LWTransfer (or most of it) out of MapViewer to GUI
+//         //startLWCDrag(source, mouseEvent, c, new LWTransfer(c));
+//         throw new UnsupportedOperationException();
+//     }
+
+    public static void startRecognizedDrag(DragGestureEvent e, tufts.vue.LWComponent c)
+    {
+//         e.startDrag(DragSource.DefaultCopyDrop,
+//                     tufts.vue.MapViewer.getTransferableHelper(c));
+        
+        e.startDrag(DragSource.DefaultCopyDrop,
+                    c.getAsImage(0.5, new Dimension(256,256)),
+                    new Point(-(int)c.getWidth()/2, -(int)c.getHeight()/2), // image offset
+                    tufts.vue.MapViewer.getTransferableHelper(c),
+                    null); // drag source listener
+
+    }
+    
     public static void startLWCDrag(Component source,
                                     MouseEvent mouseEvent,
                                     tufts.vue.LWComponent c,
