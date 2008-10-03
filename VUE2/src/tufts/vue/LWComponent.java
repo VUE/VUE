@@ -46,7 +46,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.437 $ / $Date: 2008-09-30 13:06:34 $ / $Author: sfraize $
+ * @version $Revision: 1.438 $ / $Date: 2008-10-03 16:11:24 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -150,6 +150,9 @@ public class LWComponent
 
             /** was created to serve some internal purpose: not intended to exist on a regular user map */
             INTERNAL,
+            
+            /** this component should NOT broadast change events */
+            EVENT_SILENT,
 
 //             /** if temporarily changing locked state, can save old value here (layers use this) */
 //             WAS_LOCKED,
@@ -181,6 +184,10 @@ public class LWComponent
 
     public interface Listener extends java.util.EventListener {
         public void LWCChanged(LWCEvent e);
+    }
+    
+    public interface ListFactory {
+        public java.util.List<LWComponent> produceNodes();
     }
 
     /*
@@ -319,11 +326,11 @@ public class LWComponent
         return (mSupportedPropertyKeys & key.bit) != 0;
     }
 
-    protected void disableProperty(Key key) {
+    public void disableProperty(Key key) {
         disablePropertyBits(key.bit);
     }
     
-    protected void enableProperty(Key key) {
+    public void enableProperty(Key key) {
         enablePropertyBits(key.bit);
     }
 
@@ -776,6 +783,10 @@ u                    getSlot(c).setFromString((String)value);
 
         T get() { return value; }
 
+        public void setTo(T newValue) {
+            set(newValue);
+        }
+        
         void set(T newValue) {
             //final Object old = get(); // if "get" actually does anything tho, this is a BAD idea; if needbe, create a "curValue"
             if (this.value == newValue || (newValue != null && newValue.equals(this.value)))
@@ -1283,7 +1294,7 @@ u                    getSlot(c).setFromString((String)value);
     /** set a generic property in the model -- users of this API need to ensure the keys
      * they're using are unique with respect to any other potential users of this API.
      * Setting a property value to null removes the property */
-    public void setClientProperty(Object key, Object o) {
+    public void setClientData(Object key, Object o) {
         if (mClientProperties == null)
             mClientProperties = new HashMap();
 
@@ -1298,12 +1309,12 @@ u                    getSlot(c).setFromString((String)value);
             mClientProperties.put(key, o);
     }
     
-    public Object getClientProperty(Object key) {
+    public Object getClientData(Object key) {
         return mClientProperties == null ? null : mClientProperties.get(key);
     }
     
-    public void setClientProperty(Class classKey, String subKey, Object o) {
-        setClientProperty(classKey.getName() + "/" + subKey, o);
+    public void setClientData(Class classKey, String subKey, Object o) {
+        setClientData(classKey.getName() + "/" + subKey, o);
     }
     
 //     public void setInstanceProperty(String subKey, Object o) {
@@ -1315,13 +1326,13 @@ u                    getSlot(c).setFromString((String)value);
 //     }
     
     /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
-    public <A> A getClientProperty(Class<A> classKey, String subKey) {
-        return (A) getClientProperty(classKey.getName() + "/" + subKey);
+    public <A> A getClientData(Class<A> classKey, String subKey) {
+        return (A) getClientData(classKey.getName() + "/" + subKey);
     }
 
     /** convenience typing fetch when using a Class as a property key, that returns a value casted to the class type */
-    public <A> A getClientProperty(Class<A> classKey) {
-        return (A) getClientProperty((Object)classKey);
+    public <A> A getClientData(Class<A> classKey) {
+        return (A) getClientData((Object)classKey);
     }
     
     /**
@@ -1665,9 +1676,38 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     
-    
     public UserMapType getUserMapType() { throw new UnsupportedOperationException("deprecated"); }
 
+    public void addMetaData(String key, Object value) {
+        getMetadataList().add(key, value.toString());
+    }
+    
+//     public void containsMetaData(String key, Object value) {
+//         getMetadataList().add(key, value.toString());
+//     }
+
+    
+    /**
+     *
+     * Metadata List for use with RDF Index
+     * It is sufficient for the minimal RDF functionality
+     * to be able to retrieve this list from the LWComponent
+     * using this method and add elements directly to the list as needed.
+     * LWComponent may choose to create notifications/modifcations
+     * for any data added directly through LWComponent itself
+     * in future.
+     *
+     **/
+     public MetadataList getMetadataList()
+     {
+         return metadataList;
+     }
+     
+     public void setMetadataList(MetadataList list)
+     {
+         metadataList = list;
+     }
+    
     
     public boolean hasMetaData()
     {
@@ -2008,27 +2048,6 @@ u                    getSlot(c).setFromString((String)value);
             return getComponentTypeLabel() + "[" + getLabel() + "]";
     }
     
-    
-    /**
-     *
-     * Metadata List for use with RDF Index
-     * It is sufficient for the minimal RDF functionality
-     * to be able to retrieve this list from the LWComponent
-     * using this method and add elements directly to the list as needed.
-     * LWComponent may choose to create notifications/modifcations
-     * for any data added directly through LWComponent itself
-     * in future.
-     *
-     **/
-     public MetadataList getMetadataList()
-     {
-         return metadataList;
-     }
-     
-     public void setMetadataList(MetadataList list)
-     {
-         metadataList = list;
-     }
     
     /**
      * left in for (possible future) backward file compatibility
@@ -2581,7 +2600,9 @@ u                    getSlot(c).setFromString((String)value);
             return parent.getLayer();
     }
     
-    /** @return null if we are not a child of a layer, or the layer if it's our immediate parent  */
+    /**
+     * for castor persistance
+     * @return null if we are not a child of a layer, or the layer if it's our immediate parent  */
     public LWMap.Layer getPersistLayer() {
         if (parent instanceof LWMap.Layer)
             return (LWMap.Layer) parent;
@@ -2590,6 +2611,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
 
+    /** for castor persistance */
     public void setPersistLayer(LWMap.Layer layer) {
         if (!VUE.VUE3_LAYERS) return;
         setParent(layer);
@@ -5341,6 +5363,11 @@ u                    getSlot(c).setFromString((String)value);
         
     }
 
+//     public void drawFit(java.awt.Graphics g, int xoff, int yoff) {
+//         //drawFit(dc, dc.getMasterClipRect(), borderGap);
+//         drawFit(new DrawContext(g, this), 0);
+//     }
+    
     /** fit and center us into the total clip bounds of the given dc -- border gap pixels will multiplied by final scale value */
     public void drawFit(DrawContext dc, int borderGap) {
         drawFit(dc, dc.getMasterClipRect(), borderGap);
@@ -5695,6 +5722,9 @@ u                    getSlot(c).setFromString((String)value);
             if (DEBUG.Enabled) Log.debug(this + " ignoring: " + e);
             return;
         }
+
+        if (hasFlag(Flag.EVENT_SILENT))
+            return;
         
 //         //if (e.key.isSignal || e.key == LWKey.Location && e.source == this) {
 //         if (e.key == LWKey.UserActionCompleted || e.key == LWKey.Location && e.source == this) {
@@ -5708,12 +5738,9 @@ u                    getSlot(c).setFromString((String)value);
 //             //mCachedImage = null;
 //         }
 
-        if (isStyle() && getParent() == null)
-            ; // ignore events from non-embedded style objects (e.g., EditorManager constructs)
-        else
-            mChangeSupport.notifyListeners(this, e);
+        mChangeSupport.notifyListeners(this, e);
 
-        if (getParent() != null && e.component == this && e.key instanceof Key) {
+        if (e.component == this && e.key instanceof Key) {
             // if parent is null, we're still initializing
             final Key key = (Key) e.key;
 
@@ -5724,6 +5751,23 @@ u                    getSlot(c).setFromString((String)value);
             //if (key.type == KeyType.DATA)
             //  syncUpdate(key);
         }
+        
+//         if (isStyle() && getParent() == null)
+//             ; // ignore events from non-embedded style objects (e.g., EditorManager constructs)
+//         else
+//             mChangeSupport.notifyListeners(this, e);
+
+//         if (getParent() != null && e.component == this && e.key instanceof Key) {
+//             // if parent is null, we're still initializing
+//             final Key key = (Key) e.key;
+
+//             if (isStyle() && key.isStyleProperty)
+//                 updateStyleWatchers(key, e);
+            
+//             // sync sources not in use: never do this 2007-11-30 SMF
+//             //if (key.type == KeyType.DATA)
+//             //  syncUpdate(key);
+//         }
 
         // labels need own call to this due to TextBox use of setLabel0
     }
@@ -5795,7 +5839,7 @@ u                    getSlot(c).setFromString((String)value);
         // (as opposed to ontology style objects)
         
         // todo: this not a fast way to traverse & find what we need to change...
-        for (LWComponent dest : getMap().getAllDescendents(ChildKind.ANY)) {
+        for (LWComponent dest : findPotentialStyleWatchers()) {
             // we should never be point back to ourself, but we check just in case
             if (dest.mParentStyle == this && dest.supportsProperty(key) && dest != this) {
                 // Only copy over the style value if was previously set to our existing style value
@@ -5810,6 +5854,17 @@ u                    getSlot(c).setFromString((String)value);
                 }
             }
         }
+    }
+
+    private Collection<LWComponent> findPotentialStyleWatchers() {
+        final LWMap map;
+        if (getParent() == null)
+            //map = getClientData(LWMap.class, "styledMap");
+            map = VUE.getActiveMap(); // a bit of a hack
+        else
+            map = getMap();
+        return map.getAllDescendents(ChildKind.ANY);
+        //return getMap().getAllDescendents(ChildKind.ANY);
     }
     
     
@@ -5953,7 +6008,7 @@ u                    getSlot(c).setFromString((String)value);
         return parent == null ? false : parent.selectedOrParent();
     }
 
-    protected void setFlag(Flag flag) {
+    public void setFlag(Flag flag) {
         mFlags |= flag.bit;
     }
 
