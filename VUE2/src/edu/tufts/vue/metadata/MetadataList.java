@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Collection;
+import java.util.Map;
 
 /*
  * MetadataList.java
@@ -59,21 +61,47 @@ public class MetadataList {
    
     public List<VueMetadataElement> getMetadata()
     {
-      return metadataList;   
+        return metadataList;
     }
-    
+
+    public boolean intersects(MetadataList remote) {
+        final List remoteList = remote.getMetadata();
+        for (VueMetadataElement e : metadataList)
+            if (remoteList.contains(e))
+                return true;
+        return false;
+    }
+
     public static void addListener(MetadataListListener listener)
     {
         listeners.add(listener);
     }
     
+    private static boolean disableEvents = false;
     private static void fireListChanged()
     {
+        if (disableEvents)
+            return;
         Iterator<MetadataListListener> i = listeners.iterator();
         while(i.hasNext())
         {
             i.next().listChanged();
         }
+    }
+    
+    /** attempt at high-performace bulk load that triggers no GUI updates: doesn't work */
+    public void add(Iterable<Map.Entry<String,String>> kvEntries) {
+        disableEvents = true; // oddly, events get slower as amount of meta-data increases 
+        for (Map.Entry<String,?> e : kvEntries)
+            categoryList.add(new VueMetadataElement(e.getKey(), e.getValue().toString()));
+        disableEvents = false;
+        fireListChanged();
+        //metadataList.add(new VueMetadataElement(e.getKey(), e.getValue().toString()));
+        
+    }
+    
+    public void add(String key, String value) {
+        addElement(new VueMetadataElement(key, value));
     }
     
     public void addElement(VueMetadataElement element)
@@ -148,6 +176,23 @@ public class MetadataList {
         
         return foundAt;
     }
+
+    public boolean contains(VueMetadataElement vme) {
+        return contains(vme.getKey(), vme.getValue());
+    }
+    
+    public boolean contains(String key, String value) 
+    {
+        int foundAt = -1;
+        for(int i=0;i<getCategoryListSize();i++)
+        {
+            VueMetadataElement vme = getCategoryListElement(i);
+            if(vme.getKey().equals(key) && vme.getValue().equals(value))
+                return true;
+        }
+        return false;
+    }
+    
     
     public int findRCategory(String key)
     {
