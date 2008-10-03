@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.29 $ / $Date: 2008-09-24 22:24:14 $ / $Author: sfraize $
+ * @version $Revision: 1.30 $ / $Date: 2008-10-03 16:19:42 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -353,7 +353,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private void setActiveLayer(final Layer layer, boolean update) {
         //if (DEBUG.Enabled) Log.debug("SET-ACTIVE: " + c);
         if (layer != null)
-            mMap.setClientProperty(Layer.class, "last", mMap.getActiveLayer());
+            mMap.setClientData(Layer.class, "last", mMap.getActiveLayer());
         mMap.setActiveLayer(layer);
         if (update)
             indicateActiveLayers(null);
@@ -384,7 +384,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         //if (!AUTO_ADJUST_ACTIVE_LAYER) return;
 
         final Layer curActive = getActiveLayer();
-        final Layer lastActive = mMap.getClientProperty(Layer.class, "last");
+        final Layer lastActive = mMap.getClientData(Layer.class, "last");
 
         if (canBeActive(lastActive)) {
             setActiveLayer(lastActive, UPDATE);
@@ -703,12 +703,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
     private Row produceRow(final LWComponent layer)
     {
-        Row row = layer.getClientProperty(Row.class);
+        Row row = layer.getClientData(Row.class);
         if (row != null) {
             return row;
         } else {
             row = new Row(layer);
-            layer.setClientProperty(Row.class, row);
+            layer.setClientData(Row.class, row);
             return row;
         }
     }
@@ -729,17 +729,17 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     }
 
     private Row fetchExclusiveRow() {
-        return mMap.getClientProperty(Row.class, "exclusive");
+        return mMap.getClientData(Row.class, "exclusive");
     }
     private void storeExclusiveRow(Row row) {
-        mMap.setClientProperty(Row.class, "exclusive", row);
+        mMap.setClientData(Row.class, "exclusive", row);
     }
 
     private Layer fetchPreExclusiveLayer() {
-        return mMap.getClientProperty(Layer.class, "pre-exclusive");
+        return mMap.getClientData(Layer.class, "pre-exclusive");
     }
     private void storePreExclusiveLayer(Layer layer) {
-        mMap.setClientProperty(Layer.class, "pre-exclusive", layer);
+        mMap.setClientData(Layer.class, "pre-exclusive", layer);
     }
     
     // TODO: if a row is deleted while in exclusive mode, you won't
@@ -1156,7 +1156,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 grab = new JButton("Grab");                
                 grab.setFont(VueConstants.SmallFont);
                 grab.putClientProperty("JButton.buttonType", "textured");
-                //grab.putClientProperty("JButton.sizeVariant", "tiny");
+                //grab.putClientData("JButton.sizeVariant", "tiny");
                 grab.addActionListener(new ActionListener() {
                         public void actionPerformed(ActionEvent e) {
                             if (VUE.getSelection().size() > 0) {
@@ -1283,6 +1283,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
             
             //add(Box.createHorizontalGlue(), c);
+
+            if (layer.hasFlag(INTERNAL)) {
+                preview = null;
+                return;
+            }
             
             preview = new Preview(layer);
             //preview.setMinimumSize(new Dimension(128, 64));
