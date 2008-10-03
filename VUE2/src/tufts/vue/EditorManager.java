@@ -606,6 +606,7 @@ public class EditorManager
         
         style.copySupportedProperties(styleSource);
         style.copyStyle(styleSource);
+        style.setFlag(LWComponent.Flag.EVENT_SILENT);
         style.setPersistIsStyle(Boolean.TRUE); // mark as a style: e.g., so if link, can know not to recompute
 
         //-----------------------------------------------------------------------------
