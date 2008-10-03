@@ -20,17 +20,19 @@ import tufts.Util;
 
 import java.util.*;
 import java.io.*;
-import java.awt.*;
-import java.net.*;
 import java.util.List;
 import java.util.*;
+import java.awt.*;
+import java.net.*;
 import javax.swing.*;
-
 
 import static tufts.vue.ds.XMLIngest.*;
 
+import au.com.bytecode.opencsv.CSVReader;
+
+
 /**
- * @version $Revision: 1.2 $ / $Date: 2008-09-16 12:12:20 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-10-03 16:18:13 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -109,19 +111,72 @@ public class XmlDataSource extends BrowseDataSource
         JComponent viewer = null;
         try {
             viewer = loadContentAndBuildViewer();
+        } catch (Throwable t) {
+            Log.error("loadViewer", t);
         } finally {
             tufts.vue.VUE.diagPop();
         }
         return viewer;
     }
     
-    private JComponent loadContentAndBuildViewer()
+    public Schema ingestCSV(String file, boolean hasColumnTitles) throws java.io.IOException {
+
+        final Schema schema = new Schema(file);
+        //final CSVReader reader = new CSVReader(new FileReader(file));
+        // TODO: need an encoding Win/Mac encoding toggle
+        // TODO: need handle this in BrowseDataSource openReader (encoding provided by user in data-source config)
+        final CSVReader reader = new CSVReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
+
+        String[] values = reader.readNext();
+        
+        if (values == null)
+            throw new IOException(file + ": empty file?");
+
+        if (hasColumnTitles) {
+            schema.createFields(values);
+            values = reader.readNext();            
+        } else {
+            schema.createFields(values.length);
+        }
+
+        if (values == null)
+            throw new IOException(file + ": has column names, but no data");
+        
+        do {
+
+            schema.addRow(values);
+            
+        } while ((values = reader.readNext()) != null);
+
+        reader.close();
+
+        return schema;
+    }
+    
+    private JComponent loadContentAndBuildViewer() throws java.io.IOException
     {
         Log.debug("loadContentAndBuildViewer");
 
-        final URLConnection conn = openAddress();
 
-        final Schema schema = ingestXML(conn, getItemKey());
+        final Schema schema;
+        boolean isCSV = false;
+
+        if (getAddress().endsWith(".csv")) {
+            schema = ingestCSV(getAddress(), true);
+            isCSV = true;
+        } else {
+            schema = XMLIngest.ingestXML(openInput(), getItemKey());
+            //schema = XMLIngest.ingestXML(openAddress(), getItemKey());
+        }
+
+        schema.setName(getDisplayName());
+
+        if (true) return new DataTree(schema);
+
+        //-----------------------------------------------------------------------------
+        // HACK
+        //VUE.getActiveMap().add(schema.createSchematicLayer());
+        //-----------------------------------------------------------------------------
 
         mItems.clear();
 
@@ -136,7 +191,7 @@ public class XmlDataSource extends BrowseDataSource
 
         mItems.add(top);
 
-        for (VRow row : schema.getRows()) {
+        for (DataRow row : schema.getRows()) {
             //Resource r = Resource.instance(row.getValue("rss.channel.item.link"));
             String link = row.getValue("link");
             final Resource r;
@@ -195,21 +250,22 @@ public class XmlDataSource extends BrowseDataSource
             
 //         }
 
-        VueDragTree fileTree = new VueDragTree(mItems, this.getDisplayName());
-        fileTree.setRootVisible(true);
-        fileTree.setShowsRootHandles(true);
-        fileTree.expandRow(0);
-        fileTree.setRootVisible(false);
-        fileTree.setName(getClass().getSimpleName() + ": " + getAddress());
+        VueDragTree tree = new VueDragTree(mItems, this.getDisplayName());
+        tree.setRootVisible(true);
+        tree.setShowsRootHandles(true);
+        tree.expandRow(0);
+        tree.setRootVisible(false);
+        tree.setName(getClass().getSimpleName() + ": " + getAddress());
 
-        return fileTree;
+        return tree;
+
     }
 
 
     private static boolean TEST_DEBUG = false;
 
     
-    public static void main(String[] args)
+    public static void main(String[] args) throws Exception
     {
         TEST_DEBUG = true;
         
