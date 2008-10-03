@@ -724,7 +724,7 @@ public class Actions implements VueConstants
                 // changes made to the components before they're fully baked
                 // (e.g., link reconnections, translations) will generate events
                 // that will confuse the UndoManager.
-                copy.setClientProperty(LWContainer.class, c.parent);
+                copy.setClientData(LWContainer.class, c.parent);
             }
             if (copy != null)
                 DupeList.add(copy);
@@ -783,14 +783,14 @@ public class Actions implements VueConstants
             final List<LWComponent> dupes =
                 duplicatePreservingLinks(selection, RECORD_OLD_PARENT, SORT_BY_Z_ORDER);
 
-            final LWContainer parent0 = dupes.get(0).getClientProperty(LWContainer.class);
+            final LWContainer parent0 = dupes.get(0).getClientData(LWContainer.class);
             boolean allHaveSameParent = true;
 
             // dupes may have fewer items in it that the selection: it will only
             // contain the top-level items duplicated -- not any of their children
 
             for (LWComponent copy : dupes) {
-                if (copy.getClientProperty(LWContainer.class) != parent0)
+                if (copy.getClientData(LWContainer.class) != parent0)
                     allHaveSameParent = false;
                 copy.translate(CopyOffset, CopyOffset);
             }
@@ -801,13 +801,13 @@ public class Actions implements VueConstants
                 // Todo: would be smoother to collect all the nodes by parent
                 // and do a separate collective adds for each parent
                 for (LWComponent copy : dupes) 
-                    copy.getClientProperty(LWContainer.class).pasteChild(copy);
+                    copy.getClientData(LWContainer.class).pasteChild(copy);
                     
             }
 
             // clear out old parent references now that we're done with them
             for (LWComponent copy : dupes)
-                copy.setClientProperty(LWContainer.class, null);
+                copy.setClientData(LWContainer.class, null);
 
 //             if (selection.only() instanceof LWLink) {
 //                 LWLink oneLink = (LWLink) selection.first();
@@ -2039,24 +2039,26 @@ public class Actions implements VueConstants
         }
     }
 
-    
-    public static final LWCAction PushOut =
-    new LWCAction("Push Out", keyStroke(KeyEvent.VK_P, COMMAND+SHIFT)) {
-        
-        //boolean enabledFor(LWSelection s) { return s.size() == 1; }
-        boolean enabledFor(LWSelection s) {
+    private static final int PUSH_DISTANCE = 24;
+
+    private static boolean enabledForPushPull(LWSelection s) {
             return s.size() == 1
                 && !(s.first() instanceof LWLink) // links giving us trouble
                 && s.first().getParent() instanceof LWMap.Layer; // don't allow pushing inside slides, nodes / anything
-                //&& viewer().getDropFocal() instanceof LWMap.Layer; // do not allow pushing on slides
+    }
+    
+    
+    public static final LWCAction PushOut =
+    new LWCAction("Push Out", keyStroke(KeyEvent.VK_EQUALS, ALT)) {
+        
+        boolean enabledFor(LWSelection s) {
+            return enabledForPushPull(s);
         }
         // todo: for selection size > 1, push on bounding box
         void act(LWComponent c) {
-
             // although we don't currently want to support pushing inside anything other than
             // a layer, this generic call would handle other cases if we can support them
-            pushNodes(c.getParent(), c);
-            
+            projectNodes(c, PUSH_DISTANCE);
             // currenly only pushes within a single layer: provide the map
             // as the focal if want to push in all layers
             //pushNodes(viewer().getDropFocal(), c); // push in active focal: will work for slides also
@@ -2067,14 +2069,39 @@ public class Actions implements VueConstants
             //pushNearbyNodes(viewer().getDropFocal(), c);
 
         }
+    };
+    
+    public static final LWCAction PullIn =
+        new LWCAction("Pull In", keyStroke(KeyEvent.VK_MINUS, ALT)) {
+            boolean enabledFor(LWSelection s) {
+                return enabledForPushPull(s);
+            }
+            void act(LWComponent c) {
+                projectNodes(c, -PUSH_DISTANCE);
+                
+            }
+        };
         
-        private static final int PUSH_DISTANCE = 24;
         private static final boolean DEBUG_PUSH = false;
+    
+    private static void projectNodes(final LWComponent pushing, final int distance) {
+
+        Collection<LWComponent> toPush = null;
+
+        if (distance < 0 && pushing.hasLinks())
+            toPush = pushing.getLinked();
+
+        if (toPush == null || toPush.size() == 0)
+            toPush = pushing.getParent().getChildren();
+        
+        projectNodes(toPush, pushing, distance);
+    }
+        
         
         // todo: combine into a Geometry.java with computeIntersection, computeConnector, projectPoint code from VueUtil
         // todo: to handle pushing inside slides, we'd need to get rid of the references to map bounds,
         // and always use local bounds
-        public void pushNodes(final LWComponent parentFocal, final LWComponent pushing)
+        private static void projectNodes(final Iterable<LWComponent> toPush, final LWComponent pushing, final int distance)
         {
             final Point2D.Float groundZero = new Point2D.Float(pushing.getMapCenterX(),
                                                                pushing.getMapCenterY());
@@ -2084,7 +2111,7 @@ public class Actions implements VueConstants
             final java.util.List<LWComponent> links = new java.util.ArrayList();
             final java.util.List<LWComponent> nodes = new java.util.ArrayList();
         
-            for (LWComponent node : parentFocal.getChildren()) {
+            for (LWComponent node : toPush) {
 
                 if (node == pushing)
                     continue;
@@ -2104,7 +2131,7 @@ public class Actions implements VueConstants
 
                 final Point2D newCenter;
             
-                float adjust = PUSH_DISTANCE;
+                float adjust = distance;
 
                 //final boolean intersects = node.intersects(pushingRect); // problems w/slide icons
                 //final boolean intersects = pushingRect.intersects(node.getMapBounds());
@@ -2124,6 +2151,9 @@ public class Actions implements VueConstants
             
                 if (moveToEdge) {
 
+                    if (distance < 0) // do nothing further if pulling on
+                         continue;
+                
                     // If overlapping, we want to move the node along a line away from
                     // the center of the pushing node until it no longer overlaps.  As
                     // part of this process, we compute the point at the edge of the
@@ -2203,7 +2233,6 @@ public class Actions implements VueConstants
                 pushing.getMap().addChildren(links);
             }
         }
-    };
     
     // Note: if JScrollPane has focus, it will grap unmodified arrow keys.  If, say, a random DockWindow
     // has focus (e.g., not a field that would also grab arrow keys), they get through.
@@ -2264,8 +2293,16 @@ public class Actions implements VueConstants
                     selection().setTo(center);
                     selection().add(nodes);
                 } else {
-                    radiusWide = (maxX - minX) / 2;
-                    radiusTall = (maxY - minY) / 2;
+                    
+//                     radiusWide = (maxX - minX) / 2;
+//                     radiusTall = (maxY - minY) / 2;
+                    
+//                     radiusWide = Math.max((maxX - minX) / 2, maxWide);
+//                     radiusTall = Math.max((maxY - minY) / 2, maxTall);
+                    
+                    radiusWide = Math.max((maxX - minX) / 2, totalWidth/4);
+                    radiusTall = Math.max((maxY - minY) / 2, totalHeight/4);
+                    
                     nodes = selection;
 
                     // The ring will expand on subsequent MakeCircle calls, because nodes are laid
@@ -2283,6 +2320,7 @@ public class Actions implements VueConstants
                     // picking the initial size.
 
                 }
+
                     
                 // todo: if a link-chain detected, lay out in link-order e.g., start
                 // with any non-linked nodes, then find any with one link (into our
@@ -2293,13 +2331,35 @@ public class Actions implements VueConstants
                 
                 final double slice = (Math.PI * 2) / nodes.size();
                 int i = 0;
+
+                //final int tiers = nodes.size() / 30;
+                final int tiers = 2;
                 
                 for (LWComponent c : nodes) {
                     // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
                     // is always is laid out at exactly the 12 o'clock position
                     final double angle = Math.PI/2*3 + slice * i++;
-                    c.setCenterAt(centerX + radiusWide * Math.cos(angle),
-                                  centerY + radiusTall * Math.sin(angle));
+
+                    if (nodes.size() > 100) {
+                        // random layout
+                        double rand = Math.random()+.1;
+                        c.setCenterAt(centerX + radiusWide * rand * Math.cos(angle),
+                                      centerY + radiusTall * rand * Math.sin(angle));
+
+                    } else if (nodes.size() > 30) {
+                        // tiered circular layout
+                        final int tier = i % tiers;
+                        final double rwide = (radiusWide / tiers) * (tier+1);
+                        final double rtall = (radiusTall / tiers) * (tier+1);
+                        c.setCenterAt(centerX + rwide * Math.cos(angle),
+                                      centerY + rtall * Math.sin(angle));
+                    } else {
+
+                        // circular layout
+                        c.setCenterAt(centerX + radiusWide * Math.cos(angle),
+                                      centerY + radiusTall * Math.sin(angle));
+                    }
+                    
                 }
 
             }
@@ -2399,7 +2459,8 @@ public class Actions implements VueConstants
         NudgeLeft,
         NudgeRight,
         null,
-        PushOut
+        PushOut,
+        PullIn
     };
     public static final Action[] ARRANGE_SINGLE_MENU_ACTIONS = {
         NudgeUp,
