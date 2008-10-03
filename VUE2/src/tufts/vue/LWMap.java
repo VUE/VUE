@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.214 $ / $Date: 2008-07-24 19:16:23 $ / $Author: sfraize $
+ * @version $Revision: 1.215 $ / $Date: 2008-10-03 16:13:38 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -108,6 +108,7 @@ public class LWMap extends LWContainer
     private transient Layer mActiveLayer;
     /** for use during restores only */
     private transient java.util.List<Layer> mLayers = new ArrayList();
+    //private transient Layer mInternalLayer;
 
     private transient int mSaveFileModelVersion = -1;
     private transient int mModelVersion = getCurrentModelVersion();
@@ -160,6 +161,11 @@ public class LWMap extends LWContainer
         enableProperty(LWKey.FillColor);
         disableProperty(LWKey.Label);
         mFillColor.setAllowAlpha(false);
+// //         // TODO: need to handle persistance -- could match via a special name, for maybe persistIsStyle
+// //         mInternalLayer = new Layer("*Internal*");
+// //         mInternalLayer.setVisible(false);
+// //         mInternalLayer.setFlag(Flag.INTERNAL);
+// //         addChild(mInternalLayer);
     }
 
     // if/when we support maps embedded in maps, we'll want to have these return something real
@@ -948,6 +954,26 @@ public class LWMap extends LWContainer
         return layer;
     }
     
+    public Layer getInternalLayer(String name) {
+        for (Layer layer : Util.extractType(getChildren(), Layer.class))
+            if (name.equals(layer.getLabel()))
+                return layer;
+        Layer layer = new Layer(name);
+        layer.setFlag(Flag.INTERNAL);
+        addChild(layer);
+        return layer;
+    }
+
+//     public Layer getInternalLayer() {
+//         return mInternalLayer;
+//     }
+
+//     /** add a component for internal use we want saved with the map. It will never be visible on the map. */
+//     public LWComponent addInternal(LWComponent c) {
+//         getInternalLayer().addChild(c);
+//         //c.setFlag(Flag.INTERNAL);
+//         return c;
+//     }
     
     public void setActiveLayer(LWComponent layer) {
         if (!VUE.VUE3_LAYERS) return;
@@ -1054,6 +1080,12 @@ public class LWMap extends LWContainer
     }
 
     private void installDefaultLayers() {
+
+        // TODO: need to handle persistance -- could match via a special name, for maybe persistIsStyle
+//         mInternalLayer = new Layer("*Internal*");
+//         mInternalLayer.setVisible(false);
+//         mInternalLayer.setFlag(Flag.INTERNAL);
+//         mInternalLayer.setParent(this);
         
         final Layer layer0, layer1, layer2;
         
@@ -1072,6 +1104,7 @@ public class LWMap extends LWContainer
         //layer2.setVisible(false);
         
         mChildren = new ArrayList();
+        //mChildren.add(mInternalLayer);
         mChildren.add(layer0);
         mChildren.add(layer1);
         mChildren.add(layer2);
