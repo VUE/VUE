@@ -24,7 +24,6 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
-import java.text.DateFormat;
 import javax.xml.xpath.*;
 import javax.xml.parsers.*;
 
@@ -32,7 +31,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.*;
 import org.xml.sax.*;
 
-import com.google.common.collect.*;
 
 // TODO: just forget handling depth (e.g., jira comments) for now -- can tackle later.
 // The keep in mind w/respect to how we handle data-set interation, so could
@@ -55,276 +53,26 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.2 $ / $Date: 2008-09-16 22:33:10 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-10-03 16:17:17 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 class XMLIngest {
 
-    private static final boolean XML_DEBUG = false;
+    private static final boolean XML_DEBUG = true;
 
-    static class Field
-    {
-
-        public static final String TYPE_UNKNOWN = "?";
-        public static final String TYPE_TEXT = "text";
-        public static final String TYPE_NUMBER = "number";
-        public static final String TYPE_DATE = "date";
-        
-        static final int MAX_ENUM_VALUE_LENGTH = 54;
-        static final DateFormat DateParser = DateFormat.getDateTimeInstance();
-
-        final String name;
-
-        boolean unique = true;
-        int valueCount = 0;
-        boolean enumDisabled = false;
-        int maxValueLen = 0;
-
-        String type = TYPE_UNKNOWN;
-        
-        /** map of all possible unique values for enumeration tracking */
-        Map<String,Integer> values;
-
-        Field(String n) {
-            name = n;
-            if (XML_DEBUG) errout("(created field " + n + ")");
-        }
-
-        public String toString() {
-            return name;
-        }
-
-        void trackValue(String value) {
-
-            valueCount++;
-
-            if (value == null)
-                return;
-
-            final int valueLen = value.length();
-
-            if (valueLen > maxValueLen)
-                maxValueLen = valueLen;
-
-//             if (valueCount > 8 && type == TYPE_DATE) {
-//                 enumDisabled = true;
-//                 unique = false; // can't know unique if not tracking all values
-//             }
-                
-            if (enumDisabled)
-                return;
-            
-            if (valueLen > 0) {
-                
-                if (valueCount > 1 && value.length() > MAX_ENUM_VALUE_LENGTH) {
-                    values = null;
-                    enumDisabled = true;
-                    return;
-                }
-                
-                int count = 1;
-                if (values == null) {
-                    values = new HashMap();
-                }
-                else if (values.containsKey(value)) {
-                    count = values.get(value);
-                    count++;
-                    unique = false;
-                }
-                values.put(value, count);
-
-                if (type == TYPE_UNKNOWN && value.length() <= 40 && value.indexOf(':') > 0) {
-                    Date date = null;
-
-                    try {
-                        date = new Date(value);
-                    } catch (Throwable t) {
-                        eoutln("Failed to parse [" + value + "] as date: " + t);
-                        type = TYPE_TEXT;
-                    }
-                    
-//                     try {
-//                         date = DateParser.parse(value);
-//                     } catch (java.text.ParseException e) {
-//                         eoutln("Failed to parse [" + value + "] as date: " + e);
-//                         type = TYPE_TEXT;
-//                     }
-                    
-                    if (date != null) {
-                        type = TYPE_DATE;
-                        eoutln("PARSED DATE: " + Util.tags(date) + " from " + value);
-                    }
-                }
-            }
-        }
-
-        public int valueCount() {
-            //return values == null ? 0 : values.size();
-            return valueCount;
-        }
-
-        private String sampleValues(boolean unique) {
-
-            if (values.size() <= 20)
-                return unique ? values.keySet().toString() : values.toString();
-                
-            StringBuffer buf = new StringBuffer("[examples: ");
-
-            int count = 0;
-            for (String s : values.keySet()) {
-                buf.append('"');
-                buf.append(s);
-                buf.append('"');
-                if (++count >= 3)
-                    break;
-                buf.append(", ");
-            }
-            buf.append("]");
-            return buf.toString();
-        }
-
-        public String valuesDebug() {
-            if (values == null) {
-                if (valueCount == 0)
-                    return "(empty)";
-                else
-                    return String.format("%5d values (un-tracked; max-len%6d)", valueCount, maxValueLen);
-            }
-            else if (unique) {
-                if (values.size() > 1) {
-                    return String.format("%5d unique, single-instance values; %s", values.size(), sampleValues(true));
-//                    String s = String.format("%2d unique, single-instance values", values.size());
-//                     if (values.size() < 16)
-//                         //return s + "; " + values.keySet();
-//                         return s + "; " + values.toString();
-//                     else
-//                         return s + "; " + sampleValues();
-                }
-                else
-                    return "singleton" + values.keySet();
-            }
-            else 
-                return String.format("%5d values, %4d unique: %s", valueCount(), values.size(), sampleValues(false));
-            //return String.format("%5d unique values in %5d; %s", values.size(), valueCount(), sampleValues(false));
-                
-        }
-    }
-    static class VRow {
-
-//         final List<Field> columns;
-//         final List<String> values;
-
-//         VRow(int approxSize) {
-//             if (approxSize < 1)
-//                 approxSize = 10;
-//             columns = new ArrayList(approxSize);
-//             values = new ArrayList(approxSize);
-//         }
-
-        final Map<Field,String> values;
-        //final Map<String,String> asText;
-        //final MetaMap asText = new MetaMap();
-        final Multimap mData = Multimaps.newLinkedHashMultimap();
-
-        VRow() {
-            values = new HashMap();
-        }
-
-//         int size() {
-//             return values.size();
-//         }
-
-        void addValue(Field f, String value) {
-            final String existing = values.put(f, value);
-            if (existing != null && XML_DEBUG)
-                errout("ROW SUB-KEY COLLISION " + f);
-            
-            //errout("ROW SUB-KEY COLLISION " + f + "; " + existing);
-            //asText.put(f.name, value);
-            mData.put(f.name, value);
-        }
-
-        String getValue(Field f) {
-            return values.get(f);
-        }
-        String getValue(String key) {
-            Object o = mData.get(key);
-            if (o instanceof Collection) {
-                final Collection bag = (Collection) o;
-                if (bag.size() == 0)
-                    return null;
-                else if (bag instanceof List)
-                    return (String) ((List)bag).get(0);
-                else
-                    return (String) Iterators.get(bag.iterator(), 0);
-            }
-            else
-                return (String) o;
-            //return (String) Iterators.get(mData.get(key).iterator(), 0);
-            //return (String) asText.get(key);
-        }
-        
-//         Map<String,String> asMap() {
-//             return mData.asMap();
-//         }
-        
-        Iterable<Map.Entry<String,String>> entries() {
-            return mData.entries();
-        }
-    }
-
-    static class Schema {
-
-        final Map<String,Field> fields = new LinkedHashMap();
-
-        private final List<VRow> rows = new ArrayList();
-
-        int longestFieldName = 0;
-        
-        //Field keyField;
-
-        public void dumpSchema(PrintStream ps) {
-            dumpSchema(new PrintWriter(new OutputStreamWriter(ps)));
-        }
-        
-        public void dumpSchema(PrintWriter ps) {
-            ps.println(getClass().getName() + ": ");
-            final int pad = -longestFieldName;
-            final String format = "%" + pad + "s: %s\n";
-            for (Field f : fields.values()) {
-                ps.printf(format, f.name, f.valuesDebug());
-            }
-            ps.println("Rows collected: " + rows.size());
-        }
-
-        protected void addRow(VRow row) {
-            rows.add(row);
-        }
-        
-        public List<VRow> getRows() {
-            return rows;
-        }
-
-        public boolean isXMLKeyFold() {
-            return false;
-        }
-        
-            
-    }
-
-    static class XmlSchema extends Schema
+    static class XmlSchema extends tufts.vue.ds.Schema
     {
         final String itemPath;
         final int itemPathLen;
 
         final boolean keyFold;
         
-        
-        VRow curRow;
+        DataRow curRow;
 
-        public XmlSchema(String itemPath) 
+        public XmlSchema(Object source, String itemPath) 
         {
+            super(source);
             this.itemPath = itemPath;
             if (itemPath == null || itemPath.length() == 0)
                 itemPathLen = 0;
@@ -339,14 +87,11 @@ class XMLIngest {
             return keyFold;
         }
         
-        
-
         @Override public void dumpSchema(PrintWriter ps) {
             if (itemPath != null) ps.println("ItemPath: " + itemPath);
             super.dumpSchema(ps);
         }
         
-
         void trackFieldValuePair(String name, String value) {
 
             //errout("TRACK " + name + "=" + value);
@@ -354,28 +99,30 @@ class XMLIngest {
             if (itemPath != null && name.startsWith(itemPath) && name.length() > itemPathLen)
                 name = name.substring(itemPathLen);
 
-            Field field = fields.get(name);
+            Field field = mFields.get(name);
             if (field == null) {
-                field = new Field(name);
+                field = new Field(name, this);
 //                 if (name.equals(getKeyNode()))
 //                     keyField = field;
-                fields.put(name, field);
-                if (name.length() > longestFieldName)
-                    longestFieldName = name.length();
+                mFields.put(name, field);
+                if (name.length() > mLongestFieldName)
+                    mLongestFieldName = name.length();
             }
-            field.trackValue(value);
             if (curRow != null)
                 curRow.addValue(field, value);
+            else
+                field.trackValue(value);
         }
 
         void trackNodeOpen(String name) {
             if (name.equals(getRowStartNode())) {
                 //errout("OPEN " + name);
                 // curRow = new VRow(fields.size()); // fields includes non-row-extraction values
-                curRow = new VRow();
+                curRow = new DataRow();
                 addRow(curRow);
             }
         }
+
         void trackNodeClose(String name) {
             if (name.equals(getRowStartNode())) {
                 //errout(String.format("CLOSE %s with %2d fields, key %s", name, curRow.size(), curRow.getValue(keyField)));
@@ -408,16 +155,6 @@ class XMLIngest {
     
     static int depth = 0;
 
-    public static String abbrevBytes(long bytes) {
-        if (bytes > 1024*1024)
-            return String.format("%.1fM", (bytes/(1024.0*1024)));
-        else if (bytes > 1024)
-            return bytes/1024 + "k";
-        else if (bytes >= 0)
-            return "" + bytes;
-        else
-            return "";
-    }
 
     static void XPathExtract(XmlSchema schema, Document document)
     {
@@ -463,25 +200,42 @@ class XMLIngest {
         }
     }
 
-    //public static DataSet
-    
-    public static Schema ingestXML(URLConnection conn, String itemKey)
+  //public static Schema ingestXML(URLConnection conn, String itemKey)
+    public static Schema ingestXML(InputSource input, String itemKey)
     {
-        final XmlSchema schema = new XmlSchema(itemKey);
+//         // SMF 2008-10-02: E.g. Craigslist XML streams use ISO-8859-1, which is provided in
+//         // HTML headers as "Content-Type: application/rss+xml; charset=ISO-8859-1", (tho not
+//         // in a special content-encoding header), and our current XML parser fails unless
+//         // the stream is read with this set: e.g.: [org.xml.sax.SAXParseException: Character
+//         // conversion error: "Unconvertible UTF-8 character beginning with 0x95" (line
+//         // number may be too low).]  Actually, in this case it turns out that providing a
+//         // default InputStreamReader (encoding not specified) as opposed to a direct
+//         // InputStream from the URLConnection works, and the XML parser is presumably then
+//         // finding and handling the "<?xml version="1.0" encoding="ISO-8859-1"?>" line at
+//         // the top of the XML stream
+//         final XmlSchema schema = new XmlSchema(conn.getURL(), itemKey);
+//         InputStream is = null;
+//         try {
+//             is = conn.getInputStream();
+//             errout("GOT INPUT STREAM: " + Util.tags(is));
+//         } catch (IOException e) {
+//             e.printStackTrace();
+//             return null;
+//         }
+//         final Document doc = parseXML(is, false);
+
+        // Could also use a ROME API XmlReader(URLConnection) for handling
+        // the input, which does it's own magic to figure out the encoding.
+        // For more on the complexity of this issue, see:
+        // http://diveintomark.org/archives/2004/02/13/xml-media-types
         
-        InputStream is = null;
-        try {
-            is = conn.getInputStream();
-            errout("GOT INPUT STREAM: " + Util.tags(is));
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-        final Document doc = parseXML(is, false);
+        final XmlSchema schema = new XmlSchema(input.getSystemId(), itemKey);
+        
+        final Document doc = parseXML(input, false);
 
         //doc.normalizeDocument();
         errout("GOT DOC " + Util.tag(doc) + " " + doc);
-        //errout("InputEncoding: " + doc.getInputEncoding()); // AbstractMethodError ???
+        //errout("InputEncoding: " + doc.getInputEncoding()); // AbstractMethodError ?
         //errout("xmlEncoding: " + doc.getXmlEncoding());
         //errout("xmlVersion: " + doc.getXmlVersion());
         errout("docType: " + Util.tags(doc.getDoctype()));
@@ -782,10 +536,18 @@ class XMLIngest {
     
             // Create the builder and parse the file
             Document doc;
-            if (input instanceof String)
+            if (input instanceof String) {
                 doc = factory.newDocumentBuilder().parse(new File((String)input));
-            else if (input instanceof InputStream)
+            } else if (input instanceof InputSource) {
+                doc = factory.newDocumentBuilder().parse((InputSource)input);
+            } else if (input instanceof InputStream) {
+//                 InputSource encoded = new InputSource();
+//                 encoded.setByteStream((InputStream)input);
+//                 encoded.setEncoding("ISO-8859-1"); // TODO: get from url stream
+//                 doc = factory.newDocumentBuilder().parse(encoded);
+//                 //doc = factory.newDocumentBuilder().parse(new InputStreamReader((InputStream) input, "ISO-8859-1"));
                 doc = factory.newDocumentBuilder().parse((InputStream) input);
+            }
             else
                 throw new Error("Unhandled input type: " + Util.tags(input));
             return doc;
@@ -966,7 +728,7 @@ class XMLIngest {
     {
         //final XmlSchema schema = new RssSchema();
         
-        errout("Max mem: " + abbrevBytes(Runtime.getRuntime().maxMemory()));
+        errout("Max mem: " + Util.abbrevBytes(Runtime.getRuntime().maxMemory()));
         //getXMLStream();System.exit(0);
         
         Document doc;
@@ -992,7 +754,7 @@ class XMLIngest {
         outln("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
         outln("<!-- created by RSSTest " + new Date() + " from " + src + " -->");
 
-        final XmlSchema schema = new XmlSchema("rss.channel.item");
+        final XmlSchema schema = new XmlSchema(Util.tag(doc), "rss.channel.item");
         
         if (true)
             XPathExtract(schema, doc);
