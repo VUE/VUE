@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.104 $ / $Date: 2008-09-24 22:20:34 $ / $Author: sfraize $  
+ * @version $Revision: 1.105 $ / $Date: 2008-10-03 16:15:44 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -810,7 +810,8 @@ class MapDropTarget
         boolean success = false;
 
         if (dropItems != null && dropItems.size() > 1)
-            CenterNodesOnDrop = false;
+            ;//CenterNodesOnDrop = false; // turned off 2008-09-30 for data-drops to be on-center
+        // TODO: fix for non-centered lists or fix code to handle centering them
         else
             CenterNodesOnDrop = true;
 
@@ -942,7 +943,7 @@ class MapDropTarget
         if (drop.hitParent != null) {
             drop.hitParent.addChildren(drop.items, LWComponent.ADD_DROP);
         } else {
-            mViewer.getFocal().addChildren(drop.items, LWComponent.ADD_DROP);
+            mViewer.getDropFocal().addChildren(drop.items, LWComponent.ADD_DROP);
         }
         drop.added.addAll(drop.items);
             
@@ -1759,7 +1760,7 @@ class MapDropTarget
      */
     public static void setCenterAt(Collection<LWComponent> nodes, Point2D.Float mapLocation)
     {
-        //if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + nodes);
+        if (DEBUG.DND) Log.debug("setCenterAt " + mapLocation + "; " + nodes);
         java.awt.geom.Rectangle2D.Float bounds = LWMap.getBounds(nodes.iterator());
         //java.awt.geom.Rectangle2D.Float bounds = LWMap.getLocalBounds(nodes);
 
