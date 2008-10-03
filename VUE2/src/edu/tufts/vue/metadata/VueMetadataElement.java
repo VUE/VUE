@@ -49,6 +49,15 @@ public class VueMetadataElement {
    public static final String ONT_SEPARATOR = "#";
    
    public static final String VUE_ONT = Constants.ONTOLOGY_URL;//+ONT_SEPARATOR; //"vue.tufts.edu/vue.rdfs";
+
+    public VueMetadataElement() {}
+    
+    public VueMetadataElement(String key, String value) {
+        setKey(key);
+        setValue(value);
+        setType(CATEGORY);
+    }
+                                                         
    
    public Object getObject()
    {
@@ -170,6 +179,11 @@ public class VueMetadataElement {
            return false;
        }
    }
+
+    public String toString() {
+        return key + "=" + value;
+            
+    }
    
    public static VueMetadataElement getNewCategoryElement()
    {
