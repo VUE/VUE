@@ -23,7 +23,7 @@ package tufts.vue;
  * on the configuration.  E.g., a local directory, a list of user favorites, a remote FTP
  * site, an RSS feed, etc.
  * 
- * @version $Revision: 1.3 $ / $Date: 2008-09-30 15:43:26 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-10-03 16:09:46 $ / $Author: sfraize $
  * @author  rsaigal
  * @author  sfraize
  */
@@ -32,9 +32,12 @@ import tufts.vue.DEBUG;
 
 import java.util.Map;
 import java.util.List;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import javax.swing.JComponent;
+
+import org.xml.sax.InputSource;
 
 import edu.tufts.vue.ui.ConfigurationUI;
 
@@ -301,6 +304,88 @@ public abstract class BrowseDataSource implements DataSource
     public void setIncludedInSearch(boolean included) {
         this.isIncludedInSearch = included;
     }
+
+    /** @return a Reader for the data source, with an appropriately set encoding
+     * Besides getting special characters to display correctly, using the right
+     * encoding can be crucial for some XML streams, as the they may fail to
+     * parse at all with an incorrect encoding.
+     */
+    
+    // SMF 2008-10-02: E.g. Craigslist XML streams use ISO-8859-1, which is provided in
+    // HTML headers as "Content-Type: application/rss+xml; charset=ISO-8859-1", (tho not
+    // in a special content-encoding header), and our current XML parser fails unless
+    // the stream is read with this set: e.g.: [org.xml.sax.SAXParseException: Character
+    // conversion error: "Unconvertible UTF-8 character beginning with 0x95" (line
+    // number may be too low).]  Actually, in this case it turns out that providing a
+    // default InputStreamReader (encoding not specified) as opposed to a direct
+    // InputStream from the URLConnection works, and the XML parser is presumably then
+    // finding and handling the "<?xml version="1.0" encoding="ISO-8859-1"?>" line at
+    // the top of the XML stream, but other code will find the automatic handling of the
+    // encoding to be helpful.
+
+    // We could also use a ROME API XmlReader(URLConnection) for handling
+    // the input for known XML streams, which does it's own magic to figure out the encoding.
+    // For more on the complexity of this issue, see:
+    // http://diveintomark.org/archives/2004/02/13/xml-media-types
+
+    protected Reader openReader()
+    {
+        // TODO: allow an encoding field to be specified on these data sources
+        // TODO: this general stream providing functionality should be
+        // something any Resource can do.
+        // TODO: handle for local-file case
+
+        final URLConnection conn = openAddress();
+
+        String encoding = conn.getContentEncoding();
+
+        if (encoding == null) {
+            String ct = conn.getContentType();
+            Log.debug("content-type[" + ct + "]");
+            int charsetIndex = ct.indexOf("charset=");
+            if (charsetIndex >= 0) {
+                encoding = ct.substring(charsetIndex + 8);
+                Log.debug("charset[" + encoding + "]");
+                if (encoding.length() < 1)
+                    encoding = null;
+                    
+            }
+        } else {
+            Log.debug("content-encoding[" + encoding + "]");
+        }
+
+        Reader reader = null;
+        
+        if (encoding != null) {
+            try {
+                reader = new InputStreamReader(conn.getInputStream(), encoding);
+            } catch (Throwable t) {
+                Log.warn("opening " + conn + " with encoding [" + encoding + "]", t);
+            }
+        }
+        
+        if (reader == null) {
+            try {
+                reader = new InputStreamReader(conn.getInputStream());
+            } catch (Throwable t) {
+                throw new DataSourceException("Failed to get reader for stream " + conn, t);
+            }
+        }
+
+        return reader;
+    }
+    
+    protected org.xml.sax.InputSource openInput()
+    {
+        InputSource is = new InputSource(getAddress());
+        Reader reader = openReader();
+
+        // We don't use is.setEncoding(), as openReader will already have handled that
+        is.setCharacterStream(reader);
+        
+        return is;
+    }
+
 
     protected URLConnection openAddress() {
 
