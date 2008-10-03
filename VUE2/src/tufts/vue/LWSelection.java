@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.95 $ / $Date: 2008-09-25 01:07:10 $ / $Author: sfraize $
+ * @version $Revision: 1.96 $ / $Date: 2008-10-03 16:14:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -61,7 +61,15 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
 
     private long mEditablePropertyKeys;
 
-    private final Set<LWContainer> mParents = new java.util.HashSet();
+    private final Set<LWContainer> mParents = new java.util.HashSet() {
+            @Override
+            public boolean add(Object parent) {
+                if (parent != null)
+                    return super.add(parent);
+                else
+                    return false;
+            }
+        };
     private final Multiset<Class> mTypes = Multisets.newHashMultiset();
     private List<LWComponent> mSecureList = null;
 
@@ -266,6 +274,10 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return this.listeners;
     }
 
+//     public void setTo(LWComponent c) {
+//         setTo(c, null);
+//     }
+//     public synchronized void setTo(LWComponent c, Object source)
     public synchronized void setTo(LWComponent c)
     {
         if (size() == 1 && first() == c)
