@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.573 $ / $Date: 2008-09-30 15:44:04 $ / $Author: sfraize $ 
+ * @version $Revision: 1.574 $ / $Date: 2008-10-03 16:16:16 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4821,13 +4821,21 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     final java.util.Collection duplicates;
                     if (viewer != null && LWC == viewer.draggedSelectionGroup) {
                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
-                    } else if (LWC instanceof LWMap) {
+                    }
+                    else if (LWC instanceof LWMap) {
+                        
                         // don't send the actual map just yet...
                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
-                    } else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
-                        // don't send the actual map just yet...
-                        duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
-                    } else {
+                    }
+                    else if (LWC.getClientData(LWComponent.ListFactory.class) != null) {
+                        
+                        duplicates = LWC.getClientData(LWComponent.ListFactory.class).produceNodes();
+                    }
+//                     else if (LWC.hasFlag(LWComponent.Flag.INTERNAL) /*&& LWC.getClientProperty(Field.class) != null*/) {
+//                         // don't send the actual map just yet...
+//                         duplicates = Actions.duplicatePreservingLinks(LWC.getChildren());
+//                     }
+                    else {
                         duplicates = java.util.Collections.singletonList(LWC.duplicate());
                     }
                         
