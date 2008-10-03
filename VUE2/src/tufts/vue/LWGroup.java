@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.91 $ / $Date: 2008-07-23 22:35:28 $ / $Author: sfraize $
+ * @version $Revision: 1.92 $ / $Date: 2008-10-03 16:12:04 $ / $Author: sfraize $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -368,6 +368,11 @@ public class LWGroup extends LWContainer
                                   getY() + dy,
                                   this,
                                   false);
+
+//             if (true) {
+//                 Actions.MakeCircle.act(new LWSelection(getChildren()));
+//                 return;
+//             }
 
             // Could theoretically handle this via mapLocationChanged calls, if above
             // was a real call to setLocation, but then there'd have to be a check
