@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.574 $ / $Date: 2008-08-21 13:46:38 $ / $Author: mike $ 
+ * @version $Revision: 1.575 $ / $Date: 2008-10-06 22:24:13 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -86,7 +86,7 @@ public class VUE
 
     private static final Logger Log = Logger.getLogger(VUE.class);
     
-    private static AppletContext sAppletContext = null;
+    private static AppletContext sAppletContext 	= null;
     
     /** The currently active selection.
      * elements in ModelSelection should always be from the ActiveModel */
@@ -945,8 +945,13 @@ public class VUE
     static void initApplication()
     {
         final Window splashScreen;
-        
-        if (SKIP_DR || SKIP_SPLASH || VUE.isApplet()) {
+        if (VUE.isApplet())
+        {
+        	SKIP_DR=true;
+        	SKIP_SPLASH=true;
+        	SKIP_CAT=true;
+        }
+        if (SKIP_DR || SKIP_SPLASH ) {
             splashScreen = null;
             //DEBUG.Enabled = true;
         } else
@@ -1204,8 +1209,13 @@ public class VUE
         //-------------------------------------------------------
         // Create the split pane
         //-------------------------------------------------------
-
-        mViewerSplit = buildSplitPane(mMapTabsLeft, mMapTabsRight);
+    	mViewerSplit = buildSplitPane(mMapTabsLeft, mMapTabsRight);
+    	if (VUE.isApplet())
+    	{
+    		mViewerSplit.setBackground(new Color(244,244,244));
+    		
+    	}
+    	//GUI.applyToolbarColor(mMapTabsRight);
         
         //-------------------------------------------------------
         // create a an application frame and layout components
@@ -2650,7 +2660,114 @@ if (!VUE.isApplet())
             VueUtil.alert("Failed to load map: " + file + "  \n", "Map error: " + file);
         
     }
-    
+
+    /**
+     * If we already have open a map tied to the given file, display it.
+     * Otherwise, open it anew and display it.
+     */
+    public static void displayMap(java.net.URL url) {
+        if (DEBUG.INIT || DEBUG.IO) Log.debug("displayMap " + Util.tags(url));
+
+        // Call initDataSources again just in case a user can make it to the file
+        // open-recent menu before the data sources finish loading on the remaining
+        // "main" thread.  If it's still running, we'll just block until it's done, as
+        // this method is synchronized.
+        initDataSources();
+
+        if (url == null)
+            return;
+
+        if (VUE.isApplet())
+        {
+        	if (	(getActiveMap() != null) && 
+    				!getActiveMap().hasContent() && 
+    				getActiveMap().getFile() == null)
+    		{
+    			try
+    			{
+    				closeMap(getActiveMap());
+    			}
+    			catch(ArrayIndexOutOfBoundsException abe)
+    			{
+    				abe.printStackTrace();
+    			}
+    		}
+        }
+        else
+        {
+        	/*
+        	 * If there is 1 map open, and it has no content and hasn't been saved yet close it.
+        	 * requested in vue-520 
+        	 */
+        	if (isActiveViewerOnLeft())
+        	{
+        		if ((mMapTabsLeft != null) && 
+        				mMapTabsLeft.getTabCount() == 1 && 
+        				(getActiveMap() != null) && 
+        				!getActiveMap().hasContent() && 
+        				getActiveMap().getFile() == null)
+        		{
+        			try
+        			{
+        				closeMap(getActiveMap());
+        			}
+        			catch(ArrayIndexOutOfBoundsException abe)
+        			{
+        				abe.printStackTrace();
+        			}
+        		}
+        	
+        	
+        	} else 
+        	{
+        		if ((mMapTabsRight != null) && 
+            			mMapTabsRight.getTabCount() == 1 && 
+            			(getActiveMap() != null) && 
+            			!getActiveMap().hasContent() && 
+            			getActiveMap().getFile() == null)
+            		closeMap(getActiveMap());
+            	
+        	}
+        }
+
+      /*  
+        for (int i = 0; i < mMapTabsLeft.getTabCount(); i++) {
+            LWMap map = mMapTabsLeft.getMapAt(i);
+            if (map == null)
+                continue;
+            File existingFile = map.getFile();
+            if (existingFile != null && existingFile.equals(file)) {
+                if (DEBUG.Enabled) out("displayMap found existing open map " + map + " matching file " + file);
+                if (isActiveViewerOnLeft())
+                    mMapTabsLeft.setSelectedIndex(i);
+                else
+                    mMapTabsRight.setSelectedIndex(i);
+                return;
+            }
+        }
+        */
+        VUE.activateWaitCursor();
+        LWMap loadedMap = null;
+        boolean alerted = false;
+        try {
+            loadedMap = OpenAction.loadMap(url);
+            if (loadedMap != null)
+                VUE.displayMap(loadedMap);
+        } catch (Throwable t) {
+            Util.printStackTrace(t, "failed to load map[" + url + "]");
+            VUE.clearWaitCursor();
+            alerted = true;
+            VueUtil.alert("Failed to load map: " + url + "  \n"
+                          + (t.getCause() == null ? t : t.getCause()),
+                          "Map error: " + url);
+        } finally {
+            VUE.clearWaitCursor();
+        }
+        if (loadedMap == null && !alerted)
+            VueUtil.alert("Failed to load map: " + url + "  \n", "Map error: " + url);
+        
+    }
+
     /**
      * Create a new viewer and display the given map in it.
      */
