@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.77 $ / $Date: 2008-10-06 13:59:54 $ / $Author: anoop $
+ * @version $Revision: 1.78 $ / $Date: 2008-10-06 14:35:03 $ / $Author: sfraize $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -229,7 +229,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
     }
 
     /** apparently, the number of data sources before "LOADING" ? */
-    private static final int LIST_PARTITION_CONSTANT = DEBUG.Enabled ? 5 : 4;
+    private static final int LIST_PARTITION_CONSTANT = 5;
     
     private void populate() {
         listModel.removeAllElements();
