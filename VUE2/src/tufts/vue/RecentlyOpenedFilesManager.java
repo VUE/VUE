@@ -18,9 +18,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
-
-import edu.tufts.vue.preferences.implementations.AutoZoomPreference;
-import edu.tufts.vue.preferences.implementations.BooleanPreference;
 import edu.tufts.vue.preferences.implementations.StringPreference;
 import edu.tufts.vue.preferences.interfaces.VuePreference;
 
