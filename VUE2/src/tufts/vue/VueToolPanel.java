@@ -30,7 +30,7 @@ import javax.swing.border.*;
  * The VueToolPanel is the component that holds the main VUE toolbar
  * and the contextual properties tools.
  *
- * @version $Revision: 1.38 $ / $Date: 2008-06-30 20:52:56 $ / $Author: mike $ 
+ * @version $Revision: 1.39 $ / $Date: 2008-10-06 22:21:14 $ / $Author: mike $ 
  *
  **/
 public class VueToolPanel extends JPanel
@@ -129,12 +129,21 @@ public class VueToolPanel extends JPanel
      * @param PaletteButton - the button to add
      * @param addToMainToolbar - whether or not to put it on the main toolbar.
      **/
+	private static final JPanel p= new JPanel();
+
     public void createToolButton( PaletteButton pButton, boolean addToMainToolbar) {
          
         if (debug)
             pButton.setBackground(Color.magenta);
-        else
+        else if (!VUE.isApplet())
             GUI.applyToolbarColor(pButton);
+        else
+        {
+        	//For the life of me I can't figure out what's wrong with L&F on applets but 
+        	//buttons are not getting the same background properties as panels, weird. Hack
+        	//for now.
+        	pButton.setBackground(p.getBackground());
+        }
         if (addToMainToolbar)
         	add( pButton);
         mButtonGroup.add( pButton);
