@@ -43,7 +43,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  *
- * @version $Revision: 1.7 $ / $Date: 2008-09-12 18:33:39 $ / $Author: mike $ 
+ * @version $Revision: 1.8 $ / $Date: 2008-10-06 22:33:13 $ / $Author: mike $ 
  */
 public class VueApplet extends JApplet implements Runnable {
 
@@ -134,7 +134,7 @@ public class VueApplet extends JApplet implements Runnable {
     public void loadViewer() {
       //  viewer = getMapViewer();
         msg("got viewer");
-        
+        msg("is applet ? " + VUE.isApplet());
    /*     if (false) {
             JScrollPane scrollPane = new JScrollPane(viewer);
             scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
@@ -165,6 +165,9 @@ public class VueApplet extends JApplet implements Runnable {
         getContentPane().setLayout(new BorderLayout());
         
    	    this.getContentPane().add(toolbarPanel,BorderLayout.NORTH);
+   	    
+   	 getContentPane().setBackground(toolbarPanel.getBackground());
+//   	    .setBackground(new Color(225,225,225));
    	    getContentPane().add(mMapTabbedPane,BorderLayout.CENTER);
         msg("validating...");
         validate();
@@ -228,7 +231,7 @@ public class VueApplet extends JApplet implements Runnable {
 			{
 				
 				public Object run() {
-					try 
+				/*	try 
 					{
 					File tempFile = null;
 					tempFile = File.createTempFile(new Long(System.currentTimeMillis()).toString(), null);
@@ -242,15 +245,24 @@ public class VueApplet extends JApplet implements Runnable {
 
 			    	while ((read = io.read(buf)) > 0) {
 					     fos.write(buf, 0, read);
-					 }
-			    	tufts.vue.action.OpenAction.displayMap(tempFile);
+					 }*/
+					URL url;
+					try {
+						url = new URL(urlString);
+						tufts.vue.action.OpenURLAction.displayMap(url);
+					} catch (MalformedURLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
+			    /*	tufts.vue.action.OpenAction.displayMap(tempFile);
 				
 					}
 					catch(Exception e)
 					{
 						e.printStackTrace();
 					}
-					
+					*/
 			    	return null;
 				}
 				
