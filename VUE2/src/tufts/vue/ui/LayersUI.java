@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.30 $ / $Date: 2008-10-03 16:19:42 $ / $Author: sfraize $
+ * @version $Revision: 1.31 $ / $Date: 2008-10-06 14:32:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -190,6 +190,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             },
         
         LAYER_DELETE = new LayerAction("Delete", "Remove a layer and all of its contents") {
+                @Override
+                boolean enabledWith(Layer layer) {
+                    return mRows.size() > 1;
+                }
                 @Override
                 public void act() {
                     mMap.deleteChildPermanently(active); // todo: LWMap should setActiveLayer(null) if active is deleted
@@ -371,7 +375,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         return canBeActive(layer, true);
     }
     private boolean canBeActive(LWComponent layer, boolean checkLocking) {
-        if (layer == null || layer.isHidden() || (checkLocking && layer.isLocked()) || layer.isDeleted())
+        if (layer == null || layer.isHidden() || layer.isDeleted())
+            return false;
+        else if (checkLocking && layer.isLocked() && mRows.size() > 1)
             return false;
         else
             return layer instanceof Layer;
@@ -494,7 +500,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
     }
     
+    private final Color AlphaWhite = new Color(255,255,255,128);
+    
     private final Color ActiveBG = VueConstants.COLOR_SELECTION;
+    
+    private final Color IncludedBG = Util.alphaMix(AlphaWhite, VueConstants.COLOR_SELECTION);
+    //private final Color IncludedBG = VueConstants.COLOR_SELECTION.darker();
+    //private final Color IncludedBG = new Color(128,128,255,128);
+    
     private final Color SelectedBG = VueConstants.COLOR_SELECTION.brighter();
     
     private void indicateActiveLayers(Collection<LWContainer> parents) {
@@ -505,7 +518,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             for (Row row : mRows) {
 
-                row.activeIcon.setEnabled(row.layer == activeLayer);
+                //row.activeIcon.setEnabled(row.layer == activeLayer);
                 
                 if (row.layer.isSelected() || row.layer == activeLayer)
                 //if (row.layer.isSelected())
@@ -516,23 +529,32 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         } else {
 
-            final Set<Layer> layers = new HashSet(parents.size());
+
+            final Set<Layer> layersInSelection = new HashSet(parents.size());
+            
+            // on empty selection, parents will be empty
             
             for (LWComponent c : parents)
-                layers.add(c.getLayer());
+                layersInSelection.add(c.getLayer());
             
             for (Row row : mRows) {
 
-                row.activeIcon.setEnabled(row.layer == activeLayer);
+                //row.activeIcon.setEnabled(row.layer == activeLayer);
                 
                 if (row.layer instanceof Layer) {
 
-                    if (layers.contains(row.layer)) {
+                    if (layersInSelection.contains(row.layer)) {
                         //row.layer.setSelected(true);
-                        row.setBackground(ActiveBG);
+                        if (row.layer == activeLayer)
+                            row.setBackground(ActiveBG);
+                        else
+                            row.setBackground(IncludedBG);
                     } else {
                         //row.layer.setSelected(false);
-                        row.setBackground(null);
+                        if (row.layer == activeLayer)
+                            row.setBackground(ActiveBG);
+                        else
+                            row.setBackground(null);
                     }
                     
                 } else if (row.layer.isSelected()) {
@@ -1074,7 +1096,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         final AbstractButton exclusive;
         final AbstractButton visible = new JCheckBox();
         final AbstractButton locked = new JRadioButton();
-        final JLabel activeIcon = new JLabel();
+        //final JLabel activeIcon = new JLabel();
 
         final JTextField label;
         final JPanel preview;
@@ -1205,10 +1227,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
 
 
-            activeIcon.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
-            // todo perf: only actually need instance of each of these for all rows:
-            activeIcon.setDisabledIcon(new GUI.EmptyIcon(activeIcon.getIcon())); 
-            activeIcon.setBorder(GUI.makeSpace(4,0,0,0));
+//             activeIcon.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
+//             // todo perf: only actually need instance of each of these for all rows:
+//             activeIcon.setDisabledIcon(new GUI.EmptyIcon(activeIcon.getIcon())); 
+//             activeIcon.setBorder(GUI.makeSpace(4,0,0,0));
 
             
             //final JComponent label = new VueTextField(layer.getLabel());
@@ -1321,7 +1343,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 
             }
             
-            add(activeIcon, c);
+            //add(activeIcon, c);
             
             add(locked, c);
 
