@@ -21,7 +21,7 @@
 package tufts.vue;
 
 /**
- * @version $Revision: 1.76 $ / $Date: 2008-09-16 11:54:40 $ / $Author: sfraize $
+ * @version $Revision: 1.77 $ / $Date: 2008-10-06 13:59:54 $ / $Author: anoop $
  * @author  akumar03
  */
 import javax.swing.*;
@@ -252,7 +252,7 @@ public class AddLibraryDialog extends SizeRestrictedDialog implements ListSelect
             listModel.addElement(MY_COMPUTER);            
             listModel.addElement(MY_SAVED_CONTENT);         
             listModel.addElement(DS_RSS);
-            if (DEBUG.Enabled) listModel.addElement(DS_XML);
+            listModel.addElement(DS_XML);
             listModel.addElement(DS_FTP);
             listModel.addElement(LOADING);
        int ONE_TNTH_SECOND = 100;
