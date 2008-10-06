@@ -34,7 +34,7 @@ import tufts.vue.LinkTool.LinkModeTool;
  * This could use a re-write, along with VueToolPanel, VueTool, and the way
  * contextual toolbars are handled.
  *
- * @version $Revision: 1.76 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.77 $ / $Date: 2008-10-06 22:06:06 $ / $Author: mike $
  *
  **/
 public class VueToolbarController  
@@ -43,7 +43,7 @@ public class VueToolbarController
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueToolbarController.class);
     
     /** the list of tool names is under this key in the resources **/
-    public static final String DefaultToolsKey = "mainToolbarToolNames";
+    public static final String DefaultToolsKey = VUE.isApplet() ? "appletToolbarToolNames" : "mainToolbarToolNames";
     private static VueToolbarController sController;
 	
 	
