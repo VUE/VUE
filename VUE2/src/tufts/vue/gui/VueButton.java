@@ -32,7 +32,7 @@ import javax.swing.border.*;
  * VueResources in format buttonName.Up, buttonName.down,
  * buttonName.disabled, or .raw for generated buttons.
  *
- * @version $Revision: 1.11 $ / $Date: 2008-06-30 20:53:06 $ / $Author: mike $
+ * @version $Revision: 1.12 $ / $Date: 2008-10-06 22:52:38 $ / $Author: mike $
  * @author  akumar03
  * @author  Scott Fraize
  */
@@ -215,7 +215,7 @@ public class VueButton extends JButton
         	VueButtonIcon.installGenerated(b, i,i2,i3, VueResources.getSize(key + kSIZE));
         	        	        		
         } else {
-        	if ((i = VueResources.getImageIcon(key+kSELECTED)) != null){ b.setSelectedIcon(i);System.out.println("MIKEK");}
+        	if ((i = VueResources.getImageIcon(key+kSELECTED)) != null){ b.setSelectedIcon(i);}
             if ((i = VueResources.getImageIcon(key + kUP)) != null)       b.setIcon(i);
             if ((i = VueResources.getImageIcon(key + kDOWN)) != null)     b.setPressedIcon(i);
             if ((i = VueResources.getImageIcon(key + kDISABLED)) != null) b.setDisabledIcon(i);
