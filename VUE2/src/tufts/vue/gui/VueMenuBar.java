@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.116 $ / $Date: 2008-09-11 01:35:45 $ / $Author: mike $
+ * @version $Revision: 1.117 $ / $Date: 2008-10-06 22:32:20 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -205,6 +205,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final SaveAction saveAsAction = new SaveAction("Save As...");
         //final SaveAction exportAction = new SaveAction("Export ...",true,true);
         final OpenAction openAction = new OpenAction("Open...");
+        final OpenURLAction openFromURLAction = new OpenURLAction("Open From URL...");
         final ExitAction exitAction = new ExitAction("Quit");
         final JMenu publishMenu = makeMenu("Publish");
         final  edu.tufts.vue.dataset.DatasetAction dataAction = new edu.tufts.vue.dataset.DatasetAction();
@@ -334,6 +335,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
 
         fileMenu.add(Actions.NewMap);
         fileMenu.add(openAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, metaMask));
+        fileMenu.add(openFromURLAction);
         fileMenu.add(Actions.CloseMap);
         fileMenu.addSeparator();
         fileMenu.add(saveAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, metaMask));
@@ -868,7 +870,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, "Panner"));
         if (VUE.getPresentationDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_7, "Pathways"));
-        if (VUE.getContentDock() !=null)	
+        if (VUE.getContentDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_8, "Resources"));
         if (VUE.getLayersDock() != null)	
             windowMenu.add(createWindowItem(VUE.getLayersDock(), 0, "Layers"));
