@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.575 $ / $Date: 2008-10-06 22:24:13 $ / $Author: mike $ 
+ * @version $Revision: 1.576 $ / $Date: 2008-10-07 18:25:47 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -1477,245 +1477,242 @@ public class VUE
             anchor.setVisible(true);
         }
 
-if (!VUE.isApplet())
-{
-        // GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
-
-        //final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
-       // final DockWindow fontDock = GUI.createToolbar("Font", new FontEditorPanel(LWKey.Font));
-        //final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
-        //final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
-        //final DockWindow fontDock = null;
-        //final DockWindow linkDock = null;
-        //final DockWindow actionDock = null;
-
-        //fontDock.setResizeEnabled(false);
-        //linkDock.setResizeEnabled(false);
-        
-        //pannerDock.setChild(linkDock);
-        
-        //fontDock.setChild(linkDock);
-
-        //fontDock.setLowerRightCorner(GUI.GScreenWidth, GUI.GScreenHeight);
-        
-        /*
-         * This isn't currently used now but I have a feeling it'll come back if not i'll remove it.
-         */
-        // Now that we have all the DockWindow's created the VueMenuBar, which needs the
-        // list of Windows for the Window's menu.  The order they appear in this list is
-        // the order they appear in the Window's menu.
-        //VUE.ToolWindows = new Object[] {
-        	//unused stuff.
-        	//searchDock,
-        	/* keywords goes here when its done*/
-        	//ObjectInspector,        	
-        	/* Linear View goes here when its done*/
-        	//MapInspector,
-        	/* node inspector */
-        	/*notes didn't end up getting its own window*/
-        	//outlineDock,
-        	//pannerDock,        	
-        	//DR_BROWSER_DOCK,
-        	//slideDock,                         
-            //resourceDock,
-            //formatDock,            
-            //htWindow,
-            //pathwayDock,            
-        	//actionDock,
-            //fontDock,
-            //linkDock,
-            // toolbarDock,                                               
-            //};
-
-        // adding the menus and toolbars
-        if (DEBUG.INIT) out("setting JMenuBar...");
-        ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(/*VUE.ToolWindows*/));
-        if (DEBUG.INIT) out("VueMenuBar installed.");;
-        
-        if (true)
-            ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);
-        else
-            ApplicationFrame.addComp(mMapTabsLeft, BorderLayout.CENTER);
-        
-//         JPanel resources = DR_BROWSER_DOCK.getContentPanel();
-//         resources.setMinimumSize(new Dimension(500,500));
-//         ApplicationFrame.addComp(resources, BorderLayout.EAST);
-        
-        try {
-            ApplicationFrame.pack();
-        } catch (ArrayIndexOutOfBoundsException e) {
-            Log.error("OSX TIGER JAVA BUG at frame.pack()", e);
-        }
-        
-        /*
-        if (SKIP_DR) {
-            ApplicationFrame.setSize(750,450);
-        } else {
-            ApplicationFrame.setSize(800,600);
-            // todo: make % of screen, make sure tool windows below don't go off screen!
-        }
-        */
-        
-        //if (DEBUG.INIT) out("validating frame...");
-        ApplicationFrame.validate();
-        //if (DEBUG.INIT) out("frame validated");
-
-        //int appWidth = (int) (GUI.GScreenWidth * 0.75);
-        //int appHeight = (int) (GUI.GScreenHeight * 0.75);
-
-        // If you've got a wide screen, leave at least 600
-        // pixels at the right for two full 300pix DockWindow's
-       /* VUE-795 replaces the default screen sizing logic...
-        * if (GUI.GScreenWidth >= 1600) { 
-            int maxWidth = GUI.GScreenWidth - (GUI.GInsets.left + DockWindow.DefaultWidth * 2);
-            if (appWidth > maxWidth)
-                appWidth = maxWidth;
-        }
-
-        if (appWidth > 1600)
-            appWidth = 1600;
-        if (appHeight > 1024)
-            appHeight = 1024;
-        */
-        
-        int appWidth = (int) (GUI.GScreenWidth * 0.90);
-        int appHeight = (int) (GUI.GScreenHeight * 0.90);
-        
-        
-        if (GUI.GScreenWidth > 1280) {             
-        	appWidth = (int) (GUI.GScreenWidth * 0.75);
-        	appHeight = (int) (GUI.GScreenHeight * 0.90);
-        }
-
-        
-        
-        WindowPropertiesPreference wpframe = ApplicationFrame.getWindowProperties();
-        
-        Dimension sz = wpframe.getWindowSize();
-    	Point pos = wpframe.getWindowLocationOnScreen();
-    	
-        if (wpframe.isEnabled() && !wpframe.isAllValuesDefaults() &&
-        	ApplicationFrame.isPointFullyOnScreen(pos,sz))
+        if (!VUE.isApplet())
         {
-        	if ((sz.getWidth() < 100) || (sz.getHeight() < 100))
-        		ApplicationFrame.setSize((int)appWidth, (int)appHeight);
-        	else        		
-        		ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
+        	// GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
+        	
+        	//final DockWindow fontDock = GUI.createToolbar("Font", new FontPropertyPanel());
+        	// final DockWindow fontDock = GUI.createToolbar("Font", new FontEditorPanel(LWKey.Font));
+        	//final DockWindow linkDock = GUI.createToolbar("Link", new LinkPropertyPanel());
+        	//final DockWindow actionDock = GUI.createToolbar("Actions", new VueActionBar());
+        	//final DockWindow fontDock = null;
+        	//final DockWindow linkDock = null;
+        	//final DockWindow actionDock = null;
+        	//fontDock.setResizeEnabled(false);
+        	//linkDock.setResizeEnabled(false);
+        
+        	//pannerDock.setChild(linkDock);
+        
+        	//fontDock.setChild(linkDock);
+        	
+        	//fontDock.setLowerRightCorner(GUI.GScreenWidth, GUI.GScreenHeight);
+        
+        	/*
+        	 * This isn't currently used now but I have a feeling it'll come back if not i'll remove it.
+        	 */
+        	// Now that we have all the DockWindow's created the VueMenuBar, which needs the
+        	// list of Windows for the Window's menu.  The order they appear in this list is
+        	// the order they appear in the Window's menu.
+        	//VUE.ToolWindows = new Object[] {
+        		//unused stuff.
+        		//searchDock,
+        		/* keywords goes here when its done*/
+        		//ObjectInspector,        	
+        		/* Linear View goes here when its done*/
+        		//MapInspector,
+        		/* node inspector */
+        		/*notes didn't end up getting its own window*/
+        		//outlineDock,
+        		//pannerDock,        	
+        		//DR_BROWSER_DOCK,
+        		//slideDock,                         
+        		//resourceDock,
+        		//formatDock,            
+        		//htWindow,
+        		//pathwayDock,            
+        		//actionDock,
+        		//fontDock,
+        		//linkDock,
+        		// toolbarDock,                                               
+        		//};
 
-        	if ((pos.getX() < 0) || (pos.getY() < 0))
+        	// adding the menus and toolbars
+        	if (DEBUG.INIT) out("setting JMenuBar...");
+        	ApplicationFrame.setJMenuBar(VueMenuBar.RootMenuBar = new VueMenuBar(/*VUE.ToolWindows*/));
+        	if (DEBUG.INIT) out("VueMenuBar installed.");;
+        
+        	if (true)
+        		ApplicationFrame.addComp(mViewerSplit, BorderLayout.CENTER);
+        	else
+        		ApplicationFrame.addComp(mMapTabsLeft, BorderLayout.CENTER);
+        
+        	//         JPanel resources = DR_BROWSER_DOCK.getContentPanel();
+        	//         resources.setMinimumSize(new Dimension(500,500));
+        	//         ApplicationFrame.addComp(resources, BorderLayout.EAST);
+        
+        	try {
+        		ApplicationFrame.pack();
+        	} catch (ArrayIndexOutOfBoundsException e) {
+        		Log.error("OSX TIGER JAVA BUG at frame.pack()", e);
+        	}
+        
+        	/*
+        	if (SKIP_DR) {
+            	ApplicationFrame.setSize(750,450);
+        	} else {
+            	ApplicationFrame.setSize(800,600);
+            	// todo: make % of screen, make sure tool windows below don't go off screen!
+        	}
+        	 */
+        
+        	//if (DEBUG.INIT) out("validating frame...");
+        	ApplicationFrame.validate();
+        	//if (DEBUG.INIT) out("frame validated");
+
+        	//int appWidth = (int) (GUI.GScreenWidth * 0.75);
+        	//int appHeight = (int) (GUI.GScreenHeight * 0.75);
+
+        	// If you've got a wide screen, leave at least 600
+        	// pixels at the right for two full 300pix DockWindow's
+        	/* VUE-795 replaces the default screen sizing logic...
+        	 * if (GUI.GScreenWidth >= 1600) { 
+            	int maxWidth = GUI.GScreenWidth - (GUI.GInsets.left + DockWindow.DefaultWidth * 2);
+            	if (appWidth > maxWidth)
+                	appWidth = maxWidth;
+        		}
+
+        	if (appWidth > 1600)
+            	appWidth = 1600;
+        	if (appHeight > 1024)
+            	appHeight = 1024;
+        	 */
+        
+        	int appWidth = (int) (GUI.GScreenWidth * 0.90);
+        	int appHeight = (int) (GUI.GScreenHeight * 0.90);
+        
+        
+        	if (GUI.GScreenWidth > 1280) {             
+        		appWidth = (int) (GUI.GScreenWidth * 0.75);
+        		appHeight = (int) (GUI.GScreenHeight * 0.90);
+        	}
+
+        	WindowPropertiesPreference wpframe = ApplicationFrame.getWindowProperties();
+        
+        	Dimension sz = wpframe.getWindowSize();
+        	Point pos = wpframe.getWindowLocationOnScreen();
+    	
+        	if (wpframe.isEnabled() && !wpframe.isAllValuesDefaults() &&
+        			ApplicationFrame.isPointFullyOnScreen(pos,sz))
         	{
-        		ApplicationFrame.setLocation(GUI.GInsets.left,
+        		if ((sz.getWidth() < 100) || (sz.getHeight() < 100))
+        			ApplicationFrame.setSize((int)appWidth, (int)appHeight);
+        		else        		
+        			ApplicationFrame.setSize((int)sz.getWidth(), (int)sz.getHeight());
+
+        		if ((pos.getX() < 0) || (pos.getY() < 0))
+        		{
+        			ApplicationFrame.setLocation(GUI.GInsets.left,
                         GUI.GInsets.top
                         + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
+        		}
+        		else
+        			ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());        	
         	}
         	else
-        	ApplicationFrame.setLocation((int)pos.getX(),(int)pos.getY());        	
-        }
-        else
-        {        	        
-        	ApplicationFrame.setSize(appWidth, appHeight);
+        	{        	        
+        		ApplicationFrame.setSize(appWidth, appHeight);
 
-        	ApplicationFrame.setLocation(GUI.GInsets.left,
+        		ApplicationFrame.setLocation(GUI.GInsets.left,
                                      GUI.GInsets.top
                                      + (ToolbarAtTopScreen ? DockWindow.ToolbarHeight : 0));
-        }
-        // MAC NOTE WITH MAXIMIZING: if Frame's current location y value
-        // is less than whatever's it's maximized value is set to, maximizing
-        // it will use the y value, not the max value.  True even if set
-        // y value after setting to maximized but before it's put on screen.
+        	}
+        	// MAC NOTE WITH MAXIMIZING: if Frame's current location y value
+        	// is less than whatever's it's maximized value is set to, maximizing
+        	// it will use the y value, not the max value.  True even if set
+        	// y value after setting to maximized but before it's put on screen.
         
-        //GUI.centerOnScreen(ApplicationFrame);
+        	//GUI.centerOnScreen(ApplicationFrame);
 
-        final boolean loadTopDock = false;
+        	final boolean loadTopDock = false;
 
-        if (loadTopDock && DockWindow.getMainDock() != null) {
-            // leave room for dock at top
-            Rectangle maxBounds = GUI.getMaximumWindowBounds();
-            int adj = DockWindow.getCollapsedHeight();
-            maxBounds.y += adj;
-            maxBounds.height -= adj;
-            ApplicationFrame.setMaximizedBounds(maxBounds);
-        }
+        	if (loadTopDock && DockWindow.getMainDock() != null) {
+        		// leave room for dock at top
+        		Rectangle maxBounds = GUI.getMaximumWindowBounds();
+        		int adj = DockWindow.getCollapsedHeight();
+        		maxBounds.y += adj;
+        		maxBounds.height -= adj;
+        		ApplicationFrame.setMaximizedBounds(maxBounds);
+        	}
             
-        if (false)
-            ApplicationFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
+        	if (false)
+        		ApplicationFrame.setExtendedState(Frame.MAXIMIZED_BOTH);
 
-        /*
-        if (!SKIP_DR) {
-            LWMap startupMap = null;
-            try {
-                final java.net.URL startupURL;
-                startupURL = VueResources.getURL("resource.startmap");
-                startupMap = OpenAction.loadMap(startupURL);
-                startupMap.setFile(null); // dissassociate startup map from it's file so we don't write over it
-                startupMap.setLabel("Welcome");
-                startupMap.markAsSaved();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                VueUtil.alert(null, "Cannot load the Start-up map", "Start Up Map Error");
-            }
+        	/*
+        	if (!SKIP_DR) {
+            	LWMap startupMap = null;
+            	try {
+                	final java.net.URL startupURL;
+                	startupURL = VueResources.getURL("resource.startmap");
+                	startupMap = OpenAction.loadMap(startupURL);
+                	startupMap.setFile(null); // dissassociate startup map from it's file so we don't write over it
+                	startupMap.setLabel("Welcome");
+                	startupMap.markAsSaved();
+            	} catch (Exception ex) {
+                	ex.printStackTrace();
+                	VueUtil.alert(null, "Cannot load the Start-up map", "Start Up Map Error");
+            	}
 
-            try {
-                if (startupMap != null)
-                    displayMap(startupMap);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                VueUtil.alert(null, "Failed to display Start-up Map", "Internal Error");
-            }
+            	try {
+                	if (startupMap != null)
+                    	displayMap(startupMap);
+            	} catch (Exception ex) {
+                	ex.printStackTrace();
+                	VueUtil.alert(null, "Failed to display Start-up Map", "Internal Error");
+            	}
             
-        } else {
-            //pannerTool.setVisible(true);
-        }
-        */
+        	} else {
+            	//pannerTool.setVisible(true);
+        	}
+        	 */
 
-        if (FilesToOpen.size() == 0)
-            VUE.displayMap(new LWMap("New Map"));
+        	if (FilesToOpen.size() == 0)
+        		VUE.displayMap(new LWMap("New Map"));
 
-        // Generally, we need to wait until java 1.5 JSplitPane's have been validated to
-        // use the % set divider location.  Unfortunately there's a bug in at MacOS java
-        // 1.5 BasicSplitPaneUI (it's not in the 1.4 version), where setKeepHidden isn't
-        // being called when the divider goes to the wall via setDividerLocation, only when
-        // the one-touch buttons are manually clicked.  So, for example, if the user
-        // de-maximizes the frame, suddenly a hidden split-pane will pop out!  So, we've
-        // hacked into the UI code, grabbed the damn right-one-touch button, grabbed
-        // it's action listener, and here just call it directly...
-        // 
-        // See javax.swing.plaf.basic.BasicSplitPaneDivider.OneTouchActionHandler.
-        //
-        // It appears on Windows we need to actually wait till the frame is shown also...
+        	// Generally, we need to wait until java 1.5 JSplitPane's have been validated to
+        	// use the % set divider location.  Unfortunately there's a bug in at MacOS java
+        	// 1.5 BasicSplitPaneUI (it's not in the 1.4 version), where setKeepHidden isn't
+        	// being called when the divider goes to the wall via setDividerLocation, only when
+        	// the one-touch buttons are manually clicked.  So, for example, if the user
+        	// de-maximizes the frame, suddenly a hidden split-pane will pop out!  So, we've
+        	// hacked into the UI code, grabbed the damn right-one-touch button, grabbed
+        	// it's action listener, and here just call it directly...
+        	// 
+        	// See javax.swing.plaf.basic.BasicSplitPaneDivider.OneTouchActionHandler.
+        	//
+        	// It appears on Windows we need to actually wait till the frame is shown also...
 
-        // show before split adjust on pc
-        if (!Util.isMacPlatform())
-            ApplicationFrame.setVisible(true);
+        	// show before split adjust on pc
+        	if (!Util.isMacPlatform())
+        		ApplicationFrame.setVisible(true);
         
-        if (SplitPaneRightButtonOneTouchActionHandler != null) {
-            if (DEBUG.INIT) Util.printStackTrace("\"pressing\": " + SplitPaneRightButtonOneTouchActionHandler);
+        	if (SplitPaneRightButtonOneTouchActionHandler != null) {
+        		if (DEBUG.INIT) Util.printStackTrace("\"pressing\": " + SplitPaneRightButtonOneTouchActionHandler);
 
-            // Not reliable on PC unless we invokeLater
-            GUI.invokeAfterAWT(new Runnable() { public void run() {
-                SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);                  
-            }});
+        		// Not reliable on PC unless we invokeLater
+        		GUI.invokeAfterAWT(new Runnable() { public void run() {
+        			SplitPaneRightButtonOneTouchActionHandler.actionPerformed(null);                  
+        		}});
         
-            // this is also eventually getting eaten in java 1.5: no matter where
-            // we put this call during init: will have to patch w/more hacking
-            // or live with it.  Actually, it get's eaten eventually in java 1.4.2
-            // also.
+        		// this is also eventually getting eaten in java 1.5: no matter where
+        		// we put this call during init: will have to patch w/more hacking
+        		// or live with it.  Actually, it get's eaten eventually in java 1.4.2
+        		// also.
 
-            // Maybe because we maximized the frame before it was shown?
-            // [ not making a difference]
+        		// Maybe because we maximized the frame before it was shown?
+        		// [ not making a difference]
 
-            // Well. this is working at least the first time now by
-            // doing it BEFORE the peers are created.
-            //mViewerSplit.setResizeWeight(0.5d);
+        		// Well. this is working at least the first time now by
+        		// doing it BEFORE the peers are created.
+        		//mViewerSplit.setResizeWeight(0.5d);
             
-        } else {
-            // for java 1.4.2
-            mViewerSplit.setDividerLocation(1.0);
-        }
+        	} else {
+        		// for java 1.4.2
+        		mViewerSplit.setDividerLocation(1.0);
+        	}
 
-        // can show after split adjust on mac (turns out: only on older, slower macs)
-        if (Util.isMacPlatform()) {
-            ApplicationFrame.setVisible(true);
+        	// can show after split adjust on mac (turns out: only on older, slower macs)
+        	if (Util.isMacPlatform()) {
+        		ApplicationFrame.setVisible(true);
 
             if (SplitPaneRightButtonOneTouchActionHandler != null) {
                 // This is backup: hit it one more time just in case, as on the
@@ -1727,7 +1724,7 @@ if (!VUE.isApplet())
             }
         }
         
-}
+        }
         if (toolbarDock != null) {
             toolbarDock.suggestLocation(0,0);
             toolbarDock.setWidth(GUI.GScreenWidth);
