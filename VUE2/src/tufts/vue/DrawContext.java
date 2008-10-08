@@ -34,7 +34,7 @@ import java.awt.RenderingHints;
  * Includes a Graphics2D context and adds VUE specific flags and helpers
  * for rendering a tree of LWComponents.
  *
- * @version $Revision: 1.59 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.60 $ / $Date: 2008-10-08 16:34:23 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -621,7 +621,7 @@ public final class DrawContext
         this.isAnimating = dc.isAnimating;
         this.focused = dc.focused;
 
-        if (DEBUG.PAINT) out("CLONE of " + dc);
+        if (DEBUG.PAINT&&DEBUG.META) out("CLONE of " + dc);
         //out("CLONED: " + Util.tag(masterClipRect) + " from " + dc);
         //Util.printClassTrace("tufts.vue", "CLONE " + this);        
         
