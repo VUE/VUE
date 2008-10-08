@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.98 $ / $Date: 2008-10-08 16:11:28 $ / $Author: sfraize $
+ * @version $Revision: 1.99 $ / $Date: 2008-10-08 18:51:14 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -233,7 +233,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                         else
                             System.err.format("%70s...", Util.tags(l));
                         start = System.nanoTime();
-                        
                     }
                     l.selectionChanged(this);
                     if (DEBUG.SELECTION || DEBUG.PERF) {
@@ -679,13 +678,18 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return mParents.size() < 2;
     }
     
-    public boolean allHaveSameParentOfType(Class clazz)
+    public boolean allHaveSameParentOfType(Class<? extends LWComponent> clazz)
     {
-        if (size() == 0)
-            return false;
-
-        return allHaveSameParent() && clazz.isInstance(first().getParent());
+        return size() > 0 && allHaveSameParent() && clazz.isInstance(first().getParent());
     }
+    public boolean allHaveTopLevelParent()
+    {
+        for (LWContainer parent : mParents)
+            if (!parent.isTopLevel())
+                return false;
+        return true;
+    }
+    
 
     public LWComponent[] asArray()
     {
