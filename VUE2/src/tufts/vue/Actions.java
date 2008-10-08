@@ -1858,6 +1858,14 @@ public class Actions implements VueConstants
             c.mFontStyle.set(c.mFontStyle.get() ^ Font.ITALIC);
         }
     };
+
+    private static class Stats {
+        float minX, minY;
+        float maxX, maxY;
+        float centerX, centerY;
+        float totalWidth, totalHeight; // added width/height of all in selection
+        float maxWide, maxTall; // width of widest, height of tallest
+    }
     
     //-------------------------------------------------------
     // Arrange actions
@@ -1874,7 +1882,8 @@ public class Actions implements VueConstants
         static float centerX, centerY;
         static float totalWidth, totalHeight; // added width/height of all in selection
         static float maxWide, maxTall; // width of widest, height of tallest
-        // obviously not thread-safe here
+        static double radiusWide, radiusTall;
+        // note: static variables; obviously not thread-safe here
         
         private ArrangeAction(String name, KeyStroke keyStroke) {
             super(name, keyStroke);
@@ -1922,10 +1931,11 @@ public class Actions implements VueConstants
             }
 
             // TODO: do we need to recompute statistics in the selection?  E.g., links from another
-            // layer in selection should be removed.  Also, need allHaveTopLevelParent
-            // or some such -- objects from different layers should be allowed.
-            if (!selection.allHaveSameParent())
-                throw new DeniedException("all must have same parent");
+            // layer in selection should be removed. 
+            if (selection.allHaveSameParent() || selection.allHaveTopLevelParent())
+                ; // we're good
+            else
+                throw new DeniedException("all must have same or top-level parent");
 
             if (r == null)
                 r = LWMap.getLayoutBounds(selection);
@@ -1978,6 +1988,76 @@ public class Actions implements VueConstants
                 arrange(c);
         }
         void arrange(LWComponent c) { throw new RuntimeException("unimplemented arrange action"); }
+
+
+        protected void clusterNodes(final LWComponent center, final Collection<LWComponent> clustering) {
+
+            computeStatistics(null, clustering);
+            centerX = center.getMapCenterX(); // should probably be local center, not map center
+            centerY = center.getMapCenterY();
+        
+            // todo: bump up if there are link labels to make room for
+            // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
+            // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
+            radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
+            radiusTall = Math.max(totalHeight/2, center.getHeight() / 2 + maxTall / 2 + 50);
+        
+            //clusterNodes(centerX, centerY, radiusWide, radiusTall, linked);
+            clusterNodes(clustering);
+        
+        }
+
+        protected void clusterLinked(final LWComponent center) {
+            clusterNodes(center, center.getLinked());
+        }
+        
+        
+        //private static void clusterNodes(float centerX, float centerY, double radiusWide, double radiusTall, Collection<LWComponent> nodes)
+        protected void clusterNodes(Collection<LWComponent> nodes)
+        {
+            // todo: if a link-chain detected, lay out in link-order e.g., start
+            // with any non-linked nodes, then find any with one link (into our
+            // set), and then follow the link chain laying out any nodes found in
+            // our selection first (removing them from the layout list), then
+            // continue to the next node, etc.  Also, can prefer link directionality
+            // if there are arrow heads.
+        
+            final double slice = (Math.PI * 2) / nodes.size();
+            int i = 0;
+
+            //final int tiers = nodes.size() / 30;
+            final int tiers = 2;
+        
+                
+            for (LWComponent c : nodes) {
+                // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
+                // is always is laid out at exactly the 12 o'clock position
+                final double angle = Math.PI/2*3 + slice * i++;
+
+                if (nodes.size() > 100) {
+                    // random layout
+                    double rand = Math.random()+.1;
+                    c.setCenterAt(centerX + radiusWide * rand * Math.cos(angle),
+                                  centerY + radiusTall * rand * Math.sin(angle));
+
+                } else if (nodes.size() > 30) {
+                    // tiered circular layout
+                    final int tier = i % tiers;
+                    final double rwide = (radiusWide / tiers) * (tier+1);
+                    final double rtall = (radiusTall / tiers) * (tier+1);
+                    c.setCenterAt(centerX + rwide * Math.cos(angle),
+                                  centerY + rtall * Math.sin(angle));
+                } else {
+
+                    // circular layout
+                    c.setCenterAt(centerX + radiusWide * Math.cos(angle),
+                                  centerY + radiusTall * Math.sin(angle));
+                }
+                    
+            }
+        
+        }
+        
         
     };
 
@@ -2276,23 +2356,19 @@ public class Actions implements VueConstants
             void arrange(LWSelection selection) {
 
                 final double radiusWide, radiusTall;
-
-                final Collection<LWComponent> nodes;
-
+                
                 if (selection.size() == 1) {
-                    // if a single item in selection, arrange all nodes linked to it in a circle around it
-                    LWComponent center = selection.first();
-                    nodes = center.getLinked();
-                    computeStatistics(null, nodes);
-                    centerX = center.getMapCenterX(); // should probably be local center, not map center
-                    centerY = center.getMapCenterY();
-                    // todo: bump up if there are link labels to make room for
-                    // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
-                    // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
-                    radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
-                    radiusTall = Math.max(totalHeight/2, center.getHeight() / 2 + maxTall / 2 + 50);
+
+                    // if a single item in selection, arrange all nodes linked to it in a circle around it                    
+
+                    final LWComponent center = selection.first();
+                    final Collection<LWComponent> linked = center.getLinked();
+
+                    clusterNodes(center, linked);
+                    
                     selection().setTo(center);
-                    selection().add(nodes);
+                    selection().add(linked);
+                    
                 } else {
                     
 //                     radiusWide = (maxX - minX) / 2;
@@ -2304,7 +2380,8 @@ public class Actions implements VueConstants
                     radiusWide = Math.max((maxX - minX) / 2, totalWidth/4);
                     radiusTall = Math.max((maxY - minY) / 2, totalHeight/4);
                     
-                    nodes = selection;
+                    //clusterNodes(centerX, centerY, radiusWide, radiusTall, selection);
+                    clusterNodes(selection);
 
                     // The ring will expand on subsequent MakeCircle calls, because nodes are laid
                     // out on the ring on-center, but the bounds used to create the initial ring
@@ -2321,51 +2398,20 @@ public class Actions implements VueConstants
                     // picking the initial size.
 
                 }
-
-                    
-                // todo: if a link-chain detected, lay out in link-order e.g., start
-                // with any non-linked nodes, then find any with one link (into our
-                // set), and then follow the link chain laying out any nodes found in
-                // our selection first (removing them from the layout list), then
-                // continue to the next node, etc.  Also, can prefer link directionality
-                // if there are arrow heads.
-                
-                final double slice = (Math.PI * 2) / nodes.size();
-                int i = 0;
-
-                //final int tiers = nodes.size() / 30;
-                final int tiers = 2;
-                
-                for (LWComponent c : nodes) {
-                    // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
-                    // is always is laid out at exactly the 12 o'clock position
-                    final double angle = Math.PI/2*3 + slice * i++;
-
-                    if (nodes.size() > 100) {
-                        // random layout
-                        double rand = Math.random()+.1;
-                        c.setCenterAt(centerX + radiusWide * rand * Math.cos(angle),
-                                      centerY + radiusTall * rand * Math.sin(angle));
-
-                    } else if (nodes.size() > 30) {
-                        // tiered circular layout
-                        final int tier = i % tiers;
-                        final double rwide = (radiusWide / tiers) * (tier+1);
-                        final double rtall = (radiusTall / tiers) * (tier+1);
-                        c.setCenterAt(centerX + rwide * Math.cos(angle),
-                                      centerY + rtall * Math.sin(angle));
-                    } else {
-
-                        // circular layout
-                        c.setCenterAt(centerX + radiusWide * Math.cos(angle),
-                                      centerY + radiusTall * Math.sin(angle));
-                    }
-                    
-                }
-
             }
+            
     };
+
+
+    public static final LWCAction ClusterData = new ArrangeAction("Make Data Cluster", keyStroke(KeyEvent.VK_SLASH, ALT)) {
+            @Override
+            public void arrange(LWComponent c) {
+                if (c instanceof LWNode)
+                    clusterLinked(c);
+            }
+        };
     
+
     public static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() >= 2; }
@@ -2416,19 +2462,18 @@ public class Actions implements VueConstants
     
     public static final ArrangeAction DistributeHorizontally = new ArrangeAction("Distribute Horizontally", KeyEvent.VK_H) {
             boolean supportsSingleMover() { return false; }
-        boolean enabledFor(LWSelection s) { return s.size() >= 3; }
-        void arrange(LWSelection selection) {
-            LWComponent[] comps = sortByX(sortByY(selection.asArray()));
-            float layoutRegion = maxX - minX;
-            //if (layoutRegion < totalWidth)
-            //  layoutRegion = totalWidth;
-            float horizontalGap = (layoutRegion - totalWidth) / (selection.size() - 1);
-            float x = minX;
-            for (int i = 0; i < comps.length; i++) {
-                LWComponent c = comps[i];
-                c.setLocation(x, c.getY());
-                x += c.getWidth() + horizontalGap;
-            }
+            boolean enabledFor(LWSelection s) { return s.size() >= 3; }
+            void arrange(LWSelection selection) {
+                final LWComponent[] comps = sortByX(sortByY(selection.asArray()));
+                final float layoutRegion = maxX - minX;
+                //if (layoutRegion < totalWidth)
+                //  layoutRegion = totalWidth;
+                final float horizontalGap = (layoutRegion - totalWidth) / (selection.size() - 1);
+                float x = minX;
+                for (LWComponent c : comps) {
+                    c.setLocation(x, c.getY());
+                    x += c.getWidth() + horizontalGap;
+                }
         }
     };
     
@@ -2451,6 +2496,7 @@ public class Actions implements VueConstants
         MakeRow,
         MakeColumn,
         MakeCircle,
+        ClusterData,
         null,
         DistributeVertically,
         DistributeHorizontally,
