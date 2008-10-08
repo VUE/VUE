@@ -28,7 +28,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.1 $ / $Date: 2008-10-03 16:20:19 $ / $Author: sfraize $
+ * @version $Revision: 1.2 $ / $Date: 2008-10-08 01:12:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -48,6 +48,8 @@ public class Schema {
     protected int mLongestFieldName = 10;
 
     private String mName;
+
+    private LWComponent mStyleNode;
         
     public Schema(Object source) {
         // would be very handy if source was a Resource and Resources had IO methods
@@ -59,6 +61,14 @@ public class Schema {
     }
         
 
+    public void setStyleNode(LWComponent style) {
+        mStyleNode = style;
+    }
+        
+    public LWComponent getStyleNode() {
+        return mStyleNode;
+    }
+    
     public Object getSource() {
         return mSource;
     }
@@ -66,7 +76,6 @@ public class Schema {
     public int getRowCount() {
         return mRows.size();
     }
-        
 
     public void setName(String name) {
         mName = name;
@@ -285,6 +294,10 @@ public class Schema {
             return schema;
         }
 
+        public String getType() {
+            return type;
+        }
+
         public String toString() {
             //if (isNumeric) type=TYPE_NUMERIC; // HACK: NEED ANALYSIS PHASE
             //return getName();
@@ -299,7 +312,8 @@ public class Schema {
 
         public boolean isPossibleKeyField() {
             //return allValuesUnique && valueCount == schema.getRowCount() && !(type == TYPE_DATE);
-            return allValuesUnique
+            return !enumDisabled
+                && allValuesUnique
                 && uniqueValueCount() == valueCount()
                 && valueCount() == schema.getRowCount()
                 && !(type == TYPE_DATE);
@@ -311,6 +325,10 @@ public class Schema {
 
         public boolean isLenghtyValue() {
             return enumDisabled;
+        }
+        
+        public boolean isEnumerated() {
+            return !enumDisabled && uniqueValueCount() > 1;
         }
 
         public int getMaxValueLength() {
