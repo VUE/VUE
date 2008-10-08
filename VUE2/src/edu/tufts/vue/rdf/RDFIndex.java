@@ -407,9 +407,16 @@ public class RDFIndex extends ModelCom
        String encodedKey = key;
        try
        {
-         String prefix = key.substring(0,key.indexOf("#"));
-         String end = key.substring(key.indexOf("#")+1,key.length());
-         encodedKey = prefix + "#" + java.net.URLEncoder.encode(end,"UTF-8");
+         if(key.indexOf("#") != -1)
+         {    
+           String prefix = key.substring(0,key.indexOf("#"));
+           String end = key.substring(key.indexOf("#")+1,key.length());
+           encodedKey = prefix + "#" + java.net.URLEncoder.encode(end,"UTF-8");
+         }
+         else
+         {
+           encodedKey = java.net.URLEncoder.encode(key,"UTF-8");  
+         }
        }
        catch(java.io.UnsupportedEncodingException uee)
        {
