@@ -16,6 +16,7 @@
 package tufts.vue.ds;
 
 import tufts.vue.VUE;
+import tufts.vue.DEBUG;
 import tufts.vue.LWComponent;
 import static tufts.vue.LWComponent.Flag;
 import tufts.vue.LWNode;
@@ -33,12 +34,13 @@ import java.util.*;
 import java.awt.*;
 import java.awt.dnd.*;
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.3 $ / $Date: 2008-10-08 17:09:37 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-10-08 22:37:03 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -60,6 +62,10 @@ public class DataTree extends javax.swing.JTree
 
         setModel(new DefaultTreeModel(buildTree(schema), false));
 
+        setRowHeight(0);
+        setRootVisible(false);
+        setShowsRootHandles(true);
+        
         java.awt.dnd.DragSource.getDefaultDragSource()
             .createDefaultDragGestureRecognizer
             (this,
@@ -90,19 +96,17 @@ public class DataTree extends javax.swing.JTree
     /** build the model and return the root node */
     private TreeNode buildTree(final Schema schema)
     {
-        DataNode root =
+        final DataNode template = new TemplateNode(schema, this);
+        
+        final DataNode root =
             new DataNode(null, null, "Data Set: " + schema.getName());
 //             new DataNode(null, null,
 //                          String.format("%s [%d %s]",
 //                                        schema.getName(),
 //                                        schema.getRowCount(),
 //                                        "items"//isCSV ? "rows" : "items"));
-
-        DataNode template = new TemplateNode(schema, this);
-
         root.add(template);
         
-
         for (Field field : schema.getFields()) {
             
             DataNode fieldNode = new DataNode(field, this, null);
@@ -168,8 +172,8 @@ public class DataTree extends javax.swing.JTree
                 //dragNode.setLabel(String.format(" %s: %s ", field.getName(), treeNode.value));
                 //dragNode.setLabel(String.format(" %s ", field.getName());
             } else if (treeNode.isField()) {
-                if (field.isPossibleKeyField())
-                    return;
+//                 if (field.isPossibleKeyField())
+//                     return;
                 dragNode = new LWNode(String.format("  %d unique  \n  '%s'  \n  values  ",
                                                     field.uniqueValueCount(),
                                                     field.getName()));
@@ -333,7 +337,7 @@ public class DataTree extends javax.swing.JTree
                 vme = null;
             //final String key = vme.getValue();
 
-            Log.debug(Util.tags(vme));
+            //Log.debug(Util.tags(vme));
 
             final List<LWLink> links = new ArrayList();
 
@@ -433,7 +437,13 @@ public class DataTree extends javax.swing.JTree
         return label;
     }
 
-    
+    //private static final Color[] DataColors = tufts.vue.VueResources.getColorArray("dataColorValues");
+    private static final Color[] DataColors = tufts.vue.VueResources.getColorArray("fillColorValues");
+    private static final int FirstRotationColor = 22;
+    private static final int SecondRotationColor = 18;
+    private static int NextColor = FirstRotationColor;
+    private static boolean FirstRotation = true;
+
     private static LWComponent createStyleNode(final Field field, LWComponent.Listener repainter)
     {
         final LWComponent style;
@@ -442,17 +452,30 @@ public class DataTree extends javax.swing.JTree
 
             style = new LWNode(); // creates a rectangular node
             //style.setLabel(" ---");
-            style.setFillColor(Color.red);
+            style.setFillColor(Color.gray);
             style.setFont(DataFont);
         } else {
             //style = new LWNode(" ---"); // creates a round-rect node
             style = new LWNode(""); // creates a round-rect node
-            style.setFillColor(Color.blue);
+            //style.setFillColor(Color.blue);
+            style.setFillColor(DataColors[NextColor]);
+//             if (++NextColor >= DataColors.length)
+//                 NextColor = 0;
+            NextColor += 8;
+            if (NextColor >= DataColors.length) {
+                if (FirstRotation) {
+                    NextColor = SecondRotationColor;
+                    FirstRotation = false;
+                } else {
+                    NextColor = FirstRotationColor;
+                    FirstRotation = true;
+                }
+            }
             style.setFont(EnumFont);
         }
         style.setFlag(Flag.INTERNAL);
         style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
-        style.setLabel("${" + field.getName() + "}");
+        style.setLabel(String.format("%.9s: \n${%s} ", field.getName(),field.getName()));
         style.setNotes(String.format
                        ("Style node for field '%s' in data-set '%s'\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
                         field.getName(),
@@ -497,7 +520,8 @@ public class DataTree extends javax.swing.JTree
             } else
                 setDisplay(description);
 
-            if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
+            //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
+            if (field != null)
                 field.setStyleNode(createStyleNode(field, repainter));
         }
         
@@ -570,7 +594,8 @@ public class DataTree extends javax.swing.JTree
         TemplateNode(Schema schema, LWComponent.Listener repainter) {
             super(null,
                   repainter,
-                  String.format("<html><b><font color=red>All Rows in '%s' (%d)", schema.getName(), schema.getRowCount()));
+                  String.format("<html><b>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
+            //String.format("<html><b><font color=red>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
             this.schema = schema;
             LWComponent style = new LWNode();
             style.setFlag(Flag.INTERNAL);
@@ -619,7 +644,20 @@ public class DataTree extends javax.swing.JTree
         LWComponent getStyle() { return schema.getStyleNode(); }
     }
 
+    //private static final Border TopBorder = BorderFactory.createLineBorder(Color.gray);
+    private static final Border TopBorder = new CompoundBorder(new MatteBorder(3,0,3,0, Color.white),
+                                                               new CompoundBorder(new LineBorder(Color.gray),
+                                                                                  GUI.makeSpace(1,0,1,2)));
+    private static final Border LeafBorder = GUI.makeSpace(0,0,2,0);
+
     private static class DataRenderer extends DefaultTreeCellRenderer {
+
+        {
+            //setIconTextGap(2);
+            //setBorder(LeafBorder);
+            setVerticalTextPosition(SwingConstants.CENTER);
+            //setTextNonSelectionColor(Color.black);
+        }
 
         public Component getTreeCellRendererComponent(
                 final JTree tree,
@@ -633,30 +671,38 @@ public class DataTree extends javax.swing.JTree
             //Log.debug(Util.tags(value));
             final DataNode node = (DataNode) value;
             
-            if (node.isField() && !leaf) {
-                if (node.field.isPossibleKeyField())
-                    //setForeground(Color.red);
-                    setForeground(Color.black);
-                else
-                    setForeground(Color.blue);
-            } else {
-                setForeground(Color.black);
-            }
+//             if (node.isField() && !leaf) {
+//                 if (node.field.isPossibleKeyField())
+//                     //setForeground(Color.red);
+//                     setForeground(Color.black);
+//                 else
+//                     setForeground(Color.blue);
+//             } else {
+//                 setForeground(Color.black);
+//             }
 
+            setForeground(Color.black); // must do every time for some reason, or de-selected text goes invisible
+            
             super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
             if (node.hasStyle()) {
-                setIcon(FieldIconPainter.load(node.getStyle()));
-//                 if (!leaf)
-//                     setIcon(FieldIconPainter.load(node.getStyle()));
-//                 else
-//                     setIcon(EmptyIcon);
+                setIcon(FieldIconPainter.load(node.getStyle(),
+                                              selected ? backgroundSelectionColor : null));
             } else {
-                //if (!leaf) setIcon(EmptyIcon);
-                // enumerated value
-                //setIcon(null);
+//                 if (leaf && node.isValue())
+//                     setIcon(EmptyIcon);
             }
-            
+
+            if (row == 0) {
+                //setBorder(null);
+                setBorder(TopBorder);
+                //setBackgroundNonSelectionColor(Color.lightGray);
+                //setFont(EnumFont);
+            } else {
+                //setBackgroundNonSelectionColor(null);
+                //setFont(null);
+                setBorder(leaf ? LeafBorder : null);
+            }
             
             return this;
         }
@@ -665,8 +711,8 @@ public class DataTree extends javax.swing.JTree
     private static final NodeIconPainter FieldIconPainter = new NodeIconPainter();
 
     
-    private static final int IconWidth = 16;
-    private static final int IconHeight = 16;
+    private static final int IconWidth = 32;
+    private static final int IconHeight = 20;
     private static final java.awt.geom.Rectangle2D IconSize
         = new java.awt.geom.Rectangle2D.Float(0,0,IconWidth,IconHeight);
 
@@ -675,13 +721,15 @@ public class DataTree extends javax.swing.JTree
     private static class NodeIconPainter implements Icon {
 
         LWComponent node;
+        Color fill;
 
 //         NodeIcon(LWComponent c) {
 //             node = c;
 //         }
 
-        public Icon load(LWComponent c) {
-            node = c;
+        public Icon load(LWComponent c, Color fill) {
+            this.node = c;
+            this.fill = fill;
             return this;
         }
         
@@ -694,10 +742,21 @@ public class DataTree extends javax.swing.JTree
             ((java.awt.Graphics2D)g).setRenderingHint
                 (java.awt.RenderingHints.KEY_ANTIALIASING,
                  java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+
+            if (fill != null) {
+                if (DEBUG.BOXES) {
+                    g.setColor(Color.red);
+                    g.fillRect(x,y,IconWidth,IconHeight);
+                } else {
+                    g.setColor(fill);
+                    // add to width to also fill the IconTextGap
+                    g.fillRect(0,0,IconWidth+8,IconHeight+8);
+                }
+            }
             
             node.drawFit(new DrawContext(g.create(), node),
                          IconSize,
-                         0);
+                         2);
             //node.drawFit(g, x, y);
         }
     
