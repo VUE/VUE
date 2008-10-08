@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.97 $ / $Date: 2008-10-08 01:10:06 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2008-10-08 16:11:28 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -226,15 +226,19 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 if (DEBUG.SELECTION && DEBUG.META) debug("notifying: #" + (i+1) + " " + (i<9?" ":""));
                 Listener l = listener_iter[i];
                 try {
-                    if (DEBUG.SELECTION) {
+                    if (DEBUG.SELECTION || DEBUG.PERF) {
                         //System.err.format("%70s...", Util.tags(l));
-                        System.err.format("%70s...", tufts.vue.gui.GUI.name(l));
-                        start = System.currentTimeMillis();
+                        if (l instanceof java.awt.Component)
+                            System.err.format("%70s...", tufts.vue.gui.GUI.name(l));
+                        else
+                            System.err.format("%70s...", Util.tags(l));
+                        start = System.nanoTime();
+                        
                     }
                     l.selectionChanged(this);
-                    if (DEBUG.SELECTION) {
-                        long delta = System.currentTimeMillis() - start;
-                        System.out.println(delta + "ms");
+                    if (DEBUG.SELECTION || DEBUG.PERF) {
+                        final long delta = System.nanoTime() - start;
+                        System.out.format("%6.1fms\n", delta / 100000.0);
                     }
                 } catch (Exception ex) {
                     System.err.println(this + " notifyListeners: exception during selection change notification:"
@@ -292,6 +296,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     public void setTo(Iterable bag)
     {
+        if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("setTo: " + Util.tags(bag));
         setTo(bag.iterator());
     }
     
@@ -310,6 +315,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
             // clearing it out and then setting it to nothing
             notifyListeners();
         }
+
         
     }
     
@@ -352,6 +358,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                     changed = true;
             }
         }
+        if (DEBUG.SELECTION||DEBUG.PERF) Log.debug("add: " + Util.tags(i) + "; completed");
+        
         if (changed)
             notifyListeners();
     }
@@ -393,7 +401,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     
     private synchronized boolean addSilent(LWComponent c)
     {
-        if (DEBUG.SELECTION && DEBUG.META || DEBUG.EVENTS) debug("addSilent " + c + " src=" + source);
+        if (DEBUG.SELECTION && DEBUG.META /*|| DEBUG.EVENTS*/) debug("addSilent " + c + " src=" + source);
 
         if (c == null) {
             tufts.Util.printStackTrace("can't add null to a selection");

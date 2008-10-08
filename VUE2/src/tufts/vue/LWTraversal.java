@@ -35,7 +35,7 @@ import java.awt.geom.Rectangle2D;
  * 
  * This class is meant to be overriden to do something useful.
  *
- * @version $Revision: 1.48 $ / $Date: 2008-07-14 17:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.49 $ / $Date: 2008-10-08 16:11:36 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -377,7 +377,7 @@ public class LWTraversal {
     
         /** create subclasses with this overridden to do useful stuff */
         public abstract void visit(LWComponent c);
-        
+
     }
 
     public static class PointPick extends LWTraversal.Picker
@@ -478,13 +478,23 @@ public class LWTraversal {
         
         public static LWComponent pick(MapMouseEvent e) {
             PointPick pick = new PointPick(e);
-            pick.traverse(pick.pc.root);
-            return pick.getPicked();
+            return pick.traverseAndPick(pick.pc.root);
+//             pick.traverse(pick.pc.root);
+//             return pick.getPicked();
         }
 
         public LWComponent traverseAndPick(LWComponent root) {
-            traverse(root);
-            return getPicked();
+            if (DEBUG.PERF) {
+                final long start = System.nanoTime();
+                traverse(root);
+                final LWComponent pick = getPicked();
+                final long delta = System.nanoTime() - start;
+                Log.debug(String.format("PointPick elapsed: %.1fms", delta / 100000.0));
+                return pick;
+            } else {
+                traverse(root);
+                return getPicked();
+            }
         }
 
         public LWComponent getPicked() {
@@ -647,10 +657,17 @@ public class LWTraversal {
         
 
         public java.util.List<LWComponent> traverseAndPick(LWComponent root) {
-            traverse(root);
-            return hits;
+            if (DEBUG.PERF) {
+                final long start = System.nanoTime();
+                traverse(root);
+                final long delta = System.nanoTime() - start;
+                Log.debug(String.format("RegionPick elapsed: %.1fms", delta / 100000.0));
+                return hits;
+            } else {
+                traverse(root);
+                return hits;
+            }
         }
-        
     }
     
     
