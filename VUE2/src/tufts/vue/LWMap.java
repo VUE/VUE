@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.216 $ / $Date: 2008-10-08 01:08:54 $ / $Author: sfraize $
+ * @version $Revision: 1.217 $ / $Date: 2008-10-08 02:16:01 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -954,11 +954,13 @@ public class LWMap extends LWContainer
         return layer;
     }
     
+    /** @return the internal layer of the given name.  Internal layers start at the back, intially locked */
     public Layer getInternalLayer(String name) {
         for (Layer layer : Util.extractType(getChildren(), Layer.class))
             if (name.equals(layer.getLabel()))
                 return layer;
         Layer layer = new Layer(name);
+        layer.setLocked(true);
         layer.setFlag(Flag.INTERNAL);
         addChild(layer);
         sendToBack(layer);
