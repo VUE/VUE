@@ -44,7 +44,7 @@ import java.util.ArrayList;
  * Todo: render right from the node labels so all we have to do is repaint to refresh.
  * (still need to modify tree for hierarchy changes tho).
  *
- * @version $Revision: 1.50 $ / $Date: 2008-06-30 20:52:54 $ / $Author: mike $
+ * @version $Revision: 1.51 $ / $Date: 2008-10-08 16:12:57 $ / $Author: sfraize $
  * @author  Daisuke Fujiwara
  */
 
@@ -245,7 +245,10 @@ public class OutlineViewTree extends JTree
     
     /** A method for handling LWSelection event **/
     public void selectionChanged(LWSelection selection)
-    {  
+    {
+        if (!isShowing()) // TODO: now we should do an auto-update when made visible
+            return;
+        
         if (!valueChangedState)
         {   
             selectionFromVUE = true;
