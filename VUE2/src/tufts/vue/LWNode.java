@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.230 $ / $Date: 2008-10-08 02:48:00 $ / $Author: sfraize $
+ * @version $Revision: 1.231 $ / $Date: 2008-10-08 03:15:33 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2252,49 +2252,68 @@ public class LWNode extends LWContainer
     @Override
     protected void drawImpl(DrawContext dc)
     {
-        if (!isFiltered()) {
+        final double renderScale = dc.getAbsoluteScale();
 
-            final double renderScale = dc.getAbsoluteScale();
+        if (dc.isInteractive() && mFontSize.get() * renderScale < 5) { // if net font point size < 5, do LOD
 
-            if (dc.isInteractive() && mFontSize.get() * renderScale < 5) { // if net font point size < 5, do LOD
+            //=============================================================================
+            // DRAW FAST (with little or no detail)
+            //=============================================================================
 
-                // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
-                // all we do is fill the shape
+            // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
+            // all we do is fill the shape
                 
-                dc.g.setColor(mFillColor.get());
-                //if (isSelected() || getHeight() * dc.zoom > 5)
-                if (getHeight() * renderScale > 5) {
-                    // filling shapes slower than drawing rectangles, tho not as much an improvement
-                    // as skipping text
-                    dc.g.fill(getZeroShape());
-                } else {
-                    dc.setAntiAlias(false);
-                    dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
-                }
-                
-                // now we skip drawing text / decorations / children -- just skipping
-                // the text makes a big difference when then there are lots of nodes
-                return;
+            //if (isSelected() || getHeight() * dc.zoom > 5)
+            if (getHeight() * renderScale > 5) {
+                // filling shapes slower than drawing rectangles, tho not as much an improvement
+                // as skipping text
+                //dc.g.setColor(mFillColor.get());
+                // TODO: may want to depend on # of items in selection,
+                // in which case, hava MapViewer set up parameters for this in the DrawContext
+                // and check those flags here.  Also, the selectio stroke is completely useless
+                // when zoomed out -- it's being draw at scale.
+                if (isSelected())
+                    dc.g.setColor(COLOR_SELECTION);
+                else
+                    dc.g.setColor(mFillColor.get());
+                dc.g.fill(getZeroShape());
+            } else {
+                dc.setAntiAlias(false);
+                if (isSelected())
+                    dc.g.setColor(COLOR_SELECTION);
+                else
+                    dc.g.setColor(mFillColor.get());
+                dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
             }
-        
-
+                
+            // now we skip drawing text / decorations / children -- just skipping
+            // the text makes a big difference when then there are lots of nodes
             
-            // Desired functionality is that if this node is filtered, we don't draw it, of course.
-            // But also, even if this node is filtered, we still draw any children who are
-            // NOT filtered -- we just drop out the parent background.
-            drawNode(dc);
-        }
+        } else {
+            
+            //=============================================================================
+            // DRAW COMPLETE (with full detail)
+            //=============================================================================
+            
+            if (!isFiltered()) {
 
-        //-------------------------------------------------------
-        // Draw any children
-        //-------------------------------------------------------
-
-        if (hasChildren()) {
-            //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
-            super.drawChildren(dc);
+                // Desired functionality is that if this node is filtered, we don't draw it, of course.
+                // But also, even if this node is filtered, we still draw any children who are
+                // NOT filtered -- we just drop out the parent background.
+                drawNode(dc);
+            }
+            
+            //-------------------------------------------------------
+            // Draw any children
+            //-------------------------------------------------------
+            
+            if (hasChildren()) {
+                //if (isZoomedFocus()) dc.g.setComposite(ZoomTransparency);
+                super.drawChildren(dc);
+            }
         }
     }
-        
+
     protected void drawNode(DrawContext dc)
     {
         //-------------------------------------------------------
