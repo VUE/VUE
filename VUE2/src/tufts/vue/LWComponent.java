@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.439 $ / $Date: 2008-10-08 01:08:32 $ / $Author: sfraize $
+ * @version $Revision: 1.440 $ / $Date: 2008-10-08 16:11:16 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -5145,26 +5145,26 @@ u                    getSlot(c).setFromString((String)value);
 //         }
 //     }
 
-    /** if this component is selected and we're not printing, draw a selection indicator */
-    // todo: drawing of selection should be handled by the MapViewer and/or the currently
-    // active tool -- not in the component code
-    protected void drawSelectionDecorations(DrawContext dc) {
-        if (isSelected() && dc.isInteractive()) {
-            LWPathway p = VUE.getActivePathway();
-            if (p != null && p.isVisible() && p.getCurrentNode() == this) {
-                // SPECIAL CASE:
-                // as the current element on the current pathway draws a huge
-                // semi-transparent stroke around it, skip drawing our fat 
-                // transparent selection stroke on this node.  So we just
-                // do nothing here.
-            } else {
-                dc.g.setColor(COLOR_HIGHLIGHT);
-                dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-                transformZero(dc.g);
-                dc.g.draw(getZeroShape());
-            }
-        }
-    }
+//     /** if this component is selected and we're not printing, draw a selection indicator */
+//     // todo: drawing of selection should be handled by the MapViewer and/or the currently
+//     // active tool -- not in the component code
+//     protected void drawSelectionDecorations(DrawContext dc) {
+//         if (isSelected() && dc.isInteractive()) {
+//             LWPathway p = VUE.getActivePathway();
+//             if (p != null && p.isVisible() && p.getCurrentNode() == this) {
+//                 // SPECIAL CASE:
+//                 // as the current element on the current pathway draws a huge
+//                 // semi-transparent stroke around it, skip drawing our fat 
+//                 // transparent selection stroke on this node.  So we just
+//                 // do nothing here.
+//             } else {
+//                 dc.g.setColor(COLOR_HIGHLIGHT);
+//                 dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
+//                 transformZero(dc.g);
+//                 dc.g.draw(getZeroShape());
+//             }
+//         }
+//     }
     
 
     /** @return true if the given x/y (already transformed to our local coordinate space), is within our shape */
