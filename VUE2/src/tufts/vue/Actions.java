@@ -1052,13 +1052,14 @@ public class Actions implements VueConstants
         }
     };
     */
-    public static final LWCAction ImageToNaturalSize = new LWCAction("Make Natural Size") {
-            public void act(LWImage c) {
+    public static final LWCAction MakeNaturalSize = new LWCAction("Make Natural Size") {
+            public void act(LWComponent c) {
                 c.setToNaturalSize();
             }
         };
     
 
+    public static final LWCAction ImageToNaturalSize = MakeNaturalSize;
     
     public static final LWCAction AddFileAction = new LWCAction(VueResources.getString("mapViewer.componentMenu.addFile.label")) {
         public void act(LWComponent c) 
