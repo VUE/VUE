@@ -280,10 +280,10 @@ public class LWChangeSupport
             client.getParent().broadcastChildEvent(e);
         } else if (client.isOrphan() && !client.permitZombieEvent(e)) {
             if (listeners != null && listeners.size() > 0) {
-                System.out.println("*** ORPHAN NODE w/LISTENERS DELIVERED EVENTS:"
-                                   + "\n\torphan=" + client
-                                   + "\n\tevent=" + e
-                                   + "\n\tlisteners=" + listeners);
+                Log.info("ORPHAN NODE w/LISTENERS DELIVERED EVENTS:"
+                         + "\n\torphan=" + client
+                         + "\n\tevent=" + e
+                         + "\n\tlisteners=" + listeners);
                 if (DEBUG.PARENTING) new Throwable().printStackTrace();
             }
             /*else if (DEBUG.META && (DEBUG.EVENTS || DEBUG.PARENTING) && !(this instanceof LWGroup))

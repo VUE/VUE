@@ -29,7 +29,7 @@ import com.google.common.collect.Multisets;
  *
  * Maintains the VUE global list of selected LWComponent's.
  *
- * @version $Revision: 1.96 $ / $Date: 2008-10-03 16:14:28 $ / $Author: sfraize $
+ * @version $Revision: 1.97 $ / $Date: 2008-10-08 01:10:06 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -78,7 +78,6 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
     public Object getSource() {
         return source;
     }
-
     public void setSource(Object src) {
         this.source = src;
     }
@@ -199,7 +198,7 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
         return inNotify;
     }
 
-    private Listener[] listener_buf = new Listener[128];
+    private Listener[] listener_buf = new Listener[128]; // todo: this a bit overkill
     private boolean inNotify = false;
     private synchronized void notifyListeners()
     {
@@ -228,7 +227,8 @@ public class LWSelection extends java.util.ArrayList<LWComponent>
                 Listener l = listener_iter[i];
                 try {
                     if (DEBUG.SELECTION) {
-                        System.err.format("%70s...", Util.tags(l));
+                        //System.err.format("%70s...", Util.tags(l));
+                        System.err.format("%70s...", tufts.vue.gui.GUI.name(l));
                         start = System.currentTimeMillis();
                     }
                     l.selectionChanged(this);
