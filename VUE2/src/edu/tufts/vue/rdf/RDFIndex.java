@@ -405,13 +405,16 @@ public class RDFIndex extends ModelCom
     public static String getEncodedKey(String key)
     {
        String encodedKey = key;
+       
+       String s = ONT_SEPARATOR;
+       
        try
        {
-         if(key.indexOf("#") != -1)
+         if(key.indexOf(s) != -1)
          {    
-           String prefix = key.substring(0,key.indexOf("#"));
-           String end = key.substring(key.indexOf("#")+1,key.length());
-           encodedKey = prefix + "#" + java.net.URLEncoder.encode(end,"UTF-8");
+           String prefix = key.substring(0,key.indexOf(s));
+           String end = key.substring(key.indexOf(s)+1,key.length());
+           encodedKey = prefix + s + java.net.URLEncoder.encode(end,"UTF-8");
          }
          else
          {
