@@ -14,7 +14,10 @@
  */
 
 /*
- * RDFOpenAction.java
+ * TextOpenAction.java
+ * 
+ * Very rough initial data import demos and first Zotero Prototype
+ * data import
  *
  * Created on October 23, 2003, 12:40 PM
  */
@@ -24,6 +27,7 @@ package tufts.vue.action;
 /**
  *
  * @author  akumar03
+ * @author  dhelle01
  */
 import java.io.*;
 import java.net.*;
@@ -194,12 +198,15 @@ public class TextOpenAction  extends VueAction {
                 // this makes the id editable.. 
                 // have to be careful about maintaining id for updates
                 // todo: put in content info instead.
-                edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                //edu.tufts.vue.metadata.VueMetadataElement vme = new edu.tufts.vue.metadata.VueMetadataElement();
+                ////vme.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+                //String[] obj = {"http://vue.tufts.edu/custom.rdfs#z_id",id};   
+                //vme.setObject(obj);
+                //node1.getMetadataList().getMetadata().add(vme);
                 //vme.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
-                String[] obj = {"http://vue.tufts.edu/custom.rdfs#z_id",id};   
-                vme.setObject(obj);
-                node1.getMetadataList().getMetadata().add(vme);
-                vme.setType(edu.tufts.vue.metadata.VueMetadataElement.CATEGORY);
+                
+                // put in content info instead of keywords:
+                node1.getResource().setProperty("Zotero.id",id);
                 
                 // just for debug purposes -- many more references than I expected
                 // and they are not bidirectional.. this seems to not just be
