@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.574 $ / $Date: 2008-10-03 16:16:16 $ / $Author: sfraize $ 
+ * @version $Revision: 1.575 $ / $Date: 2008-10-08 01:10:27 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3602,6 +3602,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         AffineTransform rawMapTransform = dc.g.getTransform();
         boolean atLeastOneVisible = false;
+
+        if (selection.size() > 100) {
+            // todo: fancier LOD
+            atLeastOneVisible = true;
+        } else
         for (LWComponent c : selection) {
 
 //             if (c instanceof LWSlide && !c.isMoveable()) {
@@ -3797,6 +3802,9 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
 
         //dc.g.setStroke(STROKE_HALF);
         
+        if (selection.size() > 50) {
+            ; // do nothing
+        } else
         for (LWSelection.ControlListener cl : selection.getControlListeners()) {
             LWSelection.Controller[] points = cl.getControlPoints(getZoomFactor());
             // draw them in reverse order, in case they overlap: will match hit detection forward-order
@@ -4797,6 +4805,11 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                         Log.warn(t);
                     }
                 } else if (DataFlavor.stringFlavor.equals(flavor)) {
+
+                    if (LWC != null && LWC.getClientData(DataFlavor.stringFlavor) != null) {
+                        return LWC.getClientData(DataFlavor.stringFlavor);
+                    }
+
                     
                     String s = null;
                     if (LWC instanceof LWMap && ((LWMap)LWC).getFile() != null)
