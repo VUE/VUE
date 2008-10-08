@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.33 $ / $Date: 2008-10-08 02:13:33 $ / $Author: sfraize $
+ * @version $Revision: 1.34 $ / $Date: 2008-10-08 22:42:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1208,7 +1208,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 final LWComponent.Listener countListener
                     = new LWComponent.Listener() {
                         public void LWCChanged(LWCEvent e) {
-                            if (DEBUG.Enabled) Log.debug("UPDATING " + Row.this + " " + e);
+                            //if (DEBUG.Enabled) Log.debug("UPDATING " + Row.this + " " + e);
                             String counts = "";
                             final int nChild = layer.numChildren();
                             final int allChildren = layer.getDescendentCount();
