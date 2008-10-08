@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.215 $ / $Date: 2008-10-03 16:13:38 $ / $Author: sfraize $
+ * @version $Revision: 1.216 $ / $Date: 2008-10-08 01:08:54 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -961,6 +961,7 @@ public class LWMap extends LWContainer
         Layer layer = new Layer(name);
         layer.setFlag(Flag.INTERNAL);
         addChild(layer);
+        sendToBack(layer);
         return layer;
     }
 
