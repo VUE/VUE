@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.228 $ / $Date: 2008-10-08 01:09:53 $ / $Author: sfraize $
+ * @version $Revision: 1.229 $ / $Date: 2008-10-08 02:31:18 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2254,20 +2254,24 @@ public class LWNode extends LWContainer
     {
         if (!isFiltered()) {
 
-            if (dc.isInteractive() && mFontSize.get() * dc.zoom < 4) { // if net font point size < 5, do LOD
+            if (dc.isInteractive() && mFontSize.get() * dc.zoom < 5) { // if net font point size < 5, do LOD
 
                 // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
                 // all we do is fill the shape
                 
                 dc.g.setColor(mFillColor.get());
                 //if (isSelected() || getHeight() * dc.zoom > 5)
-                if (getHeight() * dc.zoom > 5)
+                if (getHeight() * dc.zoom > 5) {
+                    // filling shapes slower than drawing rectangles, tho not as much an improvement
+                    // as skipping text
                     dc.g.fill(getZeroShape());
-                else {
+                } else {
                     dc.setAntiAlias(false);
                     dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
                 }
                 
+                // now we skip drawing text / decorations / children -- just skipping
+                // the text makes a big difference when then there are lots of nodes
                 return;
             }
         
