@@ -38,7 +38,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.2 $ / $Date: 2008-10-08 01:12:06 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-10-08 17:09:37 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -381,8 +381,10 @@ public class DataTree extends javax.swing.JTree
     private static LWLink makeLink(LWComponent src, LWComponent dest, boolean sameField) {
         LWLink link = new LWLink(src, dest);
         link.setArrowState(0);
-        if (sameField)
-            link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASHED);
+        if (sameField) {
+            link.mStrokeStyle.setTo(LWComponent.StrokeStyle.DASH3);
+            link.setStrokeWidth(3);
+        }
         return link;
     }
 
@@ -478,7 +480,7 @@ public class DataTree extends javax.swing.JTree
 //     public static final java.awt.datatransfer.DataFlavor DataFlavor =
 //         tufts.vue.gui.GUI.makeDataFlavor(DataNode.class);
 
-    private static final Font EnumFont = new Font("SansSerif", Font.BOLD, 14);
+    private static final Font EnumFont = new Font("SansSerif", Font.BOLD, 24);
     private static final Font DataFont = new Font("SansSerif", Font.PLAIN, 12);
         
 
@@ -596,7 +598,8 @@ public class DataTree extends javax.swing.JTree
             style.setFillColor(Color.darkGray);
             style.setStrokeWidth(0);
             //style.disableProperty(LWKey.Notes);
-            style.setNotes("Style for all " + schema.getRowCount() + " data items in " + schema.getName());
+            style.setNotes("Style for all " + schema.getRowCount() + " data items in " + schema.getName()
+                           + "\n\nSchema: " + schema.getDump());
             style.setFlag(Flag.STYLE);
 
             schema.setStyleNode(style);
