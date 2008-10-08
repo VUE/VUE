@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.231 $ / $Date: 2008-10-08 03:15:33 $ / $Author: sfraize $
+ * @version $Revision: 1.232 $ / $Date: 2008-10-08 16:51:57 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2263,6 +2263,11 @@ public class LWNode extends LWContainer
             // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
             // all we do is fill the shape
                 
+            if (isSelected())
+                dc.g.setColor(COLOR_SELECTION);
+                //dc.g.setColor(Color.green);
+            else
+                dc.g.setColor(mFillColor.get());
             //if (isSelected() || getHeight() * dc.zoom > 5)
             if (getHeight() * renderScale > 5) {
                 // filling shapes slower than drawing rectangles, tho not as much an improvement
@@ -2272,17 +2277,9 @@ public class LWNode extends LWContainer
                 // in which case, hava MapViewer set up parameters for this in the DrawContext
                 // and check those flags here.  Also, the selectio stroke is completely useless
                 // when zoomed out -- it's being draw at scale.
-                if (isSelected())
-                    dc.g.setColor(COLOR_SELECTION);
-                else
-                    dc.g.setColor(mFillColor.get());
                 dc.g.fill(getZeroShape());
             } else {
                 dc.setAntiAlias(false);
-                if (isSelected())
-                    dc.g.setColor(COLOR_SELECTION);
-                else
-                    dc.g.setColor(mFillColor.get());
                 dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
             }
                 
@@ -2330,8 +2327,10 @@ public class LWNode extends LWContainer
 //                 // do nothing here.
 //             } else {
                 dc.g.setColor(COLOR_HIGHLIGHT);
-                dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
-                //g.setStroke(new BasicStroke(stroke.getLineWidth() + SelectionStrokeWidth));
+                if (dc.zoom < 1)
+                    dc.setAbsoluteStroke(SelectionStrokeWidth);
+                else
+                    dc.g.setStroke(new BasicStroke(getStrokeWidth() + SelectionStrokeWidth));
                 dc.g.draw(mShape);
                 //}
         }
