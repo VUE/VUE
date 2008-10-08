@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.31 $ / $Date: 2008-10-06 14:32:57 $ / $Author: sfraize $
+ * @version $Revision: 1.32 $ / $Date: 2008-10-08 01:13:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1307,6 +1307,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             //add(Box.createHorizontalGlue(), c);
 
             if (layer.hasFlag(INTERNAL)) {
+                layer.setLocked(true);
+                add(locked, c);
                 preview = null;
                 return;
             }
