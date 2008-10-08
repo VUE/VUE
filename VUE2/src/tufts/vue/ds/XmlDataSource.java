@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2008-10-03 16:18:13 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-10-08 01:12:36 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -109,13 +109,19 @@ public class XmlDataSource extends BrowseDataSource
         Log.debug("loadContentAndBuildViewer...");
         tufts.vue.VUE.diagPush("XmlLoad");
         JComponent viewer = null;
+        RuntimeException exception = null;
         try {
             viewer = loadContentAndBuildViewer();
+        } catch (RuntimeException re) {
+            //Log.error("loadViewer", re);
+            exception = re;
         } catch (Throwable t) {
             Log.error("loadViewer", t);
         } finally {
             tufts.vue.VUE.diagPop();
         }
+        if (exception != null)
+            throw exception;
         return viewer;
     }
     
