@@ -80,13 +80,15 @@ public class DEBUG
     public static boolean TRACE = false; // enhanced (yet slow) log4j logger tracing
     
     public static boolean RDF = false;
+    
+    public static boolean PERF = false; // performance
 
     public static  void setAllEnabled(boolean t) {
         Enabled=CONTAINMENT=PARENTING=LAYOUT=BOXES=ROLLOVER=EVENTS=
             SCROLL=SELECTION=FOCUS=UNDO=PATHWAY=DND=MOUSE=VIEWER=
             PAINT=MARGINS=INIT=DYNAMIC_UPDATE=KEYS=TOOL=DR=IMAGE=
             CASTOR=XML=THREAD=TEXT=EDGE=IO=DOCK=WIDGET=DATA=PRESENT=
-            PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=TRACE=PROPERTY=t;
+            PICK=LINK=STYLE=NAV=HTML=WEBSHOTS=PDF=TRACE=PROPERTY=PERF=t;
 
         // only turn META & WORK off, not on
         if (t == false)
@@ -157,6 +159,7 @@ public class DEBUG
             else if (a.startsWith("pdf"))  DEBUG.PDF = true;
             else if (a.startsWith("trace"))  DEBUG.TRACE = true;
             else if (a.startsWith("prop"))  DEBUG.PROPERTY = true;
+            else if (a.startsWith("perf"))  DEBUG.PERF = true;
         }
     }
 
