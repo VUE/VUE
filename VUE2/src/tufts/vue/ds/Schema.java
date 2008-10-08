@@ -28,7 +28,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.2 $ / $Date: 2008-10-08 01:12:28 $ / $Author: sfraize $
+ * @version $Revision: 1.3 $ / $Date: 2008-10-08 22:42:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -240,10 +240,9 @@ public class Schema {
         private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(Field.class);
 
         public static final String TYPE_UNKNOWN = "?";
-        public static final String TYPE_TEXT = "text";
-        public static final String TYPE_NUMBER = "number";
-        public static final String TYPE_DATE = "date";
-        public static final String TYPE_NUMERIC = "number";
+        public static final String TYPE_TEXT = "TEXT";
+        public static final String TYPE_NUMBER = "NUMBER";
+        public static final String TYPE_DATE = "DATE";
         
         //static final int MAX_ENUM_VALUE_LENGTH = 54;
         static final int MAX_ENUM_VALUE_LENGTH = 144;
