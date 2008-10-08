@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.227 $ / $Date: 2008-08-04 18:53:58 $ / $Author: sfraize $
+ * @version $Revision: 1.228 $ / $Date: 2008-10-08 01:09:53 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -465,7 +465,7 @@ public class LWNode extends LWContainer
 //         if (hasFlag(Flag.SLIDE_STYLE) || isTextNode()) // VUE-1220 - never hide resource icon, even on slides
 //             return false;
 //          else
-            return mIconBlock.isShowing(); // remember not current till after a layout
+        return !hasFlag(Flag.INTERNAL) && mIconBlock.isShowing(); // remember not current till after a layout
     }
 
     // was text box hit?  coordinates are component local
@@ -2253,6 +2253,26 @@ public class LWNode extends LWContainer
     protected void drawImpl(DrawContext dc)
     {
         if (!isFiltered()) {
+
+            if (dc.isInteractive() && mFontSize.get() * dc.zoom < 4) { // if net font point size < 5, do LOD
+
+                // Level-Of-Detail rendering -- increases speed when lots of nodes rendered
+                // all we do is fill the shape
+                
+                dc.g.setColor(mFillColor.get());
+                //if (isSelected() || getHeight() * dc.zoom > 5)
+                if (getHeight() * dc.zoom > 5)
+                    dc.g.fill(getZeroShape());
+                else {
+                    dc.setAntiAlias(false);
+                    dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
+                }
+                
+                return;
+            }
+        
+
+            
             // Desired functionality is that if this node is filtered, we don't draw it, of course.
             // But also, even if this node is filtered, we still draw any children who are
             // NOT filtered -- we just drop out the parent background.
