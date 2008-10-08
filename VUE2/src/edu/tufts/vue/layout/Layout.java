@@ -40,4 +40,6 @@ public abstract class Layout {
     }
     public abstract LWMap createMap(Dataset ds,String mapName) throws Exception;
     
+    public abstract void layout(LWSelection s) throws Exception;
+    
 }

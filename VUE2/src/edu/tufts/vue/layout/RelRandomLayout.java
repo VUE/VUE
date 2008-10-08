@@ -33,7 +33,7 @@ public class RelRandomLayout extends Layout {
     /** Creates a new instance of RelRandomLayout */
     public RelRandomLayout() {
     }
-
+    
     public LWMap createMap(Dataset ds,String mapName) throws Exception{
         Map<String,LWNode> nodeMap = new HashMap<String,LWNode>();
         Map<String,Integer> repeatMap = new HashMap<String,Integer>();
@@ -65,5 +65,16 @@ public class RelRandomLayout extends Layout {
             node2.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
         }
         return map;
+    }
+    
+    public void layout(LWSelection selection) {
+        Iterator<LWComponent> i = selection.iterator();
+        while (i.hasNext()) {
+            LWComponent c = i.next();
+            if(c instanceof LWNode) {
+                LWNode node = (LWNode)c;
+                node.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+            }
+        }
     }
 }
