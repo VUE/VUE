@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.575 $ / $Date: 2008-10-08 01:10:27 $ / $Author: sfraize $ 
+ * @version $Revision: 1.576 $ / $Date: 2008-10-08 20:58:03 $ / $Author: anoop $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -4188,7 +4188,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         //end Format Box
         final JMenu extendMenu = new JMenu("Extend");
         
-        sMultiPopup.add(GUI.buildMenu("Align", Actions.ARRANGE_MENU_ACTIONS));        
+        sMultiPopup.add(GUI.buildMenu("Align", Actions.ARRANGE_MENU_ACTIONS));  
+        sMultiPopup.add(GUI.buildMenu("Layout",LayoutAction.LAYOUT_ACTIONS));
         sMultiPopup.add(GUI.buildMenu(extendMenu, Actions.EXTEND_MENU_ACTIONS));
         LWSelection selection = VUE.getSelection();
 		
