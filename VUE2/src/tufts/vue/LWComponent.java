@@ -37,6 +37,7 @@ import java.net.*;
 import tufts.vue.filter.*;
 
 import edu.tufts.vue.metadata.MetadataList;
+import edu.tufts.vue.metadata.VueMetadataElement;
 
 import edu.tufts.vue.style.Style;
 
@@ -46,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.438 $ / $Date: 2008-10-03 16:11:24 $ / $Author: sfraize $
+ * @version $Revision: 1.439 $ / $Date: 2008-10-08 01:08:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -139,8 +140,10 @@ public class LWComponent
             UNDELETING,
             /** is selected */
             SELECTED,
-            /** is a style special style object (style source) */
-            IS_STYLE,
+            /** is a component serving as a style source */
+            STYLE,
+            /** is a component serving as a data-style source */
+            DATA_STYLE,
             /** cannot move, delete, link to or edit label */
             LOCKED,
             /** can't be moved */
@@ -258,6 +261,7 @@ public class LWComponent
     
     private transient long mSupportedPropertyKeys;
 
+    // TODO PERFORMANCE: change support could be handled generically, and we could at least lazy-create
     protected transient final LWChangeSupport mChangeSupport = new LWChangeSupport(this);
 
     protected transient boolean mXMLRestoreUnderway = false; // are we in the middle of a restore?
@@ -355,9 +359,12 @@ public class LWComponent
     }
     
     public void copyStyle(LWComponent styleSource, long permittedPropertyBits) {
-        if (DEBUG.STYLE) System.out.println("COPY STYLE of " + styleSource + " ==>> " + this + " permitBits=" + Long.bitCount(permittedPropertyBits));
+        if (DEBUG.STYLE || styleSource == null) System.out.println("COPY STYLE of " + styleSource + " ==>> " + this + " permitBits=" + Long.bitCount(permittedPropertyBits));
+        if (styleSource == null)
+            return;
         for (Key key : Key.AllKeys)
-            if (key.isStyleProperty && styleSource.supportsProperty(key) && (permittedPropertyBits & key.bit) != 0)
+            //if (key.isStyleProperty && styleSource.supportsProperty(key) && (permittedPropertyBits & key.bit) != 0)
+            if (styleSource.isStyling(key) && (permittedPropertyBits & key.bit) != 0)
                 key.copyValue(styleSource, this);
     }
 
@@ -454,9 +461,9 @@ public class LWComponent
         /** The unique bit for this property key.
             (Implies a max of 64 keys that can uniquely known as active to our tools -- use a BitSet if need more) */
         public final long bit;
-        /** True if this key for a style property -- a property that moves from style holders to LWCopmonents
-         * pointing to it via mParentStyle */
-        public final boolean isStyleProperty;
+//         /** True if this key for a style property -- a property that moves from style holders to LWCopmonents
+//          * pointing to it via mParentStyle */
+//         public final boolean isStyleProperty;
 
         public final KeyType type;
 
@@ -502,6 +509,10 @@ public class LWComponent
             else
                 return bitsForClass;
         }
+
+        public boolean isStyleProperty() {
+            return type == KeyType.STYLE;
+        }
         
         public Key(String name) {
             this(name, KeyType.Default);
@@ -518,7 +529,7 @@ public class LWComponent
             this.name = name;
             this.cssName = cssName;
             this.type = keyType;
-            this.isStyleProperty = (keyType == KeyType.STYLE);
+            //this.isStyleProperty = (keyType == KeyType.STYLE);
             //this.isStyleProperty = partOfStyle;
             //this.isSubProperty = isSubProperty;
             if (InstanceCount >= Long.SIZE) {
@@ -1317,6 +1328,10 @@ u                    getSlot(c).setFromString((String)value);
         setClientData(classKey.getName() + "/" + subKey, o);
     }
     
+    public boolean hasClientData(Object o) {
+        return getClientData(o) != null;
+    }
+    
 //     public void setInstanceProperty(String subKey, Object o) {
 //         setClientProperty(o.getClass().getName() + "/" + subKey, o);
 //     }
@@ -1681,6 +1696,11 @@ u                    getSlot(c).setFromString((String)value);
     public void addMetaData(String key, Object value) {
         getMetadataList().add(key, value.toString());
     }
+
+    public String getDataValue(String key) {
+        VueMetadataElement vme = getMetadataList().get(key);
+        return vme == null ? null : vme.getValue();
+    }
     
 //     public void containsMetaData(String key, Object value) {
 //         getMetadataList().add(key, value.toString());
@@ -1816,6 +1836,14 @@ u                    getSlot(c).setFromString((String)value);
     void setLabel0(String newLabel, boolean setDocument)
     {
         newLabel = cleanControlChars(newLabel);
+
+        if (!mXMLRestoreUnderway && newLabel.indexOf('$') >= 0) {
+            if (isStyling(LWKey.Label)) {
+                if (DEBUG.Enabled) createDataLabel(newLabel); // for debug
+            } else
+                newLabel = createDataLabel(newLabel);
+        }
+        
         Object old = this.label;
         if (this.label == newLabel)
             return;
@@ -1840,6 +1868,47 @@ u                    getSlot(c).setFromString((String)value);
         layout();
         notify(LWKey.Label, old);
     }
+
+    private String createDataLabel(String fmt) {
+
+        //Log.debug("splitting[" + fmt + "]");
+        String[] parts = fmt.split("\\$");
+
+        if (parts.length == 1)
+            return fmt;
+
+        final StringBuilder buf = new StringBuilder();
+
+        int part = 0;
+        for (String s : parts) {
+            //Log.debug("got part[" + s + "]");
+            final int iopen = s.indexOf('{');
+            final int iclose = s.indexOf('}');
+            if (iopen == 0 && iclose > 1) {
+                String var = s.substring(1, iclose).trim();
+                //Log.debug("got variable[" + var + "]");
+                String val = getDataValue(var);
+                if (val != null) {
+                    buf.append(val);
+                } else {
+                    buf.append("?{");
+                    buf.append(var);
+                    buf.append('}');
+                }
+                buf.append(s.substring(iclose + 1, s.length()));
+            } else {
+                if (part > 0)
+                    buf.append('$');
+                buf.append(s);
+            }
+            part++;
+        }
+
+        //Log.debug("made label[" + buf + "]");
+        return buf.toString();
+    }
+
+    
 
     protected tufts.vue.TextBox getLabelBox()
     {
@@ -2442,6 +2511,11 @@ u                    getSlot(c).setFromString((String)value);
     public boolean isAutoSized() { return false; } // LAYOUT-NEW
     /** do nothing: default is always autoSized */
     public void setAutoSized(boolean t) {}
+
+    public void setToNaturalSize() {
+        setAutoSized(false);
+    }
+    
     
     private static boolean eq(Object a, Object b) {
         return a == b || (a != null && a.equals(b));
@@ -2691,7 +2765,9 @@ u                    getSlot(c).setFromString((String)value);
     {
         mParentStyle = parentStyle;
         //parentStyle.isStyle = true;
-        parentStyle.setFlag(Flag.IS_STYLE);
+        if (parentStyle == null)
+            return;
+        parentStyle.setFlag(Flag.STYLE);
         if (!mXMLRestoreUnderway)       // we can skip the copy during restore
             copyStyle(parentStyle);
     }
@@ -2702,7 +2778,7 @@ u                    getSlot(c).setFromString((String)value);
     }
 
     public boolean isStyle() {
-        return hasFlag(Flag.IS_STYLE);
+        return hasFlag(Flag.STYLE);
         //return isStyle;
     }
     
@@ -2712,7 +2788,7 @@ u                    getSlot(c).setFromString((String)value);
     }
     
     public void setPersistIsStyle(Boolean b) {
-        setFlag(Flag.IS_STYLE, b.booleanValue());
+        setFlag(Flag.STYLE, b.booleanValue());
 
     }
 
@@ -5714,6 +5790,11 @@ u                    getSlot(c).setFromString((String)value);
         mChangeSupport.removeAllListeners();
     }
 
+    private boolean isStyling(Key key) {
+        return supportsProperty(key)
+            && (key.isStyleProperty() || (key == LWKey.Label && hasFlag(Flag.DATA_STYLE)));
+    }
+
     protected synchronized void notifyLWCListeners(LWCEvent e)
     {
         if (isDeleted() && !permitZombieEvent(e)) {
@@ -5744,7 +5825,7 @@ u                    getSlot(c).setFromString((String)value);
             // if parent is null, we're still initializing
             final Key key = (Key) e.key;
 
-            if (isStyle() && key.isStyleProperty)
+            if (isStyle() && isStyling(key))
                 updateStyleWatchers(key, e);
             
             // sync sources not in use: never do this 2007-11-30 SMF
@@ -5774,7 +5855,7 @@ u                    getSlot(c).setFromString((String)value);
 
     /** @return false -- subclasses can override */
     protected boolean permitZombieEvent(LWCEvent e) {
-        return false;
+        return hasFlag(Flag.INTERNAL);
     }
 
     
@@ -5818,7 +5899,7 @@ u                    getSlot(c).setFromString((String)value);
         LWComponents that refer to us as their style parent */
     protected void updateStyleWatchers(Key key, LWCEvent e)
     {
-        if (!key.isStyleProperty || mXMLRestoreUnderway) {
+        if (!isStyling(key) || mXMLRestoreUnderway) {
             // nothing to do if this isn't a style property that's changing
             return;
         }
@@ -5844,10 +5925,16 @@ u                    getSlot(c).setFromString((String)value);
             if (dest.mParentStyle == this && dest.supportsProperty(key) && dest != this) {
                 // Only copy over the style value if was previously set to our existing style value
                 try {
-                    if (key.valueEquals(dest, e.getOldValue())) {
+                    if (key.isStyleProperty()) {
+                        if (key.valueEquals(dest, e.getOldValue())) {
+                            key.copyValue(this, dest);
+                        } else if (DEBUG.STYLE) {
+                            System.err.println(" SKIP-USER-SET: " + dest
+                                               + "; target has user-override value: " + Util.tags(key.getValue(dest)));
+                        }
+                    } else {
+                        Log.debug("DATA-STYLE COPY " + key + " -> " + dest);
                         key.copyValue(this, dest);
-                    } else if (DEBUG.STYLE) {
-                        System.err.println(" SKIP-USER-SET: " + dest + "; target has user-override value: " + Util.tags(key.getValue(dest)));
                     }
                 } catch (Throwable t) {
                     tufts.Util.printStackTrace(t, "Failed to copy value from " + e + " old=" + e.getOldValue());
