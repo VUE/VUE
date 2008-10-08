@@ -625,6 +625,7 @@ public class LWImage extends
         
     }
 
+    @Override
     public void setToNaturalSize() {
         setSize(mImageWidth, mImageHeight);
     }
