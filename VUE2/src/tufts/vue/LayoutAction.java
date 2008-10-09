@@ -29,29 +29,20 @@ import java.util.*;
 import java.awt.event.KeyEvent;
 import javax.swing.Action;
 
+// contains layout actions. based on ArrangeAction. The default layout is random layout
+
 public abstract  class LayoutAction extends Actions.LWCAction {
-    static float minX, minY;
-    static float maxX, maxY;
-    static float centerX, centerY;
-    static float totalWidth, totalHeight; // added width/height of all in selection
-    static float maxWide, maxTall; // width of widest, height of tallest
-    // obviously not thread-safe here
-    
-    private Layout layout = new edu.tufts.vue.layout.ListRandomLayout();
-    private LayoutAction(String name, KeyStroke keyStroke) {
-        super(name, keyStroke);
-    }
-    private LayoutAction(String name, int keyCode) {
-        super(name, KeyStroke.getKeyStroke(keyCode, Actions.COMMAND+Actions.SHIFT));
-    }
-    private LayoutAction(String name) {
-        super(name);
-    }
-    
+    private Layout layout = new edu.tufts.vue.layout.ListRandomLayout(); 
+     
     private LayoutAction(edu.tufts.vue.layout.Layout layout, String name,int keyCode) {
        super(name, KeyStroke.getKeyStroke(keyCode, Actions.COMMAND+Actions.SHIFT));
        this.layout = layout;
         
+    }
+    
+    private LayoutAction(edu.tufts.vue.layout.Layout layout, String name,KeyStroke keyStroke) {
+        super(name,keyStroke);
+        this.layout = layout;
     }
     boolean mayModifySelection() { return true; }
     
@@ -73,11 +64,10 @@ public abstract  class LayoutAction extends Actions.LWCAction {
             
         }
     }
-    
-    public static final LayoutAction random = new LayoutAction("Random",KeyEvent.VK_Q) {
+    // random layout. scatters nodes at random
+    public static final LayoutAction random = new LayoutAction(new ListRandomLayout(),"Random",KeyEvent.VK_Q) {
         boolean supportsSingleMover() { return false; }
     };
-    
     public static final LayoutAction table = new LayoutAction(new TabularLayout(),"Table",KeyEvent.VK_W) {
          boolean supportsSingleMover() { return false; }
     };
