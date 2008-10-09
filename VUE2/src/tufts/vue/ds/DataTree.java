@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.5 $ / $Date: 2008-10-09 17:08:23 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-10-09 17:57:45 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -229,6 +229,33 @@ public class DataTree extends javax.swing.JTree
         }
     }
 
+//     // this type of node was only for intial prototype
+//     private static LWComponent makeSchmaticFieldNode(Schema schema, Field field)
+//     {
+        
+//         Log.debug("PRODUCING KEY FIELD NODES " + field);
+//         int i = 0;
+//         for (DataRow row : schema.getRows()) {
+//             n = new LWNode();
+//             n.setClientData(Schema.class, schema);
+//             n.getMetadataList().add(row.entries());
+//             if (field != null) {
+//                 final String value = row.getValue(field);
+//                 n.setLabel(makeLabel(field, value));
+//             } else {
+//                 //n.setLabel(treeNode.getStyle().getLabel()); // applies initial style
+//             }
+//             nodes.add(n);
+//             //Log.debug("setting meta-data for row " + (++i) + " [" + value + "]");
+//             //                     for (Map.Entry<String,String> e : row.entries()) {
+//             //                         // todo: this is slow: is updating UI components, setting cursors, etc, every time
+//             //                         n.addMetaData(e.getKey(), e.getValue());
+//             //                     }
+//         }
+//         Log.debug("PRODUCED META-DATA IN " + field);
+
+//     }
+    
     private static String makeLabel(Field f, Object value) {
         //return String.format("%s:\n%s", f.getName(), value.toString());
         if (f.isKeyField())
@@ -246,6 +273,28 @@ public class DataTree extends javax.swing.JTree
         return node;
 
     }
+
+//     private static LWComponent makeFullDataNode(Schema schema)
+//     {
+//         int i = 0;
+//         LWNode node;
+//         for (DataRow row : schema.getRows()) {
+//             node = new LWNode();
+//             node.setClientData(Schema.class, schema);
+//             node.getMetadataList().add(row.entries());
+//             node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
+            
+//             nodes.add(n);
+//             //Log.debug("setting meta-data for row " + (++i) + " [" + value + "]");
+//             //                     for (Map.Entry<String,String> e : row.entries()) {
+//             //                         // todo: this is slow: is updating UI components, setting cursors, etc, every time
+//             //                         n.addMetaData(e.getKey(), e.getValue());
+//             //                     }
+//         }
+//         Log.debug("PRODUCED META-DATA IN " + field);
+
+//     }
+    
 
     
     private static class NodeProducer implements LWComponent.ListFactory {
@@ -301,7 +350,7 @@ public class DataTree extends javax.swing.JTree
 
             
             for (LWComponent c : nodes) {
-                c.setStyle(treeNode.getStyle());
+                c.setStyle(treeNode.getStyle());                
             }
 
             ///Actions.MakeCircle.actUpon(nodes);
@@ -313,7 +362,8 @@ public class DataTree extends javax.swing.JTree
             //nodes.addAll(links);
 
             if (nodes.size() > 1)
-                Actions.MakeCircle.actUpon(nodes);
+                Actions.MakeColumn.act(nodes);
+            //Actions.MakeCircle.actUpon(nodes);
             
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
