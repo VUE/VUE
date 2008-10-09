@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.7 $ / $Date: 2008-10-09 19:04:42 $ / $Author: sfraize $
+ * @version $Revision: 1.8 $ / $Date: 2008-10-09 19:46:40 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -257,12 +257,15 @@ public class DataTree extends javax.swing.JTree
 //     }
     
     private static String makeLabel(Field f, Object value) {
-        //return String.format("%s:\n%s", f.getName(), value.toString());
-        if (f.isKeyField())
-            return value.toString();
-        else
-            return value.toString() + "  ";
-        //return "  " + value.toString() + "  ";
+
+        return value.toString();
+        
+//         //return String.format("%s:\n%s", f.getName(), value.toString());
+//         if (f.isKeyField())
+//             return value.toString();
+//         else
+//             return value.toString() + "  ";
+//         //return "  " + value.toString() + "  ";
     }
 
     private static LWComponent makeValueNode(Field field, String value) {
@@ -618,7 +621,7 @@ public class DataTree extends javax.swing.JTree
                 setDisplay(description);
 
             //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
-            if (field != null && !field.isSingleton())
+            if (field != null && !field.isUniqueValue() && field.isEnumerated())
                 field.setStyleNode(createStyleNode(field, repainter));
         }
         
@@ -787,9 +790,17 @@ public class DataTree extends javax.swing.JTree
             super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
             if (node.hasStyle()) {
+                setIconTextGap(4);
                 setIcon(FieldIconPainter.load(node.getStyle(),
                                               selected ? backgroundSelectionColor : null));
             } else {
+                if (node.isValue() || node.isField() && node.field.isSingleton()) {
+                    setIconTextGap(4);
+                } else {
+                    // this will alingn non-styled (non-enumerated) fields, that
+                    // are part of the data-set, but not tracked because they're too long
+                    setIconTextGap(IconWidth - 16 + 4);
+                }
 //                 if (leaf && node.isValue())
 //                     setIcon(EmptyIcon);
             }
