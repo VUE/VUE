@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.6 $ / $Date: 2008-10-09 17:57:45 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2008-10-09 19:04:42 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -230,7 +230,7 @@ public class DataTree extends javax.swing.JTree
     }
 
 //     // this type of node was only for intial prototype
-//     private static LWComponent makeSchmaticFieldNode(Schema schema, Field field)
+//     private static LWComponent makeDataNodes(Schema schema, Field field)
 //     {
         
 //         Log.debug("PRODUCING KEY FIELD NODES " + field);
@@ -270,11 +270,15 @@ public class DataTree extends javax.swing.JTree
         LWComponent node = new LWNode(makeLabel(field, value));
         node.addMetaData(field.getName(), value);
         node.setClientData(Field.class, field);
+        if (field.getStyleNode() != null)
+            node.setStyle(field.getStyleNode());
+//         else
+//             tufts.vue.EditorManager.targetAndApplyCurrentProperties(node);
         return node;
 
     }
 
-//     private static LWComponent makeFullDataNode(Schema schema)
+//     private static LWComponent makeDataNode(Schema schema)
 //     {
 //         int i = 0;
 //         LWNode node;
@@ -294,6 +298,41 @@ public class DataTree extends javax.swing.JTree
 //         Log.debug("PRODUCED META-DATA IN " + field);
 
 //     }
+
+    private static List<LWComponent> makeAllDataNodes(Schema schema)
+    {
+        final java.util.List<LWComponent> nodes = new ArrayList();
+
+        final Field linkField = schema.getField("link");
+        final Field descField = schema.getField("description");
+        final Field titleField = schema.getField("title");
+        
+        Log.debug("PRODUCING ALL DATA NODES FOR " + schema);
+        int i = 0;
+        LWNode node;
+        for (DataRow row : schema.getRows()) {
+            
+            node = LWNode.createRaw();
+            node.setClientData(Schema.class, schema);
+            node.getMetadataList().add(row.entries());
+            node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
+
+            if (linkField != null) {
+                node.setResource(row.getValue(linkField));
+                if (descField != null)
+                    node.getResource().setProperty("Description", row.getValue(descField));
+                if (titleField != null)
+                    node.getResource().setTitle(row.getValue(titleField));
+            }
+            
+            
+            nodes.add(node);
+        }
+        Log.debug("PRODUCED ALL DATA NODES FOR " + schema);
+        
+        return nodes;
+    }
+    
     
 
     
@@ -307,7 +346,7 @@ public class DataTree extends javax.swing.JTree
 
         public java.util.List<LWComponent> produceNodes() {
             Log.debug("PRODUCING NODES FOR " + treeNode.field);
-            final java.util.List<LWComponent> nodes = new ArrayList();
+            final java.util.List<LWComponent> nodes;
             final Field field = treeNode.field;
             final Schema schema = treeNode.getSchema();
 
@@ -315,32 +354,38 @@ public class DataTree extends javax.swing.JTree
 
             //if (field == null || field.isPossibleKeyField()) {
             if (treeNode.isSchematic()) {
-                Log.debug("PRODUCING KEY FIELD NODES " + field);
-                int i = 0;
-                for (DataRow row : schema.getRows()) {
-                    n = new LWNode();
-                    n.setClientData(Schema.class, schema);
-                    n.getMetadataList().add(row.entries());
-                    if (field != null) {
-                        final String value = row.getValue(field);
-                        n.setLabel(makeLabel(field, value));
-                    } else {
-                        //n.setLabel(treeNode.getStyle().getLabel()); // applies initial style
-                    }
-                    nodes.add(n);
-                    //Log.debug("setting meta-data for row " + (++i) + " [" + value + "]");
-//                     for (Map.Entry<String,String> e : row.entries()) {
-//                         // todo: this is slow: is updating UI components, setting cursors, etc, every time
-//                         n.addMetaData(e.getKey(), e.getValue());
+
+                nodes = makeAllDataNodes(schema);
+                
+//                 Log.debug("PRODUCING KEY FIELD NODES " + field);
+//                 int i = 0;
+//                 for (DataRow row : schema.getRows()) {
+//                     n = LWNode.createRaw();
+//                     n.setClientData(Schema.class, schema);
+//                     n.getMetadataList().add(row.entries()); // note: must set before any styled label
+//                     if (field != null) {
+//                         final String value = row.getValue(field);
+//                         n.setLabel(makeLabel(field, value));
+//                     } else {
+//                         //n.setLabel(treeNode.getStyle().getLabel()); // applies initial style
 //                     }
-                }
-                Log.debug("PRODUCED META-DATA IN " + field);
+//                     nodes.add(n);
+//                     //Log.debug("setting meta-data for row " + (++i) + " [" + value + "]");
+// //                     for (Map.Entry<String,String> e : row.entries()) {
+// //                         // todo: this is slow: is updating UI components, setting cursors, etc, every time
+// //                         n.addMetaData(e.getKey(), e.getValue());
+// //                     }
+//                 }
+//                 Log.debug("PRODUCED META-DATA IN " + field);
+                
 
             } else if (treeNode.isValue()) {
                 
-                nodes.add(makeValueNode(field, treeNode.getValue()));
+                nodes = Collections.singletonList(makeValueNode(field, treeNode.getValue()));
                     
             } else {
+
+                nodes = new ArrayList();
 
                 // is a column;
                 
@@ -349,9 +394,9 @@ public class DataTree extends javax.swing.JTree
             }
 
             
-            for (LWComponent c : nodes) {
-                c.setStyle(treeNode.getStyle());                
-            }
+//             for (LWComponent c : nodes) {
+//                 c.setStyle(treeNode.getStyle());                
+//             }
 
             ///Actions.MakeCircle.actUpon(nodes);
             
