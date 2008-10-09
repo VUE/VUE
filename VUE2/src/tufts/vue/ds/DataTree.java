@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.8 $ / $Date: 2008-10-09 19:46:40 $ / $Author: sfraize $
+ * @version $Revision: 1.9 $ / $Date: 2008-10-09 20:37:51 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -54,7 +54,17 @@ public class DataTree extends javax.swing.JTree
     
     final Schema schema;
 
-    public DataTree(Schema schema) {
+    public static JComponent create(Schema s) {
+        final DataTree tree = new DataTree(s);
+
+        JPanel p = new JPanel(new BorderLayout());
+        p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
+        p.add(tree, BorderLayout.CENTER);
+        
+        return p;
+    }
+
+    private DataTree(Schema schema) {
 
         this.schema = schema;
 
@@ -135,11 +145,16 @@ public class DataTree extends javax.swing.JTree
                     //Log.debug("ADDING " + o);
                     //fieldNode.add(new DefaultMutableTreeNode(e.getKey() + "/" + e.getValue()));
 
-                    if (e.getValue() == 1) {
-                        fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html><b>%s", e.getKey())));
-                    } else {
-                        fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html><b>%s</b> (%s)", e.getKey(), e.getValue())));
-                    }
+                    String bold = field.isPossibleKeyField() ? "" : "<b>";
+
+                    fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
+                    
+
+//                     if (e.getValue() == 1) {
+//                         fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s", bold, e.getKey())));
+//                     } else {
+//                         fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
+//                     }
                 }
             }
             
@@ -699,8 +714,8 @@ public class DataTree extends javax.swing.JTree
         TemplateNode(Schema schema, LWComponent.Listener repainter) {
             super(null,
                   repainter,
-                  String.format("<html><b>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
-            //String.format("<html><b><font color=red>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
+                  //String.format("<html><b>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
+                  String.format("<html><b><font color=red>All Data Nodes in '%s' (%d)", schema.getName(), schema.getRowCount()));
             this.schema = schema;
             LWComponent style = new LWNode();
             style.setFlag(Flag.INTERNAL);
@@ -748,11 +763,16 @@ public class DataTree extends javax.swing.JTree
         LWComponent getStyle() { return schema.getStyleNode(); }
     }
 
+    private static final int IconWidth = 32;
+    private static final int IconHeight = 20;
+
     //private static final Border TopBorder = BorderFactory.createLineBorder(Color.gray);
     private static final Border TopBorder = new CompoundBorder(new MatteBorder(3,0,3,0, Color.white),
                                                                new CompoundBorder(new LineBorder(Color.gray),
                                                                                   GUI.makeSpace(1,0,1,2)));
-    private static final Border LeafBorder = GUI.makeSpace(0,0,2,0);
+
+    private static final Border TopTierBorder = GUI.makeSpace(0,0,2,0);
+    private static final Border LeafBorder = GUI.makeSpace(0,IconWidth-16,2,0);
 
     private static class DataRenderer extends DefaultTreeCellRenderer {
 
@@ -790,17 +810,19 @@ public class DataTree extends javax.swing.JTree
             super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
 
             if (node.hasStyle()) {
-                setIconTextGap(4);
+                //setIconTextGap(4);
                 setIcon(FieldIconPainter.load(node.getStyle(),
                                               selected ? backgroundSelectionColor : null));
             } else {
-                if (node.isValue() || node.isField() && node.field.isSingleton()) {
-                    setIconTextGap(4);
-                } else {
-                    // this will alingn non-styled (non-enumerated) fields, that
-                    // are part of the data-set, but not tracked because they're too long
-                    setIconTextGap(IconWidth - 16 + 4);
-                }
+                
+//                 if (node.isValue() || node.isField() && node.field.isSingleton()) {
+//                     setIconTextGap(4);
+//                 } else {
+//                     // this will alingn non-styled (non-enumerated) fields, that
+//                     // are part of the data-set, but not tracked because they're too long
+//                     setIconTextGap(IconWidth - 16 + 4);
+//                 }
+                
 //                 if (leaf && node.isValue())
 //                     setIcon(EmptyIcon);
             }
@@ -813,22 +835,28 @@ public class DataTree extends javax.swing.JTree
             } else {
                 //setBackgroundNonSelectionColor(null);
                 //setFont(null);
-                setBorder(leaf ? LeafBorder : null);
+                //setBorder(leaf ? LeafBorder : null);
+                if (leaf) {
+                    if (node.isField() && node.field.isSingleton())
+                        setBorder(TopTierBorder);
+                    else
+                        setBorder(LeafBorder);
+                } else {
+                    setBorder(null);
+                }
             }
             
             return this;
         }
     }
 
-    private static final NodeIconPainter FieldIconPainter = new NodeIconPainter();
-
-    
-    private static final int IconWidth = 32;
-    private static final int IconHeight = 20;
     private static final java.awt.geom.Rectangle2D IconSize
         = new java.awt.geom.Rectangle2D.Float(0,0,IconWidth,IconHeight);
+    
+    private static final NodeIconPainter FieldIconPainter = new NodeIconPainter();
 
     private static final Icon EmptyIcon = new GUI.EmptyIcon(IconWidth, IconHeight);
+    
     
     private static class NodeIconPainter implements Icon {
 
