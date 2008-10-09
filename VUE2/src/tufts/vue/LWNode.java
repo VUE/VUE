@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.232 $ / $Date: 2008-10-08 16:51:57 $ / $Author: sfraize $
+ * @version $Revision: 1.233 $ / $Date: 2008-10-09 19:03:56 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2664,7 +2664,8 @@ public class LWNode extends LWContainer
     private static final int IconPillarPadY = MarginLinePadY;
     private static final int IconPillarFudgeY = 4; // attempt to get top icon to align with top of 1st caps char in label text box
 
-    /** for castor restore, internal default's and duplicate use only */
+    /** for castor restore, internal default's and duplicate use only
+     * Note special case: this creates a node with autoSized set to false -- this is probably for backward compat with old save files */
     public LWNode()
     {
         initNode();
@@ -2679,6 +2680,18 @@ public class LWNode extends LWContainer
         // before setLabel for it to work.
         //getLabelBox(); LAYOUT-NEW
     }
+
+    /**
+     * construct an absolutely minimal node, completely uninitialized (including label, font, size, etc) except for having a rectangular shape
+     * Useful for constructing a node that's immediatley going to be styled.
+     */
+    public static LWNode createRaw()
+    {
+        LWNode n = new LWNode();
+        n.isAutoSized = true;
+        return n;
+    }
+    
     
     
 }
