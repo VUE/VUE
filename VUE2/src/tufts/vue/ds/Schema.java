@@ -28,7 +28,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2008-10-09 19:03:32 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-10-09 19:46:03 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -282,7 +282,7 @@ public class Schema {
 
         public void setStyleNode(LWComponent style) {
             if (nodeStyle != null)
-                Log.debug("resetting field style " + this + " to " + style);
+                Log.warn("resetting field style " + this + " to " + style);
             nodeStyle = style;
         }
         
@@ -331,13 +331,37 @@ public class Schema {
             return enumDisabled;
         }
         
+        /** @return true if all the values for this Field have been fully tracked and recorded, and more than one
+         * unique value was found */
         public boolean isEnumerated() {
             return !enumDisabled && uniqueValueCount() > 1;
         }
 
+        /** @return true if this field appeared a single time in the entire data set, with a single value
+         * This can generally only be true for fields from an XML data-set, in which a single-value
+         * "column" is in effect created by an XML key that only appears once.
+         */
+            
         public boolean isSingleton() {
             return allValuesUnique && (values != null && values.size() < 2);
         }
+        
+        /** @return true if every value found for this field has the same value.
+         * Will always be true if isSingleton() is true
+         */
+        public boolean isUniqueValue() {
+            return uniqueValueCount() == 1;
+        }
+
+        protected int valueCount() {
+            //return values == null ? 0 : values.size();
+            return valueCount;
+        }
+        
+        protected int uniqueValueCount() {
+            return values == null ? valueCount() : values.size();
+        }
+        
 
         public int getMaxValueLength() {
             return maxValueLen;
@@ -440,14 +464,6 @@ public class Schema {
 //             }
         }
 
-        protected int valueCount() {
-            //return values == null ? 0 : values.size();
-            return valueCount;
-        }
-        
-        public int uniqueValueCount() {
-            return values == null ? valueCount() : values.size();
-        }
 
         private String sampleValues(boolean unique) {
 
