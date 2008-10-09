@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.4 $ / $Date: 2008-10-08 01:12:36 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-10-09 20:38:07 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -177,7 +177,7 @@ public class XmlDataSource extends BrowseDataSource
 
         schema.setName(getDisplayName());
 
-        if (true) return new DataTree(schema);
+        if (true) return DataTree.create(schema);
 
         //-----------------------------------------------------------------------------
         // HACK
