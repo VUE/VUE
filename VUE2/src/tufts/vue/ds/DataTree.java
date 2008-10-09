@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.10 $ / $Date: 2008-10-09 20:38:45 $ / $Author: sfraize $
+ * @version $Revision: 1.11 $ / $Date: 2008-10-09 22:13:08 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -366,58 +366,33 @@ public class DataTree extends javax.swing.JTree
         }
 
         public java.util.List<LWComponent> produceNodes() {
+            
             Log.debug("PRODUCING NODES FOR " + treeNode.field);
-            final java.util.List<LWComponent> nodes;
+            
             final Field field = treeNode.field;
             final Schema schema = treeNode.getSchema();
+            final java.util.List<LWComponent> nodes;
 
             LWNode n = null;
 
-            //if (field == null || field.isPossibleKeyField()) {
             if (treeNode.isSchematic()) {
 
                 nodes = makeAllDataNodes(schema);
                 
-//                 Log.debug("PRODUCING KEY FIELD NODES " + field);
-//                 int i = 0;
-//                 for (DataRow row : schema.getRows()) {
-//                     n = LWNode.createRaw();
-//                     n.setClientData(Schema.class, schema);
-//                     n.getMetadataList().add(row.entries()); // note: must set before any styled label
-//                     if (field != null) {
-//                         final String value = row.getValue(field);
-//                         n.setLabel(makeLabel(field, value));
-//                     } else {
-//                         //n.setLabel(treeNode.getStyle().getLabel()); // applies initial style
-//                     }
-//                     nodes.add(n);
-//                     //Log.debug("setting meta-data for row " + (++i) + " [" + value + "]");
-// //                     for (Map.Entry<String,String> e : row.entries()) {
-// //                         // todo: this is slow: is updating UI components, setting cursors, etc, every time
-// //                         n.addMetaData(e.getKey(), e.getValue());
-// //                     }
-//                 }
-//                 Log.debug("PRODUCED META-DATA IN " + field);
-                
-
             } else if (treeNode.isValue()) {
                 
+                // is a single value from a column
                 nodes = Collections.singletonList(makeValueNode(field, treeNode.getValue()));
                     
             } else {
 
                 nodes = new ArrayList();
 
-                // is a column;
+                // handle all the enumerated values for a column
                 
                 for (String value : field.getValues())
                     nodes.add(makeValueNode(field, value));
             }
-
-            
-//             for (LWComponent c : nodes) {
-//                 c.setStyle(treeNode.getStyle());                
-//             }
 
             ///Actions.MakeCircle.actUpon(nodes);
             
@@ -428,7 +403,8 @@ public class DataTree extends javax.swing.JTree
             //nodes.addAll(links);
 
             if (nodes.size() > 1)
-                Actions.MakeColumn.act(nodes);
+                tufts.vue.LayoutAction.table.act(nodes);
+            //Actions.MakeColumn.act(nodes);
             //Actions.MakeCircle.actUpon(nodes);
             
             //for (LWComponent c : nodes)c.setToNaturalSize();
