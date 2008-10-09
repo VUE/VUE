@@ -117,12 +117,28 @@ public class ListRandomLayout extends Layout {
     }
     
     public void layout(LWSelection selection) {
-        Iterator<LWComponent> i = selection.iterator();
+        double minX =10000;
+        double minY = 10000;
+        int total = 0;
+         Iterator<LWComponent> i = selection.iterator(); 
         while (i.hasNext()) {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
-                node.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+                minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
+                minY =node.getLocation().getY()<minY?node.getLocation().getY():minY;
+                total++;
+             }
+        }
+        double x = minX;
+        double y = minY;
+        double size = Math.sqrt(total)* 100;
+        i = selection.iterator();
+         while (i.hasNext()) {
+            LWComponent c = i.next();
+            if(c instanceof LWNode) {
+                LWNode node = (LWNode)c;
+                node.setLocation(minX+size*(Math.random()-0.5),minY+size*(Math.random()-0.5));
             }
         }
     }
