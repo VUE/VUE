@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.4 $ / $Date: 2008-10-08 22:37:03 $ / $Author: sfraize $
+ * @version $Revision: 1.5 $ / $Date: 2008-10-09 17:08:23 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -264,7 +264,8 @@ public class DataTree extends javax.swing.JTree
 
             LWNode n = null;
 
-            if (field == null || field.isPossibleKeyField()) {
+            //if (field == null || field.isPossibleKeyField()) {
+            if (treeNode.isSchematic()) {
                 Log.debug("PRODUCING KEY FIELD NODES " + field);
                 int i = 0;
                 for (DataRow row : schema.getRows()) {
@@ -303,7 +304,7 @@ public class DataTree extends javax.swing.JTree
                 c.setStyle(treeNode.getStyle());
             }
 
-            Actions.MakeCircle.act(nodes);
+            ///Actions.MakeCircle.actUpon(nodes);
             
             final java.util.List<LWComponent> links = new ArrayList();
             for (LWComponent c : nodes) {
@@ -312,7 +313,7 @@ public class DataTree extends javax.swing.JTree
             //nodes.addAll(links);
 
             if (nodes.size() > 1)
-                Actions.MakeCircle.act(nodes);
+                Actions.MakeCircle.actUpon(nodes);
             
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
@@ -475,7 +476,8 @@ public class DataTree extends javax.swing.JTree
         }
         style.setFlag(Flag.INTERNAL);
         style.setFlag(Flag.DATA_STYLE); // must set before setting label, or template will atttempt to resolve
-        style.setLabel(String.format("%.9s: \n${%s} ", field.getName(),field.getName()));
+        //style.setLabel(String.format("%.9s: \n${%s} ", field.getName(),field.getName()));
+        style.setLabel(String.format("${%s}", field.getName()));
         style.setNotes(String.format
                        ("Style node for field '%s' in data-set '%s'\n\nSource: %s\n\n%s\n\nvalues=%d; unique=%d; type=%s",
                         field.getName(),
@@ -521,7 +523,7 @@ public class DataTree extends javax.swing.JTree
                 setDisplay(description);
 
             //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
-            if (field != null)
+            if (field != null && !field.isSingleton())
                 field.setStyleNode(createStyleNode(field, repainter));
         }
         
@@ -559,9 +561,14 @@ public class DataTree extends javax.swing.JTree
             return field != null;
             //return value == null && field != null;
         }
+        
         boolean isValue() {
             //return value != null;
             return !isField();
+        }
+
+        boolean isSchematic() {
+            return field == null;
         }
 
     }
@@ -599,7 +606,6 @@ public class DataTree extends javax.swing.JTree
             this.schema = schema;
             LWComponent style = new LWNode();
             style.setFlag(Flag.INTERNAL);
-            //style.setLabel("Name: [${Name}]\nRole: [${Role}]");
             String fmt = "";
             Field firstField = null;
             for (Field field : schema.getFields()) {
