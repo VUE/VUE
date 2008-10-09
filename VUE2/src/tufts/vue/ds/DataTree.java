@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.9 $ / $Date: 2008-10-09 20:37:51 $ / $Author: sfraize $
+ * @version $Revision: 1.10 $ / $Date: 2008-10-09 20:38:45 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -57,11 +57,14 @@ public class DataTree extends javax.swing.JTree
     public static JComponent create(Schema s) {
         final DataTree tree = new DataTree(s);
 
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
-        p.add(tree, BorderLayout.CENTER);
-        
-        return p;
+        if (true) {
+            return tree;
+        } else {
+            JPanel p = new JPanel(new BorderLayout());
+            p.add(new JLabel(s.getSource().toString()), BorderLayout.NORTH);
+            p.add(tree, BorderLayout.CENTER);
+            return p;
+        }
     }
 
     private DataTree(Schema schema) {
