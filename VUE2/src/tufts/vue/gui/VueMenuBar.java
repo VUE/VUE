@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.117 $ / $Date: 2008-10-06 22:32:20 $ / $Author: mike $
+ * @version $Revision: 1.118 $ / $Date: 2008-10-09 18:14:47 $ / $Author: anoop $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -179,6 +179,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu analysisMenu = makeMenu("Analysis");
         final JMenu windowMenu = makeMenu("Windows");
         final JMenu alignMenu = makeMenu("Align");
+        final JMenu layoutMenu = makeMenu("Layout");
         final JMenu extendMenu = makeMenu("Extend");
         final JMenu linkMenu = makeMenu("Link");
         final JMenu helpMenu = add(makeMenu("Help"));
@@ -512,6 +513,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //build format submenus...
         buildMenu(extendMenu,Actions.EXTEND_MENU_ACTIONS);
         buildMenu(alignMenu, Actions.ARRANGE_MENU_ACTIONS);
+        buildMenu(layoutMenu,LayoutAction.LAYOUT_ACTIONS);
         arrangeMenu.add(Actions.BringToFront);
         arrangeMenu.add(Actions.BringForward);
         arrangeMenu.add(Actions.SendToBack);
@@ -523,6 +525,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         formatMenu.add(transformMenu);        
         formatMenu.add(arrangeMenu);
         formatMenu.add(alignMenu);
+        formatMenu.add(layoutMenu);
         formatMenu.add(extendMenu);
         formatMenu.addSeparator();
         formatMenu.add(Actions.Group);
