@@ -28,7 +28,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2008-10-08 22:42:28 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-10-09 19:03:32 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -80,6 +80,11 @@ public class Schema {
     public void setName(String name) {
         mName = name;
     }
+
+    public Field getField(String name) {
+        return mFields.get(name);
+    }
+    
     
     public String getName() {
 
@@ -330,6 +335,10 @@ public class Schema {
             return !enumDisabled && uniqueValueCount() > 1;
         }
 
+        public boolean isSingleton() {
+            return allValuesUnique && (values != null && values.size() < 2);
+        }
+
         public int getMaxValueLength() {
             return maxValueLen;
         }
@@ -342,10 +351,6 @@ public class Schema {
             return values == null ? Collections.EMPTY_MAP : values;
         }
         
-        public boolean isSingleton() {
-            return allValuesUnique && (values != null && values.size() < 2);
-        }
-
         // todo: may want to move this to a separate analysis code set
         void trackValue(String value) {
 
