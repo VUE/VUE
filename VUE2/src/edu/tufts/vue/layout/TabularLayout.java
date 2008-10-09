@@ -46,8 +46,8 @@ public class TabularLayout extends Layout {
     }
     
     public   void layout(LWSelection selection) throws Exception {
-        double x =10000;
-        double y = 10000;
+        double minX =10000;
+        double minY = 10000;
         int count = 0;
         int total = 0;
         int mod = 4;
@@ -59,12 +59,14 @@ public class TabularLayout extends Layout {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
-                x = node.getLocation().getX()<x?node.getLocation().getX():x;
-                y =node.getLocation().getY()<y?node.getLocation().getY():y;
+                minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
+                minY =node.getLocation().getY()<minY?node.getLocation().getY():minY;
                 total++;
- //               System.out.println("MIN: "+x+" : "+y);
+//               System.out.println(node.getLabel()+"X= "+node.getLocation().getX()+" Y= "+node.getLocation().getY()+" MIN: "+minX+" : "+minY);
             }
         }
+        double x = minX;
+        double y = minY;
         mod = (int) Math.sqrt((double)total);
         i = selection.iterator();
         while (i.hasNext()) {
@@ -73,8 +75,8 @@ public class TabularLayout extends Layout {
                 LWNode node = (LWNode)c;
                 total++;
                 if(count%mod ==0) {
-                    y += yAdd;
-                    x =0;
+                    if(count!=0) y += yAdd;
+                    x =minX;
                 } else {
                     x+= xAdd;
                 }
