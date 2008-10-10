@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.119 $ / $Date: 2008-10-10 01:38:41 $ / $Author: mike $
+ * @version $Revision: 1.120 $ / $Date: 2008-10-10 17:16:29 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -353,7 +353,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         //fileMenu.add(exportAction);
         fileMenu.add(rdfOpen);
         publishMenu.setEnabled(false);
-        fileMenu.add(publishMenu);
+        if (!VUE.isApplet())
+        	fileMenu.add(publishMenu);
         
         final JMenu pdfExportMenu = new JMenu("Export Handouts and Notes (PDF)");
         //pdfExportMenu.add(Actions.MapAsPDF);
@@ -418,7 +419,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         fileMenu.addSeparator();
         fileMenu.add(printAction).setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, metaMask));
         fileMenu.add(printAction).setText("Print Visible...");
-        fileMenu.add(pdfExportMenu);        
+        if (!VUE.isApplet())
+        	fileMenu.add(pdfExportMenu);        
         rebuildRecentlyOpenedItems(fileMenu, recentlyOpenedMenu, rofm);
       
         if (VUE.isApplet() || (VUE.isSystemPropertyTrue("apple.laf.useScreenMenuBar") && GUI.isMacAqua())) {
@@ -469,10 +471,16 @@ public class VueMenuBar extends javax.swing.JMenuBar
         viewMenu.addSeparator();            
         if (!Util.isUnixPlatform())
         	viewMenu.add(viewFullScreen);
-        viewMenu.add(splitScreenItem);
+        
+        if (!VUE.isApplet())
+        	viewMenu.add(splitScreenItem);
+        
         viewMenu.addSeparator();
-        viewMenu.add(toggleSlideIconsItem);
-        viewMenu.addSeparator();
+        if (!VUE.isApplet())
+        {
+        	viewMenu.add(toggleSlideIconsItem);
+        	viewMenu.addSeparator();
+        }
         viewMenu.add(togglePruningItem);
         
         // JAVA BUG: ADDING A JMenuItem (maybe just JCheckBoxMenuItem)
@@ -639,129 +647,21 @@ public class VueMenuBar extends javax.swing.JMenuBar
 			}});
         presentationMenu.add(newSlideItem);
         presentationMenu.add(newMergeNodeItem);
-        presentationMenu.addSeparator();
+        if (!VUE.isApplet())
+        	presentationMenu.addSeparator();
         if (VUE.getSlideDock() != null) {
             presentationMenu.add(Actions.MasterSlide);                
             presentationMenu.add(Actions.PreviewInViewer);
         }
         //slidePreviewMenu.add(Actions.PreviewOnMap);
-        presentationMenu.add(Actions.PreviewOnMap);
-        presentationMenu.add(Actions.EditMasterSlide);
-        // slidePreviewMenu.add(Actions.PreviewInViewer);
-      //  presentationMenu.add(slidePreviewMenu);
-   /*
-        notesMenu.addMenuListener(new MenuListener()
+        if (!VUE.isApplet())
         {
-
-			public void menuCanceled(MenuEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void menuDeselected(MenuEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-
-			public void menuSelected(MenuEvent e) {
-				notesMenu.removeAll();
-				final LWPathwayList pathways = VUE.getActiveMap().getPathwayList();
-				
-				//Iterator i = pathways.iterator();
-				final Collection coll = pathways.getElementList();
-				final Iterator i = coll.iterator();
-				while (i.hasNext())
-				{
-					final LWPathway path = (LWPathway) i.next();
-					final JMenu menuLevel1 = new JMenu(path.getDisplayLabel());
-					
-					//	menuLevel1.setEnabled(false);
-						
-					
-					notesMenu.add(menuLevel1);
-									    
-					final JMenuItem item1 = new JMenuItem(Actions.FullPageSlideNotes.getActionName());
-			        item1.addActionListener(new ActionListener()
-			        {
-			        	public void actionPerformed(ActionEvent e)
-			        	{
-			        		VUE.setActive(LWPathway.class, this, path);
-			        		Actions.FullPageSlideNotes.act();
-			        	}
-			        });
-			        
-			        final JMenuItem item2 = new JMenuItem(Actions.Slides8PerPage.getActionName());
-			        item2.addActionListener(new ActionListener()
-			        {
-			        	public void actionPerformed(ActionEvent e)
-			        	{
-			        		VUE.setActive(LWPathway.class, this, path);
-			        		Actions.Slides8PerPage.act();
-			        	}
-			        });
-			        
-			        final JMenuItem item3 = new JMenuItem(Actions.SpeakerNotes1.getActionName());
-			        item3.addActionListener(new ActionListener()
-			        {
-			        	public void actionPerformed(ActionEvent e)
-			        	{
-			        		VUE.setActive(LWPathway.class, this, path);
-			        		Actions.SpeakerNotes1.act();
-			        	}
-			        });
-
-			        final JMenuItem item4 = new JMenuItem(Actions.SpeakerNotes4.getActionName());
-			        item4.addActionListener(new ActionListener()
-			        {
-			        	public void actionPerformed(ActionEvent e)
-			        	{
-			        		VUE.setActive(LWPathway.class, this, path);
-			        		Actions.SpeakerNotes4.act();
-			        	}
-			        });
-
-
-			        final JMenuItem item5 = new JMenuItem(Actions.AudienceNotes.getActionName());
-			        item5.addActionListener(new ActionListener()
-			        {
-			        	public void actionPerformed(ActionEvent e)
-			        	{
-			        		VUE.setActive(LWPathway.class, this, path);
-			        		Actions.AudienceNotes.act();
-			        	}
-			        });
-
-			        final JMenuItem item6 = new JMenuItem(Actions.SpeakerNotesOutline.getActionName());
-			        item6.addActionListener(new ActionListener()
-			        {
-			        	public void actionPerformed(ActionEvent e)
-			        	{
-			        		VUE.setActive(LWPathway.class, this, path);
-			        		Actions.SpeakerNotesOutline.act();
-			        	}
-			        });
-			        if (!path.getEntries().isEmpty())
-					{
-			        	menuLevel1.add(item1);
-			        	menuLevel1.add(item2);
-			        	menuLevel1.add(item3);
-			        	menuLevel1.add(item4);
-			        	menuLevel1.add(item5);
-			        	menuLevel1.add(item6);
-					}
-			        else
-			        {
-			        	final JMenuItem emptyItem = new JMenuItem("no presentation is available");
-			        	emptyItem.setEnabled(false);
-			        	menuLevel1.add(emptyItem);
-			        }
-			    }
-				
-			}
-        	
-        });
-        */
-        playbackMenu.addMenuListener(new MenuListener()
+        	presentationMenu.add(Actions.PreviewOnMap);
+        	presentationMenu.add(Actions.EditMasterSlide);
+        }
+        	// slidePreviewMenu.add(Actions.PreviewInViewer);
+      //  presentationMenu.add(slidePreviewMenu);
+         playbackMenu.addMenuListener(new MenuListener()
         {
 
 			public void menuCanceled(MenuEvent arg0) {
@@ -840,9 +740,11 @@ public class VueMenuBar extends javax.swing.JMenuBar
 				else	
 					notesMenu.setEnabled(true);				
 			}});             
-        presentationMenu.addSeparator();
-        presentationMenu.add(playbackMenu);
-        
+        if (!VUE.isApplet())
+        {
+        	presentationMenu.addSeparator();
+        	presentationMenu.add(playbackMenu);
+        }
         ////////////////////////////////////////////////////////////////////////////////////
         // Build Analysis Menu
         ////////////////////////////////////////////////////////////////////////////////////
@@ -884,7 +786,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
         helpMenu.add(new ShortcutsAction());
         
         helpMenu.addSeparator();
-        helpMenu.add(new ShowLogAction());
+        if (!VUE.isApplet())
+        	helpMenu.add(new ShowLogAction());
       
         ////////////////////////////////////////////////////////////////////////////////////
         // Build final main menu bar
