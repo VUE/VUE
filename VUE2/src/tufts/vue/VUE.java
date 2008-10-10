@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.581 $ / $Date: 2008-10-10 19:41:41 $ / $Author: sfraize $ 
+ * @version $Revision: 1.582 $ / $Date: 2008-10-10 19:48:30 $ / $Author: sfraize $ 
  */
 
 public class VUE
@@ -77,6 +77,7 @@ public class VUE
     
     // We would like to move to non-blocking (threaded) loading -- when blocking (current impl), a hang in
     // any OSID init or server access will hang VUE during startup.
+    // SMF 2008-10-10: blocking impl turned off -- was seeing deadlocks on startup: TODO: VUE-879 may now be an active bug again
     public static boolean BLOCKING_OSID_LOAD = edu.tufts.vue.dsm.impl.VueDataSource.BLOCKING_OSID_LOAD;
     
     /** This is the root logger for all classes named tufts.* */
