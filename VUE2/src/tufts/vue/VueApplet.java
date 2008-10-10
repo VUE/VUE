@@ -34,279 +34,251 @@ import javax.swing.*;
 import tufts.vue.gui.GUI;
 import tufts.vue.gui.VueMenuBar;
 
-
-// To get to run from classpath: had to be sure to create a symlink to VueResources.properties
+// To get to run from classpath: had to be sure to create a symlink to
+// VueResources.properties
 // from the build/classes tree to the source tree.
 
 // Of course, now need all the damn support libraries...
 
 /**
  * Experimental VUE applet.
- *
- * @version $Revision: 1.8 $ / $Date: 2008-10-06 22:33:13 $ / $Author: mike $ 
+ * 
+ * @version $Revision: 1.9 $ / $Date: 2008-10-10 01:39:42 $ / $Author: mike $
  */
 public class VueApplet extends JApplet implements Runnable {
 
-    private JLabel loadLabel;
-    private boolean buttonPushed =false;
-    private static MapViewer viewer = null;
-    // If want to have viewer left in same state when go forwrd/back in browser,
-    // will need javacript assist to associate the viewer with the instance of a web browser page:
-    // new applet & context objects are created even when you go forward/back pages.  
-    private LWMap map = null;
-    static MapTabbedPane mMapTabbedPane = null;
-    
-    //applet parameters
-   /*
-    * Valid values for zoteroPlugin : true , false default value: false
-    */
-    private static final String zoteroPlugin = "zoteroPlugin";
-    
-    public void init() {
-    	
-    		//System.out.println("APPLET WIDTH : " + this.getWidth());
-    		//System.out.println("APPLET HEIGHT : " + this.getHeight());
-    		VUE.setAppletContext(this.getAppletContext());
-        	msg("init\n\tapplet=" + Integer.toHexString(hashCode()) + "\n\tcontext=" + getAppletContext());
-        	if (!GUI.isGUIInited())
-        	{	
-        		VUE.initUI();
-        		
-        		mMapTabbedPane = new MapTabbedPane("*left", true);
-        		map = new LWMap("Applet Map");
-        	
-        		VUE.initApplication();
-        		
-        		processAppletParameters();
-        	}
-        	if (viewer != null) {
-        		loadViewer();
-        		//setContentPane(viewer);
-        	} else {
-        		loadLabel = new JLabel("Loading VUE...");
-        		getContentPane().setLayout(new BoxLayout(getContentPane(), BoxLayout.X_AXIS));
-        		getContentPane().add(Box.createHorizontalGlue());
-        		getContentPane().add(loadLabel);
-        		getContentPane().add(Box.createHorizontalGlue());
-        		new Thread(this).start();
-        	}
-        	msg("init completed");
-    	
-    }
-
-    private final void processAppletParameters()
-    {
-    	String zoteroPlugin = this.getParameter(this.zoteroPlugin);
-    	if (zoteroPlugin != null)
-    		zoteroPlugin = zoteroPlugin.toLowerCase();
-    	if (zoteroPlugin != null && zoteroPlugin.equals("true"))
-    	{
-    			tufts.vue.action.TextOpenAction.setZoteroPrototypeEnabled(true);
-    	}
-    	
-    }
-    // Load the MapViewer, triggering massive class loading...
-    public void run() {	
-        msg("load thread started...");
-        try {
-            loadViewer();
-        } catch (Throwable t) {
-            loadLabel.setText(t.toString());
-        }
-        msg("load thread complete");
-    }
-    public void destroy() {
-    	super.destroy();
-    	msg("destroy");
-    }
-    public void start() {
-    	super.start();
-        msg("start");
-    }
-    
-    public void stop() {
-    	super.stop();	
-    //	VUE.finalizeDocks();
-        msg("stop");
-    }
-    private JPanel toolbarPanel = null;
-    
-    public void loadViewer() {
-      //  viewer = getMapViewer();
-        msg("got viewer");
-        msg("is applet ? " + VUE.isApplet());
-   /*     if (false) {
-            JScrollPane scrollPane = new JScrollPane(viewer);
-            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-            setContentPane(scrollPane);
-        } else {
-            setContentPane(viewer);
-        }
-     */   
-        msg("contentPane set");
-        msg("setting menu bar...");
-        
-        setJMenuBar(new VueMenuBar());
-        //setContentPane(label);
-      
-        if (viewer == null)
-        {
-        	viewer = new MapViewer(map);
-        	mMapTabbedPane.addViewer(viewer);
-       	   
-           
-        }
-        
-        VueToolbarController tbc = VueToolbarController.getController();   
-        JComponent toolbar = tbc.getToolbar().getMainToolbar();
-        toolbarPanel = VUE.constructToolPanel(toolbar);
-        getContentPane().removeAll();
-        getContentPane().setLayout(new BorderLayout());
-        
-   	    this.getContentPane().add(toolbarPanel,BorderLayout.NORTH);
-   	    
-   	 getContentPane().setBackground(toolbarPanel.getBackground());
-//   	    .setBackground(new Color(225,225,225));
-   	    getContentPane().add(mMapTabbedPane,BorderLayout.CENTER);
-        msg("validating...");
-        validate();
-        msg("loading complete");
-        //getContentPane().add(viewer, BorderLayout.CENTER);
-    }
-
-    private void msg(String s) {
-        System.out.println("VueApplet: " + s);
-        //showStatus("VueApplet: " + s);
-    }
-    
-    @SuppressWarnings("unchecked")
-	public static void displayZoteroExport(final String urlString)
-    {
-    	AccessController.doPrivileged(new PrivilegedAction()
-		{
-			
-			public Object run() {
-				try 
-				{
-				File tempFile = null;
-				tempFile = File.createTempFile(new Long(System.currentTimeMillis()).toString(), null);
-		    	InputStream io = null;
-
-		    	io = getInputStream(urlString);    	
-		    	byte[] buf = new byte[256];
-		        int read = 0;
-		    	java.io.FileOutputStream fos = null;
-				fos = new java.io.FileOutputStream(tempFile);
-
-		    	while ((read = io.read(buf)) > 0) {
-				     fos.write(buf, 0, read);
-				 }
-		    	tufts.vue.action.TextOpenAction.displayMap(tempFile);
-			
-				}
-				catch(Exception e)
-				{
-					e.printStackTrace();
-				}
-				
-		    	return null;
-			}
-			
-		});
-    	
-    }
-
-    public static void displayMap(String urlString)
-    {
-    	innerDisplayMap(urlString);
-    }
-    
-    @SuppressWarnings("unchecked")
-	private static void innerDisplayMap(final String urlString)
-    {
-    
+	private JLabel loadLabel;
+	private boolean buttonPushed = false;
+	private static MapViewer viewer = null;
+	private JPanel toolbarPanel = null;
+	private JComponent toolbar = null;
+	// If want to have viewer left in same state when go forwrd/back in browser,
+	// will need javacript assist to associate the viewer with the instance of a
+	// web browser page:
+	// new applet & context objects are created even when you go forward/back
+	// pages.
 	
-			AccessController.doPrivileged(new PrivilegedAction()
-			{
-				
-				public Object run() {
-				/*	try 
-					{
-					File tempFile = null;
-					tempFile = File.createTempFile(new Long(System.currentTimeMillis()).toString(), null);
-			    	InputStream io = null;
+	private static MapTabbedPane mMapTabbedPane = null;
 
-			    	io = getInputStream(urlString);    	
-			    	byte[] buf = new byte[256];
-			        int read = 0;
-			    	java.io.FileOutputStream fos = null;
+	// applet parameters
+	/*
+	 * Valid values for zoteroPlugin : true , false default value: false
+	 */
+	private static final String zoteroPlugin = "zoteroPlugin";
+	public static JApplet instance = null;
+	public void init() {
+		instance =this;
+		VUE.setAppletContext(this.getAppletContext());
+		processAppletParameters();
+		getContentPane().setLayout(new BorderLayout());
+		
+		msg("init\n\tapplet=" + Integer.toHexString(hashCode())
+				+ "\n\tcontext=" + getAppletContext());
+		if (!GUI.isGUIInited())
+		{	VUE.initUI();		
+			VUE.initApplication();
+		}
+	
+		loadViewer();
+		msg("init completed");
+	}
+
+	private final void processAppletParameters() {
+		String zoteroPlugin = this.getParameter(this.zoteroPlugin);
+		if (zoteroPlugin != null)
+			zoteroPlugin = zoteroPlugin.toLowerCase();
+		if (zoteroPlugin != null && zoteroPlugin.equals("true")) {
+			tufts.vue.action.TextOpenAction.setZoteroPrototypeEnabled(true);
+		}
+
+	}
+
+	// Load the MapViewer, triggering massive class loading...
+	public void run() {
+		msg("load thread started...");
+		try {
+			loadViewer();
+		} catch (Throwable t) {
+			loadLabel.setText(t.toString());
+		}
+		msg("load thread complete");
+	}
+
+	public void destroy() {
+		// super.destroy();
+		msg("destroy");
+	}
+
+	public void start() {
+	
+
+	//	loadViewer();
+		msg("start");
+
+	}
+
+	public void stop() {
+		// super.stop();
+		tufts.vue.gui.DockWindow.HideAllWindows();
+		// this.removeAll();
+
+		//VUE.finalizeDocks();
+
+		// map = null;
+		// mMapTabbedPane = null;
+		// viewer= null;
+		// getContentPane().removeAll();
+		System.gc();
+		// System.runFinalization();
+		msg("stop");
+	}
+
+	public synchronized void loadViewer() {
+		// viewer = getMapViewer();
+	
+		
+
+		msg("got viewer");
+		msg("is applet ? " + VUE.isApplet());
+
+		msg("setting menu bar...");
+		VueMenuBar vmb = new VueMenuBar();
+		setJMenuBar(vmb);
+
+		final VueToolbarController tbc = VueToolbarController.getController();
+
+		if (toolbar == null)
+			toolbar = tbc.getToolbar().getMainToolbar();
+
+		if (toolbarPanel == null)
+			toolbarPanel = VUE.constructToolPanel(toolbar);
+
+		getContentPane().setBackground(toolbarPanel.getBackground());
+		getContentPane().add(toolbarPanel, BorderLayout.NORTH);
+		//getContentPane().add(mMapTabbedPane, BorderLayout.CENTER);
+		VUE.createDockWindows();
+		 vmb.rebuildWindowsMenu();
+		 
+		VUE.displayMap(new LWMap("New Map"));
+		getContentPane().add(VUE.getLeftTabbedPane(),BorderLayout.CENTER);
+		msg("validating...");
+		validate();
+	
+
+		msg("loading complete");
+		 // initialize enabled state of actions via a selection set:
+		 EditorManager.refresh();
+        VUE.getSelection().clearAndNotify();
+	}
+
+	private void msg(String s) {
+		System.out.println("VueApplet: " + s);
+
+		// showStatus("VueApplet: " + s);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static void displayZoteroExport(final String urlString) {
+		AccessController.doPrivileged(new PrivilegedAction() {
+
+			public Object run() {
+				try {
+					File tempFile = null;
+					tempFile = File.createTempFile(new Long(System
+							.currentTimeMillis()).toString(), null);
+					InputStream io = null;
+
+					io = getInputStream(urlString);
+					byte[] buf = new byte[256];
+					int read = 0;
+					java.io.FileOutputStream fos = null;
 					fos = new java.io.FileOutputStream(tempFile);
 
-			    	while ((read = io.read(buf)) > 0) {
-					     fos.write(buf, 0, read);
-					 }*/
-					URL url;
-					try {
-						url = new URL(urlString);
-						tufts.vue.action.OpenURLAction.displayMap(url);
-					} catch (MalformedURLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					while ((read = io.read(buf)) > 0) {
+						fos.write(buf, 0, read);
 					}
-					
-			    /*	tufts.vue.action.OpenAction.displayMap(tempFile);
-				
-					}
-					catch(Exception e)
-					{
-						e.printStackTrace();
-					}
-					*/
-			    	return null;
+					tufts.vue.action.TextOpenAction.displayMap(tempFile);
+
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
-				
-			});
-		
-		
-    	
-    }
-    
-    public static InputStream getInputStream(String fileName)
-	throws IOException
-{
-	InputStream input;
 
-	if (fileName.startsWith("http:"))
-	{
-		URL url = new URL( fileName );
-		URLConnection connection = url.openConnection();
-		input = connection.getInputStream();
-	}
-	else
-	{
-		input = new FileInputStream( fileName );
+				return null;
+			}
+
+		});
+
 	}
 
-	return input;
-}
+	public static void displayMap(String urlString) {
+		innerDisplayMap(urlString);
+	}
 
+	@SuppressWarnings("unchecked")
+	private static void innerDisplayMap(final String urlString) {
 
-    
-    protected static MapViewer getMapViewer() {
-        
-        //VUE.installExampleMap(map);
+		AccessController.doPrivileged(new PrivilegedAction() {
 
-        return viewer;
-    }
-    
-    protected static MapTabbedPane getMapTabbedPane() {
-        
-        //VUE.installExampleMap(map);
+			public Object run() {
+				/*
+				 * try { File tempFile = null; tempFile =
+				 * File.createTempFile(new
+				 * Long(System.currentTimeMillis()).toString(), null);
+				 * InputStream io = null;
+				 * 
+				 * io = getInputStream(urlString); byte[] buf = new byte[256];
+				 * int read = 0; java.io.FileOutputStream fos = null; fos = new
+				 * java.io.FileOutputStream(tempFile);
+				 * 
+				 * while ((read = io.read(buf)) > 0) { fos.write(buf, 0, read); }
+				 */
+				URL url;
+				try {
+					url = new URL(urlString);
+					tufts.vue.action.OpenURLAction.displayMap(url);
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 
-        return mMapTabbedPane;
-    }
-    
-        
+				/*
+				 * tufts.vue.action.OpenAction.displayMap(tempFile);
+				 *  } catch(Exception e) { e.printStackTrace(); }
+				 */
+				return null;
+			}
+
+		});
+
+	}
+
+	public static InputStream getInputStream(String fileName)
+			throws IOException {
+		InputStream input;
+
+		if (fileName.startsWith("http:")) {
+			URL url = new URL(fileName);
+			URLConnection connection = url.openConnection();
+			input = connection.getInputStream();
+		} else {
+			input = new FileInputStream(fileName);
+		}
+
+		return input;
+	}
+
+	protected static MapViewer getMapViewer() {
+
+		// VUE.installExampleMap(map);
+
+		return viewer;
+	}
+
+	protected static MapTabbedPane getMapTabbedPane() {
+
+		// VUE.installExampleMap(map);
+
+		return mMapTabbedPane;
+	}
 
 }
