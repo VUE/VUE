@@ -71,8 +71,13 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     public static final LayoutAction table = new LayoutAction(new TabularLayout(),"Table",KeyEvent.VK_W) {
          boolean supportsSingleMover() { return false; }
     };
+    public static final LayoutAction circle = new LayoutAction(new CircularLayout(),"Circle",KeyEvent.VK_E) {
+        boolean supportsSingleMover() { return false; }
+    };
+    
     public static final Action[] LAYOUT_ACTIONS = {
         random,
-        table
+        table,
+        circle
     };
 }
