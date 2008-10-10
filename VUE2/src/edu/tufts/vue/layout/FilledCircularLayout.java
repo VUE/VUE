@@ -36,15 +36,15 @@ import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.dataset.*;
 
 /*
- * This layout puts nodes in a circle.   We may want to add the cellspacing and 
+ * This layout puts nodes in a circle.   We may want to add the cellspacing and
  * also extend it to make an elipse
  */
 
 
-public class CircularLayout extends Layout {
+public class FilledCircularLayout extends Layout {
     
     /** Creates a new instance of TabularLayout */
-    public CircularLayout() {
+    public FilledCircularLayout() {
     }
     public   LWMap createMap(Dataset ds,String mapName) throws Exception {
         LWMap map = new LWMap(mapName);
@@ -55,13 +55,8 @@ public class CircularLayout extends Layout {
         double minX =10000;
         double minY = 10000;
         int nodeSize = 100; // we assume node size is 100 which needs to be fixed.
-        int count = 0;
         int total = 0;
-        int mod = 4;
-        int xAdd = 100;
-        int yAdd = 50;
         Iterator<LWComponent> i = selection.iterator();
-        
         while (i.hasNext()) {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
@@ -78,15 +73,15 @@ public class CircularLayout extends Layout {
         double radius = size/2;
         double centerX = x+radius;
         double centerY = y+radius;
-       i = selection.iterator();
-        double angle = 0.0;
+        i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
-                node.setLocation(centerX+radius*Math.cos(angle),centerY+radius*Math.sin(angle));
-                count++;
-                angle = Math.PI*2*count/total;
+                double angle = Math.PI*2 * Math.random();
+                double r = radius*(1- Math.pow(Math.random(),2.0));
+                node.setLocation(centerX+r*Math.cos(angle),centerY+r*Math.sin(angle));
+                
             }
         }
     }
