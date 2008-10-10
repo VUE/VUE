@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.118 $ / $Date: 2008-10-09 18:14:47 $ / $Author: anoop $
+ * @version $Revision: 1.119 $ / $Date: 2008-10-10 01:38:41 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -158,6 +158,8 @@ public class VueMenuBar extends javax.swing.JMenuBar
     
 
     private final JCheckBoxMenuItem viewFullScreen = makeCheckBox(Actions.ToggleFullScreen);
+    private final JMenu windowMenu = makeMenu("Windows");
+    private final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
 
     public VueMenuBar()
     {
@@ -177,7 +179,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final JMenu contentMenu = makeMenu("Content");
         final JMenu presentationMenu = makeMenu(VueResources.getString("menu.pathway.label"));
         final JMenu analysisMenu = makeMenu("Analysis");
-        final JMenu windowMenu = makeMenu("Windows");
+      
         final JMenu alignMenu = makeMenu("Align");
         final JMenu layoutMenu = makeMenu("Layout");
         final JMenu extendMenu = makeMenu("Extend");
@@ -216,8 +218,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         final TextOpenAction textOpen = new TextOpenAction();
         final CreateCM createCMAction = new CreateCM("Connectivity Analysis...");
         final AnalyzeCM analyzeCMAction = new AnalyzeCM("Merge Maps...");
-        final OntologyControlsOpenAction ontcontrls = new OntologyControlsOpenAction("Ontologies");
-
+     
         // Actions added by the power team
         final PrintAction printAction = PrintAction.getPrintAction();
     //    final PDFTransform pdfAction = new PDFTransform("PDF");
@@ -852,44 +853,7 @@ public class VueMenuBar extends javax.swing.JMenuBar
         }
        
         
-        ////////////////////////////////////////////////////////////////////////////////////
-        // Window Menu
-        ////////////////////////////////////////////////////////////////////////////////////
-
-        if (VUE.getFormatDock() != null)        
-        	windowMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_1,"Formatting Palette"));                
-        windowMenu.addSeparator();                
-        if (VUE.getInfoDock() !=null)
-        	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
-        windowMenu.add(Actions.KeywordAction);
-        windowMenu.add(Actions.NotesAction);
-        windowMenu.addSeparator();
-        if (VUE.getMapInfoDock() !=null)
-        	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
-        windowMenu.add(ontcontrls);
-        if (VUE.getOutlineDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_5, "Outline"));
-        if (VUE.getPannerDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, "Panner"));
-        if (VUE.getPresentationDock() !=null)	
-        	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_7, "Pathways"));
-        if (VUE.getContentDock() !=null && !VUE.isApplet())	
-        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_8, "Resources"));
-        if (VUE.getLayersDock() != null)	
-            windowMenu.add(createWindowItem(VUE.getLayersDock(), 0, "Layers"));
-                
-                
-           
-        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
-    	Actions.SearchFilterAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
-        windowMenu.add(Actions.SearchFilterAction);
-        windowMenu.addSeparator();
-        if (VUE.getFloatingZoomDock()!=null)
-        {
-        	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_0, "FullScreen Toolbar");
-        	fullScreenToolbarItem.setEnabled(false);
-        	windowMenu.add(fullScreenToolbarItem);        	
-        }        
+      rebuildWindowsMenu();
         
         
         
@@ -948,6 +912,48 @@ public class VueMenuBar extends javax.swing.JMenuBar
             RootMenuBar = this;
     }
 
+    public void rebuildWindowsMenu()
+    {
+    	   ////////////////////////////////////////////////////////////////////////////////////
+        // Window Menu
+        ////////////////////////////////////////////////////////////////////////////////////
+    	windowMenu.removeAll();
+    	
+        if (VUE.getFormatDock() != null)        
+        	windowMenu.add(createWindowItem(VUE.getFormatDock(),KeyEvent.VK_1,"Formatting Palette"));                
+        windowMenu.addSeparator();                
+        if (VUE.getInfoDock() !=null)
+        	windowMenu.add(createWindowItem(VUE.getInfoDock(),KeyEvent.VK_2, "Info"));
+        windowMenu.add(Actions.KeywordAction);
+        windowMenu.add(Actions.NotesAction);
+        windowMenu.addSeparator();
+        if (VUE.getMapInfoDock() !=null)
+        	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
+        windowMenu.add(ontcontrls);
+        if (VUE.getOutlineDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_5, "Outline"));
+        if (VUE.getPannerDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, "Panner"));
+        if (VUE.getPresentationDock() !=null)	
+        	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_7, "Pathways"));
+        if (VUE.getContentDock() !=null && !VUE.isApplet())	
+        	windowMenu.add(createWindowItem(VUE.getContentDock(),KeyEvent.VK_8, "Resources"));
+        if (VUE.getLayersDock() != null)	
+            windowMenu.add(createWindowItem(VUE.getLayersDock(), 0, "Layers"));
+                
+                
+           
+        final KeyStroke acceleratorKey = KeyStroke.getKeyStroke(KeyEvent.VK_9, Actions.COMMAND);
+    	Actions.SearchFilterAction.putValue(Action.ACCELERATOR_KEY, acceleratorKey);
+        windowMenu.add(Actions.SearchFilterAction);
+        windowMenu.addSeparator();
+        if (VUE.getFloatingZoomDock()!=null)
+        {
+        	fullScreenToolbarItem = createWindowItem(VUE.getFloatingZoomDock(),KeyEvent.VK_0, "FullScreen Toolbar");
+        	fullScreenToolbarItem.setEnabled(false);
+        	windowMenu.add(fullScreenToolbarItem);        	
+        }        
+    }
     private final JMenuItem TitleItem = new JMenu("");
     //private final java.util.Map<LWMap,JMenuItem> items = new java.util.HashMap();
     
