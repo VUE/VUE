@@ -58,7 +58,7 @@ import java.io.File;
  *
  * @author Scott Fraize
  * @author Anoop Kumar (meta-data)
- * @version $Revision: 1.217 $ / $Date: 2008-10-08 02:16:01 $ / $Author: sfraize $
+ * @version $Revision: 1.218 $ / $Date: 2008-10-10 19:38:28 $ / $Author: sfraize $
  */
 
 public class LWMap extends LWContainer
@@ -735,7 +735,12 @@ public class LWMap extends LWContainer
         }
     }
 
-
+    /** @return 1 -- currently for performance: remove this impl if we embed maps-in-maps and allow them to have their own scale */
+    @Override
+    public final double getMapScale() {
+        return 1;
+    }
+    
     public static final class Layer extends LWContainer {
 
         /** for persistance only */
@@ -751,6 +756,9 @@ public class LWMap extends LWContainer
         @Override public float getMapY() { return 0; }
         @Override protected double getMapXPrecise() { return 0; }
         @Override protected double getMapYPrecise() { return 0; }
+
+        //@Override public double getMapScale() { return getParent().getMapScale(); } // fully accurate, in case of maps in maps impl
+        @Override public double getMapScale() { return 1; } // currently always true: for performance
 
         @Override protected AffineTransform transformDownA(final AffineTransform a) { return a; }
         @Override protected void transformDownG(final Graphics2D g) {}

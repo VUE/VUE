@@ -39,7 +39,7 @@ import javax.swing.ImageIcon;
  *
  * The layout mechanism is frighteningly convoluted.
  *
- * @version $Revision: 1.233 $ / $Date: 2008-10-09 19:03:56 $ / $Author: sfraize $
+ * @version $Revision: 1.234 $ / $Date: 2008-10-10 19:39:23 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2278,8 +2278,12 @@ public class LWNode extends LWContainer
                 // and check those flags here.  Also, the selectio stroke is completely useless
                 // when zoomed out -- it's being draw at scale.
                 dc.g.fill(getZeroShape());
+
+                if (hasChildren())
+                    super.drawChildren(dc);
+                
             } else {
-                dc.setAntiAlias(false);
+                //dc.setAntiAlias(false);
                 dc.g.fillRect(0, 0, (int)getWidth(), (int)getHeight());
             }
                 
