@@ -52,7 +52,7 @@ import edu.tufts.vue.preferences.ui.tree.VueTreeUI;
  *
  * @author  Daisuke Fujiwara
  * @author  Scott Fraize
- * @version $Revision: 1.132 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.133 $ / $Date: 2008-10-10 18:56:43 $ / $Author: mike $
  */
 
 public class PathwayPanel extends JPanel
@@ -268,6 +268,8 @@ public class PathwayPanel extends JPanel
         lblPlay.setLabelFor(btnPlay);
         
         add(btnPlay,c);
+        if (VUE.isApplet())
+        	btnPlay.setEnabled(false);
         c.insets = new Insets(1,1,1,35);        
         c.gridwidth = GridBagConstraints.REMAINDER; // put everything in one column
         c.weightx = 1.0; // make sure everything can fill to width
@@ -278,6 +280,8 @@ public class PathwayPanel extends JPanel
         c.gridx=3;
         lblPlay.setFont(smallFont);
         add(lblPlay,c);
+        if (VUE.isApplet())
+        	lblPlay.setEnabled(false);
         
        
         c.anchor=GridBagConstraints.CENTER;
@@ -618,7 +622,9 @@ public class PathwayPanel extends JPanel
         
         gbConstraints.fill=GridBagConstraints.NONE;
         gbConstraints.anchor=GridBagConstraints.WEST;
-        viewPanel.add(btnShowSlides,gbConstraints);        
+        viewPanel.add(btnShowSlides,gbConstraints);  
+        if (VUE.isApplet())
+        	btnShowSlides.setVisible(false);
         //END MASTER PANEL
         gbConstraints.insets = new Insets(0,0,0,0);
         
