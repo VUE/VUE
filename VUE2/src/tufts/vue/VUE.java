@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.576 $ / $Date: 2008-10-07 18:25:47 $ / $Author: mike $ 
+ * @version $Revision: 1.577 $ / $Date: 2008-10-10 01:38:06 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -113,6 +113,28 @@ public class VUE
     private static MapInspectorPanel mapInspectorPanel = null;
     private static JButton returnToMapButton = null;
     
+    public static void finalizeDocks()
+    {
+    	inspectorPane = null;
+    	formattingPanel = null;
+    	floatingZoomPanel = null;
+    	pathwayPanel = null;
+    	mapInspectorPanel = null;
+    	//returnToMapButton = null;
+    	DR_BROWSER = null;
+    	DR_BROWSER_DOCK = null;
+    	pathwayDock = null;
+    	formatDock = null;
+    	slideDock = null;
+    	pannerDock = null;;
+    	MapInspector = null;
+    	ObjectInspector = null;
+    	outlineDock = null;
+    	floatingZoomDock = null;
+    	layersDock = null;
+
+
+    }
     /** simplest form of threadsafe static lazy initializer: for CategoryModel */
     private static final class HolderCM {
         static final edu.tufts.vue.metadata.CategoryModel _CategoryModel = new edu.tufts.vue.metadata.CategoryModel();
@@ -1203,7 +1225,7 @@ public class VUE
     		mMapTabsRight = new MapTabbedPane("right", false);
     	}
     	else
-    		mMapTabsLeft = VueApplet.getMapTabbedPane();
+    		mMapTabsLeft = new MapTabbedPane("*left",true);//VueApplet.getMapTabbedPane();
         
         
         //-------------------------------------------------------
@@ -1267,216 +1289,8 @@ public class VUE
              }
         }
         
-        //=============================================================================
-        //
-        // Create all the DockWindow's
-        //
-        //=============================================================================
-
-        //-----------------------------------------------------------------------------
-        // Pathways panel
-        //-----------------------------------------------------------------------------
-        pathwayPanel = new PathwayPanel(VUE.getDialogParentAsFrame());
-        if (pathwayDock == null)
-        pathwayDock = GUI.createDockWindow(VueResources.getString("dockWindow.presentation.title"),
-                                                            pathwayPanel);
-
-        //-----------------------------------------------------------------------------
-        // Formatting
-        //-----------------------------------------------------------------------------
-
-        //formatDock = null;
-        formattingPanel = new FormatPanel();
-        if (formatDock == null)
-        {
-        	formatDock = GUI.createDockWindow("Format",true,true);
-        	formatDock.setContent(formattingPanel);
-        }
-        //formatDock.setFocusable(true);
+        createDockWindows();
         
-
-        //-----------------------------------------------------------------------------
-        // Formatting
-        //-----------------------------------------------------------------------------
-
-        //formatDock = null;
-        floatingZoomPanel = new FloatingZoomPanel();
-        if (floatingZoomDock == null)
-        {
-        	floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
-        	floatingZoomDock.setContent(floatingZoomPanel);
-        	//floatingZoomDock.setFocusable(true); // can grab key events causing MapViewer actions to be disabled
-        	floatingZoomDock.setSize(new Dimension(280,30));
-        	floatingZoomDock.setLocation(0,GUI.GInsets.top+15);        
-        }
-        //-----------------------------------------------------------------------------
-        // Panner
-        //-----------------------------------------------------------------------------
-        if (pannerDock == null)
-        {
-        	pannerDock = GUI.createDockWindow("Panner", new MapPanner());
-        	//pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
-        	//pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
-        	//pannerDock.setSize(120,120);
-        	//pannerDock.setSize(112,120);
-        	//pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
-
-        	if (Util.isMacPlatform()) {
-        		// Can't do this on PC as 'x' close button is on right
-        		pannerDock.setMenuActions(new Action[] {
-                    Actions.ZoomFit,
-                    Actions.ZoomActual
-                });
-        	}
-        }
-
-        //-----------------------------------------------------------------------------
-        // Resources Stack (Libraries / DRBrowser)
-        // DRBrowser class initializes the DockWindow itself.
-        //-----------------------------------------------------------------------------
-        if (DR_BROWSER_DOCK == null)
-        {
-        	DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
-        	//DockWindow searchDock = GUI.createDockWindow("Search");
-        	DockWindow searchDock = null;
-        	if (!SKIP_DR) {
-            
-        		// TODO: DRBrowser init needs to load all it's content/viewers in a threaded
-        		// manner (didn't this used to happen?)  In any case, even local file data
-        		// sources, which can still take quite a long time to init depending on
-        		// what's out there (e.g., CabinetResources don't know how to lazy init
-        		// their contents -- every 1st & 2nd level file is polled and initialized at
-        		// startup).  SMF 2007-10-05
-            
-        		DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
-        		DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
-        	}
-        }
-        //-----------------------------------------------------------------------------
-        // Map Inspector
-        //-----------------------------------------------------------------------------
-        if (MapInspector == null)
-        {
-        	MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
-        	mapInspectorPanel = new MapInspectorPanel(MapInspector);
-        	//        MapInspector.setContent(mapInspectorPanel.getMapInfoStack());
-        	//      MapInspector.setHeight(450);
-        }
-        //-----------------------------------------------------------------------------
-        // Object Inspector / Resource Inspector
-        //-----------------------------------------------------------------------------
-
-        //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
-        inspectorPane = new tufts.vue.ui.InspectorPane();
-        if (ObjectInspector == null)
-        {
-        	ObjectInspector = GUI.createDockWindow("Info");
-        	ObjectInspector.setContent(inspectorPane.getWidgetStack());
-        	ObjectInspector.setMenuName("Info / Preview");
-        	ObjectInspector.setHeight(575);
-        }
-        
-        if (DEBUG.Enabled || VUE3_LAYERS) {
-        	if (layersDock == null)
-        	{
-        		layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
-        		//layersDock.setFocusableWindowState(false);
-        		layersDock.setSize(375,200);
-        	}
-        }
-        
-        //-----------------------------------------------------------------------------
-        // Slide Viewer
-        //-----------------------------------------------------------------------------
-        if (false && DEBUG.Enabled) {
-            slideViewer = new tufts.vue.ui.SlideViewer(null);
-            slideDock = GUI.createDockWindow(slideViewer);
-            slideDock.setLocation(100,100);
-            VueAction defSize;
-            slideDock.setMenuActions(new Action[] {
-                    Actions.ZoomFit,
-                    Actions.ZoomActual,
-                    defSize = new VueAction("1/8 Screen") {
-                            public void act() {
-                                GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock.window());
-                                Rectangle screen = gc.getBounds();
-                                slideDock.setContentSize(screen.width / 4, screen.height / 4);
-                            }
-                        },
-                    new VueAction("1/4 Screen") {
-                        public void act() {
-                            GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock.window());
-                            Rectangle screen = gc.getBounds();
-                            slideDock.setContentSize(screen.width / 2, screen.height / 2);
-                        }
-                    },
-                    new VueAction("Maximize") {
-                        public void act() {
-                            slideDock.setBounds(GUI.getMaximumWindowBounds(slideDock.window()));
-                        }
-                    },
-                
-                });
-            defSize.act();
-        }
-        
-        
-        //-----------------------------------------------------------------------------
-        // Object Inspector
-        //-----------------------------------------------------------------------------
-
-        //GUI.createDockWindow("Test OI", new ObjectInspectorPanel()).setVisible(true);
-        /*
-        ObjectInspector = GUI.createDockWindow(VueResources.getString("objectInspectorTitle"));
-        ObjectInspectorPanel = new ObjectInspectorPanel();
-        ModelSelection.addListener(ObjectInspectorPanel);
-        ObjectInspector.setContent(ObjectInspectorPanel);
-        */
-        
-        //-----------------------------------------------------------------------------
-        // Pathway Panel
-        //-----------------------------------------------------------------------------
-
-        // todo
-        
-        //-----------------------------------------------------------------------------
-        // Outline View
-        //-----------------------------------------------------------------------------
-
-        if (true||!SKIP_DR) {
-        
-            OutlineViewTree outlineTree = new OutlineViewTree();
-            JScrollPane outlineScroller = new JScrollPane(outlineTree);
-            VUE.getSelection().addListener(outlineTree);
-            //VUE.addActiveMapListener(outlineTree);
-            VUE.ActiveMapHandler.addListener(outlineTree);
-            outlineScroller.setPreferredSize(new Dimension(500, 300));
-            //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
-            if (outlineDock == null)
-            	outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
-
-            DataSourceViewer.initUI();
-            
-        }
-
-        //-----------------------------------------------------------------------------
-
-        if (Util.isMacLeopard() && DockWindow.useManagedWindowHacks()) {
-            // Workaround for DockWindow's going behind the VUE Window on Leopard bug, especially
-            // when there's only one DockWindow open.  So we literally create a DockWindow
-            // to always hang around, and just set it off screen.
-            // See DockWindow.ShowPreviouslyHiddenWindows and FullScreenWindow.FSWindow for more related comments.
-            // SMF 2008-04-22
-            JTextArea t = new JTextArea("Do Not Close This Window.\nSee http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6373178");
-            t.setFont(VueConstants.SmallFont);
-            t.setEditable(false);
-            DockWindow anchor = GUI.createDockWindow("VUE-leopard-anchor", t);
-            if (!DEBUG.DOCK)
-                GUI.setOffScreen(anchor.window());
-            anchor.pack();
-            anchor.setVisible(true);
-        }
-
         if (!VUE.isApplet())
         {
         	// GUI.createDockWindow("Font").add(new FontEditorPanel()); // just add automatically?
@@ -1790,24 +1604,26 @@ public class VUE
 //         }
         
         //restore window
-        DR_BROWSER_DOCK.positionWindowFromProperties();
-        pathwayDock.positionWindowFromProperties();
+        if (!VUE.isApplet())
+        {
+        	DR_BROWSER_DOCK.positionWindowFromProperties();
+        	pathwayDock.positionWindowFromProperties();
 
-       	formatDock.positionWindowFromProperties();
+        	formatDock.positionWindowFromProperties();
 
-        if (slideDock != null)
-            slideDock.positionWindowFromProperties();
-        pannerDock.positionWindowFromProperties();
-        MapInspector.positionWindowFromProperties();
-        ObjectInspector.positionWindowFromProperties();
-        if (outlineDock != null)
-            outlineDock.positionWindowFromProperties();       
-        if (layersDock != null)
-            layersDock.positionWindowFromProperties();       
-    
+        	if (slideDock != null)
+        		slideDock.positionWindowFromProperties();
+        	pannerDock.positionWindowFromProperties();
+        	MapInspector.positionWindowFromProperties();
+        	ObjectInspector.positionWindowFromProperties();
+        	if (outlineDock != null)
+        		outlineDock.positionWindowFromProperties();       
+        	if (layersDock != null)
+        		layersDock.positionWindowFromProperties();       
+        }   
         mapInspectorPanel.metadataPanel.refresh();
         
-        if (!SKIP_DR && (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || DR_BROWSER_DOCK.getWindowProperties().isAllValuesDefaults()))
+        if (VUE.isApplet() || (!SKIP_DR && (!DR_BROWSER_DOCK.getWindowProperties().isEnabled() || DR_BROWSER_DOCK.getWindowProperties().isAllValuesDefaults())))
         {
         	//I'm just putting a comment in here becuase this seems odd to me, and I wanted it to be clear it was intentional.
         	//"As we move away from a "datasource" centric vision of VUE, the "Content" window should be collapsed when launching VUE"
@@ -1833,6 +1649,221 @@ public class VUE
             
         }
         
+    }
+    
+    protected static void createDockWindows()
+    {
+    	  //=============================================================================
+        //
+        // Create all the DockWindow's
+        //
+        //=============================================================================
+
+        //-----------------------------------------------------------------------------
+        // Pathways panel
+        //-----------------------------------------------------------------------------
+        pathwayPanel = new PathwayPanel(VUE.getDialogParentAsFrame());
+        if (pathwayDock == null  || VUE.isApplet())
+        pathwayDock = GUI.createDockWindow(VueResources.getString("dockWindow.presentation.title"),
+                                                            pathwayPanel);
+
+       
+        
+
+        //-----------------------------------------------------------------------------
+        // Formatting
+        //-----------------------------------------------------------------------------
+
+        //formatDock = null;
+        floatingZoomPanel = new FloatingZoomPanel();
+        if (floatingZoomDock == null || VUE.isApplet())
+        {
+        	floatingZoomDock = GUI.createDockWindow("Floating Zoom",true);
+        	floatingZoomDock.setContent(floatingZoomPanel);
+        	//floatingZoomDock.setFocusable(true); // can grab key events causing MapViewer actions to be disabled
+        	floatingZoomDock.setSize(new Dimension(280,30));
+        	floatingZoomDock.setLocation(0,GUI.GInsets.top+15);        
+        }
+        //-----------------------------------------------------------------------------
+        // Panner
+        //-----------------------------------------------------------------------------
+        if (pannerDock == null || VUE.isApplet())
+        {
+        	pannerDock = GUI.createDockWindow("Panner", new MapPanner());
+        	//pannerDock.getWidgetPanel().setBorder(new javax.swing.border.MatteBorder(5,5,5,5, Color.green));
+        	//pannerDock.getContentPanel().setBorder(new EmptyBorder(1,2,2,2));
+        	//pannerDock.setSize(120,120);
+        	//pannerDock.setSize(112,120);
+        	//pannerDock.setUpperRightCorner(GUI.GScreenWidth, 150);
+
+        	if (Util.isMacPlatform()) {
+        		// Can't do this on PC as 'x' close button is on right
+        		pannerDock.setMenuActions(new Action[] {
+                    Actions.ZoomFit,
+                    Actions.ZoomActual
+                });
+        	}
+        }
+
+        //-----------------------------------------------------------------------------
+        // Resources Stack (Libraries / DRBrowser)
+        // DRBrowser class initializes the DockWindow itself.
+        //-----------------------------------------------------------------------------
+        if (DR_BROWSER_DOCK == null || VUE.isApplet())
+        {
+        	DR_BROWSER_DOCK = GUI.createDockWindow("Resources");
+        	//DockWindow searchDock = GUI.createDockWindow("Search");
+        	DockWindow searchDock = null;
+        	if (!SKIP_DR) {
+            
+        		// TODO: DRBrowser init needs to load all it's content/viewers in a threaded
+        		// manner (didn't this used to happen?)  In any case, even local file data
+        		// sources, which can still take quite a long time to init depending on
+        		// what's out there (e.g., CabinetResources don't know how to lazy init
+        		// their contents -- every 1st & 2nd level file is polled and initialized at
+        		// startup).  SMF 2007-10-05
+            
+        		DR_BROWSER = new DRBrowser(true, DR_BROWSER_DOCK, searchDock);
+        		DR_BROWSER_DOCK.setSize(300, (int) (GUI.GScreenHeight * 0.75));
+        	}
+        }
+        //-----------------------------------------------------------------------------
+        // Map Inspector
+        //-----------------------------------------------------------------------------
+        if (MapInspector == null || VUE.isApplet())
+        {
+        	MapInspector = GUI.createDockWindow(VueResources.getString("mapInspectorTitle"));
+        	mapInspectorPanel = new MapInspectorPanel(MapInspector);
+        	//        MapInspector.setContent(mapInspectorPanel.getMapInfoStack());
+        	//      MapInspector.setHeight(450);
+        }
+        //-----------------------------------------------------------------------------
+        // Object Inspector / Resource Inspector
+        //-----------------------------------------------------------------------------
+
+        //final DockWindow resourceDock = GUI.createDockWindow("Resource Inspector", new ResourcePanel());
+        inspectorPane = new tufts.vue.ui.InspectorPane();
+        if (ObjectInspector == null || VUE.isApplet())
+        {
+        	ObjectInspector = GUI.createDockWindow("Info");
+        	ObjectInspector.setContent(inspectorPane.getWidgetStack());
+        	ObjectInspector.setMenuName("Info / Preview");
+        	ObjectInspector.setHeight(575);
+        }
+        
+        if (DEBUG.Enabled || VUE3_LAYERS) {
+        	if (layersDock == null || VUE.isApplet())
+        	{
+        		layersDock = GUI.createDockWindow("Layers", new tufts.vue.ui.LayersUI());
+        		//layersDock.setFocusableWindowState(false);
+        		layersDock.setSize(375,200);
+        	}
+        }
+        
+        //-----------------------------------------------------------------------------
+        // Slide Viewer
+        //-----------------------------------------------------------------------------
+        if (false && DEBUG.Enabled) {
+            slideViewer = new tufts.vue.ui.SlideViewer(null);
+            slideDock = GUI.createDockWindow(slideViewer);
+            slideDock.setLocation(100,100);
+            VueAction defSize;
+            slideDock.setMenuActions(new Action[] {
+                    Actions.ZoomFit,
+                    Actions.ZoomActual,
+                    defSize = new VueAction("1/8 Screen") {
+                            public void act() {
+                                GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock.window());
+                                Rectangle screen = gc.getBounds();
+                                slideDock.setContentSize(screen.width / 4, screen.height / 4);
+                            }
+                        },
+                    new VueAction("1/4 Screen") {
+                        public void act() {
+                            GraphicsConfiguration gc = GUI.getDeviceConfigForWindow(slideDock.window());
+                            Rectangle screen = gc.getBounds();
+                            slideDock.setContentSize(screen.width / 2, screen.height / 2);
+                        }
+                    },
+                    new VueAction("Maximize") {
+                        public void act() {
+                            slideDock.setBounds(GUI.getMaximumWindowBounds(slideDock.window()));
+                        }
+                    },
+                
+                });
+            defSize.act();
+        }
+        
+        
+        //-----------------------------------------------------------------------------
+        // Object Inspector
+        //-----------------------------------------------------------------------------
+
+        //GUI.createDockWindow("Test OI", new ObjectInspectorPanel()).setVisible(true);
+        /*
+        ObjectInspector = GUI.createDockWindow(VueResources.getString("objectInspectorTitle"));
+        ObjectInspectorPanel = new ObjectInspectorPanel();
+        ModelSelection.addListener(ObjectInspectorPanel);
+        ObjectInspector.setContent(ObjectInspectorPanel);
+        */
+        
+        //-----------------------------------------------------------------------------
+        // Pathway Panel
+        //-----------------------------------------------------------------------------
+
+        // todo
+        
+        //-----------------------------------------------------------------------------
+        // Outline View
+        //-----------------------------------------------------------------------------
+
+        if (true||!SKIP_DR) {
+        
+            OutlineViewTree outlineTree = new OutlineViewTree();
+            JScrollPane outlineScroller = new JScrollPane(outlineTree);
+            VUE.getSelection().addListener(outlineTree);
+            //VUE.addActiveMapListener(outlineTree);
+            VUE.ActiveMapHandler.addListener(outlineTree);
+            outlineScroller.setPreferredSize(new Dimension(500, 300));
+            //outlineScroller.setBorder(null); // so DockWindow will add 1 pixel to bottom
+            if (outlineDock == null  || VUE.isApplet())
+            	outlineDock =  GUI.createDockWindow("Outline", outlineScroller);
+
+            DataSourceViewer.initUI();
+            
+        }
+
+        //-----------------------------------------------------------------------------
+        // Formatting
+        //-----------------------------------------------------------------------------
+
+        //formatDock = null;
+        formattingPanel = new FormatPanel();
+        if (formatDock == null || VUE.isApplet())
+        {
+        	formatDock = GUI.createDockWindow("Format",true,true);
+        	formatDock.setContent(formattingPanel);
+        }
+        //formatDock.setFocusable(true);
+        //-----------------------------------------------------------------------------
+
+        if (Util.isMacLeopard() && DockWindow.useManagedWindowHacks() && !VUE.isApplet()) {
+            // Workaround for DockWindow's going behind the VUE Window on Leopard bug, especially
+            // when there's only one DockWindow open.  So we literally create a DockWindow
+            // to always hang around, and just set it off screen.
+            // See DockWindow.ShowPreviouslyHiddenWindows and FullScreenWindow.FSWindow for more related comments.
+            // SMF 2008-04-22
+            JTextArea t = new JTextArea("Do Not Close This Window.\nSee http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6373178");
+            t.setFont(VueConstants.SmallFont);
+            t.setEditable(false);
+            DockWindow anchor = GUI.createDockWindow("VUE-leopard-anchor", t);
+            if (!DEBUG.DOCK)
+                GUI.setOffScreen(anchor.window());
+            anchor.pack();
+            anchor.setVisible(true);
+        }
+
     }
     protected static JPanel constructToolPanel(JComponent toolbar)
     {
@@ -2924,7 +2955,14 @@ public class VUE
     	else
     	{
     		Frame[] frames = JFrame.getFrames();
-    		return frames[0];
+    		//System.out.println("FRAME LENGTH " + frames.length);
+    		JApplet app =  VueApplet.instance;
+    		Container c = app.getParent();
+    		while (!(c instanceof Window))
+    		{
+    			c = c.getParent();
+    		}
+    		return (Window)c;
     	}
     	/*
         if (true) {
