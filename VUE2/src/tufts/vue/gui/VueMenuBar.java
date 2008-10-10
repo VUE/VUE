@@ -45,7 +45,7 @@ import edu.tufts.vue.preferences.VuePrefListener;
 /**
  * The main VUE application menu bar.
  *
- * @version $Revision: 1.120 $ / $Date: 2008-10-10 17:16:29 $ / $Author: mike $
+ * @version $Revision: 1.121 $ / $Date: 2008-10-10 18:56:56 $ / $Author: mike $
  * @author Scott Fraize
  */
 public class VueMenuBar extends javax.swing.JMenuBar
@@ -833,9 +833,9 @@ public class VueMenuBar extends javax.swing.JMenuBar
         if (VUE.getMapInfoDock() !=null)
         	windowMenu.add(createWindowItem(VUE.getMapInfoDock(),KeyEvent.VK_3, "Map Info"));
         windowMenu.add(ontcontrls);
-        if (VUE.getOutlineDock() !=null)	
+        if (VUE.getOutlineDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getOutlineDock(),KeyEvent.VK_5, "Outline"));
-        if (VUE.getPannerDock() !=null)	
+        if (VUE.getPannerDock() !=null && !VUE.isApplet())	
         	windowMenu.add(createWindowItem(VUE.getPannerDock(),KeyEvent.VK_6, "Panner"));
         if (VUE.getPresentationDock() !=null)	
         	windowMenu.add(createWindowItem(VUE.getPresentationDock(),KeyEvent.VK_7, "Pathways"));
