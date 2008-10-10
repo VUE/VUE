@@ -1057,19 +1057,24 @@ public class Util
 	    a = array;
 	}
 
+        @Override
 	public int size() { return a.length; }
 
         /** returns the internal array -- allows for Collection.addAll(ExposedArrayList) to be called w/out triggering a clone */
+        @Override
 	public Object[] toArray() { return a; }
 
+        @Override
 	public E get(int index) { return (E)a[index]; }
 
+        @Override
 	public E set(int index, E element) {
 	    Object oldValue = a[index];
 	    a[index] = element;
 	    return (E)oldValue;
 	}
 
+        @Override
         public int indexOf(Object o) {
             if (o==null) {
                 for (int i=0; i<a.length; i++)
@@ -1083,6 +1088,7 @@ public class Util
             return -1;
         }
 
+        @Override
         public boolean contains(Object o) {
             return indexOf(o) != -1;
         }
@@ -1103,7 +1109,7 @@ public class Util
         return true;
     }
 
-    public static <A, T extends A> List<T> extractType(final List<A> list, final Class<T> clazz) {
+    public static <A, T extends A> List<T> extractType(final Collection<A> list, final Class<T> clazz) {
 
         final List<T> desiredType = new ArrayList(list.size());
 
