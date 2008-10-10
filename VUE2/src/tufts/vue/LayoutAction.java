@@ -77,11 +77,15 @@ public abstract  class LayoutAction extends Actions.LWCAction {
      public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),"Filled Circle",KeyEvent.VK_4) {
         boolean supportsSingleMover() { return false; }
     };
+     public static final LayoutAction force = new LayoutAction(new ForceLayout(),"Force",KeyEvent.VK_5) {
+        boolean supportsSingleMover() { return false; }
+    };
     
     public static final Action[] LAYOUT_ACTIONS = {
         random,
         table,
         circle,
-        filledCircle
+        filledCircle,
+        force
     };
 }
