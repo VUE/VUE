@@ -53,13 +53,13 @@ import org.xml.sax.*;
 
 
 /**
- * @version $Revision: 1.3 $ / $Date: 2008-10-03 16:17:17 $ / $Author: sfraize $
+ * @version $Revision: 1.4 $ / $Date: 2008-10-10 04:57:46 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
 class XMLIngest {
 
-    private static final boolean XML_DEBUG = true;
+    private static final boolean XML_DEBUG = false;
 
     static class XmlSchema extends tufts.vue.ds.Schema
     {
