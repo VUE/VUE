@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.126 $ / $Date: 2008-10-03 16:18:50 $ / $Author: sfraize $
+ * @version $Revision: 1.127 $ / $Date: 2008-10-10 21:41:16 $ / $Author: mike $
  * @author Scott Fraize
  */
 
@@ -805,7 +805,7 @@ public class GUI
         if (ext == Resource.EXTENSION_HTTP)
             ext = "htm";
 
-        if (Util.isMacPlatform()) {
+        if (Util.isMacPlatform() && !VUE.isApplet()) {
 
             if (false && Util.isMacLeopard() && Util.getJavaVersion() > 1.5) {
                 ; // ShellFolder/FileSystemView method still doesn't work
