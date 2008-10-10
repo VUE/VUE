@@ -1999,8 +1999,9 @@ public class Actions implements VueConstants
             // todo: bump up if there are link labels to make room for
             // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
             // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
-            radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
-            radiusTall = Math.max(totalHeight/2, center.getHeight() / 2 + maxTall / 2 + 50);
+            //radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
+            radiusWide = Math.max(totalWidth/8,  center.getWidth() / 2 + maxWide / 2 + 50);
+            radiusTall = Math.max(totalHeight/8, center.getHeight() / 2 + maxTall / 2 + 50);
         
             //clusterNodes(centerX, centerY, radiusWide, radiusTall, linked);
             clusterNodes(clustering);
@@ -2403,7 +2404,7 @@ public class Actions implements VueConstants
     };
 
 
-    public static final LWCAction ClusterData = new ArrangeAction("Make Data Cluster", keyStroke(KeyEvent.VK_SLASH, ALT)) {
+    public static final LWCAction ClusterData = new ArrangeAction("Make Data Clusters", keyStroke(KeyEvent.VK_SLASH, ALT)) {
             @Override
             public void arrange(LWComponent c) {
                 if (c instanceof LWNode)
