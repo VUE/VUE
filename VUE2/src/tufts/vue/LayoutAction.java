@@ -65,19 +65,23 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         }
     }
     // random layout. scatters nodes at random
-    public static final LayoutAction random = new LayoutAction(new ListRandomLayout(),"Random",KeyEvent.VK_Q) {
+    public static final LayoutAction random = new LayoutAction(new ListRandomLayout(),"Random",KeyEvent.VK_1) {
         boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction table = new LayoutAction(new TabularLayout(),"Table",KeyEvent.VK_W) {
+    public static final LayoutAction table = new LayoutAction(new TabularLayout(),"Table",KeyEvent.VK_2) {
          boolean supportsSingleMover() { return false; }
     };
-    public static final LayoutAction circle = new LayoutAction(new CircularLayout(),"Circle",KeyEvent.VK_E) {
+    public static final LayoutAction circle = new LayoutAction(new CircularLayout(),"Circle",KeyEvent.VK_3) {
+        boolean supportsSingleMover() { return false; }
+    };
+     public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),"Filled Circle",KeyEvent.VK_4) {
         boolean supportsSingleMover() { return false; }
     };
     
     public static final Action[] LAYOUT_ACTIONS = {
         random,
         table,
-        circle
+        circle,
+        filledCircle
     };
 }
