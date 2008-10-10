@@ -66,14 +66,14 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.580 $ / $Date: 2008-10-10 18:57:19 $ / $Author: mike $ 
+ * @version $Revision: 1.581 $ / $Date: 2008-10-10 19:41:41 $ / $Author: sfraize $ 
  */
 
 public class VUE
     implements VueConstants
 {
-    public static boolean VUE3 = true;
-    public static boolean VUE3_LAYERS = true;
+    public static final boolean VUE3 = true;
+    public static final boolean VUE3_LAYERS = true;
     
     // We would like to move to non-blocking (threaded) loading -- when blocking (current impl), a hang in
     // any OSID init or server access will hang VUE during startup.
@@ -912,11 +912,12 @@ public class VUE
 
         // Kick-off tufts.vue.VueDataSource viewer build threads: must
         // be done in AWT to be threadsafe, as involves
-        // non-syncronized code in tufts.vue.VueDataSource while
+        // non-synhcronized code in tufts.vue.VueDataSource while
         // setting up the threads
-        GUI.invokeAfterAWT(new Runnable() { public void run() {
-            DataSourceViewer.cacheDataSourceViewers();
-        }});
+        if (!DEBUG.Enabled)
+            GUI.invokeAfterAWT(new Runnable() { public void run() {
+                DataSourceViewer.cacheDataSourceViewers();
+            }});
                 
         //-------------------------------------------------------
         // complete the rest of our tasks at min priority
