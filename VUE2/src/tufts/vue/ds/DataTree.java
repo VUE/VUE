@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.13 $ / $Date: 2008-10-10 19:42:27 $ / $Author: sfraize $
+ * @version $Revision: 1.14 $ / $Date: 2008-10-10 20:32:57 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -339,6 +339,7 @@ public class DataTree extends javax.swing.JTree
         for (DataRow row : schema.getRows()) {
             
             node = LWNode.createRaw();
+            // node.setFlag(Flag.EVENT_SILENT); // todo performance: have nodes do this by default during init
             node.setClientData(Schema.class, schema);
             node.getMetadataList().add(row.entries());
             node.setStyle(schema.getStyleNode()); // must have meta-data set first to pick up label template
@@ -399,17 +400,24 @@ public class DataTree extends javax.swing.JTree
                     nodes.add(makeValueNode(field, value));
             }
 
-            ///Actions.MakeCircle.actUpon(nodes);
-            
-            final java.util.List<LWComponent> links = new ArrayList();
-            for (LWComponent c : nodes) {
-                links.addAll(makeLinks(c, field));
+            final LWMap map = VUE.getActiveMap(); // hack
+            final Collection linkTargets = Util.extractType(map.getAllDescendents(), LWNode.class);
+
+            java.util.List<LWComponent> links = null;
+
+            if (linkTargets.size() > 0) {
+                links = new ArrayList();
+                for (LWComponent c : nodes) {
+                    links.addAll(makeLinks(linkTargets, c, field));
+                }
             }
-            //nodes.addAll(links);
 
             if (nodes.size() > 1) {
                 tufts.vue.LayoutAction.table.act(nodes);
+                //Actions.MakeCluster.act(nodes); // todo: broken
+                //Actions.MakeColumn.act(nodes);
                 // Actions.ZoomFit.fire(this); not added to map yet
+                
                 // TODO: below should be a post-add action to be called
                 // on the list-factory
 //                 GUI.invokeAfterAWT(new Runnable() { public void run() {
@@ -420,22 +428,19 @@ public class DataTree extends javax.swing.JTree
 //                 }});
 
             }
-            //Actions.MakeColumn.act(nodes);
-            //Actions.MakeCircle.actUpon(nodes);
             
             //for (LWComponent c : nodes)c.setToNaturalSize();
             // todo: some problem editing template values: auto-size not being handled on label length shrinkage
 
-            if (links.size() > 0)
+            if (links != null && links.size() > 0)
                 VUE.getActiveMap().getInternalLayer("*Data Links*").addChildren(links);
 
             return nodes;
         }
 
 
-        List<LWLink> makeLinks(LWComponent node, Field field) {
-
-            final LWMap map = VUE.getActiveMap(); // hack;
+        List<LWLink> makeLinks(final Collection<LWComponent> linkTargets, LWComponent node, Field field)
+        {
             //final Schema schema = field.getSchema();
             final VueMetadataElement vme;
 
@@ -452,7 +457,7 @@ public class DataTree extends javax.swing.JTree
 
             final edu.tufts.vue.metadata.MetadataList metaData = node.getMetadataList();
 
-            for (LWComponent c : map.getAllDescendents()) {
+            for (LWComponent c : linkTargets) {
                 if (c == node)
                     continue;
 //                 if (f == null)
