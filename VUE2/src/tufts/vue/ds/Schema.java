@@ -28,7 +28,7 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2008-10-09 19:46:03 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-10-10 19:42:45 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -119,7 +119,45 @@ public class Schema {
             mFields.put(name, new Field(name, this));
         }
     }
+
+    private static boolean isUnlikelyKeyField(Field f) {
+        // hack for dublin-core fields (e.g., dc:creator), which may often
+        // all be unique (e.g., short RSS feed), but are unlikely to be useful keys.
+        return f.getName().startsWith("dc:") && !f.getName().equals("dc:identifier");
+    }
     
+    /** look at all the Fields and make a guess as to which is the most likely key field
+     * This currently will always return *some* field, even if it's not a possible key field. */
+    public Field getKeyFieldGuess() {
+
+        Field firstField = null;
+        Field shortestField = null;
+        int shortestFieldLen = Integer.MAX_VALUE;
+            
+        for (Field field : getFields()) {
+            if (firstField == null)
+                firstField = field;
+            if (field.isPossibleKeyField() && !isUnlikelyKeyField(field)) {
+                if (field.getMaxValueLength() < shortestFieldLen) {
+                    shortestField = field;
+                    shortestFieldLen = field.getMaxValueLength();
+                }
+            }
+        }
+
+        if (shortestField == null) {
+            for (Field field : getFields()) {
+                if (field.getMaxValueLength() < shortestFieldLen) {
+                    shortestField = field;
+                    shortestFieldLen = field.getMaxValueLength();
+                }
+            }
+        }
+
+        return shortestField == null ? firstField : shortestField;
+    }
+        
+        
 
     public void dumpSchema(PrintStream ps) {
         dumpSchema(new PrintWriter(new OutputStreamWriter(ps)));
@@ -374,7 +412,7 @@ public class Schema {
         public Map<String,Integer> getValueMap() {
             return values == null ? Collections.EMPTY_MAP : values;
         }
-        
+
         // todo: may want to move this to a separate analysis code set
         void trackValue(String value) {
 
