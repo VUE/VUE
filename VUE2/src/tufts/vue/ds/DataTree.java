@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.12 $ / $Date: 2008-10-10 04:50:02 $ / $Author: sfraize $
+ * @version $Revision: 1.13 $ / $Date: 2008-10-10 19:42:27 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -716,24 +716,10 @@ public class DataTree extends javax.swing.JTree
             this.schema = schema;
             LWComponent style = new LWNode();
             style.setFlag(Flag.INTERNAL);
-            String fmt = "";
-            Field firstField = null;
-            for (Field field : schema.getFields()) {
-                if (firstField == null)
-                    firstField = field;
-                if (field.isPossibleKeyField()) {
-                    fmt = "${" + field.getName() + "}";
-                    break; // only take first key field found for now
-//                     if (fmt.length() > 0)
-//                         fmt += "\n";
-//                     fmt += String.format("%s: ${%s}", f.getName(), f.getName());
-                }
-            }
             style.setFlag(Flag.DATA_STYLE);
-            if (fmt.length() > 0)
-                style.setLabel(fmt);
-            else
-                style.setLabel("${" + firstField.getName() + "}");
+            
+            style.setLabel(String.format("${%s}", schema.getKeyFieldGuess().getName()));
+            
             style.setFont(DataFont);
             style.setTextColor(Color.white);
             style.setFillColor(Color.darkGray);
