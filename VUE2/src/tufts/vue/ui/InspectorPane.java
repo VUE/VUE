@@ -40,7 +40,7 @@ import edu.tufts.vue.fsm.event.SearchListener;
 /**
  * Display information about the selected Resource, or LWComponent and it's Resource.
  *
- * @version $Revision: 1.97 $ / $Date: 2008-09-16 12:02:09 $ / $Author: sfraize $
+ * @version $Revision: 1.98 $ / $Date: 2008-10-10 17:11:34 $ / $Author: mike $
  */
 
 public class InspectorPane extends WidgetStack
@@ -84,7 +84,7 @@ public class InspectorPane extends WidgetStack
     
     private static class Pane {
 
-        final static Collection<Pane> AllPanes = new ArrayList();
+        static Collection<Pane> AllPanes = new ArrayList();
 
         final String name;
         final JComponent widget;
@@ -104,7 +104,7 @@ public class InspectorPane extends WidgetStack
     private static final int NOTES = 2;
     private static final int KEYWORD = 4;
     private static final int RESOURCE = 8;
-
+  
     public InspectorPane()
     {
         super("Info");
@@ -837,7 +837,14 @@ public class InspectorPane extends WidgetStack
             
     }
     
-
+    public void removeAll()
+    {
+    	super.removeAll();
+    	Pane.AllPanes.clear();
+    	Pane.AllPanes = null;
+    	Pane.AllPanes = new ArrayList<Pane>();
+    }
+    
     private void hideAllPanes()
     {
         for (Pane p : Pane.AllPanes)
