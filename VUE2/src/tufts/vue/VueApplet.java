@@ -43,12 +43,12 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.9 $ / $Date: 2008-10-10 01:39:42 $ / $Author: mike $
+ * @version $Revision: 1.10 $ / $Date: 2008-10-10 17:13:03 $ / $Author: mike $
  */
 public class VueApplet extends JApplet implements Runnable {
 
 	private JLabel loadLabel;
-	private boolean buttonPushed = false;
+	private static boolean firstInit = true;
 	private static MapViewer viewer = null;
 	private JPanel toolbarPanel = null;
 	private JComponent toolbar = null;
@@ -79,6 +79,7 @@ public class VueApplet extends JApplet implements Runnable {
 			VUE.initApplication();
 		}
 	
+	//	new Thread(this).start();
 		loadViewer();
 		msg("init completed");
 	}
@@ -113,6 +114,8 @@ public class VueApplet extends JApplet implements Runnable {
 	
 
 	//	loadViewer();
+		if (!VUE.getLeftTabbedPane().isEnabled())
+	       	VUE.getLeftTabbedPane().setEnabled(true);
 		msg("start");
 
 	}
@@ -121,8 +124,7 @@ public class VueApplet extends JApplet implements Runnable {
 		// super.stop();
 		tufts.vue.gui.DockWindow.HideAllWindows();
 		// this.removeAll();
-
-		//VUE.finalizeDocks();
+		VUE.finalizeDocks();
 
 		// map = null;
 		// mMapTabbedPane = null;
@@ -156,19 +158,35 @@ public class VueApplet extends JApplet implements Runnable {
 		getContentPane().setBackground(toolbarPanel.getBackground());
 		getContentPane().add(toolbarPanel, BorderLayout.NORTH);
 		//getContentPane().add(mMapTabbedPane, BorderLayout.CENTER);
-		VUE.createDockWindows();
-		 vmb.rebuildWindowsMenu();
-		 
-		VUE.displayMap(new LWMap("New Map"));
-		getContentPane().add(VUE.getLeftTabbedPane(),BorderLayout.CENTER);
-		msg("validating...");
+		if (!firstInit)
+		{
+			VUE.createDockWindows();
+			vmb.rebuildWindowsMenu();
+		}
+
+		getContentPane().add(VUE.getLeftTabbedPane(),BorderLayout.CENTER);	
 		validate();
+		
+	//	if (firstInit)
+		VUE.displayMap(new LWMap("New Map"));
+	
+		msg("validating...");
+
 	
 
 		msg("loading complete");
-		 // initialize enabled state of actions via a selection set:
-		 EditorManager.refresh();
-        VUE.getSelection().clearAndNotify();
+		// initialize enabled state of actions via a selection set:
+		if (!firstInit)
+			EditorManager.refresh();
+        
+		VUE.getSelection().clearAndNotify();
+
+		VUE.setActive(MapViewer.class, this, null); // no open viewers
+        firstInit=false;
+        System.out.println("A " +VUE.getLeftTabbedPane().isEnabled());
+        System.out.println("B " +VUE.getLeftTabbedPane().isValid());
+        
+  
 	}
 
 	private void msg(String s) {
