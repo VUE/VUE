@@ -41,7 +41,7 @@ import java.awt.geom.AffineTransform;
  * stable positions relative to each other in the scaled context.
  *
  * @author Scott Fraize
- * @version $Revision: 1.92 $ / $Date: 2008-10-03 16:12:04 $ / $Author: sfraize $
+ * @version $Revision: 1.93 $ / $Date: 2008-10-10 19:38:10 $ / $Author: sfraize $
  */
 
 // TODO: the FORMING of groups is broken on slides -- the new children are repositioned!
@@ -566,9 +566,42 @@ public class LWGroup extends LWContainer
             if (c.isSelected() && c.isAncestorSelected())
                 continue;
             else
-                c.translateOnMap(dx, dy);
+                translateOnMap(c, dx, dy);
         }
     }
+
+    /** translate across the map in absolute map coordinates -- special use by LWGroup */
+    private static void translateOnMap(LWComponent c, double dx, double dy)
+    {
+        // If this node exists in a scaled context, which means it's parent is scaled or
+        // the parent itself is in a scaled context, we need to adjust the dx/dy for
+        // that scale. The scale of this object being "dragged" by the call to
+        // translateOnMap is irrelevant -- here we're concerned with it's location in
+        // it's parent, not it's contents.  So we need to beef up the translation amount
+        // by the context scale so drags across the map will actually stay with the
+        // mouse.  E.g., if this object exists in a parent scaled down 50% (scale=0.5),
+        // to move this object 2 pixels to the right in absolute top-level map
+        // coordinates, we need to change it's internal location within it's parent by 4
+        // pixels (2 / 0.5 = 4) to have that show up on the map (when itself displayed
+        // at 100% scale) as a movement of 4 pixels.
+
+        final double scale = c.getParent().getMapScale();
+        if (scale != 1.0) {
+            dx /= scale;
+            dy /= scale;
+        }
+        
+        c.translate((float) dx, (float) dy);
+        
+        // This will dramatically speed up drags of large groups of nodes (event creation
+        // and delivery is skipping, the UndoManager doesn't need to sort them all out, etc)
+        // However the LAST time we do this (mouse-up), we need to generate the events for undo
+        //c.takeTranslation((float) dx, (float) dy); // performance test for dragging large groups of nodes
+        
+    }
+    
+
+    
     
     @Override
     public void setLocation(float x, float y) {

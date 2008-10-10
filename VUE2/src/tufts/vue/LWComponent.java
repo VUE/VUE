@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.440 $ / $Date: 2008-10-08 16:11:16 $ / $Author: sfraize $
+ * @version $Revision: 1.441 $ / $Date: 2008-10-10 19:37:55 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -3663,30 +3663,31 @@ u                    getSlot(c).setFromString((String)value);
     }
     
 
-    /** translate across the map in absolute map coordinates */
-    public void translateOnMap(double dx, double dy)
-    {
-        // If this node exists in a scaled context, which means it's parent is scaled or
-        // the parent itself is in a scaled context, we need to adjust the dx/dy for
-        // that scale. The scale of this object being "dragged" by the call to
-        // translateOnMap is irrelevant -- here we're concerned with it's location in
-        // it's parent, not it's contents.  So we need to beef up the translation amount
-        // by the context scale so drags across the map will actually stay with the
-        // mouse.  E.g., if this object exists in a parent scaled down 50% (scale=0.5),
-        // to move this object 2 pixels to the right in absolute top-level map
-        // coordinates, we need to change it's internal location within it's parent by 4
-        // pixels (2 / 0.5 = 4) to have that show up on the map (when itself displayed
-        // at 100% scale) as a movement of 4 pixels.
+//     // moved to LWGroup -- currently only usage point
+//     /** translate across the map in absolute map coordinates */
+//     public void translateOnMap(double dx, double dy)
+//     {
+//         // If this node exists in a scaled context, which means it's parent is scaled or
+//         // the parent itself is in a scaled context, we need to adjust the dx/dy for
+//         // that scale. The scale of this object being "dragged" by the call to
+//         // translateOnMap is irrelevant -- here we're concerned with it's location in
+//         // it's parent, not it's contents.  So we need to beef up the translation amount
+//         // by the context scale so drags across the map will actually stay with the
+//         // mouse.  E.g., if this object exists in a parent scaled down 50% (scale=0.5),
+//         // to move this object 2 pixels to the right in absolute top-level map
+//         // coordinates, we need to change it's internal location within it's parent by 4
+//         // pixels (2 / 0.5 = 4) to have that show up on the map (when itself displayed
+//         // at 100% scale) as a movement of 4 pixels.
 
-        final double scale = getParent().getMapScale();
-        if (scale != 1.0) {
-            dx /= scale;
-            dy /= scale;
-        }
+//         final double scale = getParent().getMapScale();
+//         if (scale != 1.0) {
+//             dx /= scale;
+//             dy /= scale;
+//         }
         
-        translate((float) dx, (float) dy);
+//         translate((float) dx, (float) dy);
         
-    }
+//     }
     
     /** set the absolute map location -- meant to be overriden for special cases (e.g., the special selection group) */
     public void setMapLocation(double x, double y) {
@@ -5933,7 +5934,7 @@ u                    getSlot(c).setFromString((String)value);
                                                + "; target has user-override value: " + Util.tags(key.getValue(dest)));
                         }
                     } else {
-                        Log.debug("DATA-STYLE COPY " + key + " -> " + dest);
+                        if (DEBUG.STYLE) Log.debug("DATA-STYLE COPY " + key + " -> " + dest);
                         key.copyValue(this, dest);
                     }
                 } catch (Throwable t) {
