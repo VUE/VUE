@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.578 $ / $Date: 2008-10-10 17:12:40 $ / $Author: mike $ 
+ * @version $Revision: 1.579 $ / $Date: 2008-10-10 17:59:00 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -119,25 +119,25 @@ public class VUE
     	inspectorPane.removeAll();
     //	inspectorPane = null;
     	
-    	formattingPanel.removeAll();
-    	//formattingPanel = null;
+    //	formattingPanel.removeAll();
+    	formattingPanel = null;
     	
-    	floatingZoomPanel.removeAll();
-    	//floatingZoomPanel = null;
+    //	floatingZoomPanel.removeAll();
+    	floatingZoomPanel = null;
     	
-    	pathwayPanel.removeAll();
-    //	pathwayPanel = null;
+    	//pathwayPanel.removeAll();
+    	//pathwayPanel = null;
     	
-    	mapInspectorPanel.removeAll();
-    	//mapInspectorPanel = null;
+    //	mapInspectorPanel.removeAll();
+    	mapInspectorPanel = null;
     	//returnToMapButton = null;
     	
     	//DR_BROWSER.removeAll();
     	//DR_BROWSER = null;
     	
     	DR_BROWSER_DOCK = null;
-    	pathwayDock = null;
-    	pathwayDock = null;
+    //	pathwayDock = null;
+    //	pathwayDock = null;
     	formatDock = null;
     	slideDock = null;
     	pannerDock = null;;
