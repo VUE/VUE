@@ -19,7 +19,7 @@ import java.util.*;
 
 public class VueDataSource implements edu.tufts.vue.dsm.DataSource
 {
-    public static final boolean BLOCKING_OSID_LOAD = true;
+    public static final boolean BLOCKING_OSID_LOAD = false;
     
     private static final org.apache.log4j.Logger Log = org.apache.log4j.Logger.getLogger(VueDataSource.class);
     
