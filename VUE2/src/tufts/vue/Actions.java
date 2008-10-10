@@ -22,6 +22,7 @@ import tufts.vue.NodeTool.NodeModeTool;
 import static tufts.vue.LWComponent.Flag;
 import tufts.vue.LWComponent.ChildKind;
 import java.util.*;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Event;
@@ -2000,8 +2001,10 @@ public class Actions implements VueConstants
             // also, vertical diameter should be enough to stack half the nodes (half of totalHeight) vertically
             // add an analyize to ArrangeAction which we can use here to re-compute on the new set of linked nodes
             //radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
-            radiusWide = Math.max(totalWidth/8,  center.getWidth() / 2 + maxWide / 2 + 50);
-            radiusTall = Math.max(totalHeight/8, center.getHeight() / 2 + maxTall / 2 + 50);
+//             radiusWide = Math.max(totalWidth/8,  center.getWidth() / 2 + maxWide / 2 + 50);
+//             radiusTall = Math.max(totalHeight/8, center.getHeight() / 2 + maxTall / 2 + 50);
+            radiusWide = center.getWidth() / 2 + maxWide / 2 + 50;
+            radiusTall = center.getHeight() / 2 + maxTall / 2 + 50;
         
             //clusterNodes(centerX, centerY, radiusWide, radiusTall, linked);
             clusterNodes(clustering);
@@ -2014,6 +2017,9 @@ public class Actions implements VueConstants
         
         
         //private static void clusterNodes(float centerX, float centerY, double radiusWide, double radiusTall, Collection<LWComponent> nodes)
+        // todo: smarter algorithm that lays out concentric rings, with more nodes in each larger ring (compute ellipse circumference);
+        // tricky: either need a good guess at the number of rings, or just leave the last ring far more spread out (remainder nodes will
+        // be left for the last right
         protected void clusterNodes(Collection<LWComponent> nodes)
         {
             // todo: if a link-chain detected, lay out in link-order e.g., start
@@ -2026,34 +2032,44 @@ public class Actions implements VueConstants
             final double slice = (Math.PI * 2) / nodes.size();
             int i = 0;
 
-            //final int tiers = nodes.size() / 30;
-            final int tiers = 2;
+            final int maxTierSize = 20;
+            final int tiers = nodes.size() / maxTierSize;
+            //final int tiers = 3;
         
                 
             for (LWComponent c : nodes) {
                 // We add Math.PI/2*3 (270 degrees) so the "clock" always starts at the top -- so something
                 // is always is laid out at exactly the 12 o'clock position
-                final double angle = Math.PI/2*3 + slice * i++;
+                final double angle = Math.PI/2*3 + slice * i;
 
-                if (nodes.size() > 100) {
+                if (false && nodes.size() > 200) {
                     // random layout
                     double rand = Math.random()+.1;
                     c.setCenterAt(centerX + radiusWide * rand * Math.cos(angle),
                                   centerY + radiusTall * rand * Math.sin(angle));
 
-                } else if (nodes.size() > 30) {
-                    // tiered circular layout
+                } else if (nodes.size() > maxTierSize) {
+                    // tiered circular layout -- begins to spiral beyond 2 tiers
                     final int tier = i % tiers;
-                    final double rwide = (radiusWide / tiers) * (tier+1);
-                    final double rtall = (radiusTall / tiers) * (tier+1);
+                    final double factor = 1 + tier * 0.33;
+                    final double rwide = radiusWide * factor;
+                    final double rtall = radiusTall * factor;
+//                     final double rwide = (radiusWide / tiers) * (tier+1);
+//                     final double rtall = (radiusTall / tiers) * (tier+1);
                     c.setCenterAt(centerX + rwide * Math.cos(angle),
                                   centerY + rtall * Math.sin(angle));
+//                          if (tier == 0) c.setFillColor(Color.magenta);
+//                     else if (tier == 1) c.setFillColor(Color.red);
+//                     else if (tier == 2) c.setFillColor(Color.green);
+//                     else if (tier == 3) c.setFillColor(Color.blue);
                 } else {
 
                     // circular layout
                     c.setCenterAt(centerX + radiusWide * Math.cos(angle),
                                   centerY + radiusTall * Math.sin(angle));
                 }
+
+                i++;
                     
             }
         
@@ -2350,7 +2366,7 @@ public class Actions implements VueConstants
         void arrange(LWComponent c) { c.setLocation(centerX - c.getWidth()/2, c.getY()); }
     };
     
-    public static final ArrangeAction MakeCircle = new ArrangeAction("Make Circle", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
+    public static final ArrangeAction MakeCluster = new ArrangeAction("Make Cluster", keyStroke(KeyEvent.VK_PERIOD, ALT)) {
             boolean supportsSingleMover() { return false; }
             boolean enabledFor(LWSelection s) { return s.size() > 0; }
             
@@ -2404,10 +2420,10 @@ public class Actions implements VueConstants
     };
 
 
-    public static final LWCAction ClusterData = new ArrangeAction("Make Data Clusters", keyStroke(KeyEvent.VK_SLASH, ALT)) {
+    public static final LWCAction MakeDataClusters = new ArrangeAction("Make Data Clusters", keyStroke(KeyEvent.VK_SLASH, ALT)) {
             @Override
             public void arrange(LWComponent c) {
-                if (c instanceof LWNode)
+                if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class))
                     clusterLinked(c);
             }
         };
@@ -2496,8 +2512,8 @@ public class Actions implements VueConstants
         null,    
         MakeRow,
         MakeColumn,
-        MakeCircle,
-        ClusterData,
+        MakeCluster,
+        MakeDataClusters,
         null,
         DistributeVertically,
         DistributeHorizontally,
