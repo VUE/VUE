@@ -66,7 +66,7 @@ import org.xml.sax.InputSource;
  * Create an application frame and layout all the components
  * we want to see there (including menus, toolbars, etc).
  *
- * @version $Revision: 1.579 $ / $Date: 2008-10-10 17:59:00 $ / $Author: mike $ 
+ * @version $Revision: 1.580 $ / $Date: 2008-10-10 18:57:19 $ / $Author: mike $ 
  */
 
 public class VUE
@@ -2870,6 +2870,12 @@ public class VUE
         }
 
         diagPop();
+        
+        if (VUE.isApplet())
+        {
+        	if (LWPathway.isShowingSlideIcons())
+        		LWPathway.toggleSlideIcons();
+        }
         return leftViewer;
     }
 
