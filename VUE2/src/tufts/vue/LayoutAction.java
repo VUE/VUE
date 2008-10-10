@@ -35,7 +35,7 @@ public abstract  class LayoutAction extends Actions.LWCAction {
     private Layout layout = new edu.tufts.vue.layout.ListRandomLayout(); 
      
     private LayoutAction(edu.tufts.vue.layout.Layout layout, String name,int keyCode) {
-       super(name, KeyStroke.getKeyStroke(keyCode, Actions.COMMAND+Actions.SHIFT));
+       super(name, KeyStroke.getKeyStroke(keyCode, Actions.ALT));
        this.layout = layout;
         
     }
