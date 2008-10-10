@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.11 $ / $Date: 2008-10-09 22:13:08 $ / $Author: sfraize $
+ * @version $Revision: 1.12 $ / $Date: 2008-10-10 04:50:02 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -145,13 +145,18 @@ public class DataTree extends javax.swing.JTree
                 //-----------------------------------------------------------------------------
                 
                 for (Map.Entry<String,Integer> e : valueCounts.entrySet()) {
-                    //Log.debug("ADDING " + o);
-                    //fieldNode.add(new DefaultMutableTreeNode(e.getKey() + "/" + e.getValue()));
 
-                    String bold = field.isPossibleKeyField() ? "" : "<b>";
+                    final String fmt;
+                    if (field.isPossibleKeyField())
+                        fmt = "%s"; // all are unique -- no counts required
+                    else
+                        fmt = "<html><b>%s</b> (%d)";
 
-                    fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
+                    fieldNode.add(new ValueNode(field,
+                                                e.getKey(),
+                                                String.format(fmt, e.getKey(), e.getValue())));
                     
+                    //fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s</b> (%s)", bold, e.getKey(), e.getValue())));
 
 //                     if (e.getValue() == 1) {
 //                         fieldNode.add(new ValueNode(field, e.getKey(), String.format("<html>%s%s", bold, e.getKey())));
@@ -402,8 +407,19 @@ public class DataTree extends javax.swing.JTree
             }
             //nodes.addAll(links);
 
-            if (nodes.size() > 1)
+            if (nodes.size() > 1) {
                 tufts.vue.LayoutAction.table.act(nodes);
+                // Actions.ZoomFit.fire(this); not added to map yet
+                // TODO: below should be a post-add action to be called
+                // on the list-factory
+//                 GUI.invokeAfterAWT(new Runnable() { public void run() {
+//                     // todo: we want a zoom-fit action that will zoom-fit
+//                     // only if MORE space is needed, but not zoom IN if
+//                     // everything is already visible
+//                     Actions.ZoomFit.fire(this); 
+//                 }});
+
+            }
             //Actions.MakeColumn.act(nodes);
             //Actions.MakeCircle.actUpon(nodes);
             
@@ -450,6 +466,8 @@ public class DataTree extends javax.swing.JTree
 
                     // check our schema-node against only field nodes
 
+                    // TODO: below needs to be persistent info, and if we try to add new data
+                    // to a save file of one of our currently created maps, we'll link to everything.
                     if (c.hasClientData(Schema.class))
                         continue;
 
@@ -521,7 +539,7 @@ public class DataTree extends javax.swing.JTree
             final Map<String,Integer> valueCounts = field.getValueMap();
                 
 //             if (field.isPossibleKeyField())
-//                 label = String.format("<html><i><b>%s</b> (%d)", field.getName(), field.uniqueValueCount());
+//                 //label = String.format("<html><i><b>%s</b> (%d)", field.getName(), field.uniqueValueCount());
 //             else
                 label = String.format("<html><b>%s</b> (%d)", field.getName(), field.uniqueValueCount());
 
