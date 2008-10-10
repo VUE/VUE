@@ -35,6 +35,13 @@ import edu.tufts.vue.metadata.MetadataList;
 import edu.tufts.vue.metadata.VueMetadataElement;
 import edu.tufts.vue.dataset.*;
 
+/*
+ * This layout puts nodes in a grid.  By  default it will make or try to make 
+ * a square grid. Eventually it may be possible to define the number of rows, 
+ * columns and cell spacing.
+ */
+
+
 public class TabularLayout extends Layout {
     
     /** Creates a new instance of TabularLayout */
