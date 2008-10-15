@@ -32,11 +32,11 @@ import javax.swing.Action;
 // contains layout actions. based on ArrangeAction. The default layout is random layout
 
 public abstract  class LayoutAction extends Actions.LWCAction {
-    private Layout layout = new edu.tufts.vue.layout.ListRandomLayout(); 
-     
+    private Layout layout = new edu.tufts.vue.layout.ListRandomLayout();
+    
     private LayoutAction(edu.tufts.vue.layout.Layout layout, String name,int keyCode) {
-       super(name, KeyStroke.getKeyStroke(keyCode, Actions.ALT));
-       this.layout = layout;
+        super(name, KeyStroke.getKeyStroke(keyCode, Actions.ALT));
+        this.layout = layout;
         
     }
     
@@ -69,15 +69,19 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         boolean supportsSingleMover() { return false; }
     };
     public static final LayoutAction table = new LayoutAction(new TabularLayout(),"Table",KeyEvent.VK_2) {
-         boolean supportsSingleMover() { return false; }
+        boolean supportsSingleMover() { return false; }
     };
     public static final LayoutAction circle = new LayoutAction(new CircularLayout(),"Circle",KeyEvent.VK_3) {
         boolean supportsSingleMover() { return false; }
     };
-     public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),"Filled Circle",KeyEvent.VK_4) {
+    public static final LayoutAction filledCircle = new LayoutAction(new FilledCircularLayout(),"Filled Circle",KeyEvent.VK_4) {
         boolean supportsSingleMover() { return false; }
     };
-     public static final LayoutAction force = new LayoutAction(new ForceLayout(),"Force",KeyEvent.VK_5) {
+    public static final LayoutAction force = new LayoutAction(new ForceLayout(),"Force",KeyEvent.VK_5) {
+        boolean supportsSingleMover() { return false; }
+    };
+    
+    public static final LayoutAction cluster = new LayoutAction(new ClusterLayout(),"Cluster",KeyEvent.VK_6) {
         boolean supportsSingleMover() { return false; }
     };
     
@@ -86,6 +90,7 @@ public abstract  class LayoutAction extends Actions.LWCAction {
         table,
         circle,
         filledCircle,
-        force
+        force,
+        cluster
     };
 }
