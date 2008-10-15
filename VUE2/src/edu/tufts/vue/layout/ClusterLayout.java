@@ -112,12 +112,76 @@ public class ClusterLayout  extends Layout {
         return map;
     }
     public void layout(LWSelection selection) {
-        Iterator<LWComponent> i = selection.iterator();
+        HashMap<LWComponent,ArrayList<LWComponent>> clusterMap = new   HashMap<LWComponent,ArrayList<LWComponent>>();
+        double minX =10000;
+        double minY = 10000;
+        int nodeSize = 100; // we assume node size is 100 which needs to be fixed.
+        int count = 0;
+        int total = 0;
+        int mod = 4;
+        int xAdd = 1000;
+        int yAdd = 1000;
+        double radius  = 400;
+        Iterator<LWComponent> i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
+            if(c instanceof LWLink) {
+                LWLink link = (LWLink)c;
+                LWComponent head= link.getHead();
+                LWComponent tail = link.getTail();
+                if(selection.contains(head)) {
+                    if(!clusterMap.containsKey(head)) {
+                        clusterMap.put(head,new ArrayList<LWComponent>());
+                    }
+                    clusterMap.get(head).add(tail);
+                }
+                if(selection.contains(tail)) {
+                    if(!clusterMap.containsKey(tail)) {
+                        clusterMap.put(tail,new ArrayList<LWComponent>());
+                    }
+                    clusterMap.get(tail).add(head);
+                }
+            }
+        }
+        
+        Iterator<LWComponent> iter = selection.iterator();
+        while (iter.hasNext()) {
+            LWComponent c = iter.next();
             if(c instanceof LWNode) {
                 LWNode node = (LWNode)c;
-                node.setLocation(MAP_SIZE*Math.random(),MAP_SIZE*Math.random());
+                minX = node.getLocation().getX()<minX?node.getLocation().getX():minX;
+                minY =node.getLocation().getY()<minY?node.getLocation().getY():minY;
+                total++;
+                
+            }
+        }
+        double x = minX;
+        double y = minY;
+        mod = (int) Math.sqrt((double)total);
+        iter = selection.iterator();
+        while (iter.hasNext()) {
+            LWComponent c = iter.next();
+            if(c instanceof LWNode) {
+                LWNode node = (LWNode)c;
+                total++;
+                if(count%mod ==0) {
+                    if(count!=0) y += yAdd;
+                    x =minX;
+                } else {
+                    x+= xAdd;
+                }
+                count++;
+                node.setLocation(x,y);
+                // set linked nodes
+                int totalLinked = clusterMap.get(node).size();
+                int countLinked = 0;
+                double angle = 0.0;
+                for(LWComponent linkedNode:clusterMap.get(node)) {
+                   // LWNode nodeLinked = (LWNode)c;
+                    linkedNode.setLocation(x+radius*Math.cos(angle),y+radius*Math.sin(angle));
+                    countLinked++;
+                    angle = Math.PI*2*countLinked/totalLinked;
+                }
             }
         }
     }
