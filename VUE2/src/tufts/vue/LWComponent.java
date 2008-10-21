@@ -47,7 +47,7 @@ import edu.tufts.vue.preferences.interfaces.VuePreference;
 /**
  * VUE base class for all components to be rendered and edited in the MapViewer.
  *
- * @version $Revision: 1.441 $ / $Date: 2008-10-10 19:37:55 $ / $Author: sfraize $
+ * @version $Revision: 1.442 $ / $Date: 2008-10-21 15:52:26 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -174,6 +174,7 @@ public class LWComponent
     public static final Object ADD_PASTE = "paste";
     public static final Object ADD_DEFAULT = "default";
     public static final Object ADD_PRESORTED = "sorted";
+    public static final Object ADD_MERGE = "merge";
     
     //Static { for (Hide reason : Hide.values()) { System.out.println(reason + " bit=" + reason.bit); } }
 
@@ -1837,7 +1838,7 @@ u                    getSlot(c).setFromString((String)value);
     {
         newLabel = cleanControlChars(newLabel);
 
-        if (!mXMLRestoreUnderway && newLabel.indexOf('$') >= 0) {
+        if (!mXMLRestoreUnderway && newLabel != null && newLabel.indexOf('$') >= 0) {
             if (isStyling(LWKey.Label)) {
                 if (DEBUG.Enabled) createDataLabel(newLabel); // for debug
             } else
@@ -5985,6 +5986,12 @@ u                    getSlot(c).setFromString((String)value);
 
     protected void notify(String what, Object oldValue)
     {
+//         // TODO PERFORMANCE: have EVENT_SILENT always be true for initializing nodes -- this
+//         // should speed things up when creating hundreds/thousands(!) of nodes, including
+//         // during map restores -- we can skip creating an event that will never be delievered
+//         // for ever property set that happens
+//         if (hasFlag(Flag.EVENT_SILENT)) 
+//             return;
         notifyLWCListeners(new LWCEvent(this, this, what, oldValue));
     }
 
