@@ -75,7 +75,7 @@ import osid.dr.*;
  * in a scroll-pane, they original semantics still apply).
  *
  * @author Scott Fraize
- * @version $Revision: 1.577 $ / $Date: 2008-10-10 21:32:51 $ / $Author: mike $ 
+ * @version $Revision: 1.578 $ / $Date: 2008-10-22 15:37:57 $ / $Author: sfraize $ 
  */
 
 // Note: you'll see a bunch of code for repaint optimzation, which is not a complete
@@ -3600,7 +3600,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         dc.setMapDrawing();
 
-        AffineTransform rawMapTransform = dc.g.getTransform();
+        final AffineTransform rawMapTransform = dc.g.getTransform();
         boolean atLeastOneVisible = false;
 
         if (selection.size() > 100) {
@@ -6731,8 +6731,8 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         if (DEBUG.EVENTS || DEBUG.DND)
             System.out.println(TERM_GREEN + "\nINTERNAL MAP MOUSE DROP EVENT in " + this
-                               + "\n\t     event: " + e
-                               + "\n\tindication: " + target
+                               + "\n\t event: " + e
+                               + "\n\ttarget: " + target
                                + TERM_CLEAR);
 
         if (target != null && !target.supportsChildren())
@@ -6758,10 +6758,12 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
         
         for (LWComponent dropped : selection) {
 
-            if (DEBUG.DND) out("processMoveAndDrop", dropped);
+            //if (DEBUG.DND) out("processMoveAndDrop", dropped);
 
-            if (!dropped.supportsReparenting())
+            if (!dropped.supportsReparenting()) {
+                if (DEBUG.DND) out("processDrop", "won't reparent: " + dropped);
                 continue;
+            }
             
             final LWContainer parent = dropped.getParent();
 
@@ -6777,8 +6779,10 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                     // it would re-layout -- for now just try re-layout
                     putbacks.add(parent);
                     //continue;
-                } else 
-                    continue; 
+                } else {
+                    if (DEBUG.DND) out("processDrop", "leaving right there: " + dropped);
+                    continue;
+                }
             }
 
             if (!parent.supportsChildren()) { // old condition?
@@ -6789,7 +6793,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             //-------------------------------------------------------
             // we were over a valid NEW parent -- reparent
             //-------------------------------------------------------
-            if (DEBUG.PARENTING) out("REPARENTING", dropped + " as child of " + target);
+            if (DEBUG.PARENTING||DEBUG.DND) out("processDrop", dropped + " as child of " + target);
             moveList.add(dropped);
         }
 
@@ -6810,7 +6814,7 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
             for (LWComponent c : moveList)
                 parents.add(c.getParent());
 
-            if (DEBUG.PARENTING)  out("MOVING", moveList);
+            if (DEBUG.PARENTING||DEBUG.DND) out("MOVING", moveList + "\n\tto parents: " + parents);
 
             for (LWContainer parent : parents) {
                 
@@ -6822,9 +6826,16 @@ public class MapViewer extends TimedASComponent//javax.swing.JComponent
                 }
 
                 if (newParent != parent || parent.isManagingChildLocations()) {
+                    // it would seem to make sense to skip this if newParent is the
+                    // same as the old parent, but in the case that the parent is
+                    // managing the child locations (such as a standard LWNode),
+                    // we want to de-parent then reparent to itself, which creates
+                    // an action
                     if (DEBUG.PARENTING)  out("DIRECTING", parent + " -> " + newParent);
                     parent.reparentTo(newParent, moveList);
                     moved = true;
+                } else {
+                    if (DEBUG.DND) out("processDrop", "no reparenting needed into " + newParent);
                 }
             }
                 
