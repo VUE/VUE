@@ -371,7 +371,10 @@ public class RDFIndex extends ModelCom
     
     public  com.hp.hpl.jena.rdf.model.Property createPropertyFromKey(String key) throws Exception {
         String words[] = key.split(ONT_SEPARATOR);
-        if(words.length < 2){
+        if (words.length == 1) {
+            return createProperty(VUE_ONTOLOGY+"#",key);
+        } else if(words.length < 1){
+            
             throw new Exception("createPropertyFromKey: The key format is wrong. key - "+key);
         }
         return createProperty(words[0]+"#",words[1]);
