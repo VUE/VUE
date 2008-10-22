@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.14 $ / $Date: 2008-10-10 20:32:57 $ / $Author: sfraize $
+ * @version $Revision: 1.15 $ / $Date: 2008-10-22 15:38:46 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -332,6 +332,8 @@ public class DataTree extends javax.swing.JTree
         final Field linkField = schema.getField("link");
         final Field descField = schema.getField("description");
         final Field titleField = schema.getField("title");
+        final Field mediaField = schema.getField("media:group.media:content.media:url");
+        
         
         Log.debug("PRODUCING ALL DATA NODES FOR " + schema);
         int i = 0;
@@ -346,10 +348,14 @@ public class DataTree extends javax.swing.JTree
 
             if (linkField != null) {
                 node.setResource(row.getValue(linkField));
+                final tufts.vue.Resource r = node.getResource();
                 if (descField != null)
-                    node.getResource().setProperty("Description", row.getValue(descField));
+                    r.setProperty("Description", row.getValue(descField));
                 if (titleField != null)
-                    node.getResource().setTitle(row.getValue(titleField));
+                    r.setTitle(row.getValue(titleField));
+                if (mediaField != null)
+                    ((tufts.vue.URLResource)r).setURL_Thumb(row.getValue(mediaField));
+                
             }
             
             
