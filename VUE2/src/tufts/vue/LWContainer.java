@@ -31,7 +31,7 @@ import java.awt.geom.Rectangle2D;
  *
  * Handle rendering, duplication, adding/removing and reordering (z-order) of children.
  *
- * @version $Revision: 1.150 $ / $Date: 2008-10-08 18:50:57 $ / $Author: sfraize $
+ * @version $Revision: 1.151 $ / $Date: 2008-10-22 15:37:27 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public abstract class LWContainer extends LWComponent
@@ -405,6 +405,9 @@ public abstract class LWContainer extends LWComponent
         //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] ADDING   " + c);
         //if (DEBUG.PARENTING) out("ADDING " + c);
         if (DEBUG.PARENTING) track("addChildImpl/"+context, c);
+
+        if (context == ADD_MERGE && c.getParent() == this)
+            return;
 
         if (c.getParent() != null && c.getParent().hasChild(c)) {
             //if (DEBUG.PARENTING) System.out.println("["+getLabel() + "] auto-deparenting " + c + " from " + c.getParent());
