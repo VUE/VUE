@@ -157,7 +157,7 @@ public class ClusterLayout  extends Layout {
         }
         double x = minX;
         double y = minY;
-        mod = (int) Math.sqrt((double)total);
+        mod =  (int)Math.ceil(Math.sqrt((double)total));
         iter = selection.iterator();
         while (iter.hasNext()) {
             LWComponent c = iter.next();

@@ -74,7 +74,7 @@ public class TabularLayout extends Layout {
         }
         double x = minX;
         double y = minY;
-        mod = (int) Math.sqrt((double)total);
+        mod = (int)Math.ceil(Math.sqrt((double)total));
         i = selection.iterator();
         while (i.hasNext()) {
             LWComponent c = i.next();
