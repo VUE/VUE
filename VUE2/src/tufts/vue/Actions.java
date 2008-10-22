@@ -2427,6 +2427,18 @@ public class Actions implements VueConstants
                     clusterLinked(c);
             }
         };
+
+    public static final LWCAction MakeDataLists = new ArrangeAction("Make Data Lists", keyStroke(KeyEvent.VK_COMMA, ALT)) {
+            boolean enabledFor(LWSelection s) { return s.size() > 0; }
+            @Override
+            public void arrange(LWComponent c) {
+                if (c instanceof LWNode && !c.hasClientData(tufts.vue.ds.Schema.class)) {
+                    // grab linked
+                    c.addChildren(new ArrayList(c.getLinked()), LWComponent.ADD_MERGE);
+                }
+            }
+        };
+    
     
 
     public static final ArrangeAction MakeRow = new ArrangeAction("Make Row", keyStroke(KeyEvent.VK_R, ALT)) {
@@ -2514,6 +2526,7 @@ public class Actions implements VueConstants
         MakeColumn,
         MakeCluster,
         MakeDataClusters,
+        MakeDataLists,
         null,
         DistributeVertically,
         DistributeHorizontally,
