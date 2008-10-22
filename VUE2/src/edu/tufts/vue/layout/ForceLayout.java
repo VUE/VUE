@@ -74,25 +74,27 @@ public class ForceLayout extends Layout {
                 if(!repeatMap.containsKey(node)) repeatMap.put(node, new Integer(0));
                 total++;
             }
+            
+        }
+        // interate to map for links
+        i = VUE.getActiveMap().getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
+        while (i.hasNext()) {
+            LWComponent c = i.next();
             if(c instanceof LWLink) {
                 applyLayout = true;
                 LWLink link = (LWLink)c;
                 LWComponent head= link.getHead();
                 LWComponent tail = link.getTail();
-                 if(repeatMap.containsKey( head)) {
+                if(repeatMap.containsKey( head)) {
                     int nc= repeatMap.get( head).intValue();
                     repeatMap.put(head,new Integer(nc+1));
                     
-                } else  {
-                    repeatMap.put(head, new Integer(1));
                 }
-                 if(repeatMap.containsKey(tail)) {
+                if(repeatMap.containsKey(tail)) {
                     int nc= repeatMap.get(tail).intValue();
                     repeatMap.put(tail,new Integer(nc+1));
-                } else {
-                    repeatMap.put(tail, new Integer(1));
                 }
-            }    
+            }
         }
         if(applyLayout) {
             double x = minX;
