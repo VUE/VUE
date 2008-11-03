@@ -43,7 +43,7 @@ import tufts.vue.gui.VueMenuBar;
 /**
  * Experimental VUE applet.
  * 
- * @version $Revision: 1.10 $ / $Date: 2008-10-10 17:13:03 $ / $Author: mike $
+ * @version $Revision: 1.11 $ / $Date: 2008-11-03 14:12:26 $ / $Author: mike $
  */
 public class VueApplet extends JApplet implements Runnable {
 
@@ -134,6 +134,51 @@ public class VueApplet extends JApplet implements Runnable {
 		// System.runFinalization();
 		msg("stop");
 	}
+
+	public static String getActiveMapItems()
+    {
+        LWMap active = VUE.getActiveMap();
+        java.util.Iterator it = active.getAllDescendents(LWComponent.ChildKind.PROPER).iterator();
+        String items = "";
+        do
+        {
+            if(!it.hasNext())
+                break;
+            LWComponent n = (LWComponent)it.next();
+            if(n instanceof LWNode)
+            {
+                items = (new StringBuilder()).append(items).append(n.getLabel()).append(",").toString();
+                String id = null;
+                try
+                {
+                    id = n.getResource().getProperty("Zotero.id");
+                }
+                catch(Exception e)
+                {
+                    System.out.println("Exception in zotero import from vue: no zotero id");
+                }
+                if(id == null)
+                    items = (new StringBuilder()).append(items).append("none,").toString();
+                else
+                    items = (new StringBuilder()).append(items).append(id).append(",").toString();
+                String url = null;
+                try
+                {
+                    url = n.getResource().getSpec();
+                }
+                catch(Exception e)
+                {
+                    System.out.println("Exception in zotero import from vue: no zotero url");
+                }
+                if(url == null)
+                    items = (new StringBuilder()).append(items).append("none").toString();
+                else
+                    items = (new StringBuilder()).append(items).append(url).toString();
+                items = (new StringBuilder()).append(items).append("\n").toString();
+            }
+        } while(true);
+        return items;
+    }
 
 	public synchronized void loadViewer() {
 		// viewer = getMapViewer();
