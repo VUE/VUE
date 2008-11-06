@@ -3,9 +3,9 @@
  * Educational Community License, Version 2.0 (the "License"); you may
  * not use this file except in compliance with the License. You may
  * obtain a copy of the License at
- * 
+ *
  * http://www.osedu.org/licenses/ECL-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an "AS IS"
  * BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
@@ -64,9 +64,8 @@ public class ConnectivityMatrix {
             Object o = i.next();
             if(o instanceof LWNode || o instanceof LWImage) {
                 //LWNode node = (LWNode) o;
-                if(!labels.contains(getMergeProperty((LWComponent)o)))
-                {    
-                  labels.add(getMergeProperty((LWComponent)o));
+                if(!labels.contains(getMergeProperty((LWComponent)o))) {
+                    labels.add(getMergeProperty((LWComponent)o));
                 }
                 size++;
             }
@@ -76,28 +75,33 @@ public class ConnectivityMatrix {
      * creates a matrix from the map.
      */
     private void generateMatrix() {
-        Iterator links = map.getLinkIterator();
-        while(links.hasNext()) {
-            LWLink link = (LWLink)links.next();
-            LWComponent n1 = link.getHead();
-            LWComponent n2 = link.getTail();
-            int arrowState = link.getArrowState();
-            if( (n1  instanceof LWNode || n1 instanceof LWImage) && ( n2 instanceof LWNode || n2 instanceof LWImage) ) {
-                try {
-                    if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
-                        c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                        c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
-                    } else if(arrowState == LWLink.ARROW_HEAD) { // EP1 and EP2 were deprecated.
-                        c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
-                    } else    if(arrowState == LWLink.ARROW_TAIL) { // EP1 and EP2 were deprecated.
-                        c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+        System.out.println("Generating Connectivity matrix");
+        Iterator i = map.getAllDescendents(LWContainer.ChildKind.PROPER).iterator();
+        while (i.hasNext()) {
+            LWComponent component = (LWComponent)i.next();
+            if(component instanceof LWLink) {
+                LWLink link = (LWLink)component;
+                System.out.println("Link: "+link);
+                LWComponent n1 = link.getHead();
+                LWComponent n2 = link.getTail();
+                int arrowState = link.getArrowState();
+                if( (n1  instanceof LWNode || n1 instanceof LWImage) && ( n2 instanceof LWNode || n2 instanceof LWImage) ) {
+                    try {
+                        if(arrowState == LWLink.ARROW_BOTH || arrowState == LWLink.ARROW_NONE) {
+                            c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
+                            c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+                        } else if(arrowState == LWLink.ARROW_HEAD) { // EP1 and EP2 were deprecated.
+                            c[labels.indexOf(getMergeProperty(n2))][labels.indexOf(getMergeProperty(n1))] = 1;
+                        } else    if(arrowState == LWLink.ARROW_TAIL) { // EP1 and EP2 were deprecated.
+                            c[labels.indexOf(getMergeProperty(n1))][labels.indexOf(getMergeProperty(n2))] =1;
+                        }
+                    } catch(ArrayIndexOutOfBoundsException ae) {
+                        System.out.println("Connectivity Matrix Exception - skipping link: " + link);
+                        System.out.println("Exception was: " + ae);
                     }
-                } catch(ArrayIndexOutOfBoundsException ae) {
-                    System.out.println("Connectivity Matrix Exception - skipping link: " + link);
-                    System.out.println("Exception was: " + ae);
                 }
+                
             }
-            
         }
     }
     public List getLabels() {
@@ -178,22 +182,16 @@ public class ConnectivityMatrix {
         Iterator iterator = labels.iterator();
         while(iterator.hasNext()){
             String label = (String)iterator.next();
-
-            if(label == null)
-            {
+            
+            if(label == null) {
                 output += "\t";
-            }
-            else
-            {
-              int endIndex = Math.min(TRUNCATE_LENGTH,label.length());
-              if(endIndex != 0)
-              {
-                output += label.substring(0,endIndex)+"\t";
-              }
-              else
-              {
-                output += "\t";
-              }
+            } else {
+                int endIndex = Math.min(TRUNCATE_LENGTH,label.length());
+                if(endIndex != 0) {
+                    output += label.substring(0,endIndex)+"\t";
+                } else {
+                    output += "\t";
+                }
             }
         }
         output += System.getProperty("line.separator");
@@ -209,9 +207,8 @@ public class ConnectivityMatrix {
     
     private String getMergeProperty(LWComponent node) {
         
-        if(DEBUG)
-        {
-          System.out.println("Connectivity Matrix - getMergeProperty: " + Util.getMergeProperty(node));
+        if(DEBUG) {
+            System.out.println("Connectivity Matrix - getMergeProperty: " + Util.getMergeProperty(node));
         }
         
         return  Util.getMergeProperty(node);
