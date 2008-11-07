@@ -50,7 +50,7 @@ import java.net.*;
  * We currently handling the dropping of File lists, LWComponent lists,
  * Resource lists, and text (a String).
  *
- * @version $Revision: 1.106 $ / $Date: 2008-10-08 18:51:26 $ / $Author: sfraize $  
+ * @version $Revision: 1.107 $ / $Date: 2008-11-07 14:31:02 $ / $Author: sfraize $  
  */
 class MapDropTarget
     implements java.awt.dnd.DropTargetListener
@@ -1637,11 +1637,11 @@ class MapDropTarget
     
     private static final Pattern URL_Line = Pattern.compile(".*^URL=([^\r\n]+).*", Pattern.MULTILINE|Pattern.DOTALL);
 
-    private static String convertWindowsURLShortCutToURL(File file)
+    public static String convertWindowsURLShortCutToURL(File file)
     {
         String url = null;
         try {
-            if (DEBUG.DND) System.out.println("*** Searching for URL in: " + file);
+            if (DEBUG.DND) Log.debug("Searching for URL in: " + file);
             FileInputStream is = new FileInputStream(file);
             byte[] buf = new byte[2048]; // if not in first 2048, don't bother
             int len = is.read(buf);
@@ -1661,7 +1661,7 @@ class MapDropTarget
                     // for Windows 2000 as a shortcut, but NOT using
                     // Windows 2000 url DLL, so VUE can't open it.
                     url = url.substring(0,i) + ":" + url.substring(i+1);
-                    System.out.println("**PATCHED URL ["+url+"]");
+                    Log.debug("PATCHED URL ["+url+"]");
                 }
                 // if this is a file:/// url to a local html page,
                 // AND we can determine that we're on another computer
@@ -1683,7 +1683,7 @@ class MapDropTarget
                 */
             }
         } catch (Exception e) {
-            System.out.println(e);
+            Log.debug(e);
         }
         return url;
     }
