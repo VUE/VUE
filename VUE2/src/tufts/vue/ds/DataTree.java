@@ -40,7 +40,7 @@ import javax.swing.tree.*;
 
 /**
  *
- * @version $Revision: 1.15 $ / $Date: 2008-10-22 15:38:46 $ / $Author: sfraize $
+ * @version $Revision: 1.16 $ / $Date: 2008-11-07 15:07:28 $ / $Author: sfraize $
  * @author  Scott Fraize
  */
 
@@ -644,7 +644,7 @@ public class DataTree extends javax.swing.JTree
                 setDisplay(description);
 
             //if (field != null && field.isEnumerated() && !field.isPossibleKeyField())
-            if (field != null && !field.isUniqueValue() && field.isEnumerated())
+            if (field != null && !field.hasStyleNode() && !field.isUniqueValue() && field.isEnumerated())
                 field.setStyleNode(createStyleNode(field, repainter));
         }
         
