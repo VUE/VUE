@@ -32,7 +32,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 
 /**
- * @version $Revision: 1.5 $ / $Date: 2008-10-09 20:38:07 $ / $Author: sfraize $
+ * @version $Revision: 1.6 $ / $Date: 2008-11-07 15:09:28 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class XmlDataSource extends BrowseDataSource
@@ -124,25 +124,32 @@ public class XmlDataSource extends BrowseDataSource
             throw exception;
         return viewer;
     }
-    
-    public Schema ingestCSV(String file, boolean hasColumnTitles) throws java.io.IOException {
 
-        final Schema schema = new Schema(file);
+    public Schema ingestCSV(Schema schema, String file, boolean hasColumnTitles) throws java.io.IOException
+    {
+        //final Schema schema = new Schema(file);
         //final CSVReader reader = new CSVReader(new FileReader(file));
         // TODO: need an encoding Win/Mac encoding toggle
         // TODO: need handle this in BrowseDataSource openReader (encoding provided by user in data-source config)
         final CSVReader reader = new CSVReader(new InputStreamReader(new FileInputStream(file), "windows-1252"));
 
         String[] values = reader.readNext();
+
+        if (schema == null) {
+            schema = new Schema(file);
+        } else {
+            schema.flushData();
+            schema.setSource(file);
+        }
         
         if (values == null)
             throw new IOException(file + ": empty file?");
 
         if (hasColumnTitles) {
-            schema.createFields(values);
+            schema.ensureFields(values);
             values = reader.readNext();            
         } else {
-            schema.createFields(values.length);
+            schema.ensureFields(values.length);
         }
 
         if (values == null)
@@ -159,17 +166,19 @@ public class XmlDataSource extends BrowseDataSource
         return schema;
     }
     
+    private Schema mSchema;
+    
     private JComponent loadContentAndBuildViewer() throws java.io.IOException
     {
         Log.debug("loadContentAndBuildViewer");
 
-
         final Schema schema;
-        boolean isCSV = false;
+        //boolean isCSV = false;
 
         if (getAddress().endsWith(".csv")) {
-            schema = ingestCSV(getAddress(), true);
-            isCSV = true;
+            schema = ingestCSV(mSchema, getAddress(), true);
+            mSchema = schema;
+            //isCSV = true;
         } else {
             schema = XMLIngest.ingestXML(openInput(), getItemKey());
             //schema = XMLIngest.ingestXML(openAddress(), getItemKey());
