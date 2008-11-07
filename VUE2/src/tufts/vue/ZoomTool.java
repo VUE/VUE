@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.82 $ / $Date: 2008-06-30 20:52:55 $ / $Author: mike $
+ * @version $Revision: 1.83 $ / $Date: 2008-11-07 14:31:38 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -51,7 +51,7 @@ public class ZoomTool extends VueTool
         //, 96, 128, 256, 384, 512
     };
     static private final int ZOOM_FIT_PAD = 20; // make this is > SelectionStrokeWidth & SelectionHandleSize
-    static private final double MaxZoom = ZoomDefaults[ZoomDefaults.length - 1];
+    static private final double MAX_ZOOM = ZoomDefaults[ZoomDefaults.length - 1];
 
     
     public ZoomTool() {
@@ -810,8 +810,21 @@ public class ZoomTool extends VueTool
     }
     
     
-    public static double computeZoomFit(Dimension2D viewport, float borderGap, Rectangle2D bounds, Point2D offset) {
-        return computeZoomFit(viewport, borderGap, bounds, offset, true);
+    public static double computeZoomFit(Dimension2D viewport,
+                                        float borderGap,
+                                        Rectangle2D bounds,
+                                        Point2D outgoingOffset) {
+        return computeZoomFit(viewport, borderGap, bounds, outgoingOffset, true, MAX_ZOOM);
+    }
+    
+    public static double computeZoomFit(Dimension2D viewport,
+                                        float borderGap,
+                                        Rectangle2D bounds,
+                                        Point2D outgoingOffset,
+                                        double maxZoom
+                                        )
+    {
+        return computeZoomFit(viewport, borderGap, bounds, outgoingOffset, true, maxZoom);
     }
     
     /**
@@ -827,7 +840,8 @@ public class ZoomTool extends VueTool
                                         float borderGap,
                                         Rectangle2D bounds,
                                         Point2D outgoingOffset,
-                                        boolean centerSmallerDimensionInViewport)
+                                        boolean centerSmallerDimensionInViewport,
+                                        double maxZoom)
     {
         if (viewport.getWidth() <= 0 || viewport.getHeight() <= 0 || bounds.isEmpty()) {
             
@@ -835,7 +849,12 @@ public class ZoomTool extends VueTool
             
         } else {
 
-            return computeZoomFitImpl(viewport, borderGap, bounds, outgoingOffset, centerSmallerDimensionInViewport);
+            return computeZoomFitImpl(viewport,
+                                      borderGap,
+                                      bounds,
+                                      outgoingOffset,
+                                      centerSmallerDimensionInViewport,
+                                      maxZoom);
             
         }
             
@@ -851,7 +870,8 @@ public class ZoomTool extends VueTool
                                               final float borderGap,
                                               Rectangle2D bounds,
                                               final Point2D outgoingOffset,
-                                              final boolean centerSmallerDimensionInViewport)
+                                             final boolean centerSmallerDimensionInViewport,
+                                             final double maxZoom)
     {
         
         final double viewWidth, viewHeight;
@@ -940,8 +960,10 @@ public class ZoomTool extends VueTool
 
         final double vertZoom = viewHeight / bounds.getHeight();
         final double horzZoom = viewWidth / bounds.getWidth();
+        //final double vertZoom = Math.min(maxZoom, viewHeight / bounds.getHeight());
+        //final double horzZoom = Math.min(maxZoom, viewWidth / bounds.getWidth());
             
-        final double newZoom;
+        double newZoom;
         final boolean centerVertical;
         
         if (horzZoom < vertZoom) {
@@ -952,6 +974,11 @@ public class ZoomTool extends VueTool
             centerVertical = false;
         }
 
+        // TODO: when we exceed max-zoom, centering in the smaller
+        // dimension no longer works properly
+        if (newZoom > maxZoom)
+            newZoom = maxZoom;
+
         // Now center the components within the dimension
         // that had extra room to scale in.
                     
@@ -959,7 +986,7 @@ public class ZoomTool extends VueTool
                 
             double offsetX = bounds.getX() * newZoom - marginX;
             double offsetY = bounds.getY() * newZoom - marginY;
-            
+             
             if (centerSmallerDimensionInViewport) {
                 if (centerVertical)
                     offsetY -= (viewHeight - bounds.getHeight()*newZoom) / 2;
@@ -970,6 +997,8 @@ public class ZoomTool extends VueTool
         }
         
                       
+        //return newZoom < ZoomDefaults[0] ? ZoomDefaults[0] : newZoom; // never let us be less than min-zoom
+        
         return newZoom < ZoomDefaults[0] ? ZoomDefaults[0] : newZoom; // never let us be less than min-zoom
     }
 
