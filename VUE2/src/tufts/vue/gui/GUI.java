@@ -57,7 +57,7 @@ import sun.awt.shell.ShellFolder;
 /**
  * Various constants for GUI variables and static method helpers.
  *
- * @version $Revision: 1.127 $ / $Date: 2008-10-10 21:41:16 $ / $Author: mike $
+ * @version $Revision: 1.128 $ / $Date: 2008-11-07 14:31:58 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
@@ -2759,7 +2759,7 @@ public class GUI
         /**
            
          * Intercept MouseWheelEvents going to the nearest JScrollPane ancestor of
-         * override (or just override if there is none) by sending them to intercept first.
+         * Component "override" (or just the override if there is none) by sending them to "intercept" first.
          * The intercept should consume the event for those it wishes to override,
          * otherwise the event will be passed on to override.
          *
