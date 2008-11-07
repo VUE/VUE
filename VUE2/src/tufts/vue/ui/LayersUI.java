@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.34 $ / $Date: 2008-10-08 22:42:18 $ / $Author: sfraize $
+ * @version $Revision: 1.35 $ / $Date: 2008-11-07 14:34:06 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -268,6 +268,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         mToolbar.setName("layersUI.tool");
         mRowList.setName("layersUI.rows");
         mRowList.setLayout(new GridBagLayout());
+        mRowList.addMouseListener(RowMouseEnterExitTracker); // doesn't work?
 
         addButton(LAYER_NEW);
         addButton(LAYER_DUPLICATE);
@@ -290,10 +291,10 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             final JScrollPane sp = new JScrollPane(mRowList);
             //sp.setBorder(null);
             add(sp, BorderLayout.CENTER);
+            sp.addMouseListener(RowMouseEnterExitTracker); // doesn't always work
         } else {
             add(mRowList, BorderLayout.CENTER);
         }
-
 
 //         mSelection.addListener(new LWSelection.Listener() {
 //                 public void selectionChanged(LWSelection s) {
@@ -327,11 +328,12 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         //b.addActionListener(this);
     }
 
-//     @Override
-//     public void addNotify() {
-//         super.addNotify();
-//         setMinimumSize(new Dimension(400,120+mToolbar.getHeight()));
-//     }
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        //setMinimumSize(new Dimension(400,120+mToolbar.getHeight()));
+        SwingUtilities.getWindowAncestor(this).addMouseListener(RowMouseEnterExitTracker);
+    }
 
     public void activeChanged(ActiveEvent e, LWMap map) {
         loadMap(map);
@@ -1050,7 +1052,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 .computeZoomFit(size,
                                 0,
                                 allLayerBounds,
-                                offset);
+                                offset,
+                                0.5); // max zoom for preview is 50%
                         
             dc.g.translate(-offset.x + frame.x, -offset.y + frame.y);
             dc.g.scale(zoom, zoom);
@@ -1091,6 +1094,100 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     private static final Dimension LayerHeight = new Dimension(0, 38);
     private static final Dimension DefaultHeight = new Dimension(0, 28);
 
+//     private static class MouseTracker extends tufts.vue.MouseAdapter implements Runnable
+//     {
+//         boolean entered;
+//         Row overRow;
+
+//         MouseTracker() {
+//             super("layer.row.mouse-tracker");
+//         }
+        
+//         public void mouseEntered(MouseEvent e) {
+//             entered = true;
+//         }
+//         public void mouseExited(MouseEvent e) {
+//             entered = false;
+//         }
+
+//         // called when mouse-entered happens on Row container
+//         public void setRow(Row r) {
+//             if (overRow != null && overRow != r)
+//                 overRow.rollOff();
+//             overRow = r;
+//         }
+        
+//         // called when mouse-exited happens on the Row container
+//         public void run() {
+//             if (!entered) {
+//                 if (DEBUG.FOCUS) Log.debug("MOUSE-TRACKER: no child entered, rolling off for real");
+//                 overRow.rollOff();
+//             } else {
+//                 if (DEBUG.FOCUS) Log.debug("MOUSE-TRACKER: a child was entered, do not roll off row");
+//             }
+//         }
+//     }
+
+    /**
+     * Fail-safe mouse enter/exit tracker for Row's.  Only "exits" a Row when a new one
+     * is entered, or a parent of all the Rows is exited -- otherwise, if we just rely
+     * on standard events, when any child of a Row is mouse-entered, the Row itself is
+     * exited, yet this isn't actually rolling-off the row.
+     */
+    
+    private static class MouseTracker extends tufts.vue.MouseAdapter implements Runnable
+    {
+        Row overRow;
+
+        MouseTracker() {
+            super("layer.row.mouse-tracker");
+        }
+        
+        /** MOUSE_ENTERED events on Rows should be forwarded here */
+        public void recordMouseEntered(Row row, MouseEvent e) {
+            setRow(row);
+        }
+
+        public void mouseExited(MouseEvent e) {
+            
+            // any potential parent of a Row, that could possibly get a mouseExited
+            // event, should be re-routed here.  MOUSE_EXITED events can appear very
+            // unreliably, so as many parents as possible should be tracking for these
+            // events in the hope that at least one of them will get the event, even
+            // when the mouse is moving fast.  Even then, we can still miss some.  It
+            // appears we may even need to check for WINDOW_LOST_FOCUS events on the top
+            // level window for more reliability -- and we must create a listener --
+            // there appears to be no Window state we can reliably poll for this!
+            
+            setRow(null);
+        }
+
+        // called when mouse-entered happens on Row container
+        void setRow(Row r) {
+            if (overRow != null && overRow != r)
+                overRow.rollOff();
+            overRow = r;
+            if (overRow != null)
+                overRow.rollOn();
+        }
+
+        public void run() {
+//             if (overRow != null) {
+//                 Window parent = SwingUtilities.getWindowAncestor(overRow);
+//                 if (!parent.isFocused()) {
+//                     if (DEBUG.FOCUS) Log.debug("rolling off last row as window has lost focus");
+//                     setRow(null);
+//                 } else if (DEBUG.FOCUS) {
+//                     if (DEBUG.FOCUS) Log.debug("parent still focused: " + GUI.name(parent));
+//                 }
+//             }
+        }
+    }
+    
+
+    private final MouseTracker RowMouseEnterExitTracker = new MouseTracker();
+    
+
     private class Row extends JPanel implements javax.swing.event.MouseInputListener, Runnable {
 
         final AbstractButton exclusive;
@@ -1121,6 +1218,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 else
                     setPreferredSize(DefaultHeight);
             }
+            //setMaximumSize(new Dimension(Short.MAX_VALUE, 64)); // no effect
             //setMinimumSize(new Dimension(150, 100)); // no effect
 
             addMouseListener(this);
@@ -1145,6 +1243,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             locked.setSelected(layer.isLocked());
             locked.setBorderPainted(layer.isLocked());
+            locked.setOpaque(false);
             locked.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         locked.setBorderPainted(locked.isSelected());
@@ -1152,6 +1251,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                         if (layer == getActiveLayer() && !canBeActive(layer))
                             if (AUTO_ADJUST_ACTIVE_LAYER) attemptAlternativeActiveLayer();
                     }});
+            
 
             visible.setSelected(layer.isVisible());
             visible.addActionListener(new ActionListener() {
@@ -1169,16 +1269,30 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             if (layer instanceof Layer) {
 
-                exclusive = new JRadioButton();            
-                exclusive.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent e) {
-                            Row.this.setExclusive(exclusive.isSelected());
-                        }});
+//                 exclusive = new JRadioButton();            
+//                 exclusive.addActionListener(new ActionListener() {
+//                         public void actionPerformed(ActionEvent e) {
+//                             Row.this.setExclusive(exclusive.isSelected());
+//                         }});
+                exclusive = null;
             
-                grab = new JButton("Grab");                
-                grab.setFont(VueConstants.SmallFont);
-                grab.putClientProperty("JButton.buttonType", "textured");
-                //grab.putClientData("JButton.sizeVariant", "tiny");
+                if (true) {
+                    // debg
+                    grab = new JButton("Grab");
+                    grab.setFont(VueConstants.SmallFont);
+                } else {
+                    // todo: use icon-button version when ready to go -- may
+                    // want to use a VueButton
+                    grab = new JButton();
+                    grab.setBorderPainted(false);
+                    // todo: update when Melanie creates new icon for this
+                    grab.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
+                    grab.putClientProperty("JButton.buttonType", "textured");
+                    grab.putClientProperty("JButton.sizeVariant", "tiny");
+                }
+                grab.setFocusable(false); // FYI, no help on ignoring mouse-motion
+                grab.setOpaque(false);
+                
                 grab.addActionListener(new ActionListener() {
                         public void actionPerformed(ActionEvent e) {
                             if (VUE.getSelection().size() > 0) {
@@ -1263,9 +1377,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 // in alignment
                 
                 info.setMinimumSize(GUI.ZeroSize);
+                //info.addMouseListener(RowMouseEnterExitTracker);
                 Box box = new Box(BoxLayout.X_AXIS);
                 //JPanel box = new JPanel();
                 label.setPreferredSize(null); // must remove this, or info gets squished to 0 width
+                //label.addMouseListener(RowMouseEnterExitTracker);
                 box.add(label);
                 //box.add(Box.createHorizontalGlue());
                 box.add(info);
@@ -1343,13 +1459,28 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 c.fill = GridBagConstraints.NONE;
                 
             }
-            
-            //add(activeIcon, c);
-            
-            add(locked, c);
 
-            add(grab, c);
-            
+            if (true) {
+                JPanel fixed = new JPanel(new BorderLayout());
+                // todo: will need fancier layout to add a 3rd item in here
+                // and keep everything aligned
+                fixed.setOpaque(false);
+                fixed.setMinimumSize(new Dimension(100, 0));
+                //fixed.add: todo the exclusive "quick-edit" icon-button
+                fixed.add(grab, BorderLayout.WEST);
+                fixed.add(locked, BorderLayout.EAST);
+                c.fill = GridBagConstraints.BOTH;
+                add(fixed, c);
+            } else {
+                // old-style before we added hiding these on mouse roll-off
+                //add(activeIcon, c);
+                add(grab, c);
+                add(locked, c);
+            }
+
+            // set initial visibility states by simulating a mouse roll-off
+            rollOff(); 
+
         }
 
         private void add(Component comp, GridBagConstraints c) {
@@ -1357,6 +1488,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 return;
             //super.add(comp);
             super.add(comp, c);
+            //comp.addMouseListener(RowMouseEnterExitTracker);
             //c.gridx++;
         }
 
@@ -1447,8 +1579,37 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         private Color saveColor;
 
 
-        public void mouseEntered(MouseEvent e) {}
-        public void mouseExited(MouseEvent e) {}
+        public void mouseEntered(MouseEvent e) {
+            RowMouseEnterExitTracker.recordMouseEntered(this, e);
+        }
+        
+        public void mouseExited(MouseEvent e) {
+//             //Util.printStackTrace("HERE");
+//             RowMouseEnterExitTracker.setRow(this);
+            if (DEBUG.FOCUS) Log.debug("SCHEDULING MOUSE-TRACKER on " + e);
+            GUI.invokeAfterAWT(RowMouseEnterExitTracker);
+            
+        }
+
+        void rollOn() {
+            if (grab != null) {
+                grab.setVisible(true);
+                //grab.setFocusable(false); // NO HELP ON IGNORING MOUSE-MOTION
+            }
+            if (locked != null)
+                locked.setVisible(true);
+            // todo: handle exlusive button
+
+        }
+        
+        void rollOff() {
+            if (grab != null)
+                grab.setVisible(false);
+            if (locked != null && !locked.isSelected())
+                locked.setVisible(false);
+            // todo: handle exlusive button (will work same as locked: hide if unselected)
+        }
+        
         
         public void mouseClicked(MouseEvent e) {
             if (GUI.isDoubleClick(e)) {
