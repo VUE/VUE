@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.35 $ / $Date: 2008-11-07 14:34:06 $ / $Author: sfraize $
+ * @version $Revision: 1.36 $ / $Date: 2008-11-07 15:44:49 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -1172,6 +1172,16 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
 
         public void run() {
+
+            // todo: only real fail-safe method of handling this will be to reset a
+            // timer each we get here (Row MOUSE_EXITED has happened), and then if after
+            // 500ms or so, another Row hasn't been entered, we can roll off the last
+            // row.  Tho we should be able to cancel the timer right off and do nothing
+            // if overRow has changed since the check was scheduled in the AWT event
+            // queue (e.g., right after MOUSE_EXITED, a MOUSE_ENTERED happened on
+            // another row, so overRow is different, and until we see another Row
+            // MOUSE_EXITED, we don't need the failsafe timer).
+            
 //             if (overRow != null) {
 //                 Window parent = SwingUtilities.getWindowAncestor(overRow);
 //                 if (!parent.isFocused()) {
@@ -1232,9 +1242,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             if (true) {
                 // looks a bit messy w/current icons, but more informative
+                visible.setName("layer.visible");
                 visible.setIcon(VueResources.getImageIcon("pathwayOff"));
                 visible.setSelectedIcon(VueResources.getImageIcon("pathwayOn"));
                 // need a bigger and/or colored icon -- to tough to see
+                locked.setName("layer.locked");
                 locked.setIcon(VueResources.getImageIcon("lockOpen"));
                 locked.setSelectedIcon(VueResources.getImageIcon("lock"));
                 locked.setMargin(LockedInsets);
