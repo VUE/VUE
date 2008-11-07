@@ -28,10 +28,14 @@ import com.google.common.collect.*;
 
 
 /**
- * @version $Revision: 1.6 $ / $Date: 2008-10-10 19:42:45 $ / $Author: sfraize $
+ * @version $Revision: 1.7 $ / $Date: 2008-11-07 15:08:30 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 
+
+// todo: create a DataSet object, which is a combination of a Schema,
+// the DataSet source (use a Resource?), and the holder of the actual
+// row data.
 
 public class Schema {
 
@@ -43,7 +47,7 @@ public class Schema {
 
     private final List<DataRow> mRows = new ArrayList();
 
-    private final Object mSource;
+    private Object mSource;
     
     protected int mLongestFieldName = 10;
 
@@ -51,15 +55,25 @@ public class Schema {
 
     private LWComponent mStyleNode;
         
+    /** construct an empty schema */
+    public Schema() {}
+    
     public Schema(Object source) {
         // would be very handy if source was a Resource and Resources had IO methods
-        mSource = source;
+        setSource(source);
+    }
+
+    public void flushData() {
+        mRows.clear();
+        mLongestFieldName = 10;
+        for (Field f : mFields.values()) {
+            f.flushStats(); // flush data / enums, but keep any style
+        }
     }
 
     public String toString() {
         return getName() + ": " + getSource();
     }
-        
 
     public void setStyleNode(LWComponent style) {
         mStyleNode = style;
@@ -71,6 +85,10 @@ public class Schema {
     
     public Object getSource() {
         return mSource;
+    }
+    
+    public void setSource(Object src) {
+        mSource = src;
     }
 
     public int getRowCount() {
@@ -84,7 +102,6 @@ public class Schema {
     public Field getField(String name) {
         return mFields.get(name);
     }
-    
     
     public String getName() {
 
@@ -108,17 +125,34 @@ public class Schema {
 //             return o.toString();
     }
 
-    public void createFields(String[] names) {
-        for (String name : names)
-            mFields.put(name, new Field(name, this));
+    public void ensureFields(String[] names) {
+        for (String name : names) {
+            if (!mFields.containsKey(name))
+                mFields.put(name, new Field(name, this));
+        }
     }
     
-    public void createFields(int count) {
-        for (int i = 0; i < count; i++) {
+    public void ensureFields(int count) {
+        int curFields = mFields.size();
+        if (count <= curFields)
+            return;
+        for (int i = curFields; i < count; i++) {
             String name = "Column " + (i+1);
             mFields.put(name, new Field(name, this));
         }
     }
+    
+//     public void createFields(String[] names) {
+//         for (String name : names)
+//             mFields.put(name, new Field(name, this));
+//     }
+    
+//     public void createFields(int count) {
+//         for (int i = 0; i < count; i++) {
+//             String name = "Column " + (i+1);
+//             mFields.put(name, new Field(name, this));
+//         }
+//     }
 
     private static boolean isUnlikelyKeyField(Field f) {
         // hack for dublin-core fields (e.g., dc:creator), which may often
@@ -294,11 +328,11 @@ public class Schema {
 
         final String name;
 
-        boolean allValuesUnique = true;
-        int valueCount = 0;
-        boolean enumDisabled = false;
-        int maxValueLen = 0;
-        boolean isNumeric = true;
+        boolean allValuesUnique;
+        int valueCount;
+        boolean enumDisabled;
+        int maxValueLen;
+        boolean isNumeric;
 
         final Schema schema;
 
@@ -315,7 +349,21 @@ public class Schema {
         Field(String n, Schema schema) {
             this.name = n.trim();
             this.schema = schema;
+            flushStats();
             if (Schema.DEBUG) Log.debug("(created field \"" + name + "\")");
+        }
+
+        protected void flushStats() {
+            // reset to initial defaults
+            allValuesUnique = true;
+            valueCount = 0;
+            enumDisabled = false;
+            maxValueLen = 0;
+            isNumeric = true;
+            if (values != null)
+                values.clear();
+            // keep nodeStyle -- the whole reason we use a flush instead of
+            // just creating new Schema+Field objects when reloading
         }
 
         public void setStyleNode(LWComponent style) {
@@ -323,6 +371,11 @@ public class Schema {
                 Log.warn("resetting field style " + this + " to " + style);
             nodeStyle = style;
         }
+
+        public boolean hasStyleNode() {
+            return nodeStyle != null;
+        }
+        
         
         public LWComponent getStyleNode() {
             return nodeStyle;
