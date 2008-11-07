@@ -34,7 +34,7 @@ import javax.swing.*;
  * zoom needed to display an arbitraty map region into an arbitrary
  * pixel region.
  *
- * @version $Revision: 1.83 $ / $Date: 2008-11-07 14:31:38 $ / $Author: sfraize $
+ * @version $Revision: 1.84 $ / $Date: 2008-11-07 15:12:17 $ / $Author: sfraize $
  * @author Scott Fraize
  *
  */
@@ -810,6 +810,7 @@ public class ZoomTool extends VueTool
     }
     
     
+    
     public static double computeZoomFit(Dimension2D viewport,
                                         float borderGap,
                                         Rectangle2D bounds,
@@ -825,6 +826,14 @@ public class ZoomTool extends VueTool
                                         )
     {
         return computeZoomFit(viewport, borderGap, bounds, outgoingOffset, true, maxZoom);
+    }
+    
+    public static double computeZoomFit(Dimension2D viewport,
+                                        float borderGap,
+                                        Rectangle2D bounds,
+                                        Point2D outgoingOffset,
+                                        boolean center) {
+        return computeZoomFit(viewport, borderGap, bounds, outgoingOffset, center, MAX_ZOOM);
     }
     
     /**
