@@ -37,7 +37,7 @@ import javax.swing.border.*;
 
 
 /**
- * @version $Revision: 1.36 $ / $Date: 2008-11-07 15:44:49 $ / $Author: sfraize $
+ * @version $Revision: 1.37 $ / $Date: 2008-11-09 22:59:51 $ / $Author: sfraize $
  * @author Scott Fraize
  */
 public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listener, LWSelection.Listener//, ActionListener
@@ -438,7 +438,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
         //Log.debug("selectionChanged: " + s + "; size=" + s.size() + "; " + Arrays.asList(s.toArray()) + "; parents=" + s.getParents());
 
-        enableForSelection(s);
+        updateGrabEnabledForSelection(s);
 
 //         if (!s.getParents().contains(mMap.getActiveLayer()))
 //             for (LWComponent c : s.getParents())
@@ -488,17 +488,31 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
     }
 
+    private boolean layerReparentingSeen;
+
     public void LWCChanged(LWCEvent e) {
 
         // ignore events from children: just want hierarchy events directly from the map
         // (as we're only interested in changes to map layers)
         
         if (e.key == LWKey.UserActionCompleted) {
+            if (layerReparentingSeen) {
+                VUE.getSelection().resetStatistics();
+                updateGrabEnabledForSelection(VUE.getSelection());
+                layerReparentingSeen = false;
+            }
             repaint(); // repaint the previews
         }
         else if (mShowAll.isSelected() || e.getSource() == mMap) {
-            if (e.getName().startsWith("hier."))
+            if (e.getName().startsWith("hier.")) {
                 loadLayers(mMap);
+            }
+        } else if (e.getSource() instanceof Layer && e.getName().startsWith("hier.")) {
+            // tho we only really need to track this for changes to any components
+            // that are in the selection, we just track it for everything right
+            // now -- we especially need this to handle updating grab enabled
+            // states when undoing grabs
+            layerReparentingSeen = true;
         }
     }
     
@@ -570,7 +584,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         
     }
 
-    private void enableForSelection(LWSelection s) {
+    private void updateGrabEnabledForSelection(LWSelection s) {
 
         final Collection<LWContainer> parents = s.getParents();
         //final LWContainer parent0 = parents.isEmpty() ? null : parents.iterator().next();
@@ -595,12 +609,15 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         for (Row row : mRows) {
             if (row.grab == null)
                 continue;
-            if (disable)
+            if (disable) {
                 row.grab.setEnabled(false);
-            else if (parents.size() == 1 && parents.contains(row.layer))
+            } else if (parents.size() == 1 && parents.contains(row.layer)) {
+                Log.debug("DISABLE GRAB IN " + row);
                 row.grab.setEnabled(false);
-            else 
+            } else  {
+                Log.debug(" ENABLE GRAB IN " + row);
                 row.grab.setEnabled(true);
+            }
         }
     }
 
@@ -643,7 +660,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         // todo perf: remove all old layer in one swoop, then add to new
         
         layer.addChildren(grabbing);
-        
+
+        selection.resetStatistics();
     }
     
 
@@ -669,7 +687,7 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
         }
         
         if (!isDragUnderway) {
-            enableForSelection(VUE.getSelection());
+            updateGrabEnabledForSelection(VUE.getSelection());
             indicateActiveLayers(null);
         }
         
@@ -748,9 +766,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
     }
     
 
-    private boolean inExclusiveMode() {
-        return fetchExclusiveRow() != null;
-    }
+//     private boolean inExclusiveMode() {
+//         return fetchExclusiveRow() != null;
+//     }
 
     private Row fetchExclusiveRow() {
         return mMap.getClientData(Row.class, "exclusive");
@@ -1281,29 +1299,38 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             
             if (layer instanceof Layer) {
 
-//                 exclusive = new JRadioButton();            
-//                 exclusive.addActionListener(new ActionListener() {
-//                         public void actionPerformed(ActionEvent e) {
-//                             Row.this.setExclusive(exclusive.isSelected());
-//                         }});
-                exclusive = null;
+                exclusive = new JRadioButton();
+                exclusive.setName("exclusive");
+                exclusive.setToolTipText("Quick-Edit");
+                exclusive.setBorderPainted(false);
+                exclusive.setIcon(VueResources.getIcon(VUE.class, "images/quickFocus_ov.png"));
+                exclusive.setFocusable(false);
+                exclusive.setOpaque(false);
+                exclusive.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent e) {
+                            exclusive.setBorderPainted(exclusive.isSelected());
+                            Row.this.setExclusive(exclusive.isSelected());
+                        }});
             
-                if (true) {
-                    // debg
-                    grab = new JButton("Grab");
-                    grab.setFont(VueConstants.SmallFont);
-                } else {
-                    // todo: use icon-button version when ready to go -- may
-                    // want to use a VueButton
-                    grab = new JButton();
-                    grab.setBorderPainted(false);
-                    // todo: update when Melanie creates new icon for this
-                    grab.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
-                    grab.putClientProperty("JButton.buttonType", "textured");
-                    grab.putClientProperty("JButton.sizeVariant", "tiny");
-                }
+                //grab = new JButton("Grab");
+                //grab.setFont(VueConstants.SmallFont);
+                grab = new JButton();
+                grab.setName("grab");
+                grab.setToolTipText("Move selection to this layer");
+                grab.setBorderPainted(false);
+                grab.setIcon(VueResources.getIcon(VUE.class, "images/grab_ov.png"));
                 grab.setFocusable(false); // FYI, no help on ignoring mouse-motion
                 grab.setOpaque(false);
+                
+
+//                     // todo: use icon-button version when ready to go -- may
+//                     // want to use a VueButton
+//                     grab = new JButton();
+//                     grab.setBorderPainted(false);
+//                     // todo: update when Melanie creates new icon for this
+//                     grab.setIcon(VueResources.getIcon(VUE.class, "images/hand_open.png"));
+//                     grab.putClientProperty("JButton.buttonType", "textured");
+//                     grab.putClientProperty("JButton.sizeVariant", "tiny");
                 
                 grab.addActionListener(new ActionListener() {
                         public void actionPerformed(ActionEvent e) {
@@ -1370,8 +1397,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             c.weighty = 1; // 1 has all expanding to fill vertical, 0 leaves all at min height
             c.anchor = GridBagConstraints.WEST;
             
-            c.insets.right = 4;
-            add(exclusive, c);
+//             c.insets.right = 4;
+//             add(exclusive, c);
 
             //add(Box.createHorizontalStrut(5), c);
             c.insets.right = 0;
@@ -1474,13 +1501,14 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 
             if (true) {
                 JPanel fixed = new JPanel(new BorderLayout());
-                // todo: will need fancier layout to add a 3rd item in here
-                // and keep everything aligned
+                if (DEBUG.BOXES) fixed.setBorder(new LineBorder(Color.red, 1));
                 fixed.setOpaque(false);
-                fixed.setMinimumSize(new Dimension(100, 0));
-                //fixed.add: todo the exclusive "quick-edit" icon-button
-                fixed.add(grab, BorderLayout.WEST);
+                fixed.setMinimumSize(new Dimension(70, 0));
+                
+                fixed.add(exclusive, BorderLayout.WEST);
+                fixed.add(grab, BorderLayout.CENTER);
                 fixed.add(locked, BorderLayout.EAST);
+                
                 c.fill = GridBagConstraints.BOTH;
                 add(fixed, c);
             } else {
@@ -1525,7 +1553,9 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 // disable old row
                 lastExcluded.label.setEnabled(false);
                 lastExcluded.layer.setHidden(LAYER_EXCLUDED);
+                lastExcluded.exclusive.setVisible(false); // simulate rollOff
                 lastExcluded.exclusive.setSelected(false);
+                lastExcluded.exclusive.setBorderPainted(false); // clear sticky-state border
             }
 
             if (excluding) {
@@ -1610,7 +1640,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
             }
             if (locked != null)
                 locked.setVisible(true);
-            // todo: handle exlusive button
+            if (exclusive != null)
+                exclusive.setVisible(true);
 
         }
         
@@ -1619,7 +1650,8 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
                 grab.setVisible(false);
             if (locked != null && !locked.isSelected())
                 locked.setVisible(false);
-            // todo: handle exlusive button (will work same as locked: hide if unselected)
+            if (exclusive != null && !exclusive.isSelected())
+                exclusive.setVisible(false);
         }
         
         
@@ -1638,9 +1670,11 @@ public class LayersUI extends tufts.vue.gui.Widget implements LWComponent.Listen
 // //                     mSelection.toggle(layer);
 // //                 else
 //                     mSelection.setTo(layer);
-                if (inExclusiveMode())
-                    setExclusive(true);
-                else if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
+                
+//                 if (inExclusiveMode()) // exlusive mode is no longer globally modal
+//                     setExclusive(true);
+//                 else
+                    if (!AUTO_ADJUST_ACTIVE_LAYER || layer.isVisible()) 
                     setActiveLayer((Layer) layer, UPDATE);
 //                 if (VUE.getSelection().isEmpty() || VUE.getSelection().only() instanceof Layer)
 //                     VUE.getSelection().setTo(layer);
